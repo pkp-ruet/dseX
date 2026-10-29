@@ -6,7 +6,7 @@ import PageHeader from "@/components/ui/PageHeader";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { T } from "@/components/i18n/T";
 import {
-  IconBulb, IconCheck, IconChevronDown, IconCrown, IconList, IconLock, IconSparkle, IconWallet,
+  IconBulb, IconCheck, IconChevronDown, IconCrown, IconList, IconSparkle, IconWallet,
 } from "@/components/ui/icons";
 import PremiumPlanCta from "@/components/premium/PremiumPlanCta";
 import PremiumContextCard from "@/components/premium/PremiumContextCard";
@@ -18,7 +18,7 @@ import { OFFER } from "@/lib/premium-plans";
 import {
   BENEFITS, DIFF, FAQS, HERO, PER_MONTH, PROMISES, ROWS, SECTIONS, STEPS, type Bi,
 } from "@/lib/premium-copy";
-import { JobTag } from "@/components/premium/AnswerLock";
+import { AnswerCard, JobTag } from "@/components/premium/AnswerLock";
 import { JOBS, JOB_ORDER } from "@/lib/premium-jobs";
 
 const ICON: Record<(typeof BENEFITS)[number]["key"], ReactNode> = {
@@ -128,17 +128,7 @@ export default function PremiumBody() {
             <p className="pm-diff-head"><Tx b={DIFF.freeHead} /></p>
             <p className="font-semibold text-text-main"><Tx b={DIFF.question} /></p>
             <p className="mt-1 text-sm text-text-main"><Tx b={DIFF.freeLine} /></p>
-            <div className="ans" data-open="false">
-              <p className="ans-label">
-                <IconLock size={14} /> <T en="Premium answers" bn="প্রিমিয়ামে যা জানবেন" />
-                <span className="ans-tag"><Tx b={JOBS.understand.name} /></span>
-              </p>
-              <ul className="ans-list">
-                {DIFF.lockLines.map((l) => (
-                  <li key={l.en} className="text-sm leading-snug text-text-main"><Tx b={l} /></li>
-                ))}
-              </ul>
-            </div>
+            <AnswerCard job="understand" lines={DIFF.lockLines} />
           </div>
           <div className="pm-diff-col pm-diff-col--pm">
             <p className="pm-diff-head pm-diff-head--pm"><IconCrown size={12} /> <Tx b={DIFF.premiumHead} /></p>

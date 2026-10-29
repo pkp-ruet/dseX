@@ -38,4 +38,45 @@ export const JOBS: Record<Job, { name: Bi; line: Bi }> = {
   },
 };
 
+/**
+ * What each job does, in easy words, for a reader who has never paid for
+ * anything like it (the closed `AnswerLock` card): one or two sentences and
+ * three short things you get. Facts only — no advice, no performance claims.
+ */
+export const JOB_EXPLAIN: Record<Job, { what: Bi; gets: Bi[] }> = {
+  understand: {
+    what: {
+      en: "We read the company's results, notices and price history for you, and explain in plain words what they mean: is the price fair, is the dividend safe, and what to keep an eye on.",
+      bn: "আমরা কোম্পানির আর্থিক ফল, নোটিশ আর দামের ইতিহাস আপনার হয়ে পড়ি, তারপর সহজ ভাষায় বুঝিয়ে বলি এর মানে কী: দাম ঠিক আছে কি না, ডিভিডেন্ড নিরাপদ কি না, আর কোন দিকে খেয়াল রাখবেন।",
+    },
+    gets: [
+      { en: "Answers in plain words", bn: "সহজ ভাষায় উত্তর" },
+      { en: "Updated every trading day", bn: "প্রতি লেনদেনের দিনে নতুন করে" },
+      { en: "On every DSE share", bn: "ডিএসইর সব শেয়ারে" },
+    ],
+  },
+  find: {
+    what: {
+      en: "We check every company on the DSE each day and show you the full list of shares that pass, with the reason each one is there.",
+      bn: "আমরা প্রতিদিন ডিএসইর সব কোম্পানি যাচাই করি, আর যেগুলো পাস করে তার পুরো তালিকা দেখাই, প্রতিটি কেন তালিকায় আছে তা সহ।",
+    },
+    gets: [
+      { en: "The full list, not just 3", bn: "শুধু 3টি নয়, পুরো তালিকা" },
+      { en: "Why each share is there", bn: "প্রতিটি শেয়ার কেন আছে" },
+      { en: "Checked every trading day", bn: "প্রতি লেনদেনের দিনে যাচাই" },
+    ],
+  },
+  watch: {
+    what: {
+      en: "We look after your shares every trading day: we tell you when something changes, grade your portfolio, and show what needs your attention, so you don't have to search for it yourself.",
+      bn: "আমরা প্রতি লেনদেনের দিনে আপনার শেয়ারের খেয়াল রাখি: কিছু বদলালে জানাই, পোর্টফোলিওর গ্রেড দিই, আর কোথায় নজর দেওয়া দরকার তা দেখাই, যাতে আপনাকে নিজে খুঁজতে না হয়।",
+    },
+    gets: [
+      { en: "Checked after every trading day", bn: "প্রতি লেনদেনের পরে যাচাই" },
+      { en: "A notification when it matters", bn: "দরকারি খবরে নোটিফিকেশন" },
+      { en: "What needs your attention", bn: "কোথায় নজর দেবেন" },
+    ],
+  },
+};
+
 export const JOB_ORDER: Job[] = ["understand", "find", "watch"];

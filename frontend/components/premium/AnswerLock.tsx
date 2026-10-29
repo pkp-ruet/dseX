@@ -2,15 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, type ReactNode } from "react";
+import { forwardRef, useEffect, useRef, type ReactNode } from "react";
 import { T } from "@/components/i18n/T";
 import { useLockScope } from "@/components/premium/LockScope";
 import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
-import { IconCrown, IconLock } from "@/components/ui/icons";
+import { IconArrowRight, IconCheck, IconCrown, IconLock } from "@/components/ui/icons";
 import { useLang } from "@/context/LangContext";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
 import { areaOf, savePremiumContext } from "@/lib/premium-context";
-import { JOBS, type Bi, type Job } from "@/lib/premium-jobs";
+import { FROM_MONTH } from "@/lib/premium-plans";
+import { JOB_EXPLAIN, JOBS, type Bi, type Job } from "@/lib/premium-jobs";
 import { trackEvent } from "@/lib/track";
 
 /**
@@ -43,6 +44,69 @@ export function JobTag({ job, className = "" }: { job: Job; className?: string }
   );
 }
 
+/**
+ * The closed card itself (also drawn as an example on /premium): a gold
+ * header band with the crown and the job, what Premium does here in easy
+ * words, the questions it answers (never the answers), three things you
+ * get, then `foot` — the button and the price.
+ */
+export const AnswerCard = forwardRef<
+  HTMLDivElement,
+  { job: Job; lines: Bi[]; foot?: ReactNode; className?: string }
+>(function AnswerCard({ job, lines, foot, className = "" }, ref) {
+  const info = JOB_EXPLAIN[job];
+  return (
+    <div ref={ref} className={`ans ${className}`.trim()} data-open="false">
+      <div className="ans-top">
+        <span className="ans-medal" aria-hidden="true">
+          <IconCrown size={20} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="ans-eyebrow">
+            Premium · <T en={JOBS[job].name.en} bn={JOBS[job].name.bn} />
+          </p>
+          <p className="ans-title">
+            <T en={JOBS[job].line.en} bn={JOBS[job].line.bn} />
+          </p>
+        </div>
+        <span className="ans-locked">
+          <IconLock size={14} />
+          <T en="Locked" bn="লক করা" />
+        </span>
+      </div>
+      <div className="ans-body">
+        <p className="ans-what">
+          <T en={info.what.en} bn={info.what.bn} />
+        </p>
+        <p className="ans-k">
+          <T en="What you will find out here" bn="এখানে যা জানতে পারবেন" />
+        </p>
+        <ul className="ans-qs">
+          {lines.map((l, i) => (
+            <li key={i}>
+              <span className="ans-q-icon" aria-hidden="true">
+                <IconLock size={12} />
+              </span>
+              <span className="min-w-0">
+                <T en={l.en} bn={l.bn} />
+              </span>
+            </li>
+          ))}
+        </ul>
+        <ul className="ans-gets">
+          {info.gets.map((g) => (
+            <li key={g.en}>
+              <IconCheck size={12} />
+              <T en={g.en} bn={g.bn} />
+            </li>
+          ))}
+        </ul>
+      </div>
+      {foot && <div className="ans-foot">{foot}</div>}
+    </div>
+  );
+});
+
 /** Said when a lock has no question of its own. */
 const FALLBACK_LINE: Bi = {
   en: "Our reading of these figures, and what to watch next",
@@ -59,8 +123,10 @@ const FALLBACK_LINE: Bi = {
  *  - Free reader on an open sample (`sample`, or a scope opened for everyone —
  *    today's free report): a gold rule, "Premium analysis" + "Free sample" /
  *    "Free today", then the answer.
- *  - Everyone else, `box`: a gold-tinted box "Premium answers" with the job
- *    tag, 1–3 plain questions it answers (never the answer), one link.
+ *  - Everyone else, `box`: `AnswerCard` — a gold header band (crown, the
+ *    job, "Locked"), what Premium does here in easy words, 1–3 plain
+ *    questions it answers (never the answer), three things you get, then one
+ *    clay button and the from-price.
  *    `line`: one sentence + a small button (a short list's hidden rest).
  *
  * The answer always stays in the HTML under `.premium-locked`, hidden.
@@ -191,42 +257,43 @@ export default function AnswerLock({
     );
   }
 
-  const linkCls =
-    "mt-1 inline-flex min-h-10 items-center text-sm font-bold text-gold-ink hover:underline active:opacity-70";
   const linkBody = (
     <>
-      <T en="Open with Premium" bn="প্রিমিয়ামে খুলুন" />
-      <span aria-hidden="true">&nbsp;→</span>
+      <T en="Unlock with Premium" bn="প্রিমিয়ামে খুলুন" />
+      <IconArrowRight size={18} />
     </>
   );
+  const linkCls = "btn-primary btn-lg ans-cta";
   return (
     <div className={className || undefined}>
       <Locked>{children}</Locked>
-      <div ref={ref} className={`ans ${boxClassName}`.trim()} data-open="false">
-        <p className="ans-label">
-          <IconLock size={14} />
-          <T en="Premium answers" bn="প্রিমিয়ামে যা জানবেন" />
-          <span className="ans-tag">
-            <T en={JOBS[job].name.en} bn={JOBS[job].name.bn} />
-          </span>
-        </p>
-        <ul className="ans-list">
-          {shown.map((l, i) => (
-            <li key={i} className="text-sm leading-snug text-text-main">
-              <T en={l.en} bn={l.bn} />
-            </li>
-          ))}
-        </ul>
-        {isAnchor ? (
-          <a href={href} onClick={onTap} className={linkCls}>
-            {linkBody}
-          </a>
-        ) : (
-          <Link href={href} prefetch={false} onClick={onTap} className={linkCls}>
-            {linkBody}
-          </Link>
-        )}
-      </div>
+      <AnswerCard
+        ref={ref}
+        job={job}
+        lines={shown}
+        className={boxClassName}
+        foot={
+          <>
+            {isAnchor ? (
+              <a href={href} onClick={onTap} className={linkCls}>
+                {linkBody}
+              </a>
+            ) : (
+              <Link href={href} prefetch={false} onClick={onTap} className={linkCls}>
+                {linkBody}
+              </Link>
+            )}
+            <span className="ans-price">
+              <b>
+                <T en={`From ৳${FROM_MONTH} a month`} bn={`মাসে ৳${FROM_MONTH} থেকে`} />
+              </b>
+              <span>
+                <T en="No auto-renewal · 7-day refund" bn="নিজে থেকে নবায়ন হয় না · 7 দিনে টাকা ফেরত" />
+              </span>
+            </span>
+          </>
+        }
+      />
     </div>
   );
 }

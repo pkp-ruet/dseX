@@ -15,17 +15,15 @@ import {
 } from "@/components/market-analysis/PersonalCodes";
 import { useLang } from "@/context/LangContext";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
-import { PAID_PLANS } from "@/lib/premium-plans";
+import { FROM_MONTH } from "@/lib/premium-plans";
 import { areaOf, savePremiumContext } from "@/lib/premium-context";
 import { trackEvent } from "@/lib/track";
 
 export type Pair = { en: string; bn: string };
 export type LockTile = { value: string; label: Pair };
 
-/** The cheapest month on any plan (the yearly one: ৳1,899 / 12 ≈ ৳158). */
-export const FROM_MONTH = Math.min(
-  ...PAID_PLANS.map((p) => Math.round(p.amount / Math.max(1, Math.round(p.days / 30)))),
-);
+/** Re-exported: the cheapest month on any plan lives with the plans. */
+export { FROM_MONTH };
 
 type Props = {
   variant?: "full" | "line";

@@ -64,6 +64,11 @@ export const PAID_PLANS: PaidPlan[] = [
   },
 ];
 
+/** The cheapest month on any plan (the yearly one: ৳1,899 / 12 ≈ ৳158). */
+export const FROM_MONTH = Math.min(
+  ...PAID_PLANS.map((p) => Math.round(p.amount / Math.max(1, Math.round(p.days / 30)))),
+);
+
 /** The words for the limited-time offer on the discounted plans. */
 export const OFFER = {
   label: { en: "Limited-time offer", bn: "সীমিত সময়ের অফার" },

@@ -527,20 +527,15 @@ details[open] > .pm-fold-summary .pm-fold-chev { transform: rotate(180deg); }
    AnswerLock (2026-10-29, the Free vs Premium plan): THE lock for an
    explanation, a verdict or an analysis — grew out of the stock report's
    Premium panel. Open: a gold rule + "Premium analysis", the answer on the
-   card like any content. Closed: a gold-tinted box naming the questions it
-   answers, its job tag, one link. Lists of other companies use RowLock.
+   card like any content. Closed: AnswerCard — what Premium does here, the
+   questions it answers, what you get, one button and the price. Lists of other companies use RowLock.
    =================================================================== */
 .ans { margin-top: var(--space-4); }
 .ans[data-open="true"] {
   padding-top: var(--space-4);
   border-top: 1px solid rgb(var(--gold-rgb) / 0.55);
 }
-.ans[data-open="false"] {
-  padding: var(--space-3) var(--space-4) var(--space-1);
-  border: 1px solid rgb(var(--gold-rgb) / 0.45);
-  border-radius: var(--radius-md);
-  background: rgb(var(--gold-rgb) / 0.07);
-}
+/* The open sample's label: "Premium analysis" + "Free sample". */
 .ans-label {
   display: flex; align-items: center; gap: 6px;
   margin-bottom: var(--space-2);
@@ -551,11 +546,78 @@ details[open] > .pm-fold-summary .pm-fold-chev { transform: rotate(180deg); }
   background: rgb(var(--gold-rgb) / 0.16); color: var(--gold-ink);
   font-size: var(--fs-2xs); font-weight: 700; white-space: nowrap;
 }
-.ans-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.ans-list > li { position: relative; padding-left: 16px; }
-.ans-list > li::before {
-  content: ""; position: absolute; left: 2px; top: 0.55em;
-  width: 6px; height: 6px; border-radius: 50%; background: var(--gold);
+
+/* Closed = AnswerCard (2026-10-29, user: "pretty faint … explain what it
+   does"): a solid gold header band with a filled crown medal, the job as the
+   title and a "Locked" pill; then what Premium does here in easy words, the
+   questions as tinted rows, three "you get" chips; then a clay button and the
+   price on a gold-washed footer. Solid fills, no gradients. */
+.ans[data-open="false"] {
+  overflow: hidden;
+  border: 1px solid var(--gold-soft);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-lift);
+}
+.ans-top {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--gold-light);
+  border-bottom: 1px solid var(--gold-soft);
+}
+@media (min-width: 640px) { .ans-top { padding: var(--space-4) var(--space-6); } }
+.ans-medal {
+  display: inline-flex; flex: none; align-items: center; justify-content: center;
+  width: 44px; height: 44px; border-radius: var(--radius-md);
+  color: var(--surface); background: var(--gold-ink);
+  box-shadow: var(--shadow-soft);
+}
+.ans-eyebrow { margin: 0; font-size: var(--fs-xs); font-weight: 700; color: var(--gold-ink); }
+.ans-title { margin: 2px 0 0; font-size: var(--fs-title); font-weight: 700; line-height: 1.3; color: var(--text); text-wrap: balance; }
+.ans-locked {
+  display: inline-flex; flex: none; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 999px;
+  font-size: var(--fs-2xs); font-weight: 700; color: var(--gold-ink);
+  background: var(--surface); border: 1px solid var(--gold-soft);
+}
+@media (max-width: 419.98px) { .ans-locked { display: none; } }
+.ans-body { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-4); }
+@media (min-width: 640px) { .ans-body { padding: 20px var(--space-6); } }
+.ans-what { margin: 0; max-width: 68ch; font-size: var(--fs-sm); line-height: 1.6; color: var(--text); }
+.ans-k { margin: var(--space-1) 0 0; font-size: var(--fs-xs); font-weight: 700; color: var(--text-muted); }
+.ans-qs { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+.ans-qs > li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 12px; border-radius: var(--radius);
+  background: var(--surface-2);
+  font-size: var(--fs-sm); font-weight: 600; line-height: 1.45; color: var(--text);
+}
+.ans-q-icon {
+  display: inline-flex; flex: none; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 999px;
+  color: var(--gold-ink); background: var(--gold-light);
+}
+.ans-gets { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.ans-gets > li {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px; border-radius: 999px;
+  font-size: var(--fs-xs); font-weight: 600; color: var(--text);
+  border: 1px solid var(--border); background: var(--surface);
+}
+.ans-gets svg { color: var(--gold-ink); }
+.ans-foot {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3) var(--space-4);
+  padding: var(--space-4);
+  border-top: 1px solid rgb(var(--gold-rgb) / 0.35);
+  background: rgb(var(--gold-rgb) / 0.1);
+}
+@media (min-width: 640px) { .ans-foot { padding: var(--space-4) var(--space-6); } }
+.ans-cta { gap: 8px; font-weight: 700; }
+.ans-price { display: flex; flex-direction: column; gap: 2px; font-size: var(--fs-xs); line-height: 1.4; color: var(--text-muted); }
+.ans-price b { font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+@media (max-width: 639.98px) {
+  .ans-cta { flex: 1 1 100%; }
+  .ans-price { flex: 1 1 100%; align-items: center; text-align: center; }
 }
 /* "Premium · Find": the crown and the job, on every lock. */
 .ans-job {
