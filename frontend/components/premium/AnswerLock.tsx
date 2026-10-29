@@ -44,29 +44,45 @@ export function JobTag({ job, className = "" }: { job: Job; className?: string }
   );
 }
 
+/** The short card's title (`brief`): the stock report's sections. */
+const BRIEF_TITLE: Bi = { en: "In this section, Premium shows you", bn: "এই অংশে প্রিমিয়ামে দেখবেন" };
+/** The short card's title on a page of cards (the portfolio). */
+export const BRIEF_CARD: Bi = { en: "In this card, Premium shows you", bn: "এই কার্ডে প্রিমিয়ামে দেখবেন" };
+
 /**
  * The closed card itself (also drawn as an example on /premium): a gold
  * header band with the crown and the job, what Premium does here in easy
  * words, the questions it answers (never the answers), three things you
  * get, then `foot` — the button and the price.
+ *
+ * `brief` (the stock report's sections, 2026-10-29, user: the generic lines
+ * repeated on every section): only what THIS part shows — the band says
+ * "In this section, Premium shows you" (or the page's own `brief` title —
+ * the portfolio says "In this card"), then the lines. The page's one card on
+ * what Premium is (`ReportGuide`, `PortfolioPremium`) says the rest.
  */
 export const AnswerCard = forwardRef<
   HTMLDivElement,
-  { job: Job; lines: Bi[]; foot?: ReactNode; className?: string }
->(function AnswerCard({ job, lines, foot, className = "" }, ref) {
+  { job: Job; lines: Bi[]; foot?: ReactNode; brief?: boolean | Bi; className?: string }
+>(function AnswerCard({ job, lines, foot, brief = false, className = "" }, ref) {
   const info = JOB_EXPLAIN[job];
+  const briefTitle = brief === true ? BRIEF_TITLE : brief || null;
   return (
-    <div ref={ref} className={`ans ${className}`.trim()} data-open="false">
+    <div ref={ref} className={`ans ${className}`.trim()} data-open="false" data-brief={briefTitle ? "true" : undefined}>
       <div className="ans-top">
         <span className="ans-medal" aria-hidden="true">
           <IconCrown size={20} />
         </span>
         <div className="min-w-0 flex-1">
           <p className="ans-eyebrow">
-            Premium · <T en={JOBS[job].name.en} bn={JOBS[job].name.bn} />
+            {briefTitle ? <T en="Premium" bn="প্রিমিয়াম" /> : <>Premium · <T en={JOBS[job].name.en} bn={JOBS[job].name.bn} /></>}
           </p>
           <p className="ans-title">
-            <T en={JOBS[job].line.en} bn={JOBS[job].line.bn} />
+            {briefTitle ? (
+              <T en={briefTitle.en} bn={briefTitle.bn} />
+            ) : (
+              <T en={JOBS[job].line.en} bn={JOBS[job].line.bn} />
+            )}
           </p>
         </div>
         <span className="ans-locked">
@@ -75,12 +91,16 @@ export const AnswerCard = forwardRef<
         </span>
       </div>
       <div className="ans-body">
-        <p className="ans-what">
-          <T en={info.what.en} bn={info.what.bn} />
-        </p>
-        <p className="ans-k">
-          <T en="What you will find out here" bn="এখানে যা জানতে পারবেন" />
-        </p>
+        {!brief && (
+          <>
+            <p className="ans-what">
+              <T en={info.what.en} bn={info.what.bn} />
+            </p>
+            <p className="ans-k">
+              <T en="What you will find out here" bn="এখানে যা জানতে পারবেন" />
+            </p>
+          </>
+        )}
         <ul className="ans-qs">
           {lines.map((l, i) => (
             <li key={i}>
@@ -93,14 +113,16 @@ export const AnswerCard = forwardRef<
             </li>
           ))}
         </ul>
-        <ul className="ans-gets">
-          {info.gets.map((g) => (
-            <li key={g.en}>
-              <IconCheck size={12} />
-              <T en={g.en} bn={g.bn} />
-            </li>
-          ))}
-        </ul>
+        {!brief && (
+          <ul className="ans-gets">
+            {info.gets.map((g) => (
+              <li key={g.en}>
+                <IconCheck size={12} />
+                <T en={g.en} bn={g.bn} />
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
       {foot && <div className="ans-foot">{foot}</div>}
     </div>
@@ -142,6 +164,7 @@ export default function AnswerLock({
   href: hrefIn,
   sample = false,
   variant = "box",
+  brief = false,
   openClassName,
   boxClassName = "",
   className = "",
@@ -160,6 +183,10 @@ export default function AnswerLock({
   /** Open for everyone (a free sample). */
   sample?: boolean;
   variant?: "box" | "line";
+  /** Closed box says only what this part shows: no job blurb, no price
+   *  (the page has one card that says what Premium is). `true` = "In this
+   *  section…"; a pair = its own title (`BRIEF_CARD`). */
+  brief?: boolean | Bi;
   /** Class on the plain wrapper a Premium reader gets. */
   openClassName?: string;
   /** Class on the closed box / line only (its gutter inside a flush card). */
@@ -271,6 +298,7 @@ export default function AnswerLock({
         ref={ref}
         job={job}
         lines={shown}
+        brief={brief}
         className={boxClassName}
         foot={
           <>
@@ -283,14 +311,16 @@ export default function AnswerLock({
                 {linkBody}
               </Link>
             )}
-            <span className="ans-price">
-              <b>
-                <T en={`From ৳${FROM_MONTH} a month`} bn={`মাসে ৳${FROM_MONTH} থেকে`} />
-              </b>
-              <span>
-                <T en="No auto-renewal · 7-day refund" bn="নিজে থেকে নবায়ন হয় না · 7 দিনে টাকা ফেরত" />
+            {!brief && (
+              <span className="ans-price">
+                <b>
+                  <T en={`From ৳${FROM_MONTH} a month`} bn={`মাসে ৳${FROM_MONTH} থেকে`} />
+                </b>
+                <span>
+                  <T en="No auto-renewal" bn="নিজে থেকে নবায়ন হয় না" />
+                </span>
               </span>
-            </span>
+            )}
           </>
         }
       />

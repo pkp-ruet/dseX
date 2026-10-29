@@ -1,28 +1,24 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Button from "@/components/ui/Button";
-import { IconCheck, IconLock } from "@/components/ui/icons";
+import Link from "next/link";
+import { IconArrowRight, IconCheck, IconCrown } from "@/components/ui/icons";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
-import { LOWEST_PRICE } from "@/lib/premium-plans";
+import { FROM_MONTH } from "@/lib/premium-plans";
+import { JOB_EXPLAIN, JOBS } from "@/lib/premium-jobs";
 import { savePremiumContext } from "@/lib/premium-context";
 import { trackEvent } from "@/lib/track";
 import type { AnalysisLang } from "@/lib/portfolio-analysis";
 
-const ITEMS: { en: string; bn: string }[] = [
-  { en: "What to do with each stock, most urgent first", bn: "প্রতিটি শেয়ারে কী করবেন, জরুরিটা আগে" },
-  { en: "Every update the watcher finds on your stocks", bn: "আপনার শেয়ারে যা চোখে পড়ে, তার সবকিছু" },
-  { en: "What to buy next to fill the gaps", bn: "ফাঁক ভরতে এরপর কী কিনবেন" },
-  { en: "Risk, the price you paid, cash coming and you vs the market", bn: "ঝুঁকি, কেনার দাম, আসছে যে নগদ আর বাজারের তুলনায় আপনি" },
-  { en: "The what-if check before you buy or sell", bn: "কেনা-বেচার আগে যদি-এমন-করি যাচাই" },
-];
-
 /**
- * The portfolio page's ONE Premium card (`#pf-premium`, 2026-10-26). Every
- * Premium part on the page blurs where it belongs (the page's
- * `PageLockScope`) and links here, so the reader meets one offer built on
- * their own stakes in taka. Renders nothing for Premium readers. The id is
- * also where the watcher's teaser push lands.
+ * The portfolio page's ONE card on what Premium is (`#pf-premium`, moved to
+ * the top of the Analysis chapter 2026-10-29, user: the generic Premium lines
+ * repeated on every locked card). It sits under the free grade, so a free
+ * reader knows the deal before the first lock: the "Watch" job and what it
+ * does, Free vs Premium on this page, the reader's own stakes in taka, the
+ * price. Every lock on the page is a short card naming only what it holds and
+ * links here (the page's `PageLockScope`). The id is also where the
+ * watcher's teaser push lands. Nothing for Premium readers.
  */
 export default function PortfolioPremium({ stakes, lang }: { stakes: string[]; lang: AnalysisLang }) {
   const { state, isPremium } = usePremium();
@@ -39,7 +35,7 @@ export default function PortfolioPremium({ stakes, lang }: { stakes: string[]; l
       (entries) => {
         if (seen.current || !entries.some((e) => e.isIntersecting)) return;
         seen.current = true;
-        trackEvent("premium_lock_view", { area: "portfolio", lock: "pf-premium", state, stakes: stakes.length });
+        trackEvent("premium_lock_view", { area: "portfolio", lock: "pf-premium", state, stakes: stakes.length, job: "watch" });
         io.disconnect();
       },
       { threshold: 0.4 },
@@ -52,12 +48,12 @@ export default function PortfolioPremium({ stakes, lang }: { stakes: string[]; l
 
   const bn = lang === "bn";
   const t = (en: string, b: string) => (bn ? b : en);
-  const textCls = bn ? "font-bn" : "";
-  const langAttr = bn ? "bn" : undefined;
+  const job = JOBS.watch;
+  const info = JOB_EXPLAIN.watch;
   const label = t("Your daily portfolio check", "দৈনিক যাচাই");
 
   const onTap = () => {
-    trackEvent("premium_lock_tap", { area: "portfolio", lock: "pf-premium", state, stakes: stakes.length });
+    trackEvent("premium_lock_tap", { area: "portfolio", lock: "pf-premium", state, stakes: stakes.length, job: "watch" });
     savePremiumContext({ from: "portfolio", label, stakes });
   };
 
@@ -66,52 +62,81 @@ export default function PortfolioPremium({ stakes, lang }: { stakes: string[]; l
       ref={ref}
       id="pf-premium"
       aria-labelledby="pf-premium-h"
-      className="dash-section soft-card pf-card pf-premium"
+      className={`dash-section ans pf-premium ${bn ? "font-bn" : ""}`}
+      lang={bn ? "bn" : undefined}
+      data-open="false"
     >
-      <p className="flex items-center gap-2 text-sm font-semibold text-primary-ink">
-        <IconLock size={16} />
-        Premium
-      </p>
-      <h3 id="pf-premium-h" className={`mt-1 text-xl font-bold leading-tight text-text-main sm:text-2xl ${textCls}`} lang={langAttr}>
-        {t("Your portfolio, checked every day", "আপনার পোর্টফোলিওর দৈনিক যাচাই")}
-      </h3>
-      <p className={`pf-card-note ${textCls}`} lang={langAttr}>
-        {t(
-          "Every locked part on this page opens, and we watch your stocks after every close.",
-          "এই পেজের সব বন্ধ অংশ খুলে যায়, আর প্রতিদিন বাজার বন্ধের পর আমরা আপনার শেয়ার দেখি।",
-        )}
-      </p>
+      <div className="ans-top">
+        <span className="ans-medal" aria-hidden="true">
+          <IconCrown size={20} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="ans-eyebrow">Premium · {bn ? job.name.bn : job.name.en}</p>
+          <h3 id="pf-premium-h" className="ans-title">
+            {bn ? job.line.bn : job.line.en}
+          </h3>
+        </div>
+      </div>
 
-      {stakes.length > 0 && (
-        <ul className={`pf-premium-stakes ${textCls}`} lang={langAttr}>
-          {stakes.map((s) => (
-            <li key={s}>
-              <span className="pf-dot pf-dot--watch mt-2" aria-hidden />
-              <span>{s}</span>
+      <div className="ans-body">
+        <p className="ans-what">{bn ? info.what.bn : info.what.en}</p>
+
+        <div>
+          <div className="ans-row">
+            <span className="ans-pill">{t("Free", "ফ্রি")}</span>
+            <p className="text-sm leading-snug text-text-main">
+              {t(
+                "Your money, your grade and its three scores, your next move, and the first point in each list.",
+                "আপনার টাকার হিসাব, গ্রেড আর তার তিনটি স্কোর, আপনার পরের পদক্ষেপ, আর প্রতিটি তালিকার প্রথম কথা।",
+              )}
+            </p>
+          </div>
+          <div className="ans-row">
+            <span className="ans-pill" data-premium="true">
+              <IconCrown size={12} /> {t("Premium", "প্রিমিয়াম")}
+            </span>
+            <p className="text-sm leading-snug text-text-main">
+              {t(
+                "Every point, what would raise your grade, what to buy next, five deeper checks, the what-if result, and a notification when something changes on your shares.",
+                "সব কথা, কীসে আপনার গ্রেড বাড়বে, এরপর কী কিনবেন, আরও পাঁচটি গভীর যাচাই, যদি-এমন-করি যাচাইয়ের ফল, আর আপনার শেয়ারে কিছু বদলালে নোটিফিকেশন।",
+              )}
+            </p>
+          </div>
+        </div>
+
+        {stakes.length > 0 && (
+          <div>
+            <p className="ans-k">{t("On your portfolio right now", "এই মুহূর্তে আপনার পোর্টফোলিওতে")}</p>
+            <ul className="ans-stakes mt-2">
+              {stakes.map((s) => (
+                <li key={s}>
+                  <span className="pf-dot pf-dot--watch mt-2" aria-hidden />
+                  <span className="min-w-0">{s}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <ul className="ans-gets">
+          {info.gets.map((g) => (
+            <li key={g.en}>
+              <IconCheck size={12} />
+              {bn ? g.bn : g.en}
             </li>
           ))}
         </ul>
-      )}
+      </div>
 
-      <ul className={`pf-premium-adds ${textCls}`} lang={langAttr}>
-        {ITEMS.map((it) => (
-          <li key={it.en}>
-            <IconCheck size={14} />
-            <span>{bn ? it.bn : it.en}</span>
-          </li>
-        ))}
-      </ul>
-
-      <div className="mt-6 flex flex-wrap items-center gap-3">
-        <Button href={PREMIUM_PATH} onClick={onTap} size="lg">
-          {t("See Premium", "প্রিমিয়াম দেখুন")}
-        </Button>
-        <p className={`text-sm text-text-muted ${textCls}`} lang={langAttr}>
-          {t(
-            `From ৳${LOWEST_PRICE} a month, paid by bKash or Nagad. It never renews by itself.`,
-            `মাসে ৳${LOWEST_PRICE} থেকে, বিকাশ বা নগদে। নিজে থেকে নবায়ন হয় না।`,
-          )}
-        </p>
+      <div className="ans-foot">
+        <Link href={PREMIUM_PATH} prefetch={false} onClick={onTap} className="btn-primary btn-lg ans-cta">
+          {t("Unlock with Premium", "প্রিমিয়ামে খুলুন")}
+          <IconArrowRight size={18} />
+        </Link>
+        <span className="ans-price">
+          <b>{t(`From ৳${FROM_MONTH} a month`, `মাসে ৳${FROM_MONTH} থেকে`)}</b>
+          <span>{t("bKash, Nagad or bank · No auto-renewal", "বিকাশ, নগদ বা ব্যাংক · নিজে থেকে নবায়ন হয় না")}</span>
+        </span>
       </div>
     </section>
   );

@@ -274,17 +274,9 @@ a.pf-hold-name:hover { color: var(--primary-ink); }
 .pf-empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 28px; }
 
 /* ---- The one Premium card ---- */
-.pf-premium { border-color: rgb(var(--primary-rgb) / 0.4); }
-.pf-premium-stakes { list-style: none; margin: 16px 0 0; padding: 0; }
-.pf-premium-stakes li {
-  display: flex; gap: 10px; padding: 10px 0; border-top: 1px solid var(--cell-rule);
-  font-size: var(--fs-md); font-weight: 600; line-height: 1.45; color: var(--text);
-}
-.pf-premium-stakes li:last-child { border-bottom: 1px solid var(--cell-rule); }
-.pf-premium-adds { list-style: none; margin: 16px 0 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px 24px; }
-@media (min-width: 640px) { .pf-premium-adds { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.pf-premium-adds li { display: flex; align-items: flex-start; gap: 8px; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
-.pf-premium-adds svg { flex-shrink: 0; margin-top: 3px; color: var(--positive); }
+/* The one Premium card (`PortfolioPremium`, the `.ans` look from premium.css),
+   under the grade at the top of the Analysis chapter. */
+.ans.pf-premium { margin-top: 0; }
 
 /* ---- Disclaimer ---- */
 .pf-disclaimer { margin: var(--space-6) 0 0; font-size: var(--fs-2xs); line-height: 1.6; color: var(--text-muted); text-align: center; }

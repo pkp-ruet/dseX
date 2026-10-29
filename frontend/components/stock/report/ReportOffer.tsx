@@ -142,13 +142,13 @@ export default function ReportOffer({ code, name, lines }: { code: string; name:
       <p className="mt-3 text-sm text-text-muted">
         {state === "guest" ? (
           <T
-            en="Create a free account first, then pay by bKash, Nagad or bank transfer. Nothing renews by itself, and you can get a refund within 7 days."
-            bn="আগে একটি ফ্রি অ্যাকাউন্ট খুলুন, তারপর bKash, Nagad বা ব্যাংক ট্রান্সফারে পেমেন্ট করুন। নিজে থেকে নবায়ন হয় না, আর 7 দিনের মধ্যে টাকা ফেরত নিতে পারবেন।"
+            en="Create a free account first, then pay by bKash, Nagad or bank transfer. Nothing renews by itself."
+            bn="আগে একটি ফ্রি অ্যাকাউন্ট খুলুন, তারপর bKash, Nagad বা ব্যাংক ট্রান্সফারে পেমেন্ট করুন। নিজে থেকে নবায়ন হয় না।"
           />
         ) : (
           <T
-            en="Pay by bKash, Nagad or bank transfer. Nothing renews by itself, and you can get a refund within 7 days."
-            bn="bKash, Nagad বা ব্যাংক ট্রান্সফারে পেমেন্ট করুন। নিজে থেকে নবায়ন হয় না, আর 7 দিনের মধ্যে টাকা ফেরত নিতে পারবেন।"
+            en="Pay by bKash, Nagad or bank transfer. Nothing renews by itself."
+            bn="bKash, Nagad বা ব্যাংক ট্রান্সফারে পেমেন্ট করুন। নিজে থেকে নবায়ন হয় না।"
           />
         )}
       </p>

@@ -15,7 +15,9 @@ export { Locked };
  * shared `AnswerLock` with the report's wording — job "understand", the link
  * to the page's one offer (`#ch-premium`), the backend's `inside` lines as
  * its questions. A section's Premium answer always sits here, never mixed
- * into its free facts.
+ * into its free facts. `brief`: the closed card says only what this section
+ * shows — what Premium is, and its price, live once on the overview card
+ * (`ReportGuide`).
  */
 export function PremiumPanel({
   lines,
@@ -42,6 +44,7 @@ export function PremiumPanel({
       what={{ en: `The full report on ${code}`, bn: `${code}-এর পূর্ণ রিপোর্ট` }}
       href="#ch-premium"
       sample={sample}
+      brief
       openClassName="rp-body"
     >
       {children}

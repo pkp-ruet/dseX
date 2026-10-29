@@ -3,7 +3,7 @@ import ScoreBadge from "@/components/ui/ScoreBadge";
 import SignalChip from "@/components/ui/SignalChip";
 import Chip from "@/components/ui/Chip";
 import PfCard from "./PfCard";
-import AnswerLock from "@/components/premium/AnswerLock";
+import AnswerLock, { BRIEF_CARD } from "@/components/premium/AnswerLock";
 import { money, takaGroup } from "@/lib/formatters";
 import type { AnalysisLang, RebalancePlan } from "@/lib/portfolio-analysis";
 
@@ -42,7 +42,7 @@ export default function RebalanceHelper({ plan, lang = "en" }: Props) {
         <div className={bn ? "font-bn" : ""} lang={bn ? "bn" : undefined}>
           {/* Whole or nothing: the gaps and the ideas sit behind one lock. */}
           <AnswerLock
-            job="watch"
+            job="watch" brief={BRIEF_CARD}
             lock="Portfolio: what to buy next"
             boxClassName="mx-4 mb-4 sm:mx-6"
             lines={[

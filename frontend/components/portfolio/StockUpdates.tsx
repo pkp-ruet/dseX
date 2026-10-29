@@ -125,6 +125,18 @@ export default function StockUpdates({
   const counts = new Map<PortfolioWatchEvent["kind"], number>();
   for (const e of watchEvents) counts.set(e.kind, (counts.get(e.kind) ?? 0) + 1);
   const total = flipItems.length + watchEvents.length;
+  // What the locked updates are, by kind (the kind counts are free above).
+  const lockedCounts = new Map<PortfolioWatchEvent["kind"], number>();
+  for (const e of lockedWatch) lockedCounts.set(e.kind, (lockedCounts.get(e.kind) ?? 0) + 1);
+  const lockedKinds = [...lockedCounts.entries()];
+  const lockedLine = {
+    en: `${locked.length} more update${locked.length === 1 ? "" : "s"} on your shares: ${lockedKinds
+      .map(([k, n]) => `${n} ${KIND[k].en[n === 1 ? 0 : 1]}`)
+      .join(", ")}. What happened, and what each one means`,
+    bn: `আপনার শেয়ারে আরও ${locked.length}টি খবর: ${lockedKinds
+      .map(([k, n]) => `${n}টি ${KIND[k].bn}`)
+      .join(", ")}। কী ঘটেছে, আর প্রতিটির মানে কী`,
+  };
   const hasDelta = valueDelta != null && Math.abs(valueDelta.delta) >= 1;
 
   const list = (items: Item[]) => (
@@ -221,10 +233,7 @@ export default function StockUpdates({
                 job="watch"
                 lock="Portfolio: stock updates"
                 className={shown.length ? "mt-1" : ""}
-                lines={[{
-                  en: `What happened in ${locked.length} more update${locked.length === 1 ? "" : "s"} on your shares, and what each means`,
-                  bn: `আপনার শেয়ারে আরও ${locked.length}টি খবরে কী ঘটেছে, আর প্রতিটির মানে`,
-                }]}
+                lines={[lockedLine]}
               >
                 {list(locked)}
               </AnswerLock>

@@ -24,7 +24,8 @@ import StockVisitTracker from "@/components/analytics/StockVisitTracker";
 import DeepAnalysisReport from "@/components/stock/DeepAnalysisReport";
 import StockLockScope from "@/components/premium/LockScope";
 import Scorecard from "@/components/stock/report/Scorecard";
-import StockReportBody from "@/components/stock/report/StockReportBody";
+import StockReportBody, { reportSamples } from "@/components/stock/report/StockReportBody";
+import ReportGuide from "@/components/stock/report/ReportGuide";
 import DataRoom, { type RoomPanel } from "@/components/stock/report/DataRoom";
 import { REPORT_PARTS } from "@/lib/stock-report";
 import { formatDate, money } from "@/lib/formatters";
@@ -432,6 +433,9 @@ export default async function StockDetailPage({ params }: PageProps) {
       <PriceChart code={profile.trading_code} events={report?.events} />
       {report && <Scorecard detail={detail} report={report} />}
       <FeaturedInStrip entries={featuredIn} />
+      {/* The page's one card on what Premium is (free readers); each report
+          section's closed card then says only what that section shows. */}
+      {report && <ReportGuide samples={reportSamples(report)} code={profile.trading_code} />}
 
       <StickySummaryBar
         code={profile.trading_code}

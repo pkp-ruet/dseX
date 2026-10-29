@@ -2,7 +2,7 @@ import Link from "next/link";
 import Chip from "@/components/ui/Chip";
 import { IconCrown } from "@/components/ui/icons";
 import PfCard from "./PfCard";
-import AnswerLock from "@/components/premium/AnswerLock";
+import AnswerLock, { BRIEF_CARD } from "@/components/premium/AnswerLock";
 import type { AnalysisLang } from "@/lib/portfolio-analysis";
 import type { ProActionKind, ProInsights as Insights, ProLine } from "@/lib/portfolio-pro";
 
@@ -112,7 +112,7 @@ export default function ProInsights({ insights, lang = "en" }: { insights: Insig
       }
     >
       <div className={bn ? "font-bn" : ""} lang={bn ? "bn" : undefined}>
-        <AnswerLock job="watch" lock="Portfolio: five deeper checks" lines={lockLines}>
+        <AnswerLock job="watch" brief={BRIEF_CARD} lock="Portfolio: five deeper checks" lines={lockLines}>
         <div className="pf-rows border-t border-border pt-5">
           {risk.length > 0 && (
             <Block title={t.risk}><Lines lines={risk} /></Block>

@@ -1378,7 +1378,11 @@ export default function PortfolioClient() {
             />
             {/* The grade, its three scores and the one thing to act on first — free */}
             <AnalysisTop analysis={analysis} next={nextMove} lang={lang} />
-            {/* The three lists (the rest of each list blurs in place) */}
+            {/* THE one card on what Premium is, before the first lock — nothing
+                for Premium readers. Every lock below is a short card naming
+                only what it holds, and links here. */}
+            <PortfolioPremium stakes={proStakes} lang={lang} />
+            {/* The three lists (the rest sits behind one lock line) */}
             <PortfolioAnalysisView
               analysis={analysis}
               lang={lang}
@@ -1390,15 +1394,13 @@ export default function PortfolioClient() {
               showGrade={false}
             />
             {/* What to do next — every card shows for everyone; for free readers
-                only the data inside blurs, with one "Unlock with Premium" button */}
+                the data inside is a short lock card with one button */}
             {lifts.length > 0 && <GradeLiftCard lifts={lifts} lang={lang} />}
             {(rebalance.gaps.length > 0 || rebalance.picks.length > 0) && <RebalanceHelper plan={rebalance} lang={lang} />}
             <ProInsights insights={proInsights} lang={lang} />
             <div id="pf-whatif" className="dash-section">
               <WhatIfCard rows={rows} priceMap={priceMap} allCodes={allCodes} lang={lang} />
             </div>
-            {/* THE one Premium card on this page — nothing for Premium readers */}
-            <PortfolioPremium stakes={proStakes} lang={lang} />
             {/* Every input and cut-off behind this chapter — free */}
             <HowWeDecide analysis={analysis} scoresAt={scoresAt} lang={lang} />
             <p className={`pf-disclaimer ${bnCls}`}>

@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import StockChapter from "@/components/stock/StockChapter";
 import ReportSection from "@/components/stock/report/ReportSection";
-import ReportGuide from "@/components/stock/report/ReportGuide";
 import ReportOffer from "@/components/stock/report/ReportOffer";
 import ShareCheck from "@/components/stock/report/ShareCheck";
 import YouAndThisStock from "@/components/stock/report/YouAndThisStock";
@@ -29,14 +28,26 @@ const ALIASES: Partial<Record<SectionKey, string[]>> = {
   red_flags: ["signals", "red-flags"],
 };
 
+/** The sections open in full for everyone on this share (`freeReportSections`),
+ *  with the label the scorecard gives each — the overview card links to them. */
+export function reportSamples(report: StockReport): { key: SectionKey; label: StockReport["scorecard"][number]["label"] }[] {
+  const sec = report.sections;
+  const present = SECTION_ORDER.filter((k) => sec[k] != null);
+  return freeReportSections(present).map((k) => ({
+    key: k as SectionKey,
+    label: report.scorecard.find((c) => c.key === k)?.label ?? (sec[k as SectionKey] as SectionBase).title,
+  }));
+}
+
 /**
  * The stock report (2026-10-28): every section in report order, in three
  * parts (`REPORT_PARTS`, 2026-10-29) — each part a chapter (h2) with its
  * sections on one sheet split by hairlines — then "You and this stock" (inside
  * the second part), the analyst note (where a written report exists) and the
- * one offer. A free reader gets the map first (`ReportGuide`) and a few
- * sections open in full (`freeReportSections`); every other Premium panel is
- * closed whole.
+ * one offer. A free reader gets a few sections open in full
+ * (`freeReportSections`); every other Premium panel is closed whole and says
+ * only what that section shows — what Premium is lives once, on the
+ * overview's `ReportGuide` card (rendered by the page).
  */
 export default function StockReportBody({
   detail,
@@ -110,12 +121,7 @@ export default function StockReportBody({
     alternatives: sec.alternatives && { body: <AlternativesBody s={sec.alternatives} /> },
   };
 
-  const present = SECTION_ORDER.filter((k) => sec[k] != null);
-  const samples = freeReportSections(present);
-  const sampleLinks = samples.map((k) => ({
-    key: k,
-    label: report.scorecard.find((c) => c.key === k)?.label ?? (sec[k as SectionKey] as SectionBase).title,
-  }));
+  const samples: string[] = reportSamples(report).map((s) => s.key);
   const section = (k: SectionKey) => {
     const b = bodies[k] ?? {};
     return (
@@ -145,7 +151,6 @@ export default function StockReportBody({
       {/* Older links to the report land on its first part. */}
       <span id="ch-verdict" className="stock-anchor block" aria-hidden="true" />
       <span id="ch-report" className="stock-anchor block" aria-hidden="true" />
-      <ReportGuide samples={sampleLinks} code={code} />
       {shown.map((p) => {
         const items: ReactNode[] = p.keys.map(section);
         if (p.id === "ch-now") {

@@ -619,6 +619,26 @@ details[open] > .pm-fold-summary .pm-fold-chev { transform: rotate(180deg); }
   .ans-cta { flex: 1 1 100%; }
   .ans-price { flex: 1 1 100%; align-items: center; text-align: center; }
 }
+/* A page's ONE card on what Premium is (stock `ReportGuide`, portfolio
+   `PortfolioPremium`): the `.ans` card, no "Locked" pill, plus a Free row and
+   a Premium row, and the reader's own stakes. */
+.ans-row { display: flex; align-items: flex-start; gap: var(--space-3); }
+.ans-row + .ans-row { margin-top: var(--space-3); }
+.ans-pill {
+  display: inline-flex; flex: none; align-items: center; justify-content: center; gap: 4px;
+  min-width: 84px; padding: 2px 10px; border-radius: 999px;
+  background: var(--surface-2); color: var(--text);
+  font-size: var(--fs-xs); font-weight: 700;
+}
+.ans-pill[data-premium="true"] { background: rgb(var(--gold-rgb) / 0.16); color: var(--gold-ink); }
+.ans-stakes { list-style: none; margin: 0; padding: 0; }
+.ans-stakes > li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 0; border-top: 1px solid var(--cell-rule);
+  font-size: var(--fs-sm); font-weight: 600; line-height: 1.45; color: var(--text);
+}
+.ans-stakes > li:last-child { border-bottom: 1px solid var(--cell-rule); }
+
 /* "Premium · Find": the crown and the job, on every lock. */
 .ans-job {
   display: inline-flex; align-items: center; gap: 5px;

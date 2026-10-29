@@ -1,5 +1,5 @@
 import PfCard from "./PfCard";
-import AnswerLock from "@/components/premium/AnswerLock";
+import AnswerLock, { BRIEF_CARD } from "@/components/premium/AnswerLock";
 import type { GradeLift } from "@/lib/portfolio-next";
 import type { AnalysisLang } from "@/lib/portfolio-analysis";
 
@@ -28,7 +28,7 @@ export default function GradeLiftCard({ lifts, lang }: { lifts: GradeLift[]; lan
       dataCard="grade-lift"
     >
       <AnswerLock
-        job="watch"
+        job="watch" brief={BRIEF_CARD}
         lock="Portfolio: grade lifts"
         lines={[
           {

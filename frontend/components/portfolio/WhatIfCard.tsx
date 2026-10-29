@@ -2,7 +2,7 @@
 
 import { useId, useMemo, useState } from "react";
 import PfCard from "./PfCard";
-import AnswerLock from "@/components/premium/AnswerLock";
+import AnswerLock, { BRIEF_CARD } from "@/components/premium/AnswerLock";
 import { takaGroup } from "@/lib/formatters";
 import { analyzePortfolio, type AnalysisLang, type ComputedRow, type PortfolioAnalysis } from "@/lib/portfolio-analysis";
 import type { ScoreItem } from "@/lib/api";
@@ -250,7 +250,7 @@ export default function WhatIfCard({
 
         {after ? (
           <AnswerLock
-            job="watch"
+            job="watch" brief={BRIEF_CARD}
             lock="Portfolio: what-if"
             lines={[
               { en: "Your grade after this change, and whether it goes up or down", bn: "এই পরিবর্তনের পর আপনার গ্রেড, আর তা বাড়ে না কমে" },

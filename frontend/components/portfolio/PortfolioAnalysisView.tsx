@@ -10,6 +10,7 @@ import SectorBreakdownChart from "./SectorBreakdownChart";
 import HoldingsDetailed from "./HoldingsDetailed";
 import RebalanceHelper from "./RebalanceHelper";
 import AnswerLock from "@/components/premium/AnswerLock";
+import { IconLock } from "@/components/ui/icons";
 import PfCard from "./PfCard";
 
 /** Grade colour classes (app/styles/portfolio.css) — the one place a grade is coloured. */
@@ -112,6 +113,39 @@ export default function PortfolioAnalysisView({
   const langAttr = bnMode ? "bn" : undefined;
   const gradeCls = GRADE_CLASS[analysis.grade];
 
+  // Free readers: the points past FREE_POINTS sit behind ONE lock line under
+  // the three lists (2026-10-29 — it was a line + button under each list).
+  const hidden = locked
+    ? {
+        good: analysis.good.slice(FREE_POINTS.good),
+        bad: analysis.bad.slice(FREE_POINTS.bad),
+        consider: analysis.consider.slice(FREE_POINTS.consider),
+      }
+    : { good: [], bad: [], consider: [] };
+  const hiddenTotal = hidden.good.length + hidden.bad.length + hidden.consider.length;
+  const hiddenLine = (() => {
+    const { good, bad, consider } = hidden;
+    if (bnMode) {
+      const parts = [
+        bad.length > 0 && `${bad.length}টিতে নজর দরকার`,
+        consider.length > 0 && `${consider.length}টি ভেবে দেখার`,
+        good.length > 0 && `${good.length}টি ভালো দিক`,
+      ].filter(Boolean);
+      return `আপনার পোর্টফোলিওতে আরও ${hiddenTotal}টি কথা: ${parts.join(", ")}`;
+    }
+    const parts = [
+      bad.length > 0 && `${bad.length} need${bad.length === 1 ? "s" : ""} your attention`,
+      consider.length > 0 && `${consider.length} to consider`,
+      good.length > 0 && `${good.length} going well`,
+    ].filter(Boolean);
+    return `${hiddenTotal} more point${hiddenTotal === 1 ? "" : "s"} on your portfolio: ${parts.join(", ")}`;
+  })();
+  const hiddenGroups: [string, string, string[]][] = [
+    [t.badTitle, TONE_DOT.bad, hidden.bad],
+    [t.considerTitle, TONE_DOT.consider, hidden.consider],
+    [t.goodTitle, TONE_DOT.good, hidden.good],
+  ];
+
   return (
     <div
       id={showGrade ? "portfolio-analysis" : undefined}
@@ -184,6 +218,33 @@ export default function PortfolioAnalysisView({
             moreHref={moreHref}
           />
         </div>
+        {hiddenTotal > 0 && (
+          <div className="border-t border-border px-4 pb-4 sm:px-6 sm:pb-5">
+            {/* The page's PageLockScope points the button at #pf-premium. */}
+            <AnswerLock
+              variant="line"
+              job="watch"
+              lock="Portfolio: what we found"
+              lines={[{ en: hiddenLine, bn: hiddenLine }]}
+            >
+              <div className="flex flex-col gap-4 pt-4">
+                {hiddenGroups.filter(([, , rows]) => rows.length > 0).map(([title, dot, rows]) => (
+                  <div key={title}>
+                    <h4 className="mb-2 text-sm font-bold text-text-main">{title}</h4>
+                    <ul className="flex flex-col gap-3">
+                      {rows.map((item, i) => (
+                        <li key={i} className="flex items-start gap-3">
+                          <span className={`${dot} mt-2`} aria-hidden />
+                          <span className="min-w-0 text-sm leading-relaxed text-text-main sm:text-base">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </AnswerLock>
+          </div>
+        )}
       </PfCard>
 
       {/* What to buy next — concrete ideas for the gaps above */}
@@ -246,10 +307,11 @@ function Section({ title, tone, items, emptyText, bnMode, limit, moreHref }: Sec
   const shown = limit != null ? items.slice(0, limit) : items;
   const more = items.length - shown.length;
   const dot = TONE_DOT[tone];
-  // The reader's language is already picked here (`bnMode`), so one string serves both halves.
+  // The reader's language is already picked here (`bnMode`). The points
+  // themselves sit behind the card's one lock line (below the three lists).
   const moreLine = bnMode
-    ? `${shown.length ? "আরও " : ""}${more}টি কথা, "${title}" অংশে`
-    : `${more} ${shown.length ? "more " : ""}point${more === 1 ? "" : "s"} under "${title}"`;
+    ? `প্রিমিয়ামে ${shown.length ? "আরও " : ""}${more}টি`
+    : `${more} ${shown.length ? "more " : ""}with Premium`;
   const list = (rows: string[]) => (
     <ul className="flex flex-col gap-3">
       {rows.map((item, i) => (
@@ -274,19 +336,10 @@ function Section({ title, tone, items, emptyText, bnMode, limit, moreHref }: Sec
         <>
           {shown.length > 0 && list(shown)}
           {more > 0 && (
-            <>
-              {/* The rest of the points: one lock line (the page's
-                  PageLockScope points it at #pf-premium). */}
-              <AnswerLock
-                variant="line"
-                job="watch"
-                lock={`Portfolio: ${tone}`}
-                className={shown.length ? "mt-3" : ""}
-                lines={[{ en: moreLine, bn: moreLine }]}
-              >
-                {list(items.slice(shown.length))}
-              </AnswerLock>
-            </>
+            <p className={`flex items-center gap-1.5 text-sm font-semibold text-gold-ink ${shown.length ? "mt-3" : ""}`}>
+              <IconLock size={14} />
+              {moreLine}
+            </p>
           )}
         </>
       )}
