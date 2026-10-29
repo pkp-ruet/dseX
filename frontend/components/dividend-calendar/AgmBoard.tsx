@@ -1,21 +1,18 @@
 import { T } from "@/components/i18n/T";
-import DateGroup, { countByDate, groupByDate } from "@/components/dividend-calendar/DateGroup";
+import DateBoard from "@/components/dividend-calendar/DateGroup";
+import PanelHead from "@/components/dividend-calendar/PanelHead";
 import type { CorporateActionEvent } from "@/lib/api";
-import SectionHeader from "@/components/ui/SectionHeader";
 
 /**
  * Announced AGM dates — where a final dividend gets approved before it's paid.
- * Same shape as the record dates: one card per date, the companies under it
- * with the cash a share up for approval leading.
+ * Same shape as the record dates: one card, the dates in order, the companies
+ * under each with the cash a share up for approval leading.
  */
 export default function AgmBoard({ events }: { events: CorporateActionEvent[] }) {
   if (events.length === 0) return null;
-  const perDate = countByDate(events, "agm_date");
-  const groups = groupByDate(events, "agm_date");
-
   return (
-    <section className="dc-section" id="agms">
-      <SectionHeader
+    <>
+      <PanelHead
         title={<T en="Upcoming AGMs" bn="আসন্ন এজিএম" />}
         lead={
           <T
@@ -24,12 +21,7 @@ export default function AgmBoard({ events }: { events: CorporateActionEvent[] })
           />
         }
       />
-
-      <div className="dc-stack">
-        {groups.map((g) => (
-          <DateGroup key={g.date} date={g.date} items={g.items} kind="agm" total={perDate.get(g.date)} />
-        ))}
-      </div>
-    </section>
+      <DateBoard events={events} kind="agm" />
+    </>
   );
 }

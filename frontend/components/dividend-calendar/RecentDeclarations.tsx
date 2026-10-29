@@ -1,28 +1,26 @@
 import { T } from "@/components/i18n/T";
+import CalendarFold from "@/components/dividend-calendar/CalendarFold";
 import DividendRow from "@/components/dividend-calendar/DividendRow";
+import PanelHead from "@/components/dividend-calendar/PanelHead";
 import type { CorporateActionEvent } from "@/lib/api";
-import SectionHeader from "@/components/ui/SectionHeader";
+
+/** How many "Just declared" rows the tab carries (its count says the same). */
+export const RECENT_LIMIT = 12;
 
 /** What DSE companies announced in the last few weeks, newest first — one
  *  card of rows: what was declared on the right, its record date and AGM
- *  under the name. */
-export default function RecentDeclarations({
-  events,
-  limit = 12,
-}: {
-  events: CorporateActionEvent[];
-  limit?: number;
-}) {
+ *  under the name. The newest six are open. */
+export default function RecentDeclarations({ events }: { events: CorporateActionEvent[] }) {
   if (events.length === 0) return null;
-  const row = (e: CorporateActionEvent) => (
+  const rows = events.slice(0, RECENT_LIMIT).map((e) => (
     <li key={`${e.trading_code}-${e.declaration_date}`}>
       <DividendRow e={e} mode="declared" />
     </li>
-  );
+  ));
 
   return (
-    <section className="dc-section" id="recent">
-      <SectionHeader
+    <>
+      <PanelHead
         title={<T en="Just declared" bn="সদ্য ঘোষিত" />}
         lead={
           <T
@@ -31,8 +29,15 @@ export default function RecentDeclarations({
           />
         }
       />
-
-      <ul className="soft-card dc-list overflow-hidden">{events.slice(0, limit).map((e) => row(e))}</ul>
-    </section>
+      <div className="soft-card dc-board">
+        <CalendarFold
+          as="ul"
+          className="dc-list"
+          items={rows}
+          initial={6}
+          more={{ en: `Show all ${rows.length} announcements`, bn: `সব ${rows.length}টি ঘোষণা দেখুন` }}
+        />
+      </div>
+    </>
   );
 }

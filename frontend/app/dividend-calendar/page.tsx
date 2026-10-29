@@ -7,10 +7,10 @@ import CalendarSafetyLock from "@/components/dividend-calendar/CalendarSafetyLoc
 import RecordDateBoard from "@/components/dividend-calendar/RecordDateBoard";
 import AgmBoard from "@/components/dividend-calendar/AgmBoard";
 import TopCashDividends from "@/components/dividend-calendar/TopCashDividends";
-import RecentDeclarations from "@/components/dividend-calendar/RecentDeclarations";
+import RecentDeclarations, { RECENT_LIMIT } from "@/components/dividend-calendar/RecentDeclarations";
+import CalendarTabs, { type CalendarPanel } from "@/components/dividend-calendar/CalendarTabs";
 import HowDividendsWork, { buyTodayAnswer } from "@/components/dividend-calendar/HowDividendsWork";
 import { bnDate } from "@/lib/bn";
-import { PersonalCodesProvider } from "@/components/market-analysis/PersonalCodes";
 import { T } from "@/components/i18n/T";
 import PageHeader from "@/components/ui/PageHeader";
 import PageGuide from "@/components/seo/PageGuide";
@@ -69,6 +69,38 @@ export default async function DividendCalendarPage() {
   const data = recountCalendar(await getDividendCalendar());
 
   const lead = data.settlement.normal_buy_lead_trading_days;
+
+  // The four lists as tabs (2026-10-29 compact redesign) — they were four
+  // sections one under another, and everything under the record dates sat
+  // past a very long scroll. Ids keep the old section anchors working.
+  const panels: CalendarPanel[] = [
+    {
+      key: "record-dates",
+      label: { en: "Record dates", bn: "রেকর্ড ডেট" },
+      count: data.record_dates.length,
+      body: <RecordDateBoard events={data.record_dates} />,
+    },
+    {
+      key: "agms",
+      label: { en: "AGMs", bn: "এজিএম" },
+      count: data.agms.length,
+      body: <AgmBoard events={data.agms} />,
+    },
+    {
+      key: "top-payers",
+      label: { en: "Biggest payers", bn: "সবচেয়ে বড় ডিভিডেন্ড" },
+      short: { en: "Top payers", bn: "বড় ডিভিডেন্ড" },
+      count: data.top_cash_dividends.length,
+      body: <TopCashDividends events={data.top_cash_dividends} />,
+    },
+    {
+      key: "recent",
+      label: { en: "Just declared", bn: "সদ্য ঘোষিত" },
+      short: { en: "Declared", bn: "নতুন ঘোষণা" },
+      count: Math.min(data.recent_declarations.length, RECENT_LIMIT),
+      body: <RecentDeclarations events={data.recent_declarations} />,
+    },
+  ].filter((p) => p.key === "record-dates" || p.count > 0);
 
   // FAQ copy mirrors components/dividend-calendar/HowDividendsWork.tsx.
   const jsonLd = {
@@ -185,17 +217,10 @@ export default async function DividendCalendarPage() {
       <CalendarSummary data={data} />
 
       {/* Every list in full, for every reader. What Premium adds is one line:
-          "Is it safe?" under each cash dividend (DividendRow). */}
+          "Is it safe?" under each cash dividend (DividendRow), named once
+          under the lists (nothing for Premium readers). */}
+      <CalendarTabs panels={panels} />
       <CalendarSafetyLock />
-      <PersonalCodesProvider>
-        <RecordDateBoard events={data.record_dates} />
-
-        <AgmBoard events={data.agms} />
-
-        <TopCashDividends events={data.top_cash_dividends} />
-
-        <RecentDeclarations events={data.recent_declarations} />
-      </PersonalCodesProvider>
 
       <HowDividendsWork data={data} />
 

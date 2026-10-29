@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { T } from "@/components/i18n/T";
 import DividendRow from "@/components/dividend-calendar/DividendRow";
+import CalendarFold from "@/components/dividend-calendar/CalendarFold";
 import { dayParts, dayShort, daysWords, type Pair } from "@/components/dividend-calendar/dates";
 import type { CorporateActionEvent } from "@/lib/api";
 
@@ -135,32 +136,69 @@ export function DateHead({
   );
 }
 
-/** One date as one card: its head, then every company on it. */
-export default function DateGroup({
-  date,
-  items,
+/** How many dates open before the fold: dates until about `rows` companies
+ *  are on screen (at least one date), so this week's dates are always open. */
+function foldAt(groups: { items: CorporateActionEvent[] }[], rows = 10): number {
+  let n = 0;
+  let seen = 0;
+  while (n < groups.length && (n === 0 || seen < rows)) seen += groups[n++].items.length;
+  return n;
+}
+
+/**
+ * Every date as one compact card (2026-10-29): the dates follow each other
+ * split by hairlines, each head a small date tile with the weekday and — for
+ * a record date — the last day to buy, its companies under it. The first
+ * ~10 companies' dates are open; the rest wait behind one "Show N more dates"
+ * row (still in the HTML). `footer` closes the card (the no-dividend fold).
+ */
+export default function DateBoard({
+  events,
   kind,
-  mark,
-  total,
+  footer,
 }: {
-  date: string;
-  items: CorporateActionEvent[];
+  events: CorporateActionEvent[];
   kind: Kind;
-  /** Companies on this date in all; defaults to `items`. */
-  total?: number;
-  mark?: (code: string) => ReactNode;
+  footer?: ReactNode;
 }) {
-  const days = kind === "agm" ? items[0].agm_days_left : items[0].record_days_left;
-  return (
-    <article className="soft-card dc-day">
-      <DateHead iso={date} days={days} kind={kind} first={items[0]} count={total ?? items.length} />
+  const key = kind === "agm" ? "agm_date" : "record_date";
+  const perDate = countByDate(events, key);
+  const groups = groupByDate(events, key);
+  const open = foldAt(groups);
+  const hiddenDates = groups.length - open;
+  const hiddenRows = groups.slice(open).reduce((n, g) => n + g.items.length, 0);
+
+  const items = groups.map((g) => (
+    <div key={g.date} className="dc-group">
+      <DateHead
+        iso={g.date}
+        days={kind === "agm" ? g.items[0].agm_days_left : g.items[0].record_days_left}
+        kind={kind}
+        first={g.items[0]}
+        count={perDate.get(g.date) ?? g.items.length}
+        flush
+      />
       <ul className="dc-list">
-        {items.map((e) => (
-          <li key={`${e.trading_code}-${date}`}>
-            <DividendRow e={e} mode={kind} mark={mark?.(e.trading_code)} />
+        {g.items.map((e) => (
+          <li key={`${e.trading_code}-${g.date}`}>
+            <DividendRow e={e} mode={kind} />
           </li>
         ))}
       </ul>
-    </article>
+    </div>
+  ));
+
+  return (
+    <div className="soft-card dc-board">
+      <CalendarFold
+        items={items}
+        initial={open}
+        more={{
+          en: `Show ${hiddenDates} more dates · ${hiddenRows} companies`,
+          bn: `আরও ${hiddenDates}টি তারিখ দেখুন · ${hiddenRows}টি কোম্পানি`,
+        }}
+      />
+      {footer}
+    </div>
   );
 }

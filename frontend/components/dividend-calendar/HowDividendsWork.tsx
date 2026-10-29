@@ -61,7 +61,7 @@ export default function HowDividendsWork({ data }: { data: DividendCalendarData 
       <SectionHeader title={<T en="How a dividend reaches you" bn="ডিভিডেন্ড যেভাবে আপনার কাছে আসে" />} />
 
       {/* One card: the four steps in a hairline grid, then the two questions
-          people ask most (the FAQPage JSON-LD quotes them). */}
+          people ask most as folding rows (the FAQPage JSON-LD quotes them). */}
       <div className="soft-card overflow-hidden">
         <ol className="dc-steps">
           {STEPS.map((s) => (
@@ -78,28 +78,32 @@ export default function HowDividendsWork({ data }: { data: DividendCalendarData 
         </ol>
 
         <div className="dc-qa">
-          <div>
-            <h3>
-              <T en="If I buy today, do I get the dividend?" bn="আজ কিনলে কি ডিভিডেন্ড পাব?" />
-            </h3>
+          <details>
+            <summary>
+              <h3>
+                <T en="If I buy today, do I get the dividend?" bn="আজ কিনলে কি ডিভিডেন্ড পাব?" />
+              </h3>
+            </summary>
             <p>
               <T
                 en={buyTodayAnswer(lead)}
                 bn={`রেকর্ড ডেটে শেয়ার আপনার বিও অ্যাকাউন্টে থাকলে তবেই পাবেন। ডিএসইতে সাধারণ বাজারের লেনদেন নিষ্পত্তি হয় T+2-তে, তাই রেকর্ড ডেটের প্রায় ${lead} কার্যদিবস আগে কেনা নিরাপদ। শেষ দু-এক দিনে ডিএসই শেয়ারটিকে স্পট মার্কেটে নেয়, যেখানে নিষ্পত্তি দ্রুত হয়। ঠিক শেষ দিন কোনটি, তা আপনার ব্রোকার নিশ্চিত করতে পারবেন।`}
               />
             </p>
-          </div>
-          <div>
-            <h3>
-              <T en="Cash or bonus, and how much tax is taken" bn="নগদ না বোনাস, আর কত কর কাটা হয়" />
-            </h3>
+          </details>
+          <details>
+            <summary>
+              <h3>
+                <T en="Cash or bonus, and how much tax is taken" bn="নগদ না বোনাস, আর কত কর কাটা হয়" />
+              </h3>
+            </summary>
             <p>
               <T
                 en="A 25% cash dividend on a ৳10 face value pays ৳2.50 per share, whatever the market price is. A 25% bonus gives you 25 extra shares for every 100 you hold, and no money; the price adjusts down for the new shares. Cash dividends are taxed at 10% with a TIN, and 15% without one."
                 bn="৳10 ফেস ভ্যালুর শেয়ারে 25% নগদ ডিভিডেন্ড মানে প্রতি শেয়ারে ৳2.50, বাজারদাম যা-ই হোক। 25% বোনাস মানে প্রতি 100টি শেয়ারে 25টি নতুন শেয়ার, কোনো টাকা নয়; নতুন শেয়ারের হিসাবে দাম কমে সমন্বয় হয়। নগদ ডিভিডেন্ডে টিআইএন থাকলে 10% আর না থাকলে 15% কর কাটা হয়।"
               />
             </p>
-          </div>
+          </details>
         </div>
       </div>
 
