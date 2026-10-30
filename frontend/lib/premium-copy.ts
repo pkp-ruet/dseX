@@ -285,8 +285,8 @@ export const ROWS: { what: Bi; job: Job; free: Bi; premium: Bi }[] = [
       bn: "5টি পর্যন্ত শেয়ারের জন্য পুরো পেজ: দাম, গ্রেড, আর্থিক ফল, ডিভিডেন্ড, গ্রেড বদল, আপনার অ্যালার্ট, সামনের তারিখ আর খবর।",
     },
     premium: {
-      en: "The same page for up to 200 shares.",
-      bn: "একই পেজ, 200টি পর্যন্ত শেয়ারের জন্য।",
+      en: "The same page for as many shares as you want.",
+      bn: "একই পেজ, যত খুশি শেয়ারের জন্য।",
     },
   },
   {

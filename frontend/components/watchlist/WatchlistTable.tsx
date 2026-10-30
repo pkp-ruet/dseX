@@ -293,8 +293,8 @@ function CapNote({ limit }: { limit: number }) {
         </p>
         <p className="wl-cap-text">
           <T
-            en="This page works the same with Premium. Premium lifts the limit, so you can follow up to 200 shares and see all their updates here."
-            bn="প্রিমিয়ামেও এই পেজ একই রকম। প্রিমিয়াম শুধু সীমা তুলে দেয়, তাই 200টি পর্যন্ত শেয়ার অনুসরণ করে সবগুলোর খবর এখানে দেখতে পারবেন।"
+            en="This page works the same with Premium. Premium lifts the limit, so you can follow as many shares as you want and see all their updates here."
+            bn="প্রিমিয়ামেও এই পেজ একই রকম। প্রিমিয়াম শুধু সীমা তুলে দেয়, তাই যত খুশি শেয়ার অনুসরণ করে সবগুলোর খবর এখানে দেখতে পারবেন।"
           />
         </p>
       </div>
