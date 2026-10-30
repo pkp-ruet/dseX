@@ -39,7 +39,8 @@ export const BENEFITS: { key: "why" | "portfolio" | "research" | "limits"; job?:
     job: "understand",
     title: { en: "Know why, not just what", bn: "শুধু স্কোর নয়, তার কারণও জানুন" },
     points: [
-      { en: "A fair price for every share", bn: "প্রতিটি শেয়ারের ন্যায্য দাম" },
+      { en: "The full report on every share, each chapter read for you", bn: "প্রতিটি শেয়ারের পূর্ণ রিপোর্ট, প্রতিটি অধ্যায় আপনার জন্য লেখা" },
+      { en: "A fair price and our buy price for every share", bn: "প্রতিটি শেয়ারের ন্যায্য দাম আর আমাদের কেনার দাম" },
       { en: "All five checks and every warning, explained", bn: "পাঁচটি যাচাই আর প্রতিটি সতর্কতার ব্যাখ্যা" },
       { en: "The whole in-depth report", bn: "পুরো বিস্তারিত রিপোর্ট" },
     ],
@@ -144,12 +145,12 @@ export const ROWS: { what: Bi; job: Job; free: Bi; premium: Bi }[] = [
     job: "understand",
     what: { en: "Share page analysis", bn: "শেয়ারের পেজের বিশ্লেষণ" },
     free: {
-      en: "Prices, charts, financials, dividends, owners and news, the score, the grade, the Buy or Sell signal, 3 sample sections of every report, and 3 full reports a month on shares you choose.",
-      bn: "দাম, চার্ট, আর্থিক হিসাব, ডিভিডেন্ড, মালিকানা আর খবর, স্কোর, গ্রেড, কেনা বা বিক্রির সংকেত, প্রতিটি রিপোর্টের 3টি নমুনা অংশ, আর আপনার বাছাই করা শেয়ারে মাসে 3টি পূর্ণ রিপোর্ট।",
+      en: "Prices, charts, financials, dividends, owners and news, the grade, the Buy or Sell signal, every question's one-word answer, the company chapter of every report in full, and 3 full reports a month on shares you choose.",
+      bn: "দাম, চার্ট, আর্থিক হিসাব, ডিভিডেন্ড, মালিকানা আর খবর, গ্রেড, কেনা বা বিক্রির সংকেত, প্রতিটি প্রশ্নের এক শব্দের উত্তর, প্রতিটি রিপোর্টের কোম্পানির অধ্যায় পুরোটা, আর আপনার বাছাই করা শেয়ারে মাসে 3টি পূর্ণ রিপোর্ট।",
     },
     premium: {
-      en: "The reasons as well: the fair price, all five checks, every good sign and warning, whether the price is high or low, and where the company stands in its sector.",
-      bn: "সঙ্গে কারণগুলোও: ন্যায্য দাম, পাঁচটি যাচাই, প্রতিটি ভালো দিক ও সতর্কতা, দাম বেশি না কম, আর সেক্টরে কোম্পানির অবস্থান।",
+      en: "The full report: a written read of every chapter, every picture filled in and explained, the fair price and our buy price, every warning, and Our view: the case for and against, and what would change our answer.",
+      bn: "পূর্ণ রিপোর্ট: প্রতিটি অধ্যায়ের লেখা মত, প্রতিটি ছবি পূর্ণ আর ব্যাখ্যাসহ, ন্যায্য দাম আর আমাদের কেনার দাম, প্রতিটি সতর্কতা, আর আমাদের মত: পক্ষে-বিপক্ষে যুক্তি, আর কী হলে উত্তর বদলাবে।",
     },
   },
   {

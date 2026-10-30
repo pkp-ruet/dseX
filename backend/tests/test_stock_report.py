@@ -152,7 +152,7 @@ def test_square_report_shape_and_numbers():
                                                      "owners", "cash", "safety", "quality"]
     words = {c["key"]: c["word"]["en"] for c in rep["scorecard"]}
     assert words == {"red_flags": "None", "price": "Low", "dividend": "Rising", "this_year": "Growing",
-                     "owners": "Buying", "cash": "Fair", "safety": "Very safe", "quality": "Excellent"}
+                     "owners": "Buying", "cash": "Mostly", "safety": "Easily", "quality": "Excellent"}
     secs = rep["sections"]
     # The scorecard says the same thing as each section.
     for c in rep["scorecard"]:
@@ -170,8 +170,9 @@ def test_square_this_year_quarters():
     bars = {q["q"]: (q["cur"], q["prev"]) for q in ty["quarters"]}
     assert bars[1] == (8.35, 6.87) and bars[2] == (8.20, 7.45) and bars[3] == (6.73, 6.83)
     assert bars[4] == (round(31.24 - 23.29, 2), round(27.04 - 21.15, 2))
-    assert ty["headline"]["en"] == "Three of four quarters beat last year. Only January to March slipped, ৳6.73 against ৳6.83."
-    assert ty["latest"]["headline"]["en"] == "FY2026: profit up 16% to ৳31.24 a share"
+    assert ty["headline"]["en"] == ("It made 16% more profit this year than a year before. "
+                                   "Only January to March was a little weaker than last year.")
+    assert ty["latest"]["headline"]["en"] == "It made 16% more profit in the year to Jun 2026 than a year before."
     assert ty["next"]["date"] == "2026-11-12" and ty["next"]["approx"] is True and ty["next"]["beat"] == 8.35
     assert [q["label"]["en"] for q in ty["quarters"]] == ["Jul–Sep", "Oct–Dec", "Jan–Mar", "Apr–Jun"]
 
@@ -197,7 +198,7 @@ def test_square_owners_and_red_flags():
     rep = sr.build_report(square())
     ow = rep["sections"]["owners"]
     assert ow["trade_counts"] == {"buys": 3, "sells": 0}
-    assert ow["headline"]["en"].startswith("The chairman, the managing director and a director bought 5,000,000 shares in January and February")
+    assert ow["headline"]["en"].startswith("The people who run it are buying. The chairman, the managing director and a director bought more shares in January and February")
     assert ow["rule30"] == {"pct": 44.15, "ok": True}
     rf = rep["sections"]["red_flags"]
     assert rf["counts"]["checks"] == len(rf["checks"]) == 16
@@ -217,7 +218,7 @@ def test_price_section_and_scenarios():
     assert len(pr["scenarios"]) == 3
     bear, base, bull = (s["price"] for s in pr["scenarios"])
     assert bear < base < bull
-    assert pr["headline"]["en"] == "Our fair range is ৳229 to ৳343. Today's ৳219 is 23% below its middle."
+    assert pr["headline"]["en"] == "We think a fair price is between ৳229 and ৳343. At ৳219 today, it is cheaper than that."
 
 
 def test_offer_never_gives_the_answer():
@@ -268,10 +269,10 @@ def test_red_flags_are_named_and_counted():
     reds = {c["key"] for c in rf["checks"] if c["level"] == "red"}
     assert {"factory", "category", "owners_30", "loans", "stale"} <= reds
     assert rf["word"]["en"] == f"{len(reds)} red flags" and rf["tone"] == "bad"
-    assert rf["headline"]["en"].startswith(f"{len(reds)} red flags. The first: DSE found the factory closed")
+    assert rf["headline"]["en"].startswith(f"Yes, {len(reds)} serious problems. The biggest: DSE visited the factory")
     assert rep["updated"]["reason"]["en"] == "after a DSE factory inspection"
     # The cover's watch-out leads with the first red flag, its acronym intact.
-    assert rep["summary"][-1]["en"].startswith("Watch: DSE found the factory closed")
+    assert rep["summary"][-1]["en"].startswith("Watch: DSE visited the factory")
     # No strength to report on a company this weak.
     assert rep["summary"][0]["en"].startswith("We found no clear strength")
     _all_bi(rep)
@@ -304,7 +305,7 @@ def test_rumour_rally_warning():
     inp["notices"]["queries"] = [{"no_undisclosed": True, "post_date": TODAY - timedelta(days=5)}]
     w = sr.build_warning(inp)
     assert w["level"] == "red"
-    assert w["headline"]["en"] == "The price rose 60% in 20 trading days with no news from the company."
+    assert w["headline"]["en"] == "The price rose 60% in about a month, with no news from the company."
     assert any("DSE asked about the unusual price move" in l["en"] for l in w["lines"])
     rf = sr.build_report(inp)["sections"]["red_flags"]
     q = next(c for c in rf["checks"] if c["key"] == "dse_query")
@@ -381,3 +382,282 @@ def test_story_skips_a_last_year_without_sales():
     assert story is not None
     # Measured from 2020 to 2024, the newest year with sales.
     assert story["growth"]["years"] == 4
+
+
+# ---------------------------------------------------------------- the answer card
+
+def _sig(signal, reason, tier="excellent", strength="normal"):
+    return {"signal": signal, "reason_key": reason, "tier": tier, "strength": strength,
+            "reason_en": "Reason.", "reason_bn": "কারণ।"}
+
+
+def _answer(inp, sig):
+    inp["signal"] = sig
+    ans = sr.build_report(inp)["answer"]
+    _all_bi(ans)
+    return ans, {l["key"]: l for l in ans["lights"]}
+
+
+def test_answer_buy_has_no_red_light():
+    ans, lights = _answer(square(), _sig("buy", "quality_cheap", strength="strong"))
+    assert ans["decision"] == "buy" and ans["word"]["en"] == "Strong buy" and ans["tone"] == "good"
+    assert ans["blocker"] is None
+    assert all(l["tone"] != "bad" for l in lights.values())
+    assert lights["company"]["word"]["en"] == "Excellent"
+    assert ans["line"]["en"] == "An excellent company at a low price, and nothing serious is wrong."
+    # The free line carries no figures; the buy price is a separate (Premium) field.
+    assert not any(ch.isdigit() for ch in ans["line"]["en"])
+    assert ans["buy_price"] == 229
+
+
+def test_answer_waits_on_the_price():
+    inp = square()
+    inp["score_row"]["p4_val"] = 2.0
+    ans, lights = _answer(inp, _sig("none", "quality_expensive", tier="good"))
+    assert ans["decision"] == "wait" and ans["word"]["en"] == "Not yet" and ans["blocker"] == "price"
+    assert lights["price"]["tone"] in ("fair", "bad")
+    assert ans["line"]["en"] == "A good company, but the price is high right now."
+
+
+def test_answer_near_yearly_top():
+    ans, lights = _answer(square(), _sig("none", "near_52w_high"))
+    assert ans["blocker"] == "price" and lights["price"]["word"]["en"] == "Near its yearly top"
+    assert lights["price"]["tone"] == "fair"
+
+
+def test_answer_names_the_blocking_risk():
+    ans, lights = _answer(square(), _sig("none", "thin_trading"))
+    assert ans["decision"] == "wait" and ans["blocker"] == "risks"
+    assert lights["risks"]["tone"] == "bad" and lights["risks"]["word"]["en"] == "Yes: hard to sell"
+    assert "selling can be hard" in ans["line"]["en"]
+
+
+def test_report_red_flag_overrides_a_stale_buy():
+    # The signal reads yesterday's snapshot; a red flag found today still
+    # turns the card to "Not yet".
+    inp = red_flag_company()
+    inp["score_row"].update({"score": 80.0})
+    ans, lights = _answer(inp, _sig("buy", "quality_cheap"))
+    assert ans["decision"] == "wait" and ans["blocker"] == "risks"
+    assert lights["risks"]["tone"] == "bad"
+    assert ans["line"]["en"].startswith("An excellent company, but we found a serious problem: DSE visited the factory")
+
+
+def test_answer_weak_and_average():
+    ans, lights = _answer(red_flag_company(), _sig("sell", "weak_fundamentals", tier="weak"))
+    assert ans["decision"] == "avoid" and ans["tone"] == "bad" and lights["company"]["tone"] == "bad"
+    inp = square()
+    inp["score_row"]["score"] = 50.0
+    ans, _ = _answer(inp, _sig("none", "average_fundamentals", tier="average"))
+    assert ans["decision"] == "no_reason" and ans["blocker"] == "company"
+
+
+def test_safety_measures_for_the_loans_meter():
+    m = sr.build_report(square())["sections"]["safety"]["measures"]
+    assert m["saved_pct"] == 1 and m["mcap_pct"] == 0 and m["no_loans"] is False
+
+
+# ---------------------------------------------------------------- the text diet
+
+import re  # noqa: E402
+
+# Bare market words the page must not show in an answer: the plain name leads
+# (the frontend's lib/glossary.ts explains the word on a tap where it is shown).
+_MARKET_WORDS = re.compile(r"\b(EPS|NOCFPS|NAV|P/E|ROE|TTM|YoY|CAGR)\b|ইপিএস|পিই|এনএভি")
+
+
+def _texts(rep):
+    for k, s in rep["sections"].items():
+        for f in ("headline", "free_line", "word", "watch"):
+            if s.get(f):
+                yield f"{k}.{f}", s[f]
+        for i, m in enumerate(s.get("meaning") or []):
+            yield f"{k}.meaning[{i}]", m
+        for i, m in enumerate(s.get("inside") or []):
+            yield f"{k}.inside[{i}]", m
+        for i, sc in enumerate(s.get("scenarios") or []):
+            yield f"{k}.scenarios[{i}]", sc["label"]
+        for i, r in enumerate(s.get("ranks") or []):
+            yield f"{k}.ranks[{i}]", r["label"]
+        for i, a in enumerate(s.get("items") or []):
+            if isinstance(a, dict) and isinstance(a.get("why"), dict):
+                yield f"{k}.items[{i}].why", a["why"]
+    ans = rep.get("answer") or {}
+    yield "answer.line", ans.get("line") or {"en": "", "bn": ""}
+    for l in ans.get("lights") or []:
+        yield f"answer.{l['key']}.word", l["word"]
+
+
+def test_no_bare_market_words_on_screen():
+    bank = square()
+    bank.update({"code": "BRACBANK", "sector_class": "BANK", "sector": "Bank",
+                 "extended_financials": [{"year": 2025, "total_equity": 9.98e10, "total_assets": 1e12,
+                                          "revenue": None, "net_profit": 1e10, "operating_cf": 9e10}]})
+    for inp in (square(), red_flag_company(), bank):
+        rep = sr.build_report(inp)
+        for where, b in _texts(rep):
+            assert not _MARKET_WORDS.search(b["en"]), f"{where}: {b['en']}"
+            assert not _MARKET_WORDS.search(b["bn"]), f"{where}: {b['bn']}"
+
+
+# Plain reading (2026-10-30, user: "hard words and numbers"): an answer says
+# what it means in everyday words — no ratio-speak, no ranks out of hundreds,
+# and at most three figures in one answer.
+_RATIO_SPEAK = re.compile(
+    r"times (its|their) profit|out of 10\b|out of 100\b|\b\d+(st|nd|rd|th) of \d{2,}|\bpayout\b|\bmargin\b"
+    r"|saved profit|covered \d|\d×|a share against|\bcheck(s)? (is|are)\b|\bQ[1-4]\b|\bFY\d{4}\b"
+)
+_NUM = re.compile(r"\d[\d,.]*")
+
+
+def test_answers_read_plainly():
+    bank = square()
+    bank.update({"code": "BRACBANK", "sector_class": "BANK", "sector": "Bank",
+                 "extended_financials": [{"year": 2025, "total_equity": 9.98e10, "total_assets": 1e12,
+                                          "revenue": None, "net_profit": 1e10, "operating_cf": 9e10}]})
+    for inp in (square(), red_flag_company(), bank):
+        rep = sr.build_report(inp)
+        for where, b in _texts(rep):
+            assert not _RATIO_SPEAK.search(b["en"]), f"{where}: {b['en']}"
+        for k, s in rep["sections"].items():
+            assert len(_NUM.findall(s["headline"]["en"])) <= 3, f"{k}.headline: {s['headline']['en']}"
+            for c in s.get("checks") or [] if isinstance(s.get("checks"), list) else []:
+                assert not _RATIO_SPEAK.search(c["detail"]["en"]), f"{k}.{c['key']}: {c['detail']['en']}"
+        for l in rep["answer"]["lights"]:
+            if l["why"]:
+                assert not _RATIO_SPEAK.search(l["why"]["en"]), f"answer.{l['key']}.why: {l['why']['en']}"
+
+
+# ---------------------------------------------------------------- the full report (reads + Our view)
+
+def test_reads_put_each_chapter_together():
+    inp = square()
+    inp["signal"] = _sig("buy", "quality_cheap")
+    reads = sr.build_report(inp)["reads"]
+    assert set(reads) == {"ch-company", "ch-price", "ch-risks", "ch-next"}
+    _all_bi(reads)
+    # The company read joins profit with cash, then loans and size.
+    assert reads["ch-company"]["en"] == ("Its profit is growing, and most of it comes in as real money. "
+                                         "It can pay its loans easily. It is one of the biggest companies in its sector.")
+    assert "fair price is ৳229 to ৳343" in reads["ch-price"]["en"]
+    # The next read follows the sentence that names the date.
+    assert "this day" not in reads["ch-next"]["en"] and "by then" in reads["ch-next"]["en"]
+
+
+def test_risks_read_names_the_serious_problem_first():
+    inp = red_flag_company()
+    inp["signal"] = _sig("none", "red_flag", tier="good")
+    read = sr.build_report(inp)["reads"]["ch-risks"]["en"]
+    assert read.startswith("We found 5 serious problems. The biggest: DSE visited the factory")
+
+
+def test_view_buy_turns_the_signal_lines_into_prices():
+    inp = square()
+    inp["signal"] = _sig("buy", "quality_cheap")
+    inp["range52"] = {"hi": 260.0, "lo": 180.0}
+    v = sr.build_report(inp)["view"]
+    _all_bi(v)
+    # 180 + 85% of the 80-taka range = 248, the signal's near-the-top line.
+    assert v["change"][0]["en"].startswith("If the price climbs past ৳248")
+    assert v["buy_price"] == 229
+    assert v["headline"]["en"].startswith("Our answer: Buy.")
+    assert 1 <= len(v["for"]) <= 3 and 1 <= len(v["against"]) <= 3
+    assert len(v["inside"]) == 4
+
+
+def test_view_waits_on_a_red_flag():
+    inp = red_flag_company()
+    inp["signal"] = _sig("none", "red_flag", tier="good")
+    v = sr.build_report(inp)["view"]
+    assert v["change"] == [sr.bi("If the serious problem we found is resolved.", "যে গুরুতর সমস্যা পেয়েছি, তা মিটে গেলে।")]
+    assert v["against"][0]["en"].startswith("DSE visited the factory")
+
+
+def test_full_report_reads_plainly():
+    for f, sig in ((square, _sig("buy", "quality_cheap")), (red_flag_company, _sig("none", "red_flag", tier="good"))):
+        inp = f()
+        inp["signal"] = sig
+        inp["range52"] = {"hi": 260.0, "lo": 180.0}
+        rep = sr.build_report(inp)
+        texts = list(rep["reads"].values())
+        v = rep["view"]
+        texts += [v["headline"], *v["for"], *v["against"], *v["change"], *v["inside"]]
+        for b in texts:
+            for half in (b["en"], b["bn"]):
+                assert not _MARKET_WORDS.search(half), half
+            assert not _RATIO_SPEAK.search(b["en"]), b["en"]
+            for sentence in re.split(r"(?<=[.;])\s", b["en"]):
+                assert len(_NUM.findall(sentence)) <= 3, sentence
+
+
+def test_answer_change_needs_two_days():
+    from backend.services.stock_report_service import settled_answer_change
+
+    buy, wait = sr.bi("Buy", "কেনা যায়"), sr.bi("Not yet", "এখন নয়")
+    row = lambda d, dec, w: {"date": d, "decision": dec, "answer_word": w, "answer_line": sr.bi("x", "ক")}  # noqa: E731
+    # Held two days after the change: news.
+    ch = settled_answer_change([row("2026-10-29", "wait", wait), row("2026-10-28", "wait", wait), row("2026-10-27", "buy", buy)])
+    assert ch and ch["from"] == buy and ch["to"] == wait and ch["day"] == "2026-10-29"
+    # One day only, or no change: not news.
+    assert settled_answer_change([row("2026-10-29", "wait", wait), row("2026-10-28", "buy", buy), row("2026-10-27", "buy", buy)]) is None
+    assert settled_answer_change([row("2026-10-29", "buy", buy), row("2026-10-28", "buy", buy), row("2026-10-27", "buy", buy)]) is None
+    assert settled_answer_change([row("2026-10-29", "wait", wait), row("2026-10-28", "wait", wait)]) is None
+
+
+def test_watcher_answer_event():
+    from backend.services.portfolio_watch import build_events, push_payload
+
+    facts = {"answers": {"GP": {"day": "2026-10-29", "decision": "wait", "from": sr.bi("Buy", "কেনা যায়"),
+                                "to": sr.bi("Not yet", "এখন নয়"),
+                                "line": sr.bi("A good company, but the price is high right now.", "ক।")}}}
+    events = build_events({}, facts, "2026-10-29", watched={"GP"})
+    assert len(events) == 1 and events[0]["kind"] == "answer" and events[0]["level"] == "watch"
+    assert events[0]["title_en"] == "Our answer on GP changed: Not yet"
+    assert events[0]["body_en"] == "It was Buy. A good company, but the price is high right now."
+    assert push_payload(events, "en")["url"] == "/stock/GP?src=watch#ch-answer"
+
+
+def test_buy_price_never_above_the_stop_buy_line():
+    # 2026-10-30: SQURPHARMA read "buy under ৳234" beside "past ৳227 we'd stop
+    # calling it a Buy". The buy price is capped at the near-the-top line.
+    inp = square()
+    inp["signal"] = _sig("buy", "quality_cheap")
+    inp["range52"] = {"hi": 230.0, "lo": 200.0}
+    rep = sr.build_report(inp)
+    # 200 + 85% of 30 = 225.5 → ৳226, under the ৳229 the fair price gives.
+    assert rep["sections"]["price"]["buy_below"] == 226
+    assert rep["answer"]["buy_price"] == 226 and rep["view"]["buy_price"] == 226
+    assert rep["view"]["change"][0]["en"].startswith("If the price climbs past ৳226")
+
+
+def test_next_questions_pair_each_free_answer_with_its_question():
+    inp = square()
+    inp["signal"] = _sig("buy", "quality_cheap")
+    inp["range52"] = {"hi": 260.0, "lo": 180.0}
+    rows = sr.build_report(inp)["next_questions"]
+    _all_bi([{k: r[k] for k in ("word", "ask", "hint", "answer")} for r in rows])
+    assert [r["key"] for r in rows] == ["answer", "price", "red_flags", "owners", "next"]
+    assert rows[0]["word"]["en"] == "Buy" and rows[0]["ask"]["en"] == "Up to what price?"
+    assert rows[0]["answer"]["en"].startswith("We would buy under ৳229.")
+    assert rows[1]["word"]["en"] == "Low" and rows[1]["hint"]["en"] == "Our fair price, worked out 4 ways"
+    assert rows[4]["word"]["en"] == "Results around 12 Nov"
+
+    bad = red_flag_company()
+    bad["signal"] = _sig("none", "red_flag", tier="good")
+    rows = sr.build_report(bad)["next_questions"]
+    assert rows[0]["ask"]["en"] == "What would change it?"
+    assert [r["key"] for r in rows][:3] == ["answer", "price", "red_flags"]
+    assert len(rows) <= 5
+    # The card's words never use a bare market word or ratio-speak, and the
+    # free half (word, ask, hint) carries no figure the free page doesn't show.
+    for f, sig in ((square, _sig("buy", "quality_cheap")), (red_flag_company, _sig("none", "red_flag", tier="good"))):
+        inp = f()
+        inp["signal"] = sig
+        for r in sr.build_report(inp)["next_questions"]:
+            for k in ("ask", "hint", "answer"):
+                b = r[k]
+                if not b:
+                    continue
+                for half in (b["en"], b["bn"]):
+                    assert not _MARKET_WORDS.search(half), half
+                assert not _RATIO_SPEAK.search(b["en"]), b["en"]

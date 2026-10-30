@@ -1,16 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { useEffect, useRef } from "react";
 import Button from "@/components/ui/Button";
-import { IconBell, IconCheck, IconCrown } from "@/components/ui/icons";
+import { IconBell, IconCrown } from "@/components/ui/icons";
 import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
 import { useLockScope } from "@/components/premium/LockScope";
 import ReportKeyButton from "@/components/premium/ReportKeyButton";
 import { T } from "@/components/i18n/T";
 import { tx } from "@/components/stock/report/fmt";
 import { useLang } from "@/context/LangContext";
-import { freeReportCode } from "@/lib/free-report";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
 import { PAID_PLANS, LOWEST_PRICE } from "@/lib/premium-plans";
 import { savePremiumContext } from "@/lib/premium-context";
@@ -21,13 +19,23 @@ const YEARLY = PAID_PLANS.find((p) => p.key === "yearly");
 const YEARLY_MONTH = YEARLY ? Math.round(YEARLY.amount / 12) : null;
 
 /**
- * The report's ONE offer (`#ch-premium`, 2026-10-28). Its lines come from the
- * backend and name what Premium shows on THIS share, counted from the locked
- * sections ("Who made the 3 insider buys, and what they paid") — never the
- * answers. Premium readers get a short "report alerts" note instead; on the
- * free report of the day the offer becomes "get this on every share".
+ * The report's short close (`#ch-premium-end`, 2026-10-30, plan
+ * https://claude.ai/artifact/UHZTK5nvUVrtzzmq6c2oSX): for a reader who
+ * scrolled to the end, one heading, one line, the price and the button. What
+ * the full report holds is said once, in the Premium card under the answer
+ * (`NextQuestions`, `#ch-premium`). Premium readers get a short "report
+ * alerts" note instead; on an open free report it becomes "get this on every
+ * share". `lines` (the backend's `offer`) ride along to /premium as stakes.
  */
-export default function ReportOffer({ code, name, lines }: { code: string; name: string; lines: Bi[] }) {
+export default function ReportOffer({
+  code,
+  name,
+  lines,
+}: {
+  code: string;
+  name: string;
+  lines: Bi[];
+}) {
   const { bn } = useLang();
   const { state, isPremium } = usePremium();
   const open = usePremiumOpen();
@@ -36,8 +44,6 @@ export default function ReportOffer({ code, name, lines }: { code: string; name:
   const keyed = useLockScope()?.reason === "key";
   const ref = useRef<HTMLDivElement>(null);
   const seen = useRef(false);
-  const [sample, setSample] = useState<string | null>(null);
-  useEffect(() => setSample(freeReportCode()), []);
 
   useEffect(() => {
     const el = ref.current;
@@ -58,11 +64,11 @@ export default function ReportOffer({ code, name, lines }: { code: string; name:
   if (isPremium && open) {
     // A paying reader needs no offer: one quiet line on report alerts.
     return (
-      <p id="ch-premium" className="stock-anchor my-8 flex items-start gap-2 text-sm leading-snug text-text-muted">
+      <p className="my-8 flex items-start gap-2 text-sm leading-snug text-text-muted">
         <span className="mt-0.5 shrink-0 text-gold-ink"><IconBell size={14} /></span>
         <T
-          en="Follow this share to get one push when its results land, a red flag appears or its grade changes."
-          bn="এই শেয়ারটি ফলো করুন: ফল প্রকাশ হলে, নতুন রেড ফ্ল্যাগ এলে বা গ্রেড বদলালে একটি নোটিফিকেশন পাবেন।"
+          en="Follow this share to get one push when our answer changes, its results land, a red flag appears or its grade changes."
+          bn="এই শেয়ারটি ফলো করুন: আমাদের উত্তর বদলালে, ফল প্রকাশ হলে, নতুন বড় সতর্কতা এলে বা গ্রেড বদলালে একটি নোটিফিকেশন পাবেন।"
         />
       </p>
     );
@@ -78,7 +84,7 @@ export default function ReportOffer({ code, name, lines }: { code: string; name:
   };
 
   return (
-    <div ref={ref} id="ch-premium" className="rp-offer stock-anchor my-8">
+    <div ref={ref} id="ch-premium-end" className="rp-offer stock-anchor my-8">
       <p className="flex items-center gap-2 text-sm font-semibold text-gold-ink">
         <IconCrown size={16} />
         {freeToday ? (
@@ -95,23 +101,16 @@ export default function ReportOffer({ code, name, lines }: { code: string; name:
             <T en={`Every part of the report on ${name} is open today`} bn={`আজ ${name}-এর রিপোর্টের সব অংশ সবার জন্য খোলা`} />
           )
         ) : (
-          <T en={`The full report on ${name}, and on every other DSE share`} bn={`${name}-এর পূর্ণ রিপোর্ট, আর ডিএসই-র প্রতিটি শেয়ারের`} />
+          <T en={`Ready for the full report on ${name}?`} bn={`${name}-এর পূর্ণ রিপোর্ট পড়তে চান?`} />
         )}
       </h3>
-      {!freeToday && lines.length > 0 && (
-        <>
-          <p className="mt-2 text-sm text-text-muted">
-            <T en="On this share, Premium shows you:" bn="এই শেয়ারে প্রিমিয়ামে দেখবেন:" />
-          </p>
-          <ul className="mt-3 space-y-2">
-            {lines.map((l, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm text-text-main">
-                <span className="mt-0.5 shrink-0 text-positive"><IconCheck size={14} /></span>
-                <span>{tx(l)}</span>
-              </li>
-            ))}
-          </ul>
-        </>
+      {!freeToday && (
+        <p className="mt-2 text-sm text-text-main">
+          <T
+            en="Every answer above explained, our fair price and buy price, and a notification when our answer changes. On every DSE share."
+            bn="ওপরের প্রতিটি উত্তরের ব্যাখ্যা, আমাদের হিসাবে ন্যায্য দাম আর কেনার দাম, আর উত্তর বদলালে নোটিফিকেশন। ডিএসইর প্রতিটি শেয়ারে।"
+          />
+        </p>
       )}
       {freeToday && (
         <p className="mt-2 text-sm text-text-muted">
@@ -135,7 +134,7 @@ export default function ReportOffer({ code, name, lines }: { code: string; name:
       </p>
       <div className="mt-3">
         <Button href={PREMIUM_PATH} onClick={onTap} size="lg" block>
-          {freeToday ? <T en="Get this on every share" bn="সব শেয়ারে এটি পান" /> : <T en="See Premium plans" bn="প্রিমিয়াম প্ল্যান দেখুন" />}
+          {freeToday ? <T en="Get this on every share" bn="সব শেয়ারে এটি পান" /> : <T en="Get the full report" bn="পূর্ণ রিপোর্ট নিন" />}
         </Button>
       </div>
       {!freeToday && <ReportKeyButton code={code} className="mt-2" />}
@@ -152,14 +151,6 @@ export default function ReportOffer({ code, name, lines }: { code: string; name:
           />
         )}
       </p>
-      {!freeToday && sample && sample !== code && (
-        <p className="mt-2 text-sm text-text-muted">
-          <T en="Not sure yet? " bn="এখনো ঠিক করেননি? " />
-          <Link href={`/stock/${sample}#ch-report`} className="font-semibold text-primary-ink hover:underline">
-            <T en={`Read today's free full report: ${sample}`} bn={`আজকের ফ্রি পূর্ণ রিপোর্ট পড়ুন: ${sample}`} />
-          </Link>
-        </p>
-      )}
     </div>
   );
 }

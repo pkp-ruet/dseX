@@ -1,5 +1,5 @@
 import type { TierKey } from "@/lib/constants";
-import type { StockReport } from "@/lib/stock-report";
+import type { NextQuestion, StockReport } from "@/lib/stock-report";
 
 /**
  * Backend base URL (no trailing slash).
@@ -1436,6 +1436,14 @@ export async function getPriceHistory(code: string, range: "1y" | "2y" | "3y" | 
   return res.json() as Promise<PricePoint[]>;
 }
 
+/** One company's next questions with their answers: the stock page's Premium
+ *  card shows two from today's free report as a sample (fetched on tap). */
+export async function getReportQuestions(code: string): Promise<{ code: string; name: string; rows: NextQuestion[] }> {
+  const res = await fetch(`${getApiUrl()}/api/company/${code.toUpperCase()}/questions`);
+  if (!res.ok) throw new Error(`Report questions fetch failed: ${res.status}`);
+  return res.json() as Promise<{ code: string; name: string; rows: NextQuestion[] }>;
+}
+
 // ---------------------------------------------------------------------------
 // Auth types & helpers (client-side only)
 // ---------------------------------------------------------------------------
@@ -2142,7 +2150,7 @@ export async function apiGetPortfolioHistory(pid?: string | null): Promise<Portf
 
 export interface PortfolioWatchEvent {
   id: string;
-  kind: "record" | "results" | "grade" | "category" | "drop" | "low52";
+  kind: "record" | "results" | "grade" | "category" | "drop" | "low52" | "red_flag" | "answer";
   code: string;
   level: "good" | "watch" | "bad";
   title_en: string;

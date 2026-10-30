@@ -37,87 +37,56 @@
   background: rgb(var(--negative-rgb) / 0.06);
 }
 
-/* ---- Scorecard ------------------------------------------------------ */
-.rp-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1px;
-  background: var(--border);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-@media (min-width: 640px) {
-  .rp-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-}
-.rp-tile {
-  display: block;
-  min-height: 68px;
-  padding: var(--space-3) var(--space-3);
-  background: var(--surface);
-  color: inherit;
-  text-decoration: none;
-}
-.rp-tile:hover { background: rgb(var(--bg-rgb)); }
-.rp-tile:active { background: var(--surface-2); }
-.rp-word {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 2px;
-  font-weight: 700;
-}
-.rp-word::before {
-  content: "";
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: currentColor;
-  flex: none;
-}
-
-/* The three-line summary: each line under what it is about. */
-.rp-summary { margin-top: var(--space-4); }
-.rp-summary-row { padding: var(--space-3) 0; border-top: 1px dashed var(--border); }
-.rp-summary > .rp-summary-row:first-child { border-top-style: solid; }
-.rp-summary-k { display: block; font-size: var(--fs-xs); font-weight: 600; color: var(--text-muted); }
-.rp-summary-row p { margin-top: 2px; font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
-@media (min-width: 640px) {
-  .rp-summary-row { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: var(--space-3); }
-  .rp-summary-row p { margin-top: 0; font-size: var(--fs-base); }
-}
-
 /* Tone colours — one meaning each. */
 .rp-tone-good { color: var(--positive); }
 .rp-tone-fair { color: var(--watch); }
 .rp-tone-bad { color: var(--negative); }
 .rp-tone-neutral { color: var(--text-muted); }
 
+/* The answer chip (2026-10-30): filled with its colour, a ✓ / ! / ✕ mark,
+   bigger type — the answer is the first thing the eye catches on a row. */
 .rp-chip {
+  --chip-c: var(--text-muted);
+  --chip-rgb: var(--text-muted-rgb);
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex: none;
-  padding: 3px 10px 3px 8px;
+  min-height: 34px;
+  padding: 4px 14px 4px 5px;
   border-radius: 999px;
-  background: var(--surface-2);
-  font-size: var(--fs-xs);
+  border: 1.5px solid rgb(var(--chip-rgb) / 0.45);
+  background: rgb(var(--chip-rgb) / 0.12);
+  color: var(--chip-c);
+  font-size: var(--fs-sm);
   font-weight: 700;
+  line-height: 1.2;
   white-space: nowrap;
 }
-.rp-chip::before {
-  content: "";
-  width: 8px;
-  height: 8px;
+.rp-chip.rp-tone-good { --chip-c: var(--positive); --chip-rgb: var(--positive-rgb); }
+.rp-chip.rp-tone-fair { --chip-c: var(--watch); --chip-rgb: var(--watch-rgb); }
+.rp-chip.rp-tone-bad { --chip-c: var(--negative); --chip-rgb: var(--negative-rgb); }
+.rp-chip.rp-tone-neutral { --chip-c: var(--text); --chip-rgb: var(--text-muted-rgb); }
+.rp-chip-mark {
+  flex: none;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background: currentColor;
+  display: grid;
+  place-items: center;
+  background: var(--chip-c);
+  color: var(--surface);
+  font-size: var(--fs-2xs);
+  font-weight: 700;
 }
+.rp-chip.rp-tone-neutral .rp-chip-mark { background: rgb(var(--text-muted-rgb) / 0.6); }
+.rp-chip[data-size="lg"] { min-height: 40px; padding: 5px 16px 5px 6px; font-size: var(--fs-md); }
+.rp-chip[data-size="lg"] .rp-chip-mark { width: 28px; height: 28px; }
 
 /* The Premium panel moved to premium.css as `.ans` (AnswerLock, 2026-10-29). */
 
-/* ---- The overview's one Premium card (free readers) ------------------
+/* (The overview's Premium card, `.rp-guide`, was folded into the offer 2026-10-30.)
    The `.ans` closed card with the free / Premium rows (premium.css). */
-.ans.rp-guide { margin-top: var(--space-2); margin-bottom: var(--space-6); }
 
 /* ---- Report (2026-10-29 calm pass) ------------------------------------
    Three parts, each ONE sheet; the sections on it are split by hairlines,
@@ -144,7 +113,7 @@
 }
 .rp-sheet > .rp-sec + .rp-sec { border-top: 1px solid var(--border); }
 .rp-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
-.rp-head > .rp-chip { margin-top: 3px; }
+.rp-head > .rp-chip { margin-top: 0; }
 .rp-answer {
   margin-top: var(--space-2);
   font-size: var(--fs-base);

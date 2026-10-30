@@ -7,7 +7,7 @@
 /**
  * THE free amount (2026-10-29, the Free vs Premium plan): the top 3 of every
  * list of other companies is free — signals, the screener, Picked for you,
- * the research lists, stories, the report's sample sections. One number a
+ * the research lists, stories. One number a
  * reader learns after one page. Rankings, results and the dividend calendar
  * are open in full since 2026-10-29 (plan step 4).
  */
@@ -34,23 +34,14 @@ export const FREE_FORYOU_ROWS = FREE_LIST_ROWS;
  *  any number of times. */
 export const FREE_STORIES = FREE_LIST_ROWS;
 
-/** The stock report: the sections whose Premium panel is open to everyone on
- *  every share, so a free reader sees one whole Premium answer instead of a
- *  share of every answer (user decision 2026-10-29, "whole or nothing").
- *  The first `FREE_REPORT_SECTION_COUNT` this stock has, in this order. */
-export const FREE_REPORT_SECTIONS = ["red_flags", "this_year", "cash", "safety"] as const;
-export const FREE_REPORT_SECTION_COUNT = FREE_LIST_ROWS;
+/* The stock report's free taste is a whole chapter since 2026-10-30
+   (`FREE_CHAPTER` in lib/stock-report.ts, the full report plan): it replaced
+   three scattered sample sections (red flags, this year, cash). */
 
 /** Research list pages and the research rows on /market-analysis and the
  *  dashboard: the top three companies are free (was fully locked until
  *  2026-10-29). */
 export const FREE_RESEARCH_ROWS = FREE_LIST_ROWS;
-
-/** Which of a report's sections are open in full for everyone. */
-export function freeReportSections(present: Iterable<string>): string[] {
-  const have = new Set(present);
-  return FREE_REPORT_SECTIONS.filter((k) => have.has(k)).slice(0, FREE_REPORT_SECTION_COUNT);
-}
 
 /** Split a list into the free head (`n` rows) and the locked rest. */
 export function splitFree<T>(items: T[], n: number): [T[], T[]] {

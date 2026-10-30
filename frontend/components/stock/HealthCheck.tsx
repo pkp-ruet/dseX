@@ -53,33 +53,33 @@ export const PILLAR_NAMES: Record<string, { en: string; bn: string }> = {
 const PILLAR_SUBS: Record<string, { key: string; en: string; bn: string }[]> = {
   p1_biz: [
     { key: "p1_eps_consist", en: "Years with a profit", bn: "মুনাফার বছর" },
-    { key: "p1_eps_cagr", en: "Growth in EPS", bn: "ইপিএস বৃদ্ধি" },
-    { key: "p1_roe", en: "Return on equity", bn: "নিজস্ব মূলধনে আয়" },
-    { key: "p1_npm_trend", en: "Profit margin trend", bn: "মুনাফার হারের ধারা" },
+    { key: "p1_eps_cagr", en: "Profit growing over the years", bn: "বছরে বছরে মুনাফা বৃদ্ধি" },
+    { key: "p1_roe", en: "Profit on the owners' money", bn: "মালিকের টাকায় মুনাফা" },
+    { key: "p1_npm_trend", en: "Keeping more of each sale", bn: "প্রতি বিক্রিতে বেশি রাখা" },
   ],
   p2_health: [
     // p2_de is null for banks / NBFIs and p2_capital is null for everyone else,
     // so exactly one leverage bar renders per company (rows with null hide).
-    { key: "p2_de", en: "Low debt", bn: "কম ঋণ" },
-    { key: "p2_capital", en: "Own capital", bn: "নিজস্ব মূলধন" },
+    { key: "p2_de", en: "Few loans", bn: "কম ঋণ" },
+    { key: "p2_capital", en: "Its own money", bn: "নিজস্ব টাকা" },
     { key: "p2_ic", en: "Can pay its interest", bn: "সুদ দেওয়ার সামর্থ্য" },
-    { key: "p2_cfo", en: "Cash from profit", bn: "মুনাফা থেকে নগদ" },
+    { key: "p2_cfo", en: "Profit coming in as cash", bn: "মুনাফা নগদে আসা" },
     { key: "p2_cash", en: "Cash in hand", bn: "হাতে নগদ" },
   ],
   p3_moat: [
-    { key: "p3_margin", en: "Profit margin", bn: "মুনাফার হার" },
+    { key: "p3_margin", en: "Profit kept from sales", bn: "বিক্রি থেকে থাকা মুনাফা" },
     { key: "p3_rev_vol", en: "Steady sales", bn: "স্থির বিক্রি" },
     { key: "p3_sector_rank", en: "Size in its sector", bn: "সেক্টরে আকার" },
     { key: "p3_capex", en: "Spending on growth", bn: "প্রবৃদ্ধিতে বিনিয়োগ" },
   ],
   p4_val: [
-    { key: "p4_pe", en: "Price against profit (P/E)", bn: "মুনাফার তুলনায় দাম (পিই)" },
-    { key: "p4_pb", en: "Price against assets (P/B)", bn: "সম্পদের তুলনায় দাম (পিবি)" },
+    { key: "p4_pe", en: "Price compared with profit", bn: "মুনাফার তুলনায় দাম" },
+    { key: "p4_pb", en: "Price compared with what it owns", bn: "সম্পদের তুলনায় দাম" },
   ],
   p5_div: [
     { key: "p5_consist", en: "Pays every year", bn: "প্রতি বছর দেয়" },
     { key: "p5_payout", en: "Dividend it can afford", bn: "সামর্থ্যের মধ্যে ডিভিডেন্ড" },
-    { key: "p5_yield", en: "Dividend yield", bn: "ডিভিডেন্ড ইল্ড" },
+    { key: "p5_yield", en: "Cash it pays on today's price", bn: "আজকের দামে নগদ ডিভিডেন্ড" },
     { key: "p5_dps_cagr", en: "Dividend growth", bn: "ডিভিডেন্ড বৃদ্ধি" },
   ],
 };
@@ -92,18 +92,20 @@ function pillarNumbers(pillarKey: string, detail: CompanyDetail): Fig[] {
   const last = rows[rows.length - 1];
   const sr = detail.score_row ?? {};
   const out: Fig[] = [];
-  const pct = (v: number | null) => (v == null ? null : `${v.toFixed(1)}%`);
-  const x = (v: number | null) => (v == null ? null : `${v.toFixed(1)}×`);
 
   const push = (en: string, bn: string, val: string | null) => {
     if (val != null) out.push({ en, bn, value: val });
   };
 
   switch (pillarKey) {
-    case "p1_biz":
-      push("Return on equity (3-year average)", "নিজস্ব মূলধনে আয় (3 বছরের গড়)", pct(roe3yAvg(rows)));
-      push("Net profit margin", "নিট মুনাফার হার", last ? pct(netMargin(last.net_profit, last.revenue ?? last.net_interest_income)) : null);
+    case "p1_biz": {
+      // Plain words (2026-10-30): taka of profit per ৳100, never "ROE" / "margin".
+      const roe = roe3yAvg(rows);
+      const nm = last ? netMargin(last.net_profit, last.revenue ?? last.net_interest_income) : null;
+      push("Profit a year on every ৳100 of the owners' money", "মালিকের প্রতি ৳100-এ বছরে মুনাফা", roe == null ? null : `৳${roe.toFixed(0)}`);
+      push("Profit kept from every ৳100 it sells", "প্রতি ৳100 বিক্রিতে থাকা মুনাফা", nm == null ? null : `৳${nm.toFixed(0)}`);
       break;
+    }
     case "p2_health": {
       // Banks / NBFIs are scored on a capital cushion (equity / assets); the
       // borrowings-based ratios below say nothing useful for them.
@@ -111,46 +113,65 @@ function pillarNumbers(pillarKey: string, detail: CompanyDetail): Fig[] {
       if (isLender) {
         const eq = toNum(last?.total_equity ?? null);
         const ta = toNum(last?.total_assets ?? null);
-        push("Own capital as % of assets", "সম্পদের তুলনায় নিজস্ব মূলধন", eq != null && ta != null && ta > 0 ? pct((eq / ta) * 100) : null);
+        push("Its own money in every ৳100 it holds", "প্রতি ৳100 সম্পদে নিজস্ব টাকা", eq != null && ta != null && ta > 0 ? `৳${((eq / ta) * 100).toFixed(0)}` : null);
       } else {
-        push("Debt to equity", "ঋণ ও নিজস্ব মূলধনের অনুপাত", last ? x(debtToEquity(last.total_debt, last.total_equity)) : null);
-        push("Times it can cover interest", "সুদের কত গুণ আয়", last ? x(interestCoverage(last.ebit, last.interest_expense)) : null);
+        const de = last ? debtToEquity(last.total_debt, last.total_equity) : null;
+        const ic = last ? interestCoverage(last.ebit, last.interest_expense) : null;
+        push("Loans for every ৳100 of the owners' money", "মালিকের প্রতি ৳100-এর বিপরীতে ঋণ", de == null ? null : `৳${(de * 100).toFixed(0)}`);
+        push("Times its profit could pay the interest", "মুনাফা দিয়ে সুদ কতবার দেওয়া যায়", ic == null ? null : `${ic.toFixed(1)}`);
       }
-      push("Cash compared with profit", "মুনাফার তুলনায় নগদ", last ? x(cashFlowQuality(last.operating_cf, last.net_profit)) : null);
+      {
+        const cq = last ? cashFlowQuality(last.operating_cf, last.net_profit) : null;
+        push("Cash that came in for every ৳100 of profit", "প্রতি ৳100 মুনাফায় আসা নগদ", cq == null ? null : `৳${(cq * 100).toFixed(0)}`);
+      }
       break;
     }
-    case "p3_moat":
-      push("Gross margin", "মোট মুনাফার হার", last ? pct(grossMargin(last.gross_profit, last.revenue ?? last.net_interest_income)) : null);
+    case "p3_moat": {
+      const gm = last ? grossMargin(last.gross_profit, last.revenue ?? last.net_interest_income) : null;
+      push("Left from every ৳100 sold, before running costs", "প্রতি ৳100 বিক্রিতে খরচের আগে যা থাকে", gm == null ? null : `৳${gm.toFixed(0)}`);
       break;
+    }
     case "p4_val": {
       const pe = toNum(sr.current_pe as number | null);
       const pb = toNum(sr.current_pb as number | null);
       const avgPe = toNum(sr.own_avg_pe as number | null);
       const basis = detail.valuation?.eps_basis;
       const avg = detail.valuation?.own_avg_pe_label;
+      // "Years of its profit you pay for" is how the page says P/E (2026-10-30).
+      void basis;
+      void pb;
+      push("Years of its profit you pay for today", "আজকের দামে কত বছরের মুনাফা", pe != null ? `${pe.toFixed(0)}` : null);
       push(
-        basis ? `P/E now (${basis.short_en})` : "P/E now",
-        basis ? `এখনকার পিই (${basis.short_bn ?? basis.bn})` : "এখনকার পিই",
-        pe != null ? pe.toFixed(1) : null,
+        avg ? `Usually, ${avg.en}` : "Usually",
+        avg ? `সাধারণত, ${avg.bn}` : "সাধারণত",
+        avgPe != null ? `${avgPe.toFixed(0)}` : null,
       );
-      push(
-        avg ? `P/E, ${avg.en}` : "Usual P/E",
-        avg ? `পিই, ${avg.bn}` : "সাধারণ পিই",
-        avgPe != null ? avgPe.toFixed(1) : null,
-      );
-      push("P/B now", "এখনকার পিবি", pb != null ? pb.toFixed(1) : null);
       break;
     }
     case "p5_div":
-      push("Dividend yield", "ডিভিডেন্ড ইল্ড", pct(toNum(sr.div_yield_pct as number | null)));
-      push("Share of profit paid out", "মুনাফার যত অংশ দেয়", pct(toNum(sr.payout_pct as number | null)));
+      push("Cash a year on ৳100 at today's price", "আজকের দামে ৳100-এ বছরে নগদ", (() => {
+        const y = toNum(sr.div_yield_pct as number | null);
+        return y == null ? null : `৳${y.toFixed(1)}`;
+      })());
+      push("Paid out of every ৳100 of profit", "প্রতি ৳100 মুনাফা থেকে দেওয়া", (() => {
+        const p = toNum(sr.payout_pct as number | null);
+        return p == null ? null : `৳${p.toFixed(0)}`;
+      })());
       break;
   }
   return out;
 }
 
+/** One word for a check's score (2026-10-30: the bars say a word, never "8.1"). */
+export function pillarWord(v: number): { en: string; bn: string } {
+  return v >= 8 ? { en: "Strong", bn: "শক্তিশালী" }
+    : v >= 6 ? { en: "Good", bn: "ভালো" }
+    : v >= 4 ? { en: "Fair", bn: "মোটামুটি" }
+    : { en: "Weak", bn: "দুর্বল" };
+}
+
 /** The five pillar scores as bars — free, the shape of the company at a
- *  glance (the "At a glance" card at the top of the stock page). */
+ *  glance. Each bar says a word (Strong / Good / Fair / Weak). */
 export function PillarBars({ scoreRow }: { scoreRow: ScoreRow }) {
   const bars = HEALTH_PILLAR_ORDER
     .map((key) => ({ key, value: toNum(scoreRow[key] as number | null) }))
@@ -171,12 +192,12 @@ export function PillarBars({ scoreRow }: { scoreRow: ScoreRow }) {
             <div
               className="h-2 flex-1 overflow-hidden rounded-full bg-surface-2"
               role="img"
-              aria-label={`${name.en}: ${v.toFixed(1)} out of 10`}
+              aria-label={`${name.en}: ${pillarWord(v).en}`}
             >
               <div className="h-full rounded-full" style={{ width: `${Math.max(2, Math.min(100, v * 10))}%`, background: color }} />
             </div>
-            <span className="w-8 shrink-0 text-right text-xs font-extrabold tabular-nums nums" style={{ color }}>
-              {v.toFixed(1)}
+            <span className="w-16 shrink-0 text-right text-xs font-bold" style={{ color }}>
+              <T en={pillarWord(v).en} bn={pillarWord(v).bn} />
             </span>
           </div>
         );
@@ -300,15 +321,15 @@ function HealthRow({ row, scoreRow, detail, plain = false }: {
                     <div
                       className="flex-1 h-2 rounded-full overflow-hidden bg-surface-2"
                       role="img"
-                      aria-label={`${s.en}: ${score.toFixed(0)} out of 10`}
+                      aria-label={`${s.en}: ${pillarWord(score).en}`}
                     >
                       <div
                         className="h-full rounded-full"
                         style={{ width: `${Math.max(2, Math.min(100, score * 10))}%`, background: pillarColor(score) }}
                       />
                     </div>
-                    <span className="text-xs font-semibold tabular-nums w-10 text-right text-text-main">
-                      {score.toFixed(0)}/10
+                    <span className="w-16 shrink-0 text-right text-xs font-semibold text-text-main">
+                      <T en={pillarWord(score).en} bn={pillarWord(score).bn} />
                     </span>
                   </div>
                 );

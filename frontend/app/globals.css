@@ -34,7 +34,7 @@
   --bg: #FAF8F4;            /* warm white canvas (2026-10 redesign, decision 1 — was cream #F6F1E7). Cards lift off it by border + shadow, not by contrast */
   --border: #DED6C3;        /* warm hairline (deepened with the canvas so it still reads) */
   --text: #2E2B26;          /* charcoal ink */
-  --text-muted: #5C554A;    /* warm stone — strong secondary text, no washed-out gray */
+  --text-muted: #2E2B26;    /* = --text since 2026-10-30 (user: "no line should be faded, all clearly visible"): secondary text is told apart by size and weight, never by a lighter colour */
   /* Radius scale (the ONLY radii in the app besides 999px pills and ≤4px hairlines):
      8 tight controls · 10 controls · 12 inputs + small cards · 16 cards · 20 hero panels.
      tailwind.config.ts maps rounded-md/DEFAULT/lg/xl/3xl onto the same five values. */
@@ -94,7 +94,7 @@
   --surface-2-rgb: 239 234 223;
   --border-rgb: 222 214 195;
   --text-rgb: 46 43 38;
-  --text-muted-rgb: 92 85 74;
+  --text-muted-rgb: 46 43 38;
   --primary-rgb: 176 113 78;
   --navy-rgb: 42 54 68;
   --info-rgb: 78 114 146;
@@ -700,7 +700,7 @@ a:hover .ticker-tag,
   padding: 22px 20px 26px;
   border-radius: var(--radius-lg);
   background: var(--navy);
-  color: rgba(255, 255, 255, 0.72);
+  color: #fff;
 }
 .np-footer-brand {
   font-family: var(--font-ui);
@@ -711,16 +711,17 @@ a:hover .ticker-tag,
 }
 .np-footer-tagline {
   font-size: var(--fs-2xs);
-  color: rgba(255, 255, 255, 0.60);
+  color: #fff;
   margin-top: 4px;
   letter-spacing: 0.02em;
 }
-/* Footer is a navy anchor — flip its content to light; links hover to gold */
-.np-footer-modern h3 { color: rgba(255, 255, 255, 0.52); }
-.np-footer-modern a { color: rgba(255, 255, 255, 0.82); }
+/* Footer is a navy anchor — flip its content to light; links hover to gold.
+   Every line solid white (2026-10-30: no faded text anywhere). */
+.np-footer-modern h3 { color: #fff; }
+.np-footer-modern a { color: #fff; }
 .np-footer-modern a:hover { color: var(--gold); }
-.np-footer-modern p { color: rgba(255, 255, 255, 0.66); }
-.np-footer-modern strong { color: rgba(255, 255, 255, 0.86); font-weight: 600; }
+.np-footer-modern p { color: #fff; }
+.np-footer-modern strong { color: #fff; font-weight: 600; }
 /* =======================================================
    Two-column homepage layout
    ======================================================= */

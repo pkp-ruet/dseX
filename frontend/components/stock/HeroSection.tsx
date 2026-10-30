@@ -7,7 +7,6 @@ import CategoryChip from "@/components/stock/CategoryChip";
 import YourPosition from "@/components/stock/YourPosition";
 import RallyBanner from "@/components/stock/report/RallyBanner";
 import { DateT, tx } from "@/components/stock/report/fmt";
-import { IconAlert, IconFlame } from "@/components/stock/StockIcons";
 import Chip from "@/components/ui/Chip";
 import { T } from "@/components/i18n/T";
 import { taka, signed } from "@/lib/formatters";
@@ -58,9 +57,6 @@ const CATEGORY_INFO: Record<string, { note: Bi; color: string; bg: string; borde
 export default function HeroSection({ detail }: Props) {
   const { profile, latest_price, score_row } = detail;
   const code = profile.trading_code;
-  const staleData = score_row?.stale_data === true || score_row?.stale_data === "true";
-  const lastReportedYear = score_row?.last_reported_year as number | null | undefined;
-  const dataAgeYears = score_row?.data_age_years as number | null | undefined;
   const score = (score_row?.score as number | null | undefined) ?? null;
 
   const ltp = latest_price.ltp;
@@ -76,12 +72,6 @@ export default function HeroSection({ detail }: Props) {
 
   const category = (profile.market_category ?? "").trim().toUpperCase();
   const categoryInfo = CATEGORY_INFO[category];
-
-  // "Unusually busy" chip: today's volume vs the average of the prior 7 traded days.
-  const vol = latest_price.volume;
-  const avgVol = latest_price.avg_volume_7d;
-  const volRatio = vol != null && avgVol != null && avgVol > 0 && vol > 0 ? vol / avgVol : null;
-  const busyX = volRatio != null && volRatio >= 2 ? (volRatio >= 10 ? Math.round(volRatio).toString() : volRatio.toFixed(1)) : null;
 
   return (
     <>
@@ -143,14 +133,6 @@ export default function HeroSection({ detail }: Props) {
               border={categoryInfo.border}
             />
           )}
-          {staleData && lastReportedYear != null && (
-            <Chip tone="watch" icon={<IconAlert size={12} />}>
-              <T
-                en={`Last accounts: ${lastReportedYear}${dataAgeYears != null && dataAgeYears >= 2 ? `, ${dataAgeYears} years old` : ""}`}
-                bn={`সর্বশেষ হিসাব: ${lastReportedYear}${dataAgeYears != null && dataAgeYears >= 2 ? `, ${dataAgeYears} বছর পুরোনো` : ""}`}
-              />
-            </Chip>
-          )}
         </div>
 
         {detail.report?.warning && <RallyBanner w={detail.report.warning} />}
@@ -171,16 +153,6 @@ export default function HeroSection({ detail }: Props) {
               <T en="Official closing price" bn="দিনশেষের অফিশিয়াল দাম" />
             </span>
           </div>
-          {busyX && (
-            <div className="mt-1">
-              <Chip tone="watch" icon={<IconFlame size={12} />}>
-                <T
-                  en={`Traded ${busyX} times its usual amount today`}
-                  bn={`আজ স্বাভাবিকের ${busyX} গুণ লেনদেন হয়েছে`}
-                />
-              </Chip>
-            </div>
-          )}
         </div>
 
         {/* Actions — one quiet row */}
@@ -220,8 +192,9 @@ export default function HeroSection({ detail }: Props) {
           </div>
         )}
 
-        {/* The reader's own stake — renders only for a signed-in holder / watcher */}
-        <YourPosition code={code} ltp={ltp} />
+        {/* The reader's own stake (signed-in holder / watcher). With a report
+            it closes the answer card instead. */}
+        {!detail.report?.answer && <YourPosition code={code} ltp={ltp} />}
       </header>
     </>
   );

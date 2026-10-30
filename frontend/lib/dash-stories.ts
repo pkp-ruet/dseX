@@ -168,6 +168,8 @@ const WATCH_KIND: Record<PortfolioWatchEvent["kind"], FrameKind> = {
   category: "category",
   drop: "move",
   low52: "low",
+  red_flag: "category",
+  answer: "signal",
 };
 
 const WATCH_LABEL: Record<PortfolioWatchEvent["kind"], [string, string]> = {
@@ -177,6 +179,8 @@ const WATCH_LABEL: Record<PortfolioWatchEvent["kind"], [string, string]> = {
   category: ["Category change", "ক্যাটাগরি বদল"],
   drop: ["Big fall", "বড় পতন"],
   low52: ["Yearly low", "বছরের সর্বনিম্ন"],
+  red_flag: ["Red flag", "বড় সতর্কতা"],
+  answer: ["Our answer changed", "আমাদের উত্তর বদলেছে"],
 };
 
 // Where one watcher event opens on the stock page (same as its push).
@@ -184,6 +188,8 @@ const WATCH_ANCHOR: Partial<Record<PortfolioWatchEvent["kind"], string>> = {
   results: "#results",
   grade: "#score-history",
   record: "#dividends",
+  red_flag: "#red-flags",
+  answer: "#ch-answer",
 };
 
 const KIND_WORDS: Partial<Record<FrameKind, { en: [string, string]; bn: string }>> = {

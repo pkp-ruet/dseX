@@ -13,8 +13,10 @@ Six things, each an *event* with English + Bengali copy:
     red_flag  a serious red flag appeared in the stock report (DSE found the
               factory closed, a qualified audit opinion, Z, the 30% rule …),
               from ``stock_report_service.red_flag_changes``
+    answer    our answer on the stock page changed (Buy → Not yet …) and held
+              two days, from ``stock_report_service.answer_changes``
 
-``results``, ``grade`` and ``red_flag`` also cover the stocks a reader only
+``results``, ``grade``, ``red_flag`` and ``answer`` also cover the stocks a reader only
 follows (watchlist); the other four are about shares they hold.
 
 Events are built for every reader who holds the stock and stored in
@@ -167,6 +169,23 @@ def _red_flag_event(code: str, change: dict) -> Optional[dict]:
     }
 
 
+_DECISION_LEVEL = {"buy": "good", "wait": "watch", "no_reason": "watch", "avoid": "bad", "unrated": "watch"}
+
+
+def _answer_event(code: str, change: dict) -> Optional[dict]:
+    to, frm, line = change.get("to") or {}, change.get("from") or {}, change.get("line") or {}
+    if not to.get("en") or not frm.get("en"):
+        return None
+    return {
+        "id": f"answer-{code}-{change.get('decision')}-{change.get('day') or ''}", "kind": "answer", "code": code,
+        "level": _DECISION_LEVEL.get(change.get("decision") or "", "watch"),
+        "title_en": f"Our answer on {code} changed: {to['en']}",
+        "title_bn": f"{code} নিয়ে আমাদের উত্তর বদলেছে: {to.get('bn') or to['en']}",
+        "body_en": f"It was {frm['en']}. {line.get('en') or ''}".strip(),
+        "body_bn": f"আগে ছিল {frm.get('bn') or frm['en']}। {line.get('bn') or ''}".strip(),
+    }
+
+
 def build_events(held: dict[str, int], facts: dict, day: str,
                  watched: Optional[set[str]] = None) -> list[dict]:
     """Events for one reader. `held` = {code: qty} across all their portfolios;
@@ -175,7 +194,8 @@ def build_events(held: dict[str, int], facts: dict, day: str,
     rows: {code: score row}, score_before: {code: score}, sector_class: {code: …},
     grades: {code: score_history.explain()}, category: {code: (old, new)},
     prices: {code: price row}, lows: {code: 52w low},
-    red_flags: {code: stock_report_service.red_flag_changes() entry}}."""
+    red_flags: {code: stock_report_service.red_flag_changes() entry},
+    answers: {code: stock_report_service.answer_changes() entry}}."""
     from backend.services.score_history import grade_event
 
     out: list[dict] = []
@@ -200,6 +220,11 @@ def build_events(held: dict[str, int], facts: dict, day: str,
         rf = (facts.get("red_flags") or {}).get(code)
         if rf:
             e = _red_flag_event(code, rf)
+            if e:
+                out.append(e)
+        ac = (facts.get("answers") or {}).get(code)
+        if ac:
+            e = _answer_event(code, ac)
             if e:
                 out.append(e)
         if not qty:
@@ -229,7 +254,7 @@ _LEVEL_ORDER = {"bad": 0, "watch": 1, "good": 2}
 
 
 # Where a single event of each kind opens on the stock page.
-_STOCK_ANCHOR = {"results": "results", "grade": "score-history", "red_flag": "red-flags"}
+_STOCK_ANCHOR = {"results": "results", "grade": "score-history", "red_flag": "red-flags", "answer": "ch-answer"}
 
 
 def push_payload(events: list[dict], lang: str = "bn", url: str = "/portfolio?src=watch") -> Optional[dict]:
@@ -341,6 +366,7 @@ def trial_recap_payload(caught: int, days_left: int, lang: str = "bn") -> dict:
 # Plain words per kind: (English one, English many, Bengali).
 KIND_WORDS = {
     "red_flag": ("red flag", "red flags", "বড় সতর্কতা"),
+    "answer": ("change in our answer", "changes in our answer", "আমাদের উত্তরে বদল"),
     # A quarter or a full year (results_explainer.load_latest_results).
     "results": ("results report", "results reports", "আর্থিক ফল"),
     "grade": ("grade change", "grade changes", "গ্রেড বদল"),

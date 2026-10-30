@@ -1,7 +1,8 @@
 "use client";
 
 import { useMyStake } from "@/components/stock/YourPosition";
-import { PremiumPanel, SectionFoot, SectionHead } from "@/components/stock/report/ReportSection";
+import AnswerLock from "@/components/premium/AnswerLock";
+import { SectionFoot } from "@/components/stock/report/ReportSection";
 import { DateT, money, perShare } from "@/components/stock/report/fmt";
 import { T } from "@/components/i18n/T";
 import type { Bi, StockReport } from "@/lib/stock-report";
@@ -14,7 +15,9 @@ const FEE = 0.004;
  * or follows the share. Their position is free; what it means for their own
  * money (the dividend on their shares, the break-even after fees, what buying
  * more does to their average) is Premium. Built on the client from the
- * portfolio the hero already loads; the backend adds nothing here.
+ * portfolio the answer card already loads; the backend adds nothing here.
+ * A question row of the "What's next" chapter (2026-10-30), with its own
+ * one-line lock (its lines are the reader's, so the chapter card can't name them).
  */
 export default function YouAndThisStock({
   code, ltp, report,
@@ -96,9 +99,11 @@ export default function YouAndThisStock({
   }
 
   return (
-    <section id="rp-you" className="rp-sec stock-anchor" aria-labelledby="rp-you-t">
-      <SectionHead id="rp-you-t" title={<T en="You and this stock" bn="আপনি ও এই শেয়ার" />} />
-      <p className="rp-answer">
+    <section id="rp-you" className="rq stock-anchor" aria-labelledby="rp-you-t">
+      <div className="rq-head">
+        <h3 id="rp-you-t"><T en="You and this stock" bn="আপনি আর এই শেয়ার" /></h3>
+      </div>
+      <p className="rq-answer">
         <T en={freeLine.en} bn={freeLine.bn} />
       </p>
       {sig && (
@@ -107,7 +112,16 @@ export default function YouAndThisStock({
         </p>
       )}
       {lines.length > 0 && (
-        <PremiumPanel lines={inside} code={code} lock="you">
+        <AnswerLock
+          lines={inside}
+          job="understand"
+          lock="report-you"
+          area="stock"
+          what={{ en: `The full report on ${code}`, bn: `${code}-এর পূর্ণ রিপোর্ট` }}
+          href="#ch-premium"
+          variant="line"
+          className="mt-2"
+        >
           <ul className="rp-lines">
             {lines.map((l, i) => (
               <li key={i} className="text-sm leading-snug text-text-main sm:text-base">
@@ -130,7 +144,7 @@ export default function YouAndThisStock({
               <T en={`${perShare(upcomingCash)} a share`} bn={`শেয়ারপ্রতি ${perShare(upcomingCash)}`} />
             </p>
           )}
-        </PremiumPanel>
+        </AnswerLock>
       )}
       <SectionFoot
         source={

@@ -58,7 +58,7 @@ function IndexTile({ name, value, change, changePct, lead = false }: {
           <>
             <span className="text-xs">{up ? "▲" : "▼"}</span>
             {signed(change)}
-            {changePct != null && <span className="opacity-75">({signed(changePct, 2)}%)</span>}
+            {changePct != null && <span>({signed(changePct, 2)}%)</span>}
           </>
         ) : (
           "—"

@@ -13,6 +13,7 @@ import { PREMIUM_PATH } from "@/lib/premium";
 /** The watcher's kinds (backend portfolio_watch.KIND_WORDS), one / many / Bengali. */
 const KIND: Record<string, [string, string, string]> = {
   red_flag: ["red flag", "red flags", "বড় সতর্কতা"],
+  answer: ["change in our answer", "changes in our answer", "আমাদের উত্তরে বদল"],
   results: ["results report", "results reports", "আর্থিক ফল"],
   grade: ["grade change", "grade changes", "গ্রেড বদল"],
   record: ["record date", "record dates", "রেকর্ড ডেট"],

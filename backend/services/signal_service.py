@@ -20,6 +20,10 @@ streak never flips advice):
         "Latest" = this year's interim year-to-date when a quarterly report is
         newer than the audited year, else the last audited year.
     6c. good/excellent + DSE total loan > market cap -> none (heavy debt)
+    6d. good/excellent + a serious red flag in its stock report (qualified
+        audit, closed factory, a DSE query during a run, owners under 30% …)
+        -> none (2026-10-30: the stock page's "anything wrong" light must
+        never be red beside a Buy; read from the daily report snapshot)
     7. cheap (p4 >= 7): near 52w high -> none dampener, else -> buy
        (deeply cheap p4>=8 AND low in 52w range -> strength "strong")
     8. expensive (p4 < 4)             -> none  ("strong company, expensive price")
@@ -97,6 +101,10 @@ REASONS: dict[str, tuple[str, str]] = {
     "heavy_debt": (
         "The figures are good, but its loans are larger than the value of the whole company. That carries too much risk to buy.",
         "হিসাব ভালো, তবে এর ঋণ পুরো কোম্পানির বাজারমূল্যের চেয়েও বেশি। কেনার জন্য ঝুঁকি অনেক বেশি।",
+    ),
+    "red_flag": (
+        "The figures are good, but we found a serious warning in its notices. Check it before buying.",
+        "হিসাব ভালো, তবে এর নোটিশে একটি গুরুতর সতর্কতা পেয়েছি। কেনার আগে সেটি দেখে নিন।",
     ),
     "quality_cheap": (
         "A strong company, and its price is low right now.",
@@ -176,7 +184,14 @@ def wire_fields(sig: Optional[dict]) -> Optional[dict]:
     return {k: sig.get(k) for k in WIRE_FIELDS}
 
 
-def _signal_for_row(row: dict, momentum: Optional[dict]) -> dict:
+# Red-flag keys from the stock report that the rules above already cover
+# (Z category, old accounts, loans over market value) — they keep their own
+# reason instead of the generic "red_flag".
+_COVERED_RED_KEYS = {"category", "stale", "loans"}
+
+
+def _signal_for_row(row: dict, momentum: Optional[dict],
+                    red_keys: Optional[list] = None) -> dict:
     score = _f(row.get("score"))
     tier = tier_key(score)
     grade = (momentum or {}).get("momentum_grade") or "unknown"
@@ -230,6 +245,9 @@ def _signal_for_row(row: dict, momentum: Optional[dict]) -> dict:
     #     Financial Health pillar in scoring; this is the harder line.
     if heavy_debt:
         return mk(NONE, "heavy_debt")
+    # 6d. A serious red flag in the stock report blocks a buy.
+    if any(k not in _COVERED_RED_KEYS for k in (red_keys or [])):
+        return mk(NONE, "red_flag")
 
     # 7. Cheap: buy, unless the price already ran to the top of its 52w range.
     #    Deeply cheap + still low in the 52w range -> "strong" conviction.
@@ -252,6 +270,25 @@ def _signal_for_row(row: dict, momentum: Optional[dict]) -> dict:
     return mk(NONE, "good_wait_price")
 
 
+def _latest_red_keys() -> dict[str, list]:
+    """{code: [red flag keys]} from the newest stock-report snapshot day
+    (stock_report_service.store_snapshots, written by compute-scores). Empty
+    when the collection is missing — the rule then simply doesn't fire."""
+    try:
+        from backend.services.db_service import get_db
+        col = get_db()["stock_report_snapshots"]
+        top = col.find_one({}, {"date": 1}, sort=[("date", -1)])
+        if not top:
+            return {}
+        return {
+            str(d["trading_code"]).upper(): list(d.get("red_keys") or [])
+            for d in col.find({"date": top["date"]}, {"trading_code": 1, "red_keys": 1})
+            if d.get("trading_code")
+        }
+    except Exception:  # noqa: BLE001 — a modifier, never a blocker
+        return {}
+
+
 @_ttl_cache(300)
 def build_signals() -> dict[str, dict]:
     """{trading_code: signal_obj} for every scored company (bulk, cached).
@@ -271,11 +308,12 @@ def build_signals() -> dict[str, dict]:
         momentum = compute_momentum_all()
     except Exception:  # noqa: BLE001 — momentum is a modifier, never a blocker
         momentum = {}
+    red = _latest_red_keys()
     for row in df.to_dict("records"):
         code = row.get("trading_code")
         if not code:
             continue
-        out[str(code).upper()] = _signal_for_row(row, momentum.get(code))
+        out[str(code).upper()] = _signal_for_row(row, momentum.get(code), red.get(str(code).upper()))
     return out
 
 

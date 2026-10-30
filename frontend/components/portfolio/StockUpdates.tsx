@@ -19,6 +19,8 @@ const KIND: Record<PortfolioWatchEvent["kind"], { en: [string, string]; bn: stri
   category: { en: ["category change", "category changes"], bn: "ক্যাটাগরি বদল" },
   drop: { en: ["big fall", "big falls"], bn: "বড় পতন" },
   low52: { en: ["yearly low", "yearly lows"], bn: "বছরের সর্বনিম্ন" },
+  red_flag: { en: ["red flag", "red flags"], bn: "বড় সতর্কতা" },
+  answer: { en: ["change in our answer", "changes in our answer"], bn: "আমাদের উত্তরে বদল" },
 };
 
 /** The short word a holding card wears for its own update. */
@@ -29,6 +31,8 @@ export const KIND_TAG: Record<PortfolioWatchEvent["kind"], { en: string; bn: str
   category: { en: "Category changed", bn: "ক্যাটাগরি বদলেছে" },
   drop: { en: "Big fall", bn: "বড় পতন" },
   low52: { en: "Yearly low", bn: "বছরের সর্বনিম্ন" },
+  red_flag: { en: "Red flag", bn: "বড় সতর্কতা" },
+  answer: { en: "Answer changed", bn: "উত্তর বদলেছে" },
 };
 
 export const LEVEL_TONE: Record<Level, "positive" | "watch" | "negative"> = {

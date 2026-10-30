@@ -23,11 +23,11 @@ import { type NavSection } from "@/components/stock/StockSectionNav";
 import StockVisitTracker from "@/components/analytics/StockVisitTracker";
 import DeepAnalysisReport from "@/components/stock/DeepAnalysisReport";
 import StockLockScope from "@/components/premium/LockScope";
-import Scorecard from "@/components/stock/report/Scorecard";
-import StockReportBody, { reportSamples } from "@/components/stock/report/StockReportBody";
-import ReportGuide from "@/components/stock/report/ReportGuide";
+import AnswerCard from "@/components/stock/report/AnswerCard";
+import StockReportBody, { reportChapters } from "@/components/stock/report/StockReportBody";
+import { VIEW_CHAPTER } from "@/lib/stock-report";
+import { StoryTable } from "@/components/stock/report/sections";
 import DataRoom, { type RoomPanel } from "@/components/stock/report/DataRoom";
-import { REPORT_PARTS } from "@/lib/stock-report";
 import { formatDate, money } from "@/lib/formatters";
 
 export const revalidate = 86400;
@@ -277,28 +277,16 @@ export default async function StockDetailPage({ params }: PageProps) {
   const hasMomentum = !!momentum && momentum.momentum_grade !== "unknown";
   const hasPeers = (related_stocks?.length ?? 0) > 0;
 
-  // Report mode (2026-10-28): the chips jump to the cover, the report's three
-  // parts (2026-10-29 — one chip per part, not per check), the analyst note
-  // and the data room.
-  const reportSections: NavSection[] = report
-    ? [
-        { id: "ch-overview", label: "Overview", labelBn: "এক নজরে" },
-        ...REPORT_PARTS
-          .filter((p) => p.sections.some((k) => report.sections[k] != null))
-          .map((p) => ({ id: p.id, label: p.chip.en, labelBn: p.chip.bn })),
-        ...(deepReport ? [{ id: "note", label: "Analyst note", labelBn: "বিশ্লেষকের নোট" }] : []),
-        { id: "ch-data", label: "Data", labelBn: "তথ্য" },
-      ]
-    : [];
+  // The chips (2026-10-30 rebuild): the answer, the report's four chapters
+  // (one per question) and the data room. The analyst note is a data-room tab.
   // Without a report (it failed to build — every company had one on
   // 2026-10-29) the page is the cover and the data room.
-  const sections: NavSection[] = report
-    ? reportSections
-    : [
-        { id: "ch-overview", label: "Overview", labelBn: "এক নজরে" },
-        ...(deepReport ? [{ id: "note", label: "Analyst note", labelBn: "বিশ্লেষকের নোট" }] : []),
-        { id: "ch-data", label: "Data", labelBn: "তথ্য" },
-      ];
+  const sections: NavSection[] = [
+    { id: "ch-overview", label: report?.answer ? "Answer" : "Overview", labelBn: report?.answer ? "উত্তর" : "এক নজরে" },
+    ...(report ? reportChapters(report).map((c) => ({ id: c.id, label: c.chip.en, labelBn: c.chip.bn })) : []),
+    ...(report?.view ? [{ id: VIEW_CHAPTER.id, label: VIEW_CHAPTER.chip.en, labelBn: VIEW_CHAPTER.chip.bn }] : []),
+    { id: "ch-data", label: "Data", labelBn: "তথ্য" },
+  ];
 
   // Current stock as the highlighted first row of the peer comparison.
   const currentPeerRow = {
@@ -322,6 +310,7 @@ export default async function StockDetailPage({ params }: PageProps) {
           anchors: ["financials"],
           body: (
             <div id="financials" className="stock-anchor">
+              {report?.sections.story && <StoryTable s={report.sections.story} />}
               <ProfitsAndDividends financials={financials} extFinancials={extended_financials} declaration={dividend_declaration} />
               <FinancialTrends extFinancials={extended_financials} />
             </div>
@@ -385,6 +374,23 @@ export default async function StockDetailPage({ params }: PageProps) {
           body: (
             <div id="numbers" className="stock-anchor">
               <CompanyFacts detail={detail} />
+              <div className="mt-6">
+                <FeaturedInStrip entries={featuredIn} />
+              </div>
+            </div>
+          ),
+        }]
+      : []),
+    // The written analyst note (where one exists): a tab of the data room
+    // since the 2026-10-30 rebuild — the four chapters carry the answers.
+    ...(deepReport
+      ? [{
+          key: "note",
+          label: { en: "Written analysis", bn: "লেখা বিশ্লেষণ" },
+          anchors: ["note"],
+          body: (
+            <div id="note" className="stock-anchor">
+              <DeepAnalysisReport report={deepReport} fairValue={report ? null : detail.fair_value ?? null} code={profile.trading_code} />
             </div>
           ),
         }]
@@ -427,15 +433,20 @@ export default async function StockDetailPage({ params }: PageProps) {
       {/* The free report of the day opens every lock for everyone. In report
           mode every other lock on the page points at the one offer. */}
       <StockLockScope code={profile.trading_code} anchor="ch-premium">
-      {/* Cover: dateline, hero, the chart with every event pinned, the
-          scorecard (eight checks, words free) and the lists it is in. */}
+      {/* Cover (2026-10-30 rebuild): name and price, then THE answer —
+          should you buy it today? — from three lights, then the chart. */}
       <HeroSection detail={detail} />
+      {report?.answer && (
+        <AnswerCard
+          answer={report.answer}
+          code={profile.trading_code}
+          ltp={num(detail.latest_price.ltp)}
+          w52High={detail.latest_price.w52_high}
+          w52Low={detail.latest_price.w52_low}
+          questions={report.next_questions ?? []}
+        />
+      )}
       <PriceChart code={profile.trading_code} events={report?.events} />
-      {report && <Scorecard detail={detail} report={report} />}
-      <FeaturedInStrip entries={featuredIn} />
-      {/* The page's one card on what Premium is (free readers); each report
-          section's closed card then says only what that section shows. */}
-      {report && <ReportGuide samples={reportSamples(report)} code={profile.trading_code} />}
 
       <StickySummaryBar
         code={profile.trading_code}
@@ -448,19 +459,9 @@ export default async function StockDetailPage({ params }: PageProps) {
         sections={sections}
       />
 
-      {/* The report: one section per check, free face + Premium body, then
-          the analyst note and the one offer (#ch-premium). The old five-chapter
-          page that stood in when there was no report was removed 2026-10-29
-          (the Free vs Premium plan, step 8). */}
-      {report ? (
-        <StockReportBody detail={detail} report={report} deep={deepReport} />
-      ) : (
-        deepReport && (
-          <section id="note" className="stock-anchor mb-8">
-            <DeepAnalysisReport report={deepReport} fairValue={detail.fair_value ?? null} code={profile.trading_code} />
-          </section>
-        )
-      )}
+      {/* The report: four chapters of plain questions, Our view, then a short
+          closing offer. The one Premium card (#ch-premium) closes the answer. */}
+      {report && <StockReportBody detail={detail} report={report} />}
 
       {/* The data room: every raw number, in tabs, all free. */}
       <DataRoom panels={roomPanels} />

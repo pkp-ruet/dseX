@@ -382,6 +382,25 @@ def get_company_detail(code: str):
     )
 
 
+@router.get("/api/company/{code}/questions")
+def get_company_questions(code: str):
+    """The report's next questions with their answers (2026-10-30): the stock
+    page's Premium card shows two of them from today's free report as a
+    sample of the full report. Small, so the card fetches it on tap."""
+    from backend.services.stock_report_service import build_report
+
+    code = (code or "").upper()
+    company = get_company(code)
+    if not company:
+        raise HTTPException(status_code=404, detail=f"Unknown code '{code}'")
+    report = build_report(code) or {}
+    return {
+        "code": code,
+        "name": company.get("company_name") or code,
+        "rows": report.get("next_questions") or [],
+    }
+
+
 @router.get("/api/deep-analysis/codes")
 def get_deep_analysis_codes() -> list[str]:
     """Every trading code that has a deep-analysis report (for sitemap / static params)."""

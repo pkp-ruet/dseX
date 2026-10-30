@@ -248,9 +248,16 @@ def _facts(held_codes: set[str], today, followed_codes: Optional[set[str]] = Non
     except Exception:  # noqa: BLE001
         log.warning("red flag read failed", exc_info=True)
         red_flags = {}
+    try:
+        from backend.services.stock_report_service import answer_changes
+        answers = answer_changes(followed_codes)
+    except Exception:  # noqa: BLE001
+        log.warning("answer change read failed", exc_info=True)
+        answers = {}
     return {"prices": prices, "record": record, "results": results, "rows": rows,
             "score_before": before, "sector_class": sector_class, "grades": grades,
-            "category": category, "lows": lows, "red_flags": red_flags}
+            "category": category, "lows": lows, "red_flags": red_flags,
+            "answers": answers}
 
 
 def _trade_day(prices: dict) -> Optional[str]:

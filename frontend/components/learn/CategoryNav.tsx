@@ -87,7 +87,7 @@ export default function CategoryNav({ categories }: { categories: LearnCategory[
                 <span>{c.short}</span>
                 <span
                   className={`text-xs font-bold ${
-                    isActive ? "text-white/80" : "text-text-muted"
+                    isActive ? "text-white" : "text-text-muted"
                   }`}
                 >
                   {c.count}

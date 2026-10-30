@@ -79,6 +79,19 @@ def test_interim_drop_blocks_buy_even_when_last_year_rose():
     assert sig["reason_key"] == "earnings_dropped"
 
 
+def test_red_flag_in_report_blocks_buy():
+    sig = _signal_for_row(row(), MOM, ["audit"])
+    assert sig["signal"] == "none" and sig["reason_key"] == "red_flag"
+    assert sig["reason_bn"]
+
+
+def test_red_flags_the_rules_already_cover_keep_their_reason():
+    # Z, old accounts and loans over market value have their own rules; a
+    # report flag for them alone never turns a Buy into "red_flag".
+    assert _signal_for_row(row(), MOM, ["category", "stale", "loans"])["signal"] == "buy"
+    assert _signal_for_row(row(market_cat="Z"), MOM, ["category"])["reason_key"] == "z_category"
+
+
 # --- #10 corporate actions ----------------------------------------------------------------
 
 def test_walton_record_date_adjustment():

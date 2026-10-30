@@ -212,6 +212,15 @@ def gather(code: str, *, company: Optional[dict] = None, score_row: Optional[dic
         sector_bn = _sector_bn(sector) or sector
     except Exception:  # noqa: BLE001
         sector_bn = sector
+    try:
+        from backend.services.signal_service import get_signal
+        signal = get_signal(code)
+    except Exception:  # noqa: BLE001
+        signal = {}
+    try:
+        range52 = db.load_52w_ranges().get(code) or {}
+    except Exception:  # noqa: BLE001
+        range52 = {}
     notices, notices_ok = _notices(code, news)
     watch_items = [i for i in (flags or {}).get("items") or [] if i.get("tone") == "watch"]
     sector_rows = _sector_rows(sector)
@@ -232,6 +241,9 @@ def gather(code: str, *, company: Optional[dict] = None, score_row: Optional[dic
         "ltp": ltp,
         "score_row": score_row,
         "momentum": momentum or {},
+        # The yearly high / low behind the signal's near-the-top line (Our view).
+        "range52": {"hi": sr._f(range52.get("hi")), "lo": sr._f(range52.get("lo"))},
+        "signal": signal,
         "financials": financials or [],
         "extended_financials": extended_financials or [],
         "holdings": holdings or [],
@@ -356,6 +368,47 @@ def red_flag_changes(codes) -> dict[str, dict]:
            for c, rows in by_code.items() if len(rows) == 2}
     fresh = new_red_flags(prev, cur)
     return {c: {"day": by_code[c][0]["date"], "items": items} for c, items in fresh.items()}
+
+
+def answer_changes(codes) -> dict[str, dict]:
+    """{code: {"day", "from": word, "to": word, "line", "decision"}} — the
+    answer card's answer changed and held for two snapshot days in a row
+    (`settled_answer_change`). The price light moves with the price, so a
+    one-day flip back and forth is not news."""
+    from backend.services.db_service import get_db
+
+    codes = sorted({c.upper() for c in codes or [] if c})
+    if not codes:
+        return {}
+    by_code: dict[str, list[dict]] = {}
+    since = (_today() - timedelta(days=21)).isoformat()
+    for d in get_db()[SNAPSHOT_COLLECTION].find(
+        {"trading_code": {"$in": codes}, "date": {"$gte": since}, "decision": {"$exists": True}},
+        {"_id": 0, "trading_code": 1, "date": 1, "decision": 1, "answer_word": 1, "answer_line": 1},
+    ).sort("date", -1):
+        rows = by_code.setdefault(d["trading_code"], [])
+        if len(rows) < 3:
+            rows.append(d)
+    out = {}
+    for code, rows in by_code.items():
+        ch = settled_answer_change(rows)
+        if ch:
+            out[code] = ch
+    return out
+
+
+def settled_answer_change(rows: list[dict]) -> Optional[dict]:
+    """Pure: `rows` newest first (up to three snapshot days). A change counts
+    when the newest two agree and the one before them differs."""
+    if len(rows) < 3:
+        return None
+    a, b, c = rows[0], rows[1], rows[2]
+    if not a.get("decision") or a.get("decision") != b.get("decision") or b.get("decision") == c.get("decision"):
+        return None
+    if not c.get("decision"):
+        return None
+    return {"day": a["date"], "decision": a["decision"], "from": c.get("answer_word"),
+            "to": a.get("answer_word"), "line": a.get("answer_line")}
 
 
 def new_red_flags(prev: dict[str, list[str]], cur: dict[str, dict]) -> dict[str, list[dict]]:

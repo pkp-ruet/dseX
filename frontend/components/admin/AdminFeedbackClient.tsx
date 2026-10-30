@@ -240,7 +240,7 @@ export default function AdminFeedbackClient() {
                     </span>
                   )}
                   {f.source === "payment" ? (
-                    <span className="opacity-60">Payment report — private</span>
+                    <span>Payment report — private</span>
                   ) : f.comment ? (
                     <button
                       type="button"
@@ -251,7 +251,7 @@ export default function AdminFeedbackClient() {
                       {busyId === f.id ? "…" : f.featured ? "Unpublish" : "Publish"}
                     </button>
                   ) : (
-                    <span className="opacity-60">No comment to publish</span>
+                    <span>No comment to publish</span>
                   )}
                 </span>
               </div>

@@ -42,7 +42,7 @@ export default function GradeLiftCard({ lifts, lang }: { lifts: GradeLift[]; lan
         {lifts.map((l) => (
           <li key={l.label} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:gap-4">
             <span className="flex shrink-0 items-center gap-2" aria-label={`${l.fromGrade} → ${l.toGrade}`}>
-              <span className={`pf-grade-letter pf-g-${l.fromGrade} opacity-60`}>{l.fromGrade}</span>
+              <span className={`pf-grade-letter pf-g-${l.fromGrade}`}>{l.fromGrade}</span>
               <span className="text-text-muted" aria-hidden>→</span>
               <span className={`pf-grade-letter pf-g-${l.toGrade}`}>{l.toGrade}</span>
             </span>

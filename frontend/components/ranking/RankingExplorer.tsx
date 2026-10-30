@@ -188,7 +188,7 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
                 )}
               >
                 <T en={TIER_LABELS[tier]} bn={TIER_LABELS_BN[tier]} />
-                <span className="nums font-normal opacity-80">{counts[tier] ?? 0}</span>
+                <span className="nums font-normal">{counts[tier] ?? 0}</span>
               </Chip>
             ))}
           </div>

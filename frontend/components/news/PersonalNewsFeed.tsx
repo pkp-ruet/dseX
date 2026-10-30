@@ -93,7 +93,7 @@ function GroupHeader({ label, count, tone }: { label: ReactNode; count: number; 
       >
         <span className="h-1.5 w-1.5 rounded-full" style={{ background: tone }} aria-hidden />
         {label}
-        <span className="tabular-nums opacity-60">{count}</span>
+        <span className="tabular-nums">{count}</span>
       </span>
       <span className="h-px flex-1" style={{ background: "var(--border)" }} aria-hidden />
     </div>

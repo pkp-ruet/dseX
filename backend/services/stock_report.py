@@ -551,6 +551,22 @@ def _next_results(table: dict, notices: dict, today: date) -> Optional[dict]:
     return {"q": next_q, "fy_end": next_fy, "date": when, "approx": approx, "basis": basis}
 
 
+def _profit_change_line(pct: float, when_en: str, when_bn: str) -> dict:
+    """"It made 16% more profit this year." — the one plain way the report says
+    a profit change (2026-10-30)."""
+    if abs(pct) < GROWING_PCT:
+        return bi(f"It made about the same profit {when_en} as a year before.",
+                  f"{when_bn} মুনাফা আগের বছরের প্রায় সমান।")
+    if pct > 0:
+        if pct >= 95:
+            return bi(f"It made about {pct / 100 + 1:.0f} times as much profit {when_en} as a year before.",
+                      f"{when_bn} মুনাফা আগের বছরের প্রায় {pct / 100 + 1:.0f} গুণ।")
+        return bi(f"It made {pct:.0f}% more profit {when_en} than a year before.",
+                  f"{when_bn} মুনাফা আগের বছরের চেয়ে {pct:.0f}% বেশি।")
+    return bi(f"It made {abs(pct):.0f}% less profit {when_en} than a year before.",
+              f"{when_bn} মুনাফা আগের বছরের চেয়ে {abs(pct):.0f}% কম।")
+
+
 def build_this_year(inp: dict) -> Optional[dict]:
     notices = inp.get("notices") or {}
     today = inp["today"]
@@ -606,30 +622,16 @@ def build_this_year(inp: dict) -> Optional[dict]:
                     word, tone = bi("Flat", "একই রকম"), "neutral"
             else:
                 word, tone = bi("Growing", "বাড়ছে"), "good"
-            prefix_en = fyl["en"] if table["done"] >= 4 and annual else f"Q{table['done']}"
-            prefix_bn = fyl["bn"] if table["done"] >= 4 and annual else f"Q{table['done']}"
+            # Plain words (2026-10-30): what happened, one familiar number.
+            full = table["done"] >= 4 and annual
+            when_en = f"in the year to {_mon(fy_end)[0]}" if full else f"in {period_en}"
+            when_bn = f"{_mon(fy_end)[1]}-এ শেষ হওয়া বছরে" if full else period_bn
             if pct is not None and prev and prev > 0 and cur > 0:
-                up = pct >= 0
-                if table["done"] >= 4 and annual:
-                    headline_latest = bi(
-                        f"{prefix_en}: profit {'up' if up else 'down'} {abs(pct):.0f}% to {tk2(cur)} a share",
-                        f"{prefix_bn}: শেয়ারপ্রতি মুনাফা {abs(pct):.0f}% {'বেড়ে' if up else 'কমে'} {tk2(cur)}",
-                    )
-                else:
-                    headline_latest = bi(
-                        f"{prefix_en} results: profit {'up' if up else 'down'} {abs(pct):.0f}% in {period_en}, at {tk2(cur)} a share",
-                        f"{prefix_bn}-এর ফল: {period_bn} শেয়ারপ্রতি মুনাফা {abs(pct):.0f}% {'বেড়ে' if up else 'কমে'} {tk2(cur)}",
-                    )
+                headline_latest = _profit_change_line(pct, when_en, when_bn)
             elif cur <= 0:
-                headline_latest = bi(
-                    f"{prefix_en}: a loss of {tk2(abs(cur))} a share in {period_en}",
-                    f"{prefix_bn}: {period_bn} শেয়ারপ্রতি {tk2(abs(cur))} লোকসান",
-                )
+                headline_latest = bi(f"It made a loss {when_en}.", f"{when_bn} লোকসান হয়েছে।")
             else:
-                headline_latest = bi(
-                    f"{prefix_en}: profit of {tk2(cur)} a share in {period_en}",
-                    f"{prefix_bn}: {period_bn} শেয়ারপ্রতি মুনাফা {tk2(cur)}",
-                )
+                headline_latest = bi(f"It made a profit {when_en}.", f"{when_bn} মুনাফা হয়েছে।")
 
     if word is None:
         # No notice we can read: the latest audited year against the one before.
@@ -650,11 +652,9 @@ def build_this_year(inp: dict) -> Optional[dict]:
             else:
                 word, tone = bi("Growing", "বাড়ছে"), "good"
             if pct is not None and e0 and e0 > 0 and e1 > 0:
-                up = pct >= 0
-                headline_latest = bi(
-                    f"FY{y1}: profit {'up' if up else 'down'} {abs(pct):.0f}% to {tk2(e1)} a share",
-                    f"{y1} অর্থবছর: শেয়ারপ্রতি মুনাফা {abs(pct):.0f}% {'বেড়ে' if up else 'কমে'} {tk2(e1)}",
-                )
+                headline_latest = _profit_change_line(pct, f"in its {y1} accounts", f"{y1} সালের হিসাবে")
+            elif e1 <= 0:
+                headline_latest = bi(f"It made a loss in its {y1} accounts.", f"{y1} সালের হিসাবে লোকসান হয়েছে।")
         if word is None:
             return None
         fb_year = eps_rows[-1][0]
@@ -667,53 +667,60 @@ def build_this_year(inp: dict) -> Optional[dict]:
     slip = [b for b in both if b["cur"] < b["prev"]]
     fy_end = (table or {}).get("fy_end")
 
+    # The answer, in plain words (2026-10-30): is it making more money than a
+    # year ago, then one short line on the parts of the year.
+    full_year = bool(table and table["done"] >= 4 and table.get("annual")) or bool(fb_year)
+    if fy_eps_cur is not None and fy_eps_cur <= 0:
+        lead = bi("It is making a loss right now.", "এখন এটি লোকসানে আছে।")
+    elif pct is not None:
+        lead = _profit_change_line(pct, "this year" if full_year else "so far this year",
+                                   "এ বছর" if full_year else "এ বছর এ পর্যন্ত")
+    else:
+        lead = bi("It is making a profit.", "এটি মুনাফায় আছে।")
+    head = lead
     if both and fy_end:
         n = len(both)
-        if not slip:
-            head = bi(
-                "All four quarters beat the same quarter last year." if n == 4
-                else "Both quarters so far beat the same quarters last year." if n == 2
-                else "The first quarter beat the same quarter last year." if n == 1
-                else f"All {n} quarters so far beat the same quarter last year.",
-                f"এ পর্যন্ত {n}টি প্রান্তিকের সবকটিতেই মুনাফা আগের বছরের একই প্রান্তিকের চেয়ে বেশি।",
-            )
-        elif not beat:
-            head = bi(
-                f"Every quarter so far fell short of the same quarter last year ({n} of {n}).",
-                f"এ পর্যন্ত {n}টি প্রান্তিকের প্রতিটিতেই মুনাফা আগের বছরের একই প্রান্তিকের চেয়ে কম।",
-            )
-        else:
+        if n >= 2 and not slip:
+            more = bi("Every part of the year so far beat the same months last year.",
+                      "বছরের প্রতিটি অংশেই মুনাফা আগের বছরের একই সময়ের চেয়ে বেশি।")
+        elif n >= 2 and not beat:
+            more = bi("Every part of the year so far was weaker than the same months last year.",
+                      "বছরের প্রতিটি অংশেই মুনাফা আগের বছরের একই সময়ের চেয়ে কম।")
+        elif slip and beat:
             names_en = _join_en([_quarter_words(fy_end, b["q"])["en"] for b in slip])
             names_bn = _join_bn([_quarter_words(fy_end, b["q"])["bn"] for b in slip])
-            one = slip[0]
-            detail_en = f", {tk2(one['cur'])} against {tk2(one['prev'])}" if len(slip) == 1 else ""
-            detail_bn = f" ({tk2(one['cur'])}, আগের বছর {tk2(one['prev'])})" if len(slip) == 1 else ""
-            num_en = {1: "One", 2: "Two", 3: "Three", 4: "Four"}.get(len(beat), str(len(beat)))
-            of_en = {2: "two", 3: "three", 4: "four"}.get(n, str(n))
-            head = bi(
-                f"{num_en} of {of_en} quarters beat last year. Only {names_en} slipped{detail_en}.",
-                f"{n}টি প্রান্তিকের মধ্যে {len(beat)}টিতে মুনাফা আগের বছরের চেয়ে বেশি। শুধু {names_bn} কমেছে{detail_bn}।",
-            )
-    else:
-        head = headline_latest or bi("We have no quarterly figures for this year yet.",
-                                     "এ বছরের প্রান্তিকের কোনো হিসাব এখনো আমাদের কাছে নেই।")
+            small = len(slip) == 1 and slip[0]["prev"] and abs(slip[0]["cur"] - slip[0]["prev"]) / abs(slip[0]["prev"]) < 0.05
+            more = bi(f"Only {names_en} was {'a little ' if small else ''}weaker than last year.",
+                      f"শুধু {names_bn} আগের বছরের চেয়ে {'সামান্য ' if small else ''}কম ছিল।")
+        else:
+            more = None
+        if more:
+            head = bi(f"{lead['en']} {more['en']}", f"{lead['bn']} {more['bn']}")
 
     # P/E on the new year's profit against last year's.
     meaning = []
     ltp = _f(inp.get("ltp"))
     if ltp and fy_eps_cur and fy_eps_cur > 0 and fy_eps_prev and fy_eps_prev > 0 and table and table["done"] >= 4:
-        pe_new, pe_old = ltp / fy_eps_cur, ltp / fy_eps_prev
-        meaning.append(bi(
-            f"On the new yearly profit the share costs {_x(pe_new)} times profit, "
-            f"{'down from' if pe_new < pe_old else 'up from'} {_x(pe_old)} on last year's.",
-            f"নতুন বছরের মুনাফায় শেয়ারটির দাম মুনাফার {_x(pe_new)} গুণ, আগের বছরের মুনাফায় যা ছিল {_x(pe_old)} গুণ।",
-        ))
+        if fy_eps_cur > fy_eps_prev:
+            meaning.append(bi("With more profit behind each share, today's price now looks cheaper than it did on last year's profit.",
+                              "প্রতিটি শেয়ারের পেছনে মুনাফা বাড়ায়, আগের বছরের তুলনায় আজকের দাম এখন সস্তা দেখাচ্ছে।"))
+        elif fy_eps_cur < fy_eps_prev:
+            meaning.append(bi("With less profit behind each share, today's price now looks dearer than it did on last year's profit.",
+                              "প্রতিটি শেয়ারের পেছনে মুনাফা কমায়, আগের বছরের তুলনায় আজকের দাম এখন বেশি দেখাচ্ছে।"))
     if cash_ytd and cash_ytd["cur"] is not None and cash_ytd["prev"] is not None:
         c, p = cash_ytd["cur"], cash_ytd["prev"]
-        meaning.append(bi(
-            f"Cash from the business came to {tk2(c)} a share, against {tk2(p)} a year earlier.",
-            f"ব্যবসা থেকে নগদ এসেছে শেয়ারপ্রতি {tk2(c)}, এক বছর আগে যা ছিল {tk2(p)}।",
-        ))
+        if c < 0:
+            meaning.append(bi("More cash went out of the business than came in. That is worth watching.",
+                              "ব্যবসায় যত নগদ এসেছে, তার চেয়ে বেশি বেরিয়ে গেছে। এটি নজরে রাখার মতো।"))
+        elif p > 0 and c >= p * 1.05:
+            meaning.append(bi("More real cash came into the business than a year earlier.",
+                              "আগের বছরের চেয়ে ব্যবসায় বেশি নগদ টাকা এসেছে।"))
+        elif p > 0 and c <= p * 0.95:
+            meaning.append(bi("Less real cash came into the business than a year earlier.",
+                              "আগের বছরের চেয়ে ব্যবসায় কম নগদ টাকা এসেছে।"))
+        else:
+            meaning.append(bi("About the same real cash came into the business as a year earlier.",
+                              "আগের বছরের মতোই নগদ টাকা ব্যবসায় এসেছে।"))
 
     nxt = None
     name_en = name_bn = ""
@@ -722,8 +729,8 @@ def build_this_year(inp: dict) -> Optional[dict]:
         q = next_info["q"]
         nfe = next_info["fy_end"]
         qwords = _quarter_words(nfe, q) if q < 4 else bi("the full year", "পুরো বছর")
-        name_en = f"Q{q} results" if q < 4 else f"FY{nfe.year} results"
-        name_bn = f"Q{q}-এর ফল" if q < 4 else f"{nfe.year} অর্থবছরের ফল"
+        name_en = f"Results for {qwords['en']}" if q < 4 else "Results for the full year"
+        name_bn = f"{qwords['bn']}-এর ফল" if q < 4 else "পুরো বছরের ফল"
         # The bar to clear: last year's same quarter (= this table's bar for a
         # new year's Q1, else this year's `prev`).
         bar = None
@@ -740,19 +747,15 @@ def build_this_year(inp: dict) -> Optional[dict]:
                 bar = _f(prev_ann.get("eps"))
         d_en, d_bn = _day_short(next_info["date"])
         if next_info["date"]:
-            when_en = f"{name_en} are likely around {d_en}" if next_info["approx"] else f"{name_en} are due on {d_en}"
-            when_bn = f"{name_bn} সম্ভবত {d_bn}-এর কাছাকাছি আসবে" if next_info["approx"] else f"{name_bn} আসবে {d_bn}"
-            if next_info["approx"] and next_info.get("basis"):
-                b_en, b_bn = _day_short(next_info["basis"])
-                when_en += f", since the board met on {b_en} last year"
-                when_bn += f", কারণ গত বছর পর্ষদ সভা হয়েছিল {b_bn}"
+            when_en = f"The next results, for {qwords['en']}, should come {'around' if next_info['approx'] else 'on'} {d_en}"
+            when_bn = f"পরের ফল, {qwords['bn']}-এর, আসার কথা {d_bn}{'-এর কাছাকাছি' if next_info['approx'] else ''}"
         else:
-            when_en = f"{name_en} are due"
-            when_bn = f"{name_bn} যেকোনো দিন আসতে পারে"
+            when_en = f"The next results, for {qwords['en']}, can come any day"
+            when_bn = f"পরের ফল, {qwords['bn']}-এর, যেকোনো দিন আসতে পারে"
         if bar is not None and bar > 0:
             what = bi(
-                f"{when_en}. To keep growing, {qwords['en']} needs more than {tk2(bar)} a share.",
-                f"{when_bn}। মুনাফা বাড়াতে হলে {qwords['bn']} শেয়ারপ্রতি {tk2(bar)}-এর বেশি দরকার।",
+                f"{when_en}. To keep growing, profit has to beat the same months last year.",
+                f"{when_bn}। মুনাফা বাড়তে থাকলে তা আগের বছরের একই সময়ের চেয়ে বেশি হতে হবে।",
             )
         else:
             what = bi(f"{when_en}.", f"{when_bn}।")
@@ -761,16 +764,13 @@ def build_this_year(inp: dict) -> Optional[dict]:
 
     inside = []
     if both:
-        inside.append(bi("Each quarter against the same quarter last year",
-                         "প্রতিটি প্রান্তিক, আগের বছরের একই প্রান্তিকের সঙ্গে তুলনায়"))
+        inside.append(bi("How each part of the year compares with last year",
+                         "বছরের প্রতিটি অংশ আগের বছরের তুলনায় কেমন"))
     if cash_ytd:
-        inside.append(bi("Cash from the business so far this year", "এ বছর এ পর্যন্ত ব্যবসা থেকে আসা নগদ টাকা"))
+        inside.append(bi("Whether real cash came in with the profit", "মুনাফার সঙ্গে আসল নগদ এসেছে কি না"))
     if nxt:
-        qn = (next_info or {}).get("q")
-        inside.append(bi(
-            f"When {'Q' + str(qn) if qn and qn < 4 else 'the yearly results'} {'is' if qn and qn < 4 else 'are'} due and the number to beat",
-            f"{'Q' + str(qn) if qn and qn < 4 else 'বার্ষিক ফল'} কবে আসবে, আর কত মুনাফা হলে ভালো বলা যাবে",
-        ))
+        inside.append(bi("When the next results come, and what they need to show",
+                         "পরের ফল কবে আসবে, আর তাতে কী দেখা দরকার"))
     if not inside:
         inside.append(bi("What the latest results mean for this share", "সর্বশেষ ফল এই শেয়ারের জন্য কী বোঝায়"))
 
@@ -796,8 +796,8 @@ def build_this_year(inp: dict) -> Optional[dict]:
         "this_year",
         bi("How is this year going?", "এ বছর কেমন যাচ্ছে?"),
         word, tone, head, src,
-        free_line=bi("We compare every quarter with the same quarter last year.",
-                     "আমরা প্রতিটি প্রান্তিককে আগের বছরের একই প্রান্তিকের সঙ্গে তুলনা করি।"),
+        free_line=bi("We compare its profit with the same months last year.",
+                     "আমরা এর মুনাফাকে আগের বছরের একই সময়ের সঙ্গে তুলনা করি।"),
         inside=inside, meaning=meaning, watch=(nxt or {}).get("what"),
         fy_label=fy_label,
         latest={"headline": headline_latest, "posted": _iso(posted)} if headline_latest else None,
@@ -847,29 +847,39 @@ def build_cash(inp: dict, this_year: Optional[dict] = None) -> Optional[dict]:
     usual = round(statistics.median(earlier)) if earlier else None
 
     lat = latest["ratio"]
+    # The question is "Is the profit real cash?", so the word answers it.
     if lat < 0:
-        word, tone = bi("Weak", "দুর্বল"), "bad"
+        word, tone = bi("No", "না"), "bad"
     elif lat < CASH_WEAK_RATIO:
-        word, tone = (bi("Fair", "মোটামুটি"), "fair") if (usual or 0) >= CASH_STRONG_RATIO else (bi("Weak", "দুর্বল"), "bad")
+        word, tone = (bi("Partly", "আংশিক"), "fair") if (usual or 0) >= CASH_STRONG_RATIO else (bi("Not much", "খুব একটা না"), "bad")
     elif lat < CASH_STRONG_RATIO:
-        word, tone = bi("Fair", "মোটামুটি"), "fair"
+        word, tone = bi("Mostly", "বেশির ভাগ"), "fair"
     else:
-        word, tone = bi("Strong", "শক্তিশালী"), "good"
+        word, tone = bi("Yes", "হ্যাঁ"), "good"
 
-    fy = f"FY{latest['year']}"
-    fy_bn = f"{latest['year']} অর্থবছরে"
+    # Plain words (2026-10-30): how much of the profit came in as money, in
+    # words people use, then how that compares with its usual year.
     if lat < 0:
-        head = bi(
-            f"In {fy} the business paid out more cash than it brought in, while it reported a profit.",
-            f"{fy_bn} কোম্পানি মুনাফা দেখালেও ব্যবসা থেকে নগদ টাকা আসার বদলে বেরিয়ে গেছে।",
-        )
+        head = bi("More cash went out of the business than came in this year, even though it showed a profit.",
+                  "এ বছর মুনাফা দেখালেও ব্যবসায় যত নগদ এসেছে, তার চেয়ে বেশি বেরিয়ে গেছে।")
     else:
-        head = bi(
-            f"In {fy} each ৳100 of profit brought in ৳{lat} of cash." + (f" Its usual is about ৳{usual}." if usual is not None else ""),
-            f"{fy_bn} প্রতি ৳100 মুনাফায় নগদ এসেছে ৳{lat}।" + (f" সাধারণত আসে প্রায় ৳{usual}।" if usual is not None else ""),
+        part_en, part_bn = (
+            ("all of the profit it showed came in as real money", "দেখানো পুরো মুনাফাই আসল নগদ টাকা হয়ে এসেছে") if lat >= 100
+            else ("almost all of the profit it showed came in as real money", "দেখানো মুনাফার প্রায় পুরোটাই আসল নগদ টাকা হয়ে এসেছে") if lat >= 80
+            else ("most of the profit it showed came in as real money", "দেখানো মুনাফার বেশির ভাগ আসল নগদ টাকা হয়ে এসেছে") if lat >= 60
+            else ("about half of the profit it showed came in as real money", "দেখানো মুনাফার প্রায় অর্ধেক আসল নগদ টাকা হয়ে এসেছে") if lat >= 45
+            else ("less than half of the profit it showed came in as real money", "দেখানো মুনাফার অর্ধেকেরও কম আসল নগদ টাকা হয়ে এসেছে") if lat >= 25
+            else ("only a small part of the profit it showed came in as real money", "দেখানো মুনাফার সামান্য অংশই আসল নগদ টাকা হয়ে এসেছে")
         )
+        cmp_en = cmp_bn = ""
+        if usual is not None and lat < usual - 10:
+            cmp_en, cmp_bn = " That is less than in its usual year.", " সাধারণ বছরের চেয়ে এটি কম।"
+        elif usual is not None and lat > usual + 10 and lat < 100:
+            cmp_en, cmp_bn = " That is better than in its usual year.", " সাধারণ বছরের চেয়ে এটি ভালো।"
+        head = bi(f"This year {part_en}.{cmp_en}", f"এ বছর {part_bn}।{cmp_bn}")
 
     meaning = []
+    gap_rise: Optional[float] = None
     # The latest year from the yearly notice: profit up while cash per share down.
     ann = _annuals(notices)
     a0 = ann[0] if ann else None
@@ -879,9 +889,10 @@ def build_cash(inp: dict, this_year: Optional[dict] = None) -> Optional[dict]:
             pr = (e - ep) / ep * 100.0
             cr = (c - cp) / cp * 100.0
             if pr > 0 and cr < 0:
+                gap_rise = pr
                 meaning.append(bi(
-                    f"Profit rose {pr:.0f}% but cash from the business fell {abs(cr):.0f}%, from {tk2(cp)} to {tk2(c)} a share.",
-                    f"মুনাফা {pr:.0f}% বেড়েছে, কিন্তু ব্যবসা থেকে আসা নগদ {abs(cr):.0f}% কমে শেয়ারপ্রতি {tk2(cp)} থেকে {tk2(c)} হয়েছে।",
+                    "Profit went up, but the cash coming in went down. This happens when goods pile up unsold or customers pay late.",
+                    "মুনাফা বেড়েছে, কিন্তু নগদ আসা কমেছে। পণ্য বিক্রি না হয়ে জমে থাকলে বা গ্রাহক দেরিতে টাকা দিলে এমন হয়।",
                 ))
                 # Where the gap opened: the last quarter (full year less nine months).
                 q3 = next((r for r in _interims(notices) if int(r.get("quarter") or 0) == 3
@@ -894,32 +905,31 @@ def build_cash(inp: dict, this_year: Optional[dict] = None) -> Optional[dict]:
                             fe = _fy_end_of(q3)
                             qw = _quarter_words(fe, 4)
                             meaning.append(bi(
-                                f"The gap opened in {qw['en']}: {tk2(q4)} a share against {tk2(q4p)} a year earlier.",
-                                f"ফারাকটা তৈরি হয়েছে {qw['bn']} সময়ে: শেয়ারপ্রতি {tk2(q4)}, এক বছর আগে যা ছিল {tk2(q4p)}।",
+                                f"Most of the drop came in {qw['en']}.",
+                                f"কমার বেশির ভাগটা হয়েছে {qw['bn']} সময়ে।",
                             ))
             elif pr > 0 and cr >= 0:
                 meaning.append(bi(
-                    f"Profit rose {pr:.0f}% and cash from the business rose {cr:.0f}%, to {tk2(c)} a share.",
-                    f"মুনাফা {pr:.0f}% বেড়েছে, ব্যবসা থেকে আসা নগদও {cr:.0f}% বেড়ে শেয়ারপ্রতি {tk2(c)} হয়েছে।",
+                    "Profit and the cash coming in both went up. That is a healthy sign.",
+                    "মুনাফা আর নগদ আসা, দুটোই বেড়েছে। এটি ভালো লক্ষণ।",
                 ))
     if tone in ("fair", "bad"):
         meaning.append(bi(
-            "Profit can be booked before the money arrives, for example when stock builds up or customers pay late. "
-            "The full annual report shows which. Two weak years in a row would make this a red flag.",
-            "টাকা হাতে আসার আগেই মুনাফা হিসাবে দেখানো যায়, যেমন মজুত বাড়লে বা গ্রাহক দেরিতে টাকা দিলে। "
-            "পুরো বার্ষিক প্রতিবেদনে কারণটা দেখা যায়। পরপর দুই বছর দুর্বল হলে এটি বড় সতর্কতা হবে।",
+            "A company can show a profit before the money reaches it. If this happens two years in a row, we treat it as a red flag.",
+            "টাকা হাতে আসার আগেই কোম্পানি মুনাফা দেখাতে পারে। পরপর দুই বছর এমন হলে আমরা এটিকে বড় সতর্কতা ধরি।",
         ))
     else:
         meaning.append(bi(
-            "Cash from the business is much harder to dress up than profit, so this backs the profit it reports.",
-            "মুনাফার চেয়ে ব্যবসা থেকে আসা নগদ টাকা সাজিয়ে দেখানো অনেক কঠিন, তাই এটি কোম্পানির দেখানো মুনাফাকে সমর্থন করে।",
+            "Real cash is much harder to fake than profit on paper, so this backs up the profit it shows.",
+            "কাগজের মুনাফার চেয়ে আসল নগদ টাকা সাজিয়ে দেখানো অনেক কঠিন, তাই এটি দেখানো মুনাফাকে সমর্থন করে।",
         ))
 
     watch = None
     nxt = (this_year or {}).get("next") if this_year else None
     if nxt and nxt.get("date"):
         d_en, d_bn = _day_short(nxt["date"])
-        watch = bi(f"Next check: the next results, around {d_en}.", f"পরের যাচাই: পরের ফল, {d_bn}-এর কাছাকাছি।")
+        watch = bi(f"We check this again when the next results come, around {d_en}.",
+                   f"পরের ফল এলে, {d_bn}-এর কাছাকাছি, আমরা এটি আবার দেখব।")
 
     acc = [r["year"] for r in rows if r["basis"] == "accounts"]
     note = [r["year"] for r in rows if r["basis"] == "notice"]
@@ -935,15 +945,17 @@ def build_cash(inp: dict, this_year: Optional[dict] = None) -> Optional[dict]:
         "cash",
         bi("Is the profit real?", "মুনাফা কি আসল?"),
         word, tone, head, bi(" · ".join(src_en), " · ".join(src_bn)),
-        free_line=bi("We check whether the profit it reports comes in as cash.",
-                     "কোম্পানি যে মুনাফা দেখায়, তা নগদ টাকা হয়ে আসছে কি না, আমরা তা দেখি।"),
+        free_line=bi("We check whether the profit it shows comes in as real money.",
+                     "কোম্পানি যে মুনাফা দেখায়, তা আসল নগদ টাকা হয়ে আসছে কি না, আমরা তা দেখি।"),
         inside=[
-            bi(f"Cash for every ৳100 of profit, over {len(rows)} years", f"{len(rows)} বছর ধরে প্রতি ৳100 মুনাফায় কত নগদ এসেছে"),
-            bi(f"How {fy} compares with its usual", f"{latest['year']} অর্থবছর সাধারণ বছরের তুলনায় কেমন"),
-            bi("The level that would make it a red flag", "কোন পর্যায়ে এটি বড় সতর্কতা হবে"),
+            bi(f"How much of its profit came in as real money, year by year for {len(rows)} years",
+               f"{len(rows)} বছর ধরে প্রতি বছর মুনাফার কতটা আসল নগদ হয়ে এসেছে"),
+            bi("Whether this year is better or worse than usual", "এ বছর সাধারণ বছরের চেয়ে ভালো না খারাপ"),
+            bi("What would make it a red flag", "কী হলে এটি বড় সতর্কতা হবে"),
         ],
         meaning=meaning, watch=watch,
         years=rows, usual=usual,
+        _gap_rise=gap_rise,
     )
 
 
@@ -970,6 +982,18 @@ def _eps_growth(fin: list[dict], eps_now: Optional[float]) -> float:
     return max(0.0, min(SCEN_GROWTH_CAP, g))
 
 
+# The signal's near-the-top line (signal_service.NEAR_HIGH_PCT): past this
+# share of its yearly range a Buy turns to "not yet".
+NEAR_HIGH_PCT = 85.0
+
+
+def _near_top(inp: dict) -> Optional[float]:
+    """The near-the-top line as a price, from the yearly range."""
+    rng = inp.get("range52") or {}
+    hi, lo = _f(rng.get("hi")), _f(rng.get("lo"))
+    return _round_price(lo + (hi - lo) * NEAR_HIGH_PCT / 100.0) if (hi and lo and hi > lo) else None
+
+
 def build_price(inp: dict) -> Optional[dict]:
     from backend.services.stock_facts import valuation_verdict
 
@@ -984,16 +1008,16 @@ def build_price(inp: dict) -> Optional[dict]:
     verdict = valuation_verdict(row.get("p4_val"))
     if verdict == "cheap":
         word, tone = bi("Low", "কম"), "good"
-        free = bi(f"Today {money(ltp)}. We think the price is below what the company is worth.",
-                  f"আজকের দাম {money(ltp)}। আমাদের মতে দামটি কোম্পানির মূল্যের চেয়ে কম।")
+        free = bi(f"At {money(ltp)} today, we think the share costs less than the company is worth.",
+                  f"আজকের {money(ltp)} দামে আমাদের মতে শেয়ারটির দাম কোম্পানির মূল্যের চেয়ে কম।")
     elif verdict == "expensive":
         word, tone = bi("High", "বেশি"), "fair"
-        free = bi(f"Today {money(ltp)}. We think the price is above what the company is worth.",
-                  f"আজকের দাম {money(ltp)}। আমাদের মতে দামটি কোম্পানির মূল্যের চেয়ে বেশি।")
+        free = bi(f"At {money(ltp)} today, we think the share costs more than the company is worth.",
+                  f"আজকের {money(ltp)} দামে আমাদের মতে শেয়ারটির দাম কোম্পানির মূল্যের চেয়ে বেশি।")
     elif verdict == "fair":
         word, tone = bi("Fair", "ঠিকঠাক"), "neutral"
-        free = bi(f"Today {money(ltp)}. We think the price is about right for the company.",
-                  f"আজকের দাম {money(ltp)}। আমাদের মতে দামটি কোম্পানির জন্য মোটামুটি ঠিক।")
+        free = bi(f"At {money(ltp)} today, we think the price is about right for the company.",
+                  f"আজকের {money(ltp)} দামে আমাদের মতে দামটি কোম্পানির জন্য মোটামুটি ঠিক।")
     else:
         word, tone = bi("Not rated", "রেটিং নেই"), "neutral"
         free = bi(f"Today {money(ltp)}.", f"আজকের দাম {money(ltp)}।")
@@ -1009,6 +1033,11 @@ def build_price(inp: dict) -> Optional[dict]:
         methods.sort(key=lambda m: m["price"])
         gap = round((ltp - fair["center"]) / fair["center"] * 100.0)
         buy_below = _round_price(fair["center"] * (1 - BUY_BELOW_MARGIN))
+        # Never above the price where the signal stops saying Buy (2026-10-30:
+        # "buy under ৳234" sat beside "past ৳227 we'd stop calling it a Buy").
+        top = _near_top(inp)
+        if top and buy_below and buy_below > top:
+            buy_below = top
         if fall and _f(fall.get("center")):
             profit_fall = {"pct": round(PROFIT_FALL * 100), "center": _f(fall["center"])}
 
@@ -1034,100 +1063,114 @@ def build_price(inp: dict) -> Optional[dict]:
             bear = eps * (1 + SCEN_BEAR_EPS) * bear_pe
             base = eps * (1 + g) * today_pe
             bull = eps * (1 + g) * bull_pe
-            grow_en = f"Profit grows {gp}%" if gp > 0 else "Profit stays the same"
-            grow_bn = f"মুনাফা {gp}% বাড়ে" if gp > 0 else "মুনাফা একই থাকে"
+            grow_en = f"If profit grows {gp}%" if gp > 0 else "If profit stays the same"
+            grow_bn = f"মুনাফা {gp}% বাড়লে" if gp > 0 else "মুনাফা একই থাকলে"
             bull_is_usual = abs(bull_pe - usual_pe) < 1e-9
+            # Plain words (2026-10-30): "if this happens", never "P/E".
+            fall_pct = abs(round(SCEN_BEAR_EPS * 100))
             scenarios = [
-                {"label": bi(f"Profit falls {abs(round(SCEN_BEAR_EPS * 100))}%, P/E "
-                             + (f"drops to {_x(bear_pe)}" if bear_pe < today_pe - 0.05 else f"stays at {_x(today_pe)}"),
-                             f"মুনাফা {abs(round(SCEN_BEAR_EPS * 100))}% কমে, পিই "
-                             + (f"নেমে {_x(bear_pe)} হয়" if bear_pe < today_pe - 0.05 else f"{_x(today_pe)}-তেই থাকে")),
+                {"label": bi(f"If profit falls {fall_pct}%", f"মুনাফা {fall_pct}% কমলে"),
                  "price": _round_price(bear)},
-                {"label": bi(f"{grow_en}, P/E stays at {_x(today_pe)}", f"{grow_bn}, পিই {_x(today_pe)}-তেই থাকে"),
+                {"label": bi(f"{grow_en} and the price keeps pace", f"{grow_bn}, আর দামও সেই হারে বাড়লে"),
                  "price": _round_price(base)},
-                {"label": bi(f"{grow_en}, P/E returns to its usual {_x(bull_pe)}" if bull_is_usual
-                             else f"{grow_en}, P/E rises to its highest year-end level of {_x(bull_pe)}",
-                             f"{grow_bn}, পিই এর স্বাভাবিক {_x(bull_pe)}-এ ফেরে" if bull_is_usual
-                             else f"{grow_bn}, পিই বেড়ে বছর শেষের সর্বোচ্চ {_x(bull_pe)} হয়"),
+                {"label": bi(f"{grow_en} and the share goes back to its usual price" if bull_is_usual
+                             else f"{grow_en} and the share reaches its best price of recent years",
+                             f"{grow_bn}, আর শেয়ারটি তার স্বাভাবিক দামে ফিরলে" if bull_is_usual
+                             else f"{grow_bn}, আর শেয়ারটি সাম্প্রতিক বছরের সেরা দামে উঠলে"),
                  "price": _round_price(bull)},
             ]
 
-    if fair:
-        where_en = "below" if gap < 0 else "above"
-        where_bn = "কম" if gap < 0 else "বেশি"
-        if abs(gap) < 3:
-            head = bi(f"Our fair range is {money(fair['low'])} to {money(fair['high'])}. Today's {money(ltp)} is close to its middle.",
-                      f"আমাদের হিসাবে ন্যায্য দাম {money(fair['low'])} থেকে {money(fair['high'])}। আজকের {money(ltp)} এর মাঝামাঝি।")
-        else:
-            head = bi(f"Our fair range is {money(fair['low'])} to {money(fair['high'])}. Today's {money(ltp)} is {abs(gap)}% {where_en} its middle.",
-                      f"আমাদের হিসাবে ন্যায্য দাম {money(fair['low'])} থেকে {money(fair['high'])}। আজকের {money(ltp)} এর মাঝামাঝি দামের চেয়ে {abs(gap)}% {where_bn}।")
-    elif pe_now:
-        head = bi(
-            f"At {money(ltp)} the share costs {_x(pe_now)} times its profit"
-            + (f", against its usual {_x(usual)}" if usual else "") + (f" and {_x(sector_pe)} for its sector" if sector_pe else "") + ".",
-            f"{money(ltp)} দামে শেয়ারটির দাম মুনাফার {_x(pe_now)} গুণ"
-            + (f"; সাধারণত থাকে {_x(usual)} গুণ" if usual else "") + (f", আর সেক্টরে {_x(sector_pe)} গুণ" if sector_pe else "") + "।",
-        )
+    # Plain words (2026-10-30). "P/E" is said as "years of its profit you pay
+    # for": a P/E of 7.5 means today's price equals about 7.5 years of profit.
+    def vs(a: float, b: float) -> Optional[tuple[str, str]]:
+        r = a / b
+        return (("much cheaper", "অনেক সস্তা") if r < 0.77 else ("cheaper", "সস্তা") if r < 0.92
+                else ("much dearer", "অনেক দামি") if r > 1.3 else ("dearer", "দামি") if r > 1.08 else None)
+
+    cmp_usual = vs(pe_now, usual) if (pe_now and usual) else None
+    cmp_sector = vs(pe_now, sector_pe) if (pe_now and sector_pe) else None
+    if pe_now and (usual or sector_pe):
+        bits_en, bits_bn = [], []
+        if usual:
+            bits_en.append(f"{cmp_usual[0]} than it usually is" if cmp_usual else "about its usual price")
+            bits_bn.append(f"সাধারণ সময়ের চেয়ে {cmp_usual[1]}" if cmp_usual else "সাধারণ সময়ের মতোই")
+        if sector_pe:
+            bits_en.append(f"{cmp_sector[0]} than similar companies" if cmp_sector else "about the same as similar companies")
+            bits_bn.append(f"একই ধরনের কোম্পানির চেয়ে {cmp_sector[1]}" if cmp_sector else "একই ধরনের কোম্পানির মতোই")
+        compare = bi(f"For the profit it makes, the share is {_join_en(bits_en)}.",
+                     f"মুনাফার তুলনায় শেয়ারটি {_join_bn(bits_bn)}।")
     else:
-        head = bi(f"Today {money(ltp)}. It has no profit to measure the price against.",
-                  f"আজকের দাম {money(ltp)}। দাম মাপার মতো কোনো মুনাফা নেই।")
+        compare = None
+
+    if fair:
+        if ltp < fair["low"]:
+            where = bi(f"At {money(ltp)} today, it is cheaper than that.", f"আজকের {money(ltp)} দাম তার চেয়েও কম।")
+        elif ltp > fair["high"]:
+            where = bi(f"At {money(ltp)} today, it costs more than that.", f"আজকের {money(ltp)} দাম তার চেয়ে বেশি।")
+        else:
+            where = bi(f"At {money(ltp)} today, it is inside that range.", f"আজকের {money(ltp)} দাম এর মধ্যেই।")
+        head = bi(f"We think a fair price is between {money(fair['low'])} and {money(fair['high'])}. {where['en']}",
+                  f"আমাদের হিসাবে ন্যায্য দাম {money(fair['low'])} থেকে {money(fair['high'])}। {where['bn']}")
+    elif compare:
+        head = compare
+    else:
+        head = bi("It made no profit in its latest results, so we can't say whether the price is fair.",
+                  "সর্বশেষ ফলে কোনো মুনাফা নেই, তাই দাম ন্যায্য কি না বলা যায় না।")
 
     meaning = []
-    if pe_now and fair:
-        meaning.append(bi(
-            f"At {money(ltp)} the share costs {_x(pe_now)} times its profit."
-            + (f" It has usually cost {_x(usual)} times" if usual else "")
-            + (f", and similar companies cost {_x(sector_pe)} times." if (usual and sector_pe) else "." if usual else "")
-            + (f" Similar companies cost {_x(sector_pe)} times." if (sector_pe and not usual) else ""),
-            f"{money(ltp)} দামে শেয়ারটির দাম মুনাফার {_x(pe_now)} গুণ।"
-            + (f" সাধারণত থাকে {_x(usual)} গুণ" if usual else "")
-            + (f", আর একই ধরনের কোম্পানির {_x(sector_pe)} গুণ।" if (usual and sector_pe) else "।" if usual else "")
-            + (f" একই ধরনের কোম্পানির {_x(sector_pe)} গুণ।" if (sector_pe and not usual) else ""),
-        ))
+    if fair and compare:
+        meaning.append(compare)
+    if pe_now:
+        yrs_en = f"At today's price you pay for about {pe_now:.0f} years of its profit"
+        yrs_bn = f"আজকের দামে আপনি এর প্রায় {pe_now:.0f} বছরের মুনাফার দাম দিচ্ছেন"
+        if usual:
+            yrs_en += f"; it usually costs about {usual:.0f} years' worth"
+            yrs_bn += f"; সাধারণত লাগে প্রায় {usual:.0f} বছরের"
+        meaning.append(bi(yrs_en + ". Fewer years means a cheaper share.", yrs_bn + "। কম বছর মানে শেয়ারটি সস্তা।"))
     if fv and fv.get("estimates_disagree"):
         meaning.append(bi(
-            "Our yardsticks point different ways for this share, so we don't show a single fair range.",
-            "এই শেয়ারের ক্ষেত্রে আমাদের হিসাবগুলো ভিন্ন দিকে ইঙ্গিত করছে, তাই একক ন্যায্য দাম দেখাচ্ছি না।",
+            "Our different ways of valuing it disagree for this share, so we don't show one fair price.",
+            "এই শেয়ারের মূল্য হিসাবের আমাদের উপায়গুলো একমত নয়, তাই একটি ন্যায্য দাম দেখাচ্ছি না।",
         ))
     if profit_fall:
         below = ltp < profit_fall["center"]
         meaning.append(bi(
-            f"If profit fell {profit_fall['pct']}%, the middle of the range would drop to about {money(profit_fall['center'])}. "
-            + ("The price would still sit below it." if below else "The price would then sit above it."),
-            f"মুনাফা {profit_fall['pct']}% কমলে মাঝামাঝি দাম নেমে প্রায় {money(profit_fall['center'])} হবে। "
-            + ("তখনও দামটি এর নিচে থাকবে।" if below else "তখন দামটি এর ওপরে থাকবে।"),
+            "Even if its profit fell by a fifth, today's price would still be below what we think it is worth." if below
+            else "If its profit fell by a fifth, today's price would be more than what we think it is worth.",
+            "মুনাফা এক-পঞ্চমাংশ কমলেও আজকের দাম আমাদের হিসাবের মূল্যের নিচে থাকবে।" if below
+            else "মুনাফা এক-পঞ্চমাংশ কমলে আজকের দাম আমাদের হিসাবের মূল্যের চেয়ে বেশি হয়ে যাবে।",
         ))
     if scenarios:
         meaning.append(bi(
-            "The three prices for the next 12 months are sums from profit and the P/E it has traded at, not a forecast.",
-            "আগামী 12 মাসের তিনটি দাম মুনাফা আর এর পুরোনো পিই থেকে করা হিসাব, পূর্বাভাস নয়।",
+            "The three prices for next year are simple sums from its profit, not a forecast.",
+            "আগামী বছরের তিনটি দাম এর মুনাফা থেকে করা সাধারণ হিসাব, পূর্বাভাস নয়।",
         ))
 
     watch = None
     if fair and buy_below:
-        watch = bi(f"Below {money(buy_below)} the price leaves a 20% safety margin under our fair middle.",
-                   f"{money(buy_below)}-এর নিচে দাম আমাদের ন্যায্য মাঝামাঝি দামের চেয়ে 20% নিরাপত্তা রাখে।")
+        watch = bi(f"We would call it a good buy under {money(buy_below)}. That leaves room in case we are wrong.",
+                   f"{money(buy_below)}-এর নিচে কেনা ভালো বলে মনে করি। আমাদের হিসাবে ভুল হলেও তাতে কিছুটা নিরাপত্তা থাকে।")
 
     inside = []
     if fair:
         n = len(methods)
-        inside.append(bi(f"Our fair range, worked out {n} {'way' if n == 1 else 'ways'}, on one scale",
-                         f"{n}টি উপায়ে হিসাব করা আমাদের ন্যায্য দাম, এক মাপে"))
-        inside.append(bi("A buy-below price, with a one-tap price alert", "কোন দামের নিচে কেনা ভালো, এক ট্যাপে প্রাইস অ্যালার্টসহ"))
+        inside.append(bi(f"What we think a fair price is, worked out {n} {'way' if n == 1 else 'ways'}",
+                         f"{n}টি উপায়ে হিসাব করা ন্যায্য দাম"))
+        inside.append(bi("The price we would buy under, with a one-tap alert", "কোন দামের নিচে কেনা ভালো, এক ট্যাপে অ্যালার্টসহ"))
     if scenarios:
-        inside.append(bi("Three prices for the next 12 months, and what each one needs",
-                         "আগামী 12 মাসের তিনটি দাম, আর প্রতিটির জন্য কী দরকার"))
+        inside.append(bi("Where the price could be in a year, in three cases",
+                         "এক বছর পর দাম কোথায় থাকতে পারে, তিনটি অবস্থায়"))
     elif profit_fall:
-        inside.append(bi("What a 20% fall in profit would do to it", "মুনাফা 20% কমলে এর কী হবে"))
+        inside.append(bi("What happens to its value if profit falls", "মুনাফা কমলে এর মূল্যের কী হয়"))
     if not inside:
         inside.append(bi("How the price compares with its past and its sector", "দামটি এর অতীত আর সেক্টরের তুলনায় কেমন"))
 
     years = [r["_year"] for r in fin if _f(r.get("pe_ratio_basic"))]
-    src_en = (f"P/E history FY{years[0]} to FY{years[-1]}" if len(years) > 1 else "Its P/E")
-    src_bn = (f"পিইর ইতিহাস {years[0]} থেকে {years[-1]}" if len(years) > 1 else "এর পিই")
+    src_en = (f"Its price against profit, FY{years[0]} to FY{years[-1]}" if len(years) > 1 else "Its price against profit")
+    src_bn = (f"মুনাফার তুলনায় এর দাম, {years[0]} থেকে {years[-1]}" if len(years) > 1 else "মুনাফার তুলনায় এর দাম")
     if inp.get("sector"):
-        src_en += f" · {inp['sector']} sector medians"
-        src_bn += f" · {inp.get('sector_bn') or inp['sector']} সেক্টরের মাঝামাঝি পিই"
+        src_en += f" · the middle of the {inp['sector']} sector"
+        src_bn += f" · {inp.get('sector_bn') or inp['sector']} সেক্টরের মাঝামাঝি"
     if inp.get("as_of"):
         e, b = _day_short(inp["as_of"])
         src_en += f" · close of {e}"
@@ -1348,81 +1391,80 @@ def build_dividend(inp: dict, growth: float = 0.0) -> Optional[dict]:
         head = (bi("It gave bonus shares, not cash, for its latest year.", "সর্বশেষ বছরে নগদ নয়, বোনাস শেয়ার দিয়েছে।")
                 if stock_only else
                 bi("It paid no cash dividend for its latest year.", "সর্বশেষ বছরে কোনো নগদ ডিভিডেন্ড দেয়নি।"))
-    elif prev and cur < prev * 0.98:
-        pay_en = f" That is {payout:.0f}% of profit." if payout is not None else ""
-        pay_bn = f" এটি মুনাফার {payout:.0f}%।" if payout is not None else ""
-        head = bi(f"The dividend fell from {tk2(prev)} to {tk2(cur)} a share.{pay_en}",
-                  f"ডিভিডেন্ড শেয়ারপ্রতি {tk2(prev)} থেকে কমে {tk2(cur)} হয়েছে।{pay_bn}")
-    elif payout is not None and payout > 100:
-        head = bi(f"It paid out more than it earned: {payout:.0f}% of profit.",
-                  f"আয়ের চেয়ে বেশি ডিভিডেন্ড দিয়েছে: মুনাফার {payout:.0f}%।")
-    elif cash_cover is not None and cash_cover < 1:
-        head = bi(f"Cash from the business did not cover the dividend: {cash_cover:.1f} times.",
-                  f"ব্যবসা থেকে আসা নগদে ডিভিডেন্ড পুরো মেটেনি: মাত্র {cash_cover:.1f} গুণ।")
-    elif payout is not None and payout >= 70:
-        head = bi(f"It pays out most of its profit: {payout:.0f}%. Little is left to grow the business.",
-                  f"মুনাফার বেশির ভাগই ডিভিডেন্ডে দেয়: {payout:.0f}%। ব্যবসা বাড়ানোর জন্য কম থাকে।")
-    elif payout is not None:
-        cov_en = f", covered {cash_cover:.1f} times by cash" if cash_cover is not None else ""
-        cov_bn = f", আর ব্যবসার নগদে {cash_cover:.1f} গুণ মেটে" if cash_cover is not None else ""
-        head = bi(f"Paid comfortably: {payout:.0f}% of profit{cov_en}.",
-                  f"স্বচ্ছন্দে দেওয়া: মুনাফার {payout:.0f}%{cov_bn}।")
     else:
-        head = bi(f"It paid {tk2(cur)} a share in cash for FY{cur_y}.", f"{cur_y} অর্থবছরে শেয়ারপ্রতি {tk2(cur)} নগদ দিয়েছে।")
+        # Plain words (2026-10-30): did the dividend go up or down, then is it
+        # safe — said as a share of profit in words, never "42% payout,
+        # covered 1.4 times".
+        if prev and cur < prev * 0.98:
+            change = bi(f"It cut its cash dividend this year, from {tk2(prev)} to {tk2(cur)} a share.",
+                        f"এ বছর নগদ ডিভিডেন্ড কমিয়েছে, শেয়ারপ্রতি {tk2(prev)} থেকে {tk2(cur)}।")
+        elif prev and cur > prev * 1.02:
+            change = bi(f"It raised its cash dividend this year, to {tk2(cur)} a share.",
+                        f"এ বছর নগদ ডিভিডেন্ড বাড়িয়ে শেয়ারপ্রতি {tk2(cur)} করেছে।")
+        else:
+            change = bi(f"It paid {tk2(cur)} a share in cash this year.", f"এ বছর শেয়ারপ্রতি {tk2(cur)} নগদ দিয়েছে।")
+        if payout is not None and payout > 100:
+            safe = bi("It paid out more than it earned, which it cannot keep doing.",
+                      "আয়ের চেয়ে বেশি দিয়েছে, যা বেশি দিন চালানো যায় না।")
+        elif cash_cover is not None and cash_cover < 1:
+            safe = bi("The cash the business brought in was not enough to pay it all.",
+                      "ব্যবসায় যে নগদ এসেছে, তা দিয়ে পুরো ডিভিডেন্ড দেওয়া যায়নি।")
+        elif payout is not None and payout >= 70:
+            safe = bi("It gives away most of its profit, so little is left to grow the business.",
+                      "মুনাফার বেশির ভাগই দিয়ে দেয়, তাই ব্যবসা বাড়ানোর জন্য কম থাকে।")
+        elif payout is not None:
+            share_en, share_bn = (
+                ("about a third of its profit or less", "মুনাফার প্রায় এক-তৃতীয়াংশ বা তার কম") if payout < 36
+                else ("less than half of its profit", "মুনাফার অর্ধেকের কম") if payout < 46
+                else ("about half of its profit", "মুনাফার প্রায় অর্ধেক") if payout < 56
+                else ("a little more than half of its profit", "মুনাফার অর্ধেকের কিছু বেশি")
+            )
+            cash_en = " and the cash it earned easily pays for it" if (cash_cover or 0) >= 1.3 else ""
+            cash_bn = ", আর আয় করা নগদ দিয়ে তা সহজেই দেওয়া যায়" if (cash_cover or 0) >= 1.3 else ""
+            safe = bi(f"The dividend looks safe: it pays out {share_en}{cash_en}.",
+                      f"ডিভিডেন্ড নিরাপদ দেখাচ্ছে: {share_bn} দেয়{cash_bn}।")
+        else:
+            safe = None
+        head = bi(change["en"] + (f" {safe['en']}" if safe else ""), change["bn"] + (f" {safe['bn']}" if safe else ""))
 
     meaning = []
     if on_10k:
         meaning.append(bi(
-            f"On ৳10,000 ({on_10k['shares']:,} shares) it pays {money(on_10k['gross'])} before tax, {money(on_10k['net'])} after the {DIV_TAX_PCT:.0f}% tax.",
-            f"৳10,000-এ ({on_10k['shares']:,}টি শেয়ার) কর বাদের আগে {money(on_10k['gross'])}, {DIV_TAX_PCT:.0f}% কর বাদে {money(on_10k['net'])}।",
+            f"If you put ৳10,000 in today, it would pay you about {money(on_10k['net'])} a year in cash, after tax.",
+            f"আজ ৳10,000 বিনিয়োগ করলে কর বাদে বছরে প্রায় {money(on_10k['net'])} নগদ পাবেন।",
         ))
     if rec_rows:
         r = rec_rows[0]
         m_en, m_bn = _mon(r["date"])
-        mv = r["move"]
-        if mv < 0:
-            move_en = f"The price fell {tk2(abs(mv))} on the first day after the record date."
-            move_bn = f"রেকর্ড ডেটের পরের প্রথম দিনে দাম {tk2(abs(mv))} কমেছিল।"
-        elif mv > 0:
-            move_en = f"The price rose {tk2(mv)} on the first day after the record date."
-            move_bn = f"রেকর্ড ডেটের পরের প্রথম দিনে দাম {tk2(mv)} বেড়েছিল।"
+        # Did buying just before the record date, only for the dividend, pay?
+        if r["kept_ps"] > r["fees_ps"]:
+            meaning.append(bi(
+                f"Last time, in {m_en}, the price held up after the record date, so someone who bought only for the dividend came out ahead.",
+                f"গতবার, {m_bn}-এ, রেকর্ড ডেটের পরেও দাম টিকে ছিল, তাই শুধু ডিভিডেন্ডের জন্য কেনা ক্রেতা লাভে ছিলেন।",
+            ))
         else:
-            move_en = "The price did not change on the first day after the record date."
-            move_bn = "রেকর্ড ডেটের পরের প্রথম দিনে দাম বদলায়নি।"
-        kept = r["kept_ps"]
-        b_en = (f" It also gave {r['bonus_pct']:.0f}% bonus shares, which we count at the new price."
-                if r.get("bonus_pct") else "")
-        b_bn = (f" সঙ্গে {r['bonus_pct']:.0f}% বোনাস শেয়ারও দিয়েছিল, যা নতুন দামে ধরা হয়েছে।"
-                if r.get("bonus_pct") else "")
-        if kept > r["fees_ps"]:
-            end_en = f"A buyer who came only for the dividend kept about {tk2(kept)} a share, more than the {tk2(r['fees_ps'])} in fees."
-            end_bn = f"শুধু ডিভিডেন্ডের জন্য কেনা ক্রেতার শেয়ারপ্রতি প্রায় {tk2(kept)} থেকেছে, যা {tk2(r['fees_ps'])} খরচের চেয়ে বেশি।"
-        elif kept > 0:
-            end_en = f"A buyer who came only for the dividend kept about {tk2(kept)} a share, and fees of about {tk2(r['fees_ps'])} took more than that."
-            end_bn = f"শুধু ডিভিডেন্ডের জন্য কেনা ক্রেতার শেয়ারপ্রতি প্রায় {tk2(kept)} থেকেছে, আর প্রায় {tk2(r['fees_ps'])} খরচ তার চেয়ে বেশি।"
-        else:
-            end_en = f"A buyer who came only for the dividend lost about {tk2(abs(kept) + r['fees_ps'])} a share after fees."
-            end_bn = f"শুধু ডিভিডেন্ডের জন্য কেনা ক্রেতার খরচসহ শেয়ারপ্রতি প্রায় {tk2(abs(kept) + r['fees_ps'])} লোকসান হয়েছে।"
-        meaning.append(bi(
-            f"Last time, in {m_en}, it paid {tk2(r['cash_ps'])} ({tk2(r['net_ps'])} after tax). {move_en}{b_en} {end_en}",
-            f"গতবার, {m_bn}-এ, শেয়ারপ্রতি {tk2(r['cash_ps'])} দিয়েছিল (কর বাদে {tk2(r['net_ps'])})। {move_bn}{b_bn} {end_bn}",
-        ))
+            meaning.append(bi(
+                f"Last time, in {m_en}, the price dropped by about as much as the dividend after the record date. "
+                "Buying just to collect the dividend did not pay once fees were counted.",
+                f"গতবার, {m_bn}-এ, রেকর্ড ডেটের পর দাম প্রায় ডিভিডেন্ডের সমান কমেছিল। "
+                "খরচ ধরলে শুধু ডিভিডেন্ড পেতে কেনায় লাভ হয়নি।",
+            ))
     if next_range:
         p = next_range["_payout"] * 100
         lo, hi = next_range["low"], next_range["high"]
         rng_en = f"about {_tk_est(lo)}" + (f" to {_tk_est(hi)}" if _tk_est(hi) != _tk_est(lo) else "")
         rng_bn = f"প্রায় {_tk_est(lo)}" + (f" থেকে {_tk_est(hi)}" if _tk_est(hi) != _tk_est(lo) else "")
         meaning.append(bi(
-            f"At its usual {p:.0f}% payout, next year's dividend would be {rng_en} a share if profit holds or grows.",
-            f"সাধারণত মুনাফার {p:.0f}% দেয়। মুনাফা একই থাকলে বা বাড়লে আগামী বছরের ডিভিডেন্ড হতে পারে শেয়ারপ্রতি {rng_bn}।",
+            f"If profit holds, next year's dividend could be {rng_en} a share.",
+            f"মুনাফা একই থাকলে আগামী বছরের ডিভিডেন্ড হতে পারে শেয়ারপ্রতি {rng_bn}।",
         ))
 
     watch = None
     if latest and latest["upcoming"] and latest.get("cash_ps") and latest.get("buy_by"):
         b_en, b_bn = _day(latest["buy_by"])
         r_en, r_bn = _day(latest["record_date"])
-        watch = bi(f"To get the {tk2(latest['cash_ps'])}, you need to buy by {b_en}. The record date is {r_en}.",
-                   f"{tk2(latest['cash_ps'])} পেতে হলে {b_bn}-এর মধ্যে কিনতে হবে। রেকর্ড ডেট {r_bn}।")
+        watch = bi(f"To get the {tk2(latest['cash_ps'])} a share, buy by {b_en}. You must own the shares on the record date, {r_en}.",
+                   f"শেয়ারপ্রতি {tk2(latest['cash_ps'])} পেতে {b_bn}-এর মধ্যে কিনুন। রেকর্ড ডেট {r_bn}-এ শেয়ার আপনার কাছে থাকতে হবে।")
 
     n_paid = len([h for h in history[-10:] if h["cash_ps"] > 0])
     n_years = len(history[-10:])
@@ -1431,11 +1473,10 @@ def build_dividend(inp: dict, growth: float = 0.0) -> Optional[dict]:
 
     inside = []
     if cps:
-        inside.append(bi(f"What {tk2(cps)} is worth after tax and the record-date price drop",
-                         f"কর আর রেকর্ড ডেটের পরের দরপতনের পর {tk2(cps)} আসলে কত"))
-    inside.append(bi("Is it safe? How much of profit and cash it uses", "ডিভিডেন্ড কি নিরাপদ? মুনাফা আর নগদের কতটা লাগে"))
-    inside.append(bi(f"{len(history)} years of dividends, and next year's likely range" if len(history) > 1 else "Next year's likely range",
-                     f"{len(history)} বছরের ডিভিডেন্ড, আর আগামী বছরের সম্ভাব্য পরিমাণ" if len(history) > 1 else "আগামী বছরের সম্ভাব্য পরিমাণ"))
+        inside.append(bi(f"What the {tk2(cps)} dividend is really worth to you after tax",
+                         f"কর বাদে {tk2(cps)} ডিভিডেন্ড আপনার জন্য আসলে কত"))
+    inside.append(bi("Whether the dividend is safe", "ডিভিডেন্ড নিরাপদ কি না"))
+    inside.append(bi("What next year's dividend could be", "আগামী বছরের ডিভিডেন্ড কত হতে পারে"))
 
     src_en, src_bn = [], []
     if latest and latest.get("_declared"):
@@ -1508,7 +1549,7 @@ def _owner_rows(holdings: list[dict]) -> list[tuple[date, dict]]:
 
 
 _GROUPS = [
-    ("sponsor_director_pct", "Sponsors and directors", "উদ্যোক্তা-পরিচালক"),
+    ("sponsor_director_pct", "Founders and directors", "উদ্যোক্তা-পরিচালক"),
     ("institute_pct", "Institutions", "প্রতিষ্ঠান"),
     ("foreign_pct", "Foreign investors", "বিদেশি বিনিয়োগকারী"),
     ("govt_pct", "Government", "সরকার"),
@@ -1587,7 +1628,7 @@ def build_owners(inp: dict) -> Optional[dict]:
 
     buys = [t for t in trades if t["side"] == "buy"]
     sells = [t for t in trades if t["side"] == "sell"]
-    spon_move = next((t["to_pct"] - t["from_pct"] for t in trend if t["group"]["en"].startswith("Sponsors")), 0.0)
+    spon_move = next((t["to_pct"] - t["from_pct"] for t in trend if t["group"]["en"].startswith("Founders")), 0.0)
     if len(buys) > len(sells) or (not trades and spon_move >= OWNER_MOVE_PP):
         word, tone = bi("Buying", "কিনছেন"), "good"
     elif len(sells) > len(buys) or (not trades and spon_move <= -OWNER_MOVE_PP):
@@ -1632,48 +1673,58 @@ def build_owners(inp: dict) -> Optional[dict]:
         vals = [t["value_mn"] for t in ts if t["value_mn"]]
         return sum(vals) if vals else None
 
+    # Plain words (2026-10-30): who, did they buy or sell, roughly how much
+    # money — no share counts, no percentages to the decimal.
     if trades and (not buys or not sells):
         ts = buys or sells
-        verb_en, verb_bn = ("bought", "কিনেছেন") if buys else ("sold", "বিক্রি করেছেন")
         w_en, w_bn = who(ts)
         m_en, m_bn = months(ts)
-        n = sum(t["shares"] for t in ts)
         v = total_value(ts)
         v_en, v_bn = _crore(v) if v else ("", "")
-        head = bi(
-            f"{w_en} {verb_en} {n:,} shares {m_en}" + (f", about {v_en}" if v else "") + ".",
-            f"{w_bn} {m_bn} {n:,}টি শেয়ার {verb_bn}" + (f", যার মূল্য প্রায় {v_bn}" if v else "") + "।",
-        )
+        if buys:
+            head = bi(
+                f"The people who run it are buying. {w_en} bought more shares {m_en}" + (f", worth about {v_en}" if v else "") + ".",
+                f"কোম্পানি যাঁরা চালান, তাঁরা কিনছেন। {w_bn} {m_bn} আরও শেয়ার কিনেছেন" + (f", প্রায় {v_bn} মূল্যের" if v else "") + "।",
+            )
+        else:
+            head = bi(
+                f"The people who run it are selling. {w_en} sold shares {m_en}" + (f", worth about {v_en}" if v else "") + ".",
+                f"কোম্পানি যাঁরা চালান, তাঁরা বিক্রি করছেন। {w_bn} {m_bn} শেয়ার বিক্রি করেছেন" + (f", প্রায় {v_bn} মূল্যের" if v else "") + "।",
+            )
     elif trades:
-        nb = sum(t["shares"] for t in buys)
-        ns = sum(t["shares"] for t in sells)
-        head = bi(f"Insiders bought {nb:,} shares and sold {ns:,} in the last 12 months.",
-                  f"গত 12 মাসে সংশ্লিষ্টরা {nb:,}টি শেয়ার কিনেছেন আর {ns:,}টি বিক্রি করেছেন।")
+        head = bi("The people who run it both bought and sold shares in the last 12 months.",
+                  "গত 12 মাসে কোম্পানি যাঁরা চালান, তাঁরা শেয়ার কিনেছেনও, বিক্রিও করেছেন।")
     elif spon is not None:
-        head = bi(f"No sponsor or director bought or sold shares in the last 12 months. Sponsors and directors own {spon:.1f}%.",
-                  f"গত 12 মাসে কোনো উদ্যোক্তা-পরিচালক শেয়ার কেনেননি বা বিক্রি করেননি। তাঁদের হাতে {spon:.1f}% শেয়ার।")
+        head = bi(f"The people who run it did not buy or sell shares in the last 12 months. They own about {spon:.0f} of every 100 shares.",
+                  f"গত 12 মাসে কোম্পানি যাঁরা চালান, তাঁরা শেয়ার কেনেননি বা বিক্রি করেননি। প্রতি 100টি শেয়ারের প্রায় {spon:.0f}টি তাঁদের।")
     else:
-        head = bi("No sponsor or director bought or sold shares in the last 12 months.",
-                  "গত 12 মাসে কোনো উদ্যোক্তা-পরিচালক শেয়ার কেনেননি বা বিক্রি করেননি।")
+        head = bi("The people who run it did not buy or sell shares in the last 12 months.",
+                  "গত 12 মাসে কোম্পানি যাঁরা চালান, তাঁরা শেয়ার কেনেননি বা বিক্রি করেননি।")
 
     meaning = []
     lows = [t["price_low"] for t in trades if t["price_low"]]
     highs = [t["price_high"] for t in trades if t["price_high"]]
     ltp = _f(inp.get("ltp"))
     if lows and highs and ltp and (not buys or not sells):
-        verb_en, verb_bn = ("paid", "কিনেছেন") if buys else ("sold at", "বিক্রি করেছেন")
-        meaning.append(bi(
-            f"The people who run it {verb_en} {money(min(lows))} to {money(max(highs))} a share. Today it is {money(ltp)}.",
-            f"কোম্পানি যাঁরা চালান, তাঁরা শেয়ারপ্রতি {money(min(lows))} থেকে {money(max(highs))} দামে {verb_bn}। আজকের দাম {money(ltp)}।",
-        ))
+        lo, hi = min(lows), max(highs)
+        v_en, v_bn = ("bought", "কিনেছিলেন") if buys else ("sold", "বিক্রি করেছিলেন")
+        if ltp < lo * 0.97:
+            meaning.append(bi(f"Today's price is lower than when they {v_en}.", f"তাঁরা যখন {v_bn}, আজকের দাম তার চেয়ে কম।"))
+        elif ltp > hi * 1.03:
+            meaning.append(bi(f"Today's price is higher than when they {v_en}.", f"তাঁরা যখন {v_bn}, আজকের দাম তার চেয়ে বেশি।"))
+        else:
+            meaning.append(bi(f"They {v_en} at about today's price.", f"তাঁরা প্রায় আজকের দামেই {v_bn}।"))
     for t in trend:
         up = t["to_pct"] > t["from_pct"]
+        small = abs(t["to_pct"] - t["from_pct"]) < 2
         g = t["group"]
         f_en, f_bn = _mon(t["from_date"])
-        meaning.append(bi(
-            f"{g['en']} {'raised' if up else 'lowered'} their share from {t['from_pct']:.1f}% to {t['to_pct']:.1f}% since {f_en}.",
-            f"{f_bn}-এর পর থেকে {g['bn']} তাঁদের অংশ {t['from_pct']:.1f}% থেকে {'বাড়িয়ে' if up else 'কমিয়ে'} {t['to_pct']:.1f}% করেছেন।",
-        ))
+        if up:
+            meaning.append(bi(f"Since {f_en}, {g['en'][0].lower() + g['en'][1:]} have bought {'a little ' if small else ''}more of the company.",
+                              f"{f_bn}-এর পর থেকে {g['bn']} কোম্পানির {'কিছুটা ' if small else ''}বেশি শেয়ার কিনেছেন।"))
+        else:
+            meaning.append(bi(f"Since {f_en}, {g['en'][0].lower() + g['en'][1:]} have sold {'a few' if small else 'some'} of their shares.",
+                              f"{f_bn}-এর পর থেকে {g['bn']} তাঁদের {'কিছু' if small else 'বেশ কিছু'} শেয়ার বিক্রি করেছেন।"))
     if buys and not sells:
         meaning.append(bi("When the people who run a company buy with their own money, they usually expect it to do well.",
                           "কোম্পানি যাঁরা চালান তাঁরা নিজের টাকায় শেয়ার কিনলে সাধারণত বোঝা যায়, তাঁরা কোম্পানির ভবিষ্যৎ ভালো দেখছেন।"))
@@ -1683,31 +1734,33 @@ def build_owners(inp: dict) -> Optional[dict]:
 
     watch = None
     if rule30 and not rule30["ok"]:
-        watch = bi(f"Sponsors and directors hold {rule30['pct']:.1f}% together, under the 30% the BSEC rule asks for.",
-                   f"উদ্যোক্তা-পরিচালকদের মোট অংশ {rule30['pct']:.1f}%, যা বিএসইসির 30% নিয়মের নিচে।")
+        watch = bi("The founders and directors own less than the 30% the rules ask them to keep. That is a warning sign.",
+                   "উদ্যোক্তা-পরিচালকদের হাতে নিয়ম অনুযায়ী যে 30% রাখার কথা, তার চেয়ে কম শেয়ার আছে। এটি একটি সতর্কসংকেত।")
     else:
-        watch = bi("We will show it here if a sponsor or director declares a sale.",
-                   "কোনো উদ্যোক্তা-পরিচালক বিক্রির ঘোষণা দিলে আমরা এখানে দেখাব।")
+        watch = bi("If any of the people who run it announce a sale, we show it here.",
+                   "কোম্পানি যাঁরা চালান, তাঁদের কেউ বিক্রির ঘোষণা দিলে আমরা এখানে দেখাব।")
 
     nb, ns = len(buys), len(sells)
+    times = lambda n: "once" if n == 1 else "twice" if n == 2 else f"{n} times"  # noqa: E731
     if nb + ns == 0:
-        free = bi("No insider trades in the last 12 months.", "গত 12 মাসে উদ্যোক্তা-পরিচালকদের কোনো কেনাবেচা হয়নি।")
+        free = bi("In the last 12 months, the people who run it did not buy or sell any shares.",
+                  "গত 12 মাসে কোম্পানি যাঁরা চালান, তাঁরা কোনো শেয়ার কেনেননি বা বিক্রি করেননি।")
     elif ns == 0:
-        free = bi(f"{nb} insider {'trade' if nb == 1 else 'trades'} in the last 12 months. {'It was a buy' if nb == 1 else 'All were buys'}.",
-                  f"গত 12 মাসে উদ্যোক্তা-পরিচালকদের {nb}টি লেনদেন। {'এটি কেনা' if nb == 1 else 'সবগুলোই কেনা'}।")
+        free = bi(f"In the last 12 months, the people who run it bought shares {times(nb)} and sold none.",
+                  f"গত 12 মাসে কোম্পানি যাঁরা চালান, তাঁরা {nb} বার শেয়ার কিনেছেন, বিক্রি করেননি।")
     elif nb == 0:
-        free = bi(f"{ns} insider {'trade' if ns == 1 else 'trades'} in the last 12 months. {'It was a sale' if ns == 1 else 'All were sales'}.",
-                  f"গত 12 মাসে উদ্যোক্তা-পরিচালকদের {ns}টি লেনদেন। {'এটি বিক্রি' if ns == 1 else 'সবগুলোই বিক্রি'}।")
+        free = bi(f"In the last 12 months, the people who run it sold shares {times(ns)} and bought none.",
+                  f"গত 12 মাসে কোম্পানি যাঁরা চালান, তাঁরা {ns} বার শেয়ার বিক্রি করেছেন, কেনেননি।")
     else:
-        free = bi(f"{nb + ns} insider trades in the last 12 months: {nb} {'buy' if nb == 1 else 'buys'} and {ns} {'sale' if ns == 1 else 'sales'}.",
-                  f"গত 12 মাসে উদ্যোক্তা-পরিচালকদের {nb + ns}টি লেনদেন: {nb}টি কেনা, {ns}টি বিক্রি।")
+        free = bi(f"In the last 12 months, the people who run it bought shares {times(nb)} and sold {times(ns)}.",
+                  f"গত 12 মাসে কোম্পানি যাঁরা চালান, তাঁরা {nb} বার কিনেছেন আর {ns} বার বিক্রি করেছেন।")
 
     inside = []
     if trades:
-        inside.append(bi("Who traded, how many shares, and the price then", "কে কেনাবেচা করেছেন, কত শেয়ার, আর তখনকার দাম"))
+        inside.append(bi("Who bought or sold, how much, and at what price", "কে কিনেছেন বা বিক্রি করেছেন, কতটা, আর কোন দামে"))
     if window:
         f_en, f_bn = _mon(window[0][0])
-        inside.append(bi(f"How each owner group moved since {f_en}", f"{f_bn}-এর পর থেকে কোন মালিকপক্ষের অংশ কতটা বদলেছে"))
+        inside.append(bi(f"Which groups of owners bought or sold since {f_en}", f"{f_bn}-এর পর থেকে কোন মালিকেরা কিনেছেন বা বিক্রি করেছেন"))
     inside.append(bi("What it means for someone buying today", "আজ যিনি কিনছেন, তাঁর জন্য এর অর্থ"))
 
     src_en, src_bn = ["DSE insider notices"], ["ডিএসইর উদ্যোক্তা-পরিচালক লেনদেনের নোটিশ"]
@@ -1736,10 +1789,18 @@ def build_safety(inp: dict) -> Optional[dict]:
     facts = []
     level = 0  # 0 very safe, 1 safe, 2 watch, 3 risky
     detail_bits: list[tuple[str, str]] = []
+    # The numbers behind the page's loans meter (2026-10-30): loans as a % of
+    # saved profit and of market value, how many times profit pays the interest.
+    measures: dict[str, Any] = {"saved_pct": None, "mcap_pct": None, "cover": None, "no_loans": False}
 
     def bump(n):
         nonlocal level
         level = max(level, n)
+
+    # Plain sentences for the answer (2026-10-30): loans in words, then the
+    # rating; the ratios stay in `facts` (the fold) and `measures` (the meter).
+    plain: list[dict] = []
+    interest_line: Optional[dict] = None
 
     if sc in _LENDERS:
         ext = sorted(inp.get("extended_financials") or [], key=lambda r: int(r.get("year") or 0))
@@ -1757,6 +1818,13 @@ def build_safety(inp: dict) -> Optional[dict]:
             facts.append({"label": bi("Its own money behind its lending", "ঋণের পেছনে নিজস্ব মূলধন"),
                           "value": bi(f"{cushion:.1f}% of assets", f"সম্পদের {cushion:.1f}%"), "tone": t})
             detail_bits.append((f"own money {cushion:.0f}% of assets", f"নিজস্ব মূলধন সম্পদের {cushion:.0f}%"))
+            plain.append(
+                bi("It keeps a good amount of its own money behind the loans it gives.",
+                   "যে ঋণ দেয়, তার পেছনে যথেষ্ট নিজস্ব টাকা রাখে।") if cushion >= BANK_CUSHION_SAFE
+                else bi("It keeps less of its own money behind its loans than we would like.",
+                        "ঋণের পেছনে যতটা নিজস্ব টাকা থাকা ভালো, তার চেয়ে কম রাখে।") if cushion >= BANK_CUSHION_WATCH
+                else bi("It keeps very little of its own money behind its loans.",
+                        "ঋণের পেছনে খুব কম নিজস্ব টাকা রাখে।"))
         else:
             bump(1)
     elif sc == "INSURANCE":
@@ -1767,25 +1835,40 @@ def build_safety(inp: dict) -> Optional[dict]:
         mcap = _f(row.get("mcap_mn"))
         if loan is not None:
             if loan <= 0:
+                measures["no_loans"] = True
                 facts.append({"label": bi("Loans", "ঋণ"), "value": bi("None", "নেই"), "tone": "good"})
                 detail_bits.append(("no loans", "কোনো ঋণ নেই"))
+                plain.append(bi("It has no loans.", "এর কোনো ঋণ নেই।"))
             else:
                 c_en, c_bn = _crore(loan)
                 facts.append({"label": bi("Loans", "ঋণ"), "value": bi(c_en, c_bn), "tone": "neutral"})
                 if res and res > 0:
                     r_ = loan / res
+                    measures["saved_pct"] = round(r_ * 100.0)
                     t = "good" if r_ < 0.5 else "fair" if r_ <= 1 else "bad"
-                    facts.append({"label": bi("Loans against saved profit", "জমা মুনাফার তুলনায় ঋণ"),
+                    facts.append({"label": bi("Loans compared with money kept from past years", "আগের বছরে জমানো টাকার তুলনায় ঋণ"),
                                   "value": bi(f"{r_ * 100:.0f}%", f"{r_ * 100:.0f}%"), "tone": t})
                     detail_bits.append((f"loans {r_ * 100:.0f}% of saved profit", f"ঋণ জমা মুনাফার {r_ * 100:.0f}%"))
+                    plain.append(
+                        bi("Its loans are tiny next to the money it has kept from past years.",
+                           "আগের বছরগুলোতে জমানো টাকার তুলনায় এর ঋণ খুবই কম।") if r_ < 0.1
+                        else bi("Its loans are small next to the money it has kept from past years.",
+                                "আগের বছরগুলোতে জমানো টাকার তুলনায় এর ঋণ কম।") if r_ < 0.5
+                        else bi("Its loans are close to all the money it has kept from past years.",
+                                "আগের বছরগুলোতে জমানো প্রায় সব টাকার সমান এর ঋণ।") if r_ <= 1
+                        else bi("Its loans are bigger than all the money it has kept from past years.",
+                                "আগের বছরগুলোতে জমানো সব টাকার চেয়েও এর ঋণ বেশি।"))
                     bump(0 if r_ < 0.1 else 1 if r_ <= 1 else 2)
                 if mcap and mcap > 0:
                     m_ = loan / mcap
+                    measures["mcap_pct"] = round(m_ * 100.0)
                     t = "good" if m_ < 0.5 else "fair" if m_ <= 1 else "bad"
-                    facts.append({"label": bi("Loans against market value", "বাজার মূলধনের তুলনায় ঋণ"),
+                    facts.append({"label": bi("Loans compared with the company's market value", "কোম্পানির বাজারমূল্যের তুলনায় ঋণ"),
                                   "value": bi(f"{m_ * 100:.0f}%", f"{m_ * 100:.0f}%"), "tone": t})
                     if m_ > 1:
                         bump(3)
+                        plain.append(bi("Its loans are bigger than the whole company is worth on the market.",
+                                        "বাজারে পুরো কোম্পানির যে দাম, এর ঋণ তার চেয়েও বেশি।"))
         else:
             bump(1)
         # Interest cover from the latest accounts (magnitude of the interest line).
@@ -1794,10 +1877,16 @@ def build_safety(inp: dict) -> Optional[dict]:
             ebit, ie = _f(r.get("ebit")), _f(r.get("interest_expense"))
             if ebit is not None and ie:
                 ic = ebit / abs(ie)
+                measures["cover"] = round(ic, 1)
                 t = "good" if ic >= 3 else "fair" if ic >= 1.5 else "bad"
-                facts.append({"label": bi("Profit against interest", "সুদের তুলনায় মুনাফা"),
+                facts.append({"label": bi("Profit compared with interest", "সুদের তুলনায় মুনাফা"),
                               "value": bi(f"{ic:.1f} times", f"{ic:.1f} গুণ"), "tone": t})
                 bump(0 if ic >= 3 else 2 if ic >= 1.5 else 3)
+                interest_line = (
+                    bi("Its profit pays the interest on its loans easily.", "মুনাফা দিয়ে ঋণের সুদ সহজেই দেওয়া যায়।") if ic >= 3
+                    else bi("Its profit covers the interest on its loans, but not by much.", "মুনাফা দিয়ে ঋণের সুদ মেটে, তবে খুব বেশি জায়গা থাকে না।") if ic >= 1.5
+                    else bi("Its profit barely covers the interest on its loans.", "মুনাফা দিয়ে ঋণের সুদ কোনোমতে মেটে।") if ic >= 1
+                    else bi("Its profit does not cover the interest on its loans.", "মুনাফা দিয়ে ঋণের সুদও মেটে না।"))
                 break
     if rating:
         rk = _rating_rank(rating["long_term"])
@@ -1809,6 +1898,11 @@ def build_safety(inp: dict) -> Optional[dict]:
                       "value": bi(f"{rating['long_term']} ({rating['agency']}, {m_en})", f"{rating['long_term']} ({rating['agency']}, {m_bn})"),
                       "tone": t})
         detail_bits.append((f"rated {rating['long_term']}", f"রেটিং {rating['long_term']}"))
+        g = rating["long_term"]
+        plain.append(
+            bi(f"A rating agency gives it a top grade for paying its debts ({g}).", f"দেনা শোধের সামর্থ্যে একটি রেটিং এজেন্সি একে সেরা গ্রেড দিয়েছে ({g})।") if strong
+            else bi(f"A rating agency gives it a fair grade for paying its debts ({g}).", f"দেনা শোধের সামর্থ্যে একটি রেটিং এজেন্সি একে মাঝারি গ্রেড দিয়েছে ({g})।") if ig
+            else bi(f"A rating agency gives it a low grade for paying its debts ({g}).", f"দেনা শোধের সামর্থ্যে একটি রেটিং এজেন্সি একে নিচু গ্রেড দিয়েছে ({g})।"))
         if not ig:
             bump(3)
         elif not strong:
@@ -1826,16 +1920,18 @@ def build_safety(inp: dict) -> Optional[dict]:
         return None
     if level == 0 and not (rating or detail_bits):
         level = 1
-    words = [(bi("Very safe", "খুব নিরাপদ"), "good"), (bi("Safe", "নিরাপদ"), "good"),
-             (bi("Watch", "নজর রাখুন"), "fair"), (bi("Risky", "ঝুঁকিপূর্ণ"), "bad")]
+    # The question is "Can it handle its loans?", so the word answers it.
+    words = [(bi("Easily", "সহজেই"), "good"), (bi("Yes", "হ্যাঁ"), "good"),
+             (bi("Watch this", "নজর রাখুন"), "fair"), (bi("Risky", "ঝুঁকিপূর্ণ"), "bad")]
     word, tone = words[level]
 
-    bits_en = _join_en([b[0] for b in detail_bits][:2])
-    bits_bn = _join_bn([b[1] for b in detail_bits][:2])
-    if bits_en:
-        head = bi(f"{word['en']}: {bits_en}.", f"{word['bn']}: {bits_bn}।")
+    if plain:
+        head = bi(" ".join(x["en"] for x in plain[:2]), " ".join(x["bn"] for x in plain[:2]))
+    elif sc == "INSURANCE":
+        head = bi("Insurers are judged mainly on their ability to pay claims, and we have no rating for this one.",
+                  "বিমা কোম্পানিকে মূলত দাবি মেটানোর সামর্থ্য দিয়ে বিচার করা হয়, আর এর কোনো রেটিং আমাদের কাছে নেই।")
     else:
-        head = bi(f"{word['en']}.", f"{word['bn']}।")
+        head = bi("We don't have enough figures on its loans.", "এর ঋণ নিয়ে যথেষ্ট তথ্য আমাদের কাছে নেই।")
     meaning = []
     if sc in _LENDERS:
         meaning.append(bi("A bank lends mostly with depositors' money. The more of its own money stands behind those loans, the safer it is when loans go bad.",
@@ -1849,13 +1945,11 @@ def build_safety(inp: dict) -> Optional[dict]:
     else:
         meaning.append(bi("Its loans are small next to what it owns and earns, so a bad year would not put it in trouble.",
                           "সম্পদ আর আয়ের তুলনায় এর ঋণ কম, তাই একটি খারাপ বছরেও বড় বিপদে পড়ার কথা নয়।"))
+    if interest_line:
+        meaning.append(interest_line)
     if rating:
-        meaning.append(bi(f"{rating['agency']} rates it {rating['long_term']}"
-                          + (f" with a {rating['outlook'].lower()} outlook" if rating.get("outlook") else "") + ". "
-                          "Ratings from AAA to BBB- mean the company is expected to meet its debts.",
-                          f"{rating['agency']} এর রেটিং দিয়েছে {rating['long_term']}"
-                          + (f", দৃষ্টিভঙ্গি {rating['outlook']}" if rating.get("outlook") else "") + "। "
-                          "AAA থেকে BBB- রেটিংয়ের অর্থ, কোম্পানি তার দেনা শোধ করতে পারবে বলে আশা করা হয়।"))
+        meaning.append(bi(f"The grade comes from {rating['agency']}. Grades from AAA down to BBB mean the company is expected to pay its debts on time.",
+                          f"গ্রেডটি দিয়েছে {rating['agency']}। AAA থেকে BBB পর্যন্ত গ্রেডের অর্থ, কোম্পানি সময়মতো দেনা শোধ করবে বলে আশা করা হয়।"))
     watch = None
     if rating:
         nd = _d(rating["date"]) + timedelta(days=365) if _d(rating["date"]) else None
@@ -1867,9 +1961,9 @@ def build_safety(inp: dict) -> Optional[dict]:
     if sc in _LENDERS:
         inside.append(bi("How much of its own money stands behind its lending", "ঋণের পেছনে নিজস্ব মূলধন কতটা"))
     elif any(f["label"]["en"].startswith("Loans") for f in facts):
-        inside.append(bi("Its loans against saved profit and market value", "জমা মুনাফা আর বাজার মূলধনের তুলনায় এর ঋণ"))
-    if any(f["label"]["en"].startswith("Profit against") for f in facts):
-        inside.append(bi("How easily its profit covers the interest", "মুনাফা দিয়ে সুদ কত সহজে মেটে"))
+        inside.append(bi("How big its loans are next to what it has", "যা আছে তার তুলনায় এর ঋণ কত বড়"))
+    if any(f["label"]["en"].startswith("Profit compared") for f in facts):
+        inside.append(bi("Whether its profit pays the interest easily", "মুনাফা দিয়ে সুদ সহজে মেটে কি না"))
     inside.append(bi("Its credit rating, and what it means" if rating else "What would make it riskier",
                      "এর ক্রেডিট রেটিং, আর এর অর্থ" if rating else "কী হলে এটি বেশি ঝুঁকিপূর্ণ হবে"))
 
@@ -1892,6 +1986,7 @@ def build_safety(inp: dict) -> Optional[dict]:
         inside=inside, meaning=meaning, watch=watch,
         facts=facts,
         rating={k: rating[k] for k in ("agency", "long_term", "short_term", "outlook", "date")} if rating else None,
+        measures=measures,
         _bits=detail_bits,
     )
 
@@ -1914,6 +2009,24 @@ def _ratings(inp: dict) -> list[dict]:
 
 # ---------------------------------------------------------------- quality
 
+# The five checks as everyday phrases ("It is best at paying dividends").
+_PILLAR_PLAIN = {
+    "p1_biz": ("making profit", "মুনাফা করা"),
+    "p2_health": ("keeping its finances safe", "আর্থিক নিরাপত্তা"),
+    "p3_moat": ("standing out in its business", "ব্যবসায় এগিয়ে থাকা"),
+    "p4_val": ("being well priced", "দামের দিক"),
+    "p5_div": ("paying dividends", "ডিভিডেন্ড দেওয়া"),
+}
+# …and as a noun for its weakest area ("Even its weakest area, its finances, …").
+_PILLAR_NOUN = {
+    "p1_biz": ("its profit", "মুনাফা"),
+    "p2_health": ("its finances", "আর্থিক অবস্থা"),
+    "p3_moat": ("its place in its business", "ব্যবসায় অবস্থান"),
+    "p4_val": ("its price", "দাম"),
+    "p5_div": ("its dividend", "ডিভিডেন্ড"),
+}
+
+
 def build_quality(inp: dict) -> Optional[dict]:
     row = inp.get("score_row") or {}
     score = _f(row.get("score"))
@@ -1933,30 +2046,59 @@ def build_quality(inp: dict) -> Optional[dict]:
     except (TypeError, ValueError):
         rank = total = None
 
-    rank_en = f", {_ordinal(rank)} of {total} companies" if rank and total else ""
-    rank_bn = f"; {total}টি কোম্পানির মধ্যে {rank} নম্বরে" if rank and total else ""
-    head_en = f"Graded {word['en']}, {score:.0f} out of 100{rank_en}."
-    head_bn = f"গ্রেড {word['bn']}, 100-এর মধ্যে {score:.0f}{rank_bn}।"
+    # Plain words (2026-10-30): where it stands among DSE companies, then its
+    # best and weakest side in everyday words — no "89 out of 100", no
+    # "2nd of 362", no "9.5 out of 10".
+    if rank and total:
+        share = rank / total
+        if rank == 1:
+            head_en, head_bn = ("By our measure, it is the strongest company on the DSE.",
+                                "আমাদের হিসাবে এটি ডিএসইর সবচেয়ে শক্তিশালী কোম্পানি।")
+        elif rank <= 10:
+            head_en = (f"One of the strongest companies on the DSE: only {rank - 1} "
+                       f"{'company scores' if rank == 2 else 'companies score'} higher in our checks.")
+            head_bn = f"ডিএসইর সবচেয়ে শক্তিশালী কোম্পানিগুলোর একটি: আমাদের যাচাইয়ে মাত্র {rank - 1}টি কোম্পানি এর চেয়ে এগিয়ে।"
+        elif share <= 0.25:
+            head_en, head_bn = ("Stronger than most companies on the DSE.", "ডিএসইর বেশির ভাগ কোম্পানির চেয়ে শক্তিশালী।")
+        elif share <= 0.5:
+            head_en, head_bn = ("Stronger than about half the companies on the DSE.", "ডিএসইর প্রায় অর্ধেক কোম্পানির চেয়ে শক্তিশালী।")
+        elif share <= 0.9:
+            head_en, head_bn = ("Weaker than most companies on the DSE.", "ডিএসইর বেশির ভাগ কোম্পানির চেয়ে দুর্বল।")
+        else:
+            head_en, head_bn = ("One of the weakest companies on the DSE.", "ডিএসইর সবচেয়ে দুর্বল কোম্পানিগুলোর একটি।")
+    else:
+        head_en = f"We grade it {word['en'].lower()}."
+        head_bn = f"আমাদের গ্রেডে এটি {word['bn']}।"
     if len(present) >= 2:
         best = max(present, key=lambda p: p[3])
         worst = min(present, key=lambda p: p[3])
-        head_en += f" Its strongest check is {best[1]} at {best[3]:.1f} out of 10, and its weakest is {worst[1]} at {worst[3]:.1f}."
-        head_bn += f" সবচেয়ে ভালো {best[2]} (10-এর মধ্যে {best[3]:.1f}), সবচেয়ে দুর্বল {worst[2]} ({worst[3]:.1f})।"
-    meaning = [bi(f"{healthy} of {len(present)} checks look healthy, scoring 6 or more out of 10.",
-                  f"{len(present)}টির মধ্যে {healthy}টি যাচাই ভালো, 10-এর মধ্যে 6 বা তার বেশি।")]
+        b_en, b_bn = _PILLAR_PLAIN[best[0]]
+        w_en, w_bn = _PILLAR_NOUN[worst[0]]
+        if best[3] >= 6 and worst[3] >= 6:
+            head_en += f" It is best at {b_en}, and even its weakest area, {w_en}, is in good shape."
+            head_bn += f" এর সবচেয়ে ভালো দিক {b_bn}, আর সবচেয়ে দুর্বল দিক, {w_bn}, সেটিও ভালো অবস্থায়।"
+        elif best[3] >= 6:
+            head_en += f" It is best at {b_en}, but {w_en} needs watching."
+            head_bn += f" এর সবচেয়ে ভালো দিক {b_bn}, তবে {w_bn} নজরে রাখা দরকার।"
+        else:
+            head_en += f" It is weak on almost everything we check, especially {w_en}."
+            head_bn += f" আমরা যা দেখি তার প্রায় সবকিছুতেই দুর্বল, বিশেষ করে {w_bn}।"
+    meaning = [bi("We look at five things: profit, finances, how strong the business is, the price and the dividend. "
+                  + (f"{healthy} of the {len(present)} look healthy." if healthy else "None of them look healthy."),
+                  f"আমরা পাঁচটি বিষয় দেখি: মুনাফা, আর্থিক অবস্থা, ব্যবসা কতটা শক্তিশালী, দাম আর ডিভিডেন্ড। "
+                  + (f"{len(present)}টির মধ্যে {healthy}টি ভালো।" if healthy else "কোনোটিই ভালো নয়।"))]
     lines = [(75.0, "Excellent", "চমৎকার"), (60.0, "Good", "ভালো"), (45.0, "Average", "মাঝারি")]
     above = next((l for l in lines if score < l[0]), None)
     below = next((l for l in lines if score >= l[0]), None)
     watch = None
-    if above:
-        gap = above[0] - score
-        watch = bi(f"It is {gap:.1f} points below {above[1]}, which starts at {above[0]:.0f}.",
-                   f"{above[2]} গ্রেড শুরু হয় {above[0]:.0f}-এ; এটি তার চেয়ে {gap:.1f} পয়েন্ট নিচে।")
+    if above and above[0] - score < 3:
+        watch = bi(f"It is close to the next grade, {above[1]}. Good results could move it up.",
+                   f"এটি পরের গ্রেড, {above[2]}-এর কাছাকাছি। ভালো ফল এলে গ্রেড বাড়তে পারে।")
     if below:
         gap = score - below[0]
         if gap < 3:
-            watch = bi(f"It sits {gap:.1f} points above the line for {below[1]}, so a small change could move the grade.",
-                       f"এটি {below[2]} গ্রেডের সীমার মাত্র {gap:.1f} পয়েন্ট ওপরে, তাই সামান্য বদলেই গ্রেড বদলাতে পারে।")
+            watch = bi(f"It only just makes the {below[1]} grade, so weak results could move it down.",
+                       f"এটি কোনোমতে {below[2]} গ্রেডে আছে, তাই দুর্বল ফল এলে গ্রেড নামতে পারে।")
     hist = inp.get("score_history") or {}
     ch = (hist.get("changes") or [])[:1]
     if ch:
@@ -1972,11 +2114,11 @@ def build_quality(inp: dict) -> Optional[dict]:
         bi("How strong is the company?", "কোম্পানিটি কতটা শক্তিশালী?"),
         word, tone, bi(head_en, head_bn),
         bi("Our score, from the audited accounts and today's price", "আমাদের স্কোর, নিরীক্ষিত হিসাব আর আজকের দাম থেকে"),
-        free_line=bi("We check five things: profit, finances, business strength, price and dividend.",
-                     "আমরা পাঁচটি বিষয় দেখি: মুনাফা, আর্থিক অবস্থা, ব্যবসার শক্তি, দাম আর ডিভিডেন্ড।"),
-        inside=[bi("What each of the five checks found", "পাঁচটি যাচাইয়ে কী পাওয়া গেছে"),
-                bi("Its strongest and weakest check", "সবচেয়ে ভালো আর সবচেয়ে দুর্বল যাচাই"),
-                bi("How far it is from the next grade", "পরের গ্রেড থেকে কত দূরে")],
+        free_line=bi("We look at five things: profit, finances, how strong the business is, the price and the dividend.",
+                     "আমরা পাঁচটি বিষয় দেখি: মুনাফা, আর্থিক অবস্থা, ব্যবসা কতটা শক্তিশালী, দাম আর ডিভিডেন্ড।"),
+        inside=[bi("What we found on each of the five, in plain words", "পাঁচটি বিষয়ের প্রতিটিতে কী পেয়েছি, সহজ ভাষায়"),
+                bi("Its best and weakest side", "এর সবচেয়ে ভালো আর সবচেয়ে দুর্বল দিক"),
+                bi("Whether its grade could change soon", "শিগগির এর গ্রেড বদলাতে পারে কি না")],
         meaning=meaning, watch=watch,
         score=round(score, 1), rank=rank, total=total, healthy=healthy, checks=len(present),
         _tier=tier,
@@ -2017,15 +2159,26 @@ def build_story(inp: dict) -> Optional[dict]:
     else:
         word, tone = bi("Steady", "স্থির"), "neutral"
 
-    fr_en, fr_bn = _crore(first["revenue_cr"] * 10)
     la_en, la_bn = _crore(last["revenue_cr"] * 10)
+    # Plain words (2026-10-30): did sales and profit grow over the years.
     if s_c is not None:
-        head = bi(
-            f"Sales {'grew' if s_c >= 0 else 'shrank'} {abs(s_c):.0f}% a year, from {fr_en} in {first['year']} to {la_en} in {last['year']}"
-            + (f", and profit {'grew' if p_c >= 0 else 'fell'} {abs(p_c):.0f}% a year." if p_c is not None else "."),
-            f"বিক্রি বছরে {abs(s_c):.0f}% {'বেড়ে' if s_c >= 0 else 'কমে'} {first['year']} সালের {fr_bn} থেকে {last['year']} সালে {la_bn} হয়েছে"
-            + (f", আর মুনাফা বছরে {abs(p_c):.0f}% {'বেড়েছে' if p_c >= 0 else 'কমেছে'}।" if p_c is not None else "।"),
-        )
+        def move(v: float) -> tuple[str, str]:
+            return (("grown well", "ভালোভাবে বেড়েছে") if v >= 5 else ("grown a little", "সামান্য বেড়েছে") if v >= 0
+                    else ("shrunk", "কমেছে"))
+        se, sb = move(s_c)
+        if p_c is None:
+            head = bi(f"Over {span} years its sales have {se}.", f"{span} বছরে এর বিক্রি {sb}।")
+        else:
+            pe_, pb_ = move(p_c)
+            if se == pe_:
+                head = bi(f"Over {span} years both its sales and its profit have {se}.",
+                          f"{span} বছরে এর বিক্রি আর মুনাফা দুটোই {sb}।")
+            elif (s_c >= 0) == (p_c >= 0):
+                head = bi(f"Over {span} years its sales have {se}, and its profit has {pe_}.",
+                          f"{span} বছরে এর বিক্রি {sb}, আর মুনাফা {pb_}।")
+            else:
+                head = bi(f"Over {span} years its sales have {se}, but its profit has {pe_}.",
+                          f"{span} বছরে এর বিক্রি {sb}, কিন্তু মুনাফা {pb_}।")
     else:
         head = bi(f"Sales in {last['year']}: {la_en}.", f"{last['year']} সালে বিক্রি: {la_bn}।")
     meaning = []
@@ -2034,14 +2187,10 @@ def build_story(inp: dict) -> Optional[dict]:
     if m0 is not None and m1 is not None:
         better = m1 > m0 + 0.5
         worse = m1 < m0 - 0.5
-        meaning.append(bi(
-            f"The profit margin moved from {m0:.0f}% to {m1:.0f}%, "
-            + ("so the business keeps more of each sale than before." if better
-               else "so it keeps less of each sale than before." if worse else "about the same share of each sale."),
-            f"মুনাফার হার {m0:.0f}% থেকে {m1:.0f}% হয়েছে, "
-            + ("অর্থাৎ প্রতিটি বিক্রি থেকে আগের চেয়ে বেশি থাকছে।" if better
-               else "অর্থাৎ প্রতিটি বিক্রি থেকে আগের চেয়ে কম থাকছে।" if worse else "অর্থাৎ প্রতিটি বিক্রি থেকে প্রায় একই অংশ থাকছে।"),
-        ))
+        meaning.append(
+            bi("It now keeps more of each sale as profit than it used to.", "এখন প্রতিটি বিক্রি থেকে আগের চেয়ে বেশি মুনাফা থাকে।") if better
+            else bi("It now keeps less of each sale as profit than it used to.", "এখন প্রতিটি বিক্রি থেকে আগের চেয়ে কম মুনাফা থাকে।") if worse
+            else bi("It keeps about the same share of each sale as profit as it used to.", "প্রতিটি বিক্রি থেকে আগের মতোই মুনাফা থাকে।"))
     changes = []
     for a, b in zip(rows, rows[1:]):
         if a.get("profit_cr") and b.get("profit_cr") is not None and a["profit_cr"] > 0:
@@ -2050,10 +2199,10 @@ def build_story(inp: dict) -> Optional[dict]:
         best = max(changes, key=lambda c: c[1])
         worst = min(changes, key=lambda c: c[1])
         meaning.append(bi(
-            f"Its best year was {best[0]}, when profit {'rose' if best[1] >= 0 else 'fell'} {abs(best[1]):.0f}%. "
-            f"Its weakest was {worst[0]}, when profit {'rose' if worst[1] >= 0 else 'fell'} {abs(worst[1]):.0f}%.",
-            f"সবচেয়ে ভালো বছর {best[0]}, তখন মুনাফা {abs(best[1]):.0f}% {'বেড়েছিল' if best[1] >= 0 else 'কমেছিল'}। "
-            f"সবচেয়ে দুর্বল বছর {worst[0]}, তখন মুনাফা {abs(worst[1]):.0f}% {'বেড়েছিল' if worst[1] >= 0 else 'কমেছিল'}।",
+            f"Its best year for profit was {best[0]}, and its weakest was {worst[0]}"
+            + (", when profit fell." if worst[1] < 0 else "."),
+            f"মুনাফার দিক থেকে সবচেয়ে ভালো বছর {best[0]}, আর সবচেয়ে দুর্বল {worst[0]}"
+            + (", যখন মুনাফা কমেছিল।" if worst[1] < 0 else "।"),
         ))
     n = len(rows)
     return _section(
@@ -2061,8 +2210,8 @@ def build_story(inp: dict) -> Optional[dict]:
         bi(f"How has the business changed over {n} years?", f"{n} বছরে ব্যবসা কীভাবে বদলেছে?"),
         word, tone, head,
         bi(f"Audited accounts FY{rows[0]['year']} to FY{rows[-1]['year']}", f"নিরীক্ষিত বার্ষিক হিসাব {rows[0]['year']} থেকে {rows[-1]['year']}"),
-        free_line=bi("Sales, profit, margin and return on equity for every year we have.",
-                     "আমাদের কাছে থাকা প্রতিটি বছরের বিক্রি, মুনাফা, মুনাফার হার আর নিজস্ব মূলধনে আয়।"),
+        free_line=bi("Its sales and profit for every year we have.",
+                     "আমাদের কাছে থাকা প্রতিটি বছরের বিক্রি আর মুনাফা।"),
         inside=[bi(f"What changed over {n} years, in plain words", f"{n} বছরে কী বদলেছে, সহজ ভাষায়"),
                 bi("Its best and weakest year", "এর সবচেয়ে ভালো আর সবচেয়ে দুর্বল বছর"),
                 bi("Whether it keeps more of each sale than before", "প্রতিটি বিক্রি থেকে আগের চেয়ে বেশি থাকছে কি না")],
@@ -2106,11 +2255,11 @@ def build_sector(inp: dict) -> Optional[dict]:
         sales_rank = (r, n)
     if code in margin and inp.get("sector_class") not in _LENDERS:
         r, n = rank_by(margin)
-        ranks.append({"label": bi("Profit margin", "মুনাফার হার"), "rank": r, "of": n,
+        ranks.append({"label": bi("Profit kept from sales", "বিক্রি থেকে থাকা মুনাফা"), "rank": r, "of": n,
                       "value": bi(f"{margin[code]:.0f}%", f"{margin[code]:.0f}%")})
     if code in roe:
         r, n = rank_by(roe)
-        ranks.append({"label": bi("Return on its own money", "নিজস্ব মূলধনে আয়"), "rank": r, "of": n,
+        ranks.append({"label": bi("Profit on owners' money", "মালিকের টাকায় মুনাফা"), "rank": r, "of": n,
                       "value": bi(f"{roe[code]:.1f}%", f"{roe[code]:.1f}%")})
     if code in growth:
         r, n = rank_by(growth)
@@ -2119,8 +2268,8 @@ def build_sector(inp: dict) -> Optional[dict]:
                       "value": bi(f"{'+' if g >= 0 else ''}{g:.0f}%", f"{'+' if g >= 0 else ''}{g:.0f}%")})
     if code in pe:
         r, n = rank_by(pe, desc=False)
-        ranks.append({"label": bi("Lowest P/E", "সবচেয়ে কম পিই"), "rank": r, "of": n,
-                      "value": bi(_x(pe[code]), _x(pe[code]))})
+        ranks.append({"label": bi("Cheapest for its profit", "মুনাফার তুলনায় সস্তা"), "rank": r, "of": n,
+                      "value": bi(f"{pe[code]:.0f} years of profit", f"{pe[code]:.0f} বছরের মুনাফা")})
     if code in score:
         r, n = rank_by(score)
         ranks.append({"label": bi("Our score", "আমাদের স্কোর"), "rank": r, "of": n,
@@ -2131,6 +2280,7 @@ def build_sector(inp: dict) -> Optional[dict]:
     sector = inp.get("sector") or ""
     sector_bn = inp.get("sector_bn") or sector
     n_peers = len(peers)
+    size = None
     sr = next((r for r in ranks if r["label"]["en"] == "Our score"), None)
     if sr and sr["rank"] <= 3:
         word, tone = bi("Top 3", "সেরা 3-এ"), "good"
@@ -2141,32 +2291,45 @@ def build_sector(inp: dict) -> Optional[dict]:
     else:
         word, tone = bi("Ranked", "র‍্যাঙ্ক"), "neutral"
 
+    # Plain words (2026-10-30): how big it is in its sector and whether it
+    # keeps more of its sales as profit than the others — no "2nd biggest of 4
+    # … highest profit margin of the top five".
     if sales_rank and code in margin:
-        top5 = [c for c, _ in sorted(sales.items(), key=lambda kv: kv[1], reverse=True)[:5]]
-        top5_margin = {c: margin[c] for c in top5 if c in margin}
-        best_margin = code in top5_margin and max(top5_margin, key=top5_margin.get) == code
         r, n = sales_rank
-        if best_margin and r <= 5 and len(top5_margin) >= 3:
-            head = bi(f"{'The biggest' if r == 1 else _ordinal(r) + ' biggest'} of {n} companies in the {sector} sector by sales, with the highest profit margin of the top five.",
-                      f"বিক্রিতে {sector_bn} সেক্টরের {n}টি কোম্পানির মধ্যে {r} নম্বরে, আর বড় পাঁচটির মধ্যে মুনাফার হার সবচেয়ে বেশি।")
+        size_en, size_bn = (
+            ("The biggest company in its sector", "নিজের সেক্টরের সবচেয়ে বড় কোম্পানি") if r == 1
+            else ("One of the biggest companies in its sector", "নিজের সেক্টরের বড় কোম্পানিগুলোর একটি") if r <= 3
+            else ("A mid-sized company in its sector", "নিজের সেক্টরের একটি মাঝারি কোম্পানি") if r <= math.ceil(n / 2)
+            else ("One of the smaller companies in its sector", "নিজের সেক্টরের ছোট কোম্পানিগুলোর একটি")
+        )
+        mr = next(x for x in ranks if x["label"]["en"] == "Profit kept from sales")
+        if mr["rank"] == 1:
+            m_en, m_bn = "It keeps more profit from each sale than any of them.", "প্রতিটি বিক্রি থেকে এটি সবার চেয়ে বেশি মুনাফা রাখে।"
+        elif mr["rank"] <= math.ceil(mr["of"] / 2):
+            m_en, m_bn = "It keeps more profit from each sale than most of them.", "প্রতিটি বিক্রি থেকে এটি বেশির ভাগের চেয়ে বেশি মুনাফা রাখে।"
         else:
-            mr = next(x for x in ranks if x["label"]["en"] == "Profit margin")
-            head = bi(f"{'The biggest' if r == 1 else _ordinal(r) + ' biggest'} of {n} companies in the {sector} sector by sales, and {_ordinal(mr['rank'])} on profit margin.",
-                      f"বিক্রিতে {sector_bn} সেক্টরের {n}টি কোম্পানির মধ্যে {r} নম্বরে, আর মুনাফার হারে {mr['rank']} নম্বরে।")
+            m_en, m_bn = "But it keeps less profit from each sale than most of them.", "তবে প্রতিটি বিক্রি থেকে এটি বেশির ভাগের চেয়ে কম মুনাফা রাখে।"
+        head = bi(f"{size_en}. {m_en}", f"{size_bn}। {m_bn}")
+        size = bi(size_en, size_bn)
     elif sr:
-        head = bi(f"Our score ranks it {_ordinal(sr['rank'])} of {sr['of']} companies in the {sector} sector.",
-                  f"আমাদের স্কোরে {sector_bn} সেক্টরের {sr['of']}টি কোম্পানির মধ্যে এটি {sr['rank']} নম্বরে।")
+        head = bi(f"In our checks it comes {_ordinal(sr['rank'])} of the {sr['of']} companies in the {sector} sector.",
+                  f"আমাদের যাচাইয়ে {sector_bn} সেক্টরের {sr['of']}টি কোম্পানির মধ্যে এটি {sr['rank']} নম্বরে।")
     else:
         head = bi(f"Where it stands among {n_peers} companies in the {sector} sector.", f"{sector_bn} সেক্টরের {n_peers}টি কোম্পানির মধ্যে এর অবস্থান।")
     meaning = []
-    if code in pe:
-        r = next(x for x in ranks if x["label"]["en"] == "Lowest P/E")
-        med = statistics.median(pe.values())
-        meaning.append(bi(f"Its P/E of {_x(pe[code])} is the {_ordinal(r['rank'])} lowest in the sector, where the middle is {_x(med)}.",
-                          f"এর পিই {_x(pe[code])}, যা সেক্টরে কম পিইর দিক থেকে {r['rank']} নম্বরে; সেক্টরের মাঝামাঝি পিই {_x(med)}।"))
+    # (Its price against the sector is the price chapter's answer, not this one.)
+    mr_ = next((x for x in ranks if x["label"]["en"] == "Profit kept from sales"), None)
+    if sales_rank and mr_ and sales_rank[0] <= 3 and mr_["rank"] <= math.ceil(mr_["of"] / 2):
+        meaning.append(bi("A big company that keeps a good share of each sale as profit is hard for rivals to push aside.",
+                          "যে বড় কোম্পানি প্রতিটি বিক্রি থেকে ভালো মুনাফা রাখে, প্রতিযোগীরা তাকে সহজে সরাতে পারে না।"))
+    elif sales_rank and mr_:
+        meaning.append(bi("A smaller company, or one that keeps less of each sale, is easier for rivals to hurt.",
+                          "ছোট কোম্পানি, বা যে প্রতিটি বিক্রি থেকে কম মুনাফা রাখে, প্রতিযোগীরা তার ক্ষতি সহজে করতে পারে।"))
     if sr:
-        meaning.append(bi(f"Our score ranks it {_ordinal(sr['rank'])} of {sr['of']} in the sector.",
-                          f"আমাদের স্কোরে সেক্টরে {sr['of']}টির মধ্যে {sr['rank']} নম্বরে।"))
+        meaning.append(
+            bi("In our checks it comes top of its sector.", "আমাদের যাচাইয়ে এটি নিজের সেক্টরে সবার ওপরে।") if sr["rank"] == 1
+            else bi(f"In our checks it comes {_ordinal(sr['rank'])} of {sr['of']} in its sector.",
+                    f"আমাদের যাচাইয়ে নিজের সেক্টরে {sr['of']}টির মধ্যে {sr['rank']} নম্বরে।"))
     return _section(
         "sector",
         bi("Where does it stand in its sector?", "নিজের সেক্টরে এর অবস্থান কোথায়?"),
@@ -2174,10 +2337,11 @@ def build_sector(inp: dict) -> Optional[dict]:
         bi(f"{sector} companies on DSE · latest audited accounts · today's prices",
            f"ডিএসইর {sector_bn} সেক্টরের কোম্পানি · সর্বশেষ নিরীক্ষিত হিসাব · আজকের দাম"),
         free_line=bi(f"Where it ranks among the {n_peers} companies in its sector.", f"নিজের সেক্টরের {n_peers}টি কোম্পানির মধ্যে এর অবস্থান।"),
-        inside=[bi("What its ranks add up to", "সব মিলিয়ে র‍্যাঙ্কগুলোর অর্থ"),
-                bi("Where it is stronger and weaker than its sector", "সেক্টরের তুলনায় কোথায় এগিয়ে, কোথায় পিছিয়ে")],
+        inside=[bi("What its place in its sector means for you", "সেক্টরে এর অবস্থান আপনার জন্য কী বোঝায়"),
+                bi("How we grade the whole company, explained", "পুরো কোম্পানিকে কীভাবে গ্রেড দিই, ব্যাখ্যাসহ")],
         meaning=meaning, watch=None,
         sector=sector, peers=n_peers, ranks=ranks,
+        _size=size,
     )
 
 
@@ -2209,12 +2373,18 @@ def build_alternatives(inp: dict) -> Optional[dict]:
         return None
     items = []
     for s, c, pe in picks:
+        # Plain words (2026-10-30): stronger, and cheaper for its profit.
+        from backend.services.tiers import tier_key
+        t_them, t_me = tier_key(s), tier_key(my_score)
+        g_en = f"Graded {TIER_WORDS.get(t_them, '').lower()}, against {TIER_WORDS.get(t_me, '').lower()} for {code}"
+        g_bn = f"গ্রেড {TIER_WORDS_BN.get(t_them, '')}, যেখানে {code} {TIER_WORDS_BN.get(t_me, '')}"
+        if t_them == t_me:
+            g_en, g_bn = f"Same grade as {code} but stronger", f"{code}-এর মতো একই গ্রেড, তবে আরও শক্তিশালী"
         if my_pe and my_pe > 0:
-            why = bi(f"Graded {s:.0f} against {my_score:.0f}, at a P/E of {_x(pe)} against {_x(my_pe)}.",
-                     f"স্কোর {s:.0f}, এর {my_score:.0f}; পিই {_x(pe)}, এর {_x(my_pe)}।")
+            ch_en, ch_bn = ("much cheaper", "অনেক সস্তা") if pe <= my_pe * 0.7 else ("cheaper", "সস্তা")
+            why = bi(f"{g_en}, and {ch_en} for the profit it makes.", f"{g_bn}; আর মুনাফার তুলনায় {ch_bn}।")
         else:
-            why = bi(f"Graded {s:.0f} against {my_score:.0f}, and it makes a profit (P/E {_x(pe)}).",
-                     f"স্কোর {s:.0f}, এর {my_score:.0f}; আর এটি মুনাফায় আছে (পিই {_x(pe)})।")
+            why = bi(f"{g_en}, and it makes a profit.", f"{g_bn}; আর এটি মুনাফায় আছে।")
         items.append({"code": c, "name": names.get(c), "score": round(s, 1), "pe": round(pe, 2), "why": why})
     n = len(items)
     sector = inp.get("sector") or ""
@@ -2223,11 +2393,11 @@ def build_alternatives(inp: dict) -> Optional[dict]:
         "alternatives",
         bi("Are there stronger companies for less?", "কম দামে আরও শক্তিশালী কোম্পানি আছে কি?"),
         bi(f"{n} found", f"{n}টি পাওয়া গেছে"), "neutral",
-        bi(f"{n} {'company' if n == 1 else 'companies'} in the {sector} sector {'scores' if n == 1 else 'score'} at least 10 points higher and {'costs' if n == 1 else 'cost'} less against {'its' if n == 1 else 'their'} profit.",
-           f"{sector_bn} সেক্টরের {n}টি কোম্পানির স্কোর অন্তত 10 পয়েন্ট বেশি, আর মুনাফার তুলনায় দামও কম।"),
+        bi(f"Yes. {n} {'company' if n == 1 else 'companies'} in the {sector} sector {'is' if n == 1 else 'are'} stronger and cheaper for the profit {'it makes' if n == 1 else 'they make'}.",
+           f"হ্যাঁ। {sector_bn} সেক্টরের {n}টি কোম্পানি আরও শক্তিশালী, আর মুনাফার তুলনায় সস্তাও।"),
         bi("Our scores and today's prices", "আমাদের স্কোর আর আজকের দাম"),
-        free_line=bi(f"{n} stronger {'company' if n == 1 else 'companies'} in this sector {'costs' if n == 1 else 'cost'} less against {'its' if n == 1 else 'their'} profit.",
-                     f"এই সেক্টরে {n}টি আরও শক্তিশালী কোম্পানির দাম মুনাফার তুলনায় কম।"),
+        free_line=bi(f"We found {n} stronger {'company' if n == 1 else 'companies'} in this sector that {'is' if n == 1 else 'are'} also cheaper.",
+                     f"এই সেক্টরে আরও শক্তিশালী আর সস্তা {n}টি কোম্পানি পেয়েছি।"),
         inside=[bi(f"Which {'company it is' if n == 1 else f'{n} companies they are'}", "কোন কোম্পানি"),
                 bi("How each one compares, in one line", "প্রতিটি কোম্পানি কেমন, এক লাইনে")],
         meaning=[bi("A stronger company at a lower price is worth comparing before you buy this one.",
@@ -2303,22 +2473,22 @@ def build_warning(inp: dict) -> Optional[dict]:
     if tier in ("weak", "average"):
         red = True
         sc = _f(row.get("score"))
-        lines.append(bi(f"Our grade for the company is {TIER_WORDS[tier]} ({sc:.0f} out of 100).",
-                        f"কোম্পানিটির জন্য আমাদের গ্রেড {TIER_WORDS_BN[tier]} (100-এর মধ্যে {sc:.0f})।"))
+        lines.append(bi(f"We grade the company itself as {TIER_WORDS[tier].lower()}.",
+                        f"আমাদের গ্রেডে কোম্পানিটি নিজে {TIER_WORDS_BN[tier]}।"))
     if cat == "Z":
         red = True
         lines.append(bi("It is in category Z, where DSE puts companies that missed a dividend or an AGM.",
                         "এটি Z ক্যাটাগরিতে আছে, যেখানে ডিভিডেন্ড বা এজিএম না করা কোম্পানিগুলো থাকে।"))
     if pub is not None and pub < FREE_FLOAT_LOW_PCT:
         red = True
-        lines.append(bi(f"Only {pub:.0f}% of the shares are with the general public, so a few buyers can move the price.",
-                        f"মাত্র {pub:.0f}% শেয়ার সাধারণ বিনিয়োগকারীদের হাতে, তাই অল্প কয়েকজন ক্রেতাই দাম নাড়াতে পারেন।"))
+        lines.append(bi("Few of its shares are with ordinary investors, so a handful of buyers can push the price around.",
+                        "সাধারণ বিনিয়োগকারীদের হাতে এর শেয়ার কম, তাই অল্প কয়েকজন ক্রেতাই দাম ওঠানামা করাতে পারেন।"))
     lines.append(bi("A price that rises this fast without news often falls back just as fast. Checking the company's own figures first is the safer choice.",
                     "খবর ছাড়া এত দ্রুত দাম বাড়লে প্রায়ই তা আবার দ্রুত নেমে যায়। আগে কোম্পানির নিজের হিসাব দেখে নেওয়াই নিরাপদ।"))
     return {
         "level": "red" if red else "amber",
-        "headline": bi(f"The price rose {r['pct']:.0f}% in {r['days']} trading days with no news from the company.",
-                       f"কোম্পানির কোনো খবর ছাড়াই {r['days']} কার্যদিবসে দাম {r['pct']:.0f}% বেড়েছে।"),
+        "headline": bi(f"The price rose {r['pct']:.0f}% in {'about a month' if r['days'] <= 20 else 'about three months'}, with no news from the company.",
+                       f"কোম্পানির কোনো খবর ছাড়াই {'প্রায় এক মাসে' if r['days'] <= 20 else 'প্রায় তিন মাসে'} দাম {r['pct']:.0f}% বেড়েছে।"),
         "lines": lines,
     }
 
@@ -2359,42 +2529,43 @@ def build_red_flags(inp: dict, *, cash: Optional[dict] = None, dividend: Optiona
             vd = _d(closed.get("visit_date")) or _d(closed.get("post_date"))
             e, b = _day(vd)
             add("factory", "Factory", "কারখানা", "red",
-                f"DSE found the factory closed or not producing (visited {e}).",
-                f"ডিএসই কারখানা বন্ধ বা উৎপাদনহীন পেয়েছে (পরিদর্শন {b})।",
+                f"DSE visited the factory on {e} and found it closed or not making anything.",
+                f"{b} ডিএসই কারখানা পরিদর্শন করে সেটি বন্ধ বা উৎপাদনহীন পেয়েছে।",
                 ev(closed.get("title") or "Inspection of factory premises", closed.get("post_date")))
         elif insp and (insp[0].get("status") == "running"):
             m_en, m_bn = _mon(insp[0].get("visit_date") or insp[0].get("post_date"))
             add("factory", "Factory", "কারখানা", "pass", f"DSE found the factory working ({m_en}).",
                 f"ডিএসই কারখানা চালু পেয়েছে ({m_bn})।", ev(insp[0].get("title"), insp[0].get("post_date")))
         else:
-            add("factory", "Factory", "কারখানা", "pass", "No DSE report of a closed factory.",
-                "কারখানা বন্ধের কোনো ডিএসই প্রতিবেদন নেই।")
+            add("factory", "Factory", "কারখানা", "pass", "No sign that the factory is closed.",
+                "কারখানা বন্ধের কোনো খবর নেই।")
 
     # 2 · audit opinion
     if "going_concern" in gov or "qualified_opinion" in gov:
         g = gov.get("going_concern") or gov.get("qualified_opinion")
-        add("audit", "Audit opinion", "নিরীক্ষকের মতামত", "red", g.get("en", ""), g.get("bn", ""))
+        add("audit", "The auditor's view", "নিরীক্ষকের মত", "red", g.get("en", ""), g.get("bn", ""))
     else:
         emph = next(((d, t) for d, t, _ in news if "emphasis of matter" in t.lower()), None)
         if emph:
             e, b = _day(emph[0])
-            add("audit", "Audit opinion", "নিরীক্ষকের মতামত", "amber",
-                f"The auditor added an emphasis of matter note ({e}), pointing to something in the accounts worth reading.",
-                f"নিরীক্ষক হিসাবে একটি বিশেষ মনোযোগের নোট দিয়েছেন ({b}), যা পড়ে দেখা ভালো।", ev(emph[1], emph[0]))
+            add("audit", "The auditor's view", "নিরীক্ষকের মত", "amber",
+                f"On {e} the auditor pointed to something in the accounts that is worth reading.",
+                f"{b} নিরীক্ষক হিসাবের একটি বিষয়ে দৃষ্টি আকর্ষণ করেছেন, যা পড়ে দেখা ভালো।", ev(emph[1], emph[0]))
         else:
-            add("audit", "Audit opinion", "নিরীক্ষকের মতামত", "pass", "No audit warnings in the last year.",
-                "গত এক বছরে নিরীক্ষকের কোনো সতর্কতা নেই।")
+            add("audit", "The auditor's view", "নিরীক্ষকের মত", "pass", "The auditor raised no warnings in the last year.",
+                "গত এক বছরে নিরীক্ষক কোনো সতর্কতা দেননি।")
 
     # 3 · category
     cat = (inp.get("category") or row.get("market_cat") or "").strip().upper()
     if cat == "Z":
-        add("category", "DSE category", "ডিএসই ক্যাটাগরি", "red", "Category Z: it missed a dividend or an AGM.",
-            "Z ক্যাটাগরি: ডিভিডেন্ড বা এজিএম বাদ পড়েছে।")
+        add("category", "DSE category", "ডিএসই ক্যাটাগরি", "red", "DSE put it in category Z because it missed a dividend or its yearly meeting.",
+            "ডিভিডেন্ড বা বার্ষিক সভা বাদ পড়ায় ডিএসই একে Z ক্যাটাগরিতে রেখেছে।")
     elif cat == "B":
-        add("category", "DSE category", "ডিএসই ক্যাটাগরি", "amber", "Category B: its last dividend was under 10%.",
-            "B ক্যাটাগরি: সর্বশেষ ডিভিডেন্ড 10%-এর কম।")
+        add("category", "DSE category", "ডিএসই ক্যাটাগরি", "amber", "DSE puts it in category B because its last dividend was small.",
+            "সর্বশেষ ডিভিডেন্ড কম হওয়ায় ডিএসই একে B ক্যাটাগরিতে রেখেছে।")
     elif cat:
-        add("category", "DSE category", "ডিএসই ক্যাটাগরি", "pass", f"Category {cat}.", f"{cat} ক্যাটাগরি।")
+        add("category", "DSE category", "ডিএসই ক্যাটাগরি", "pass", "DSE puts it in category A, the best group." if cat == "A" else f"DSE puts it in category {cat}.",
+            "ডিএসই একে সবচেয়ে ভালো গ্রুপ, A ক্যাটাগরিতে রেখেছে।" if cat == "A" else f"ডিএসই একে {cat} ক্যাটাগরিতে রেখেছে।")
 
     # 4 · DSE price query (red during a rally)
     if notices_ok:
@@ -2402,25 +2573,25 @@ def build_red_flags(inp: dict, *, cash: Optional[dict] = None, dividend: Optiona
         if qs:
             e, b = _day(qs[0]["post_date"])
             during_rally = warning is not None and (today - qs[0]["post_date"]).days <= QUERY_DAYS
-            add("dse_query", "DSE price query", "ডিএসইর দাম-সংক্রান্ত প্রশ্ন", "red" if during_rally else "amber",
-                f"DSE asked about an unusual price move ({e})" + (" while the price was running up." if during_rally else "."),
-                f"ডিএসই অস্বাভাবিক দাম নিয়ে জানতে চেয়েছে ({b})" + (", যখন দাম দ্রুত বাড়ছিল।" if during_rally else "।"),
+            add("dse_query", "DSE questions about the price", "দাম নিয়ে ডিএসইর প্রশ্ন", "red" if during_rally else "amber",
+                f"On {e} DSE asked the company why its price moved so much" + (", while the price was racing up." if during_rally else "."),
+                f"{b} ডিএসই কোম্পানির কাছে জানতে চেয়েছে, দাম এত ওঠানামা করল কেন" + ("; তখন দাম দ্রুত বাড়ছিল।" if during_rally else "।"),
                 ev(qs[0].get("title") or "Query Response", qs[0]["post_date"]))
         else:
-            add("dse_query", "DSE price query", "ডিএসইর দাম-সংক্রান্ত প্রশ্ন", "pass", "No DSE price query in the last year.",
-                "গত এক বছরে দাম নিয়ে ডিএসইর কোনো প্রশ্ন নেই।")
+            add("dse_query", "DSE questions about the price", "দাম নিয়ে ডিএসইর প্রশ্ন", "pass", "DSE has not questioned its price in the last year.",
+                "গত এক বছরে এর দাম নিয়ে ডিএসই কোনো প্রশ্ন করেনি।")
 
     # 5 · the 30% rule
     rule = (owners or {}).get("rule30")
     if rule:
         if rule["ok"]:
-            add("owners_30", "Owners' share (30% rule)", "উদ্যোক্তা-পরিচালকদের অংশ (30% নিয়ম)", "pass",
-                f"Sponsors and directors hold {rule['pct']:.0f}% (rule: 30%).",
-                f"উদ্যোক্তা-পরিচালকদের হাতে {rule['pct']:.0f}% (নিয়ম: 30%)।")
+            add("owners_30", "Founders' share (30% rule)", "উদ্যোক্তা-পরিচালকদের অংশ (30% নিয়ম)", "pass",
+                f"The founders and directors own {rule['pct']:.0f}%, more than the 30% the rules ask for.",
+                f"উদ্যোক্তা-পরিচালকদের হাতে {rule['pct']:.0f}%, নিয়মের 30%-এর বেশি।")
         else:
-            add("owners_30", "Owners' share (30% rule)", "উদ্যোক্তা-পরিচালকদের অংশ (30% নিয়ম)", "red",
-                f"Sponsors and directors hold only {rule['pct']:.1f}%, under the 30% the BSEC rule asks for.",
-                f"উদ্যোক্তা-পরিচালকদের হাতে মাত্র {rule['pct']:.1f}%, যা বিএসইসির 30% নিয়মের নিচে।")
+            add("owners_30", "Founders' share (30% rule)", "উদ্যোক্তা-পরিচালকদের অংশ (30% নিয়ম)", "red",
+                f"The founders and directors own only {rule['pct']:.0f}%, less than the 30% the rules ask for.",
+                f"উদ্যোক্তা-পরিচালকদের হাতে মাত্র {rule['pct']:.0f}%, নিয়মের 30%-এর কম।")
 
     # 6 · loans (not for lenders / insurers)
     if sc not in _FINANCIALS:
@@ -2428,17 +2599,20 @@ def build_red_flags(inp: dict, *, cash: Optional[dict] = None, dividend: Optiona
         loan = _f(inp.get("loan_mn"))
         res = _f(inp.get("reserve_mn"))
         if lvl == "over_mcap":
-            add("loans", "Loans", "ঋণ", "red", "Its loans are larger than the whole company's market value.",
-                "এর ঋণ পুরো কোম্পানির বাজার মূলধনের চেয়েও বেশি।")
+            add("loans", "Loans", "ঋণ", "red", "Its loans are bigger than the whole company is worth on the market.",
+                "বাজারে পুরো কোম্পানির যে দাম, এর ঋণ তার চেয়েও বেশি।")
         elif lvl == "over_reserve":
-            add("loans", "Loans", "ঋণ", "amber", "Its loans are larger than all the profit it has saved.",
-                "এর ঋণ এ পর্যন্ত জমানো সব মুনাফার চেয়ে বেশি।")
+            add("loans", "Loans", "ঋণ", "amber", "Its loans are bigger than all the money it has kept from past years.",
+                "আগের বছরগুলোতে জমানো সব টাকার চেয়েও এর ঋণ বেশি।")
         elif loan is not None:
             if loan <= 0:
-                add("loans", "Loans", "ঋণ", "pass", "No loans.", "কোনো ঋণ নেই।")
+                add("loans", "Loans", "ঋণ", "pass", "It has no loans.", "এর কোনো ঋণ নেই।")
             elif res and res > 0:
-                add("loans", "Loans", "ঋণ", "pass", f"Loans are {loan / res * 100:.0f}% of saved profit.",
-                    f"ঋণ জমা মুনাফার {loan / res * 100:.0f}%।")
+                add("loans", "Loans", "ঋণ", "pass",
+                    "Its loans are small next to the money it has kept from past years." if loan / res < 0.5
+                    else "Its loans are less than the money it has kept from past years.",
+                    "আগের বছরগুলোতে জমানো টাকার তুলনায় এর ঋণ কম।" if loan / res < 0.5
+                    else "আগের বছরগুলোতে জমানো টাকার চেয়ে এর ঋণ কম।")
 
     # 7 · stale accounts
     age = _f(row.get("data_age_years"))
@@ -2447,28 +2621,28 @@ def build_red_flags(inp: dict, *, cash: Optional[dict] = None, dividend: Optiona
     newest = max(fin_years) if fin_years else None
     if (age is not None and age >= STALE_YEARS) or row.get("stale_data") is True:
         y = last_year or newest
-        add("stale", "Accounts up to date", "হিসাব হালনাগাদ", "red",
-            f"Its latest yearly accounts are from FY{y}, two or more years old." if y else "Its yearly accounts are two or more years old.",
-            f"সর্বশেষ বার্ষিক হিসাব {y} অর্থবছরের, দুই বছর বা তারও পুরোনো।" if y else "বার্ষিক হিসাব দুই বছর বা তারও পুরোনো।")
+        add("stale", "Up-to-date accounts", "হালনাগাদ হিসাব", "red",
+            f"Its latest yearly accounts are from {y}, more than two years old." if y else "Its yearly accounts are more than two years old.",
+            f"সর্বশেষ বার্ষিক হিসাব {y} সালের, দুই বছরেরও বেশি পুরোনো।" if y else "বার্ষিক হিসাব দুই বছরেরও বেশি পুরোনো।")
     elif newest:
-        add("stale", "Accounts up to date", "হিসাব হালনাগাদ", "pass", f"Accounts up to date (FY{newest}).",
-            f"হিসাব হালনাগাদ ({newest} অর্থবছর)।")
+        add("stale", "Up-to-date accounts", "হালনাগাদ হিসাব", "pass", "Its yearly accounts are up to date.",
+            "এর বার্ষিক হিসাব হালনাগাদ।")
 
     # 8 · meetings
     if "agm_postponed" in gov or "board_postponed" in gov:
         g = gov.get("agm_postponed") or gov.get("board_postponed")
-        add("meetings", "Board meetings and AGM", "পর্ষদ সভা ও এজিএম", "amber", g.get("en", ""), g.get("bn", ""))
+        add("meetings", "Meetings on time", "সময়মতো সভা", "amber", g.get("en", ""), g.get("bn", ""))
     else:
-        add("meetings", "Board meetings and AGM", "পর্ষদ সভা ও এজিএম", "pass", "Board meetings and the AGM held on time.",
-            "পর্ষদ সভা আর এজিএম সময়মতো হয়েছে।")
+        add("meetings", "Meetings on time", "সময়মতো সভা", "pass", "It held its board meetings and its yearly meeting on time.",
+            "পর্ষদ সভা আর বার্ষিক সভা সময়মতো করেছে।")
 
     # 9 · regulator
     if "bsec_action" in gov or "penalty" in gov:
         g = gov.get("bsec_action") or gov.get("penalty")
         add("regulator", "Regulator", "নিয়ন্ত্রক সংস্থা", "amber", g.get("en", ""), g.get("bn", ""))
     else:
-        add("regulator", "Regulator", "নিয়ন্ত্রক সংস্থা", "pass", "No action by BSEC in the last year.",
-            "গত এক বছরে বিএসইসির কোনো পদক্ষেপ নেই।")
+        add("regulator", "Regulator", "নিয়ন্ত্রক সংস্থা", "pass", "The market regulator (BSEC) took no action against it in the last year.",
+            "গত এক বছরে বাজার নিয়ন্ত্রক বিএসইসি এর বিরুদ্ধে কোনো পদক্ষেপ নেয়নি।")
 
     # 10 · owner selling
     if owners is not None or notices_ok:
@@ -2477,52 +2651,55 @@ def build_red_flags(inp: dict, *, cash: Optional[dict] = None, dividend: Optiona
             t = next((t for t in (owners or {}).get("trades") or [] if t["side"] == "sell"), None)
             who_en = (t or {}).get("role", {}).get("en", "An insider")
             who_bn = (t or {}).get("role", {}).get("bn", "একজন সংশ্লিষ্ট ব্যক্তি")
-            add("owner_selling", "Owners selling", "উদ্যোক্তা-পরিচালকদের বিক্রি", "amber",
-                f"{who_en} declared a sale of {(t or {}).get('shares', 0):,} shares." if t else f"{sells} insider sales in the last 12 months.",
-                f"{who_bn} {(t or {}).get('shares', 0):,}টি শেয়ার বিক্রির ঘোষণা দিয়েছেন।" if t else f"গত 12 মাসে {sells}টি বিক্রি।")
+            add("owner_selling", "Founders selling", "উদ্যোক্তা-পরিচালকদের বিক্রি", "amber",
+                f"{who_en} announced a plan to sell shares." if t else "Some of the people who run it sold shares in the last 12 months.",
+                f"{who_bn} শেয়ার বিক্রির ঘোষণা দিয়েছেন।" if t else "গত 12 মাসে কোম্পানি যাঁরা চালান, তাঁদের কেউ কেউ শেয়ার বিক্রি করেছেন।")
         else:
-            add("owner_selling", "Owners selling", "উদ্যোক্তা-পরিচালকদের বিক্রি", "pass", "No sponsor or director selling.",
-                "কোনো উদ্যোক্তা-পরিচালক বিক্রি করেননি।")
+            add("owner_selling", "Founders selling", "উদ্যোক্তা-পরিচালকদের বিক্রি", "pass", "None of the people who run it are selling.",
+                "কোম্পানি যাঁরা চালান, তাঁদের কেউ বিক্রি করছেন না।")
 
     # 11 · cash backs the profit (not for lenders / insurers)
     if sc not in _FINANCIALS and cash:
         last = cash["years"][-1]
-        gap_line = next((m for m in cash.get("meaning") or [] if "but cash from the business fell" in m.get("en", "")), None)
+        gap = (cash.get("_gap_rise") or 0) >= CASH_GAP_PROFIT_RISE_PCT
         if last["ratio"] < 0:
-            add("cash", "Cash backs the profit", "নগদে মুনাফার সমর্থন", "amber",
-                f"In FY{last['year']} cash from the business was negative while it reported a profit.",
-                f"{last['year']} অর্থবছরে মুনাফা দেখালেও ব্যবসা থেকে নগদ ঋণাত্মক।")
+            add("cash", "Profit backed by cash", "নগদে মুনাফার সমর্থন", "amber",
+                "More cash went out of the business than came in, even though it showed a profit.",
+                "মুনাফা দেখালেও ব্যবসায় যত নগদ এসেছে, তার চেয়ে বেশি বেরিয়ে গেছে।")
         elif last["ratio"] < CASH_WEAK_RATIO:
-            add("cash", "Cash backs the profit", "নগদে মুনাফার সমর্থন", "amber",
-                f"In FY{last['year']} only ৳{last['ratio']} of cash came in for each ৳100 of profit.",
-                f"{last['year']} অর্থবছরে প্রতি ৳100 মুনাফায় নগদ এসেছে মাত্র ৳{last['ratio']}।")
-        elif gap_line and _cash_gap_counts(gap_line):
-            add("cash", "Cash backs the profit", "নগদে মুনাফার সমর্থন", "amber", gap_line["en"], gap_line["bn"])
+            add("cash", "Profit backed by cash", "নগদে মুনাফার সমর্থন", "amber",
+                "Less than half of this year's profit came in as real cash.",
+                "এ বছরের মুনাফার অর্ধেকেরও কম আসল নগদ হয়ে এসেছে।")
+        elif gap:
+            add("cash", "Profit backed by cash", "নগদে মুনাফার সমর্থন", "amber",
+                "Profit went up, but less cash came in than the year before.",
+                "মুনাফা বেড়েছে, কিন্তু আগের বছরের চেয়ে কম নগদ এসেছে।")
         else:
-            add("cash", "Cash backs the profit", "নগদে মুনাফার সমর্থন", "pass",
-                f"Cash backs the profit (৳{last['ratio']} for each ৳100 in FY{last['year']}).",
-                f"নগদে মুনাফার সমর্থন আছে ({last['year']} অর্থবছরে প্রতি ৳100-এ ৳{last['ratio']})।")
+            add("cash", "Profit backed by cash", "নগদে মুনাফার সমর্থন", "pass",
+                "Most of its profit comes in as real cash.",
+                "এর মুনাফার বেশির ভাগই আসল নগদ হয়ে আসে।")
 
     # 12 · dividend paid from profit
     if dividend and dividend.get("payout_pct") is not None:
         p = dividend["payout_pct"]
         if p > 100:
             add("payout", "Dividend paid from profit", "মুনাফা থেকে ডিভিডেন্ড", "amber",
-                f"It paid out {p:.0f}% of its profit, more than it earned.",
-                f"মুনাফার {p:.0f}% ডিভিডেন্ড দিয়েছে, যা আয়ের চেয়ে বেশি।")
+                "It paid more in dividends than it earned.",
+                "আয়ের চেয়ে বেশি ডিভিডেন্ড দিয়েছে।")
         else:
-            add("payout", "Dividend paid from profit", "মুনাফা থেকে ডিভিডেন্ড", "pass", "Dividend paid from profit.",
-                "ডিভিডেন্ড মুনাফা থেকেই দেওয়া।")
+            add("payout", "Dividend paid from profit", "মুনাফা থেকে ডিভিডেন্ড", "pass", "It pays its dividend out of its profit.",
+                "মুনাফা থেকেই ডিভিডেন্ড দেয়।")
 
     # 13 · trading
     t_mn = _turnover_mn(inp)
     if t_mn is not None:
         c_en, c_bn = _crore(t_mn)
         if t_mn < THIN_TURNOVER_MN:
-            add("trading", "Trading", "লেনদেন", "amber", f"Thin trading: about {c_en} a day, so selling can take time.",
-                f"লেনদেন কম: দিনে প্রায় {c_bn}, তাই বিক্রি করতে সময় লাগতে পারে।")
+            add("trading", "Easy to sell", "সহজে বিক্রি", "amber", f"Few of its shares trade each day (about {c_en}), so selling can take time.",
+                f"প্রতিদিন এর শেয়ার কম লেনদেন হয় (প্রায় {c_bn}), তাই বিক্রি করতে সময় লাগতে পারে।")
         else:
-            add("trading", "Trading", "লেনদেন", "pass", f"Trades {c_en} a day.", f"দিনে লেনদেন {c_bn}।")
+            add("trading", "Easy to sell", "সহজে বিক্রি", "pass", f"It is easy to buy and sell: about {c_en} of its shares trade each day.",
+                f"সহজেই কেনাবেচা করা যায়: প্রতিদিন প্রায় {c_bn}-এর শেয়ার লেনদেন হয়।")
 
     # 14 · credit rating
     rs = _ratings(inp)
@@ -2533,18 +2710,19 @@ def build_red_flags(inp: dict, *, cash: Optional[dict] = None, dividend: Optiona
         m_en, m_bn = _mon(r0["date"])
         ig_last = _RATING_ORDER.index(INVESTMENT_GRADE_LAST)
         if rk is not None and rk > ig_last:
-            add("rating", "Credit rating", "ক্রেডিট রেটিং", "amber",
-                f"Rated {r0['long_term']} ({r0['agency']}, {m_en}), below investment grade.",
-                f"রেটিং {r0['long_term']} ({r0['agency']}, {m_bn}), যা বিনিয়োগযোগ্য মানের নিচে।",
+            add("rating", "Credit grade", "ক্রেডিট রেটিং", "amber",
+                f"A rating agency gives it a low grade for paying its debts ({r0['long_term']}).",
+                f"দেনা শোধের সামর্থ্যে একটি রেটিং এজেন্সি একে নিচু গ্রেড দিয়েছে ({r0['long_term']})।",
                 ev(f"Credit Rating Result", r0["date"]))
         elif rk is not None and prev_rk is not None and rk > prev_rk:
-            add("rating", "Credit rating", "ক্রেডিট রেটিং", "amber",
-                f"Its rating was lowered from {rs[1]['long_term']} to {r0['long_term']} ({r0['agency']}, {m_en}).",
-                f"রেটিং {rs[1]['long_term']} থেকে নেমে {r0['long_term']} হয়েছে ({r0['agency']}, {m_bn})।",
+            add("rating", "Credit grade", "ক্রেডিট রেটিং", "amber",
+                f"Its grade for paying its debts was lowered in {m_en}, from {rs[1]['long_term']} to {r0['long_term']}.",
+                f"{m_bn}-এ দেনা শোধের গ্রেড {rs[1]['long_term']} থেকে নেমে {r0['long_term']} হয়েছে।",
                 ev("Credit Rating Result", r0["date"]))
         else:
-            add("rating", "Credit rating", "ক্রেডিট রেটিং", "pass", f"Rated {r0['long_term']} ({r0['agency']}, {m_en}).",
-                f"রেটিং {r0['long_term']} ({r0['agency']}, {m_bn})।", ev("Credit Rating Result", r0["date"]))
+            add("rating", "Credit grade", "ক্রেডিট রেটিং", "pass",
+                f"A rating agency gives it a sound grade for paying its debts ({r0['long_term']}).",
+                f"দেনা শোধের সামর্থ্যে একটি রেটিং এজেন্সি একে ভালো গ্রেড দিয়েছে ({r0['long_term']})।", ev("Credit Rating Result", r0["date"]))
 
     # 15 · big investors leaving
     rows = _owner_rows(inp.get("holdings") or [])
@@ -2563,26 +2741,26 @@ def build_red_flags(inp: dict, *, cash: Optional[dict] = None, dividend: Optiona
                 now = _f(h1.get(key))
                 if now is not None and peak[0] - now > OWNER_EXIT_PP:
                     f_en, f_bn = _mon(peak[1])
-                    exit_line = (f"{en} cut their share from {peak[0]:.1f}% to {now:.1f}% since {f_en}.",
-                                 f"{f_bn}-এর পর থেকে {bn_} তাঁদের অংশ {peak[0]:.1f}% থেকে কমিয়ে {now:.1f}% করেছে।")
+                    exit_line = (f"{en} have sold part of their shares since {f_en}.",
+                                 f"{f_bn}-এর পর থেকে {bn_} তাঁদের শেয়ারের একটি অংশ বিক্রি করেছেন।")
                     break
         if exit_line:
             add("investors", "Big investors", "বড় বিনিয়োগকারী", "amber", exit_line[0], exit_line[1])
         else:
-            add("investors", "Big investors", "বড় বিনিয়োগকারী", "pass", "No big investor leaving.",
+            add("investors", "Big investors", "বড় বিনিয়োগকারী", "pass", "No big investors are leaving.",
                 "কোনো বড় বিনিয়োগকারী বেরিয়ে যাচ্ছেন না।")
 
     # 16 · price run without news
     if warning:
         if not any(c["key"] == "dse_query" and c["level"] == "red" for c in checks):
-            add("rally", "Price run without news", "খবর ছাড়া দাম বাড়া", "red" if warning["level"] == "red" else "amber",
+            add("rally", "Price jump with no news", "খবর ছাড়া দাম বাড়া", "red" if warning["level"] == "red" else "amber",
                 warning["headline"]["en"], warning["headline"]["bn"])
         else:
-            add("rally", "Price run without news", "খবর ছাড়া দাম বাড়া", "amber",
+            add("rally", "Price jump with no news", "খবর ছাড়া দাম বাড়া", "amber",
                 warning["headline"]["en"], warning["headline"]["bn"])
     else:
-        add("rally", "Price run without news", "খবর ছাড়া দাম বাড়া", "pass", "No price run without news.",
-            "খবর ছাড়া কোনো অস্বাভাবিক দাম বাড়া নেই।")
+        add("rally", "Price jump with no news", "খবর ছাড়া দাম বাড়া", "pass", "Its price has not jumped without news.",
+            "খবর ছাড়া এর দাম অস্বাভাবিকভাবে বাড়েনি।")
 
     checks = checks[:16]
     order = {"red": 0, "amber": 1, "pass": 2}
@@ -2602,29 +2780,32 @@ def build_red_flags(inp: dict, *, cash: Optional[dict] = None, dividend: Optiona
     reds = [c for c in checks if c["level"] == "red"]
     watch_en = f"{amber} {'thing' if amber == 1 else 'things'} to watch"
     watch_bn = f"{amber}টি নজরে রাখার মতো বিষয়"
+    # Plain words (2026-10-30): is anything seriously wrong, said first.
+    smaller_en = f"{amber} smaller {'thing' if amber == 1 else 'things'} worth a look"
+    smaller_bn = f"{amber}টি ছোট বিষয় দেখে নেওয়ার মতো"
     if red:
-        if red == 1:
-            head = bi(f"1 red flag: {reds[0]['detail']['en']}" + (f" Also {watch_en}." if amber else ""),
-                      f"1টি বড় সতর্কতা: {reds[0]['detail']['bn']}" + (f" এ ছাড়া {watch_bn}।" if amber else ""))
-        else:
-            head = bi(f"{red} red flags. The first: {reds[0]['detail']['en']}" + (f" Also {watch_en}." if amber else ""),
-                      f"{red}টি বড় সতর্কতা। প্রথমটি: {reds[0]['detail']['bn']}" + (f" এ ছাড়া {watch_bn}।" if amber else ""))
-        free = bi(f"We ran {n} checks. {red} red {'flag' if red == 1 else 'flags'}, shown below"
-                  + (f", and {watch_en}." if amber else "."),
-                  f"আমরা {n}টি যাচাই করেছি। {red}টি বড় সতর্কতা, নিচে দেখানো হলো" + (f"; আর {watch_bn}।" if amber else "।"))
+        lead_en = "Yes, one serious problem: " if red == 1 else f"Yes, {red} serious problems. The biggest: "
+        lead_bn = "হ্যাঁ, একটি গুরুতর সমস্যা: " if red == 1 else f"হ্যাঁ, {red}টি গুরুতর সমস্যা। সবচেয়ে বড়টি: "
+        d0 = reds[0]["detail"]
+        head = bi(lead_en + _lc(d0["en"]), lead_bn + d0["bn"])
+        free = bi(f"We checked {n} things that can go wrong. {red} {'is' if red == 1 else 'are'} serious, shown below"
+                  + (f", and {smaller_en}." if amber else "."),
+                  f"আমরা {n}টি বিষয় দেখেছি, যেগুলোতে সমস্যা হতে পারে। {red}টি গুরুতর, নিচে দেখানো হলো" + (f"; আর {smaller_bn}।" if amber else "।"))
     elif amber:
-        head = bi(f"No red flags. {watch_en[0].upper() + watch_en[1:]}.", f"কোনো বড় সতর্কতা নেই। {watch_bn}।")
-        free = bi(f"We ran {n} checks. No red flags, and {watch_en}.", f"আমরা {n}টি যাচাই করেছি। কোনো বড় সতর্কতা নেই, আর {watch_bn}।")
+        head = bi(f"Nothing seriously wrong. We found {smaller_en}.", f"গুরুতর কোনো সমস্যা নেই। {smaller_bn} পেয়েছি।")
+        free = bi(f"We checked {n} things that can go wrong. Nothing serious, and {smaller_en}.",
+                  f"আমরা {n}টি বিষয় দেখেছি, যেগুলোতে সমস্যা হতে পারে। গুরুতর কিছু নেই, আর {smaller_bn}।")
     else:
-        head = bi(f"No red flags, and nothing to watch in {n} checks.", f"{n}টি যাচাইয়ে কোনো বড় সতর্কতা বা নজরে রাখার মতো কিছু নেই।")
-        free = bi(f"We ran {n} checks. No red flags, and nothing to watch.", f"আমরা {n}টি যাচাই করেছি। কোনো বড় সতর্কতা নেই, নজরে রাখার মতোও কিছু নেই।")
+        head = bi(f"Nothing wrong. All {n} things we check look fine.", f"কোনো সমস্যা নেই। আমরা যে {n}টি বিষয় দেখি, সবই ঠিক আছে।")
+        free = bi(f"We checked {n} things that can go wrong. All look fine.",
+                  f"আমরা {n}টি বিষয় দেখেছি, যেগুলোতে সমস্যা হতে পারে। সবই ঠিক আছে।")
 
     inside = []
     if amber:
-        inside.append(bi(f"The {amber} {'thing' if amber == 1 else 'things'} to watch, with the evidence behind each",
-                         f"নজরে রাখার মতো {amber}টি বিষয়, প্রতিটির প্রমাণসহ"))
-    inside.append(bi(f"The {passed} checks it passed, and where each one stands", f"যে {passed}টি যাচাইয়ে উতরেছে, আর প্রতিটির অবস্থা"))
-    inside.append(bi("What would turn a watch into a red flag", "কী হলে নজরে রাখার বিষয় বড় সতর্কতা হবে"))
+        inside.append(bi(f"The {amber} smaller {'thing' if amber == 1 else 'things'} worth a look, and the notice behind each",
+                         f"দেখে নেওয়ার মতো {amber}টি ছোট বিষয়, আর প্রতিটির নোটিশ"))
+    inside.append(bi(f"What we found on the {passed} things that look fine", f"যে {passed}টি বিষয় ঠিক আছে, তাতে কী পেয়েছি"))
+    inside.append(bi("What would turn a smaller worry into a serious one", "কী হলে ছোট বিষয় গুরুতর সমস্যা হবে"))
 
     return _section(
         "red_flags",
@@ -2633,19 +2814,12 @@ def build_red_flags(inp: dict, *, cash: Optional[dict] = None, dividend: Optiona
         bi("DSE notices from the last 12 months · audited accounts · monthly ownership reports",
            "গত 12 মাসের ডিএসই নোটিশ · নিরীক্ষিত হিসাব · মাসিক শেয়ার ধারণের প্রতিবেদন"),
         free_line=free, inside=inside,
-        meaning=[bi("A red flag is a serious problem, and we always show it for free. A thing to watch is worth checking before you buy.",
-                    "বড় সতর্কতা মানে গুরুতর সমস্যা, আর তা আমরা সবসময় ফ্রিতে দেখাই। নজরে রাখার বিষয়গুলো কেনার আগে একবার দেখে নেওয়া ভালো।")],
+        meaning=[bi("A serious problem is shown free for everyone. The smaller things are worth checking before you buy.",
+                    "গুরুতর সমস্যা সবার জন্য ফ্রিতে দেখাই। ছোট বিষয়গুলো কেনার আগে একবার দেখে নেওয়া ভালো।")],
         watch=bi("If a new red flag appears, we show it here, and Premium readers who follow the share get a notification.",
                  "নতুন কোনো বড় সতর্কতা দেখা দিলে আমরা এখানে দেখাব, আর শেয়ারটি যাঁরা অনুসরণ করেন সেই প্রিমিয়াম পাঠকেরা নোটিফিকেশন পাবেন।"),
         checks=checks, counts={"checks": n, "red": red, "amber": amber, "pass": passed},
     )
-
-
-def _cash_gap_counts(line: dict) -> bool:
-    """Only flag 'cash fell while profit rose' when profit rose 10% or more."""
-    import re
-    m = re.search(r"Profit rose (\d+)%", line.get("en", ""))
-    return bool(m and float(m.group(1)) >= CASH_GAP_PROFIT_RISE_PCT)
 
 
 # ---------------------------------------------------------------- next + risks
@@ -2658,36 +2832,36 @@ def build_next(inp: dict, this_year: Optional[dict], dividend: Optional[dict], s
         lab = (this_year or {}).get("_next_label") or bi("Results", "ফল")
         items.append({"date": nxt["date"], "approx": nxt["approx"], "kind": "results",
                       "label": lab,
-                      "expect": bi(f"To keep growing it needs more than {tk2(nxt['beat'])} a share.",
-                                   f"মুনাফা বাড়াতে হলে শেয়ারপ্রতি {tk2(nxt['beat'])}-এর বেশি দরকার।") if nxt.get("beat") else None})
+                      "expect": bi("To keep growing, profit has to beat the same months last year.",
+                                   "মুনাফা বাড়তে থাকলে তা আগের বছরের একই সময়ের চেয়ে বেশি হতে হবে।") if nxt.get("beat") else None})
     lat = (dividend or {}).get("_latest_full") or {}
     cps = lat.get("cash_ps")
     if lat.get("record_date") and _d(lat["record_date"]) and _d(lat["record_date"]) >= today:
         net = round(cps * (1 - DIV_TAX_PCT / 100.0), 2) if cps else None
         if lat.get("buy_by") and _d(lat["buy_by"]) >= today:
             items.append({"date": lat["buy_by"], "approx": False, "kind": "record",
-                          "label": bi("Last day to buy for the dividend", "ডিভিডেন্ডের জন্য শেষ কেনার দিন"),
+                          "label": bi("Last day to buy for the dividend", "ডিভিডেন্ড পেতে কেনার শেষ দিন"),
                           "expect": bi(f"Buy by this day to get {tk2(cps)} a share." if cps else "Buy by this day to get the dividend.",
                                        f"শেয়ারপ্রতি {tk2(cps)} পেতে এই দিনের মধ্যে কিনুন।" if cps else "ডিভিডেন্ড পেতে এই দিনের মধ্যে কিনুন।")})
         if lat.get("_spot") and _d(lat["_spot"]) >= today:
             items.append({"date": lat["_spot"], "approx": False, "kind": "spot",
-                          "label": bi("Spot market only", "শুধু স্পট মার্কেটে লেনদেন"),
-                          "expect": bi("From this day the shares trade only in the spot market until the record date.",
-                                       "এই দিন থেকে রেকর্ড ডেট পর্যন্ত শেয়ার শুধু স্পট মার্কেটে কেনাবেচা হবে।")})
+                          "label": bi("Shares settle the same day", "একই দিনে শেয়ার হাতে"),
+                          "expect": bi("From this day until the record date, trades settle the same day (DSE's spot market). Buying now is too late for the dividend in a normal trade.",
+                                       "এই দিন থেকে রেকর্ড ডেট পর্যন্ত লেনদেন একই দিনে নিষ্পত্তি হয় (ডিএসইর স্পট মার্কেট)। সাধারণ লেনদেনে এখন কিনলে ডিভিডেন্ড পাওয়া যাবে না।")})
         items.append({"date": lat["record_date"], "approx": False, "kind": "record",
                       "label": bi("Record date", "রেকর্ড ডেট"),
-                      "expect": bi(f"Holders on this day get {tk2(cps)} a share, {tk2(net)} after tax." if cps else "Holders on this day get the dividend.",
+                      "expect": bi(f"Everyone who owns the shares on this day gets {tk2(cps)} a share, {tk2(net)} after tax." if cps else "Everyone who owns the shares on this day gets the dividend.",
                                    f"এই দিনে যাঁদের কাছে শেয়ার থাকবে তাঁরা শেয়ারপ্রতি {tk2(cps)} পাবেন, কর বাদে {tk2(net)}।" if cps else "এই দিনে যাঁদের কাছে শেয়ার থাকবে তাঁরা ডিভিডেন্ড পাবেন।")})
     if lat.get("agm_date") and _d(lat["agm_date"]) and _d(lat["agm_date"]) >= today:
-        items.append({"date": lat["agm_date"], "approx": False, "kind": "agm", "label": bi("AGM", "এজিএম"),
-                      "expect": bi(f"Shareholders vote on the {tk2(cps)} dividend." if cps else "Shareholders meet and vote on the accounts.",
+        items.append({"date": lat["agm_date"], "approx": False, "kind": "agm", "label": bi("Yearly meeting (AGM)", "বার্ষিক সভা (এজিএম)"),
+                      "expect": bi(f"Shareholders meet and approve the {tk2(cps)} dividend." if cps else "Shareholders meet and approve the accounts.",
                                    f"শেয়ারহোল্ডাররা {tk2(cps)} ডিভিডেন্ড অনুমোদন দেবেন।" if cps else "শেয়ারহোল্ডাররা হিসাব অনুমোদন দেবেন।")})
     rating = (safety or {}).get("rating")
     if rating and _d(rating["date"]):
         nd = _d(rating["date"]) + timedelta(days=365)
         if nd >= today:
-            items.append({"date": nd.isoformat(), "approx": True, "kind": "rating", "label": bi("Credit rating renewal", "ক্রেডিট রেটিং নবায়ন"),
-                          "expect": bi(f"{rating['agency']} rated it {rating['long_term']} last time.",
+            items.append({"date": nd.isoformat(), "approx": True, "kind": "rating", "label": bi("New credit grade due", "নতুন ক্রেডিট রেটিং"),
+                          "expect": bi(f"Last time {rating['agency']} gave it {rating['long_term']}.",
                                        f"গতবার {rating['agency']} রেটিং দিয়েছিল {rating['long_term']}।")})
     for m in (inp.get("notices") or {}).get("board_meetings") or []:
         md = _d((m or {}).get("meeting_date"))
@@ -2701,7 +2875,7 @@ def build_next(inp: dict, this_year: Optional[dict], dividend: Optional[dict], s
     def phrase(it):
         d_en, d_bn = _day_short(it["date"])
         lab = _lc(it["label"]["en"])
-        if it["kind"] in ("agm", "record") or lab.startswith("last"):
+        if it["kind"] in ("agm", "record", "rating") or lab.startswith("last") or lab.startswith("results"):
             lab = "the " + lab
         return (f"{lab} {'around' if it['approx'] else 'on'} {d_en}",
                 f"{it['label']['bn']}, {d_bn}{'-এর কাছাকাছি' if it['approx'] else ''}")
@@ -2720,8 +2894,8 @@ def build_next(inp: dict, this_year: Optional[dict], dividend: Optional[dict], s
         bi(f"{n} {'date' if n == 1 else 'dates'}", f"{n}টি তারিখ"), "neutral", head,
         bi("DSE notices · dividend ledger · last year's dates", "ডিএসই নোটিশ · ডিভিডেন্ডের হিসাব · গত বছরের তারিখ"),
         free_line=bi(f"The next {n} {'date' if n == 1 else 'dates'} that matter for this share.", f"এই শেয়ারের জন্য সামনের গুরুত্বপূর্ণ {n}টি তারিখ।"),
-        inside=[bi("What to expect at each date", "প্রতিটি তারিখে কী আশা করা যায়"),
-                bi("The number each result has to beat", "প্রতিটি ফলে কত হলে ভালো বলা যাবে")
+        inside=[bi("What each date means for you", "প্রতিটি তারিখ আপনার জন্য কী বোঝায়"),
+                bi("What the next results need to show", "পরের ফলে কী দেখা দরকার")
                 if any(i["kind"] == "results" for i in items) else
                 bi("What each date means for your shares", "প্রতিটি তারিখ আপনার শেয়ারের জন্য কী বোঝায়")],
         meaning=[], watch=None,
@@ -2730,8 +2904,8 @@ def build_next(inp: dict, this_year: Optional[dict], dividend: Optional[dict], s
 
 
 _TRIGGERS = {
-    "cash": ("If cash from the business stays under half of profit for another year, this becomes a red flag.",
-             "আরও এক বছর ব্যবসার নগদ মুনাফার অর্ধেকের নিচে থাকলে এটি বড় সতর্কতা হবে।"),
+    "cash": ("If less than half of its profit comes in as cash again next year, this becomes a serious problem.",
+             "আগামী বছরও মুনাফার অর্ধেকের কম নগদ হয়ে এলে এটি গুরুতর সমস্যা হবে।"),
     "payout": ("If the next dividend is again more than the profit, it is being paid from savings.",
                "পরের ডিভিডেন্ডও মুনাফার চেয়ে বেশি হলে তা জমানো টাকা থেকে দেওয়া হচ্ছে।"),
     "loans": ("If loans keep rising faster than profit, the risk grows.",
@@ -2740,10 +2914,10 @@ _TRIGGERS = {
                   "পরের দুটি প্রতিবেদনেও তাঁরা বিক্রি চালিয়ে গেলে কারণ জেনে নেওয়া ভালো।"),
     "category": ("A return to category A after the next dividend would ease this.",
                  "পরের ডিভিডেন্ডের পর A ক্যাটাগরিতে ফিরলে এটি কেটে যাবে।"),
-    "trading": ("If daily trading rises above ৳10 lakh, selling gets easier.",
-                "দৈনিক লেনদেন ৳10 লাখের ওপরে গেলে বিক্রি সহজ হবে।"),
-    "rating": ("A rating back at BBB- or better would ease this.",
-               "রেটিং আবার BBB- বা তার ওপরে উঠলে এটি কেটে যাবে।"),
+    "trading": ("If more of its shares start trading each day, selling gets easier.",
+                "প্রতিদিন আরও বেশি শেয়ার লেনদেন হলে বিক্রি সহজ হবে।"),
+    "rating": ("A better grade at the next rating would ease this.",
+               "পরের রেটিংয়ে ভালো গ্রেড পেলে এটি কেটে যাবে।"),
     "owner_selling": ("If more sale declarations follow, it is worth finding out why.",
                       "আরও বিক্রির ঘোষণা এলে কারণ জেনে নেওয়া ভালো।"),
     "rally": ("If the price falls back as fast as it rose, the rise was not about the business.",
@@ -2774,9 +2948,9 @@ def build_risks(inp: dict, red_flags: dict) -> Optional[dict]:
         bi(f"{n} {'risk' if n == 1 else 'risks'}", f"{n}টি ঝুঁকি"), "fair" if n else "neutral",
         items[0]["text"],
         bi("Our checks on its accounts, notices and price", "এর হিসাব, নোটিশ আর দামের ওপর আমাদের যাচাই"),
-        free_line=bi(f"We list the {n} biggest {'risk' if n == 1 else 'risks'}, and what would change our view.",
-                     f"আমরা সবচেয়ে বড় {n}টি ঝুঁকি দেখাই, আর কী হলে আমাদের মত বদলাবে।"),
-        inside=[bi(f"The {n} biggest {'risk' if n == 1 else 'risks'}, in numbers", f"সবচেয়ে বড় {n}টি ঝুঁকি, সংখ্যাসহ"),
+        free_line=bi(f"We found {n} {'thing' if n == 1 else 'things'} that could hurt this share, and what would change our view.",
+                     f"এই শেয়ারের ক্ষতি করতে পারে এমন {n}টি বিষয় পেয়েছি, আর কী হলে আমাদের মত বদলাবে।"),
+        inside=[bi(f"The {n} biggest {'risk' if n == 1 else 'risks'}, in plain words", f"সবচেয়ে বড় {n}টি ঝুঁকি, সহজ ভাষায়"),
                 bi("What would change our view on each", "প্রতিটির ক্ষেত্রে কী হলে আমাদের মত বদলাবে")],
         meaning=[], watch=None,
         items=items,
@@ -2809,11 +2983,11 @@ def build_scorecard(sections: dict, inp: dict) -> list[dict]:
     pr_detail = None
     if pr and pr["pe"]["now"]:
         pe = pr["pe"]
-        pr_detail = bi(f"{_x(pe['now'])}× profit" + (f", usually {_x(pe['usual'])}×" if pe["usual"] else ""),
-                       f"মুনাফার {_x(pe['now'])} গুণ" + (f", সাধারণত {_x(pe['usual'])} গুণ" if pe["usual"] else ""))
+        pr_detail = bi(f"{pe['now']:.0f} years of profit" + (f", usually {pe['usual']:.0f}" if pe["usual"] else ""),
+                       f"{pe['now']:.0f} বছরের মুনাফা" + (f", সাধারণত {pe['usual']:.0f}" if pe["usual"] else ""))
     elif pr and pr.get("fair"):
-        pr_detail = bi(f"{abs(pr['gap_pct'])}% {'below' if pr['gap_pct'] < 0 else 'above'} our fair middle",
-                       f"ন্যায্য মাঝামাঝি দামের চেয়ে {abs(pr['gap_pct'])}% {'কম' if pr['gap_pct'] < 0 else 'বেশি'}")
+        pr_detail = bi(f"{'Below' if pr['gap_pct'] < 0 else 'Above'} what we think it is worth",
+                       f"আমাদের হিসাবের মূল্যের চেয়ে {'কম' if pr['gap_pct'] < 0 else 'বেশি'}")
     dv = sections.get("dividend")
     dv_detail = None
     if dv and dv.get("_cur"):
@@ -2852,7 +3026,12 @@ def build_scorecard(sections: dict, inp: dict) -> list[dict]:
     ca_detail = None
     if ca:
         last = ca["years"][-1]
-        ca_detail = bi(f"৳{last['ratio']} cash per ৳100 profit", f"প্রতি ৳100 মুনাফায় ৳{last['ratio']} নগদ")
+        r_ = last["ratio"]
+        ca_detail = (bi("More cash went out than came in", "যত নগদ এসেছে তার চেয়ে বেশি বেরিয়ে গেছে") if r_ < 0
+                     else bi("Almost all of the profit came in as cash", "মুনাফার প্রায় পুরোটাই নগদে এসেছে") if r_ >= CASH_STRONG_RATIO
+                     else bi("Most of the profit came in as cash", "মুনাফার বেশির ভাগ নগদে এসেছে") if r_ >= 60
+                     else bi("About half of the profit came in as cash", "মুনাফার প্রায় অর্ধেক নগদে এসেছে") if r_ >= 45
+                     else bi("Little of the profit came in as cash", "মুনাফার সামান্যই নগদে এসেছে"))
     sf = sections.get("safety")
     sf_detail = None
     if sf and sf.get("_bits"):
@@ -2862,8 +3041,8 @@ def build_scorecard(sections: dict, inp: dict) -> list[dict]:
     ql = sections.get("quality")
     ql_detail = None
     if ql:
-        ql_detail = bi(f"{ql['score']:.0f}/100 · {ql['healthy']} of {ql['checks']} checks healthy",
-                       f"{ql['score']:.0f}/100 · {ql['checks']}টির মধ্যে {ql['healthy']}টি ভালো")
+        ql_detail = bi(f"{ql['healthy']} of the {ql['checks']} things we look at are healthy",
+                       f"আমরা যে {ql['checks']}টি বিষয় দেখি, তার {ql['healthy']}টি ভালো")
 
     cash_na = None
     if sc in _LENDERS:
@@ -2987,42 +3166,32 @@ def _short_watch(c: dict) -> dict:
 
 
 def build_offer(sections: dict) -> list[dict]:
-    out = [bi("Our three-line summary of where it stands", "এর অবস্থা নিয়ে আমাদের তিন লাইনের সারকথা")]
+    """What Premium shows on THIS share, in plain words, from counts — never
+    the answers (2026-10-30: the three-line summary left the page)."""
+    out = [bi("Why each of the three lights is green, amber or red", "তিনটি আলোর প্রতিটি কেন সবুজ, হলুদ বা লাল")]
     rf = sections.get("red_flags")
     if rf:
         a = rf["counts"]["amber"]
         if a:
-            out.append(bi(f"The {a} {'thing' if a == 1 else 'things'} to watch, with the evidence", f"নজরে রাখার মতো {a}টি বিষয়, প্রমাণসহ"))
-        else:
-            out.append(bi(f"All {rf['counts']['checks']} checks, and where each one stands", f"{rf['counts']['checks']}টি যাচাই, আর প্রতিটির অবস্থা"))
+            out.append(bi(f"The {a} smaller {'thing' if a == 1 else 'things'} worth a look, and the notice behind each",
+                          f"দেখে নেওয়ার মতো {a}টি ছোট বিষয়, আর প্রতিটির নোটিশ"))
     ow = sections.get("owners")
     if ow and (ow["trade_counts"]["buys"] or ow["trade_counts"]["sells"]):
-        b, s = ow["trade_counts"]["buys"], ow["trade_counts"]["sells"]
-        if b and not s:
-            out.append(bi(f"Who made the {b} insider {'buy' if b == 1 else 'buys'}, and what they paid",
-                          f"উদ্যোক্তা-পরিচালকদের {b}টি কেনা কে করেছেন, কত দামে"))
-        else:
-            out.append(bi(f"Who made the {b + s} insider trades, and at what price", f"উদ্যোক্তা-পরিচালকদের {b + s}টি লেনদেন কে করেছেন, কত দামে"))
+        out.append(bi("Who among the people who run it bought or sold, and at what price",
+                      "কোম্পানি যাঁরা চালান, তাঁদের মধ্যে কে কিনেছেন বা বিক্রি করেছেন, কোন দামে"))
     pr = sections.get("price")
     if pr and pr.get("fair"):
-        out.append(bi("Our fair range and a buy-below price alert", "আমাদের ন্যায্য দাম, আর কোন দামের নিচে কেনা ভালো তার অ্যালার্ট"))
+        out.append(bi("What we think a fair price is, and the price we would buy under", "আমাদের হিসাবে ন্যায্য দাম, আর কোন দামের নিচে কেনা ভালো"))
     elif pr:
-        out.append(bi("How the price compares with its past and its sector", "দামটি এর অতীত আর সেক্টরের তুলনায় কেমন"))
+        out.append(bi("How its price compares with its past and with similar companies", "এর দাম অতীত আর একই ধরনের কোম্পানির তুলনায় কেমন"))
     dv = sections.get("dividend")
     cps = ((dv or {}).get("latest") or {}).get("cash_ps") or (dv or {}).get("_cur")
     if dv and cps:
-        out.append(bi(f"What the {tk2(cps)} dividend is worth after tax and the price drop",
-                      f"কর আর দরপতনের পর {tk2(cps)} ডিভিডেন্ড আসলে কত"))
+        out.append(bi("Whether the dividend is safe, and what it pays you after tax", "ডিভিডেন্ড নিরাপদ কি না, আর কর বাদে আপনি কত পাবেন"))
     ty = sections.get("this_year")
     if ty and any(q["cur"] is not None for q in ty.get("quarters") or []):
-        nxt = ty.get("next")
-        n_q = len([q for q in ty["quarters"] if q["cur"] is not None])
-        qn = None
-        if nxt and nxt.get("what"):
-            w = nxt["what"]["en"]
-            qn = w.split(" results")[0] if " results" in w else None
-        out.append(bi(f"{'All four' if n_q == 4 else f'{n_q}'} {'quarter' if n_q == 1 else 'quarters'}" + (f", and what {qn} has to beat" if qn else ""),
-                      f"{n_q}টি প্রান্তিক" + (f", আর {qn}-এ কত মুনাফা দরকার" if qn else "")))
+        out.append(bi("How each part of this year compares with last year, and what the next results need to show",
+                      "এ বছরের প্রতিটি অংশ আগের বছরের তুলনায় কেমন, আর পরের ফলে কী দেখা দরকার"))
     return out[:6]
 
 
@@ -3108,6 +3277,571 @@ def build_updated(inp: dict, red_flags: Optional[dict]) -> Optional[dict]:
     return {"date": d.isoformat(), "reason": reason}
 
 
+
+# ---------------------------------------------------------------- the answer
+
+# Signal reasons that a risk blocks (signal_service rules 4–6d): the light's
+# word and the plain clause the answer line uses.
+_RISK_BLOCKS = {
+    "z_category": (bi("Category Z", "Z ক্যাটাগরি"),
+                   bi("it is in DSE's category Z", "এটি ডিএসইর Z ক্যাটাগরিতে")),
+    "stale_financials": (bi("Old accounts", "পুরোনো হিসাব"),
+                         bi("it has not published yearly accounts for years", "কয়েক বছর ধরে বার্ষিক হিসাব প্রকাশ করেনি")),
+    "thin_trading": (bi("Hard to sell", "বিক্রি কঠিন"),
+                     bi("few of its shares trade each day, so selling can be hard",
+                        "প্রতিদিন এর শেয়ার কম লেনদেন হয়, তাই বিক্রি কঠিন হতে পারে")),
+    "earnings_dropped": (bi("Profit fell", "মুনাফা কমেছে"),
+                         bi("profit fell sharply in the latest results", "সর্বশেষ ফলে মুনাফা অনেক কমেছে")),
+    "heavy_debt": (bi("Heavy loans", "বেশি ঋণ"),
+                   bi("its loans are larger than the whole company's value", "এর ঋণ পুরো কোম্পানির বাজারমূল্যের চেয়েও বেশি")),
+    "red_flag": (bi("Red flag", "বড় সতর্কতা"),
+                 bi("we found a serious warning in its notices", "এর নোটিশে একটি গুরুতর সতর্কতা পেয়েছি")),
+}
+
+
+def build_answer(inp: dict, sections: dict) -> dict:
+    """The answer card (2026-10-30): should you buy it today? One answer made
+    from three lights (the company, the price, anything wrong) that mirror
+    the Buy signal's own rules (`signal_service._signal_for_row`), so the card
+    never disagrees with the Buy / Sell chip.
+
+    Free: the answer, its line (built only from the light words, no figures)
+    and each light's word. Premium: each light's `why` and the buy price."""
+    from backend.services.tiers import tier_key
+
+    sig = inp.get("signal") or {}
+    row = inp.get("score_row") or {}
+    score = _f(row.get("score"))
+    tier = sig.get("tier") if sig.get("tier") not in (None, "unknown") else tier_key(score)
+    reason = sig.get("reason_key") or ""
+    signal = sig.get("signal") or "none"
+    ql, pr, rf = sections.get("quality"), sections.get("price"), sections.get("red_flags")
+
+    # 1 · the company
+    company = {
+        "key": "company", "label": bi("The company", "কোম্পানি"),
+        "word": bi(TIER_WORDS.get(tier, "Not rated"), TIER_WORDS_BN.get(tier, "রেটিং নেই")),
+        "tone": {"excellent": "good", "good": "good", "average": "fair", "weak": "bad"}.get(tier, "neutral"),
+        "href": "#ch-company",
+        "why": ql["headline"] if ql else None,
+    }
+
+    # 2 · the price
+    if reason == "near_52w_high":
+        p_word, p_tone = bi("Near its yearly top", "বছরের সর্বোচ্চের কাছে"), "fair"
+    elif pr:
+        p_word = pr["word"]
+        p_tone = "bad" if p_word["en"] == "High" else pr["tone"]
+    else:
+        p_word, p_tone = bi("Not rated", "রেটিং নেই"), "neutral"
+    price = {
+        "key": "price", "label": bi("The price", "দাম"), "word": p_word, "tone": p_tone,
+        "href": "#ch-price", "why": pr["headline"] if pr else None,
+    }
+
+    # 3 · anything wrong: the signal's blockers first, then the report's red flags.
+    reds = [c for c in (rf or {}).get("checks") or [] if c["level"] == "red"]
+    ambers = [c for c in (rf or {}).get("checks") or [] if c["level"] == "amber"]
+    block = reason if reason in _RISK_BLOCKS else ("red_flag" if reds else None)
+    if block == "red_flag" and reds:
+        r_word = (bi("Yes, a serious problem", "হ্যাঁ, একটি গুরুতর সমস্যা") if len(reds) == 1
+                  else bi(f"Yes, {len(reds)} serious problems", f"হ্যাঁ, {len(reds)}টি গুরুতর সমস্যা"))
+        r_why = reds[0]["detail"]
+    elif block:
+        r_word = bi("Yes: " + _lc(_RISK_BLOCKS[block][0]["en"]), "হ্যাঁ: " + _RISK_BLOCKS[block][0]["bn"])
+        r_why = bi(sig.get("reason_en") or _RISK_BLOCKS[block][1]["en"],
+                   sig.get("reason_bn") or _RISK_BLOCKS[block][1]["bn"])
+    elif ambers:
+        n = len(ambers)
+        r_word = bi(f"{n} small {'thing' if n == 1 else 'things'} to check", f"{n}টি ছোট বিষয় দেখার মতো")
+        r_why = rf["headline"]
+    else:
+        r_word = bi("Nothing serious", "গুরুতর কিছু নেই")
+        r_why = rf["headline"] if rf else None
+    risks = {
+        "key": "risks", "label": bi("Anything wrong", "কোনো সমস্যা"), "word": r_word,
+        "tone": "bad" if block else "fair" if ambers else "good",
+        "href": "#ch-risks", "why": r_why,
+    }
+
+    # The answer.
+    good = bi("An excellent company", "চমৎকার কোম্পানি") if tier == "excellent" else bi("A good company", "ভালো কোম্পানি")
+    blocker = None
+    if tier == "unknown" or score is None:
+        decision, word, tone = "unrated", bi("Not rated yet", "এখনো রেটিং নেই"), "neutral"
+        line = bi("We don't have enough figures to rate it yet.", "রেটিং দেওয়ার মতো যথেষ্ট তথ্য এখনো নেই।")
+    elif signal == "sell" or tier == "weak":
+        decision, word, tone, blocker = "avoid", bi("Avoid", "এড়িয়ে চলুন"), "bad", "company"
+        line = bi("The business is weak. It is safer to stay out.", "ব্যবসা দুর্বল। দূরে থাকাই নিরাপদ।")
+    elif tier == "average":
+        decision, word, tone, blocker = "no_reason", bi("No reason to buy", "কেনার কারণ নেই"), "neutral", "company"
+        line = bi("An average company. Nothing stands out enough to buy it.",
+                  "মাঝারি মানের কোম্পানি। কেনার মতো আলাদা কিছু নেই।")
+    elif signal == "buy" and not block:
+        decision, tone = "buy", "good"
+        word = bi("Strong buy", "জোরালোভাবে কেনা যায়") if sig.get("strength") == "strong" else bi("Buy", "কেনা যায়")
+        fair = p_word["en"] == "Fair"
+        line = bi(f"{good['en']} at a {'fair' if fair else 'low'} price, and nothing serious is wrong.",
+                  f"{good['bn']}, {'ন্যায্য' if fair else 'কম'} দামে পাওয়া যাচ্ছে, আর গুরুতর কোনো সমস্যা নেই।")
+    else:
+        decision, word, tone = "wait", bi("Not yet", "এখন নয়"), "fair"
+        if block:
+            blocker = "risks"
+            clause = _RISK_BLOCKS[block][1]
+            if block == "red_flag" and reds:
+                d0 = reds[0]["detail"]
+                clause = bi("we found a serious problem: " + _lc(d0["en"]).rstrip("."),
+                            "একটি গুরুতর সমস্যা পেয়েছি: " + d0["bn"].rstrip("।"))
+            line = bi(f"{good['en']}, but {clause['en']}.", f"{good['bn']}, তবে {clause['bn']}।")
+        else:
+            blocker = "price"
+            if reason == "near_52w_high":
+                line = bi(f"{good['en']}, but the price is near its highest this year.",
+                          f"{good['bn']}, তবে দাম এ বছরের সর্বোচ্চের কাছাকাছি।")
+            elif p_word["en"] == "High":
+                line = bi(f"{good['en']}, but the price is high right now.", f"{good['bn']}, তবে এখন দাম বেশি।")
+            else:
+                line = bi(f"{good['en']}, but the price is only fair. A lower price would be a better time to buy.",
+                          f"{good['bn']}, তবে দাম শুধু ঠিকঠাক। দাম আরও কমলে কেনা ভালো হবে।")
+            # The light that blocked the buy is never green.
+            if price["tone"] == "good":
+                price["tone"] = "fair"
+            elif price["tone"] == "neutral":
+                price["tone"] = "fair"
+
+    return {
+        "decision": decision, "word": word, "tone": tone, "line": line,
+        "lights": [company, price, risks],
+        "blocker": blocker,
+        "buy_price": (pr or {}).get("buy_below"),
+    }
+
+
+# ---------------------------------------------------------------- the full report
+
+# What a chapter's written read says about each word (2026-10-30, the full
+# report plan https://claude.ai/artifact/1TuJ9dvifeXTLzs5wVwk2Q): the data put
+# together, two or three plain sentences per chapter, Premium.
+_PROFIT_LEAD = {
+    "Growing": ("Its profit is growing", "এর মুনাফা বাড়ছে"),
+    "Flat": ("Its profit is about the same as a year ago", "এর মুনাফা আগের বছরের মতোই"),
+    "Slipping": ("Its profit is falling", "এর মুনাফা কমছে"),
+}
+_LOANS_LINE = {
+    "Easily": ("It can pay its loans easily.", "ঋণ সহজেই সামলাতে পারে।"),
+    "Yes": ("It can handle its loans.", "ঋণ সামলাতে পারে।"),
+    "Watch this": ("Its loans are worth watching.", "এর ঋণ নজরে রাখার মতো।"),
+    "Risky": ("Its loans are a real risk.", "এর ঋণ সত্যিই ঝুঁকির।"),
+}
+_CUSHION_LINE = {
+    "Easily": ("strong", "শক্ত"), "Yes": ("good", "ভালো"), "Watch this": ("thin", "পাতলা"), "Risky": ("very thin", "খুব পাতলা"),
+}
+
+
+def _sentences(parts: list[Optional[dict]]) -> Optional[dict]:
+    parts = [p for p in parts if p]
+    if not parts:
+        return None
+    return bi(" ".join(p["en"] for p in parts), " ".join(p["bn"] for p in parts))
+
+
+def _word(sec: Optional[dict]) -> Optional[str]:
+    return ((sec or {}).get("word") or {}).get("en")
+
+
+def _profit_cash_line(ty: Optional[dict], ca: Optional[dict]) -> Optional[dict]:
+    """Profit direction joined with whether it came in as cash: the one
+    sentence no single row says."""
+    tyw, caw = _word(ty), _word(ca)
+    if tyw == "Loss":
+        if caw == "Yes":
+            return bi("It is making a loss right now, though money is still coming into the business.",
+                      "এখন এটি লোকসানে আছে, তবে ব্যবসায় এখনো টাকা আসছে।")
+        return bi("It is making a loss right now.", "এখন এটি লোকসানে আছে।")
+    lead = _PROFIT_LEAD.get(tyw or "")
+    if not lead:
+        return None
+    en, bn_ = lead
+    if caw == "Yes":
+        if tyw == "Growing":
+            tail = (", and it comes in as real money, so the growth looks real.",
+                    ", আর তা আসল নগদ টাকা হয়েই আসছে, তাই বৃদ্ধিটা আসল বলেই মনে হয়।")
+        elif tyw == "Slipping":
+            tail = (", but what it earns still comes in as real money.", ", তবে যা আয় করে তা আসল নগদ টাকা হয়েই আসছে।")
+        else:
+            tail = (", and it comes in as real money.", ", আর তা আসল নগদ টাকা হয়েই আসছে।")
+    elif caw == "Mostly":
+        tail = (", and most of it comes in as real money.", ", আর এর বেশির ভাগ আসল নগদ হয়ে আসছে।")
+    elif caw == "No":
+        if tyw == "Growing":
+            tail = (", but little of it comes in as real money, so check that the growth is real.",
+                    ", তবে এর সামান্যই আসল নগদ হয়ে আসছে, তাই বৃদ্ধিটা আসল কি না দেখে নিন।")
+        else:
+            tail = (", and little of it comes in as real money.", ", আর এর সামান্যই আসল নগদ হয়ে আসছে।")
+    else:
+        tail = (".", "।")
+    return bi(en + tail[0], bn_ + tail[1])
+
+
+def _loans_line(sa: Optional[dict], sector_class: str) -> Optional[dict]:
+    if not sa:
+        return None
+    if (sa.get("measures") or {}).get("no_loans"):
+        return bi("It has no loans.", "এর কোনো ঋণ নেই।")
+    w = _word(sa)
+    if sector_class in _LENDERS and w in _CUSHION_LINE:
+        c_en, c_bn = _CUSHION_LINE[w]
+        return bi(f"It keeps a {c_en} cushion of its own money behind what it lends.",
+                  f"যা ধার দেয় তার পেছনে নিজের টাকার {c_bn} সুরক্ষা রাখে।")
+    line = _LOANS_LINE.get(w or "")
+    return bi(*line) if line else None
+
+
+def _size_line(se: Optional[dict]) -> Optional[dict]:
+    size = (se or {}).get("_size")
+    return bi(f"It is {_lc(size['en'])}.", f"এটি {size['bn']}।") if size else None
+
+
+def build_reads(inp: dict, sections: dict) -> dict:
+    """One written read per chapter (`ch-company` · `ch-price` · `ch-risks` ·
+    `ch-next`): two or three plain sentences that put the chapter's answers
+    together. Built only from the sections' own words and figures, so it never
+    says something a row doesn't back up. Premium."""
+    ty, ca, sa = sections.get("this_year"), sections.get("cash"), sections.get("safety")
+    se, pr, dv = sections.get("sector"), sections.get("price"), sections.get("dividend")
+    rf, ow, ri, nx = sections.get("red_flags"), sections.get("owners"), sections.get("risks"), sections.get("next")
+    sc = inp.get("sector_class") or "GENERAL"
+    ltp = _f(inp.get("ltp"))
+    out: dict[str, Optional[dict]] = {}
+
+    # The company: profit + cash, loans, its place in its sector.
+    out["ch-company"] = _sentences([_profit_cash_line(ty, ca), _loans_line(sa, sc), _size_line(se)])
+
+    # The price: years of profit now vs usual, our fair range, our buy price.
+    if pr:
+        pe = pr.get("pe") or {}
+        now, usual = _f(pe.get("now")), _f(pe.get("usual"))
+        if now and now > 0 and usual and usual > 0:
+            years = bi(f"You pay for about {now:.0f} years of its profit today; it usually costs about {usual:.0f}.",
+                       f"আজ আপনি এর প্রায় {now:.0f} বছরের মুনাফার দাম দিচ্ছেন; সাধারণত লাগে প্রায় {usual:.0f} বছরের।")
+        elif now and now > 0:
+            years = bi(f"You pay for about {now:.0f} years of its profit today.",
+                       f"আজ আপনি এর প্রায় {now:.0f} বছরের মুনাফার দাম দিচ্ছেন।")
+        else:
+            years = bi("It made no profit in its latest results, so its price can't be judged on profit.",
+                       "সর্বশেষ ফলে মুনাফা নেই, তাই মুনাফা দিয়ে এর দাম বিচার করা যায় না।")
+        fair = pr.get("fair")
+        fair_line = buy_line = None
+        if fair and ltp:
+            where = (("below it", "তার নিচে") if ltp < fair["low"] else ("above it", "তার ওপরে") if ltp > fair["high"]
+                     else ("inside that range", "এর মধ্যেই"))
+            fair_line = bi(
+                f"By our sums a fair price is {money(fair['low'])} to {money(fair['high'])}, so today's {money(ltp)} is {where[0]}.",
+                f"আমাদের হিসাবে ন্যায্য দাম {money(fair['low'])} থেকে {money(fair['high'])}, তাই আজকের {money(ltp)} {where[1]}।")
+        bb = _f(pr.get("buy_below"))
+        if fair and bb and ltp:
+            buy_line = (bi(f"We would buy under {money(bb)}, which leaves room in case we are wrong.",
+                           f"{money(bb)}-এর নিচে কেনা ভালো মনে করি, তাতে আমাদের ভুল হলেও কিছুটা নিরাপত্তা থাকে।")
+                        if ltp > bb else
+                        bi(f"That is already under {money(bb)}, the price we would buy under.",
+                           f"এটি আমাদের কেনার দাম {money(bb)}-এর নিচেই।"))
+        yld = _f((((dv or {}).get("latest")) or {}).get("yield_pct"))
+        div_line = (bi(f"It also pays about {yld:.1f}% a year in cash on today's price.",
+                       f"আজকের দামে এটি বছরে প্রায় {yld:.1f}% নগদ ডিভিডেন্ডও দেয়।") if yld and yld > 0 else None)
+        out["ch-price"] = _sentences([years, fair_line, buy_line or div_line])
+
+    # Anything wrong: the serious first, then the biggest smaller thing, the owners.
+    if rf or ow:
+        parts: list[Optional[dict]] = []
+        checks = (rf or {}).get("checks") or []
+        reds = [c for c in checks if c["level"] == "red"]
+        ambers = [c for c in checks if c["level"] == "amber"]
+        if reds:
+            d0 = reds[0]["detail"]
+            lead_en = "We found one serious problem: " if len(reds) == 1 else f"We found {len(reds)} serious problems. The biggest: "
+            lead_bn = "একটি গুরুতর সমস্যা পেয়েছি: " if len(reds) == 1 else f"{len(reds)}টি গুরুতর সমস্যা পেয়েছি। সবচেয়ে বড়টি: "
+            parts.append(bi(lead_en + _lc(d0["en"]).rstrip(".") + ".", lead_bn + d0["bn"].rstrip("।") + "।"))
+        elif ambers:
+            d0 = ambers[0]["detail"]
+            parts.append(bi("Nothing is seriously wrong. The main thing to check: " + _lc(d0["en"]).rstrip(".") + ".",
+                            "গুরুতর কোনো সমস্যা নেই। মূলত যা দেখে নেবেন: " + d0["bn"].rstrip("।") + "।"))
+        elif rf:
+            parts.append(bi("Nothing is wrong in any of the things we check.", "আমরা যা যা দেখি, তার কোনোটিতেই সমস্যা নেই।"))
+        # What would make the named problem worse (or end it): only the first
+        # item's, so "this" points at the thing the sentence before named.
+        trig = (((ri or {}).get("items") or [{}])[0]).get("trigger") if (reds or ambers) else None
+        if trig:
+            parts.append(trig)
+        if ow:
+            w = _word(ow)
+            r30 = ow.get("rule30") or {}
+            if w == "Buying":
+                parts.append(bi("The people who run it have been buying its shares, which is a good sign.",
+                                "কোম্পানি যাঁরা চালান, তাঁরা এর শেয়ার কিনছেন, যা ভালো লক্ষণ।"))
+            elif w == "Selling":
+                parts.append(bi("The people who run it have been selling shares, which is worth checking.",
+                                "কোম্পানি যাঁরা চালান, তাঁরা শেয়ার বিক্রি করছেন, যা খতিয়ে দেখার মতো।"))
+            elif r30 and r30.get("ok") is False:
+                parts.append(bi("The founders own less than the rules ask them to keep.",
+                                "উদ্যোক্তা-পরিচালকদের হাতে নিয়মের চেয়ে কম শেয়ার আছে।"))
+            else:
+                parts.append(bi("The people who run it have not bought or sold shares this year.",
+                                "এ বছর কোম্পানি যাঁরা চালান, তাঁরা শেয়ার কেনেননি বা বিক্রি করেননি।"))
+        out["ch-risks"] = _sentences(parts)
+
+    # What's next: the next dates, and what the first one needs to show.
+    if nx:
+        first = (nx.get("items") or [None])[0]
+        exp = (first or {}).get("expect")
+        if exp:
+            # The row's line points at its own date; here it follows the sentence naming it.
+            exp = bi(exp["en"].replace("by this day", "by then").replace("on this day", "on that day"),
+                     exp["bn"].replace("এই দিনের মধ্যে", "তার মধ্যে").replace("এই দিনে", "সেদিন"))
+        out["ch-next"] = _sentences([nx["headline"], exp])
+    return {k: v for k, v in out.items() if v}
+
+
+# What would end each "not yet", in plain words (the signal's own blockers).
+_VIEW_FIX = {
+    "z_category": bi("If it moves out of category Z, after paying a dividend and holding its yearly meeting.",
+                     "লভ্যাংশ দিয়ে আর বার্ষিক সভা করে Z ক্যাটাগরি থেকে বেরিয়ে এলে।"),
+    "stale_financials": bi("When it publishes up-to-date yearly accounts.", "হালনাগাদ বার্ষিক হিসাব প্রকাশ করলে।"),
+    "thin_trading": bi("If more of its shares start trading each day.", "প্রতিদিন আরও বেশি শেয়ার লেনদেন হতে শুরু করলে।"),
+    "earnings_dropped": bi("If its next results show profit recovering.", "পরের ফলে মুনাফা আবার বাড়তে দেখা গেলে।"),
+    "heavy_debt": bi("If it pays its loans down below what the whole company is worth on the market.",
+                     "পুরো কোম্পানির বাজারমূল্যের নিচে ঋণ নামিয়ে আনলে।"),
+    "red_flag": bi("If the serious problem we found is resolved.", "যে গুরুতর সমস্যা পেয়েছি, তা মিটে গেলে।"),
+}
+
+
+def build_view(inp: dict, sections: dict, answer: dict) -> dict:
+    """Our view (2026-10-30): where the report ends. The case for, the case
+    against, what would change our answer (the Buy signal's own lines turned
+    into prices and events, so it never disagrees with the chip) and our buy
+    price. Premium; free readers see what it holds (`inside`)."""
+    decision = answer.get("decision")
+    ty, ca, sa = sections.get("this_year"), sections.get("cash"), sections.get("safety")
+    pr, dv, ow = sections.get("price"), sections.get("dividend"), sections.get("owners")
+    se, rf = sections.get("sector"), sections.get("red_flags")
+    sc = inp.get("sector_class") or "GENERAL"
+    reason = (inp.get("signal") or {}).get("reason_key")
+    checks = (rf or {}).get("checks") or []
+
+    pros: list[dict] = []
+    cons: list[dict] = []
+    # The case against: serious problems first, then what blocks a Buy.
+    for c in [c for c in checks if c["level"] == "red"][:2]:
+        cons.append(bi(c["detail"]["en"].rstrip(".") + ".", c["detail"]["bn"].rstrip("।") + "।"))
+    if reason in _RISK_BLOCKS and reason != "red_flag":
+        cl = _RISK_BLOCKS[reason][1]
+        cons.append(bi(cl["en"][0].upper() + cl["en"][1:] + ".", cl["bn"] + "।"))
+
+    tier = (answer.get("lights") or [{}])[0].get("word", {}).get("en")
+    if tier == "Excellent":
+        pros.append(bi("We grade the business excellent, one of the strongest on the DSE.",
+                       "ব্যবসাকে আমরা চমৎকার গ্রেড দিই, ডিএসইর সবচেয়ে শক্তিশালীগুলোর একটি।"))
+    elif tier == "Weak":
+        cons.append(bi("We grade the business weak.", "ব্যবসাকে আমরা দুর্বল গ্রেড দিই।"))
+    pc = _profit_cash_line(ty, ca)
+    if pc and _word(ty) == "Growing" and _word(ca) != "No":
+        pros.append(pc)
+    elif pc and (_word(ty) in ("Loss", "Slipping") or _word(ca) == "No"):
+        cons.append(pc)
+    if _word(pr) == "Low":
+        pros.append(bi("It is cheap for the profit it makes.", "মুনাফার তুলনায় এটি সস্তা।"))
+    elif _word(pr) == "High":
+        cons.append(bi("It is expensive for the profit it makes.", "মুনাফার তুলনায় এটি দামি।"))
+    ll = _loans_line(sa, sc)
+    if ll and _word(sa) in ("Easily", "Yes"):
+        pros.append(ll)
+    elif ll:
+        cons.append(ll)
+    if _word(dv) in ("Rising", "Steady"):
+        # The word reads the last two years only, so never "every year".
+        pros.append(bi("It has raised its cash dividend." if _word(dv) == "Rising" else "It has kept its cash dividend steady.",
+                       "নগদ ডিভিডেন্ড বাড়িয়েছে।" if _word(dv) == "Rising" else "নগদ ডিভিডেন্ড একই রেখেছে।"))
+    elif _word(dv) in ("Cut", "Falling"):
+        cons.append(bi("It has cut its cash dividend.", "নগদ ডিভিডেন্ড কমিয়েছে।"))
+    if _word(ow) == "Buying":
+        pros.append(bi("The people who run it are buying its shares.", "কোম্পানি যাঁরা চালান, তাঁরা এর শেয়ার কিনছেন।"))
+    elif _word(ow) == "Selling":
+        cons.append(bi("The people who run it are selling shares.", "কোম্পানি যাঁরা চালান, তাঁরা শেয়ার বিক্রি করছেন।"))
+    if _word(se) == "Top 3" and _size_line(se):
+        pros.append(_size_line(se))
+    ambers = [c for c in checks if c["level"] == "amber"]
+    if ambers:
+        n = len(ambers)
+        cons.append(bi(f"{n} smaller {'thing' if n == 1 else 'things'} in its notices {'is' if n == 1 else 'are'} worth a look.",
+                       f"এর নোটিশে {n}টি ছোট বিষয় দেখে নেওয়ার মতো।"))
+    if not pros:
+        pros.append(bi("We found little in its favour right now.", "এই মুহূর্তে এর পক্ষে তেমন কিছু পাইনি।"))
+    if not cons:
+        cons.append(bi("We found nothing serious against it.", "এর বিপক্ষে গুরুতর কিছু পাইনি।"))
+
+    # What would change our answer: the signal's lines as prices and events.
+    ltp = _f(inp.get("ltp"))
+    top = _near_top(inp)
+    bb = _f((pr or {}).get("buy_below"))
+    change: list[dict] = []
+    if decision == "buy":
+        if top and ltp and ltp < top:
+            change.append(bi(f"If the price climbs past {money(top)}, it is near its highest this year, and we would stop calling it a Buy.",
+                             f"দাম {money(top)} ছাড়ালে তা এ বছরের সর্বোচ্চের কাছে চলে যাবে, তখন আর কেনার কথা বলব না।"))
+        change.append(bi("If its next results show profit down by a quarter or more from a year earlier.",
+                         "পরের ফলে মুনাফা আগের বছরের চেয়ে এক-চতুর্থাংশ বা তার বেশি কমলে।"))
+        change.append(bi("If a serious problem turns up in its notices.", "এর নোটিশে কোনো গুরুতর সমস্যা দেখা দিলে।"))
+    elif decision == "wait":
+        if answer.get("blocker") == "risks":
+            change.append(_VIEW_FIX.get(reason) or _VIEW_FIX["red_flag"])
+        elif reason == "near_52w_high" and top:
+            change.append(bi(f"If the price falls back under {money(top)}, it is no longer near its highest this year.",
+                             f"দাম {money(top)}-এর নিচে নামলে তা আর এ বছরের সর্বোচ্চের কাছে থাকবে না।"))
+        elif bb:
+            change.append(bi(f"If the price falls under {money(bb)}, it reaches the price we would buy under.",
+                             f"দাম {money(bb)}-এর নিচে নামলে তা আমাদের কেনার দামে পৌঁছাবে।"))
+        if _word(ty) == "Growing" and answer.get("blocker") == "price":
+            change.append(bi("If its profit keeps growing, today's price gets cheaper for the profit it makes.",
+                             "মুনাফা বাড়তে থাকলে মুনাফার তুলনায় আজকের দাম সস্তা হয়ে আসবে।"))
+    elif decision == "no_reason":
+        change.append(bi("If the business improves enough for our grade to reach Good.",
+                         "ব্যবসা এতটা ভালো হলে যে আমাদের গ্রেড ভালো-তে ওঠে।"))
+        if _word(pr) != "Low":
+            change.append(bi("Even then, we would want a lower price for the profit it makes.",
+                             "তখনও, মুনাফার তুলনায় আরও কম দাম চাইব।"))
+    elif decision == "avoid":
+        change.append(bi("If the business recovers and our grade rises out of Weak.",
+                         "ব্যবসা ঘুরে দাঁড়ালে আর আমাদের গ্রেড দুর্বল থেকে ওপরে উঠলে।"))
+    else:
+        change.append(bi("When it publishes enough figures for us to rate it.",
+                         "রেটিং দেওয়ার মতো যথেষ্ট তথ্য প্রকাশ করলে।"))
+
+    inside = [bi("The case for buying it, from this report", "এই রিপোর্ট থেকে কেনার পক্ষে যুক্তি"),
+              bi("The case against it", "এর বিপক্ষে যুক্তি"),
+              bi("What would change our answer, with the prices", "কী হলে আমাদের উত্তর বদলাবে, দামসহ")]
+    if answer.get("buy_price") is not None:
+        inside.append(bi("Our buy price, with a one-tap alert", "আমাদের কেনার দাম, এক ট্যাপে অ্যালার্টসহ"))
+    return {
+        "headline": bi(f"Our answer: {answer['word']['en']}. {answer['line']['en']}",
+                       f"আমাদের উত্তর: {answer['word']['bn']}। {answer['line']['bn']}"),
+        "for": pros[:3],
+        "against": cons[:3],
+        "change": change[:3],
+        "buy_price": answer.get("buy_price"),
+        "inside": inside,
+    }
+
+
+def _day_month(iso) -> Optional[dict]:
+    d = _d(iso)
+    return bi(f"{d.day} {_MON_EN[d.month]}", f"{d.day} {_MON_BN[d.month]}") if d else None
+
+
+def build_next_questions(inp: dict, sections: dict, answer: dict, view: dict, reads: dict) -> list[dict]:
+    """The free reader's one Premium card, under the answer (2026-10-30, plan
+    https://claude.ai/artifact/UHZTK5nvUVrtzzmq6c2oSX). Each row pairs an
+    answer the reader already has (`word`, free on the page) with the question
+    it leaves (`ask` + `hint`), which the full report answers. `answer` is that
+    Premium answer: the page shows it only as the sample from today's free
+    report. Up to five, chosen for this share."""
+    rows: list[dict] = []
+
+    def add(key, word, tone, ask, hint, ans):
+        if word and ask:
+            rows.append({"key": key, "word": word, "tone": tone or "neutral", "ask": ask, "hint": hint, "answer": ans})
+
+    dec = answer.get("decision")
+    bp = answer.get("buy_price")
+    change = (view or {}).get("change") or []
+    first = change[0] if change else None
+    if dec == "buy":
+        price_line = bi(f"We would buy under {money(bp)}.", f"{money(bp)}-এর নিচে কেনা ভালো মনে করি।") if bp else None
+        add("answer", answer["word"], answer["tone"], bi("Up to what price?", "কত দাম পর্যন্ত?"),
+            bi("The price we would buy under, and what would make us stop saying Buy",
+               "কোন দামের নিচে কেনা ভালো, আর কী হলে আর কেনার কথা বলব না") if bp else
+            bi("What would make us stop saying Buy", "কী হলে আর কেনার কথা বলব না"),
+            _sentences([price_line, first]))
+    elif dec == "wait":
+        add("answer", answer["word"], answer["tone"], bi("What would change it?", "কী হলে বদলাবে?"),
+            bi("What has to happen before we say Buy, and the price we would buy under",
+               "কেনার কথা বলার আগে কী হতে হবে, আর কোন দামের নিচে কেনা ভালো") if bp else
+            bi("What has to happen before we say Buy", "কেনার কথা বলার আগে কী হতে হবে"),
+            first)
+    elif dec in ("no_reason", "avoid"):
+        add("answer", answer["word"], answer["tone"], bi("What would change our answer?", "কী হলে আমাদের উত্তর বদলাবে?"),
+            bi("The case for and against it, and what would have to change", "পক্ষে-বিপক্ষে যুক্তি, আর কী বদলাতে হবে"),
+            first)
+
+    pr = sections.get("price")
+    pw = _word(pr)
+    if pr and pw in ("Low", "High", "Fair"):
+        ask = {"Low": bi("How low?", "কতটা কম?"), "High": bi("How high?", "কতটা বেশি?"),
+               "Fair": bi("What is a fair price?", "ন্যায্য দাম কত?")}[pw]
+        n = len(pr.get("methods") or [])
+        if pr.get("fair"):
+            hint = (bi(f"Our fair price, worked out {n} ways", f"আমাদের হিসাবে ন্যায্য দাম, {n}টি উপায়ে হিসাব করা") if n >= 2
+                    else bi("Our fair price for it", "আমাদের হিসাবে এর ন্যায্য দাম"))
+        else:
+            hint = bi("How its price compares with its own past and with similar companies",
+                      "এর দাম নিজের অতীত আর একই ধরনের কোম্পানির তুলনায় কেমন")
+        add("price", pr["word"], "bad" if pw == "High" else pr["tone"], ask, hint, pr.get("headline"))
+
+    rf = sections.get("red_flags")
+    checks = (rf or {}).get("checks") or []
+    reds = [c for c in checks if c["level"] == "red"]
+    ambers = [c for c in checks if c["level"] == "amber"]
+    risks_ans = reads.get("ch-risks") or (rf or {}).get("headline")
+    if reds:
+        one = len(reds) == 1
+        add("red_flags", rf["word"], "bad", bi("How serious is it?" if one else "How serious are they?", "কতটা গুরুতর?"),
+            bi("What it means for you, and what would end it" if one else "What they mean for you, and what would end them",
+               "আপনার জন্য এর মানে কী, আর কী হলে এটি মিটবে" if one else "আপনার জন্য এগুলোর মানে কী, আর কী হলে এগুলো মিটবে"),
+            risks_ans)
+    elif ambers:
+        n = len(ambers)
+        add("red_flags", bi(f"{n} small {'thing' if n == 1 else 'things'}", f"{n}টি ছোট বিষয়"), "fair",
+            bi("What is it?" if n == 1 else "What are they?", "সেটি কী?" if n == 1 else "সেগুলো কী?"),
+            bi("Each one in plain words, with the notice behind it", "প্রতিটি সহজ ভাষায়, পেছনের নোটিশসহ"), risks_ans)
+
+    ty = sections.get("this_year")
+    if _word(ty) in ("Slipping", "Loss"):
+        add("this_year", ty["word"], ty["tone"], bi("Is it getting worse?", "অবস্থা কি আরও খারাপ হচ্ছে?"),
+            bi("How each part of this year compares with last year", "এ বছরের প্রতিটি অংশ আগের বছরের তুলনায় কেমন"),
+            ty.get("headline"))
+
+    ow = sections.get("owners")
+    tc = (ow or {}).get("trade_counts") or {}
+    if ow and (tc.get("buys") or tc.get("sells")):
+        add("owners", ow["word"], ow["tone"], bi("Who, and at what price?", "কে, কোন দামে?"),
+            bi("Who among the people who run it bought or sold, when, and what they paid",
+               "কোম্পানি যাঁরা চালান, তাঁদের মধ্যে কে কখন কিনেছেন বা বিক্রি করেছেন, আর কত দামে"),
+            ow.get("headline"))
+
+    nx = sections.get("next")
+    res = next((i for i in (nx or {}).get("items") or [] if i.get("kind") == "results"), None)
+    dm = _day_month(res["date"]) if res else None
+    if dm:
+        word = (bi(f"Results around {dm['en']}", f"ফল আসবে প্রায় {dm['bn']}") if res.get("approx")
+                else bi(f"Results on {dm['en']}", f"ফল আসবে {dm['bn']}"))
+        add("next", word, "neutral", bi("What must they show?", "তাতে কী দেখা দরকার?"),
+            bi("What the results need to show to keep our answer", "আমাদের উত্তর ধরে রাখতে ফলে কী দেখা দরকার"),
+            res.get("expect") or nx.get("headline"))
+
+    dv = sections.get("dividend")
+    cps = ((dv or {}).get("latest") or {}).get("cash_ps")
+    if dv and cps:
+        add("dividend", dv["word"], dv["tone"], bi("Is it safe?", "এটি কি নিরাপদ?"),
+            bi("What it pays you after tax, and whether it can keep paying", "কর বাদে আপনি কত পান, আর এটি দিয়ে যেতে পারবে কি না"),
+            dv.get("headline"))
+
+    al = sections.get("alternatives")
+    if al:
+        add("alternatives", al["word"], al["tone"], bi("Which ones?", "কোনগুলো?"),
+            bi("Stronger companies in its sector at a lower price, and how each compares",
+               "একই সেক্টরে আরও শক্তিশালী আর কম দামের কোম্পানি, আর প্রতিটির তুলনা"),
+            al.get("headline"))
+    return rows[:5]
+
+
 # ---------------------------------------------------------------- the report
 
 def _public(sec: Optional[dict]) -> Optional[dict]:
@@ -3141,6 +3875,10 @@ def build_report(inp: dict) -> dict:
             "owners": owners, "cash": cash, "safety": safety, "quality": quality, "next": nxt,
             "risks": risks, "story": story, "sector": sector, "alternatives": alts}
     scorecard = build_scorecard(work, inp)
+    answer = build_answer(inp, work)
+    reads = build_reads(inp, work)
+    view = build_view(inp, work, answer)
+    next_questions = build_next_questions(inp, work, answer, view, reads)
     summary = build_summary(work, inp)
     offer = build_offer(work)
     events = build_events(inp)
@@ -3154,6 +3892,10 @@ def build_report(inp: dict) -> dict:
         "summary": summary,
         "summary_kinds": bi("A strength, a price read and a watch-out, written for this share.",
                             "একটি শক্তির দিক, দাম নিয়ে একটি মত আর একটি সতর্কতা, এই শেয়ারের জন্য লেখা।"),
+        "answer": answer,
+        "reads": reads,
+        "view": view,
+        "next_questions": next_questions,
         "scorecard": scorecard,
         "warning": warning,
         "events": events,
@@ -3176,4 +3918,8 @@ def snapshot_fields(report: dict) -> dict:
         "red_lines": {c["key"]: c["detail"] for c in rf.get("checks") or [] if c["level"] == "red"},
         "fair_center": ((pr.get("fair") or {}).get("center")),
         "buy_below": pr.get("buy_below"),
+        # The answer card (2026-10-30): the watcher's `answer` event diffs these.
+        "decision": (report.get("answer") or {}).get("decision"),
+        "answer_word": (report.get("answer") or {}).get("word"),
+        "answer_line": (report.get("answer") or {}).get("line"),
     }

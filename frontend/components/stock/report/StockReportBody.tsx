@@ -1,188 +1,323 @@
-import type { ReactNode } from "react";
-import StockChapter from "@/components/stock/StockChapter";
-import ReportSection from "@/components/stock/report/ReportSection";
+import { isValidElement, type ReactNode } from "react";
+import QuestionRow from "@/components/stock/report/QuestionRow";
+import ReportChapter from "@/components/stock/report/ReportChapter";
+import FullReportBand from "@/components/stock/report/FullReportBand";
+import ReportDepth from "@/components/stock/report/ReportDepth";
 import ReportOffer from "@/components/stock/report/ReportOffer";
+import ReportView from "@/components/stock/report/ReportView";
 import ShareCheck from "@/components/stock/report/ShareCheck";
 import YouAndThisStock from "@/components/stock/report/YouAndThisStock";
-import ScoreHistory from "@/components/stock/ScoreHistory";
-import DeepAnalysisReport from "@/components/stock/DeepAnalysisReport";
 import { T } from "@/components/i18n/T";
+import { ToneChip, tx } from "@/components/stock/report/fmt";
 import {
-  AlternativesBody, CashBody, DividendBody, DividendFree, NextBody, NextFree, OwnersBody, OwnersFree,
-  PriceBody, PriceFree, QualityBody, QualityFree, RedFlagsBody, RedFlagsFree, RisksBody, SafetyBody, SafetyFree,
-  SectorFree, StoryBody, StoryFree, ThisYearBody, ThisYearFree,
+  AlternativesDetails, CashPremium, DividendDetails, DividendFree, DividendPremium, MoneyPicture, NextDetails, NextFree,
+  OwnersDetails, OwnersFree, PriceDetails, PricePicture, PricePremium, QualityDetails, RedFlagsDetails, StrengthPicture, strengthAnswer,
+  RedFlagsFree, RisksDetails, SafetyDetails, SafetyFree, SafetyPremium, SharesPicture, ThisYearDetails, ThisYearFree,
+  ThisYearPremium, sharesAnswer,
 } from "@/components/stock/report/sections";
-import { freeReportSections } from "@/lib/free-share";
-import type { CompanyDetail, DeepAnalysisReport as DeepReport } from "@/lib/api";
-import { REPORT_PARTS, SECTION_ORDER, type CheckKey, type SectionBase, type SectionKey, type StockReport } from "@/lib/stock-report";
-import { tx } from "@/components/stock/report/fmt";
+import type { CompanyDetail } from "@/lib/api";
+import {
+  CHAPTER_SIGNPOST, FREE_CHAPTER, REPORT_CHAPTERS, VIEW_CHAPTER, type Bi, type CheckKey, type QuestionKey, type SectionBase, type SectionKey, type StockReport,
+} from "@/lib/stock-report";
 
 const CHECKS: CheckKey[] = ["red_flags", "price", "dividend", "this_year", "owners", "cash", "safety", "quality"];
 
-/** Old anchors that pushes, the results feed and stories still link to. */
-const ALIASES: Partial<Record<SectionKey, string[]>> = {
-  this_year: ["results"],
-  quality: ["score-history", "health"],
+/** Old anchors that pushes, the results feed, stories and old sections link
+ *  to, and the row they land on now. */
+const ALIASES: Partial<Record<QuestionKey, string[]>> = {
+  this_year: ["results", "rp-story"],
+  quality: ["score-history", "health", "rp-sector"],
   price: ["v-price", "v-fair"],
   // "red-flags": the watcher's red-flag push links here.
   red_flags: ["signals", "red-flags"],
 };
 
-/** The sections open in full for everyone on this share (`freeReportSections`),
- *  with the label the scorecard gives each — the overview card links to them. */
-export function reportSamples(report: StockReport): { key: SectionKey; label: StockReport["scorecard"][number]["label"] }[] {
+/** Where a company stands on the DSE, in words (mirrors the backend's
+ *  `build_quality` lead): never "2nd of 362". */
+function standingWords(rank: number, total: number): Bi {
+  const share = rank / total;
+  if (rank <= 10) return { en: "One of the 10 strongest companies on the DSE.", bn: "ডিএসইর সবচেয়ে শক্তিশালী 10টি কোম্পানির একটি।" };
+  if (share <= 0.25) return { en: "Stronger than most companies on the DSE.", bn: "ডিএসইর বেশির ভাগ কোম্পানির চেয়ে শক্তিশালী।" };
+  if (share <= 0.5) return { en: "Stronger than about half the companies on the DSE.", bn: "ডিএসইর প্রায় অর্ধেক কোম্পানির চেয়ে শক্তিশালী।" };
+  if (share <= 0.9) return { en: "Weaker than most companies on the DSE.", bn: "ডিএসইর বেশির ভাগ কোম্পানির চেয়ে দুর্বল।" };
+  return { en: "One of the weakest companies on the DSE.", bn: "ডিএসইর সবচেয়ে দুর্বল কোম্পানিগুলোর একটি।" };
+}
+
+/** Which chapters a report fills, in order (the sticky chips read this too). */
+export function reportChapters(report: StockReport): typeof REPORT_CHAPTERS {
   const sec = report.sections;
-  const present = SECTION_ORDER.filter((k) => sec[k] != null);
-  return freeReportSections(present).map((k) => ({
-    key: k as SectionKey,
-    label: report.scorecard.find((c) => c.key === k)?.label ?? (sec[k as SectionKey] as SectionBase).title,
-  }));
+  const has = (k: QuestionKey) =>
+    k === "you" ? false
+    : k === "shares" ? !!(sec.dividend && sec.dividend.history.length >= 2)
+    : k === "this_year" ? !!(sec.this_year || sec.story)
+    : k === "quality" ? !!(sec.quality || sec.sector)
+    : !!sec[k as SectionKey];
+  // "You and this stock" only shows for a signed-in holder, so it never keeps
+  // a chapter on the page by itself.
+  return REPORT_CHAPTERS.filter((c) => c.rows.some((r) => has(r.key)));
 }
 
 /**
- * The stock report (2026-10-28): every section in report order, in three
- * parts (`REPORT_PARTS`, 2026-10-29) — each part a chapter (h2) with its
- * sections on one sheet split by hairlines — then "You and this stock" (inside
- * the second part), the analyst note (where a written report exists) and the
- * one offer. A free reader gets a few sections open in full
- * (`freeReportSections`); every other Premium panel is closed whole and says
- * only what that section shows — what Premium is lives once, on the
- * overview's `ReportGuide` card (rendered by the page).
+ * The stock report (2026-10-30 rebuild, plan
+ * https://claude.ai/artifact/9AjhtrCYGSjS2Lx9Kajjg7): four chapters, one per
+ * question behind the answer card's three lights (`REPORT_CHAPTERS`) plus
+ * what comes next. Each chapter opens with its written read and is a list of
+ * plain questions (`QuestionRow`: question, word, picture, one line, what it
+ * means, the figures folded). Then Our view, then a short closing offer.
+ *
+ * The full report (2026-10-30, plan https://claude.ai/artifact/1TuJ9dvifeXTLzs5wVwk2Q):
+ * free gives the answers, Premium the full report. "Is it a good company?"
+ * (`FREE_CHAPTER`) is open in full on every share, read included; the price,
+ * the risks, what's next and Our view are Premium. A closed chapter shows its
+ * free answers and one signpost back to the Premium card under the answer
+ * (plan https://claude.ai/artifact/UHZTK5nvUVrtzzmq6c2oSX).
  */
-export default function StockReportBody({
-  detail,
-  report,
-  deep,
-}: {
-  detail: CompanyDetail;
-  report: StockReport;
-  deep: DeepReport | null;
-}) {
+export default function StockReportBody({ detail, report }: { detail: CompanyDetail; report: StockReport }) {
   const { profile, latest_price } = detail;
   const code = profile.trading_code;
   const name = profile.company_name ?? code;
   const ltp = latest_price.ltp ?? null;
   const sec = report.sections;
+  const share = (k: SectionKey) =>
+    (CHECKS as string[]).includes(k) ? <ShareCheck code={code} k={k as CheckKey} name={name} /> : undefined;
 
-  // Each section: its free face and its Premium body.
-  const bodies: Partial<Record<SectionKey, { free?: ReactNode; body?: ReactNode }>> = {
-    red_flags: sec.red_flags && {
-      free: <RedFlagsFree s={sec.red_flags} />,
-      body: <RedFlagsBody s={sec.red_flags} />,
+  /** A row straight from one backend section. */
+  const fromSection = (
+    k: SectionKey,
+    q: Bi,
+    parts: {
+      picture?: ReactNode; free?: ReactNode; premiumPicture?: ReactNode;
+      details?: ReactNode; extraMeaning?: Bi[];
     },
-    price: sec.price && {
-      free: <PriceFree s={sec.price} />,
-      body: (
-        <PriceBody
-          s={sec.price}
+    s: SectionBase,
+    open: boolean,
+  ) => (
+    <QuestionRow
+      key={k}
+      id={`rp-${k}`}
+      aliases={ALIASES[k]}
+      title={tx(q)}
+      word={s.word}
+      tone={s.tone}
+      picture={parts.picture}
+      free={parts.free}
+      premiumPicture={parts.premiumPicture}
+      headline={s.headline}
+      freeLine={s.free_line}
+      details={parts.details}
+      meaning={[...s.meaning, ...(parts.extraMeaning ?? [])]}
+      watch={s.watch}
+      source={s.source}
+      action={share(k)}
+      sample={open}
+    />
+  );
+
+  /** One row; `free` = it sits in the free chapter (open for everyone). */
+  const row = (key: QuestionKey, q: Bi, free: boolean): { node: ReactNode } | null => {
+    switch (key) {
+      case "this_year": {
+        const ty = sec.this_year;
+        const st = sec.story;
+        const s = (ty ?? st) as SectionBase | undefined;
+        if (!s) return null;
+        const k: SectionKey = ty ? "this_year" : "story";
+        return {
+          node: fromSection(k, q, {
+            picture: <MoneyPicture story={st} />,
+            free: ty ? <ThisYearFree s={ty} /> : undefined,
+            premiumPicture: ty ? <ThisYearPremium s={ty} /> : undefined,
+            details: <ThisYearDetails s={ty} story={st} />,
+          }, s, free),
+        };
+      }
+      case "cash":
+        return sec.cash ? { node: fromSection("cash", q, { premiumPicture: <CashPremium s={sec.cash} /> }, sec.cash, free) } : null;
+      case "safety":
+        return sec.safety
+          ? {
+              node: fromSection("safety", q, {
+                picture: <SafetyFree s={sec.safety} />,
+                premiumPicture: <SafetyPremium s={sec.safety} />,
+                details: <SafetyDetails s={sec.safety} />,
+              }, sec.safety, free),
+            }
+          : null;
+      case "quality": {
+        // "Is it strong in its business?" (2026-10-30, user: "so hard to
+        // understand"): answered by its place among its own sector's companies
+        // — three dot lines, one sentence — with a one-word answer from its
+        // business-strength check. How we grade the whole company (the five
+        // bars, each explained, the grade history) sits in the fold.
+        const st = sec.sector;
+        const ql = sec.quality;
+        if (!st && !ql) return null;
+        const ans = strengthAnswer(detail.score_row);
+        const base = (st ?? ql) as SectionBase;
+        return {
+          node: (
+            <QuestionRow
+              key="quality"
+              id="rp-quality"
+              aliases={ALIASES.quality}
+              title={tx(q)}
+              word={ans?.word ?? base.word}
+              tone={ans?.tone ?? base.tone}
+              picture={st ? <StrengthPicture sector={st} /> : undefined}
+              headline={base.headline}
+              freeLine={base.free_line}
+              details={<QualityDetails detail={detail} />}
+              meaning={st ? st.meaning : base.meaning}
+              watch={ql?.watch ?? null}
+              source={base.source}
+              action={share("quality")}
+              sample={free}
+            />
+          ),
+        };
+      }
+      case "shares": {
+        const d = sec.dividend;
+        const a = d ? sharesAnswer(d) : null;
+        if (!d || !a) return null;
+        return {
+          node: (
+            <QuestionRow
+              key="shares"
+              id="rp-shares"
+              title={tx(q)}
+              word={a.word}
+              tone={a.tone}
+              picture={<SharesPicture s={d} />}
+              headline={a.line}
+              allFree
+            />
+          ),
+        };
+      }
+      case "price":
+        return sec.price
+          ? {
+              node: fromSection("price", q, {
+                picture: <PricePicture s={sec.price} />,
+                premiumPicture: <PricePremium s={sec.price} />,
+                details: (
+                  <PriceDetails
+                    s={sec.price}
+                    code={code}
+                    ltp={ltp}
+                    w52High={latest_price.w52_high}
+                    w52Low={latest_price.w52_low}
+                  />
+                ),
+              }, sec.price, free),
+            }
+          : null;
+      case "dividend":
+        return sec.dividend
+          ? {
+              node: fromSection("dividend", q, {
+                free: <DividendFree s={sec.dividend} />,
+                premiumPicture: <DividendPremium s={sec.dividend} />,
+                details: <DividendDetails s={sec.dividend} />,
+              }, sec.dividend, free),
+            }
+          : null;
+      case "red_flags":
+        return sec.red_flags
+          ? {
+              node: fromSection("red_flags", q, {
+                free: <RedFlagsFree s={sec.red_flags} />,
+                details: <RedFlagsDetails s={sec.red_flags} />,
+              }, sec.red_flags, free),
+            }
+          : null;
+      case "owners":
+        return sec.owners
+          ? {
+              node: fromSection("owners", q, {
+                picture: <OwnersFree s={sec.owners} />,
+                details: <OwnersDetails s={sec.owners} />,
+              }, sec.owners, free),
+            }
+          : null;
+      case "risks":
+        return sec.risks
+          ? { node: fromSection("risks", q, { details: <RisksDetails s={sec.risks} /> }, sec.risks, free) }
+          : null;
+      case "next":
+        return sec.next
+          ? {
+              node: fromSection("next", q, { picture: <NextFree s={sec.next} />, details: <NextDetails s={sec.next} /> }, sec.next, free),
+            }
+          : null;
+      case "you":
+        return { node: <YouAndThisStock key="you" code={code} ltp={ltp} report={report} /> };
+      case "alternatives":
+        return sec.alternatives
+          ? {
+              node: fromSection("alternatives", q, { details: <AlternativesDetails s={sec.alternatives} /> }, sec.alternatives, free),
+            }
+          : null;
+      default:
+        return null;
+    }
+  };
+
+  const q = sec.quality;
+  const standing = q?.rank && q.total ? standingWords(q.rank, q.total) : null;
+  const companyHead = q ? (
+    <div className="rq-chead">
+      <ToneChip word={{ en: `Graded ${q.word.en.toLowerCase()}`, bn: `গ্রেড: ${q.word.bn}` }} tone={q.tone} size="lg" />
+      {standing && (
+        <span className="rq-chead-note">
+          <T en={standing.en} bn={standing.bn} />
+        </span>
+      )}
+    </div>
+  ) : undefined;
+
+  const chapters = reportChapters(report).map((c) => {
+    const free = c.id === FREE_CHAPTER;
+    const rows = c.rows.map((r) => row(r.key, r.q, free)).filter(Boolean) as { node: ReactNode }[];
+    return { c, free, rows };
+  });
+  // "You and this stock" only shows for a holder, so it isn't counted.
+  const questions = chapters.reduce((n, ch) => n + ch.rows.filter((r) => !(isValidElement(r.node) && r.node.key === "you")).length, 0);
+  const view = report.view ?? null;
+  const depth = [...chapters.map((ch) => ch.c.id), ...(view ? [VIEW_CHAPTER.id] : [])];
+
+  return (
+    <>
+      {/* Older links to the report land on its first chapter. */}
+      <span id="ch-verdict" className="stock-anchor block" aria-hidden="true" />
+      <span id="ch-report" className="stock-anchor block" aria-hidden="true" />
+      <FullReportBand code={code} report={report} questions={questions} />
+      {chapters.map(({ c, free, rows }) => (
+        <ReportChapter
+          key={c.id}
+          id={c.id}
+          title={tx(c.title)}
+          lead={tx(c.lead)}
+          head={c.id === "ch-company" ? companyHead : undefined}
+          read={report.reads?.[c.id as keyof NonNullable<StockReport["reads"]>] ?? null}
+          free={free}
+          signpost={free ? undefined : CHAPTER_SIGNPOST[c.id]}
+        >
+          {rows.map((r) => r.node)}
+        </ReportChapter>
+      ))}
+      {view && (
+        <ReportView
+          view={view}
           code={code}
           ltp={ltp}
           w52High={latest_price.w52_high}
           w52Low={latest_price.w52_low}
         />
-      ),
-    },
-    dividend: sec.dividend && {
-      free: <DividendFree s={sec.dividend} />,
-      body: <DividendBody s={sec.dividend} />,
-    },
-    this_year: sec.this_year && {
-      free: <ThisYearFree s={sec.this_year} />,
-      body: <ThisYearBody s={sec.this_year} />,
-    },
-    next: sec.next && { free: <NextFree s={sec.next} />, body: <NextBody s={sec.next} /> },
-    owners: sec.owners && {
-      free: <OwnersFree s={sec.owners} />,
-      body: <OwnersBody s={sec.owners} />,
-    },
-    cash: sec.cash && { body: <CashBody s={sec.cash} /> },
-    safety: sec.safety && {
-      free: <SafetyFree s={sec.safety} />,
-      body: <SafetyBody s={sec.safety} />,
-    },
-    quality: sec.quality && {
-      // Free: the score and the five bars. Premium: the five checks
-      // explained, then the score history.
-      free: <QualityFree s={sec.quality} scoreRow={detail.score_row} />,
-      body: (
-        <>
-          <QualityBody detail={detail} />
-          {detail.score_history && detail.score_history.points.length >= 2 && (
-            <div className="mt-6 border-t border-border pt-4">
-              <ScoreHistory history={detail.score_history} />
-            </div>
-          )}
-        </>
-      ),
-    },
-    story: sec.story && { free: <StoryFree s={sec.story} />, body: <StoryBody s={sec.story} /> },
-    sector: sec.sector && { free: <SectorFree s={sec.sector} /> },
-    risks: sec.risks && { body: <RisksBody s={sec.risks} /> },
-    alternatives: sec.alternatives && { body: <AlternativesBody s={sec.alternatives} /> },
-  };
-
-  const samples: string[] = reportSamples(report).map((s) => s.key);
-  const section = (k: SectionKey) => {
-    const b = bodies[k] ?? {};
-    return (
-      <ReportSection
-        key={k}
-        s={sec[k] as SectionBase}
-        code={code}
-        free={b.free}
-        aliases={ALIASES[k]}
-        sample={samples.includes(k)}
-        action={(CHECKS as string[]).includes(k) ? <ShareCheck code={code} k={k as CheckKey} name={name} /> : undefined}
-      >
-        {b.body}
-      </ReportSection>
-    );
-  };
-  const you = <YouAndThisStock key="you" code={code} ltp={ltp} report={report} />;
-
-  // Three parts, each one sheet. "You and this stock" sits after "What
-  // happens next" (or opens the second part), else closes the first.
-  const parts = REPORT_PARTS.map((p) => ({ ...p, keys: p.sections.filter((k) => sec[k] != null) }));
-  const nowHas = parts.some((p) => p.id === "ch-now" && p.keys.length > 0);
-  const shown = parts.filter((p) => p.keys.length > 0 || (p.id === "ch-essentials" && !nowHas));
-
-  return (
-    <>
-      {/* Older links to the report land on its first part. */}
-      <span id="ch-verdict" className="stock-anchor block" aria-hidden="true" />
-      <span id="ch-report" className="stock-anchor block" aria-hidden="true" />
-      {shown.map((p) => {
-        const items: ReactNode[] = p.keys.map(section);
-        if (p.id === "ch-now") {
-          const at = p.keys.indexOf("next");
-          items.splice(at >= 0 ? at + 1 : 0, 0, you);
-        } else if (p.id === "ch-essentials" && !nowHas) {
-          items.push(you);
-        }
-        return (
-          <StockChapter key={p.id} id={p.id} fold={false} title={tx(p.title)} lead={tx(p.lead)}>
-            <div className="rp-sheet">{items}</div>
-          </StockChapter>
-        );
-      })}
-      {deep && (
-        <StockChapter
-          id="note"
-          fold={false}
-          title={<T en="The analyst note" bn="বিশ্লেষকের নোট" />}
-          lead={
-            <T
-              en="Our written report on the company: what it does, how it makes money, and the case for and against."
-              bn="কোম্পানি নিয়ে আমাদের লেখা রিপোর্ট: কী করে, কীভাবে আয় করে, আর পক্ষে-বিপক্ষের যুক্তি।"
-            />
-          }
-        >
-          <div className="rp-sheet rp-sheet-pad">
-            <DeepAnalysisReport report={deep} fairValue={null} code={code} />
-          </div>
-        </StockChapter>
       )}
       <ReportOffer code={code} name={name} lines={report.offer} />
+      <ReportDepth code={code} chapters={depth} />
     </>
   );
 }
