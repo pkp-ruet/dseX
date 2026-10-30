@@ -25,7 +25,7 @@ export function ToneChip({ word, tone, size = "md" }: { word: Bi; tone: Tone; si
       <span className="rp-chip-mark" aria-hidden="true">
         {tone === "good" ? <IconCheck size={12} /> : CHIP_MARK[tone]}
       </span>
-      {tx(word)}
+      <span className="rp-chip-text">{tx(word)}</span>
     </span>
   );
 }

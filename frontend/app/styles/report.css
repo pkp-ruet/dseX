@@ -61,8 +61,11 @@
   font-size: var(--fs-sm);
   font-weight: 700;
   line-height: 1.2;
-  white-space: nowrap;
+  /* A long answer ("Results around 12 Nov", "Yes, 2 serious problems") wraps
+     inside the pill; it never spills over the text beside it (2026-10-30). */
+  max-width: 100%;
 }
+.rp-chip-text { min-width: 0; overflow-wrap: break-word; }
 .rp-chip.rp-tone-good { --chip-c: var(--positive); --chip-rgb: var(--positive-rgb); }
 .rp-chip.rp-tone-fair { --chip-c: var(--watch); --chip-rgb: var(--watch-rgb); }
 .rp-chip.rp-tone-bad { --chip-c: var(--negative); --chip-rgb: var(--negative-rgb); }
