@@ -15,8 +15,9 @@ import { useAuth } from "@/context/AuthContext";
 import { type AuthUser, getStoredUser } from "@/lib/auth";
 
 /** Mirrors backend `FREE_LIMITS` — used only when a cached user predates the
- *  plan fields; the server value always wins once /me has refreshed. */
-export const FREE_LIMITS = { watchlist: 10, alerts: 3, ai_daily: 10, portfolios: 1, custom_lists: 0 } as const;
+ *  plan fields; the server value always wins once /me has refreshed.
+ *  Watchlist 5 and holdings (shares in one portfolio) 7 since 2026-10-30. */
+export const FREE_LIMITS = { watchlist: 5, holdings: 7, alerts: 3, ai_daily: 10, portfolios: 1, custom_lists: 0 } as const;
 
 export type LimitKind = keyof typeof FREE_LIMITS;
 
@@ -64,6 +65,7 @@ export function usePremium() {
   const limits = useMemo(
     () => ({
       watchlist: limitFor(user, "watchlist"),
+      holdings: limitFor(user, "holdings"),
       alerts: limitFor(user, "alerts"),
       ai_daily: limitFor(user, "ai_daily"),
       portfolios: limitFor(user, "portfolios"),

@@ -56,6 +56,7 @@ import { DEFAULT_LANG, LANG_BOOT_SCRIPT } from "@/lib/lang";
 import GoogleAuthProvider from "@/components/auth/GoogleAuthProvider";
 import { T } from "@/components/i18n/T";
 import Toaster from "@/components/ui/Toaster";
+import LimitSheet from "@/components/premium/LimitSheet";
 import PingTracker from "@/components/analytics/PingTracker";
 import FeedbackPrompt from "@/components/feedback/FeedbackPrompt";
 import PushOptInPrompt from "@/components/push/PushOptInPrompt";
@@ -157,6 +158,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <MobileBottomBar />
             <GlobalSearch />
             <Toaster />
+            <LimitSheet />
             <FeedbackPrompt />
             <PushOptInPrompt />
             <InstallPrompt />

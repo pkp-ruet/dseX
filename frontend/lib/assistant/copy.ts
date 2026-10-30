@@ -272,8 +272,8 @@ export const COPY = {
     removedBn: (code: string) => `${code} ওয়াচলিস্ট থেকে সরানো হয়েছে।`,
     signInToSave: "Please sign in to save shares to your watchlist.",
     signInToSaveBn: "ওয়াচলিস্টে শেয়ার রাখতে সাইন ইন করুন।",
-    watchLimit: "A free account can follow 10 shares. Premium has no limit.",
-    watchLimitBn: "ফ্রি অ্যাকাউন্টে 10টি শেয়ার অনুসরণ করা যায়। প্রিমিয়ামে কোনো সীমা নেই।",
+    watchLimit: "A free account can follow 5 shares. Premium has no limit.",
+    watchLimitBn: "ফ্রি অ্যাকাউন্টে 5টি শেয়ার অনুসরণ করা যায়। প্রিমিয়ামে কোনো সীমা নেই।",
   },
 
   // --- Follow-up ("what next") chip labels ---

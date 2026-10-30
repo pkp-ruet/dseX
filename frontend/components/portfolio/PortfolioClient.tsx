@@ -646,7 +646,7 @@ export default function PortfolioClient() {
     [rows, priceMap, analysis, rebalance, lang],
   );
   const proInsights = useMemo(() => buildProInsights(analysis, priceMap, lang), [analysis, priceMap, lang]);
-  const { isPremium, state: planState, premiumUntil } = usePremium();
+  const { isPremium, state: planState, premiumUntil, limits } = usePremium();
   // An extra portfolio kept from a free month that has ended: readable, not editable.
   const readOnly = !isMain && !isPremium;
   const made = useMemo(() => moneyMade(holdings, priceMap, log, settings), [holdings, priceMap, log, settings]);
@@ -883,6 +883,14 @@ export default function PortfolioClient() {
     [holdings],
   );
 
+  // A free portfolio holds up to 7 shares (2026-10-30): at the cap "+ Add
+  // stock" opens the Premium popup instead (buying more goes through "Bought more").
+  const holdingsLimit = limits.holdings;
+  function openAdd() {
+    if (holdingsLimit != null && holdings.length >= holdingsLimit) return showLimitNotice("holdings");
+    setAddOpen(true);
+  }
+
   function startEdit(h: PortfolioHolding) {
     setEditId(h.id);
     setRowError(null);
@@ -1087,7 +1095,7 @@ export default function PortfolioClient() {
               ))}
             </ol>
             <div className="pf-empty-actions">
-              <Button type="button" variant="primary" size="lg" onClick={() => setAddOpen(true)}>
+              <Button type="button" variant="primary" size="lg" onClick={openAdd}>
                 {L("Add your first share", "প্রথম শেয়ার যোগ করুন")}
               </Button>
               <Button href="/sample-portfolio/diversified" variant="quiet" size="lg">
@@ -1165,7 +1173,7 @@ export default function PortfolioClient() {
                   {/* Phones: Add on the title line, the sort full width under it (the Edit + Add pair below is 640px+) */}
                   {!readOnly && (
                     <span className="sm:hidden">
-                      <Button type="button" onClick={() => setAddOpen(true)} variant="quiet" size="md" className="pf-add">
+                      <Button type="button" onClick={openAdd} variant="quiet" size="md" className="pf-add">
                         <span className="pf-add-dot"><IconPlus size={14} /></span>
                         <span className={bnCls}>{L("Add stock", "শেয়ার যোগ")}</span>
                       </Button>
@@ -1201,7 +1209,7 @@ export default function PortfolioClient() {
                       <Button type="button" onClick={openEditPicker} variant="quiet" size="sm">
                         {L("Edit", "বদলান")}
                       </Button>
-                      <Button type="button" onClick={() => setAddOpen(true)} variant="quiet" size="md" className="pf-add">
+                      <Button type="button" onClick={openAdd} variant="quiet" size="md" className="pf-add">
                         <span className="pf-add-dot"><IconPlus size={14} /></span>
                         <span className={bnCls}>{L("Add stock", "শেয়ার যোগ")}</span>
                       </Button>

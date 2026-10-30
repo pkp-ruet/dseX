@@ -254,6 +254,10 @@ def add_holding(body: AddHoldingBody, current_user: dict = Depends(get_current_u
     holdings = [dict(h) for h in state["holdings"]]
     code = body.trading_code
     existing = next((h for h in holdings if h["trading_code"] == code), None)
+    if entitlements.holdings_add_blocked(
+        len(holdings), existing is None, entitlements.limits_for(current_user)["holdings"]
+    ):
+        raise HTTPException(status_code=403, detail=entitlements.LIMIT_HOLDINGS)
     if not existing and len(holdings) >= entitlements.HARD_LIMITS["holdings"]:
         raise HTTPException(
             status_code=400,

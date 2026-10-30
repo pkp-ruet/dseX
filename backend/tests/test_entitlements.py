@@ -10,6 +10,7 @@ from backend.services.entitlements import (
     is_premium,
     limits_for,
     plan_fields,
+    holdings_add_blocked,
     watchlist_add_blocked,
 )
 
@@ -60,7 +61,8 @@ def test_admin_needs_a_verified_email_on_new_accounts():
 def test_limits():
     assert limits_for({}, NOW) == FREE_LIMITS
     assert limits_for({"premium_until": NOW + timedelta(days=1)}, NOW) == {
-        "watchlist": None, "alerts": None, "ai_daily": None, "portfolios": None, "custom_lists": None,
+        "watchlist": None, "holdings": None, "alerts": None, "ai_daily": None, "portfolios": None,
+        "custom_lists": None,
     }
 
 
@@ -71,6 +73,20 @@ def test_watchlist_cap():
     assert watchlist_add_blocked(ten, ten + ["NEW"], 10)       # 11th blocked
     assert not watchlist_add_blocked(ten, ten + ["c0"], 10)    # re-adding an existing code
     assert not watchlist_add_blocked(ten, ten + ["NEW"], None)  # premium
+
+
+def test_free_caps():
+    assert FREE_LIMITS["watchlist"] == 5
+    assert FREE_LIMITS["holdings"] == 7
+
+
+def test_holdings_cap():
+    assert not holdings_add_blocked(6, True, 7)     # 7th share fits
+    assert holdings_add_blocked(7, True, 7)         # 8th blocked
+    assert not holdings_add_blocked(7, False, 7)    # buying more of one held
+    assert holdings_add_blocked(9, True, 7)         # over the cap already: no new share
+    assert not holdings_add_blocked(9, False, 7)    # ...but buying more still works
+    assert not holdings_add_blocked(50, True, None)  # premium
 
 
 def test_watchlist_grandfathered_over_cap():
@@ -92,4 +108,4 @@ def test_plan_fields_shape(monkeypatch):
     assert out["is_premium"] is False
     assert "trial_available" not in out
     assert out["premium_until"] is None
-    assert set(out["limits"]) == {"watchlist", "alerts", "ai_daily", "portfolios", "custom_lists"}
+    assert set(out["limits"]) == {"watchlist", "holdings", "alerts", "ai_daily", "portfolios", "custom_lists"}

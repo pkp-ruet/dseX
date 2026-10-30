@@ -70,6 +70,7 @@ export const BENEFITS: { key: "why" | "portfolio" | "research" | "limits"; job?:
     title: { en: "No limits", bn: "কোনো সীমা নেই" },
     points: [
       { en: "Follow as many shares as you like", bn: "যত খুশি শেয়ার অনুসরণ করুন" },
+      { en: "Keep every share you own in your portfolio", bn: "আপনার সব শেয়ার পোর্টফোলিওতে রাখুন" },
       { en: "Set as many price alerts as you like", bn: "যত খুশি প্রাইস অ্যালার্ট দিন" },
       { en: "Ask TopStock AI anything, at any time", bn: "TopStock AI-কে যেকোনো সময় যেকোনো প্রশ্ন করুন" },
     ],
@@ -234,10 +235,10 @@ export const ROWS: { what: Bi; job: Job; free: Bi; premium: Bi }[] = [
   {
     job: "watch",
     what: { en: "Portfolios", bn: "পোর্টফোলিও" },
-    free: { en: "One.", bn: "একটি।" },
+    free: { en: "One, with up to 7 shares in it.", bn: "একটি, তাতে 7টি পর্যন্ত শেয়ার।" },
     premium: {
-      en: "Up to six, so you can keep a parent's or spouse's BO account apart from yours.",
-      bn: "ছয়টি পর্যন্ত, যাতে মা-বাবা বা স্বামী/স্ত্রীর বিও অ্যাকাউন্ট আপনার থেকে আলাদা রাখতে পারেন।",
+      en: "No limit on shares, and up to six portfolios, so you can keep a parent's or spouse's BO account apart from yours.",
+      bn: "শেয়ারের কোনো সীমা নেই, আর ছয়টি পর্যন্ত পোর্টফোলিও, যাতে মা-বাবা বা স্বামী/স্ত্রীর বিও অ্যাকাউন্ট আপনার থেকে আলাদা রাখতে পারেন।",
     },
   },
   {
@@ -280,8 +281,8 @@ export const ROWS: { what: Bi; job: Job; free: Bi; premium: Bi }[] = [
     job: "watch",
     what: { en: "Watchlist", bn: "ওয়াচলিস্ট" },
     free: {
-      en: "10 shares with their price, grade and move since you followed, and how many trade under fair value, have a record date soon, or carry a watch-out.",
-      bn: "10টি শেয়ার, তাদের দাম, গ্রেড আর অনুসরণের পর কতটা বদলেছে, আর এর কতগুলো ন্যায্য দামের নিচে, কতগুলোর রেকর্ড ডেট কাছে, বা কতগুলোতে সতর্কতা আছে।",
+      en: "5 shares with their price, grade and move since you followed, and how many trade under fair value, have a record date soon, or carry a watch-out.",
+      bn: "5টি শেয়ার, তাদের দাম, গ্রেড আর অনুসরণের পর কতটা বদলেছে, আর এর কতগুলো ন্যায্য দামের নিচে, কতগুলোর রেকর্ড ডেট কাছে, বা কতগুলোতে সতর্কতা আছে।",
     },
     premium: {
       en: "No limit, and our read in every row: the price against fair value, whether it is a Buy today and at what price, the next record date or AGM, and every watch-out.",

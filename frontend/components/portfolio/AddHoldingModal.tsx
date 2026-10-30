@@ -5,6 +5,8 @@ import { apiAddHolding, type PortfolioHolding, type PortfolioLogEntry, type Scor
 import { taka } from "@/lib/formatters";
 import Button from "@/components/ui/Button";
 import Sheet from "@/components/ui/Sheet";
+import { showLimitNotice } from "@/components/premium/LimitNotice";
+import { isLimitError } from "@/lib/premium";
 import type { AnalysisLang } from "@/lib/portfolio-analysis";
 
 interface Props {
@@ -91,6 +93,10 @@ export default function AddHoldingModal({ allCodes, priceMap, existingCodes, onC
       onAdded(res.holdings, res.log);
       onClose();
     } catch (err: unknown) {
+      if (isLimitError(err, "holdings")) {
+        onClose();
+        return showLimitNotice("holdings");
+      }
       setError(err instanceof Error ? err.message : L("We couldn't add it. Please try again.", "যোগ করা যায়নি। আবার চেষ্টা করুন।"));
       setSaving(false);
     }

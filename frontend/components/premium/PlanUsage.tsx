@@ -13,7 +13,7 @@ type Row = { key: string; label: { en: string; bn: string }; used: number | null
  * What the reader's plan allows and how much of it they use (2026-10-29, the
  * Free vs Premium plan, step 7): watchlist, armed price alerts, this month's
  * free full reports and TopStock AI — so a limit is seen before it is hit.
- * The limit toasts (`showLimitNotice`) open this card (`/profile#plan`).
+ * Hitting a limit opens the Premium popup (`showLimitNotice` → `LimitSheet`).
  */
 export default function PlanUsage() {
   const { user } = useAuth();
@@ -32,6 +32,12 @@ export default function PlanUsage() {
   const keys = user?.report_keys;
   const rows: Row[] = [
     { key: "watchlist", label: { en: "Shares you follow", bn: "অনুসরণ করা শেয়ার" }, used: watch, limit: limitFor(user, "watchlist") },
+    {
+      key: "holdings",
+      label: { en: "Shares in your portfolio", bn: "পোর্টফোলিওর শেয়ার" },
+      used: null,
+      limit: limitFor(user, "holdings"),
+    },
     { key: "alerts", label: { en: "Price alerts on", bn: "চালু প্রাইস অ্যালার্ট" }, used: alerts, limit: limitFor(user, "alerts") },
     ...(!isPremium
       ? [{

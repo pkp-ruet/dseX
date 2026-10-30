@@ -27,7 +27,7 @@ export interface AuthUser {
   /** The last plan bought (`lib/premium-plans.ts` key). */
   paid_plan?: string | null;
   /** null = unlimited. */
-  limits?: { watchlist: number | null; alerts: number | null; ai_daily: number | null; portfolios?: number | null; custom_lists?: number | null };
+  limits?: { watchlist: number | null; holdings?: number | null; alerts: number | null; ai_daily: number | null; portfolios?: number | null; custom_lists?: number | null };
   /** Three full stock reports a month for a free reader (backend/services/report_keys.py). */
   report_keys?: ReportKeys;
   /** The reader's own ৳99 month (backend `payments.offer_state`), or null

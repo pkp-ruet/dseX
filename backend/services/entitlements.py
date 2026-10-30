@@ -7,7 +7,8 @@ later), and admins can grant or revoke days by hand. A user is premium while
 started the old free month keep its days until they run out
 (`premium_source="trial"`).
 
-Limits are enforced server-side for the watchlist and price alerts; the
+Limits are enforced server-side for the watchlist, portfolio holdings and
+price alerts; the
 TopStock AI cap is counted by the frontend (the assistant runs in the browser).
 The stock-page and portfolio locks are screen-only by design — the data still
 ships, the UI hides it (see CLAUDE.md "Premium").
@@ -15,7 +16,11 @@ ships, the UI hides it (see CLAUDE.md "Premium").
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-FREE_LIMITS = {"watchlist": 10, "alerts": 3, "ai_daily": 10, "portfolios": 1, "custom_lists": 0}
+# Watchlist 5 and holdings 7 since 2026-10-30 (were 10 and unlimited). An
+# account already past either keeps what it has; it just can't add a new code.
+FREE_LIMITS = {
+    "watchlist": 5, "holdings": 7, "alerts": 3, "ai_daily": 10, "portfolios": 1, "custom_lists": 0,
+}
 
 # Ceilings for every account, Premium included. Not a plan feature — a size cap
 # on what one account can store (the watchlist and holdings live on the user
@@ -24,6 +29,7 @@ HARD_LIMITS = {"watchlist": 200, "alerts": 50, "holdings": 300}
 
 # HTTPException detail strings the frontend matches (`lib/premium.ts:isLimitError`).
 LIMIT_WATCHLIST = "limit_reached:watchlist"
+LIMIT_HOLDINGS = "limit_reached:holdings"
 LIMIT_ALERTS = "limit_reached:alerts"
 LIMIT_PORTFOLIOS = "limit_reached:portfolios"
 LIMIT_CUSTOM_LISTS = "limit_reached:custom_lists"
@@ -89,6 +95,13 @@ def watchlist_add_blocked(current: list[str], new: list[str], limit: Optional[in
     wanted = list(dict.fromkeys(c.upper() for c in new if c))
     adds = [c for c in wanted if c not in have]
     return bool(adds) and len(wanted) > limit
+
+
+def holdings_add_blocked(count: int, is_new_code: bool, limit: Optional[int]) -> bool:
+    """True when a new code would push a portfolio past the limit. Buying more
+    of a share already held always works, and so does a portfolio already over
+    the cap (it just can't take a new share)."""
+    return is_new_code and limit is not None and count >= limit
 
 
 def alerts_blocked(active_count: int, limit: Optional[int]) -> bool:

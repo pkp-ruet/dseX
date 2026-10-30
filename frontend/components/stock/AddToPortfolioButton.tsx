@@ -9,6 +9,8 @@ import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
 import Button from "@/components/ui/Button";
 import Sheet from "@/components/ui/Sheet";
+import { showLimitNotice } from "@/components/premium/LimitNotice";
+import { isLimitError } from "@/lib/premium";
 
 interface Props {
   code: string;
@@ -58,6 +60,11 @@ export default function AddToPortfolioButton({ code, ltp }: Props) {
       });
       router.push("/portfolio");
     } catch (err: unknown) {
+      if (isLimitError(err, "holdings")) {
+        setSubmitting(false);
+        setOpen(false);
+        return showLimitNotice("holdings");
+      }
       setError(
         err instanceof Error ? err.message : bn ? "যোগ করা যায়নি। আবার চেষ্টা করুন।" : "We couldn't add it. Please try again.",
       );
