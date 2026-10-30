@@ -393,7 +393,7 @@ export interface StockReport {
   /** The answer card. Older backends send none; the page then skips the card. */
   answer?: StockAnswer;
   /** One written read per chapter: its answers put together, 2–3 plain
-   *  sentences (Premium; the Company chapter's is free). */
+   *  sentences (Premium). */
   reads?: Partial<Record<ReadChapter, Bi>>;
   /** Where the report ends: Our view (Premium). */
   view?: ReportView | null;
@@ -451,14 +451,23 @@ export interface ReportChapter {
   rows: { key: QuestionKey; q: Bi }[];
 }
 
-/** The chapter a free reader gets whole on every share (the full report
- *  plan, step 4): its read, every picture and every explanation. The price,
- *  the risks, what's next and Our view are Premium. */
-export const FREE_CHAPTER = "ch-company";
+/** The fundamentals a free reader sees (2026-10-30, user: "this fundamental
+ *  analysis should be part of premium … free user can see 1/2 results max";
+ *  plan https://claude.ai/artifact/KCBooTX7PK7a4PoKkcmoMP). In the company
+ *  and price chapters (`ANSWERS_LOCKED_IN`) one row is open in full as a
+ *  sample, one more shows only its one-word answer, and every other row shows
+ *  just its question and a lock. Today's free report and report keys open all. */
+export const ANSWERS_LOCKED_IN = ["ch-company", "ch-price"];
+export const FREE_SAMPLE_ROW: QuestionKey = "this_year";
+export const FREE_WORD_ROWS: QuestionKey[] = ["dividend"];
 
 /** A locked chapter's one signpost line (2026-10-30): what the full report
  *  answers in it, pointing back up to the card under the answer. */
 export const CHAPTER_SIGNPOST: Record<string, Bi> = {
+  "ch-company": {
+    en: "In the full report: whether the profit is real cash, its loans, its place in its sector and its dividends, each explained",
+    bn: "পূর্ণ রিপোর্টে: মুনাফা আসলেই নগদে আসে কি না, এর ঋণ, সেক্টরে এর অবস্থান আর ডিভিডেন্ড, প্রতিটির ব্যাখ্যাসহ",
+  },
   "ch-price": {
     en: "In the full report: our fair price, the price we would buy under, and what the dividend is worth to you",
     bn: "পূর্ণ রিপোর্টে: আমাদের হিসাবে ন্যায্য দাম, কোন দামের নিচে কেনা ভালো, আর ডিভিডেন্ড আপনার জন্য কতটা",

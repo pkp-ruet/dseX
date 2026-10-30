@@ -3,10 +3,11 @@
 import type { ReactNode } from "react";
 import { Locked } from "@/components/premium/AnswerLock";
 import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
-import { IconChevronDown } from "@/components/ui/icons";
+import { IconChevronDown, IconLock } from "@/components/ui/icons";
 import { T } from "@/components/i18n/T";
 import { SectionFoot } from "@/components/stock/report/ReportSection";
 import { ToneChip, tx } from "@/components/stock/report/fmt";
+import { usePremium } from "@/lib/premium";
 import type { Bi, Tone } from "@/lib/stock-report";
 
 /**
@@ -22,6 +23,11 @@ import type { Bi, Tone } from "@/lib/stock-report";
  * in the Premium card under the answer, and each closed chapter points back
  * to it in one line (`ReportChapter`). A row of the free chapter (`sample`)
  * is open for everyone.
+ *
+ * Fundamentals (2026-10-30, plan https://claude.ai/artifact/KCBooTX7PK7a4PoKkcmoMP):
+ * a row with `teaser` is closed down to its question — plus its one-word
+ * answer for `teaser="word"`, else a lock — and nothing else; everything
+ * stays in the HTML under `Locked`. The open sample wears "Free sample".
  *
  * The full report (2026-10-30, plan
  * https://claude.ai/artifact/1TuJ9dvifeXTLzs5wVwk2Q): an open row shows its
@@ -46,6 +52,7 @@ export default function QuestionRow({
   action,
   sample = false,
   allFree = false,
+  teaser,
 }: {
   /** Anchor id (`rp-<key>`). */
   id: string;
@@ -75,9 +82,13 @@ export default function QuestionRow({
   sample?: boolean;
   /** Built only from public figures: nothing on this row is Premium. */
   allFree?: boolean;
+  /** Closed, show only the question and the answer word ("word") or a lock. */
+  teaser?: "word" | "lock";
 }) {
   const premiumOpen = usePremiumOpen();
-  const open = allFree || sample || premiumOpen;
+  const { isPremium } = usePremium();
+  const open = (allFree && !teaser) || sample || premiumOpen;
+  const compact = !open && !!teaser;
 
   const explain =
     meaning.length > 0 || watch ? (
@@ -122,16 +133,39 @@ export default function QuestionRow({
   ) : null;
 
   return (
-    <section id={id} className="rq stock-anchor" aria-labelledby={`${id}-t`}>
+    <section id={id} className="rq stock-anchor" data-compact={compact ? "true" : undefined} aria-labelledby={`${id}-t`}>
       {aliases.map((a) => <span key={a} id={a} className="stock-anchor block" aria-hidden="true" />)}
       <div className="rq-head">
         <h3 id={`${id}-t`}>{title}</h3>
-        <span className="rq-chips">{word && <ToneChip word={word} tone={tone} />}</span>
+        <span className="rq-chips">
+          {sample && !isPremium && teaser && (
+            <span className="rq-tag"><T en="Free sample" bn="ফ্রি নমুনা" /></span>
+          )}
+          {compact && teaser === "lock" ? (
+            <span className="rq-lockchip">
+              <IconLock size={14} />
+              <T en="Premium" bn="প্রিমিয়াম" />
+            </span>
+          ) : (
+            word && <ToneChip word={word} tone={tone} />
+          )}
+        </span>
       </div>
+      {compact && (
+        <Locked>
+          {word && teaser === "lock" && <ToneChip word={word} tone={tone} />}
+          {picture && <div className="rq-pic">{picture}</div>}
+          {premiumPicture && <div className="rq-pic">{premiumPicture}</div>}
+          {headline && <p className="rq-answer">{tx(headline)}</p>}
+          {free && <div className="rq-free">{free}</div>}
+          {explain}
+          {details}
+        </Locked>
+      )}
 
-      {picture && <div className="rq-pic">{picture}</div>}
+      {!compact && picture && <div className="rq-pic">{picture}</div>}
 
-      {open ? (
+      {compact ? null : open ? (
         <>
           {premiumPicture && <div className="rq-pic">{premiumPicture}</div>}
           {headline && <p className="rq-answer">{tx(headline)}</p>}

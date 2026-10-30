@@ -15,7 +15,7 @@ import { PREMIUM_PATH, usePremium } from "@/lib/premium";
 import { LOWEST_PRICE } from "@/lib/premium-plans";
 import { savePremiumContext } from "@/lib/premium-context";
 import { trackEvent } from "@/lib/track";
-import { FREE_CHAPTER, type NextQuestion } from "@/lib/stock-report";
+import type { NextQuestion } from "@/lib/stock-report";
 
 type Sample = { code: string; name: string; rows: NextQuestion[] } | "error" | null;
 
@@ -100,8 +100,8 @@ export default function NextQuestions({ code, rows }: { code: string; rows: Next
       </div>
       <p className="nq-fine">
         <T en="bKash, Nagad or bank. Nothing renews by itself. " bn="bKash, Nagad বা ব্যাংক। নিজে থেকে নবায়ন হয় না। " />
-        <a href={`#${FREE_CHAPTER}`} className="font-semibold text-primary-ink hover:underline active:opacity-70">
-          <T en="The company chapter below is free on every share." bn="নিচের কোম্পানির অধ্যায় প্রতিটি শেয়ারে ফ্রি।" />
+        <a href="#ch-company" className="font-semibold text-primary-ink hover:underline active:opacity-70">
+          <T en="See one free sample answer below: Does it make money?" bn="নিচে একটি ফ্রি নমুনা উত্তর দেখুন: এটি কি মুনাফা করে?" />
         </a>
       </p>
     </div>

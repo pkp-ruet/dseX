@@ -444,7 +444,18 @@ export function SharesPicture({ s }: { s: DividendSection }) {
 
 // ------------------------------------------------------------------ price
 
-/** Free: what you pay for ৳1 of yearly profit, now vs its usual vs its sector. */
+/** "What do you pay for its profit?" answered in words (2026-10-30): the
+ *  years of profit you pay for today against what it usually costs. Null
+ *  without both figures (a loss year), so the row keeps the section's word. */
+export function priceAnswer(s: PriceSection): { word: Bi; tone: Tone } | null {
+  const { now, usual } = s.pe;
+  if (now == null || usual == null || now <= 0 || usual <= 0) return null;
+  if (now < usual * 0.9) return { word: { en: "Less than usual", bn: "সাধারণের চেয়ে কম" }, tone: "good" };
+  if (now > usual * 1.1) return { word: { en: "More than usual", bn: "সাধারণের চেয়ে বেশি" }, tone: "bad" };
+  return { word: { en: "About usual", bn: "সাধারণের মতো" }, tone: "neutral" };
+}
+
+/** What you pay for ৳1 of yearly profit, now vs its usual vs its sector. */
 export function PricePicture({ s }: { s: PriceSection }) {
   const pe = s.pe;
   const yrs = (v: number) => <T en={`${Math.round(v)} years`} bn={`${Math.round(v)} বছর`} />;

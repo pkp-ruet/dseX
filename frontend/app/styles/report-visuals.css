@@ -277,18 +277,31 @@
 .rq-explain { display: grid; gap: var(--space-3); margin-top: var(--space-3); }
 .rq-explain .rp-watch { margin-top: 0; }
 
-/* A chapter's written read: the chapter's answers put together. */
-.rq-read {
-  margin-bottom: var(--space-4);
-  padding: var(--space-4);
-  border-radius: var(--radius-md);
-  background: rgb(var(--gold-rgb) / 0.1);
-  border-left: 3px solid var(--gold);
+/* A chapter is ONE card (2026-10-30, plan https://claude.ai/artifact/KCBooTX7PK7a4PoKkcmoMP):
+   its answer, its read as the opening paragraph, the rows, a gold footer. */
+.rc-top { padding-top: var(--space-6); padding-bottom: var(--space-2); }
+.rc-top .rq-chead { margin-bottom: 0; }
+.rc-read { margin-top: var(--space-4); font-size: var(--fs-md); line-height: 1.6; color: var(--text); }
+@media (min-width: 640px) { .rc-top { padding-top: var(--space-8); } }
+
+/* A closed fundamentals row: its question and a lock (or its answer word). */
+.rq[data-compact="true"] { padding: var(--space-4) 0; }
+.rq[data-compact="true"] .rq-head { flex-direction: row; align-items: center; }
+.rq[data-compact="true"] .rq-head h3 { font-size: var(--fs-md); }
+.rq[data-compact="true"] .rq-chips { justify-content: flex-end; }
+.rq-lockchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgb(var(--gold-rgb) / 0.14);
+  color: var(--gold-ink);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  white-space: nowrap;
 }
-.rq-read-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-bottom: var(--space-1); }
-.rq-read-head b { font-size: var(--fs-sm); color: var(--gold-ink); }
-.rq-read p { font-size: var(--fs-md); line-height: 1.55; color: var(--text); }
-.rq-freechap { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-3); font-size: var(--fs-sm); color: var(--text); }
 
 /* The one "full report" band above the first chapter (Premium, or an open report). */
 .rp-band {
@@ -375,3 +388,15 @@
 .rq-sign:hover { background: rgb(var(--gold-rgb) / 0.16); }
 .rq-sign:active { background: rgb(var(--gold-rgb) / 0.22); }
 .rq-sign-icon { flex: none; margin-top: 2px; }
+/* As a chapter card's footer: full width, flush with the card's bottom. */
+.rq-sign[data-foot="true"] {
+  align-items: center;
+  margin: 0 calc(-1 * var(--space-4));
+  padding: var(--space-4);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  border-top: 1px solid rgb(var(--gold-rgb) / 0.35);
+}
+@media (min-width: 640px) {
+  .rq-sign[data-foot="true"] { margin: 0 calc(-1 * var(--space-8)); padding: var(--space-4) var(--space-8); }
+}
+.rq-sign-go { flex: none; font-weight: 700; white-space: nowrap; }

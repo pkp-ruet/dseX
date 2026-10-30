@@ -145,12 +145,12 @@ export const ROWS: { what: Bi; job: Job; free: Bi; premium: Bi }[] = [
     job: "understand",
     what: { en: "Share page analysis", bn: "শেয়ারের পেজের বিশ্লেষণ" },
     free: {
-      en: "Prices, charts, financials, dividends, owners and news, the grade, the Buy or Sell signal, every question's one-word answer, the company chapter of every report in full, and 3 full reports a month on shares you choose.",
-      bn: "দাম, চার্ট, আর্থিক হিসাব, ডিভিডেন্ড, মালিকানা আর খবর, গ্রেড, কেনা বা বিক্রির সংকেত, প্রতিটি প্রশ্নের এক শব্দের উত্তর, প্রতিটি রিপোর্টের কোম্পানির অধ্যায় পুরোটা, আর আপনার বাছাই করা শেয়ারে মাসে 3টি পূর্ণ রিপোর্ট।",
+      en: "Prices, charts, financials, dividends, owners and news, the grade, the Buy or Sell signal, the answer on whether to buy it today with its three lights, one sample answer from the company's fundamentals, and 3 full reports a month on shares you choose.",
+      bn: "দাম, চার্ট, আর্থিক হিসাব, ডিভিডেন্ড, মালিকানা আর খবর, গ্রেড, কেনা বা বিক্রির সংকেত, আজ কেনা উচিত কি না তার উত্তর ও তিনটি আলো, কোম্পানির মৌলিক বিশ্লেষণের একটি নমুনা উত্তর, আর আপনার বাছাই করা শেয়ারে মাসে 3টি পূর্ণ রিপোর্ট।",
     },
     premium: {
-      en: "The full report: a written read of every chapter, every picture filled in and explained, the fair price and our buy price, every warning, and Our view: the case for and against, and what would change our answer.",
-      bn: "পূর্ণ রিপোর্ট: প্রতিটি অধ্যায়ের লেখা মত, প্রতিটি ছবি পূর্ণ আর ব্যাখ্যাসহ, ন্যায্য দাম আর আমাদের কেনার দাম, প্রতিটি সতর্কতা, আর আমাদের মত: পক্ষে-বিপক্ষে যুক্তি, আর কী হলে উত্তর বদলাবে।",
+      en: "The full report: the company's fundamentals and its price, every answer explained, a written read of every chapter, every picture filled in and explained, the fair price and our buy price, every warning, and Our view: the case for and against, and what would change our answer.",
+      bn: "পূর্ণ রিপোর্ট: কোম্পানির মৌলিক বিশ্লেষণ আর দাম, প্রতিটি উত্তরের ব্যাখ্যা, প্রতিটি অধ্যায়ের লেখা মত, প্রতিটি ছবি পূর্ণ আর ব্যাখ্যাসহ, ন্যায্য দাম আর আমাদের কেনার দাম, প্রতিটি সতর্কতা, আর আমাদের মত: পক্ষে-বিপক্ষে যুক্তি, আর কী হলে উত্তর বদলাবে।",
     },
   },
   {
