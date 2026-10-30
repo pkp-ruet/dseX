@@ -72,6 +72,7 @@ def test_daily_state_diff_pushes_only_real_changes():
     assert ev["id"] == "grade-GP-2026-10-26" and ev["level"] == "watch"
     assert ev["title_en"] == "GP: grade fell from Good to Average (62 → 57)"
     assert "finances became weaker" in ev["body_en"]
+    assert ev["body_en"].startswith("It is now in “Mixed”.")
     assert cur["GP"]["anchor"]["score"] == 57
 
 

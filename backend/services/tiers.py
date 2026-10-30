@@ -43,6 +43,16 @@ TIER_WORDS_BN = {
     "unknown": "রেটিং নেই",
 }
 
+# What each grade means on our five checks, in plain words (2026-10-31, the
+# company ranking redesign) — the ranking page's group names, mirrored by
+# frontend lib/ranking.ts GROUP_NAMES. The grade words above stay the label.
+GROUP_WORDS = {
+    "excellent": ("Strong all round", "সব দিকে শক্তিশালী"),
+    "good": ("Mostly strong", "বেশিরভাগ দিকে শক্তিশালী"),
+    "average": ("Mixed", "মিশ্র"),
+    "weak": ("Mostly weak", "বেশিরভাগ দিকে দুর্বল"),
+}
+
 # Old key -> new key, for stored docs written before the 2026-07 rename
 # (e.g. users.last_recommendation picks). Read-time hygiene only — never
 # emit the old keys in new data.

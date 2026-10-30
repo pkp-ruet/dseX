@@ -1,8 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useUrlParams, useUrlSync } from "@/lib/use-url-state";
-import { TIER_LABELS, TIER_LABELS_BN, TIER_VAR, type TierKey } from "@/lib/constants";
+import { TIER_VAR, type TierKey } from "@/lib/constants";
+import { GROUP_NAMES, type Bi } from "@/lib/ranking";
+import Button from "@/components/ui/Button";
+import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
 import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
 import { sectorBn } from "@/lib/bn";
@@ -53,7 +56,17 @@ interface Props {
   counts: Record<string, number>;
   total: number;
   sectors: string[];
+  /** Red check keys by code (`/api/rankings/today`); null when it didn't load. */
+  warnings?: Record<string, string[]> | null;
+  /** Rank on the first day of the history + that day in words (Premium line). */
+  then?: { ranks: Record<string, number>; day: Bi } | null;
+  /** The page's one Premium card; a free reader meets it after row `CARD_AFTER`. */
+  premiumCard?: ReactNode;
 }
+
+/** Rows shown before "Show all" (2026-10-31: 362 rows buried everything under them). */
+const INITIAL = 20;
+const CARD_AFTER = 5;
 
 /** The number a sortable column orders by; null always sorts last. */
 function sortValue(row: RankedRow, col: RankSortCol): number | string | null {
@@ -78,7 +91,7 @@ function scrollToPremium() {
   document.getElementById(PREMIUM_ANCHOR)?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-export default function RankingExplorer({ items, counts, total, sectors }: Props) {
+export default function RankingExplorer({ items, counts, total, sectors, warnings = null, then = null, premiumCard }: Props) {
   const [query, setQuery] = useState("");
   const [sector, setSector] = useState("all");
   // Empty = every grade shown. Picking chips narrows to just those grades.
@@ -91,6 +104,8 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const premium = mounted && isPremium;
+  const open = usePremiumOpen();
+  const [showAll, setShowAll] = useState(false);
 
   // "Your own ranking" (Premium, 2026-10-31): the reader's weights, kept in this browser.
   const [weights, setWeights] = useState<Weights>(DEFAULT_WEIGHTS);
@@ -209,6 +224,14 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
     );
   };
 
+  // Any change to the view starts again at the top 20.
+  useEffect(() => {
+    setShowAll(false);
+  }, [query, sector, picked, sort, weights]);
+  const shown = showAll ? filtered : filtered.slice(0, INITIAL);
+  // The free sample: the company ranked first in our ranking.
+  const sampleCode = ranked[0]?.item.trading_code ?? null;
+
   const viewCounts: Partial<Record<TierKey, number>> = {};
   for (const { item } of filtered) viewCounts[item.tier] = (viewCounts[item.tier] ?? 0) + 1;
 
@@ -238,7 +261,7 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
     <div className="rk-explorer">
       <div className="rk-filters">
         <div className="rk-filter-row">
-          <div className="rk-chips" role="group" aria-label={L("Filter by grade", "গ্রেড অনুযায়ী বাছুন")}>
+          <div className="rk-chips" role="group" aria-label={L("Filter by group", "দল অনুযায়ী বাছুন")}>
             {TIERS_ORDER.map((tier) => (
               <Chip
                 key={tier}
@@ -246,11 +269,11 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
                 onClick={() => toggleTier(tier)}
                 icon={<span className="rk-dot" style={{ background: TIER_VAR[tier] }} />}
                 aria-label={L(
-                  `${TIER_LABELS[tier]}: ${counts[tier] ?? 0} companies`,
-                  `${TIER_LABELS_BN[tier]}: ${counts[tier] ?? 0}টি কোম্পানি`,
+                  `${GROUP_NAMES[tier].name.en}: ${counts[tier] ?? 0} companies`,
+                  `${GROUP_NAMES[tier].name.bn}: ${counts[tier] ?? 0}টি কোম্পানি`,
                 )}
               >
-                <T en={TIER_LABELS[tier]} bn={TIER_LABELS_BN[tier]} />
+                <T en={GROUP_NAMES[tier].name.en} bn={GROUP_NAMES[tier].name.bn} />
                 <span className="nums font-normal">{counts[tier] ?? 0}</span>
               </Chip>
             ))}
@@ -387,12 +410,29 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
           quick view a year of rank, the signal's reason and rank alerts — all
           named by the page's one Premium card, `#rk-premium`. */}
       <FullRankTable
-        rows={filtered}
+        rows={shown}
         grouped={isDefaultSort && !ownRanking}
         sort={sort}
         onSort={onSort}
         groupCounts={viewCounts}
+        extras={{
+          warnings,
+          then,
+          sampleCode,
+          locked: !open,
+          premiumCard: open ? undefined : premiumCard,
+          cardAfter: CARD_AFTER,
+        }}
       />
+      {filtered.length > shown.length && (
+        <div className="rk-more">
+          <Button variant="quiet" onClick={() => setShowAll(true)}>
+            <T en={`Show all ${filtered.length}`} bn={`সব ${filtered.length}টি দেখুন`} />
+          </Button>
+        </div>
+      )}
+      {/* A Premium reader's card is only its anchor (`PageQuestions`). */}
+      {open && premiumCard}
 
       <YourRankingSheet
         open={sheetOpen}

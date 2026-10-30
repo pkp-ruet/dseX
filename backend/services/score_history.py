@@ -332,6 +332,12 @@ def grade_event(code: str, ch: dict, day: str) -> dict:
     why = (ch.get("notes") or []) + (ch.get("drivers") or [])
     body_en = f"Main reason: {why[0]['en'].lower()}." if why else "See what changed on the stock page."
     body_bn = f"মূল কারণ: {why[0]['bn']}।" if why else "কী বদলেছে, তা শেয়ারের পেজে দেখুন।"
+    # The company ranking's group name for the new grade (2026-10-31).
+    from backend.services.tiers import GROUP_WORDS
+    group = GROUP_WORDS.get(ch.get("to_tier") or "")
+    if group:
+        body_en = f"It is now in “{group[0]}”. {body_en}"
+        body_bn = f"এখন “{group[1]}” দলে। {body_bn}"
     return {
         "id": f"grade-{code}-{day}", "kind": "grade", "code": code,
         "level": "good" if better else ("bad" if ch.get("to_tier") == "weak" else "watch"),

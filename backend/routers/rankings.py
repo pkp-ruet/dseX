@@ -11,6 +11,7 @@ from backend.routers.auth import get_current_user
 from backend.services import rank_alerts
 from backend.services.entitlements import is_premium
 from backend.services.rank_history_service import company_ranks, week_movers
+from backend.services.rank_today_service import rankings_today
 
 router = APIRouter(tags=["rankings"])
 
@@ -25,6 +26,14 @@ def rank_history(code: str):
     if out is None:
         raise HTTPException(status_code=404, detail="Unknown company")
     return out
+
+
+@router.get("/api/rankings/today")
+def rankings_today_route():
+    """The ranking page's extras: serious warnings from each company's stock
+    report, who moved to a better or lower group this week, and every
+    company's rank on the first day of the history."""
+    return rankings_today()
 
 
 @router.get("/api/rankings/movers")

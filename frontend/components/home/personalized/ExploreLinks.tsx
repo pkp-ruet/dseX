@@ -35,7 +35,7 @@ const ROWS: Row[] = [
   {
     href: "/dsestockranking",
     icon: <IconTrophy size={18} />,
-    label: ["Stock rankings", "শেয়ার র‍্যাঙ্কিং"],
+    label: ["Company ranking", "কোম্পানির র‍্যাঙ্কিং"],
     sub: ["Every company scored, the strongest first", "প্রতিটি কোম্পানির স্কোর, সবচেয়ে শক্তটি আগে"],
     acc: ACC.gold,
   },

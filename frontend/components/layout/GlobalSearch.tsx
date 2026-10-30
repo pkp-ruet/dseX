@@ -61,11 +61,11 @@ const PAGES: PageShortcut[] = [
   },
   {
     href: "/dsestockranking",
-    label: "Stock rankings",
-    labelBn: "শেয়ার র‍্যাঙ্কিং",
-    sub: "Every company scored, best first",
-    subBn: "প্রতিটি কোম্পানির স্কোর, সবচেয়ে ভালোটি আগে",
-    keys: ["ranking", "rank", "best stocks", "top stocks", "score", "র‍্যাঙ্কিং", "স্কোর"],
+    label: "Company ranking",
+    labelBn: "কোম্পানির র‍্যাঙ্কিং",
+    sub: "The strongest companies on the DSE",
+    subBn: "ডিএসইর সবচেয়ে শক্তিশালী কোম্পানি",
+    keys: ["ranking", "rank", "best stocks", "top stocks", "strongest", "score", "র‍্যাঙ্কিং", "স্কোর"],
   },
   {
     href: "/screener",

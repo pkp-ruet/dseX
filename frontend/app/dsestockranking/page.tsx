@@ -1,16 +1,25 @@
 import type { Metadata } from "next";
 import PageGuide from "@/components/seo/PageGuide";
 import Link from "next/link";
-import { flattenTiers, getMarketIndex, getRankMovers, getScores, type RankMovers as Movers } from "@/lib/api";
+import {
+  flattenTiers,
+  getMarketIndex,
+  getRankMovers,
+  getRankingsToday,
+  getScores,
+  type RankMovers as Movers,
+} from "@/lib/api";
+import { RankingMade, RankingWeek } from "@/components/ranking/RankingMade";
+import CloseToMoving, { type CloseRow } from "@/components/ranking/CloseToMoving";
+import { PageLockScope } from "@/components/premium/LockScope";
+import { closeToMoving, GROUP_NAMES } from "@/lib/ranking";
 import RankMovers from "@/components/ranking/RankMovers";
 import PageQuestions, { type PageQuestion } from "@/components/premium/PageQuestions";
 import { getTier } from "@/lib/constants";
-import { PILLARS } from "@/lib/landing";
 import RankingExplorer from "@/components/ranking/RankingExplorer";
 import type { RankedItem } from "@/components/ranking/FullRankTable";
 import { T } from "@/components/i18n/T";
 import PageHeader from "@/components/ui/PageHeader";
-import Stat from "@/components/ui/Stat";
 import HubLinks from "@/components/layout/HubLinks";
 import { bnDate } from "@/lib/bn";
 
@@ -18,54 +27,70 @@ export const revalidate = 86400;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
+const TITLE = "Strongest Companies on the DSE: Company Ranking";
+const DESC =
+  "Every Dhaka Stock Exchange (DSE) listed company ranked by how strong its business is, from strong all round to mostly weak, with each company's strong and weak checks in plain words and any serious warning.";
+
 export const metadata: Metadata = {
-  title: "DSE Stock Rankings by Fundamental Score",
-  description:
-    "All Dhaka Stock Exchange (DSE) listed companies ranked 1–N by fundamental score. See Excellent, Good, Average, and Weak ratings plus price, profit growth, and dividend yield.",
+  title: TITLE,
+  description: DESC,
+  keywords: [
+    "DSE stock ranking",
+    "DSE company ranking",
+    "best companies DSE",
+    "strongest companies Dhaka Stock Exchange",
+    "DSE fundamental score",
+    "top DSE stocks",
+    "ডিএসই র‍্যাঙ্কিং",
+    "সেরা কোম্পানি ডিএসই",
+  ],
   alternates: { canonical: "/dsestockranking" },
   openGraph: {
-    title: "DSE Stock Rankings by Fundamental Score",
-    description: "All DSE companies ranked by fundamental score.",
+    title: "Strongest companies on the DSE",
+    description: DESC,
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "DSE Stock Rankings by Fundamental Score",
-    description: "All DSE listed companies ranked 1–N by fundamental score with price, profit growth, and dividend yield.",
+    title: "Strongest companies on the DSE",
+    description: DESC,
   },
 };
 
-/** "31 Jul 2026" — tolerant of a null/garbage date so the rail never renders NaN. */
-function fmtDate(value: string | null | undefined): string | null {
-  if (!value) return null;
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+/** "Thu 30 Oct" — the trading day a date names, in words. */
+function dayLabel(iso: string, weekday = false): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  if (!m) return iso;
+  const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+  return d.toLocaleDateString("en-GB", {
+    ...(weekday ? { weekday: "short" as const } : {}),
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+  });
 }
 
 export default async function DseStockRankingPage() {
-  // The market index is only here for the price as-of date on the vintage rail —
+  // The market index is only here for the price as-of date in the dateline —
   // it must never be able to take the leaderboard down.
   // No catch on the main fetch: a throw lets ISR keep serving the last good
   // page; a rendered error state was cached as the page until the next purge.
   // The week's movers are secondary too (a Premium-adjacent section).
-  const [scores, marketIndex, movers] = await Promise.all([
+  const [scores, marketIndex, movers, today] = await Promise.all([
     getScores(),
     getMarketIndex().catch(() => null),
     getRankMovers().catch(() => null),
+    getRankingsToday().catch(() => null),
   ]);
-
-  const { tiers } = scores;
-
-  const updated = fmtDate(scores.computed_at);
-  const updatedBn = scores.computed_at ? bnDate(scores.computed_at) : null;
 
   // Flatten all API tiers and re-classify client-side via getTier
   // `signal` (with its English + Bengali reason text, ~half the payload) is
   // dropped: the table never reads it, and every row is serialized into the HTML.
-  const allRanked: RankedItem[] = flattenTiers(scores).map(({ signal: _signal, ...i }) => ({
+  // `sig` keeps the three short fields the Premium line needs.
+  const allRanked: RankedItem[] = flattenTiers(scores).map(({ signal, ...i }) => ({
     ...i,
     tier: getTier(i.score),
+    sig: signal ? { signal: signal.signal, strength: signal.strength ?? null, reason_key: signal.reason_key } : null,
   }));
 
   // Build counts from re-classified tiers
@@ -80,8 +105,6 @@ export default async function DseStockRankingPage() {
   ).sort((a, b) => a.localeCompare(b));
 
   // ---- Data vintage + coverage limits, stated on the page rather than implied ----
-  const priceDate = fmtDate(marketIndex?.date);
-  const priceDateBn = marketIndex?.date ? bnDate(marketIndex.date) : null;
   const latestFy = allRanked.reduce<number | null>(
     (max, i) =>
       i.last_reported_year != null && (max == null || i.last_reported_year > max)
@@ -91,7 +114,27 @@ export default async function DseStockRankingPage() {
   );
   const names: Record<string, string> = {};
   for (const i of allRanked) names[i.trading_code] = i.company_name ?? i.trading_code;
-  const questions = rankQuestions(allRanked, movers);
+  const close = closeToMoving(allRanked);
+  const toRow = (m: ReturnType<typeof closeToMoving>["up"][number]): CloseRow => ({
+    code: m.item.trading_code,
+    name: m.item.company_name ?? null,
+    score: m.item.score ?? null,
+    ltp: m.item.ltp ?? null,
+    change: m.item.change_pct ?? null,
+    from: m.item.tier,
+    to: m.to,
+    dir: m.dir,
+    pts: Math.round(m.pts * 10) / 10,
+    check: m.check,
+  });
+  const closeUp = close.up.map(toRow);
+  const closeDown = close.down.map(toRow);
+  const questions = rankQuestions(allRanked, movers, today?.week ?? null, closeUp.length);
+  const first = [...allRanked].sort((a, b) => (b.score ?? -1) - (a.score ?? -1))[0];
+  const then = today?.then
+    ? { ranks: today.then.ranks, day: { en: dayLabel(today.then.date), bn: bnDate(today.then.date) } }
+    : null;
+  const asOf = marketIndex?.date ?? scores.computed_at ?? null;
 
   const staleCount = allRanked.filter((i) => i.stale_data).length;
   const zCount = allRanked.filter((i) => i.market_category?.toUpperCase() === "Z").length;
@@ -103,9 +146,8 @@ export default async function DseStockRankingPage() {
         "@type": "WebPage",
         "@id": `${BASE_URL}/dsestockranking`,
         url: `${BASE_URL}/dsestockranking`,
-        name: "DSE Stock Rankings by Fundamental Score",
-        description:
-          "All Dhaka Stock Exchange (DSE) listed companies ranked by fundamental score with price, profit growth, and dividend yield.",
+        name: TITLE,
+        description: DESC,
         inLanguage: "en",
         isPartOf: { "@id": BASE_URL },
         // The whole ranking is free (2026-10-29). Premium parts sit in place
@@ -118,7 +160,7 @@ export default async function DseStockRankingPage() {
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
-          { "@type": "ListItem", position: 2, name: "DSE Stock Rankings", item: `${BASE_URL}/dsestockranking` },
+          { "@type": "ListItem", position: 2, name: "Company ranking", item: `${BASE_URL}/dsestockranking` },
         ],
       },
     ],
@@ -132,64 +174,31 @@ export default async function DseStockRankingPage() {
       />
       {/* Masthead — the flagship leaderboard header; the numbers that establish
           scale sit beside the claim (actions slot) rather than under it */}
+      <PageLockScope anchor="rk-premium">
       <PageHeader
-        eyebrow={<T en="Dhaka Stock Exchange" bn="ঢাকা স্টক এক্সচেঞ্জ" />}
-        title={<T en="DSE stock rankings" bn="ডিএসই শেয়ার র‍্যাঙ্কিং" />}
+        eyebrow={
+          asOf ? (
+            <span className="rk-dateline">
+              <i aria-hidden="true" />
+              <T
+                en={`Ranked after the close, ${dayLabel(asOf.slice(0, 10), true)}`}
+                bn={`লেনদেন শেষে সাজানো, ${bnDate(asOf.slice(0, 10), true)}`}
+              />
+            </span>
+          ) : undefined
+        }
+        title={<T en="Strongest companies on the DSE" bn="ডিএসইর সবচেয়ে শক্তিশালী কোম্পানি" />}
         lead={
           <T
-            en="Every company on the Dhaka Stock Exchange, scored on how strong its business is, then ranked from strongest to weakest."
-            bn="ঢাকা স্টক এক্সচেঞ্জের প্রতিটি কোম্পানি, ব্যবসা কতটা শক্তিশালী তা দেখে স্কোর দেওয়া, তারপর সবচেয়ে শক্ত থেকে সবচেয়ে দুর্বল ক্রমে সাজানো।"
+            en="Every listed company ranked by how strong its business is, not by its price."
+            bn="প্রতিটি তালিকাভুক্ত কোম্পানি, দাম নয়, ব্যবসা কতটা শক্তিশালী তা দেখে সাজানো।"
           />
-        }
-        actions={
-          <div className="flex gap-8 sm:gap-10" aria-label="Coverage">
-            <Stat value={allRanked.length} label={<T en="Companies scored" bn="স্কোর পাওয়া কোম্পানি" />} size="xl" />
-            <Stat value={sectors.length} label={<T en="Sectors" bn="সেক্টর" />} size="xl" />
-          </div>
         }
       />
 
-      {/* Method + data vintage on ONE quiet line — what the score is made of and
-          how fresh it is. The written-out method lives on /about. */}
-      <section className="rk-method" aria-label="How the score is built">
-        <p className="rk-method-checks">
-          <T
-            en={
-              <>
-                Five checks on every company: <b>{PILLARS.map((p) => p.en).join(" · ")}</b>
-              </>
-            }
-            bn={
-              <>
-                প্রতিটি কোম্পানিতে পাঁচটি যাচাই: <b>{PILLARS.map((p) => p.bn).join(" · ")}</b>
-              </>
-            }
-          />
-        </p>
-        {(priceDate || latestFy || updated) && (
-          <p className="rk-method-dates nums">
-            <T
-              en={[
-                priceDate && `Prices ${priceDate}`,
-                latestFy && `Accounts up to FY${latestFy}`,
-                updated && `Updated ${updated}`,
-              ]
-                .filter(Boolean)
-                .join(" · ")}
-              bn={[
-                priceDateBn && `দাম ${priceDateBn}`,
-                latestFy && `${latestFy} অর্থবছর পর্যন্ত হিসাব`,
-                updatedBn && `হালনাগাদ ${updatedBn}`,
-              ]
-                .filter(Boolean)
-                .join(" · ")}
-            />
-          </p>
-        )}
-        <Link prefetch={false} href="/about" className="rk-method-link">
-          <T en="How we score" bn="আমরা কীভাবে স্কোর দিই" /> <span aria-hidden>→</span>
-        </Link>
-      </section>
+      <RankingMade counts={counts} total={allRanked.length} latestFy={latestFy} />
+      <RankingWeek week={today?.week ?? null} names={names} />
+
 
       {/* Filters + ranked table */}
         <RankingExplorer
@@ -197,22 +206,32 @@ export default async function DseStockRankingPage() {
           counts={counts}
           total={allRanked.length}
           sectors={sectors}
+          warnings={today?.warnings ?? null}
+          then={then}
+          premiumCard={
+            <PageQuestions
+              id="rk-premium"
+              area="rankings"
+              className="rk-premium"
+              title={{ en: "The sample above, for every company", bn: "ওপরের নমুনাটি, প্রতিটি কোম্পানির জন্য" }}
+              lead={{
+                en: first
+                  ? `You just saw why ${first.company_name ?? first.trading_code} ranks first and what we say about buying it today. Premium shows the same for all ${allRanked.length}, and more.`
+                  : `Premium shows why each company ranks where it does, and more.`,
+                bn: first
+                  ? `${first.company_name ?? first.trading_code} কেন প্রথম, আর আজ কেনা নিয়ে আমরা কী বলি, তা দেখলেন। প্রিমিয়ামে ${allRanked.length}টির প্রতিটির জন্য একই তথ্য, আর আরও কিছু।`
+                  : "প্রিমিয়ামে প্রতিটি কোম্পানি কেন যেখানে আছে, আর আরও কিছু।",
+              }}
+              rows={questions}
+              label={{ en: "The ranking, explained", bn: "র‍্যাঙ্কিংয়ের ব্যাখ্যা" }}
+            />
+          }
         />
+
+      <CloseToMoving up={closeUp} down={closeDown} />
 
       <RankMovers movers={movers} names={names} />
 
-      <PageQuestions
-        id="rk-premium"
-        area="rankings"
-        className="rk-premium"
-        title={{ en: "The whole ranking is free. Here is what it leaves open.", bn: "পুরো র‍্যাঙ্কিং ফ্রি। তবু কিছু প্রশ্ন থেকে যায়।" }}
-        lead={{
-          en: "Premium answers these on this page: a best-value order, your own ranking, why each mover moved, a year of rank for every company, and alerts when a rank changes.",
-          bn: "প্রিমিয়ামে এর উত্তর এই পেজেই: সেরা দামের ক্রম, আপনার নিজের র‍্যাঙ্কিং, প্রতিটি ওঠানামার কারণ, প্রতিটি কোম্পানির এক বছরের র‍্যাঙ্ক, আর র‍্যাঙ্ক বদলালে অ্যালার্ট।",
-        }}
-        rows={questions}
-        label={{ en: "The ranking, explained", bn: "র‍্যাঙ্কিংয়ের ব্যাখ্যা" }}
-      />
 
       {/* What this list covers — and what it deliberately doesn't */}
       <section className="rank-limits" aria-label="What this list covers">
@@ -307,8 +326,8 @@ export default async function DseStockRankingPage() {
             business</b>, from strongest to weakest, rebuilt after every trading day. Each company gets a score
             out of 100 from five checks on its own published accounts: earnings quality (30%), financial health
             (20%), competitive strength (20%), valuation against its sector (15%) and dividend sustainability
-            (15%). Scores of 75 and above are labelled Excellent, 60 to 74 Good, 45 to 59 Average, and below 45
-            Weak.
+            (15%). Scores of 75 and above are Excellent (strong all round), 60 to 74 Good (mostly strong), 45 to 59
+            Average (mixed), and below 45 Weak (mostly weak).
           </>,
           <>
             The same rules apply to all {allRanked.length} companies, with one exception: banks, finance companies
@@ -372,56 +391,60 @@ export default async function DseStockRankingPage() {
           },
         ]}
       />
+      </PageLockScope>
     </>
   );
 }
 
-/** The page's question card rows, from today's ranking and the week's movers:
- *  each a fact on the page beside the question Premium answers here. */
-function rankQuestions(items: RankedItem[], movers: Movers | null): PageQuestion[] {
+/** The page's question card rows, from today's ranking: each a fact on the
+ *  page beside the question Premium answers here. */
+function rankQuestions(
+  items: RankedItem[],
+  movers: Movers | null,
+  week: { up: string[]; down: string[]; method?: boolean } | null,
+  closeUp: number,
+): PageQuestion[] {
   const out: PageQuestion[] = [];
-  const top = [...items].filter((i) => i.score != null).sort((a, b) => (b.score ?? 0) - (a.score ?? 0))[0];
-  if (top) {
+  const strong = items.filter((i) => i.tier === "excellent").length;
+  if (strong > 0) {
     out.push({
-      key: "top",
-      fact: { en: `Number 1: ${top.trading_code}`, bn: `1 নম্বর: ${top.trading_code}` },
+      key: "why",
+      fact: {
+        en: `${strong} ${GROUP_NAMES.excellent.name.en.toLowerCase()}`,
+        bn: `${strong}টি ${GROUP_NAMES.excellent.name.bn}`,
+      },
       tone: "good",
-      ask: { en: "Is it at a good price today?", bn: "আজ কি এর দাম ভালো?" },
-      hint: { en: "The best-value order puts good companies at a low price first.", bn: "সেরা দামের ক্রমে কম দামের ভালো কোম্পানি আগে আসে।" },
+      ask: { en: "Why does each rank where it does?", bn: "প্রতিটি কেন যেখানে আছে সেখানে?" },
+      hint: {
+        en: "The reason in plain words, and our answer on buying it today.",
+        bn: "সহজ ভাষায় কারণ, আর আজ কেনা নিয়ে আমাদের উত্তর।",
+      },
     });
   }
-  if (movers && movers.climbed_n > 0) {
+  if (closeUp > 0) {
     out.push({
-      key: "climbed",
-      fact: { en: `${movers.climbed_n} climbed this week`, bn: `এ সপ্তাহে ${movers.climbed_n}টি উঠেছে` },
-      ask: { en: "What moved them?", bn: "কেন উঠল?" },
-      hint: { en: "The check behind every move, in plain words.", bn: "প্রতিটি ওঠানামার পেছনের যাচাই, সহজ ভাষায়।" },
+      key: "close",
+      fact: { en: `${closeUp} near the next group`, bn: `${closeUp}টি পরের দলের কাছে` },
+      ask: { en: "Who is about to move up?", bn: "কোনগুলো ওপরে ওঠার পথে?" },
+      hint: { en: "And which check would move them.", bn: "আর কোন যাচাই তাদের সরাবে।" },
     });
   }
   out.push({
     key: "weights",
     fact: { en: "Ranked by our weights", bn: "আমাদের ভারে সাজানো" },
     ask: { en: "What if dividends matter most to you?", bn: "আপনার কাছে ডিভিডেন্ড বেশি জরুরি হলে?" },
-    hint: { en: "Say which of the five checks matter more, and the table re-orders.", bn: "পাঁচটি যাচাইয়ের কোনটি বেশি জরুরি বলুন, তালিকা নতুন করে সাজবে।" },
+    hint: { en: "Your own ranking, and a best-value order.", bn: "নিজের র‍্যাঙ্কিং, আর সেরা দামের ক্রম।" },
   });
-  if (movers && movers.grade_changes > 0) {
-    out.push({
-      key: "grades",
-      fact: {
-        en: `${movers.grade_changes} changed grade this week`,
-        bn: `এ সপ্তাহে ${movers.grade_changes}টির গ্রেড বদলেছে`,
-      },
-      tone: "fair",
-      ask: { en: "Will you hear when yours does?", bn: "আপনার শেয়ারের বদলালে জানবেন কি?" },
-      hint: { en: "Rank alerts: when a share enters the top 20, or drops below Good.", bn: "র‍্যাঙ্ক অ্যালার্ট: শেয়ার প্রথম 20-এ এলে, বা ভালো গ্রেডের নিচে নামলে।" },
-    });
-  } else {
-    out.push({
-      key: "alerts",
-      fact: { en: "A new ranking every trading day", bn: "প্রতি লেনদেনের দিন নতুন র‍্যাঙ্কিং" },
-      ask: { en: "Will you hear when a share you like moves?", bn: "পছন্দের শেয়ার সরলে জানবেন কি?" },
-      hint: { en: "Rank alerts: when a share enters the top 20, or drops below Good.", bn: "র‍্যাঙ্ক অ্যালার্ট: শেয়ার প্রথম 20-এ এলে, বা ভালো গ্রেডের নিচে নামলে।" },
-    });
-  }
+  const moved = week && !week.method ? week.up.length + week.down.length : movers?.grade_changes ?? 0;
+  out.push({
+    key: "alerts",
+    fact:
+      moved > 0
+        ? { en: `${moved} changed group this week`, bn: `এ সপ্তাহে ${moved}টির দল বদলেছে` }
+        : { en: "A new ranking every trading day", bn: "প্রতি লেনদেনের দিন নতুন র‍্যাঙ্কিং" },
+    tone: moved > 0 ? "fair" : "neutral",
+    ask: { en: "Will you hear when yours does?", bn: "আপনার শেয়ারের বদলালে জানবেন কি?" },
+    hint: { en: "Rank alerts after the close.", bn: "লেনদেন শেষে র‍্যাঙ্ক অ্যালার্ট।" },
+  });
   return out;
 }

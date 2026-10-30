@@ -71,7 +71,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Find stocks",
     labelBn: "শেয়ার খুঁজুন",
     items: [
-      { href: "/dsestockranking", label: "Rankings", labelBn: "র‍্যাঙ্কিং", sub: "Every company, scored", subBn: "প্রতিটি কোম্পানির স্কোর", icon: "rankings" },
+      { href: "/dsestockranking", label: "Company ranking", labelBn: "কোম্পানির র‍্যাঙ্কিং", sub: "The strongest companies on the DSE", subBn: "ডিএসইর সবচেয়ে শক্তিশালী কোম্পানি", icon: "rankings" },
       { href: "/stocks", label: "All stocks", labelBn: "সব শেয়ার", sub: "The full A–Z list", subBn: "A থেকে Z পুরো তালিকা", icon: "browse" },
       { href: "/buy-sell-signals", label: "Buy signals", labelBn: "কেনার সংকেত", sub: "Shares worth buying today", subBn: "আজ কেনার মতো শেয়ার", icon: "signals" },
       { href: "/screener", label: "Stock screener", labelBn: "স্টক স্ক্রিনার", sub: "Find stocks that fit what you want", subBn: "আপনার চাওয়া অনুযায়ী শেয়ার খুঁজুন", icon: "find", premium: true },

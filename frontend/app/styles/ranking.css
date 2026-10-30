@@ -6,37 +6,7 @@
    PageGuide reuses it on the other hub pages. */
 
 /* ---- Method + data dates: one quiet line under the header ---- */
-.rk-method {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 24px;
-  margin: 0 0 var(--space-6);
-  padding: 10px 0;
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  font-size: var(--fs-sm);
-  color: var(--text-muted);
-}
-.rk-method-checks {
-  flex: 1 1 520px;
-  margin: 0;
-  line-height: 1.5;
-}
-.rk-method-checks b {
-  font-weight: 600;
-  color: var(--text);
-}
-.rk-method-dates { margin: 0; }
-.rk-method-link {
-  display: inline-flex;
-  align-items: center;
-  min-height: 40px;
-  font-weight: 600;
-  color: var(--primary-ink);
-  text-decoration: none;
-}
-.rk-method-link:hover { text-decoration: underline; }
+/* (.rk-method strip retired 2026-10-31 — RankingMade replaced it) */
 
 /* ---- Filters: grade chips, search, sector, split bar ---- */
 .rk-explorer { margin-bottom: 40px; }
@@ -730,4 +700,105 @@
 @media (max-width: 640px) {
   .rk-best-btn { display: none; }
   .rk-own-btn { flex: 1 1 100%; justify-content: center; }
+}
+
+/* ── The ranking redesign (2026-10-31) ─────────────────────────────────────
+   Dateline, "how the ranking is made", the week's group moves, the plain
+   checks line and warning tag on each row, Premium's row (free sample /
+   locked lines + signpost), the Premium card inside the table, Show all,
+   and "Close to moving". */
+.rk-dateline { display: inline-flex; align-items: center; gap: 8px; }
+.rk-dateline > i { width: 8px; height: 8px; border-radius: 999px; background: var(--positive); }
+
+.rk-made { margin-top: var(--space-6); padding: 20px 18px; display: grid; gap: 14px; }
+@media (min-width: 640px) { .rk-made { padding: 24px 28px; } }
+.rk-made-h { margin: 0; font-size: var(--fs-md); font-weight: 700; line-height: 1.4; color: var(--text); }
+.rk-made-bar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: var(--surface-2); }
+.rk-made-bar > i { display: block; height: 100%; }
+.rk-made-groups { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; }
+@media (min-width: 640px) { .rk-made-groups { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.rk-made-groups > li { display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: var(--fs-xs); color: var(--text); }
+.rk-made-groups b { display: inline-flex; align-items: center; gap: 8px; font-size: var(--fs-xl); font-weight: 700; line-height: 1.1; }
+.rk-made-checks {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px;
+  padding-top: 12px; border-top: 1px solid var(--cell-rule); font-size: var(--fs-xs); color: var(--text);
+}
+.rk-made-k { font-weight: 600; }
+.rk-made-chip { padding: 3px 9px; border-radius: 999px; background: var(--surface-2); font-weight: 600; }
+.rk-made-fy { color: var(--text); }
+.rk-made-link { margin-left: auto; font-weight: 600; color: var(--primary-ink); text-decoration: underline; text-underline-offset: 3px; }
+
+.rk-week { margin: 14px 2px 0; display: grid; gap: 4px; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
+.rk-week > p { margin: 0; }
+.rk-week strong { font-weight: 700; }
+.rk-week-link { font-weight: 600; color: var(--text); text-decoration: underline; text-decoration-color: var(--border); text-underline-offset: 3px; }
+.rk-week-link:hover { color: var(--primary-ink); text-decoration-color: currentColor; }
+
+/* Each company's checks in words, under its name. */
+.rk-five { display: block; margin-top: 3px; font-size: var(--fs-xs); line-height: 1.45; color: var(--text); white-space: normal; }
+
+/* A serious warning from the stock report: red, not amber. */
+.rk-flag--bad {
+  border-color: color-mix(in srgb, var(--negative) 35%, var(--surface));
+  background: color-mix(in srgb, var(--negative) 8%, var(--surface));
+  color: var(--negative);
+}
+.rk-flag-link { font-weight: 600; color: var(--primary-ink); text-decoration: underline; }
+
+/* Premium's row under a company. */
+.rk-prem-row > .rk-prem-td { padding: 0 12px 12px 56px; border: 0; white-space: normal; }
+.rk-prem--sample {
+  padding: 10px 12px 12px; border-radius: var(--radius);
+  background: rgb(var(--gold-rgb) / 0.10);
+}
+.rk-sample-tag { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); font-weight: 700; color: var(--gold-ink); }
+.rk-prem-lines { margin: 4px 0 0; padding: 0; list-style: none; display: grid; gap: 3px; }
+.rk-prem-lines > li { position: relative; padding-left: 14px; font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
+.rk-prem-lines > li::before {
+  content: ""; position: absolute; left: 2px; top: 0.6em; width: 5px; height: 5px;
+  border-radius: 999px; background: var(--gold);
+}
+.rk-sign {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 8px; margin-left: -8px;
+  border-radius: var(--radius); font-size: var(--fs-xs); font-weight: 600; color: var(--gold-ink); text-decoration: none;
+}
+.rk-sign:hover { background: rgb(var(--gold-rgb) / 0.10); }
+.rk-sign:active { background: rgb(var(--gold-rgb) / 0.18); }
+
+/* The page's Premium card inside the table, after row 5. */
+.rk-card-row > td { padding: 16px; border-top: 1px solid var(--cell-rule); white-space: normal; }
+.rk-card-row .rk-premium { margin-top: 0; }
+
+.rk-more { display: flex; justify-content: center; padding: 16px 0 4px; }
+
+/* Close to moving */
+.rk-close { margin-top: var(--space-12); }
+.rk-close > div:first-child { margin-bottom: var(--space-4); }
+.rk-close-card { padding: 4px 18px; }
+@media (min-width: 640px) { .rk-close-card { padding: 8px 28px; } }
+.rk-close-rows { margin: 0; padding: 0; list-style: none; }
+.rk-close-rows > li { border-top: 1px solid var(--cell-rule); }
+.rk-close-rows > li:first-child { border-top: 0; }
+.rk-close-row > a, .rk-close-row > span { padding-block: 14px; gap: 12px; }
+.rk-close-dir { display: inline-flex; width: 20px; justify-content: center; font-size: var(--fs-md); font-weight: 700; }
+
+@media (max-width: 640px) {
+  .rk-prem-row {
+    display: block;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+  }
+  .rk-prem-row > .rk-prem-td { display: block; padding: 0 14px 12px 48px; }
+  /* The card leaves the row card: close the card above it, open the one below. */
+  .rk-card-row { display: block; margin: 16px 0; }
+  .rk-card-row > td { display: block; padding: 0; border: 0; }
+  .rk-group > tr:has(+ .rk-card-row) {
+    border-bottom: 1px solid var(--border);
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+  }
+  .rk-card-row + .rk-row {
+    border-top: 1px solid var(--border);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+  }
 }

@@ -21,7 +21,7 @@ const marketsLinks: FootLink[] = [
 ];
 
 const findLinks: FootLink[] = [
-  { href: "/dsestockranking", en: "Rankings", bn: "র‍্যাঙ্কিং" },
+  { href: "/dsestockranking", en: "Company ranking", bn: "কোম্পানির র‍্যাঙ্কিং" },
   { href: "/stocks", en: "All stocks", bn: "সব শেয়ার" },
   { href: "/buy-sell-signals", en: "Buy signals", bn: "কেনার সংকেত" },
   { href: "/screener", en: "Stock screener", bn: "স্টক স্ক্রিনার" },

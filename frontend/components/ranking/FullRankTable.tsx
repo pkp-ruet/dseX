@@ -2,7 +2,22 @@
 
 import { Fragment, useMemo, useState, type MouseEvent, type ReactNode } from "react";
 import Link from "next/link";
-import { TIER_LABELS, TIER_LABELS_BN, TIER_MEANINGS, TIER_MEANINGS_BN, TIER_VAR, type TierKey } from "@/lib/constants";
+import { TIER_VAR, type TierKey } from "@/lib/constants";
+import TierPill from "@/components/ui/TierPill";
+import SignalChip from "@/components/ui/SignalChip";
+import { IconCrown } from "@/components/ui/icons";
+import { Locked } from "@/components/premium/AnswerLock";
+import { trackEvent } from "@/lib/track";
+import {
+  GROUP_NAMES,
+  answerLine,
+  checksLine,
+  standingLine,
+  warningWord,
+  whyLine,
+  type Bi,
+  type RankSignal,
+} from "@/lib/ranking";
 import StarButton from "@/components/ui/StarButton";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import { SortIcon, type SortDir } from "@/components/ui/Table";
@@ -18,6 +33,25 @@ import { sectorBn } from "@/lib/bn";
 
 export interface RankedItem extends ScoreItem {
   tier: TierKey;
+  /** The Buy signal without its reason sentences (they doubled the payload). */
+  sig?: RankSignal;
+}
+
+/** What the redesigned page adds to every row (2026-10-31): the serious
+ *  warnings (free), the Premium lines, the free sample, and where the page's
+ *  one Premium card goes. */
+export interface RankExtras {
+  /** Red check keys by code (`/api/rankings/today`); null = not loaded. */
+  warnings: Record<string, string[]> | null;
+  /** Rank on the first day of the history, and that day in words. */
+  then: { ranks: Record<string, number>; day: Bi } | null;
+  /** The row whose Premium part is open for everyone. */
+  sampleCode: string | null;
+  /** True while the reader can't see Premium (free, or before mount). */
+  locked: boolean;
+  /** The page's Premium card, put after row `cardAfter` of this view. */
+  premiumCard?: ReactNode;
+  cardAfter?: number;
 }
 
 export interface RankedRow {
@@ -41,6 +75,7 @@ interface Props {
   /** Companies per grade in the whole view — when the table holds only part
    *  of it (the free head), so a grade header doesn't count just its rows. */
   groupCounts?: Partial<Record<TierKey, number>>;
+  extras?: RankExtras;
 }
 
 const TIERS_ORDER: TierKey[] = ["excellent", "good", "average", "weak"];
@@ -96,13 +131,13 @@ const FLAG_NOTES = {
  * tooltip, which never appears on a phone — so the tag is a button that opens
  * one plain line under the name.
  */
-function FlagTag({ label, note }: { label: ReactNode; note: ReactNode }) {
+function FlagTag({ label, note, tone }: { label: ReactNode; note: ReactNode; tone?: "bad" }) {
   const [open, setOpen] = useState(false);
   return (
     <>
       <button
         type="button"
-        className="rk-flag"
+        className={tone === "bad" ? "rk-flag rk-flag--bad" : "rk-flag"}
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
       >
@@ -141,7 +176,7 @@ function HeadCell({
   );
 }
 
-export default function FullRankTable({ rows, grouped, sort, onSort, groupCounts }: Props) {
+export default function FullRankTable({ rows, grouped, sort, onSort, groupCounts, extras }: Props) {
   const [expanded, setExpanded] = useState<string | null>(null);
 
   // One <tbody> per grade (or one for a flat sort) — on phones each tbody
@@ -154,6 +189,11 @@ export default function FullRankTable({ rows, grouped, sort, onSort, groupCounts
   }, [rows, grouped]);
 
   const toggle = (code: string) => setExpanded((prev) => (prev === code ? null : code));
+  // The Premium card goes after this row of the view (free readers only).
+  const cardCode =
+    extras?.premiumCard && extras.cardAfter != null
+      ? rows[Math.min(extras.cardAfter, rows.length) - 1]?.item.trading_code ?? null
+      : null;
 
   const onRowClick = (e: MouseEvent<HTMLTableRowElement>, code: string) => {
     // Links, the star, flags and the toggle button handle themselves.
@@ -224,10 +264,11 @@ export default function FullRankTable({ rows, grouped, sort, onSort, groupCounts
                   <div className="rk-group-head-inner">
                     <span className="rk-dot" style={{ background: TIER_VAR[group.tier] }} aria-hidden />
                     <h2 className="rk-group-title">
-                      <T en={TIER_LABELS[group.tier]} bn={TIER_LABELS_BN[group.tier]} />
+                      <T en={GROUP_NAMES[group.tier].name.en} bn={GROUP_NAMES[group.tier].name.bn} />
                     </h2>
+                    <TierPill tier={group.tier} />
                     <span className="rk-group-meaning">
-                      <T en={TIER_MEANINGS[group.tier]} bn={TIER_MEANINGS_BN[group.tier]} />
+                      <T en={GROUP_NAMES[group.tier].line.en} bn={GROUP_NAMES[group.tier].line.bn} />
                     </span>
                     <span className="rk-group-count nums">
                       <strong>{groupCounts?.[group.tier] ?? group.rows.length}</strong>
@@ -241,14 +282,21 @@ export default function FullRankTable({ rows, grouped, sort, onSort, groupCounts
               </tr>
             )}
             {group.rows.map(({ item, rank }) => (
-              <RankRow
-                key={item.trading_code}
-                item={item}
-                rank={rank}
-                open={expanded === item.trading_code}
-                onToggle={() => toggle(item.trading_code)}
-                onRowClick={onRowClick}
-              />
+              <Fragment key={item.trading_code}>
+                <RankRow
+                  item={item}
+                  rank={rank}
+                  open={expanded === item.trading_code}
+                  onToggle={() => toggle(item.trading_code)}
+                  onRowClick={onRowClick}
+                  extras={extras}
+                />
+                {cardCode === item.trading_code && (
+                  <tr className="rk-card-row">
+                    <td colSpan={COL_COUNT}>{extras?.premiumCard}</td>
+                  </tr>
+                )}
+              </Fragment>
             ))}
           </tbody>
         ))}
@@ -263,12 +311,14 @@ function RankRow({
   open,
   onToggle,
   onRowClick,
+  extras,
 }: {
   item: RankedItem;
   rank: number;
   open: boolean;
   onToggle: () => void;
   onRowClick: (e: MouseEvent<HTMLTableRowElement>, code: string) => void;
+  extras?: RankExtras;
 }) {
   const code = item.trading_code;
   const category = item.market_category?.toUpperCase();
@@ -276,6 +326,8 @@ function RankRow({
   const growth = item.eps_yoy_pct;
   const dy = item.div_yield_pct;
   const { lang } = useLang();
+  const warns = extras?.warnings ? extras.warnings[code] ?? [] : null;
+  const five = checksLine(item);
 
   // Narrower screens drop the growth / dividend columns (and phones the
   // price-today one too); one muted line under the name brings them back.
@@ -317,13 +369,15 @@ function RankRow({
             <Link prefetch={false} href={`/stock/${code}`} className="rk-name">
               {item.company_name ?? code}
             </Link>
-            {(category === "Z" || category === "B") && (
+            {item.sig?.signal === "buy" && <SignalChip signal="buy" />}
+            {warns && warns.length > 0 && <WarningTag code={code} keys={warns} />}
+            {(category === "B" || (category === "Z" && !warns?.includes("category"))) && (
               <FlagTag
                 label={<T en={`${category} category`} bn={`${category} ক্যাটাগরি`} />}
                 note={<T en={FLAG_NOTES[category].en} bn={FLAG_NOTES[category].bn} />}
               />
             )}
-            {item.stale_data && (
+            {item.stale_data && !warns?.includes("stale") && (
               <FlagTag
                 label={<T en="Old report" bn="পুরোনো রিপোর্ট" />}
                 note={
@@ -339,6 +393,11 @@ function RankRow({
               />
             )}
           </span>
+          {five && (
+            <span className="rk-five">
+              <T en={five.en} bn={five.bn} />
+            </span>
+          )}
           <span className="rk-meta">
             <b>{code}</b>
             {item.sector && (
@@ -418,6 +477,8 @@ function RankRow({
         </td>
       </tr>
 
+      {extras && <PremiumRow item={item} extras={extras} />}
+
       {open && (
         <tr className="rk-detail-row">
           <td colSpan={COL_COUNT} className="rk-detail-td">
@@ -426,5 +487,97 @@ function RankRow({
         </tr>
       )}
     </Fragment>
+  );
+}
+
+/** A red tag for the serious warnings in the company's stock report — free,
+ *  so a high rank never reads as "safe". Tap names each one. */
+function WarningTag({ code, keys }: { code: string; keys: string[] }) {
+  const first = warningWord(keys[0]);
+  const more = keys.length - 1;
+  return (
+    <FlagTag
+      tone="bad"
+      label={
+        <T
+          en={more > 0 ? `${first.en} +${more}` : first.en}
+          bn={more > 0 ? `${first.bn} +${more}` : first.bn}
+        />
+      }
+      note={
+        <>
+          <T
+            en={`Serious ${keys.length === 1 ? "warning" : "warnings"} in its report: ${keys.map((k) => warningWord(k).en).join(", ")}. `}
+            bn={`রিপোর্টে গুরুতর সতর্কতা: ${keys.map((k) => warningWord(k).bn).join(", ")}। `}
+          />
+          <Link prefetch={false} href={`/stock/${code}#ch-risks`} className="rk-flag-link">
+            <T en="See its report" bn="রিপোর্ট দেখুন" />
+          </Link>
+        </>
+      }
+    />
+  );
+}
+
+/**
+ * Premium's part of a row (2026-10-31): why it ranks where it does, our answer
+ * on buying it today, and where it stood on the first day of the history /
+ * how close it is to another group. The sample row shows it open for every
+ * reader; other rows hide it (`Locked`) and, while locked, show one gold
+ * signpost to the page's Premium card.
+ */
+function PremiumRow({ item, extras }: { item: RankedItem; extras: RankExtras }) {
+  const sample = extras.sampleCode === item.trading_code;
+  const answer = answerLine(item.sig);
+  const stand = standingLine(
+    item,
+    extras.then ? { date: "", rank: extras.then.ranks[item.trading_code] ?? null } : null,
+    extras.then?.day.en ?? "",
+    extras.then?.day.bn ?? "",
+  );
+  const why = whyLine(item);
+  const lines = [why, answer, stand.en ? stand : null].filter((l): l is Bi => !!l);
+  const body = (
+    <ul className="rk-prem-lines">
+      {lines.map((l, i) => (
+        <li key={i}>
+          <T en={l.en} bn={l.bn} />
+        </li>
+      ))}
+    </ul>
+  );
+  return (
+    <tr className="rk-prem-row">
+      <td colSpan={COL_COUNT} className="rk-prem-td">
+        {sample ? (
+          <div className="rk-prem rk-prem--sample">
+            {extras.locked && (
+              <span className="rk-sample-tag">
+                <IconCrown size={12} />
+                <T en="Free sample of Premium" bn="প্রিমিয়ামের ফ্রি নমুনা" />
+              </span>
+            )}
+            {body}
+          </div>
+        ) : (
+          <>
+            <Locked className="rk-prem">{body}</Locked>
+            {extras.locked && (
+              <a
+                href="#rk-premium"
+                className="rk-sign"
+                onClick={() => trackEvent("premium_lock_tap", { area: "rankings", lock: "rankings-row" })}
+              >
+                <IconCrown size={14} />
+                <T
+                  en="Why it ranks here, and how close it is to moving · Premium"
+                  bn="কেন এখানে, আর অন্য দলে যাওয়ার কত কাছে · প্রিমিয়াম"
+                />
+              </a>
+            )}
+          </>
+        )}
+      </td>
+    </tr>
   );
 }
