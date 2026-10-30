@@ -161,7 +161,7 @@ export default function PremiumWeekCard({
             <T en="This week Premium caught" bn="এ সপ্তাহে প্রিমিয়াম যা ধরেছে" />
           )
         }
-        href="/portfolio#pf-stocks"
+        href="/portfolio#ch-watch"
         linkLabel={<T en="Your updates" bn="আপনার খবর" />}
       />
       <div className="px-4 pb-4 sm:px-5">

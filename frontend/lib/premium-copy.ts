@@ -184,12 +184,12 @@ export const ROWS: { what: Bi; job: Job; free: Bi; premium: Bi }[] = [
     job: "watch",
     what: { en: "Portfolio check", bn: "পোর্টফোলিও যাচাই" },
     free: {
-      en: "Your grade and its three scores, the first point on what is going well, and how your money is split by company and sector.",
-      bn: "আপনার গ্রেড ও তার তিনটি স্কোর, কী ভালো চলছে তার প্রথম কথা, আর কোম্পানি ও সেক্টর অনুযায়ী টাকার ভাগ।",
+      en: "The answer to \"Is your portfolio in good shape?\" with your grade and its four lights, one full sample answer, your Sell marks, warning signs and coming dates, and every money figure.",
+      bn: "\"আপনার পোর্টফোলিও কি ভালো অবস্থায় আছে?\" প্রশ্নের উত্তর, গ্রেড আর চারটি আলো, একটি পূর্ণ নমুনা উত্তর, বিক্রির সংকেত, সতর্কসংকেত, সামনের তারিখ, আর টাকার সব হিসাব।",
     },
     premium: {
-      en: "Every point, including what needs your attention and what to consider. Also what to do with each share, what to buy next, a risk check, the price you paid, your cash income, and how you compare with the market.",
-      bn: "প্রতিটি কথা, কোথায় নজর দরকার আর কী ভেবে দেখার মতো তা সহ। সঙ্গে প্রতিটি শেয়ার নিয়ে কী করবেন, এরপর কী কিনবেন, ঝুঁকি যাচাই, কেনার দাম, নগদ আয়, আর বাজারের সঙ্গে আপনার তুলনা।",
+      en: "The full check: why each light is what it is, every answer on your companies, your spread and the prices you paid, and your plan: what to do first, what lifts your grade, what to buy next and what to do with each share.",
+      bn: "পূর্ণ যাচাই: প্রতিটি আলো কেন এমন, আপনার কোম্পানি, টাকার বণ্টন আর কেনার দাম নিয়ে প্রতিটি উত্তর, আর আপনার পরিকল্পনা: প্রথমে কী করবেন, কীসে গ্রেড বাড়বে, এরপর কী কিনবেন আর প্রতিটি শেয়ার নিয়ে কী করবেন।",
     },
   },
   {

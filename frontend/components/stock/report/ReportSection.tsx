@@ -47,14 +47,5 @@ export function PremiumPanel({
   );
 }
 
-/** The quiet last line of a question's fold: where the figures come from,
- *  and an optional control (the share button) at its end. */
-export function SectionFoot({ source, action }: { source?: ReactNode; action?: ReactNode }) {
-  if (!source && !action) return null;
-  return (
-    <div className="rp-foot">
-      <p className="min-w-0 text-xs leading-snug text-text-muted">{source}</p>
-      {action}
-    </div>
-  );
-}
+/** Re-exported: shared with the portfolio report. */
+export { SectionFoot } from "@/components/report/chip";

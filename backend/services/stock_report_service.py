@@ -342,6 +342,24 @@ def store_snapshots(codes: Optional[list[str]] = None) -> dict:
     return {"date": day, "stored": len(ops), "failed": failed, "seconds": round(time.time() - t0, 1)}
 
 
+def latest_snapshots(codes) -> dict[str, dict]:
+    """{code: newest snapshot row in the last 21 days} — red / amber counts and
+    the red keys + lines (the portfolio report's warning signs)."""
+    from backend.services.db_service import get_db
+
+    codes = sorted({c.upper() for c in codes or [] if c})
+    if not codes:
+        return {}
+    since = (_today() - timedelta(days=21)).isoformat()
+    out: dict[str, dict] = {}
+    for d in get_db()[SNAPSHOT_COLLECTION].find(
+        {"trading_code": {"$in": codes}, "date": {"$gte": since}},
+        {"_id": 0, "trading_code": 1, "date": 1, "red": 1, "amber": 1, "red_keys": 1, "red_lines": 1},
+    ).sort("date", -1):
+        out.setdefault(d["trading_code"], d)
+    return out
+
+
 # ---------------------------------------------------------------- watcher
 
 def red_flag_changes(codes) -> dict[str, dict]:

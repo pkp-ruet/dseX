@@ -1061,7 +1061,7 @@ function buildTodayStory(
         ) + (weak ? L(` ${weak} ${plural(weak, "is", "are")} Weak.`, ` ${weak}টি দুর্বল।`) : ""),
       rows: rows.length ? rows : undefined,
       cta: ctx.held.size
-        ? { label: L("See your analysis", "বিশ্লেষণ দেখুন"), href: "/portfolio#pf-analysis" }
+        ? { label: L("See your analysis", "বিশ্লেষণ দেখুন"), href: "/portfolio#ch-answer" }
         : { label: L("See your watchlist", "ওয়াচলিস্ট দেখুন"), href: "/watchlist" },
       when: dayWord,
       tone: sl ? "negative" : b ? "positive" : "neutral",

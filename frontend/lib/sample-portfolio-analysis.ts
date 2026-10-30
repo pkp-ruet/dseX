@@ -53,7 +53,16 @@ export function buildSampleAnalysis(
   scores: ScoresResponse,
   lang: AnalysisLang = "en",
 ): SampleAnalysisResult {
-  const priceMap = flattenScores(scores);
+  return analyzeSample(portfolio, flattenScores(scores), lang);
+}
+
+/** The same run on a price map a page already holds (the portfolio report's
+ *  sample answers). */
+export function analyzeSample(
+  portfolio: SamplePortfolio,
+  priceMap: Map<string, ScoreItem>,
+  lang: AnalysisLang = "en",
+): SampleAnalysisResult {
   const rows: ComputedRow[] = portfolio.holdings.map((h, i) => {
     const code = h.trading_code.toUpperCase();
     return compute(

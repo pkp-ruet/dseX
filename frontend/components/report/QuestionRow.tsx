@@ -5,13 +5,13 @@ import { Locked } from "@/components/premium/AnswerLock";
 import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
 import { IconChevronDown, IconLock } from "@/components/ui/icons";
 import { T } from "@/components/i18n/T";
-import { SectionFoot } from "@/components/stock/report/ReportSection";
-import { ToneChip, tx } from "@/components/stock/report/fmt";
+import { SectionFoot, ToneChip, tx } from "@/components/report/chip";
 import { usePremium } from "@/lib/premium";
 import type { Bi, Tone } from "@/lib/stock-report";
 
 /**
- * ONE question of the stock report (2026-10-30 rebuild): the question (h3)
+ * ONE question of a report (2026-10-30 rebuild; shared by the stock report
+ * and, since the same day, the portfolio report): the question (h3)
  * and its one-word answer, a small picture, the answer in one sentence, what
  * it means and what to watch, then the figures folded under "See the
  * figures". Every row on the page reads the same way.
@@ -53,6 +53,7 @@ export default function QuestionRow({
   sample = false,
   allFree = false,
   teaser,
+  anchorClass = "stock-anchor",
 }: {
   /** Anchor id (`rp-<key>`). */
   id: string;
@@ -84,6 +85,8 @@ export default function QuestionRow({
   allFree?: boolean;
   /** Closed, show only the question and the answer word ("word") or a lock. */
   teaser?: "word" | "lock";
+  /** The scroll-margin class for this page's sticky stack. */
+  anchorClass?: string;
 }) {
   const premiumOpen = usePremiumOpen();
   const { isPremium } = usePremium();
@@ -133,8 +136,8 @@ export default function QuestionRow({
   ) : null;
 
   return (
-    <section id={id} className="rq stock-anchor" data-compact={compact ? "true" : undefined} aria-labelledby={`${id}-t`}>
-      {aliases.map((a) => <span key={a} id={a} className="stock-anchor block" aria-hidden="true" />)}
+    <section id={id} className={`rq ${anchorClass}`} data-compact={compact ? "true" : undefined} aria-labelledby={`${id}-t`}>
+      {aliases.map((a) => <span key={a} id={a} className={`${anchorClass} block`} aria-hidden="true" />)}
       <div className="rq-head">
         <h3 id={`${id}-t`}>{title}</h3>
         <span className="rq-chips">

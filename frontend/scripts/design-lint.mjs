@@ -77,6 +77,23 @@ for (const d of SRC_DIRS) {
   }
 }
 
+// Plain words in the portfolio report (2026-10-30): the stock report's reading
+// rules, no market jargon and no scores out of 10 or ratios in any sentence the
+// report writes (backend twin: test_no_bare_market_words_on_screen).
+const PLAIN_FILES = ["lib/portfolio-report.ts"];
+const PLAIN_RE = /\b(EPS|NOCFPS|NAV|P\/E|ROE|TTM|YoY|CAGR|ratio)\b|out of 10|\/ ?10\b|\d+(\.\d+)?x\b|times (its|their) (yearly )?profit|ইপিএস|পিই|এনএভি/;
+for (const rel of PLAIN_FILES) {
+  readFileSync(join(ROOT, rel), "utf8")
+    .split("\n")
+    .forEach((line, i) => {
+      if (/^\s*(\/\/|\*|\/\*)/.test(line)) return;
+      for (const lit of line.match(/(["'`])(?:\\.|(?!\1).)*\1/g) ?? []) {
+        const m = lit.match(PLAIN_RE);
+        if (m) findings.push(`${rel}:${i + 1}  plain words (no market jargon or ratios on screen): ${m[0]}`);
+      }
+    });
+}
+
 if (findings.length) {
   console.error(`design-lint: ${findings.length} finding(s)\n`);
   for (const f of findings) console.error("  " + f);

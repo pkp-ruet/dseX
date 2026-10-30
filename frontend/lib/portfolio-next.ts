@@ -130,7 +130,7 @@ export function buildNextMove(
         `আপনার টাকার ${top.weightPct.toFixed(0)}% একটি সেক্টরে, যা ${SECTOR_TARGET_PCT}%-এর চেয়ে প্রায় ${takaGroup(excess)} বেশি। পরের কেনাগুলো অন্য সেক্টরে করাই ভালো।`,
       ),
       amount: excess,
-      href: "#pf-buynext",
+      href: "#pf-plan-buy",
       cta: L("See ideas outside it", "এর বাইরের আইডিয়া দেখুন"),
       weight: excess,
     });
@@ -147,7 +147,7 @@ export function buildNextMove(
         `${hs.length}টি শেয়ারে একটি খারাপ কোম্পানিই সব নাড়িয়ে দেয়। আরেকটিতে প্রায় ${takaGroup(amt)} রাখলে ঝুঁকি ছড়ায়।`,
       ),
       amount: amt,
-      href: "#pf-buynext",
+      href: "#pf-plan-buy",
       cta: L("See ideas", "আইডিয়া দেখুন"),
       weight: amt * 0.8,
     });
@@ -163,7 +163,7 @@ export function buildNextMove(
         "আপনার কোনো শেয়ার নিয়মিত ডিভিডেন্ড দেয় না। একটি দিলে দাম যা-ই হোক, প্রতি বছর নগদ টাকা আসে।",
       ),
       amount: amt,
-      href: "#pf-buynext",
+      href: "#pf-plan-buy",
       cta: L("See ideas", "আইডিয়া দেখুন"),
       weight: amt * 0.5,
     });

@@ -1,5 +1,7 @@
 """Watchlist glance board — the pure row builders."""
-from backend.services.watchlist_glance import buy_below, fair_block, glance_row, next_event, risk_flags
+from backend.services.watchlist_glance import (
+    buy_below, fair_block, glance_row, next_event, risk_flags, warnings_block,
+)
 
 
 def test_fair_gap_is_price_against_centre_and_hidden_when_estimates_disagree():
@@ -50,3 +52,25 @@ def test_unscored_row_has_no_risks_and_keeps_the_signal_reason():
     assert row["name"] == "New Co" and row["price"] == 12.0 and row["risks"] == []
     assert row["fair"] is None and row["signal"]["reason_key"] == "not_rated"
     assert row["hi52"] is None and row["lo52"] is None
+
+
+def test_warnings_name_only_the_serious_flags():
+    snap = {"red": 1, "amber": 2, "red_keys": ["qualified"],
+            "red_lines": {"qualified": {"en": "The auditor qualified its accounts.", "bn": "নিরীক্ষক আপত্তি দিয়েছেন।"}}}
+    w = warnings_block(snap)
+    assert w == {"red": 1, "amber": 2, "items": [{"key": "qualified", "en": "The auditor qualified its accounts.",
+                                                   "bn": "নিরীক্ষক আপত্তি দিয়েছেন।"}]}
+    assert warnings_block(None) is None
+    assert warnings_block({"red": 0, "amber": 0})["items"] == []
+
+
+def test_row_carries_profit_trend_safety_and_warnings():
+    f = {"code": "X", "name": "X Ltd", "ltp": 50.0, "score": 70.0, "profit_change_pct": 12.5,
+         "sector_class": "GENERAL", "eps": 4.0, "payout_pct": 40.0, "p5_consist": 10.0}
+    row = glance_row("X", f, {}, {}, {"signal": "buy"}, None, [], [], [],
+                     {"red": 0, "amber": 1, "red_keys": [], "red_lines": {}})
+    assert row["profit_change_pct"] == 12.5
+    assert row["safety"]["level"] == "safe"
+    assert row["warnings"] == {"red": 0, "amber": 1, "items": []}
+    bare = glance_row("Y", None, {"company_name": "Y"}, {}, {}, None, [], [], [])
+    assert bare["safety"] is None and bare["warnings"] is None and bare["profit_change_pct"] is None

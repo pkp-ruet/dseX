@@ -11,6 +11,8 @@ import {
   getDividendsUpcoming,
   getDividendCalendar,
   getMarketIndex,
+  getUpcomingResults,
+  getWatchlistGlance,
   flattenTiers,
   type ScoreItem,
   type ScoresResponse,
@@ -38,6 +40,8 @@ import {
   type PortfolioHistory,
   type PortfolioWatchEvent,
   type BuyNext,
+  type GlanceRow,
+  type UpcomingResult,
 } from "@/lib/api";
 import { taka, takaCompact, takaGroup } from "@/lib/formatters";
 import {
@@ -47,8 +51,6 @@ import {
   planFromEngine,
   type SignalInfo,
   type AnalysisLang,
-  type Grade,
-  GRADE_WORDS,
 } from "@/lib/portfolio-analysis";
 import { cacheKeys, readCache, writeCache } from "@/lib/swr-cache";
 import { getStoredUser } from "@/lib/auth";
@@ -56,15 +58,12 @@ import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
 import Sheet from "@/components/ui/Sheet";
 import SignalChip from "@/components/ui/SignalChip";
-import PortfolioAnalysisView from "./PortfolioAnalysisView";
-import ProInsights from "./ProInsights";
-import RebalanceHelper from "./RebalanceHelper";
 import AllocationChart from "./AllocationChart";
 import SectorBreakdownChart from "./SectorBreakdownChart";
 import { PageLockScope } from "@/components/premium/LockScope";
 import Chip from "@/components/ui/Chip";
 import DashSectionNav from "@/components/home/personalized/DashSectionNav";
-import PfCard, { PfChapterHead } from "./PfCard";
+import PfCard from "./PfCard";
 import {
   IconChevronDown,
   IconChevronRight,
@@ -84,8 +83,7 @@ import MoneyMadeCard from "./MoneyMadeCard";
 import ValueHistoryCard from "./ValueHistoryCard";
 import CorrectionsCard from "./CorrectionsCard";
 import HistoryCard from "./HistoryCard";
-import StockUpdates, { KIND_TAG, LEVEL_TONE } from "./StockUpdates";
-import PortfolioPremium from "./PortfolioPremium";
+import { KIND_TAG, LEVEL_TONE } from "./watchKinds";
 import WhatIfCard from "./WhatIfCard";
 import TrialEndingBanner from "./TrialEndingBanner";
 import PortfolioSwitcher from "./PortfolioSwitcher";
@@ -96,10 +94,16 @@ import PortfolioHero from "./PortfolioHero";
 import AddHoldingModal from "./AddHoldingModal";
 import BuySellModal from "./BuySellModal";
 import PortfolioNews from "./PortfolioNews";
-import AnalysisTop from "./AnalysisTop";
-import GradeLiftCard from "./GradeLiftCard";
-import HowWeDecide from "./HowWeDecide";
+import PortfolioAnswer from "./report/PortfolioAnswer";
+import type { SampleAnswer } from "./report/PortfolioQuestions";
+import PfReportChapter, { PfReportBand } from "./report/PfReportChapter";
+import PfPlanSection from "./report/PfPlanSection";
+import PfMoneyRoom from "./report/PfMoneyRoom";
 import { buildNextMove, gradeLifts } from "@/lib/portfolio-next";
+import { buildPortfolioReport } from "@/lib/portfolio-report";
+import { analyzeSample } from "@/lib/sample-portfolio-analysis";
+import { SAMPLE_PORTFOLIOS } from "@/lib/sample-portfolios";
+import { isoLocal, todayDhaka } from "@/lib/dividend-dates";
 import WatchlistAlertCell from "@/components/watchlist/WatchlistAlertCell";
 import ErrorState from "@/components/ui/ErrorState";
 import { T } from "@/components/i18n/T";
@@ -110,17 +114,6 @@ const nudgeKey = (uid: string) => `dsex.portfolio.nudge3.${uid}`;
 const lastSeenKey = (uid: string) => `dsex.portfolio.lastseen.${uid}`;
 /** Only surface a "since last visit" delta when the prior visit is at least this old. */
 const LAST_SEEN_MIN_AGE_MS = 60 * 60 * 1000;
-
-/** Two cards side by side from `md:`; a lone card takes the full width. */
-const PAIR = "grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 [&>*:only-child]:md:col-span-2";
-
-const GRADE_TEXT: Record<Grade, string> = {
-  A: "text-positive",
-  B: "text-positive",
-  C: "text-watch",
-  D: "text-watch",
-  F: "text-negative",
-};
 
 function flattenScores(scores: ScoresResponse | null): Map<string, ScoreItem> {
   if (!scores) return new Map();
@@ -340,10 +333,6 @@ export default function PortfolioClient() {
   const [error, setError] = useState<string | null>(null);
   const [events, setEvents] = useState<PortfolioSignalEvent[]>([]);
   const [dsexPct, setDsexPct] = useState<number | null>(null);
-  // When the scores this page reads were computed — the "How we decide" date.
-  const [scoresAt, setScoresAt] = useState<string | null>(
-    () => readCache<ScoresResponse>(cacheKeys.scores)?.computed_at ?? null,
-  );
   // The page follows the one navbar language switch (docs/voice.md).
   const { lang } = useLang();
   const [lastSeen, setLastSeen] = useState<{ value: number; ts: string } | null>(null);
@@ -360,6 +349,10 @@ export default function PortfolioClient() {
   // "What to buy next" from the recommendation engine (null → no card).
   const [buyNext, setBuyNext] = useState<BuyNext | null>(null);
   const [watchEvents, setWatchEvents] = useState<PortfolioWatchEvent[]>([]);
+  // The report's per-share reads (warnings, dividend safety, fair value,
+  // profit change, next date) and the results calendar.
+  const [glance, setGlance] = useState<Map<string, GlanceRow>>(new Map());
+  const [results, setResults] = useState<UpcomingResult[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const isMain = pid === MAIN_PORTFOLIO_ID;
 
@@ -488,7 +481,6 @@ export default function PortfolioClient() {
         }
         if (s.status === "fulfilled") {
           setPriceMap(flattenScores(s.value));
-          setScoresAt(s.value.computed_at ?? null);
           writeCache(cacheKeys.scores, s.value);
         }
         if (c.status === "fulfilled") {
@@ -518,11 +510,15 @@ export default function PortfolioClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn, pid]);
 
-  // What the watcher spotted (all the reader's stocks, any portfolio).
+  // What the watcher spotted (all the reader's stocks, any portfolio), and
+  // the results meetings in the next two weeks.
   useEffect(() => {
     if (!isLoggedIn) return;
     apiGetWatchEvents()
       .then((r) => setWatchEvents(r.events ?? []))
+      .catch(() => {});
+    getUpcomingResults()
+      .then((r) => setResults(r.meetings ?? []))
       .catch(() => {});
   }, [isLoggedIn]);
 
@@ -566,11 +562,18 @@ export default function PortfolioClient() {
     const codes = holdingCodesKey ? holdingCodesKey.split(",") : [];
     if (codes.length === 0) {
       setRanges(new Map());
+      setGlance(new Map());
       setNews([]);
       setNewsLoading(false);
       return;
     }
     let cancelled = false;
+    // The glance takes 100 codes a request.
+    const chunks: string[][] = [];
+    for (let i = 0; i < codes.length; i += 100) chunks.push(codes.slice(i, i + 100));
+    Promise.all(chunks.map((c) => getWatchlistGlance(c).catch(() => [] as GlanceRow[]))).then((parts) => {
+      if (!cancelled) setGlance(new Map(parts.flat().map((g) => [g.code.toUpperCase(), g])));
+    });
     getRange52w(codes).then((items) => {
       if (cancelled) return;
       setRanges(new Map(items.map((it) => [it.trading_code.toUpperCase(), it])));
@@ -630,7 +633,14 @@ export default function PortfolioClient() {
 
   const analysis = useMemo(() => analyzePortfolio(rows, priceMap, lang), [rows, priceMap, lang]);
   const rebalance = useMemo(() => planFromEngine(buyNext, lang), [buyNext, lang]);
-  const nextMove = useMemo(() => buildNextMove(analysis, rebalance, lang), [analysis, rebalance, lang]);
+  // The report writes both languages, so the first move is built in each.
+  const nextBoth = useMemo(
+    () => ({
+      en: buildNextMove(analysis, planFromEngine(buyNext, "en"), "en"),
+      bn: buildNextMove(analysis, planFromEngine(buyNext, "bn"), "bn"),
+    }),
+    [analysis, buyNext],
+  );
   const lifts = useMemo(
     () => gradeLifts(rows, priceMap, analysis, rebalance, lang),
     [rows, priceMap, analysis, rebalance, lang],
@@ -800,18 +810,69 @@ export default function PortfolioClient() {
     return { delta: summary.totalValue - lastSeen.value, since: lastSeen.ts };
   }, [lastSeen, summary.totalValue]);
 
-  function goTo(id: string) {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  // The report (2026-10-30): the answer, four chapters, the plan and the
+  // questions for the Premium card — all from what the page already holds.
+  const report = useMemo(
+    () =>
+      buildPortfolioReport({
+        analysis,
+        next: nextBoth,
+        plan: rebalance,
+        lifts,
+        pro: proInsights,
+        priceMap,
+        glance,
+        results,
+        watch: myWatch,
+        flips: myFlips,
+        today: isoLocal(todayDhaka()),
+        sinceLast: valueDelta,
+      }),
+    [analysis, nextBoth, rebalance, lifts, proInsights, priceMap, glance, results, myWatch, myFlips, valueDelta],
+  );
+
+  // Two real answers from the risky sample portfolio (the samples are free),
+  // built only when a free reader opens the fold on the Premium card.
+  function sampleAnswers(): SampleAnswer | null {
+    const sp = SAMPLE_PORTFOLIOS.risky;
+    const { analysis: sa, rows: sr } = analyzeSample(sp, priceMap, lang);
+    if (sr.some((r) => r.ltp == null)) return null;
+    const sPlan = planFromEngine(null, lang);
+    const sr2 = buildPortfolioReport({
+      analysis: sa,
+      next: { en: buildNextMove(sa, sPlan, "en"), bn: buildNextMove(sa, sPlan, "bn") },
+      plan: sPlan,
+      lifts: [],
+      pro: buildProInsights(sa, priceMap, lang),
+      priceMap,
+      glance: new Map(),
+      results: [],
+      watch: [],
+      flips: [],
+      today: isoLocal(todayDhaka()),
+    });
+    const rows = sr2.chapters
+      .flatMap((c) => c.rows)
+      .filter((r) => (r.key === "one" || r.key === "paid" || r.key === "sector") && r.headline)
+      .slice(0, 2)
+      .map((r) => ({ ask: r.title, answer: r.headline! }));
+    if (!rows.length) return null;
+    return { name: { en: sp.name, bn: sp.nameBn }, href: `/sample-portfolio/${sp.slug}`, rows };
   }
 
   const bn = lang === "bn";
   const navItems = useMemo(
     () => [
       { id: "pf-money", label: lang === "bn" ? "টাকা" : "Money" },
-      // The shares list sits inside chapter 1; the chip brings a reader back to it
-      { id: "pf-shares", label: lang === "bn" ? "আপনার শেয়ার" : "Shares" },
-      { id: "pf-analysis", label: lang === "bn" ? "বিশ্লেষণ" : "Analysis" },
-      { id: "pf-stocks", label: lang === "bn" ? "আপডেট" : "Updates" },
+      { id: "ch-answer", label: lang === "bn" ? "উত্তর" : "Answer" },
+      // The shares list sits right under the answer
+      { id: "pf-shares", label: lang === "bn" ? "শেয়ার" : "Shares" },
+      { id: "ch-companies", label: lang === "bn" ? "কোম্পানি" : "Companies" },
+      { id: "ch-spread", label: lang === "bn" ? "বণ্টন" : "Spread" },
+      { id: "ch-prices", label: lang === "bn" ? "দাম" : "Prices" },
+      { id: "ch-watch", label: lang === "bn" ? "নজর" : "Watch" },
+      { id: "ch-plan", label: lang === "bn" ? "পরিকল্পনা" : "Plan" },
+      { id: "ch-money", label: lang === "bn" ? "বিস্তারিত" : "Details" },
     ],
     [lang],
   );
@@ -1054,9 +1115,10 @@ export default function PortfolioClient() {
           />
         </div>
       ) : (
-        // Three chapters (2026-10-26): your money · your stocks · analysis &
-        // next steps. Every block lives in exactly one of them; the Premium
-        // parts blur where they belong and link to the one card at the end.
+        // The portfolio report (2026-10-30): your money and the answer, your
+        // shares, four question chapters, your plan, then every money card as
+        // tabs. Free readers meet Premium in one card under the answer; each
+        // closed chapter has one gold line back to it.
         <PageLockScope anchor="pf-premium">
           <DashSectionNav items={navItems} lang={lang} />
 
@@ -1073,23 +1135,24 @@ export default function PortfolioClient() {
               privacy={privacy}
               onTogglePrivacy={togglePrivacy}
               lang={lang}
-              grade={{
-                letter: analysis.grade,
-                title: L(
-                  `Grade ${analysis.grade} · ${GRADE_WORDS[analysis.gradeLabel].en}`,
-                  `গ্রেড ${analysis.grade} · ${GRADE_WORDS[analysis.gradeLabel].bn}`,
-                ),
-                line:
-                  analysis.bad.length > 0
-                    ? L(
-                        `${analysis.bad.length} thing${analysis.bad.length === 1 ? " needs" : "s need"} your attention. See the analysis.`,
-                        `${analysis.bad.length}টি বিষয়ে নজর দেওয়া দরকার। বিশ্লেষণ দেখুন।`,
-                      )
-                    : L("See what's working and what to do next", "কী ভালো চলছে আর এরপর কী করবেন, দেখুন"),
-                onOpen: () => goTo("pf-analysis"),
-              }}
             />
             <h2 id="pf-money-h" className="sr-only">{L("Your money", "আপনার টাকা")}</h2>
+
+            {/* THE answer: is your portfolio in good shape? Four lights, and
+                the page's one Premium card under it (#pf-premium). */}
+            <div className="mt-4">
+              <PortfolioAnswer answer={report.answer} questions={report.questions} sample={sampleAnswers} />
+            </div>
+
+            {/* Bonus shares + cash dividends kept right on the holding (with Undo) */}
+            <CorrectionsCard
+              log={log}
+              suggestions={suggestions}
+              holdings={holdings}
+              lang={lang}
+              readOnly={readOnly}
+              onAction={runAction}
+            />
 
             {/* The stocks you own — one card, one row per stock */}
             <div id="pf-shares" className="dash-section mt-4 flex flex-col gap-3">
@@ -1344,112 +1407,93 @@ export default function PortfolioClient() {
               </div>
             </div>
 
-            {/* How it's moving — own daily snapshots, or a replay of today's shares */}
-            <ValueHistoryCard history={history} lang={lang} />
-            {/* What moved it — per-stock share of the gain / loss */}
-            <ContributionStrip rows={rows} lang={lang} />
-            {/* Where it sits — per company, per sector */}
-            <div className="pf-pair">
-              <AllocationChart analysis={analysis} lang={lang} />
-              <SectorBreakdownChart analysis={analysis} lang={lang} />
-            </div>
-            {/* Money made so far · cash coming */}
-            <div className="pf-pair">
-              <MoneyMadeCard made={made} settings={settings} lang={lang} onEditSettings={() => setSettingsOpen(true)} />
-              <DividendIncomeCard rows={rows} priceMap={priceMap} dividends={dividends} calendar={calendar} lang={lang} />
-            </div>
-            {/* Every buy, sale, dividend and bonus — the records */}
-            <HistoryCard
-              log={log}
-              lang={lang}
-              readOnly={readOnly}
-              statementHref={statementHref}
-              onRemove={removeLogEntry}
-            />
           </section>
 
-          {/* ── 2 · Analysis & next steps ── */}
-          <section id="pf-analysis" className="dash-section pf-chapter" aria-labelledby="pf-analysis-h">
-            <PfChapterHead
-              id="pf-analysis-h"
-              title={L("Analysis and what to do next", "বিশ্লেষণ ও এরপর কী করবেন")}
+          <PfReportBand answered={report.answered} />
+          {report.chapters.map((c) => (
+            <PfReportChapter key={c.key} chapter={c} />
+          ))}
 
-              lead={L("How your portfolio stands, and the next steps.", "আপনার পোর্টফোলিও কেমন, আর পরের পদক্ষেপ।")}
-            />
-            {/* The grade, its three scores and the one thing to act on first — free */}
-            <AnalysisTop analysis={analysis} next={nextMove} lang={lang} />
-            {/* THE one card on what Premium is, before the first lock — nothing
-                for Premium readers. Every lock below is a short card naming
-                only what it holds, and links here. */}
-            <PortfolioPremium stakes={proStakes} lang={lang} />
-            {/* The three lists (the rest sits behind one lock line) */}
-            <PortfolioAnalysisView
-              analysis={analysis}
-              lang={lang}
-              locked={!isPremium}
-              moreHref="#pf-premium"
-              showSectorSpread={false}
-              showHoldingsList={false}
-              showDisclaimer={false}
-              showGrade={false}
-            />
-            {/* What to do next — every card shows for everyone; for free readers
-                the data inside is a short lock card with one button */}
-            {lifts.length > 0 && <GradeLiftCard lifts={lifts} lang={lang} />}
-            {(rebalance.gaps.length > 0 || rebalance.picks.length > 0) && <RebalanceHelper plan={rebalance} lang={lang} />}
-            <ProInsights insights={proInsights} lang={lang} />
+          <PfPlanSection plan={report.plan} grade={analysis.grade}>
             <div id="pf-whatif" className="dash-section">
               <WhatIfCard rows={rows} priceMap={priceMap} allCodes={allCodes} lang={lang} />
             </div>
-            {/* Every input and cut-off behind this chapter — free */}
-            <HowWeDecide analysis={analysis} scoresAt={scoresAt} lang={lang} />
             <p className={`pf-disclaimer ${bnCls}`}>
               {L(
                 "This analysis is for guidance only. Always do your own research before making investment decisions.",
                 "এই বিশ্লেষণ শুধু ধারণা দেওয়ার জন্য। বিনিয়োগের সিদ্ধান্ত নেওয়ার আগে সবসময় নিজে যাচাই করুন।",
               )}
             </p>
-          </section>
+          </PfPlanSection>
 
-          {/* ── 3 · Your stocks ── */}
-          <section id="pf-stocks" className="dash-section pf-chapter" aria-labelledby="pf-stocks-h">
-            <PfChapterHead
-              id="pf-stocks-h"
-              title={L("What's new on your shares", "আপনার শেয়ারে নতুন কী")}
-
-              lead={L("Everything that happened on the shares you own, and their news.", "আপনার শেয়ারে যা ঘটেছে, আর সেগুলোর খবর।")}
-            />
-            <StockUpdates
-              flips={myFlips}
-              watchEvents={myWatch}
-              valueDelta={valueDelta}
-              isPremium={isPremium}
-              lang={lang}
-            />
-            {/* Bonus shares + cash dividends kept right on the holding (with Undo) */}
-            <CorrectionsCard
-              log={log}
-              suggestions={suggestions}
-              holdings={holdings}
-              lang={lang}
-              readOnly={readOnly}
-              onAction={runAction}
-            />
-            <PfCard
-              title={L("News on your shares", "আপনার শেয়ারের খবর")}
-
-              note={L("Announcements from the companies you own.", "আপনার কোম্পানিগুলোর ঘোষণা।")}
-              lang={lang}
-              dataCard="news"
-            >
-              <PortfolioNews
-                news={news}
-                loading={newsLoading}
-                names={new Map(rows.map((r) => [r.holding.trading_code.toUpperCase(), r.company_name]))}
-                lang={lang}
-              />
-            </PfCard>
-          </section>
+          {/* Every money card, as tabs — all free */}
+          <PfMoneyRoom
+            panels={[
+              {
+                key: "value",
+                label: { en: "Value", bn: "মূল্য" },
+                body: (
+                  <>
+                    <ValueHistoryCard history={history} lang={lang} />
+                    <ContributionStrip rows={rows} lang={lang} />
+                  </>
+                ),
+              },
+              {
+                key: "where",
+                label: { en: "Where it sits", bn: "কোথায় আছে" },
+                body: (
+                  <>
+                    <AllocationChart analysis={analysis} lang={lang} />
+                    <SectorBreakdownChart analysis={analysis} lang={lang} />
+                  </>
+                ),
+              },
+              {
+                key: "made",
+                label: { en: "Money made", bn: "আয়" },
+                body: <MoneyMadeCard made={made} settings={settings} lang={lang} onEditSettings={() => setSettingsOpen(true)} />,
+              },
+              {
+                key: "dividends",
+                label: { en: "Dividends", bn: "ডিভিডেন্ড" },
+                body: <DividendIncomeCard rows={rows} priceMap={priceMap} dividends={dividends} calendar={calendar} lang={lang} />,
+              },
+              {
+                key: "history",
+                label: { en: "History", bn: "ইতিহাস" },
+                body: (
+                  <HistoryCard
+                    log={log}
+                    lang={lang}
+                    readOnly={readOnly}
+                    statementHref={statementHref}
+                    onRemove={removeLogEntry}
+                  />
+                ),
+              },
+              {
+                key: "news",
+                label: { en: "News", bn: "খবর" },
+                anchors: ["pf-news"],
+                body: (
+                  <PfCard
+                    title={L("News on your shares", "আপনার শেয়ারের খবর")}
+                    note={L("Announcements from the companies you own.", "আপনার কোম্পানিগুলোর ঘোষণা।")}
+                    lang={lang}
+                    dataCard="news"
+                  >
+                    <PortfolioNews
+                      news={news}
+                      loading={newsLoading}
+                      names={new Map(rows.map((r) => [r.holding.trading_code.toUpperCase(), r.company_name]))}
+                      lang={lang}
+                    />
+                  </PfCard>
+                ),
+              },
+            ]}
+          />
         </PageLockScope>
       )}
 

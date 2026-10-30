@@ -4,11 +4,8 @@ import type { ReactNode } from "react";
 import { Locked } from "@/components/premium/AnswerLock";
 import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
 import StockChapter from "@/components/stock/StockChapter";
-import { IconCrown } from "@/components/ui/icons";
-import { T } from "@/components/i18n/T";
+import Signpost from "@/components/report/Signpost";
 import { tx } from "@/components/stock/report/fmt";
-import { usePremium } from "@/lib/premium";
-import { trackEvent } from "@/lib/track";
 import type { Bi } from "@/lib/stock-report";
 
 /**
@@ -60,20 +57,8 @@ export default function ReportChapter({
   );
 }
 
-/** A closed chapter's one line: what the full report answers here, linking
- *  up to the Premium card under the answer. */
+/** A closed chapter's one line: what the full report answers here,
+ *  linking up to the Premium card under the answer. */
 export function ChapterSignpost({ id, text, foot = false }: { id: string; text: Bi; foot?: boolean }) {
-  const { state } = usePremium();
-  return (
-    <a
-      href="#ch-premium"
-      className="rq-sign"
-      data-foot={foot ? "true" : undefined}
-      onClick={() => trackEvent("premium_lock_tap", { area: "stock", lock: `report-${id}`, state, stakes: 0 })}
-    >
-      <span className="rq-sign-icon" aria-hidden="true"><IconCrown size={14} /></span>
-      <span className="min-w-0 flex-1">{tx(text)}</span>
-      {foot && <span className="rq-sign-go"><T en="Premium" bn="প্রিমিয়াম" /> →</span>}
-    </a>
-  );
+  return <Signpost text={text} href="#ch-premium" area="stock" lock={`report-${id}`} foot={foot} />;
 }

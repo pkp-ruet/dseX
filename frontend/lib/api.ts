@@ -3097,6 +3097,18 @@ export interface GlanceRow {
     more: number;
   } | null;
   risks: GlanceRisk[];
+  /** This year's profit against last year's, % (the portfolio report). */
+  profit_change_pct?: number | null;
+  /** "Is it safe?" for its cash dividend (the dividend calendar's rule). */
+  safety?: {
+    level: "safe" | "watch" | "risk";
+    word_en: string;
+    word_bn: string;
+    line_en: string;
+    line_bn: string;
+  } | null;
+  /** The stock report's warning signs: counts, and the serious ones in words. */
+  warnings?: { red: number; amber: number; items: GlanceRisk[] } | null;
 }
 
 export async function getWatchlistGlance(codes: string[]): Promise<GlanceRow[]> {

@@ -1,5 +1,5 @@
 import { isValidElement, type ReactNode } from "react";
-import QuestionRow from "@/components/stock/report/QuestionRow";
+import QuestionRow from "@/components/report/QuestionRow";
 import ReportChapter from "@/components/stock/report/ReportChapter";
 import FullReportBand from "@/components/stock/report/FullReportBand";
 import ReportDepth from "@/components/stock/report/ReportDepth";

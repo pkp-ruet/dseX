@@ -13,6 +13,13 @@ Four answers per stock, all from figures the app already computes:
 * **Risk flags** — loans, Z category, old accounts, a loss, cash going out this
   year, and governance news (qualified opinion, BSEC action, postponed board).
 
+The portfolio report (2026-10-30) reads the same rows for the shares a reader
+owns, plus three fields: ``profit_change_pct`` (this year's profit against
+last year's, the research lists' trend), ``safety`` (the dividend calendar's
+"Is it safe?", ``dividend_safety``) and ``warnings`` (the stock report's red
+and amber counts and the serious ones in words, from the newest
+``stock_report_snapshots`` day).
+
 Served by ``routers/watchlist_glance.py`` to every reader: the Premium lock is
 screen-only, like every other lock in the app. Pure helpers are tested in
 ``backend/tests/test_watchlist_glance.py``.
@@ -145,10 +152,28 @@ def next_event(code: str, record_dates: list[dict], agms: list[dict]) -> Optiona
     return {**events[0], "more": len(events) - 1}
 
 
+def warnings_block(snap: Optional[dict]) -> Optional[dict]:
+    """The stock report's red-flag counts and the serious ones in words, from
+    one snapshot row (None = no snapshot yet)."""
+    if not snap:
+        return None
+    lines = snap.get("red_lines") or {}
+    items = []
+    for key in snap.get("red_keys") or []:
+        d = lines.get(key) or {}
+        if d.get("en"):
+            items.append({"key": key, "en": d["en"], "bn": d.get("bn") or d["en"]})
+    return {"red": int(snap.get("red") or 0), "amber": int(snap.get("amber") or 0), "items": items}
+
+
 def glance_row(code: str, f: Optional[dict], comp: dict, price: dict, sig: dict,
                fv: Optional[dict], governance: list[dict],
-               record_dates: list[dict], agms: list[dict]) -> dict:
-    """One board row. ``f`` is the research-list facts dict (None = unscored)."""
+               record_dates: list[dict], agms: list[dict],
+               snap: Optional[dict] = None) -> dict:
+    """One board row. ``f`` is the research-list facts dict (None = unscored);
+    ``snap`` the company's newest stock-report snapshot."""
+    from backend.services.dividend_safety import dividend_safety
+
     f = f or {}
     ltp = _n(f.get("ltp")) or _n(price.get("ltp"))
     reason = sig.get("reason_key")
@@ -172,6 +197,9 @@ def glance_row(code: str, f: Optional[dict], comp: dict, price: dict, sig: dict,
         },
         "event": next_event(code, record_dates, agms),
         "risks": risk_flags(f, governance) if f else [],
+        "profit_change_pct": _n(f.get("profit_change_pct")),
+        "safety": dividend_safety(f, f.get("sector_class") or "GENERAL") if f else None,
+        "warnings": warnings_block(snap),
     }
 
 
@@ -210,6 +238,12 @@ def _build(codes: tuple[str, ...]) -> list[dict]:
         logger.exception("watchlist glance: calendar failed")
         cal = {}
     record_dates, agms = cal.get("record_dates") or [], cal.get("agms") or []
+    try:
+        from backend.services.stock_report_service import latest_snapshots
+        snaps = latest_snapshots(codes)
+    except Exception:  # noqa: BLE001 — warnings are extra, never a blocker
+        logger.exception("watchlist glance: report snapshots failed")
+        snaps = {}
 
     rows = []
     for code in codes:
@@ -220,7 +254,8 @@ def _build(codes: tuple[str, ...]) -> list[dict]:
         price = prices.get(code) or {}
         fv = _fair(f, comp, f.get("ltp")) if f else None
         rows.append(glance_row(code, f, comp, price, get_signal(code), fv,
-                               _governance(code) if f else [], record_dates, agms))
+                               _governance(code) if f else [], record_dates, agms,
+                               snaps.get(code)))
     return rows
 
 

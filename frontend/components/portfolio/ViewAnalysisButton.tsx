@@ -4,19 +4,20 @@ import Button from "@/components/ui/Button";
 import { T } from "@/components/i18n/T";
 
 /**
- * The page header's one action: jump to the analysis chapter. Quiet and
- * plain (2026-10-26 redesign): no sparkle icon, no primary fill — the page's
- * only filled buttons are the ones that change something ("+ Add stock").
+ * The page header's one action: jump to "Your plan" (since the 2026-10-30
+ * report the answer sits right under the money, so the jump goes to what to
+ * do). Quiet and plain: the page's only filled buttons are the ones that
+ * change something ("+ Add stock").
  */
 export default function ViewAnalysisButton() {
   function handleClick() {
-    const el = document.getElementById("pf-analysis") ?? document.getElementById("portfolio-analysis");
+    const el = document.getElementById("ch-plan");
     el?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   return (
     <Button type="button" variant="quiet" onClick={handleClick} className="group">
-      <T en="See the analysis" bn="বিশ্লেষণ দেখুন" />
+      <T en="See your plan" bn="আপনার পরিকল্পনা দেখুন" />
       <svg
         width="16"
         height="16"
