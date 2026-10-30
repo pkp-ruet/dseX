@@ -33,6 +33,9 @@ LIMIT_HOLDINGS = "limit_reached:holdings"
 LIMIT_ALERTS = "limit_reached:alerts"
 LIMIT_PORTFOLIOS = "limit_reached:portfolios"
 LIMIT_CUSTOM_LISTS = "limit_reached:custom_lists"
+# "Remind me" on the dividend calendar (2026-10-31): Premium only, up to 50 codes.
+LIMIT_DIVIDEND_REMINDERS = "limit_reached:dividend_reminders"
+DIVIDEND_REMINDERS_MAX = 50
 
 
 def _as_utc(value) -> Optional[datetime]:

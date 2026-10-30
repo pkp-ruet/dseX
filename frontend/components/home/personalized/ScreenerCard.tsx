@@ -26,7 +26,7 @@ const DEFAULT_GOAL = "good_cheap";
  * rows are the screener's free share, so the card is fully open — the lock
  * lives on the screener. (The "Among the other 22 · 16 have a Buy signal…"
  * line was dropped 2026-10-29: the dashboard asks for Premium once, in
- * `PremiumWeekCard`.)
+ * `DeskCard`.)
  *
  * Premium readers with saved screens get them on top: each screen's count at
  * the last daily check and who joined then (also a key point in "Your stocks today").

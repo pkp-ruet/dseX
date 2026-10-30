@@ -2409,9 +2409,16 @@ def build_alternatives(inp: dict) -> Optional[dict]:
 
 # ---------------------------------------------------------------- red flags + rally
 
-def _rally(inp: dict) -> Optional[dict]:
-    """The rumour-rally pattern: a big run with no news from the company."""
-    series = _price_series(inp.get("prices") or [])
+# Company news that explains a run (results, dividends, price-sensitive news).
+RALLY_NEWS_KEYS = ("financials", "dividend", "price sensitive", "rights", "merger", "acquisition", "agreement",
+                   "contract", "investment", "expansion", "bonus", "record date", "credit rating", "agm")
+
+
+def rally_run(series: list[tuple[date, float]], news: list[tuple[Optional[date], str]]) -> Optional[dict]:
+    """The rumour-rally pattern on a price series (oldest first) and the
+    company's news titles: up RALLY_20D_PCT in 20 trading days or RALLY_60D_PCT
+    in 60, with no company news since the run began. Shared by the stock report
+    and the market-wide caution list (services/caution_list.py)."""
     if len(series) < 21:
         return None
     last_d, last_p = series[-1]
@@ -2426,14 +2433,17 @@ def _rally(inp: dict) -> Optional[dict]:
     if not hit:
         return None
     n, pct, since = hit
-    # News from the company in the window: results, dividends, price-sensitive.
-    keys = ("financials", "dividend", "price sensitive", "rights", "merger", "acquisition", "agreement",
-            "contract", "investment", "expansion", "bonus", "record date", "credit rating", "agm")
-    for d, title, _ in _news_titles(inp.get("news") or [], since):
-        t = title.lower()
-        if d and d >= since and any(k in t for k in keys):
+    for d, title in news:
+        t = (title or "").lower()
+        if d and d >= since and any(k in t for k in RALLY_NEWS_KEYS):
             return None
     return {"days": n, "pct": pct, "since": since}
+
+
+def _rally(inp: dict) -> Optional[dict]:
+    """The rumour-rally pattern: a big run with no news from the company."""
+    series = _price_series(inp.get("prices") or [])
+    return rally_run(series, [(d, t) for d, t, _ in _news_titles(inp.get("news") or [])])
 
 
 def _queries(inp: dict, days: int) -> list[dict]:
@@ -2451,15 +2461,26 @@ def build_warning(inp: dict) -> Optional[dict]:
     r = _rally(inp)
     if not r:
         return None
-    from backend.services.tiers import tier_key
     row = inp.get("score_row") or {}
-    tier = tier_key(_f(row.get("score")))
-    cat = (inp.get("category") or row.get("market_cat") or "").upper()
     pub = None
     rows = _owner_rows(inp.get("holdings") or [])
     if rows:
         pub = _f(rows[-1][1].get("public_pct"))
-    qs = _queries(inp, QUERY_DAYS)
+    return rally_warning(r, score=_f(row.get("score")),
+                         category=(inp.get("category") or row.get("market_cat") or ""),
+                         public_pct=pub, queries=_queries(inp, QUERY_DAYS))
+
+
+def rally_warning(r: dict, *, score: Optional[float], category: Optional[str],
+                  public_pct: Optional[float], queries: list[dict]) -> dict:
+    """The rally warning in words: red when DSE asked about the price
+    (`queries`, newest first, each with a `post_date` date), the company grades
+    weak / average, it is in Z or few shares are with the public."""
+    from backend.services.tiers import tier_key
+    tier = tier_key(score)
+    cat = (category or "").upper()
+    pub = public_pct
+    qs = queries
     lines = []
     red = False
     if qs:
@@ -2472,7 +2493,6 @@ def build_warning(inp: dict) -> Optional[dict]:
         ))
     if tier in ("weak", "average"):
         red = True
-        sc = _f(row.get("score"))
         lines.append(bi(f"We grade the company itself as {TIER_WORDS[tier].lower()}.",
                         f"আমাদের গ্রেডে কোম্পানিটি নিজে {TIER_WORDS_BN[tier]}।"))
     if cat == "Z":

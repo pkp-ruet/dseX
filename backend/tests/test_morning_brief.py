@@ -121,6 +121,18 @@ def test_watched_stock_last_day_to_buy():
     assert items[0]["title_en"] == "GP: last day to buy and get its ৳12.50 dividend"
 
 
+def test_a_dividend_reminder_on_any_share_gets_its_last_day_to_buy():
+    rows = [{"trading_code": "BATBC", "buy_by": "2026-10-29", "cash_per_share": 10.0},
+            {"trading_code": "ACI", "buy_by": "2026-10-29", "cash_per_share": 2.5},
+            {"trading_code": "ZZZ", "buy_by": "2026-10-29", "cash_per_share": 1.0}]
+    items = _brief(record_rows=rows, reminders=["batbc", "ACI"])
+    titles = [i["title_en"] for i in items]
+    assert "BATBC: last day to buy and get its ৳10.00 dividend" in titles
+    # A held share keeps its own line, once.
+    assert sum(t.startswith("ACI:") for t in titles) == 1
+    assert not any(t.startswith("ZZZ") for t in titles)
+
+
 def test_only_the_weeks_meetings_is_sent_on_sunday_only():
     week = [{"kind": "board_week"}]
     assert not mb.worth_sending(week, TODAY)

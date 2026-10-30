@@ -34,9 +34,6 @@ import { getTier, TIER_LABELS, TIER_LABELS_BN, TIER_THRESHOLDS } from "@/lib/con
  * frame — a small label, a short headline, one big number, one sentence on
  * what it means, at most two number rows and one button.
  *
- * Not to be confused with `lib/home-stories.ts` — the logged-out landing's
- * "three stocks worth knowing" cards.
- *
  * Pure builders only: `StoriesRow` / `StoryViewer` render them, and
  * `PersonalizedHome` feeds them from data the home bundle already loaded.
  * Every frame id is stable for the day, so "seen" survives a reload.
@@ -308,10 +305,10 @@ export interface StoryInput {
  * get no ring.
  *
  * What the weekly watcher caught goes into the same stock's story (skipped
- * when today's frames already say it). A free reader gets the week's free
- * event open and the rest as ONE locked frame per stock — the count and the
- * kinds are free, the facts are Premium. Capping the number of stories for a
- * free reader is `capStories`' job.
+ * when today's frames already say it). Every story and every frame on the
+ * reader's own shares is open to every reader since 2026-10-31 (the Premium
+ * Desk plan: the watchlist shows the same facts free); Premium adds frames
+ * that explain (what to expect from coming results) and the same-day push.
  */
 export function buildStories(i: StoryInput): Story[] {
   const { lang, priceMap } = i;
@@ -725,20 +722,14 @@ export function buildStories(i: StoryInput): Story[] {
 
   // ── What the weekly watcher caught (grade / category changes are only here).
   if (i.week && i.week.total > 0) {
-    const freeIds = new Set([...(i.week.free_items ?? []), ...i.week.items.filter((e) => e.free)].map((e) => e.id));
     const items = [...(i.week.free_items ?? []), ...i.week.items];
     const done = new Set<string>();
-    const lockedByCode = new Map<string, PortfolioWatchEvent[]>();
     for (const e of items) {
       if (done.has(e.id)) continue;
       done.add(e.id);
       const code = e.code.toUpperCase();
       const kind = WATCH_KIND[e.kind];
       if (has(code, kind)) continue;
-      if (!i.premium && !freeIds.has(e.id)) {
-        lockedByCode.set(code, [...(lockedByCode.get(code) ?? []), e]);
-        continue;
-      }
       add(code, {
         id: `ww:${e.id}`,
         kind,
@@ -748,31 +739,6 @@ export function buildStories(i: StoryInput): Story[] {
         cta: stockLink(e.code, WATCH_ANCHOR[e.kind]),
         when: day(e.day),
         tone: e.level === "good" ? "positive" : e.level === "bad" ? "negative" : "neutral",
-      });
-    }
-    for (const [code, evs] of lockedByCode) {
-      const n = evs.length;
-      const kinds = evs.map((e) => WATCH_KIND[e.kind]);
-      add(code, {
-        id: `wl:${code}:${evs.map((e) => e.id).join(",")}`,
-        kind: "locked",
-        label: L("This week", "এই সপ্তাহে"),
-        headline: L(
-          `${n} more ${plural(n, "thing", "things")} on ${code} this week`,
-          `এই সপ্তাহে ${code}-এ আরও ${n}টি বিষয়`,
-        ),
-        sentence: `${kindsPhrase(kinds, lang)}${L(".", "।")} ${L(
-          "Premium shows what happened and why, and sends it to your phone the same day.",
-          "প্রিমিয়ামে দেখবেন কী হয়েছে ও কেন, আর একই দিনে ফোনে নোটিফিকেশন যাবে।",
-        )}`,
-        cta: { label: L("See Premium", "প্রিমিয়াম দেখুন"), href: "/premium" },
-        tone: "neutral",
-        locked: true,
-        lockedKinds: kinds,
-        stakes: [
-          L(`${n} more ${plural(n, "thing", "things")} on ${code} this week`, `এই সপ্তাহে ${code}-এ আরও ${n}টি বিষয়`),
-          L("Premium also sends them to your phone the same day", "প্রিমিয়ামে একই দিনে ফোনে নোটিফিকেশন যায়"),
-        ],
       });
     }
   }
@@ -1080,57 +1046,6 @@ function buildTodayStory(
     rank: -1,
     frames,
   };
-}
-
-/**
- * A free reader opens the first `max` stories (in the importance order, so
- * watching never changes which ones are open); the rest become ONE Premium
- * ring that says how many more there are and what kinds. Premium readers
- * pass `max = Infinity`.
- */
-export function capStories(stories: Story[], max: number, lang: Lang, todayIso: string): Story[] {
-  if (stories.length <= max) return stories;
-  const L = lFor(lang);
-  const shown = stories.slice(0, max);
-  const rest = stories.slice(max);
-  const n = rest.length;
-  const kinds = rest.flatMap((s) => s.frames.flatMap((f) => (f.locked ? f.lockedKinds ?? [] : [f.kind])));
-  const phrase = kindsPhrase(kinds, lang);
-  const codes = rest.filter((s) => s.code).length;
-  const headline = L(`${n} more ${plural(n, "story", "stories")} on your stocks`, `আপনার শেয়ারে আরও ${n}টি স্টোরি`);
-  const more: Story = {
-    id: "more",
-    kind: "more",
-    name: L("More stories", "আরও স্টোরি"),
-    sub: L("With Premium", "প্রিমিয়ামে"),
-    icon: "crown",
-    label: L(`${n} more`, `আরও ${n}টি`),
-    tone: "neutral",
-    rank: 999,
-    frames: [
-      {
-        id: `more:${todayIso}:${n}`,
-        kind: "more",
-        label: "Premium",
-        headline,
-        big: { text: `+${n}`, caption: codes ? L(`on ${codes} of your stocks`, `আপনার ${codes}টি শেয়ারে`) : undefined },
-        sentence: `${phrase ? `${phrase}${L(".", "।")} ` : ""}${L(
-          "Premium opens every story, every day, and sends the important ones to your phone.",
-          "প্রিমিয়ামে প্রতিদিন সব স্টোরি খোলা, আর জরুরিগুলো ফোনে নোটিফিকেশন হিসেবে যায়।",
-        )}`,
-        cta: { label: L("See Premium", "প্রিমিয়াম দেখুন"), href: "/premium" },
-        tone: "neutral",
-        locked: true,
-        lockedKinds: kinds,
-        stakes: [
-          headline,
-          ...(phrase ? [phrase] : []),
-          L("Premium also sends the important ones to your phone", "প্রিমিয়ামে জরুরিগুলো ফোনে নোটিফিকেশন হিসেবে যায়"),
-        ],
-      },
-    ],
-  };
-  return [...shown, more];
 }
 
 /**

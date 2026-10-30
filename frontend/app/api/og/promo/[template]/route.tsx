@@ -12,7 +12,7 @@ const PORTRAIT = { width: 1080, height: 1350 };
 const LANDSCAPE = { width: 1200, height: 630 };
 const COLORS = {
   primary: "#8F5638",
-  accent: "#B0714E",
+  accent: "#9E5F40",
   bg: "#FAF8F4",
   text: "#2E2B26",
   muted: "#5C554A",
@@ -1633,7 +1633,7 @@ async function RenderTop20() {
     if (i === 0) return "linear-gradient(135deg,#F59E0B,#D97706)";
     if (i === 1) return "linear-gradient(135deg,#94A3B8,#5C554A)";
     if (i === 2) return "linear-gradient(135deg,#B45309,#92400E)";
-    return "linear-gradient(135deg,#B0714E,#8F5638)";
+    return "linear-gradient(135deg,#9E5F40,#8F5638)";
   };
 
   const retStyle = (n: number | null): { fg: string; bg: string } => {

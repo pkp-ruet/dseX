@@ -1,0 +1,61 @@
+/* The signed-out landing page (rebuilt 2026-10-31): `lp-*`.
+   Seven blocks — hero · trust strip · what we do · today on the DSE · sign-up
+   band · start from zero · closing ask. Colour only means something: the
+   answer words, up / down, grades. */
+
+/* A band that runs edge to edge out of the 5xl <main>; html's overflow-x: clip
+   swallows the scrollbar's width. */
+.lp-bleed {
+  margin-inline: calc(50% - 50vw);
+  padding-inline: calc(50vw - 50%);
+}
+
+/* An answer word: filled pill in its colour, a mark in front. */
+.lp-word {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 28px;
+  padding: 0 var(--space-3);
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  color: var(--surface);
+  background: var(--tier-average);
+}
+.lp-word[data-tone="good"] { background: var(--positive); }
+.lp-word[data-tone="watch"] { background: var(--watch); }
+.lp-word[data-tone="bad"] { background: var(--negative); }
+.lp-word[data-size="lg"] {
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  font-size: var(--fs-title);
+}
+
+/* A light: a coloured dot before its word. */
+.lp-dot {
+  width: 9px;
+  height: 9px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--tier-average);
+}
+.lp-dot[data-tone="good"] { background: var(--positive); }
+.lp-dot[data-tone="watch"] { background: var(--watch); }
+.lp-dot[data-tone="bad"] { background: var(--negative); }
+
+/* The hero's answer card and the sign-up card sit higher than the rest. */
+.lp-lift {
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lift);
+}
+
+/* The picture at the top of each "What TopStockBD does" card. */
+.lp-shot {
+  min-height: 236px;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}

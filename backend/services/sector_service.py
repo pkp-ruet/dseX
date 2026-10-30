@@ -26,7 +26,7 @@ from backend.services.db_service import (
 )
 from backend.services.scoring_service import build_scores_df
 from backend.services.signal_service import build_signals, wire_fields
-from backend.services.tiers import TIER_KEYS, tier_key
+from backend.services.tiers import TIER_KEYS, TIER_WORDS, TIER_WORDS_BN, tier_key
 from utils.sector import normalize_sector
 
 # A sector needs a few listings before group medians mean anything.
@@ -284,6 +284,160 @@ def sector_slugs() -> list[str]:
     return sorted(_sector_index()["sectors"].keys())
 
 
+# ---------------------------------------------------------------------------
+# Our read of the sector this month (2026-10-31, the Premium Desk plan) —
+# Premium on /sector/[slug] (screen-only). Pure builders + one shared read of
+# DSE turnover; every sentence plain, at most three numbers.
+# ---------------------------------------------------------------------------
+
+# Turnover windows: the last 28 calendar days against the 28 before (about 4 weeks each).
+FLOW_DAYS = 28
+# A change in the sector's share of DSE turnover smaller than this (relative %)
+# reads as "steady".
+FLOW_BAND_PCT = 15.0
+# The sector's middle "years of profit" within this (relative %) of the
+# market's reads as "about the same".
+VALUE_BAND_PCT = 10.0
+
+
+@_ttl_cache(900, max_entries=2)
+def _turnover_by_code() -> dict:
+    """{"now": {code: Tk mn}, "before": {code: Tk mn}, "total_now", "total_before"}
+    — one Mongo aggregation over 56 days of prices (string date bounds)."""
+    from datetime import datetime, timedelta
+    from backend.services.db_service import get_db
+
+    today = datetime.utcnow()
+    mid = (today - timedelta(days=FLOW_DAYS)).strftime("%Y-%m-%d")
+    start = (today - timedelta(days=2 * FLOW_DAYS)).strftime("%Y-%m-%d")
+    agg = get_db().stock_prices.aggregate([
+        {"$match": {"date": {"$gte": start}, "value_mn": {"$gt": 0}}},
+        {"$group": {"_id": {"c": "$trading_code", "now": {"$gte": ["$date", mid]}},
+                    "v": {"$sum": "$value_mn"}}},
+    ])
+    now: dict[str, float] = {}
+    before: dict[str, float] = {}
+    for d in agg:
+        (now if d["_id"]["now"] else before)[d["_id"]["c"]] = float(d["v"] or 0)
+    return {"now": now, "before": before,
+            "total_now": sum(now.values()), "total_before": sum(before.values())}
+
+
+def money_flow(codes: list[str], turnover: dict) -> Optional[dict]:
+    """The sector's share of DSE turnover over the last 4 weeks against the 4
+    before: {share_now, share_before, change_pct, word: in | out | same}."""
+    tn, tb = turnover.get("total_now") or 0, turnover.get("total_before") or 0
+    if tn <= 0 or tb <= 0:
+        return None
+    now = sum(turnover["now"].get(c, 0.0) for c in codes)
+    before = sum(turnover["before"].get(c, 0.0) for c in codes)
+    sn, sb = now / tn * 100.0, before / tb * 100.0
+    if sb <= 0:
+        return None
+    ch = (sn - sb) / sb * 100.0
+    word = "in" if ch >= FLOW_BAND_PCT else "out" if ch <= -FLOW_BAND_PCT else "same"
+    return {"share_now": round(sn, 1), "share_before": round(sb, 1), "change_pct": round(ch, 1), "word": word}
+
+
+def _years(v: float) -> str:
+    return f"{v:.0f}" if v >= 10 else f"{v:.1f}".rstrip("0").rstrip(".")
+
+
+_PRICE_TAIL = {
+    "cheaper": ("so the sector is cheaper than the market", "তাই সেক্টরটি বাজারের চেয়ে সস্তা"),
+    "dearer": ("so the sector costs more than the market", "তাই সেক্টরটির দাম বাজারের চেয়ে বেশি"),
+    "same": ("about the same as the market", "বাজারের প্রায় সমান"),
+}
+
+
+def sector_read(summary: dict, market: dict, stocks: list[dict], results: dict[str, str],
+                flow: Optional[dict]) -> dict:
+    """Three plain sentences (price · profit · money) + the best value in the
+    sector today. ``stocks`` best score first; ``results`` = {code: level} of
+    the latest reports (good / watch / bad / neutral)."""
+    lines: list[dict] = []
+
+    # 1 · The price: years of profit at the middle, against the whole market.
+    spe, mpe = summary.get("median_pe"), market.get("median_pe")
+    if spe and mpe and spe > 0 and mpe > 0:
+        gap = (spe - mpe) / mpe * 100.0
+        word = "cheaper" if gap <= -VALUE_BAND_PCT else "dearer" if gap >= VALUE_BAND_PCT else "same"
+        en_tail, bn_tail = _PRICE_TAIL[word]
+        lines.append({
+            "key": "price", "tone": "good" if word == "cheaper" else "fair" if word == "dearer" else "neutral",
+            "en": f"At the middle, its shares cost about {_years(spe)} years of profit, against {_years(mpe)} for the whole market, {en_tail}.",
+            "bn": f"মাঝামাঝি হিসাবে এর শেয়ারের দাম প্রায় {_years(spe)} বছরের মুনাফার সমান, পুরো বাজারে {_years(mpe)} বছর, {bn_tail}।",
+        })
+
+    # 2 · Profit: what its companies' latest reports said.
+    levels = [results[st["trading_code"]] for st in stocks if st["trading_code"] in results]
+    if levels:
+        n, up, down = len(levels), levels.count("good"), levels.count("bad")
+        if up > down * 2 and up >= n / 3:
+            tone, en_w, bn_w = "good", "Profit is mostly rising", "মুনাফা বেশিরভাগ ক্ষেত্রে বাড়ছে"
+        elif down > up * 2 and down >= n / 3:
+            tone, en_w, bn_w = "bad", "Profit is mostly falling", "মুনাফা বেশিরভাগ ক্ষেত্রে কমছে"
+        else:
+            tone, en_w, bn_w = "neutral", "Profit is mixed", "মুনাফা মিশ্র"
+        lines.append({
+            "key": "profit", "tone": tone,
+            "en": f"{en_w}: of the {n} companies with a recent report, {up} did better than a year ago and {down} did worse.",
+            "bn": f"{bn_w}: সাম্প্রতিক প্রতিবেদন দেওয়া {n}টি কোম্পানির মধ্যে {up}টি এক বছর আগের চেয়ে ভালো করেছে, {down}টি খারাপ।",
+        })
+
+    # 3 · Money: its share of DSE turnover, last 4 weeks against the 4 before.
+    if flow:
+        if flow["word"] == "in":
+            tone, en_w, bn_w = "good", "Money is moving in", "টাকা ঢুকছে"
+        elif flow["word"] == "out":
+            tone, en_w, bn_w = "fair", "Money is moving out", "টাকা বেরিয়ে যাচ্ছে"
+        else:
+            tone, en_w, bn_w = "neutral", "Trading is steady", "লেনদেন স্থির"
+        sn, sb = flow["share_now"], flow["share_before"]
+        lines.append({
+            "key": "money", "tone": tone,
+            "en": f"{en_w}: it took {sn:.1f}% of all DSE trading in the last 4 weeks, against {sb:.1f}% in the 4 weeks before.",
+            "bn": f"{bn_w}: গত 4 সপ্তাহে ডিএসইর মোট লেনদেনের {sn:.1f}% হয়েছে এই সেক্টরে, তার আগের 4 সপ্তাহে {sb:.1f}%।",
+        })
+
+    # The best value today: the highest graded Good-or-better company whose
+    # price reads low (p4_val >= 7, the signal's "cheap" band).
+    best = next((st for st in stocks if (st.get("p4_val") or 0) >= 7 and (st.get("score") or 0) >= 60), None)
+    best_out = None
+    if best:
+        nm = (best.get("company_name") or best["trading_code"]).rstrip(". ")
+        best_out = {
+            "trading_code": best["trading_code"],
+            "company_name": best.get("company_name"),
+            "score": best.get("score"),
+            "tier": best.get("tier"),
+            "ltp": best.get("ltp"),
+            "en": f"The best value in it today is {nm}: graded {TIER_WORDS[best['tier']].lower()}, at a low price for its profit.",
+            "bn": f"আজ এই সেক্টরে সবচেয়ে ভালো দামে আছে {nm}: গ্রেড {TIER_WORDS_BN[best['tier']]}, মুনাফার তুলনায় দাম কম।",
+        }
+    return {"lines": lines, "best": best_out, "flow": flow, "reported": len(levels)}
+
+
+def _results_levels() -> dict[str, str]:
+    try:
+        from backend.services.results_explainer import all_results
+        return {r["code"]: r["level"] for r in all_results()}
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def _read_for(summary: dict, market: dict, stocks: list[dict]) -> Optional[dict]:
+    """Our read of the sector (Premium, screen-only); None when it can't be built."""
+    try:
+        try:
+            flow = money_flow([st["trading_code"] for st in stocks], _turnover_by_code())
+        except Exception:  # noqa: BLE001
+            flow = None
+        return sector_read(summary, market, stocks, _results_levels(), flow)
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def get_sector(slug: str) -> Optional[dict]:
     """Full detail for one sector, or None when the slug isn't a sector we cover."""
     index = _sector_index()
@@ -350,4 +504,5 @@ def get_sector(slug: str) -> Optional[dict]:
         "losers": list(reversed(by_change[-3:])) if len(by_change) > 3 else [],
         "week_leaders": by_7d[:3],
         "related_sectors": others[:6],
+        "read": _read_for(summary, market, stocks),
     }

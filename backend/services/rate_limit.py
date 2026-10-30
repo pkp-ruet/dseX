@@ -138,12 +138,16 @@ RULES: list[Rule] = [
     _rule("watch-updates", "GET", r"^/api/watchlist/updates$", 30, 15),
     _rule("news-multi", "GET", r"^/api/news/multi$", 30, 15),
     _rule("prices", "GET", r"^/api/company/[^/]+/prices$", 60, 30),
+    _rule("rank-history", "GET", r"^/api/rankings/history/[^/]+$", 60, 30),
+    _rule("desk", "GET", r"^/api/user/desk$", 30, 15),
     # Writes.
     _rule("stock-visit", "POST", r"^/api/stock-visit/", 60, 30, by_ip=True),
     _rule("feedback", "POST", r"^/api/feedback", 10 * PER_HOUR, 5, by_ip=True),
     _rule("push-test", "POST", r"^/api/notifications/test$", 6 * PER_HOUR, 3),
     _rule("push-subscribe", "POST", r"^/api/notifications/subscribe$", 20 * PER_HOUR, 10),
     _rule("payment", "POST", r"^/api/user/premium/payments$", 10 * PER_HOUR, 5),
+    _rule("rank-alerts", "POST", r"^/api/user/rank-alerts", 30, 15),
+    _rule("div-reminders", "POST", r"^/api/user/dividend-reminders", 30, 15),
     _rule("refresh", "POST", r"^/api/scores/refresh$", 10, 5, by_ip=True),
 ]
 

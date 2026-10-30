@@ -432,6 +432,24 @@ def cmd_morning_brief(args):
     print(f"Morning brief done: {counts}")
 
 
+def cmd_weekly_letter(args):
+    """The Friday letter (~10 AM Dhaka): build, store and send every reader's
+    letter — push, or email without a push device. Idempotent per week.
+    `--force` runs on another day, `--no-send` stores without sending, and
+    `--user EMAIL` prints one reader's letter (nothing stored or sent)."""
+    import json
+
+    from backend.services.weekly_letter_service import run_letter
+
+    email = getattr(args, "user", None)
+    out = run_letter(force=bool(getattr(args, "force", False)),
+                     send=not getattr(args, "no_send", False), email=email)
+    if email:
+        print(json.dumps(out, ensure_ascii=False, indent=2))
+    else:
+        print(f"Weekly letter done: {out}")
+
+
 def cmd_generate_summaries(args):
     """Generate plain-Bangla 'এক নজরে' stock summaries into `stock_summaries`.
 
@@ -725,6 +743,14 @@ def main():
     brief_parser.add_argument("--no-scrape", action="store_true", help="Skip the news refresh")
     brief_parser.add_argument("--force", action="store_true", help="Run on a Friday / Saturday too")
 
+    letter_parser = sub.add_parser(
+        "weekly-letter",
+        help="The Friday letter: every reader's week on their shares, stored for the Desk and sent",
+    )
+    letter_parser.add_argument("--force", action="store_true", help="Run on a day other than Friday")
+    letter_parser.add_argument("--no-send", action="store_true", help="Store the letters without sending")
+    letter_parser.add_argument("--user", default=None, help="Print one reader's letter by email (no store, no send)")
+
     summaries_parser = sub.add_parser(
         "generate-summaries",
         help="Generate plain-Bangla 'এক নজরে' stock summaries (cached; regenerates only changed stocks)",
@@ -773,6 +799,7 @@ def main():
         "notify-portfolio-signals": cmd_notify_portfolio_signals,
         "portfolio-daily":       cmd_portfolio_daily,
         "morning-brief":         cmd_morning_brief,
+        "weekly-letter":         cmd_weekly_letter,
         "generate-summaries":    cmd_generate_summaries,
         "scrape-all":            cmd_scrape_all,
     }

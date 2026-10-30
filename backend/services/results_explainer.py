@@ -191,6 +191,64 @@ def _move_words(pct: Optional[float], cur: float, prev: float) -> tuple[str, str
     return (f"up {abs(pct):.0f}%", f"{abs(pct):.0f}% বেশি") if pct > 0 else (f"down {abs(pct):.0f}%", f"{abs(pct):.0f}% কম")
 
 
+# The latest quarter counts as above / below the year's own pace when it is
+# this far from what that pace would have given.
+PACE_BAND_PCT = 10.0
+
+
+def pace_of_year(cur: Optional[float], prev: Optional[float], q: Optional[float],
+                 qp: Optional[float], months: int) -> Optional[dict]:
+    """Better or worse than expected, where "expected" is the year's own pace
+    (2026-10-31): up to the latest quarter, profit ran at some rate against the
+    same months last year; at that rate the latest 3 months would have been
+    last year's same quarter × that rate. The quarter came in above that (by
+    PACE_BAND_PCT or more), below it, or in line.
+
+    Only for a report with earlier months to set the pace (6, 9 or 12 months,
+    with the latest quarter known) and positive profit in the earlier months
+    of both years and in last year's quarter — a pace from a loss means
+    nothing. None otherwise."""
+    if months <= 3 or None in (cur, prev, q, qp):
+        return None
+    early_now, early_prev = cur - q, prev - qp
+    if early_now <= 0 or early_prev <= 0 or qp <= 0:
+        return None
+    rate = early_now / early_prev
+    expected = qp * rate
+    gap = (q - expected) / expected * 100.0
+    word = "above" if gap >= PACE_BAND_PCT else "below" if gap <= -PACE_BAND_PCT else "in_line"
+    run = (rate - 1.0) * 100.0
+    if abs(run) < 1:
+        run_en, run_bn = "about level with last year", "গত বছরের প্রায় সমান"
+    elif run > 0:
+        run_en, run_bn = f"{run:.0f}% ahead of last year", f"গত বছরের চেয়ে {run:.0f}% বেশি"
+    else:
+        run_en, run_bn = f"{-run:.0f}% behind last year", f"গত বছরের চেয়ে {-run:.0f}% কম"
+    end_en = {"above": "above the pace of the year so far",
+              "below": "below the pace of the year so far",
+              "in_line": "in line with the pace of the year so far"}[word]
+    end_bn = {"above": "বছরের এ পর্যন্ত গতির চেয়ে ভালো",
+              "below": "বছরের এ পর্যন্ত গতির চেয়ে খারাপ",
+              "in_line": "বছরের এ পর্যন্ত গতির মতোই"}[word]
+    head_en = {"above": "Came in above the pace of the year so far.",
+               "below": "Came in below the pace of the year so far.",
+               "in_line": "Came in at the pace of the year so far."}[word]
+    head_bn = {"above": "বছরের এ পর্যন্ত গতির চেয়ে ভালো এসেছে।",
+               "below": "বছরের এ পর্যন্ত গতির চেয়ে খারাপ এসেছে।",
+               "in_line": "বছরের এ পর্যন্ত গতির মতোই এসেছে।"}[word]
+    return {
+        "word": word,
+        "expected": round(expected, 2),
+        "quarter": q,
+        "headline_en": head_en,
+        "headline_bn": head_bn,
+        "en": (f"Before the latest 3 months, profit was running {run_en}. At that pace the latest 3 months "
+               f"would have been about {_tk(expected)} a share; it came in at {_tk(q)}, {end_en}."),
+        "bn": (f"সর্বশেষ 3 মাসের আগে মুনাফা চলছিল {run_bn}। সেই গতিতে সর্বশেষ 3 মাসে শেয়ারপ্রতি মুনাফা হতো "
+               f"প্রায় {_tk(expected)}; এসেছে {_tk(q)}, যা {end_bn}।"),
+    }
+
+
 def explain(interim: dict, row: Optional[dict] = None, score_before: Optional[float] = None,
             sector_class: str = "GENERAL") -> Optional[dict]:
     """The explainer for one company's latest report (a quarter, or a full
@@ -373,6 +431,8 @@ def explain(interim: dict, row: Optional[dict] = None, score_before: Optional[fl
         "headline_bn": f"{q_label_bn} ফল: {head_bn}",
         "lines": lines,
         "meaning_en": m_en, "meaning_bn": m_bn,
+        # Better or worse than the year's own pace (Premium on /results).
+        "pace": pace_of_year(cur, prev, q, qp, months),
     }
 
 
@@ -425,6 +485,7 @@ def feed_row(code: str, ex: dict, comp: dict, price: dict, score: Optional[float
         "profit_bn": profit.get("bn"),
         "meaning_en": ex.get("meaning_en"),
         "meaning_bn": ex.get("meaning_bn"),
+        "pace": ex.get("pace"),
     }
 
 

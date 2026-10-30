@@ -41,6 +41,7 @@ from backend.services.db_service import (
 )
 from backend.services.top20_service import compute_top20
 from backend.services.deep_analysis_service import list_report_codes
+from backend.services.desk_service import desk_summary
 from backend.services.portfolio_daily import recent_events
 from backend.services.portfolio_signal_service import list_recent_events
 from backend.services.portfolio_watch import digest
@@ -168,7 +169,11 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
     signal_events = _safe("signal_events", lambda: list_recent_events(user_id), [])
     # What the watcher spotted on the reader's stocks this week. Free readers
     # see the counts, Premium readers the list (screen-only lock, like the rest).
-    week_watch = _safe("week_watch", lambda: digest(recent_events(user_id, days=WATCH_DAYS)), None)
+    week_events = _safe("week_events", lambda: recent_events(user_id, days=WATCH_DAYS), [])
+    week_watch = _safe("week_watch", lambda: digest(week_events), None)
+    # The Desk card (2026-10-31): before the bell · after the close · the
+    # Friday letter, from what is loaded above + the newest letter.
+    desk = _safe("desk", lambda: desk_summary(user_id, brief, week_events, signal_events), None)
 
     report_codes = _safe(
         "report_codes",
@@ -207,5 +212,6 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
         "results_soon": results_soon,
         "brief": brief,
         "week_watch": week_watch,
+        "desk": desk,
         "screener": screener,
     }

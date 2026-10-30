@@ -32,6 +32,9 @@ export interface LandingStock {
   strong: boolean;
   reasonBn: string | null;
   reasonEn: string | null;
+  /** The signal's reason key (`signal_service.REASONS`), so the answer card can
+   *  name what is holding a good company back. */
+  rk: string | null;
 }
 
 export function toLandingStock(s: ScoreItem): LandingStock {
@@ -60,6 +63,7 @@ export function toLandingStock(s: ScoreItem): LandingStock {
     strong: s.signal?.strength === "strong",
     reasonBn: s.signal?.reason_bn ?? null,
     reasonEn: s.signal?.reason_en ?? null,
+    rk: s.signal?.reason_key ?? null,
   };
 }
 
@@ -143,3 +147,124 @@ export const PILLARS: PillarMeta[] = [
 // Pillar bar colour lives in ONE place: `pillarColor()` in lib/insight-utils.ts
 // (tier tokens). The old `pillarBand` / `PILLAR_BAND_COLOR` green/amber/red scale
 // was removed 2026-09-22.
+
+// ---------------------------------------------------------------------------
+// The answer card (2026-10-31 landing redesign): the stock page's "Should you
+// buy it today?" read, worked out from the /api/scores row alone. It follows
+// the backend signal (never derives buy / sell itself) and only names a
+// problem the signal itself found, so it can't disagree with the stock page.
+// ---------------------------------------------------------------------------
+
+export type WordTone = "good" | "watch" | "bad" | "neutral";
+
+export interface Word {
+  en: string;
+  bn: string;
+  tone: WordTone;
+}
+
+/** The one-word answer: the signal, worded the way the stock page words it. */
+export function landingAnswer(s: LandingStock): Word {
+  if (s.sig === "buy") {
+    return s.strong
+      ? { en: "Strong buy", bn: "কেনার ভালো সুযোগ", tone: "good" }
+      : { en: "Buy", bn: "কিনুন", tone: "good" };
+  }
+  if (s.sig === "sell") return { en: "Avoid", bn: "এড়িয়ে চলুন", tone: "bad" };
+  if (s.rk === "not_rated" || s.score == null) return { en: "Not rated yet", bn: "এখনো রেটিং নেই", tone: "neutral" };
+  if (s.rk === "average_fundamentals") return { en: "No reason to buy", bn: "কেনার কারণ নেই", tone: "neutral" };
+  return { en: "Not yet", bn: "এখনই নয়", tone: "watch" };
+}
+
+/** The problems the signal checks for, named in a few words. */
+const PROBLEM: Record<string, Word> = {
+  red_flag: { en: "A serious warning", bn: "গুরুতর সতর্কতা", tone: "bad" },
+  z_category: { en: "Z category", bn: "Z ক্যাটাগরি", tone: "bad" },
+  heavy_debt: { en: "Heavy loans", bn: "ঋণ অনেক বেশি", tone: "bad" },
+  stale_financials: { en: "Old accounts", bn: "পুরোনো হিসাব", tone: "bad" },
+  earnings_dropped: { en: "Profit fell sharply", bn: "মুনাফা অনেক কমেছে", tone: "watch" },
+  thin_trading: { en: "Hard to sell", bn: "বিক্রি করা কঠিন", tone: "watch" },
+};
+
+const TIER_TONE: Record<string, WordTone> = { excellent: "good", good: "good", average: "neutral", weak: "bad" };
+
+export interface Light {
+  key: "company" | "price" | "wrong";
+  label: { en: string; bn: string };
+  word: Word;
+}
+
+/** The three lights under the answer: the company, the price, anything wrong. */
+export function landingLights(s: LandingStock, tier: string, tierEn: string, tierBn: string): Light[] {
+  const p4 = s.pillars[3];
+  const price: Word =
+    s.rk === "near_52w_high" ? { en: "Near its yearly top", bn: "বছরের সর্বোচ্চের কাছে", tone: "watch" }
+    : p4 == null ? { en: "Not known", bn: "জানা নেই", tone: "neutral" }
+    : p4 >= 7 ? { en: "Low", bn: "কম", tone: "good" }
+    : p4 >= 4 ? { en: "Fair", bn: "ন্যায্য", tone: "neutral" }
+    : { en: "High", bn: "বেশি", tone: "bad" };
+  const wrong: Word =
+    (s.rk ? PROBLEM[s.rk] : undefined)
+    ?? (s.sig === "buy"
+      ? { en: "Nothing serious", bn: "গুরুতর কিছু নেই", tone: "good" }
+      : { en: "See the report", bn: "রিপোর্টে দেখুন", tone: "neutral" });
+  return [
+    { key: "company", label: { en: "The company", bn: "কোম্পানি" }, word: { en: tierEn, bn: tierBn, tone: TIER_TONE[tier] ?? "neutral" } },
+    { key: "price", label: { en: "The price", bn: "দাম" }, word: price },
+    { key: "wrong", label: { en: "Anything wrong", bn: "কোনো সমস্যা" }, word: wrong },
+  ];
+}
+
+export interface PlainQuestion {
+  q: { en: string; bn: string };
+  a: Word;
+}
+
+/** Four of the stock report's plain questions, answered from the pillars —
+ *  the "Understand any share" card on the landing page. */
+export function plainQuestions(s: LandingStock): PlainQuestion[] {
+  const [p1, p2, , p4, p5] = s.pillars;
+  const out: PlainQuestion[] = [];
+  if (p1 != null) {
+    out.push({
+      q: { en: "Does it make money?", bn: "মুনাফা করছে কি?" },
+      a: s.eps != null && s.eps <= 0 ? { en: "No", bn: "না", tone: "bad" }
+        : p1 >= 6 ? { en: "Yes", bn: "হ্যাঁ", tone: "good" }
+        : { en: "A little", bn: "অল্প", tone: "watch" },
+    });
+  }
+  if (p2 != null) {
+    out.push({
+      q: { en: "Can it handle its loans?", bn: "ঋণ সামলাতে পারবে?" },
+      a: p2 >= 7 ? { en: "Easily", bn: "সহজেই", tone: "good" }
+        : p2 >= 4 ? { en: "Watch this", bn: "খেয়াল রাখুন", tone: "watch" }
+        : { en: "Risky", bn: "ঝুঁকি আছে", tone: "bad" },
+    });
+  }
+  if (p4 != null) {
+    out.push({
+      q: { en: "Is the price right?", bn: "দাম কি ঠিক আছে?" },
+      a: p4 >= 7 ? { en: "Low", bn: "কম", tone: "good" }
+        : p4 >= 4 ? { en: "Fair", bn: "ন্যায্য", tone: "neutral" }
+        : { en: "High", bn: "বেশি", tone: "bad" },
+    });
+  }
+  if (p5 != null) {
+    out.push({
+      q: { en: "Does it pay a dividend?", bn: "ডিভিডেন্ড দেয় কি?" },
+      a: p5 >= 6 ? { en: "Yes", bn: "হ্যাঁ", tone: "good" }
+        : p5 >= 3 ? { en: "A little", bn: "অল্প", tone: "watch" }
+        : { en: "No", bn: "না", tone: "bad" },
+    });
+  }
+  return out;
+}
+
+/** "Strong" / "Good" / "Fair" / "Weak" for a 0–10 check (same cut-offs as the
+ *  stock page's five bars). */
+export function checkWord(v: number): { en: string; bn: string } {
+  return v >= 8 ? { en: "Strong", bn: "শক্তিশালী" }
+    : v >= 6 ? { en: "Good", bn: "ভালো" }
+    : v >= 4 ? { en: "Fair", bn: "মোটামুটি" }
+    : { en: "Weak", bn: "দুর্বল" };
+}

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { flattenTiers, getDailyTips, getScores, type ScoreItem } from "@/lib/api";
+import { flattenTiers, getDailyTips, getScores, getSignalDetail, type ScoreItem } from "@/lib/api";
+import PageQuestions, { type PageQuestion } from "@/components/premium/PageQuestions";
 import DailyTipItem from "@/components/daily-tips/DailyTipItem";
 import SectionHeader from "@/components/ui/SectionHeader";
 import SignalsExplorer from "@/components/signals/SignalsExplorer";
@@ -55,10 +56,12 @@ export default async function BuySellSignalsPage() {
   // 301 to this page) — fetched beside the scores, not after them.
   // No catch on the main fetch: a throw lets ISR keep serving the last good
   // page; a rendered error state was cached as the page until the next purge.
-  const [scores, tipsData] = await Promise.all([
+  const [scores, tipsData, detailData] = await Promise.all([
     getScores(),
     getDailyTips().catch(() => null),
+    getSignalDetail().catch(() => null),
   ]);
+  const detail = detailData?.items ?? {};
   const tips = tipsData?.tips ?? [];
 
   const all = flattenTiers(scores);
@@ -78,6 +81,8 @@ export default async function BuySellSignalsPage() {
     new Set(buy.map((i) => i.sector).filter((s): s is string => Boolean(s))),
   ).sort((a, b) => a.localeCompare(b));
 
+  const questions = signalQuestions(buy, strongCount, detail, detailData?.as_of ?? null);
+
   const updated = scores.computed_at ? formatDate(scores.computed_at) : null;
   const updatedBn = scores.computed_at ? bnDate(scores.computed_at) : null;
 
@@ -92,7 +97,8 @@ export default async function BuySellSignalsPage() {
         description: DESC,
         inLanguage: "en",
         isPartOf: { "@id": BASE_URL },
-        // Past the free head the list is Premium (screen-only lock).
+        // Every row is free; the reason and prices under each are Premium
+        // (screen-only lock, 2026-10-31).
         isAccessibleForFree: false,
         hasPart: { "@type": "WebPageElement", isAccessibleForFree: false, cssSelector: ".premium-locked" },
       },
@@ -213,13 +219,26 @@ export default async function BuySellSignalsPage() {
             title={<T en="Today's buy signals" bn="আজকের কেনার সংকেত" />}
             lead={
               <T
-                en="Strong buys come first, then the rest by score. Each one carries the plain reason behind it."
-                bn="আগে কেনার ভালো সুযোগগুলো, তারপর বাকিগুলো স্কোর অনুযায়ী। প্রতিটির সঙ্গে সহজ ভাষায় কারণ দেওয়া আছে।"
+                en="Every Buy today, free. Strong buys come first, then the rest by score."
+                bn="আজকের প্রতিটি কেনার সংকেত, ফ্রি। আগে কেনার ভালো সুযোগগুলো, তারপর বাকিগুলো স্কোর অনুযায়ী।"
               />
             }
           />
-          <SignalsExplorer buy={buy} sectors={sectors} />
+          <SignalsExplorer buy={buy} sectors={sectors} detail={detail} />
         </section>
+
+        <PageQuestions
+          id="sg-premium"
+          area="signals"
+          className="sg-section"
+          title={{ en: "Every Buy is free. Here is what it leaves open.", bn: "প্রতিটি কেনার সংকেত ফ্রি। তবু কিছু প্রশ্ন থেকে যায়।" }}
+          lead={{
+            en: "Premium answers these under every row: why it is a Buy, our buy price, and the price where it stops being one.",
+            bn: "প্রিমিয়ামে প্রতিটি সারির নিচে এর উত্তর: কেন কেনার সংকেত, আমাদের কেনার দাম, আর কোন দামে এটি আর কেনার সংকেত থাকবে না।",
+          }}
+          rows={questions}
+          label={{ en: "Why each Buy, and up to what price", bn: "প্রতিটি কেনার সংকেত কেন, আর কোন দাম পর্যন্ত" }}
+        />
 
         {/* Today's tips — a handful of names that stand out for one plain
             reason each (growing profits, steady dividends, a low price). */}
@@ -297,4 +316,63 @@ function SummaryCell({
       {note && <p className="sg-cell-x">{note}</p>}
     </div>
   );
+}
+
+/** The page's question card rows: real counts from today's list, each with
+ *  the question Premium answers under the rows. */
+function signalQuestions(
+  buy: ScoreItem[],
+  strong: number,
+  detail: Record<string, { since: string | null; since_floor: boolean; stop_above: number | null }>,
+  asOf: string | null,
+): PageQuestion[] {
+  const rows: PageQuestion[] = [];
+  if (buy.length > 0) {
+    rows.push({
+      key: "price",
+      fact: { en: `${buy.length} Buy signals today`, bn: `আজ ${buy.length}টি কেনার সংকেত` },
+      tone: "good",
+      ask: { en: "Up to what price is each one a Buy?", bn: "কোন দাম পর্যন্ত প্রতিটি কেনার মতো?" },
+      hint: { en: "Our buy price, and the price where the signal ends.", bn: "আমাদের কেনার দাম, আর কোন দামে সংকেতটি শেষ হয়।" },
+    });
+  }
+  if (strong > 0) {
+    rows.push({
+      key: "why",
+      fact: { en: `${strong} Strong buys`, bn: `${strong}টি কেনার ভালো সুযোগ` },
+      tone: "good",
+      ask: { en: "Why these, and not the others?", bn: "কেন এগুলো, অন্যগুলো নয়?" },
+      hint: { en: "The plain reason behind every signal.", bn: "প্রতিটি সংকেতের পেছনের সহজ কারণ।" },
+    });
+  }
+  if (asOf) {
+    const week = new Date(new Date(asOf).getTime() - 7 * 86_400_000).toISOString().slice(0, 10);
+    const fresh = buy.filter((i) => {
+      const d = detail[i.trading_code];
+      return d?.since && !d.since_floor && d.since >= week;
+    }).length;
+    if (fresh > 0) {
+      rows.push({
+        key: "new",
+        fact: { en: `${fresh} became Buys this week`, bn: `এ সপ্তাহে ${fresh}টি নতুন কেনার সংকেত` },
+        tone: "neutral",
+        ask: { en: "Which ones are new, and since when?", bn: "কোনগুলো নতুন, আর কবে থেকে?" },
+        hint: { en: "How long each one has been a Buy.", bn: "প্রতিটি কতদিন ধরে কেনার সংকেত।" },
+      });
+    }
+  }
+  const near = buy.filter((i) => {
+    const stop = detail[i.trading_code]?.stop_above;
+    return stop && i.ltp && i.ltp >= stop * 0.95;
+  }).length;
+  if (near > 0) {
+    rows.push({
+      key: "near",
+      fact: { en: `${near} close to their limit`, bn: `${near}টি সীমার কাছাকাছি` },
+      tone: "fair",
+      ask: { en: "Which could stop being a Buy soon?", bn: "কোনগুলো শিগগির কেনার সংকেত হারাতে পারে?" },
+      hint: { en: "Within 5% of the price where the signal ends.", bn: "সংকেত শেষ হওয়ার দামের 5%-এর মধ্যে।" },
+    });
+  }
+  return rows;
 }

@@ -25,7 +25,7 @@ export interface RankedRow {
   rank: number;
 }
 
-export type RankSortCol = "rank" | "name" | "value" | "growth" | "dividend";
+export type RankSortCol = "rank" | "name" | "value" | "growth" | "dividend" | "best";
 export interface RankSort {
   col: RankSortCol;
   dir: SortDir;

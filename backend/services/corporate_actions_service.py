@@ -290,6 +290,22 @@ def build_dividend_calendar() -> dict:
         top_cash.append(e)
 
     cash_payers = [e for e in record_upcoming if e.get("cash_per_share")]
+
+    # Premium (screen-only on the page, 2026-10-31): "Worth buying for the
+    # dividend?" under each cash record date, and "Coming next" — who has not
+    # declared for this year yet, when we expect it and how much.
+    from backend.services.dividend_forecast_service import build_forecast, captures
+
+    try:
+        caps = captures(cash_payers, today)
+    except Exception:  # noqa: BLE001 — the calendar never fails on an extra
+        caps = {}
+    for e in record_upcoming:
+        e["capture"] = caps.get(e["trading_code"]) if e.get("cash_per_share") else None
+    try:
+        forecast = build_forecast()
+    except Exception:  # noqa: BLE001
+        forecast = []
     this_week = [
         e for e in record_upcoming
         if e.get("record_days_left") is not None and e["record_days_left"] <= 7
@@ -313,12 +329,14 @@ def build_dividend_calendar() -> dict:
                 (e["yield_pct"] for e in cash_payers if e.get("yield_pct")), default=None
             ),
             "declarations_tracked": len(events),
+            "forecast": len(forecast),
         },
         "record_dates": record_upcoming,
         "agms": agm_upcoming,
         "recent_declarations": recent[:40],
         "top_cash_dividends": top_cash[:25],
         "months": sorted(months.values(), key=lambda m: m["key"]),
+        "forecast": forecast,
     }
 
 

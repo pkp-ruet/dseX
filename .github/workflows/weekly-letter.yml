@@ -1,0 +1,53 @@
+name: Weekly Letter
+
+on:
+  # Scheduling is owned by cron-job.org, which calls GitHub's workflow_dispatch
+  # API on time (same as the other jobs).
+  # Target: Friday 04:00 UTC = 10:00 AM Dhaka (DSE is shut on Fridays, so the
+  # week's closes are final).
+  # Native cron fallback:  schedule: [{ cron: "0 4 * * 5" }]
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Run on a day other than Friday (testing)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: weekly-letter
+  cancel-in-progress: false
+
+jobs:
+  letter:
+    runs-on: ubuntu-latest
+    env:
+      MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      MONGODB_DB_NAME: ${{ secrets.MONGODB_DB_NAME }}
+      # Web push. Same VAPID keypair as the Render backend.
+      VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+      VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+      VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT }}
+      # Email for readers with no push device. JWT_SECRET must be the Render
+      # one: the unsubscribe link is signed with it. ADMIN_EMAILS makes admins
+      # count as Premium, as on the backend.
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      ADMIN_EMAILS: ${{ secrets.ADMIN_EMAILS }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Build + send the letters
+        run: |
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then
+            python main.py weekly-letter --force
+          else
+            python main.py weekly-letter
+          fi

@@ -82,7 +82,7 @@ def test_payloads_are_bilingual_and_link_to_premium():
         assert build("en")["title"] != build("bn")["title"]
     assert "1 day" in renewal_payload(1, "en")["title"]
     assert "3 days" in renewal_payload(3, "en")["title"]
-    assert renewal_payload(3, "bn")["url"].endswith("#pay")
+    assert renewal_payload(3, "bn")["url"].startswith("/desk")
 
 
 def test_renewal_reminder_says_what_premium_caught():
@@ -92,8 +92,9 @@ def test_renewal_reminder_says_what_premium_caught():
     assert "bKash" in body and "bank transfer" in body
     assert "২" not in renewal_payload(3, "bn", caught)["body"]  # Western digits in Bengali copy
     # Nothing caught → the plain reminder.
+    assert body.endswith("See it all on your Desk.")
     assert renewal_payload(3, "en", [])["body"] == (
-        "To keep it on, choose a plan again and pay by bKash, Nagad or bank transfer.")
+        "To keep it on, choose a plan again and pay by bKash, Nagad or bank transfer. See it all on your Desk.")
 
 
 def test_plan_change_moves_the_end_date_by_the_difference():

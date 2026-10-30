@@ -19,8 +19,7 @@ import { cacheKeys, readCache, writeCache } from "@/lib/swr-cache";
 import { getStoredUser } from "@/lib/auth";
 import { consumeJustSignedUp } from "@/lib/welcome";
 import { portfolioTodayMove } from "@/lib/portfolio-analysis";
-import { buildStories, buildStarterStories, capStories } from "@/lib/dash-stories";
-import { FREE_STORIES } from "@/lib/free-share";
+import { buildStories, buildStarterStories } from "@/lib/dash-stories";
 import { marketSession, isTradingDay, bstDateStr } from "@/lib/market-hours";
 import { bnDate } from "@/lib/bn";
 import { t } from "@/lib/home-copy";
@@ -30,7 +29,7 @@ import DailyBriefing from "@/components/home/personalized/DailyBriefing";
 import HeroGreeting from "@/components/home/personalized/HeroGreeting";
 import MoneyHero, { MoneyHeroSkeleton } from "@/components/home/personalized/MoneyHero";
 import MoneyHeroGhost from "@/components/home/personalized/MoneyHeroGhost";
-import PremiumWeekCard from "@/components/home/personalized/PremiumWeekCard";
+import DeskCard from "@/components/home/personalized/DeskCard";
 import PullToRefresh from "@/components/home/personalized/PullToRefresh";
 import StoriesRow from "@/components/home/personalized/StoriesRow";
 import MarketTodayCard from "@/components/home/personalized/MarketTodayCard";
@@ -200,9 +199,9 @@ export default function PersonalizedHome() {
 
   // Stories (2026-10-28, replaced "Your stocks today" + "This week on your
   // stocks"): a Today ring, then one ring per stock with something to say,
-  // all built from data already loaded. A free reader opens the first
-  // FREE_STORIES; the rest sit behind one Premium ring. A reader with no
-  // stocks gets market stories ending in "add your stocks".
+  // all built from data already loaded. Every story is open to every reader
+  // (2026-10-31; the 3-story cap and its Premium ring are gone). A reader with
+  // no stocks gets market stories ending in "add your stocks".
   const premium = planState === "premium";
   const ownStories = buildStories({
     lang,
@@ -238,9 +237,7 @@ export default function PersonalizedHome() {
         movers,
         recordDates: calendarRows,
       })
-    : premium
-      ? ownStories
-      : capStories(ownStories, FREE_STORIES, lang, isoToday);
+    : ownStories;
   const quietStories = !isBrandNew && (hasPortfolio || hasWatchlist) && ownStories.every((st) => st.kind === "today");
 
 
@@ -452,9 +449,9 @@ export default function PersonalizedHome() {
             caught on the reader's shares this week — a plain summary for
             Premium readers. */}
         {holdings !== null && bundleSettled && (
-          <div data-card="premium-week">
-            <PremiumWeekCard
-              week={bundle?.week_watch}
+          <div data-card="desk">
+            <DeskCard
+              desk={bundle?.desk}
               hasStocks={hasPortfolio || hasWatchlist}
               premium={planState === "premium"}
               lang={lang}

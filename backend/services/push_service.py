@@ -36,6 +36,7 @@ DEFAULT_PREFS = {
     "portfolio_signals": True,  # a holding flipped to Sell (buy-more/hold/sell tracker)
     "portfolio_watch": True,  # Premium watcher: record dates, results, category, big drops on holdings
     "morning_brief": True,  # Premium: before-the-bell brief on held + followed shares (morning_brief_service)
+    "weekly_letter": True,  # Friday letter, every reader with shares or a watchlist (weekly_letter_service)
     "language": "bn",  # digest copy language — Bengali default, "en" opt-out
 }
 

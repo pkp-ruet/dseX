@@ -92,6 +92,7 @@ async function legacyBundle(): Promise<HomeBundle> {
     new_results: [],
     results_week: null,
     week_watch: null,
+    desk: null,
     screener: { goals: goals.goals, saved: [] },
     for_you: forYou,
   };

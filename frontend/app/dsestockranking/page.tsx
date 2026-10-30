@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import PageGuide from "@/components/seo/PageGuide";
 import Link from "next/link";
-import { flattenTiers, getMarketIndex, getScores } from "@/lib/api";
+import { flattenTiers, getMarketIndex, getRankMovers, getScores, type RankMovers as Movers } from "@/lib/api";
+import RankMovers from "@/components/ranking/RankMovers";
+import PageQuestions, { type PageQuestion } from "@/components/premium/PageQuestions";
 import { getTier } from "@/lib/constants";
 import { PILLARS } from "@/lib/landing";
 import RankingExplorer from "@/components/ranking/RankingExplorer";
@@ -46,9 +48,11 @@ export default async function DseStockRankingPage() {
   // it must never be able to take the leaderboard down.
   // No catch on the main fetch: a throw lets ISR keep serving the last good
   // page; a rendered error state was cached as the page until the next purge.
-  const [scores, marketIndex] = await Promise.all([
+  // The week's movers are secondary too (a Premium-adjacent section).
+  const [scores, marketIndex, movers] = await Promise.all([
     getScores(),
     getMarketIndex().catch(() => null),
+    getRankMovers().catch(() => null),
   ]);
 
   const { tiers } = scores;
@@ -85,6 +89,10 @@ export default async function DseStockRankingPage() {
         : max,
     null
   );
+  const names: Record<string, string> = {};
+  for (const i of allRanked) names[i.trading_code] = i.company_name ?? i.trading_code;
+  const questions = rankQuestions(allRanked, movers);
+
   const staleCount = allRanked.filter((i) => i.stale_data).length;
   const zCount = allRanked.filter((i) => i.market_category?.toUpperCase() === "Z").length;
 
@@ -100,8 +108,11 @@ export default async function DseStockRankingPage() {
           "All Dhaka Stock Exchange (DSE) listed companies ranked by fundamental score with price, profit growth, and dividend yield.",
         inLanguage: "en",
         isPartOf: { "@id": BASE_URL },
-        // The whole ranking is free since 2026-10-29 (the Free vs Premium plan):
-        // no paywall markup. Only a row's signal reason, opened on a tap, is Premium.
+        // The whole ranking is free (2026-10-29). Premium parts sit in place
+        // (screen-only, 2026-10-31): why each of the week's movers moved, and a
+        // row's year of rank + signal reason.
+        isAccessibleForFree: false,
+        hasPart: { "@type": "WebPageElement", isAccessibleForFree: false, cssSelector: ".premium-locked" },
       },
       {
         "@type": "BreadcrumbList",
@@ -187,6 +198,21 @@ export default async function DseStockRankingPage() {
           total={allRanked.length}
           sectors={sectors}
         />
+
+      <RankMovers movers={movers} names={names} />
+
+      <PageQuestions
+        id="rk-premium"
+        area="rankings"
+        className="rk-premium"
+        title={{ en: "The whole ranking is free. Here is what it leaves open.", bn: "পুরো র‍্যাঙ্কিং ফ্রি। তবু কিছু প্রশ্ন থেকে যায়।" }}
+        lead={{
+          en: "Premium answers these on this page: a best-value order, your own ranking, why each mover moved, a year of rank for every company, and alerts when a rank changes.",
+          bn: "প্রিমিয়ামে এর উত্তর এই পেজেই: সেরা দামের ক্রম, আপনার নিজের র‍্যাঙ্কিং, প্রতিটি ওঠানামার কারণ, প্রতিটি কোম্পানির এক বছরের র‍্যাঙ্ক, আর র‍্যাঙ্ক বদলালে অ্যালার্ট।",
+        }}
+        rows={questions}
+        label={{ en: "The ranking, explained", bn: "র‍্যাঙ্কিংয়ের ব্যাখ্যা" }}
+      />
 
       {/* What this list covers — and what it deliberately doesn't */}
       <section className="rank-limits" aria-label="What this list covers">
@@ -348,4 +374,54 @@ export default async function DseStockRankingPage() {
       />
     </>
   );
+}
+
+/** The page's question card rows, from today's ranking and the week's movers:
+ *  each a fact on the page beside the question Premium answers here. */
+function rankQuestions(items: RankedItem[], movers: Movers | null): PageQuestion[] {
+  const out: PageQuestion[] = [];
+  const top = [...items].filter((i) => i.score != null).sort((a, b) => (b.score ?? 0) - (a.score ?? 0))[0];
+  if (top) {
+    out.push({
+      key: "top",
+      fact: { en: `Number 1: ${top.trading_code}`, bn: `1 নম্বর: ${top.trading_code}` },
+      tone: "good",
+      ask: { en: "Is it at a good price today?", bn: "আজ কি এর দাম ভালো?" },
+      hint: { en: "The best-value order puts good companies at a low price first.", bn: "সেরা দামের ক্রমে কম দামের ভালো কোম্পানি আগে আসে।" },
+    });
+  }
+  if (movers && movers.climbed_n > 0) {
+    out.push({
+      key: "climbed",
+      fact: { en: `${movers.climbed_n} climbed this week`, bn: `এ সপ্তাহে ${movers.climbed_n}টি উঠেছে` },
+      ask: { en: "What moved them?", bn: "কেন উঠল?" },
+      hint: { en: "The check behind every move, in plain words.", bn: "প্রতিটি ওঠানামার পেছনের যাচাই, সহজ ভাষায়।" },
+    });
+  }
+  out.push({
+    key: "weights",
+    fact: { en: "Ranked by our weights", bn: "আমাদের ভারে সাজানো" },
+    ask: { en: "What if dividends matter most to you?", bn: "আপনার কাছে ডিভিডেন্ড বেশি জরুরি হলে?" },
+    hint: { en: "Say which of the five checks matter more, and the table re-orders.", bn: "পাঁচটি যাচাইয়ের কোনটি বেশি জরুরি বলুন, তালিকা নতুন করে সাজবে।" },
+  });
+  if (movers && movers.grade_changes > 0) {
+    out.push({
+      key: "grades",
+      fact: {
+        en: `${movers.grade_changes} changed grade this week`,
+        bn: `এ সপ্তাহে ${movers.grade_changes}টির গ্রেড বদলেছে`,
+      },
+      tone: "fair",
+      ask: { en: "Will you hear when yours does?", bn: "আপনার শেয়ারের বদলালে জানবেন কি?" },
+      hint: { en: "Rank alerts: when a share enters the top 20, or drops below Good.", bn: "র‍্যাঙ্ক অ্যালার্ট: শেয়ার প্রথম 20-এ এলে, বা ভালো গ্রেডের নিচে নামলে।" },
+    });
+  } else {
+    out.push({
+      key: "alerts",
+      fact: { en: "A new ranking every trading day", bn: "প্রতি লেনদেনের দিন নতুন র‍্যাঙ্কিং" },
+      ask: { en: "Will you hear when a share you like moves?", bn: "পছন্দের শেয়ার সরলে জানবেন কি?" },
+      hint: { en: "Rank alerts: when a share enters the top 20, or drops below Good.", bn: "র‍্যাঙ্ক অ্যালার্ট: শেয়ার প্রথম 20-এ এলে, বা ভালো গ্রেডের নিচে নামলে।" },
+    });
+  }
+  return out;
 }

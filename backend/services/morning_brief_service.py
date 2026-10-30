@@ -152,16 +152,17 @@ def today_brief(user_id: str) -> Optional[dict]:
 
 _USER_FIELDS = {"_id": 0, "user_id": 1, "email": 1, "name": 1, "portfolio": 1, "extra_portfolios": 1,
                 "watchlist": 1, "premium_until": 1, "email_verified": 1, "created_at": 1,
-                "push_enabled": 1, "notification_prefs": 1, "email_opt_out": 1}
+                "push_enabled": 1, "notification_prefs": 1, "email_opt_out": 1, "dividend_reminders": 1}
 
 
 def _readers(now: datetime) -> list[dict]:
-    """Premium readers with something to brief on."""
+    """Premium readers with something to brief on (shares held or followed,
+    or a dividend reminder set on the calendar)."""
     from backend.services import entitlements
 
     users = get_db()["users"].find(
         {"$or": [{"portfolio.0": {"$exists": True}}, {"extra_portfolios.holdings.0": {"$exists": True}},
-                 {"watchlist.0": {"$exists": True}}]},
+                 {"watchlist.0": {"$exists": True}}, {"dividend_reminders.0": {"$exists": True}}]},
         _USER_FIELDS,
     )
     return [u for u in users if u.get("user_id") and entitlements.is_premium(u, now)]
@@ -212,12 +213,12 @@ def _email_html(items: list[dict], lang: str, user_id: str) -> tuple[str, str]:
     body = (
         '<div style="background:#FAF8F4;padding:24px 16px;font-family:Inter,Arial,sans-serif">'
         '<div style="max-width:560px;margin:0 auto;background:#FFFFFF;border:1px solid #DED6C3;border-radius:12px;padding:24px">'
-        f'<div style="font-size:13px;color:#B0714E;font-weight:600">TopStockBD Premium</div>'
+        f'<div style="font-size:13px;color:#9E5F40;font-weight:600">TopStockBD Premium</div>'
         f'<h1 style="font-size:22px;color:#2E2B26;margin:6px 0 4px">{head}</h1>'
         f'<p style="font-size:14px;color:#5C554A;margin:0 0 12px">{lead}</p>'
         f'<table role="presentation" width="100%" style="border-collapse:collapse">{rows}</table>'
         f'<p style="margin:20px 0 0"><a href="{html.escape(SITE_URL + "/?src=brief-email")}" '
-        'style="display:inline-block;background:#B0714E;color:#FFFFFF;padding:10px 16px;border-radius:10px;'
+        'style="display:inline-block;background:#9E5F40;color:#FFFFFF;padding:10px 16px;border-radius:10px;'
         f'text-decoration:none;font-weight:600">{"আপনার দিন দেখুন" if bn else "Open your day"}</a></p>'
         f'<p style="font-size:12px;color:#5C554A;margin:20px 0 0"><a href="{html.escape(_unsub_url(user_id))}" '
         f'style="color:#5C554A">{unsub}</a></p>'
@@ -293,7 +294,8 @@ def run_brief(force: bool = False) -> dict:
             if res.upserted_id is not None:
                 fresh.append(e)
         items = mb.build_brief(held, watched, today=today, meetings=meetings,
-                               record_rows=record_rows, results=fresh, names=names)
+                               record_rows=record_rows, results=fresh, names=names,
+                               reminders=u.get("dividend_reminders") or ())
         if not items:
             counts["quiet"] += 1
             continue

@@ -5,86 +5,41 @@ import Button from "@/components/ui/Button";
 import { T } from "@/components/i18n/T";
 import { IconCrown } from "@/components/ui/icons";
 import { useAuth } from "@/context/AuthContext";
-import { apiDismissOffer, getPremiumPlans } from "@/lib/api";
+import { apiDismissOffer } from "@/lib/api";
 import { AUTH_USER_UPDATED_EVENT, setStoredUser } from "@/lib/auth";
 import { usePremium } from "@/lib/premium";
 import { OWN_OFFER_PLAN } from "@/lib/premium-plans";
 import { trackEvent } from "@/lib/track";
 
-// A guest's "Not interested" / "Remind me later" (a signed-in reader's live
-// on their account, backend `payments.dismiss_offer`).
-const GUEST_KEY = "dsex.offer.banner";
-const REMIND_MS = 3 * 24 * 60 * 60 * 1000; // backend OFFER_REMIND_DAYS
-
-function guestHidden(): boolean {
-  try {
-    const raw = window.localStorage.getItem(GUEST_KEY);
-    if (!raw) return false;
-    const v = JSON.parse(raw) as { never?: boolean; until?: number };
-    return !!v.never || (typeof v.until === "number" && v.until > Date.now());
-  } catch {
-    return false;
-  }
-}
-
-function guestDismiss(action: "never" | "later"): void {
-  try {
-    window.localStorage.setItem(
-      GUEST_KEY,
-      JSON.stringify(action === "never" ? { never: true } : { until: Date.now() + REMIND_MS }),
-    );
-  } catch {}
-}
-
 /**
- * The reader's own offer (2026-10-29) on top of the homepage: one month of
- * Premium for ৳99 instead of ৳199, for a very limited time. Three answers:
- * pay (→ the pay box with the offer picked; a guest opens a free account
- * first), "Remind me later" (hidden for 3 days) or "Not interested" (hidden
- * for good; the offer stays in the pay box). Signed-in readers see it while
- * the backend's `user.offer.banner` says so; guests while the plans endpoint
- * says the offer is open. An admin ends it from /admin/payments.
- * Renders nothing on the server, so the landing HTML Google sees is unchanged.
+ * The reader's own offer (2026-10-29) on top of the signed-in homepage: one
+ * month of Premium for ৳99 instead of ৳199, for a very limited time. Three
+ * answers: pay (→ the pay box with the offer picked), "Remind me later"
+ * (hidden for 3 days) or "Not interested" (hidden for good; the offer stays in
+ * the pay box). Shown while the backend's `user.offer.banner` says so; an admin
+ * ends it from /admin/payments. Guests never see it (2026-10-31, user decision:
+ * no pricing on the signed-out landing page). Renders nothing on the server.
  */
 export default function OfferBanner() {
   const { user, isLoggedIn, isLoading } = useAuth();
   const { isPremium } = usePremium();
   const [mounted, setMounted] = useState(false);
   const [closed, setClosed] = useState(false);
-  const [guestOff, setGuestOff] = useState(true);
-  // Guests: is the offer running? (signed-in readers get it on `user.offer`)
-  const [guestOpen, setGuestOpen] = useState(false);
   const seen = useRef(false);
 
   useEffect(() => {
     setMounted(true);
-    setGuestOff(guestHidden());
   }, []);
 
-  useEffect(() => {
-    if (isLoading || isLoggedIn || guestOff) return;
-    let live = true;
-    getPremiumPlans()
-      .then((r) => live && setGuestOpen(!!r.own_offer))
-      .catch(() => {});
-    return () => {
-      live = false;
-    };
-  }, [isLoading, isLoggedIn, guestOff]);
-
-  const offer = isLoggedIn ? (!isPremium ? user?.offer ?? null : null) : null;
-  const show =
-    mounted &&
-    !isLoading &&
-    !closed &&
-    (isLoggedIn ? !!offer?.banner : !guestOff && guestOpen);
+  const offer = isLoggedIn && !isPremium ? user?.offer ?? null : null;
+  const show = mounted && !isLoading && !closed && !!offer?.banner;
 
   useEffect(() => {
     if (show && !seen.current) {
       seen.current = true;
-      trackEvent("offer_banner_view", { who: isLoggedIn ? "free" : "guest" });
+      trackEvent("offer_banner_view", { who: "free" });
     }
-  }, [show, isLoggedIn]);
+  }, [show]);
 
   if (!show) return null;
 
@@ -93,11 +48,7 @@ export default function OfferBanner() {
 
   const dismiss = (action: "never" | "later") => {
     setClosed(true);
-    trackEvent("offer_banner_tap", { action, who: isLoggedIn ? "free" : "guest" });
-    if (!isLoggedIn) {
-      guestDismiss(action);
-      return;
-    }
+    trackEvent("offer_banner_tap", { action, who: "free" });
     apiDismissOffer(action)
       .then(({ user: fresh }) => {
         setStoredUser(fresh);
@@ -132,15 +83,11 @@ export default function OfferBanner() {
       </p>
       <div className="offer-banner-actions">
         <Button
-          href={isLoggedIn ? "/premium?plan=offer&src=offer-banner#pay" : "/register"}
+          href="/premium?plan=offer&src=offer-banner#pay"
           size="lg"
-          onClick={() => trackEvent("offer_banner_tap", { action: "pay", who: isLoggedIn ? "free" : "guest" })}
+          onClick={() => trackEvent("offer_banner_tap", { action: "pay", who: "free" })}
         >
-          {isLoggedIn ? (
-            <T en={`Pay ৳${amount} and start`} bn={`৳${amount} দিয়ে শুরু করুন`} />
-          ) : (
-            <T en={`Sign up free to get it for ৳${amount}`} bn={`ফ্রি অ্যাকাউন্ট খুলে ৳${amount}-এ নিন`} />
-          )}
+          <T en={`Pay ৳${amount} and start`} bn={`৳${amount} দিয়ে শুরু করুন`} />
         </Button>
         <Button variant="quiet" size="lg" onClick={() => dismiss("later")}>
           <T en="Remind me later" bn="পরে মনে করিয়ে দিন" />

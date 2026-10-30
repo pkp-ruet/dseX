@@ -200,3 +200,11 @@ a.mk-sector:hover .mk-sector-name, a.mk-sector:active .mk-sector-name { color: v
 
 /* ---- Disclaimer ---- */
 .mk-disclaimer { margin: var(--space-8) 0 0; font-size: var(--fs-2xs); line-height: 1.6; color: var(--text-muted); }
+
+/* Things to watch out for (2026-10-31): the Premium reason under each row. */
+.mk-why { display: block; margin-top: 4px; }
+.mk-why-head, .mk-why-line { display: block; font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
+.mk-why-head { font-weight: 600; }
+.mk-why-line + .mk-why-line, .mk-why-head + .mk-why-line { margin-top: 2px; }
+.mk-why-head.mk-why--red { color: var(--negative); }
+.mk-why-head.mk-why--amber { color: var(--watch); }

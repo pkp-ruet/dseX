@@ -16,7 +16,7 @@ type Week = NonNullable<HomeBundle["results_week"]>;
  * same), the three newest reports as the page's own `ResultRow`s (company
  * name, level, "EPS ৳2.10 · a year ago ৳1.80", the profit move leading), and a
  * button to `/results`. No Premium pitch since 2026-10-29: every row on
- * /results is free, and the dashboard asks once (`PremiumWeekCard`).
+ * /results is free, and the dashboard asks once (`DeskCard`).
  */
 export default function ResultsPromoCard({
   week, held, watched, lang, premium = false,

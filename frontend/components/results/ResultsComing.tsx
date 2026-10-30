@@ -6,11 +6,10 @@ import type { UpcomingResult } from "@/lib/api";
 import { T } from "@/components/i18n/T";
 import Button from "@/components/ui/Button";
 import SectionHeader from "@/components/ui/SectionHeader";
-import AnswerLock, { Locked } from "@/components/premium/AnswerLock";
+import { Locked } from "@/components/premium/AnswerLock";
 import { PersonalMark, usePersonalCodesCtx } from "@/components/market-analysis/PersonalCodes";
 import { DateTile } from "@/components/dividend-calendar/DateGroup";
 import { dayParts, daysWords } from "@/components/dividend-calendar/dates";
-import { usePremium } from "@/lib/premium";
 
 /** Rows shown before "Show all". */
 const FIRST = 8;
@@ -21,12 +20,11 @@ const FIRST = 8;
  * dividend calendar's date tile), the reader's own stocks first in each.
  * The date is free. What each report will be measured against — last year's
  * figure, the year so far, and the EPS where our Better / Weaker lines sit —
- * is Premium (`expect_*`, a screen-only `Locked` under each row, named once by
- * an `AnswerLock` line). Must render inside the page's `PersonalCodesProvider`.
+ * is Premium (`expect_*`, a screen-only `Locked` under each row, named by the
+ * page's question card `#rs-premium`). Must render inside the page's `PersonalCodesProvider`.
  */
 export default function ResultsComing({ rows }: { rows: UpcomingResult[] }) {
   const { portfolio, watchlist } = usePersonalCodesCtx();
-  const { isPremium } = usePremium();
   const [mounted, setMounted] = useState(false);
   const [all, setAll] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -58,7 +56,6 @@ export default function ResultsComing({ rows }: { rows: UpcomingResult[] }) {
     })
     .filter((g) => g.items.length);
   const hidden = rows.length - visible.reduce((n, g) => n + g.items.length, 0);
-  const anyExpect = rows.some((r) => r.expect_en.length);
 
   return (
     <section id="coming" className="rs-coming" aria-labelledby="coming-title">
@@ -72,22 +69,6 @@ export default function ResultsComing({ rows }: { rows: UpcomingResult[] }) {
           />
         }
       />
-
-      {anyExpect && !(mounted && isPremium) && (
-        <AnswerLock
-          job="watch"
-          variant="line"
-          lock="Results: what to expect"
-          what={{ en: "What to expect from each report", bn: "প্রতিটি প্রতিবেদন থেকে কী আশা করা যায়" }}
-          lines={[{
-            en: "Premium shows what each report will be measured against: last year's figure, the year so far, and the EPS where it turns Better or Weaker.",
-            bn: "প্রিমিয়ামে দেখুন প্রতিটি প্রতিবেদন কিসের সঙ্গে মেলানো হবে: গত বছরের হিসাব, এ বছর এ পর্যন্ত, আর কোন ইপিএসে ফল ভালো বা দুর্বল ধরা হবে।",
-          }]}
-          className="rs-coming-lock"
-        >
-          {null}
-        </AnswerLock>
-      )}
 
       <div className="rs-coming-days">
         {visible.map((g) => {

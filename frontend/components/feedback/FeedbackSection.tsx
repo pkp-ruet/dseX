@@ -36,8 +36,12 @@ export default function FeedbackSection() {
     }
   }
 
+  // Signed-in readers only (2026-10-31): the signed-out landing ends on its
+  // own ask, not a review form.
+  if (!user) return null;
+
   return (
-    <section className="soft-card px-5 sm:px-8 py-8 sm:py-10" aria-labelledby="feedback-heading">
+    <section className="soft-card mt-16 px-5 py-8 sm:mt-24 sm:px-8 sm:py-10" aria-labelledby="feedback-heading">
       <div className="max-w-2xl">
         <p className="text-xs font-bold   text-primary-ink">
           Your feedback

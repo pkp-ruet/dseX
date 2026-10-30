@@ -7,16 +7,12 @@
 /**
  * THE free amount (2026-10-29, the Free vs Premium plan): the top 3 of every
  * list of other companies is free — signals, the screener, Picked for you,
- * the research lists, stories. One number a
- * reader learns after one page. Rankings, results and the dividend calendar
- * are open in full since 2026-10-29 (plan step 4).
+ * the research lists. One number a reader learns after one page. Rankings,
+ * results and the dividend calendar are open in full since 2026-10-29 (plan
+ * step 4); the buy signals list and the dashboard stories since 2026-10-31
+ * (the Premium Desk plan — Premium adds the reasons and the delivery).
  */
 export const FREE_LIST_ROWS = 3;
-
-/** `/buy-sell-signals`: the first buy signals of the current view a free
- *  reader sees (Strong buys lead the default order); the rest is Premium
- *  (user decision 2026-10-25). */
-export const FREE_SIGNAL_ROWS = FREE_LIST_ROWS;
 
 /** `/screener`: the first stocks that pass a screen a free reader sees; none
  *  when the screen uses a power check. The rest is Premium (user decision
@@ -26,13 +22,6 @@ export const FREE_SCREENER_ROWS = FREE_LIST_ROWS;
 /** The dashboard's "Picked for you": the picks a free reader sees in full;
  *  the rest of the 15 sits blurred behind one lock (user decision 2026-10-27). */
 export const FREE_FORYOU_ROWS = FREE_LIST_ROWS;
-
-/** The dashboard's stories: a free reader opens the first three (the "Today"
- *  story counts as one), in importance order; the rest sit behind one
- *  Premium ring with their count and kinds (user decision 2026-10-28, first
- *  five, then three the same day). Seen stories stay in the row and replay
- *  any number of times. */
-export const FREE_STORIES = FREE_LIST_ROWS;
 
 /* The stock report's free taste of the fundamentals is one sample row and
    one answer word (`FREE_SAMPLE_ROW` / `FREE_WORD_ROWS` in lib/stock-report.ts,

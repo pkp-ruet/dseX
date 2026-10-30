@@ -4,7 +4,7 @@
 :root {
   /* Role-based palette — cream canvas · navy anchor · clay primary · steel-blue info · gold premium.
      Different colors do different jobs; green/red stay locked to market data. */
-  --primary: #B0714E;       /* clay — primary buttons + main actions */
+  --primary: #9E5F40;       /* clay — primary buttons + main actions (one step deeper since 2026-10-31: white text on it is 5:1, AA; #B0714E was 3.9:1) */
   --primary-ink: #8F5638;   /* deeper clay — primary text/links on light */
   --primary-soft: #C99475;  /* light clay — gradients, hover tints */
 
@@ -95,7 +95,7 @@
   --border-rgb: 222 214 195;
   --text-rgb: 46 43 38;
   --text-muted-rgb: 46 43 38;
-  --primary-rgb: 176 113 78;
+  --primary-rgb: 158 95 64;
   --navy-rgb: 42 54 68;
   --info-rgb: 78 114 146;
   --gold-rgb: 198 169 107;

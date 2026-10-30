@@ -1,19 +1,10 @@
-"use client";
-
-import Link from "next/link";
-import { useState, type CSSProperties } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
 import { T } from "@/components/i18n/T";
 import Button from "@/components/ui/Button";
-import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
-import type { AuthApiResponse, Testimonial } from "@/lib/api";
-import { loadWatchlist } from "@/lib/watchlist";
+import type { Testimonial } from "@/lib/api";
 
 /**
- * Block 8b — the close.
- *
- * Real reviews, then one ask. The quotes come from the feedback an admin has
+ * Block 7 — the close (2026-10-31): real reviews when there are any, then one
+ * ask — a free account, or look up a share first. The quotes come from the feedback an admin has
  * approved for publication (`featured` in the feedback collection) — never
  * straight from whatever a visitor last typed into the homepage form. When
  * nothing is approved yet the section simply renders the ask, which is the right
@@ -45,35 +36,21 @@ function Stars({ n }: { n: number }) {
 }
 
 export default function LandingClose({ testimonials }: { testimonials: Testimonial[] }) {
-  const router = useRouter();
-  const { isLoggedIn, login } = useAuth();
-  const [googleError, setGoogleError] = useState("");
   const quotes = testimonials.slice(0, 3);
-
-  async function handleGoogleSuccess(data: AuthApiResponse) {
-    login(data.access_token, data.user);
-    await loadWatchlist().catch(() => {});
-    router.refresh();
-  }
 
   return (
     <section aria-labelledby="close-title">
       {quotes.length > 0 && (
-        <div className="mb-12">
-          <p className="text-sm font-semibold text-text-muted">
+        <div className="mb-14">
+          <p className="text-sm font-semibold text-text-main">
             <T en="What our readers say" bn="পাঠকেরা যা বলছেন" />
           </p>
-          <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <ul className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
             {quotes.map((q, i) => (
-              <li
-                key={`${q.name ?? "user"}-${i}`}
-                className="acc-card flex flex-col p-4"
-              >
+              <li key={`${q.name ?? "user"}-${i}`} className="soft-card flex flex-col p-5">
                 {q.rating != null && <Stars n={q.rating} />}
-                <p className="mt-2.5 flex-1 text-sm leading-relaxed text-text-main">
-                  {q.comment}
-                </p>
-                <p className="mt-3 text-xs font-semibold text-text-muted">
+                <p className="mt-3 flex-1 text-base leading-relaxed text-text-main">{q.comment}</p>
+                <p className="mt-3 text-sm font-semibold text-text-main">
                   {q.name ?? <T en="A reader" bn="একজন পাঠক" />}
                 </p>
               </li>
@@ -82,50 +59,24 @@ export default function LandingClose({ testimonials }: { testimonials: Testimoni
         </div>
       )}
 
-      <div className="soft-card relative overflow-hidden px-5 py-10 text-center sm:px-10 sm:py-14">
-        <h2
-          id="close-title"
-          className="font-display text-[clamp(1.6rem,5.2vw,2.5rem)] font-bold leading-[1.1] tracking-tight text-text-main"
-        >
-          <T en="Check before your next buy." bn="পরের শেয়ার কেনার আগে একবার দেখে নিন।" />
+      <div className="py-6 text-center sm:py-10">
+        <h2 id="close-title" className="mx-auto max-w-2xl text-balance text-3xl font-bold leading-tight tracking-tight text-text-main sm:text-4xl">
+          <T en="Start with one share you care about." bn="আপনার পছন্দের একটি শেয়ার দিয়ে শুরু করুন।" />
         </h2>
-        <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-text-muted">
+        <p className="mx-auto mt-3 max-w-xl text-lg leading-relaxed text-text-main">
           <T
-            en="No payment and no card are needed. You can read every score and ranking without an account."
-            bn="কোনো টাকা বা কার্ড লাগে না। অ্যাকাউন্ট না খুলেও সব স্কোর আর র‍্যাঙ্কিং দেখতে পারবেন।"
+            en="Look it up now, or create a free account and follow it every day."
+            bn="এখনই দেখে নিন, অথবা ফ্রি অ্যাকাউন্ট খুলে প্রতিদিন নজর রাখুন।"
           />
         </p>
-
         <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-          {isLoggedIn ? (
-            <>
-              <Button href="/portfolio" variant="primary">
-                <T en="My portfolio" bn="আমার পোর্টফোলিও" />
-              </Button>
-              <Button href="/dsestockranking" variant="quiet">
-                <T en="See the rankings" bn="র‍্যাঙ্কিং দেখুন" />
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button href="/register" variant="primary">
-                <T en="Open a free account" bn="ফ্রি অ্যাকাউন্ট খুলুন" />
-              </Button>
-              <div className="[color-scheme:light]">
-                <GoogleSignInButton onSuccess={handleGoogleSuccess} onError={setGoogleError} />
-              </div>
-              <Link
-                href="/dsestockranking"
-                className="w-full text-sm font-bold text-primary-ink underline-offset-4 hover:underline sm:w-auto"
-              >
-                <T en="Just look around first" bn="আগে একটু ঘুরে দেখুন" />
-              </Link>
-            </>
-          )}
+          <Button href="#signup" variant="primary" size="lg">
+            <T en="Create free account" bn="ফ্রি অ্যাকাউন্ট খুলুন" />
+          </Button>
+          <Button href="#landing-lookup" variant="quiet" size="lg">
+            <T en="Check a share" bn="একটি শেয়ার দেখুন" />
+          </Button>
         </div>
-        {googleError && !isLoggedIn && (
-          <p className="mt-3 text-xs text-negative">{googleError}</p>
-        )}
       </div>
     </section>
   );

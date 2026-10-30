@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { T } from "@/components/i18n/T";
 import type { LandingStock } from "@/lib/landing";
 
@@ -16,10 +16,13 @@ export default function StockLookup({
   stocks,
   selected,
   onSelect,
+  label,
 }: {
   stocks: LandingStock[];
   selected: string | null;
   onSelect: (code: string) => void;
+  /** The field's label; defaults to "Type any company name or code". */
+  label?: ReactNode;
 }) {
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(-1);
@@ -82,7 +85,7 @@ export default function StockLookup({
     <div ref={wrapRef} className="relative">
       <label htmlFor="landing-lookup" className="mb-2 block">
         <span className="text-sm font-bold text-text-main">
-          <T en="Type any company name or code" bn="যেকোনো কোম্পানির নাম বা কোড লিখুন" />
+          {label ?? <T en="Type any company name or code" bn="যেকোনো কোম্পানির নাম বা কোড লিখুন" />}
         </span>
       </label>
 
@@ -98,7 +101,7 @@ export default function StockLookup({
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={onKeyDown}
           onFocus={() => setOpen(matches.length > 0)}
-          placeholder="GP, BRACBANK, Square…"
+          placeholder="Square Pharma, GP, BRACBANK…"
           autoComplete="off"
           spellCheck={false}
           role="combobox"
@@ -155,11 +158,6 @@ export default function StockLookup({
         </ul>
       )}
 
-      {selected && (
-        <p className="mt-2 text-xs text-text-muted">
-          Showing {selected} — type another name and it changes instantly.
-        </p>
-      )}
     </div>
   );
 }

@@ -110,8 +110,6 @@
 }
 /* The locked rest continues the same list: hairline across the seam, and the
    lock card sits inside the list card as its last row. */
-.sg-locked .sg-rows > .sg-row:first-child { border-top: 1px solid var(--cell-rule); }
-.sg-locked > .premium-card { margin: 8px 0 18px; }
 /* A masked preview row's sector line reads like the reason line it stands in for. */
 .sg-rows > .sg-row > span > .min-w-0 > span + span {
   margin-top: 6px; font-size: var(--fs-sm); line-height: 1.55; color: var(--text-muted);
@@ -139,3 +137,7 @@
   margin: 64px 0 0; padding-top: 20px; border-top: 1px solid var(--cell-rule);
   max-width: 72ch; font-size: var(--fs-2xs); line-height: 1.6; color: var(--text-muted);
 }
+
+/* Premium's part of a Buy row (2026-10-31): the reason, then the prices. */
+.sg-prem-why { display: block; margin-top: 2px; font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
+.sg-prem-nums { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-top: 4px; font-size: var(--fs-xs); font-weight: 600; color: var(--gold-ink); }

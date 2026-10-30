@@ -1,23 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { T } from "@/components/i18n/T";
-import { useLang } from "@/context/LangContext";
 import { bnDate } from "@/lib/bn";
-import { JobTag } from "@/components/premium/AnswerLock";
-import { IconArrowRight, IconCheck, IconStar } from "@/components/ui/icons";
+import { IconArrowRight, IconStar } from "@/components/ui/icons";
 import type { MarketResearch, MarketResearchList } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
-import { PREMIUM_PATH, usePremium } from "@/lib/premium";
-import { savePremiumContext } from "@/lib/premium-context";
 import { formatResearchMetric, getResearchListDef } from "@/lib/research-lists";
-import { trackEvent } from "@/lib/track";
 import MarketRow from "./MarketRow";
 import { usePersonalCodesCtx } from "./PersonalCodes";
-
-/** The page's one Premium section. */
-const ANCHOR = "ma-premium";
 
 /**
  * "Where to Invest Today" — the six research lists, the one that fits today's
@@ -25,7 +16,8 @@ const ANCHOR = "ma-premium";
  * rougher, free copies of these lists). Free: the idea, how many companies
  * pass today, how many did a month ago, and the top three (2026-10-29, the
  * Free vs Premium plan — top 3 of every list is free). Premium: every other
- * company on each list — the page's one promotion card below (`#ma-premium`).
+ * company on each list — named by the page's ONE question card (`#ma-premium`,
+ * `PageQuestions`, at the end of the page since 2026-10-31).
  */
 export default function MarketResearchLists({ research }: { research: MarketResearch }) {
   const { portfolio, watchlist } = usePersonalCodesCtx();
@@ -45,10 +37,6 @@ export default function MarketResearchLists({ research }: { research: MarketRese
           ))}
         </div>
       )}
-      <ResearchPromo
-        lists={research.lists}
-        yours={new Set(research.lists.flatMap((l) => l.codes.filter((c) => mine.has(c.toUpperCase())))).size}
-      />
     </>
   );
 }
@@ -195,97 +183,5 @@ function ListCard({ list, yours }: { list: MarketResearchList; yours: number }) 
       <Names list={list} />
       <SeeAll list={list} href={n.href} />
     </article>
-  );
-}
-
-const FEATURES: { en: string; bn: string }[] = [
-  { en: "Every company that passes each list today, not just the top three", bn: "আজ প্রতিটি তালিকায় থাকা সব কোম্পানি, শুধু শীর্ষ তিনটি নয়" },
-  { en: "Each company's own figure on every check, and the main risk we can see", bn: "প্রতিটি যাচাইয়ে কোম্পানির নিজের সংখ্যা, আর আমাদের চোখে পড়া প্রধান ঝুঁকি" },
-  { en: "Which companies joined and which left each list this month", bn: "এ মাসে কোন কোম্পানি তালিকায় এসেছে, কোনটি বাদ পড়েছে" },
-  { en: "Your own screens, built from the same checks", bn: "একই যাচাই দিয়ে নিজের স্ক্রিন তৈরি করুন" },
-];
-
-/** The page's one Premium section — every locked list points here. Gone for
- *  Premium readers once the plan is known (server render shows it, like every lock). */
-function ResearchPromo({ lists, yours }: { lists: MarketResearchList[]; yours: number }) {
-  const { isPremium, state } = usePremium();
-  const { lang } = useLang();
-  const bn = lang === "bn";
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  if (mounted && isPremium) return null;
-
-  const lead = lists[0];
-  const def = lead ? getResearchListDef(lead.slug) : null;
-  const leadName = lead ? (bn ? def?.shortNameBn ?? lead.title_bn : def?.shortName ?? lead.title_en) : null;
-  // Stakes travel to /premium in the reader's language (sessionStorage), so
-  // they are built from the language, like every lock card's.
-  const stakes = [
-    lead && lead.passed > 0
-      ? bn
-        ? `আজ “${leadName}” তালিকায় ${lead.passed}টি কোম্পানি আছে`
-        : `${lead.passed} companies pass “${leadName}” today`
-      : null,
-    yours > 0
-      ? bn
-        ? `আপনার ${yours}টি শেয়ার এই তালিকাগুলোতে আছে`
-        : `${yours} of your shares ${yours === 1 ? "is" : "are"} on these lists`
-      : null,
-  ].filter((s): s is string => !!s);
-  const cta =
-    state === "guest" ? (
-      <T en="Sign up free, then try Premium" bn="ফ্রি অ্যাকাউন্ট খুলুন, তারপর প্রিমিয়াম দেখুন" />
-    ) : (
-      <T en="See Premium plans" bn="প্রিমিয়াম প্ল্যান দেখুন" />
-    );
-
-  const onCta = () => {
-    trackEvent("premium_lock_tap", { area: "market-analysis", lock: "Research lists", state, stakes: stakes.length, job: "find" });
-    savePremiumContext({ from: "market-analysis", label: bn ? "রিসার্চ তালিকা" : "The research lists", stakes });
-  };
-
-  return (
-    <section id={ANCHOR} className="soft-card rl-promo mt-6 scroll-mt-24" aria-labelledby="ma-premium-title">
-      <span className="rl-promo-tag">
-        <JobTag job="find" />
-      </span>
-      <h3 className="rl-promo-head" id="ma-premium-title">
-        <T en="See every company on every list" bn="প্রতিটি তালিকার সব কোম্পানি দেখুন" />
-      </h3>
-      <p className="rl-promo-sub">
-        <T
-          en="The checks, the counts and the top three are free. Premium shows every company that passes, why, and what could go wrong with each."
-          bn="যাচাই, সংখ্যা আর শীর্ষ তিনটি ফ্রি। কোন কোম্পানি পেরিয়েছে, কেন, আর প্রতিটির কী ঝুঁকি আছে, তা প্রিমিয়ামে দেখা যায়।"
-        />
-      </p>
-
-      {stakes.length > 0 && (
-        <ul className="mt-1 flex flex-col gap-1">
-          {stakes.map((s) => (
-            <li key={s} className="flex items-start gap-2 text-sm font-semibold text-text-main">
-              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
-              <span>{s}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <ul className="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-2">
-        {FEATURES.map((f) => (
-          <li key={f.en} className="flex items-start gap-2 text-sm text-text-main">
-            <span className="mt-0.5 shrink-0 text-positive" aria-hidden>
-              <IconCheck size={16} />
-            </span>
-            <span>
-              <T en={f.en} bn={f.bn} />
-            </span>
-          </li>
-        ))}
-      </ul>
-
-      <Link href={PREMIUM_PATH} prefetch={false} className="btn-primary rl-promo-cta" onClick={onCta}>
-        {cta}
-      </Link>
-    </section>
   );
 }

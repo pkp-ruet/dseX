@@ -10,8 +10,9 @@ every user who owns anything, across all their portfolios:
    no backfill: a day that was not snapshotted is gone, so this runs daily.
 3. **Watcher events** — `portfolio_watch.build_events` for the stocks they
    hold (and, for results + grade changes, the stocks they follow), stored in
-   `portfolio_watch_events`; premium readers get one push, free readers a
-   capped teaser (the week's first event in full, else the count + kinds).
+   `portfolio_watch_events`; premium readers get one push (the after-close
+   note, opening /desk), free readers a capped teaser (the week's first event
+   in full, else the count + kinds), also opening /desk.
 4. **Trial recap** — 3–6 days before a free month ends, one push saying what
    Premium caught for them during the month.
 
@@ -292,6 +293,18 @@ def _teasers_this_week(sends, uid: str, now: datetime) -> int:
     })
 
 
+def after_close_payload(events: list[dict], lang: str = "bn") -> Optional[dict]:
+    """A Premium reader's after-close note: "After the close: N things on your
+    shares", opening the Desk. One event keeps the watcher's own push (a lone
+    result or grade change opens its card on the stock page)."""
+    payload = watch.push_payload(events, lang, "/desk?src=watch")
+    if payload and len(events) > 1:
+        n = len(events)
+        payload["title"] = (f"বাজার বন্ধের পর: আপনার শেয়ারে {n}টি খবর" if lang != "en"
+                            else f"After the close: {n} things on your shares")
+    return payload
+
+
 def run_portfolio_daily(not_before_dhaka_hour: Optional[int] = None) -> dict:
     from backend.services import entitlements, push_service
     from backend.services.auth_service import _DHAKA_TZ, _dhaka_day
@@ -395,18 +408,17 @@ def run_portfolio_daily(not_before_dhaka_hour: Optional[int] = None) -> dict:
             continue
         lang = prefs.get("language", "bn")
         if entitlements.is_premium(u, now):
+            # The after-close note (2026-10-31): several things open the Desk;
+            # a lone result / grade change still opens its card on the stock page.
             campaign_id = f"pwatch-{uid}-{day}"
-            payload = watch.push_payload(fresh, lang, "/portfolio?src=watch" if held else "/watchlist?src=watch")
+            payload = after_close_payload(fresh, lang)
         else:
             # Free reader: a teaser — this week's free event in full, or the
             # count + kinds + codes — capped so the watcher never nags.
             campaign_id = f"pteaser-{uid}-{day}"
             if _teasers_this_week(sends, uid, now) >= watch.TEASER_WEEKLY_CAP:
                 continue
-            payload = watch.teaser_payload(
-                fresh, free, lang,
-                "/portfolio?src=watch-teaser#pf-premium" if held else "/?src=watch-teaser",
-            )
+            payload = watch.teaser_payload(fresh, free, lang, "/desk?src=watch-teaser")
         if not payload or sends.find_one({"campaign_id": campaign_id, "user_id": uid}, {"_id": 1}):
             continue
         result = push_service.send_to_user(uid, payload)
@@ -429,6 +441,11 @@ def run_portfolio_daily(not_before_dhaka_hour: Optional[int] = None) -> dict:
         counts["custom_lists"] = run_alerts(now, day, push_ok)
     except Exception:  # noqa: BLE001 — the lists never fail the portfolio job
         log.warning("custom list alerts failed", exc_info=True)
+    try:
+        from backend.services.rank_alerts import run_rank_alerts
+        counts["rank_alerts"] = run_rank_alerts(now, day, push_ok)
+    except Exception:  # noqa: BLE001 — rank alerts never fail the portfolio job
+        log.warning("rank alerts failed", exc_info=True)
     log.info("portfolio daily done: %s", counts)
     return counts
 

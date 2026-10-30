@@ -10,6 +10,7 @@ import InstallAppButton from "@/components/pwa/InstallAppButton";
 import {
   IconBell,
   IconBriefcase,
+  IconCalendar,
   IconChevron,
   IconClose,
   IconCrown,
@@ -98,9 +99,13 @@ const QUICK: {
   subEn: string;
   subBn: string;
   Icon: (p: { size?: number }) => ReactNode;
+  /** Shown only to signed-in readers. */
+  signedIn?: boolean;
 }[] = [
   { href: "/watchlist", en: "Watchlist", bn: "ওয়াচলিস্ট", subEn: "Stocks you follow", subBn: "যে শেয়ারগুলো আপনি দেখছেন", Icon: IconStar },
   { href: "/portfolio", en: "Portfolio", bn: "পোর্টফোলিও", subEn: "Your shares and profit", subBn: "আপনার শেয়ার আর মুনাফা", Icon: IconBriefcase },
+  // Your Desk (2026-10-31, the Premium Desk plan): every push opens it.
+  { href: "/desk", en: "Your Desk", bn: "আপনার ডেস্ক", subEn: "What happened on your shares today", subBn: "আজ আপনার শেয়ারে যা ঘটেছে", Icon: IconCalendar, signedIn: true },
   { href: "/alerts", en: "Price alerts", bn: "প্রাইস অ্যালার্ট", subEn: "A message when a price is hit", subBn: "দাম ছুঁলেই বার্তা পাবেন", Icon: IconBell },
   { href: "/premium", en: "Premium", bn: "প্রিমিয়াম", subEn: "The reasons behind every number", subBn: "প্রতিটি সংখ্যার পেছনের কারণ", Icon: IconCrown },
 ];
@@ -461,7 +466,7 @@ export default function Navbar() {
                 <T en="Quick access" bn="দ্রুত যান" />
               </h2>
               <div className="mobile-menu-quick">
-                {QUICK.map(({ href, en, bn: labelBn, subEn, subBn, Icon }) => (
+                {QUICK.filter((q) => !q.signedIn || isLoggedIn).map(({ href, en, bn: labelBn, subEn, subBn, Icon }) => (
                   <Link
                     key={href}
                     href={href}

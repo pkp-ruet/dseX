@@ -302,15 +302,19 @@ MAX_ITEMS = 8
 
 def build_brief(held: dict[str, int], watched: Iterable[str], *, today: date,
                 meetings: list[dict], record_rows: list[dict],
-                results: list[dict], names: dict[str, str]) -> list[dict]:
+                results: list[dict], names: dict[str, str],
+                reminders: Iterable[str] = ()) -> list[dict]:
     """The reader's brief: a list of items, most important first.
 
     `held` = {code: shares}; `watched` = followed codes not held; `meetings` =
     `scheduled_meetings` rows; `record_rows` = the dividend calendar's record
     dates (`buy_by`, `record_date`, `cash_per_share`); `results` = watcher
-    `results` events for this reader (title_en / title_bn / code).
+    `results` events for this reader (title_en / title_bn / code);
+    `reminders` = codes the reader asked on the dividend calendar to be told
+    about on the last day to buy (any share, held or not).
     """
     watched = {c for c in watched if c not in held}
+    reminded = {str(c).upper() for c in reminders or ()}
     mine = set(held) | watched
     iso = today.isoformat()
     items: list[dict] = []
@@ -341,7 +345,7 @@ def build_brief(held: dict[str, int], watched: Iterable[str], *, today: date,
 
     for r in record_rows or []:
         code = (r.get("trading_code") or "").upper()
-        if code not in mine:
+        if code not in mine and code not in reminded:
             continue
         cps = r.get("cash_per_share") or 0
         if r.get("buy_by") == iso and cps > 0:
@@ -353,7 +357,7 @@ def build_brief(held: dict[str, int], watched: Iterable[str], *, today: date,
                 t_bn = f"{code}: ৳{cps:,.2f} ডিভিডেন্ড পেতে কেনার শেষ দিন আজ"
             items.append({"kind": "buy_by", "code": code, "level": "info",
                           "title_en": t_en, "title_bn": t_bn, "url": f"/stock/{code}#dividends"})
-        elif r.get("record_date") == iso and code in held and cps > 0:
+        elif r.get("record_date") == iso and code in held and cps > 0 and code in mine:
             cash = cps * held[code]
             items.append({
                 "kind": "record", "code": code, "level": "good",

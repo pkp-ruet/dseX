@@ -7,8 +7,7 @@ import { pillarColor } from "@/lib/insight-utils";
 import Button from "@/components/ui/Button";
 import StarButton from "@/components/ui/StarButton";
 import type { RankedItem } from "@/components/ranking/FullRankTable";
-import AnswerLock from "@/components/premium/AnswerLock";
-import { T } from "@/components/i18n/T";
+import RankPremium from "@/components/ranking/RankPremium";
 
 /** The five checks in P1..P5 order, matching `PILLARS`. */
 export function pillarValues(item: RankedItem): (number | null)[] {
@@ -196,31 +195,11 @@ export default function RankRowDetails({ item }: { item: RankedItem }) {
             </li>
           ))}
         </ul>
-        {/* What Premium adds to the ranking (2026-10-29): the signal's own
-            reason. The row's facts and checks above stay free. */}
-        {item.signal?.reason_en && (
-          <AnswerLock
-            job="understand"
-            lock="Rankings: signal reason"
-            what={{ en: `Why ${item.trading_code} has this signal`, bn: `${item.trading_code}-এর সংকেতের কারণ` }}
-            href={`/stock/${item.trading_code}#ch-premium`}
-            lines={[
-              item.signal.signal === "buy"
-                ? { en: `Why we say Buy on ${item.trading_code} today`, bn: `আজ ${item.trading_code} কেনার সংকেত কেন` }
-                : item.signal.signal === "sell"
-                  ? { en: `Why we say Sell on ${item.trading_code} today`, bn: `আজ ${item.trading_code} বিক্রির সংকেত কেন` }
-                  : { en: `Why there is no Buy or Sell on ${item.trading_code} today`, bn: `আজ ${item.trading_code}-এ কেনা বা বেচার সংকেত কেন নেই` },
-              { en: "What the price should be, and what could go wrong, on its report", bn: "ন্যায্য দাম কত, আর কী ঝুঁকি আছে, তার রিপোর্টে" },
-            ]}
-          >
-            <p className="rk-detail-reason">
-              <span className="font-semibold">
-                <T en="Why this signal: " bn="সংকেতের কারণ: " />
-              </span>
-              <T en={item.signal.reason_en} bn={item.signal.reason_bn || item.signal.reason_en} />
-            </p>
-          </AnswerLock>
-        )}
+        {/* What Premium adds to the ranking (2026-10-31): the signal's own
+            reason, a year of rank and rank alerts, fetched on open for a
+            Premium reader (the page drops `signal` from the rows to keep the
+            HTML small). The row's facts and checks above stay free. */}
+        <RankPremium item={item} />
         <div className="rk-detail-actions">
           <Button href={`/stock/${item.trading_code}`}>
             {bn ? `${item.trading_code}-এর পুরো রিপোর্ট দেখুন` : `See the full report on ${item.trading_code}`}

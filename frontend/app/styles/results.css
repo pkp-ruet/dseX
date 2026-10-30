@@ -24,7 +24,6 @@
 .rs-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-top: var(--space-4); }
 .rs-chip-n { font-variant-numeric: tabular-nums; color: var(--text-muted); font-weight: 600; }
 .rs-filters [aria-pressed="true"] .rs-chip-n { color: inherit; opacity: 0.8; }
-.rs-chip-lock { display: inline-flex; color: var(--text-muted); }
 .rs-key { margin: var(--space-6) 0 0; max-width: 62ch; font-size: var(--fs-2xs); line-height: 1.55; color: var(--text-muted); }
 
 /* ---- One day of reports ---- */
@@ -97,6 +96,14 @@ a.rs-row:active { background: var(--surface-2); opacity: 0.85; }
 /* ---- Coming up (2026-10-29): results meetings in the next two weeks ----
    One card per date, the dividend calendar's date tile + head (dc-*). */
 .rs-coming { margin-bottom: var(--space-12); }
-.rs-coming-lock { margin-top: var(--space-4); }
 .rs-coming-days { display: grid; gap: var(--space-4); margin-top: var(--space-4); }
 .rs-coming .dc-day-head + .rs-list { border-top: 1px solid var(--cell-rule); }
+/* Better or worse than the year's own pace (2026-10-31, Premium): a toned
+   dot, the sentence stays ink. */
+.rs-pace { display: block; margin-top: 4px; }
+.rs-pace--above::before, .rs-pace--below::before, .rs-pace--in_line::before {
+  content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 999px; vertical-align: 1px;
+}
+.rs-pace--above::before { background: var(--positive); }
+.rs-pace--below::before { background: var(--negative); }
+.rs-pace--in_line::before { background: var(--text-muted); }

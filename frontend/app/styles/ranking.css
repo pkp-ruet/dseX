@@ -613,3 +613,121 @@
   .rk-detail-actions > a { flex: 1 1 auto; }
   .rk-detail-star { display: inline-flex; }
 }
+
+/* ── Premium parts (2026-10-31, the Premium Desk plan step 3) ──────────────
+   Best value first + Your own ranking (filter row), the row's year of rank and
+   rank alerts (RankPremium), this week's movers (RankMovers). */
+.rk-own-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+.rk-own-btn svg { color: var(--gold-ink); }
+.rk-own-btn:hover { border-color: var(--text-muted); }
+.rk-own-btn.is-on { border-color: var(--text); background: var(--text); color: var(--surface); }
+.rk-own-btn.is-on svg { color: var(--surface); }
+.rk-own-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+
+.rk-weights-lead { margin: 0 0 var(--space-3); font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+.rk-weights-locked {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 var(--space-3);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--gold-ink);
+}
+.rk-weights { display: grid; margin: 0; padding: 0; list-style: none; }
+.rk-weight {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--border);
+}
+.rk-weight:first-child { border-top: 0; }
+.rk-weight-name { display: grid; gap: 2px; font-size: var(--fs-sm); color: var(--text); }
+.rk-weight-name b { font-size: var(--fs-md); }
+.rk-weight-seg { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.rk-weight-opt {
+  min-height: 40px;
+  border: 0;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+.rk-weight-opt:first-child { border-left: 0; }
+.rk-weight-opt.is-on { background: var(--text); color: var(--surface); }
+.rk-weight-opt:disabled { cursor: not-allowed; }
+.rk-weights-actions { display: flex; justify-content: flex-end; gap: var(--space-2); }
+
+.rk-prem-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--gold-ink);
+}
+.rk-prem-hint a { color: inherit; }
+.rk-prem-hint a:hover { text-decoration: underline; }
+.rk-prem .premium-locked-body { display: grid; gap: var(--space-3); }
+.rk-rankline { display: grid; gap: 4px; }
+.rk-rankline-head { display: flex; justify-content: space-between; gap: var(--space-3); margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
+.rk-rankline-foot { margin: 0; font-size: var(--fs-xs); color: var(--text); }
+.rk-spark { display: block; width: 100%; height: 64px; }
+.rk-spark path { stroke: var(--primary); stroke-width: 2; }
+.rk-spark circle { fill: var(--primary); }
+.rk-alerts { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+
+.rk-movers { display: grid; gap: var(--space-4); margin-top: var(--space-12); }
+.rk-movers-grid { display: grid; gap: var(--space-4); }
+@media (min-width: 768px) { .rk-movers-grid { grid-template-columns: 1fr 1fr; align-items: start; } }
+.rk-movers-card { padding: var(--space-4) 20px; }
+.rk-movers-title { margin: 0 0 var(--space-2); font-size: var(--fs-md); font-weight: 700; color: var(--text); }
+.rk-movers-list { display: grid; margin: 0; padding: 0; list-style: none; }
+.rk-mover { display: grid; gap: 2px; padding: var(--space-3) 0; border-top: 1px solid var(--border); }
+.rk-mover:first-child { border-top: 0; padding-top: 0; }
+.rk-mover-link {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px var(--space-3);
+  min-height: 40px;
+  color: var(--text);
+}
+.rk-mover-link:hover .rk-mover-name b { text-decoration: underline; }
+.rk-mover-name { display: flex; align-items: baseline; gap: var(--space-2); min-width: 0; font-size: var(--fs-sm); }
+.rk-mover-name b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rk-mover-code { font-size: var(--fs-xs); font-weight: 600; }
+.rk-mover-move { font-size: var(--fs-sm); font-weight: 700; text-align: right; }
+.rk-mover-ranks { grid-column: 1 / -1; font-size: var(--fs-xs); color: var(--text); }
+.rk-mover-why { display: block; font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
+.rk-premium { margin-top: var(--space-8); }
+
+@media (max-width: 640px) {
+  .rk-best-btn { display: none; }
+  .rk-own-btn { flex: 1 1 100%; justify-content: center; }
+}

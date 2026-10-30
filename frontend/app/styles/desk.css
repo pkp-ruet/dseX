@@ -1,0 +1,59 @@
+/* ── Your Desk (2026-10-31, the Premium Desk plan) ─────────────────────────
+   `/desk` (components/desk/DeskClient.tsx) and the dashboard's Desk card
+   (components/home/personalized/DeskCard.tsx). One column of sections by time
+   of day: a time label on the left from 640px, above the section on phones. */
+
+.desk { display: grid; gap: var(--space-4); }
+.desk-date { font-size: var(--fs-sm); font-weight: 600; color: var(--primary-ink); }
+.desk-month,
+.desk-renew { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+.desk-renew { padding: var(--space-3) var(--space-4); border: 1px solid rgb(var(--gold-rgb) / 0.45); border-radius: var(--radius); background: rgb(var(--gold-rgb) / 0.10); }
+
+.desk-rows { display: grid; margin: 0; padding: 0; list-style: none; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); box-shadow: var(--shadow-soft); }
+.desk-row { display: grid; gap: var(--space-2); padding: 20px var(--space-4); border-top: 1px solid var(--border); scroll-margin-top: 96px; }
+.desk-row:first-child { border-top: 0; }
+@media (min-width: 640px) {
+  .desk-row { grid-template-columns: 9rem minmax(0, 1fr); gap: 20px; padding: var(--space-6); }
+}
+.desk-when { display: flex; align-items: center; gap: var(--space-2); font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+@media (min-width: 640px) { .desk-when { align-items: flex-start; flex-direction: column; gap: var(--space-1); } }
+.desk-icon { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-sm); background: var(--surface-2); color: var(--text); }
+.desk-body { display: grid; gap: var(--space-2); min-width: 0; }
+.desk-title { font-size: var(--fs-md); font-weight: 700; line-height: 1.3; color: var(--text); }
+.desk-count { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+
+.desk-items { display: grid; margin: 0; padding: 0; list-style: none; }
+.desk-item { display: flex; align-items: flex-start; gap: var(--space-3); min-height: 44px; padding: var(--space-2) 0; border-top: 1px solid var(--border); }
+.desk-items > li:first-child > .desk-item { border-top: 0; }
+.desk-item:hover .desk-item-title { text-decoration: underline; }
+.desk-item-title { display: block; font-size: var(--fs-sm); font-weight: 600; line-height: 1.4; color: var(--text); }
+.desk-item-body { display: block; margin-top: 2px; font-size: var(--fs-sm); line-height: 1.4; color: var(--text); }
+.desk-dot { flex: none; width: 8px; height: 8px; margin-top: 7px; border-radius: 999px; background: var(--border); }
+.desk-dot--good { background: var(--positive); }
+.desk-dot--bad { background: var(--negative); }
+.desk-dot--watch { background: var(--watch); }
+.desk-more { font-size: var(--fs-sm); font-weight: 600; }
+.desk-more a { color: var(--gold-ink); }
+.desk-more a:hover { text-decoration: underline; }
+
+.desk-letter { display: grid; gap: var(--space-4); margin-top: var(--space-2); }
+.desk-part { display: grid; gap: var(--space-2); }
+.desk-part-title { display: flex; align-items: center; gap: var(--space-2); font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+.desk-free { padding: 1px 8px; border-radius: 999px; background: var(--surface-2); font-size: var(--fs-xs); font-weight: 600; }
+.desk-lines { display: grid; gap: var(--space-1); margin: 0; padding-left: 1.1em; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+.desk-line--good::marker { color: var(--positive); }
+.desk-line--bad::marker { color: var(--negative); }
+
+.desk-watch { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.desk-watch-row { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 40px; padding: 0 var(--space-3); border: 1px solid var(--border); border-radius: var(--radius); font-size: var(--fs-sm); color: var(--text); }
+.desk-watch-row:hover { background: var(--surface-2); }
+
+/* The dashboard card. */
+.desk-card-rows { display: grid; margin: 0; padding: var(--space-1) 0; list-style: none; }
+.desk-card-row { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-3) var(--space-4); }
+@media (min-width: 640px) { .desk-card-row { padding-inline: 20px; } }
+.desk-card-row:hover,
+.desk-card-row:active { background: var(--surface-2); }
+.desk-card-icon { display: inline-grid; flex: none; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-sm); background: var(--surface-2); color: var(--text); }
+.desk-card-when { display: block; font-size: var(--fs-xs); font-weight: 700; color: var(--text); }
+.desk-card-text { display: block; margin-top: 2px; font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }

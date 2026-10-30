@@ -3,7 +3,12 @@ import { getDividendCalendar } from "@/lib/api";
 import { recountCalendar } from "@/lib/dividend-dates";
 import { formatDate } from "@/lib/formatters";
 import CalendarSummary from "@/components/dividend-calendar/CalendarSummary";
-import CalendarSafetyLock from "@/components/dividend-calendar/CalendarSafetyLock";
+import ComingNext from "@/components/dividend-calendar/ComingNext";
+import IncomeCard from "@/components/dividend-calendar/IncomeCard";
+import PageQuestions, { type PageQuestion } from "@/components/premium/PageQuestions";
+import { CALENDAR_PREMIUM_ANCHOR } from "@/components/dividend-calendar/RemindButton";
+import { perShareTk } from "@/components/dividend-calendar/DividendRow";
+import type { DividendCalendarData } from "@/lib/api";
 import RecordDateBoard from "@/components/dividend-calendar/RecordDateBoard";
 import AgmBoard from "@/components/dividend-calendar/AgmBoard";
 import TopCashDividends from "@/components/dividend-calendar/TopCashDividends";
@@ -69,6 +74,7 @@ export default async function DividendCalendarPage() {
   const data = recountCalendar(await getDividendCalendar());
 
   const lead = data.settlement.normal_buy_lead_trading_days;
+  const forecast = data.forecast ?? [];
 
   // The four lists as tabs (2026-10-29 compact redesign) — they were four
   // sections one under another, and everything under the record dates sat
@@ -100,6 +106,15 @@ export default async function DividendCalendarPage() {
       count: Math.min(data.recent_declarations.length, RECENT_LIMIT),
       body: <RecentDeclarations events={data.recent_declarations} />,
     },
+    {
+      // Who hasn't declared for this year yet (2026-10-31): last year's facts
+      // free, when and how much we expect Premium.
+      key: "coming-next",
+      label: { en: "Coming next", bn: "সামনে আসছে" },
+      short: { en: "Next", bn: "আসছে" },
+      count: forecast.length,
+      body: <ComingNext rows={forecast} />,
+    },
   ].filter((p) => p.key === "record-dates" || p.count > 0);
 
   // FAQ copy mirrors components/dividend-calendar/HowDividendsWork.tsx.
@@ -115,8 +130,9 @@ export default async function DividendCalendarPage() {
         inLanguage: "en",
         isPartOf: { "@id": BASE_URL },
         dateModified: data.today,
-        // Paywall markup: every row is free since 2026-10-29; "Is it safe?"
-        // under each cash dividend is Premium (DividendRow, under .premium-locked).
+        // Paywall markup: every row is free since 2026-10-29; "Is it safe?" and
+        // "Worth buying for it?" under each cash dividend, the "Coming next"
+        // estimates and the income taka are Premium (under .premium-locked).
         isAccessibleForFree: false,
         hasPart: {
           "@type": "WebPageElement",
@@ -216,11 +232,25 @@ export default async function DividendCalendarPage() {
 
       <CalendarSummary data={data} />
 
-      {/* Every list in full, for every reader. What Premium adds is one line:
-          "Is it safe?" under each cash dividend (DividendRow), named once
-          under the lists (nothing for Premium readers). */}
+      {/* The reader's own cash by month (signed in, with shares). */}
+      <IncomeCard records={data.record_dates} forecast={forecast} today={data.today} />
+
+      {/* Every list in full, for every reader. What Premium adds sits in place
+          (DividendRow, ComingNext, IncomeCard — screen-only) and is named once
+          by the page's question card under the lists (2026-10-31). */}
       <CalendarTabs panels={panels} />
-      <CalendarSafetyLock />
+      <PageQuestions
+        id={CALENDAR_PREMIUM_ANCHOR}
+        area="dividend-calendar"
+        className="dc-questions"
+        title={{ en: "Every date is free. Here is what it leaves open.", bn: "প্রতিটি তারিখ ফ্রি। তবু কিছু প্রশ্ন থেকে যায়।" }}
+        lead={{
+          en: "Premium answers these in place on the calendar, and reminds you on the last day to buy any share you pick.",
+          bn: "প্রিমিয়ামে এর উত্তর ক্যালেন্ডারেই, আর আপনার বেছে নেওয়া যেকোনো শেয়ার কেনার শেষ দিনে মনে করিয়ে দেওয়া হয়।",
+        }}
+        rows={calendarQuestions(data)}
+        label={{ en: "Is each dividend safe, and what comes next", bn: "প্রতিটি ডিভিডেন্ড কতটা নিরাপদ, আর সামনে কী আসছে" }}
+      />
 
       <HowDividendsWork data={data} />
 
@@ -275,4 +305,52 @@ export default async function DividendCalendarPage() {
       />
     </>
   );
+}
+
+/** The page's question card rows: real counts and one real company from the
+ *  calendar, each with the question Premium answers on the page. */
+function calendarQuestions(data: DividendCalendarData): PageQuestion[] {
+  const rows: PageQuestion[] = [];
+  const soon = data.record_dates.filter(
+    (e) => (e.cash_per_share ?? 0) > 0 && e.record_days_left != null && e.record_days_left <= 14,
+  );
+  if (soon.length > 0) {
+    const risky = soon.filter((e) => e.safety?.level === "risk").length;
+    rows.push({
+      key: "safe",
+      fact: { en: `${soon.length} cash record dates in 2 weeks`, bn: `2 সপ্তাহে ${soon.length}টি নগদ ডিভিডেন্ডের রেকর্ড ডেট` },
+      ask: { en: "Which of these dividends are safe?", bn: "এর মধ্যে কোন ডিভিডেন্ডগুলো নিরাপদ?" },
+      hint: risky
+        ? { en: `${risky} look at risk. We say which, and why.`, bn: `${risky}টি ঝুঁকিতে মনে হচ্ছে। কোনগুলো, আর কেন, তা বলি।` }
+        : { en: "How much of its profit each one pays out, and whether it can keep paying.", bn: "প্রতিটি মুনাফার কত অংশ দেয়, আর দিয়ে যেতে পারবে কিনা।" },
+    });
+  }
+  const forecast = data.forecast ?? [];
+  if (forecast.length > 0) {
+    rows.push({
+      key: "next",
+      fact: { en: `${forecast.length} haven't declared yet`, bn: `${forecast.length}টি এখনো ঘোষণা করেনি` },
+      ask: { en: "Who is likely to declare next, and how much?", bn: "কে আগে ঘোষণা করতে পারে, আর কত?" },
+      hint: { en: "From last year's date, the board meeting and this year's profit.", bn: "গত বছরের তারিখ, পর্ষদ সভা আর এ বছরের মুনাফা থেকে।" },
+    });
+  }
+  const big = data.record_dates
+    .filter((e) => e.capture && (e.cash_per_share ?? 0) > 0)
+    .sort((a, b) => (b.cash_per_share ?? 0) - (a.cash_per_share ?? 0))[0];
+  if (big?.cash_per_share) {
+    const tk = perShareTk(big.cash_per_share);
+    rows.push({
+      key: "capture",
+      fact: { en: `${big.trading_code} pays ${tk} a share`, bn: `${big.trading_code} দেবে শেয়ারপ্রতি ${tk}` },
+      ask: { en: "Does the price usually fall by more than that?", bn: "দাম কি সাধারণত এর চেয়ে বেশি কমে যায়?" },
+      hint: { en: "What happened to the price after its last record dates, and what you keep after tax.", bn: "আগের রেকর্ড ডেটগুলোর পর দামের কী হয়েছিল, আর কর কাটার পর কত থাকে।" },
+    });
+  }
+  rows.push({
+    key: "income",
+    fact: { en: "Your shares", bn: "আপনার শেয়ার" },
+    ask: { en: "How much cash comes to you each month?", bn: "প্রতি মাসে আপনার কাছে কত টাকা আসবে?" },
+    hint: { en: "Declared and expected dividends on your portfolio, after tax.", bn: "আপনার পোর্টফোলিওতে ঘোষিত আর আনুমানিক ডিভিডেন্ড, কর কাটার পর।" },
+  });
+  return rows;
 }

@@ -8,6 +8,7 @@ import SectorVsMarket from "@/components/sector/SectorVsMarket";
 import SectorHighlights from "@/components/sector/SectorHighlights";
 import SectorStockTable from "@/components/sector/SectorStockTable";
 import SectorScoringNote from "@/components/sector/SectorScoringNote";
+import SectorRead from "@/components/sector/SectorRead";
 import SectorCard from "@/components/sector/SectorCard";
 import PageGuide from "@/components/seo/PageGuide";
 import PageHeader from "@/components/ui/PageHeader";
@@ -107,6 +108,13 @@ export default async function SectorPage({ params }: Props) {
           `dividend yield and fundamental scores.`,
         inLanguage: "en",
         isPartOf: { "@id": BASE_URL },
+        // "Our read this month" is Premium (screen-only, 2026-10-31).
+        ...(data.read
+          ? {
+              isAccessibleForFree: false,
+              hasPart: { "@type": "WebPageElement", isAccessibleForFree: false, cssSelector: ".premium-locked" },
+            }
+          : {}),
       },
       {
         "@type": "BreadcrumbList",
@@ -179,6 +187,8 @@ export default async function SectorPage({ params }: Props) {
         weekLeaders={data.week_leaders}
         topDividend={data.top_dividend}
       />
+
+      <SectorRead data={data} />
 
       <SectorStockTable stocks={data.stocks} sectorName={s.sector} />
 

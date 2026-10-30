@@ -4,21 +4,17 @@ import { useEffect, useMemo, useState } from "react";
 import Chip from "@/components/ui/Chip";
 import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
-import { IconLock } from "@/components/ui/icons";
-import LockPanel from "@/components/premium/LockPanel";
+import PageQuestions, { type PageQuestion } from "@/components/premium/PageQuestions";
 import { PersonalCodesProvider, usePersonalCodesCtx } from "@/components/market-analysis/PersonalCodes";
 import type { LatestResultRow, UpcomingResult } from "@/lib/api";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { RESULT_LEVEL, RESULT_LEVEL_ORDER } from "@/lib/results";
 import { usePremium } from "@/lib/premium";
-import { savePremiumContext } from "@/lib/premium-context";
-import { trackEvent } from "@/lib/track";
 import { useLang } from "@/context/LangContext";
 import { T } from "@/components/i18n/T";
 import { bnDate } from "@/lib/bn";
 import { useUrlParams, useUrlSync } from "@/lib/use-url-state";
 import ResultRow from "./ResultRow";
-import ResultsFilterPreview from "./ResultsFilterPreview";
 import ResultsComing from "./ResultsComing";
 
 const PAGE = 50;
@@ -56,11 +52,10 @@ function byDay(rows: LatestResultRow[]): { day: string; items: LatestResultRow[]
  * About the same. Each row taps through to the stock page's results card.
  *
  * Free since 2026-10-29 (the Free vs Premium plan — facts are free): every
- * report and the level filters (in the URL, `?level=good|watch|bad|neutral`).
- * Premium adds what each report means (one sentence under every row, a
- * screen-only `Locked` in `ResultRow`, named by one lock line under the key)
- * and the My stocks filter (`?level=mine`, Watch) — a free reader's tap on
- * it opens a preview (how many, three rows with the company hidden).
+ * report and the level filters (in the URL, `?level=good|watch|bad|neutral|mine`);
+ * the My stocks filter too since 2026-10-31 (the Premium Desk plan). Premium
+ * adds what each report means (one sentence under every row, a screen-only
+ * `Locked` in `ResultRow`), named by the page's question card (`#rs-premium`).
  */
 export default function ResultsFeed({
   coming = [],
@@ -75,30 +70,28 @@ export default function ResultsFeed({
           lead={<T en="What came out, newest first." bn="যা প্রকাশ হয়েছে, নতুনগুলো আগে।" />}
         />
       )}
-      <Feed {...props} />
+      <Feed {...props} coming={coming} />
     </PersonalCodesProvider>
   );
 }
 
-function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level, number> }) {
+function Feed({ rows, counts, coming }: { rows: LatestResultRow[]; counts: Record<Level, number>; coming: UpcomingResult[] }) {
   const { bn } = useLang();
   const t = (en: string, b: string) => (bn ? b : en);
-  const { isPremium, isLoading, state } = usePremium();
+  const { isLoading, state } = usePremium();
   const { portfolio, watchlist } = usePersonalCodesCtx();
   const urlParams = useUrlParams();
   const [mounted, setMounted] = useState(false);
   const [filter, setFilter] = useState<Filter>("all");
   const [shown, setShown] = useState(PAGE);
-  const [preview, setPreview] = useState<Filter | null>(null);
   useEffect(() => setMounted(true), []);
-  const unlocked = mounted && isPremium;
 
-  // A shared `?level=` opens that filter — "mine" for Premium readers only.
+  // A shared `?level=` opens that filter.
   useEffect(() => {
     if (!urlParams || isLoading) return;
     const lv = urlParams.get("level");
-    if (lv && (FILTERS as string[]).includes(lv) && (lv !== "mine" || isPremium)) setFilter(lv as Filter);
-  }, [urlParams, isLoading, isPremium]);
+    if (lv && (FILTERS as string[]).includes(lv)) setFilter(lv as Filter);
+  }, [urlParams, isLoading]);
   useUrlSync({ level: filter === "all" ? null : filter }, urlParams !== null && !isLoading);
 
   const mine = useMemo(() => {
@@ -120,11 +113,6 @@ function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level,
 
   const choose = (f: Filter) => {
     if (f === filter) return;
-    if (f === "mine" && !unlocked) {
-      setPreview(f);
-      trackEvent("premium_lock_view", { area: "results", lock: "Results filter", filter: f, state });
-      return;
-    }
     setFilter(f);
     setShown(PAGE);
   };
@@ -158,7 +146,22 @@ function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level,
   let body;
   if (filtered.length === 0) {
     body =
-      filter === "mine" ? (
+      filter === "mine" && !signedIn ? (
+        <EmptyState
+          className="mt-6"
+          title={<T en="Sign in to see your stocks here" bn="আপনার শেয়ার এখানে দেখতে সাইন ইন করুন" />}
+          message={
+            <T
+              en="A free account keeps your watchlist and portfolio, and this filter shows only their results."
+              bn="ফ্রি অ্যাকাউন্টে আপনার ওয়াচলিস্ট আর পোর্টফোলিও থাকে, আর এই ফিল্টারে শুধু সেগুলোর ফল দেখায়।"
+            />
+          }
+          actions={[
+            { href: "/register", label: <T en="Create a free account" bn="ফ্রি অ্যাকাউন্ট খুলুন" /> },
+            { href: "/login", label: <T en="Sign in" bn="সাইন ইন" /> },
+          ]}
+        />
+      ) : filter === "mine" ? (
         <EmptyState
           className="mt-6"
           title={<T en="None of your stocks has a report here" bn="আপনার কোনো শেয়ারের প্রতিবেদন এখানে নেই" />}
@@ -204,21 +207,7 @@ function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level,
     );
   }
 
-  // ---- the locked-filter preview ----
-  const pv = preview;
-  const pvRows = pv ? rowsFor(pv) : [];
-  const pvTitle = pv == null ? "" : pv === "mine" ? t("Results on your stocks", "আপনার শেয়ারের ফল") : t(RESULT_LEVEL[pv as Level].en, RESULT_LEVEL[pv as Level].bn);
-  const pvLine =
-    pv == null ? ""
-      : pv === "mine"
-        ? signedIn
-          ? t("Only the companies you own or follow, newest report first.", "শুধু আপনার কেনা বা অনুসরণ করা কোম্পানিগুলো, নতুন প্রতিবেদন আগে।")
-          : t("Sign up, follow your stocks, and see only their results here.", "সাইন আপ করে আপনার শেয়ারগুলো অনুসরণ করুন, তারপর শুধু সেগুলোর ফল এখানে দেখুন।")
-        : t(RESULT_LEVEL[pv as Level].means, RESULT_LEVEL[pv as Level].meansBn);
-  const pvCountLabel =
-    pv === "mine"
-      ? t(pvRows.length === 1 ? "of your stocks has a report here" : "of your stocks have a report here", "টি আপনার শেয়ারের প্রতিবেদন আছে")
-      : t(pvRows.length === 1 ? "company" : "companies", "টি কোম্পানি");
+  const questions = resultQuestions(rows, counts, coming);
 
   return (
     <div>
@@ -247,12 +236,6 @@ function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level,
             >
               <T en={l.en} bn={l.bn} />
               {showCount && <span className="rs-chip-n">{countFor(f)}</span>}
-              {f === "mine" && !unlocked && (
-                <span className="rs-chip-lock">
-                  <IconLock size={14} />
-                  <span className="sr-only">{t("Premium", "প্রিমিয়াম")}</span>
-                </span>
-              )}
             </Chip>
           );
         })}
@@ -265,51 +248,64 @@ function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level,
         />
       </p>
 
-      {/* What Premium adds here: the meaning under every row (hidden in each
-          ResultRow) and the My stocks filter. One line, not a lock per row. */}
-      {!unlocked && rows.some((r) => r.meaning_en) && (
-        <LockPanel
-          job="understand"
-          card
-          count={rows.length}
-          lock="Results: what it means"
-          what={{ en: "What each report means", bn: "প্রতিটি প্রতিবেদনের মানে" }}
-          title={{
-            en: "Premium adds what each report means, in one plain sentence under every company",
-            bn: "প্রিমিয়ামে প্রতিটি কোম্পানির নিচে এক লাইনে প্রতিবেদনটির মানে",
-          }}
-        />
-      )}
-
       {body}
 
-      <ResultsFilterPreview
-        open={pv != null}
-        onClose={() => setPreview(null)}
-        title={pvTitle}
-        line={pvLine}
-        count={pvRows.length}
-        countLabel={pvCountLabel}
-        rows={pvRows}
-        empty={pv === "mine"
-          ? t("None of your stocks has a report here yet.", "আপনার কোনো শেয়ারের প্রতিবেদন এখনো এখানে নেই।")
-          : t("No company's latest report falls in this group right now.", "এই ভাগে এখন কোনো কোম্পানির সর্বশেষ প্রতিবেদন নেই।")}
-        onCta={() => {
-          trackEvent("premium_lock_tap", { area: "results", lock: "Results filter", filter: pv ?? "", state });
-          savePremiumContext({
-            from: "results",
-            label: pvTitle,
-            stakes: [
-              pv === "mine" && pvRows.length > 0
-                ? t(`${pvRows.length} of your stocks have new results`, `আপনার ${pvRows.length}টি শেয়ারের নতুন ফল আছে`)
-                : t(`${pvRows.length} companies in "${pvTitle}"`, `"${pvTitle}" ভাগে ${pvRows.length}টি কোম্পানি`),
-              t(`What each of the ${rows.length} reports means`, `${rows.length}টি প্রতিবেদনের প্রতিটির মানে`),
-            ],
-          });
-          setPreview(null);
+      <PageQuestions
+        id="rs-premium"
+        area="results"
+        className="mt-8"
+        title={{ en: "Every report is free. Here is what it leaves open.", bn: "প্রতিটি প্রতিবেদন ফ্রি। তবু কিছু প্রশ্ন থেকে যায়।" }}
+        lead={{
+          en: "Premium answers these in place: one plain sentence under every company, and what to expect before each meeting.",
+          bn: "প্রিমিয়ামে এর উত্তর জায়গাতেই: প্রতিটি কোম্পানির নিচে এক লাইনে মানে, আর প্রতিটি সভার আগে কী আশা করা যায়।",
         }}
-        t={t}
+        rows={questions}
+        label={{ en: "What each report means", bn: "প্রতিটি প্রতিবেদনের মানে" }}
       />
     </div>
   );
+}
+
+/** The page's question card rows, from today's counts. */
+function resultQuestions(rows: LatestResultRow[], counts: Record<Level, number>, coming: UpcomingResult[]): PageQuestion[] {
+  const out: PageQuestion[] = [];
+  if (rows.length > 0) {
+    out.push({
+      key: "means",
+      fact: { en: `${rows.length} reports`, bn: `${rows.length}টি প্রতিবেদন` },
+      ask: { en: "What does each one mean for the share?", bn: "প্রতিটির মানে শেয়ারটির জন্য কী?" },
+      hint: { en: "One plain sentence under every company.", bn: "প্রতিটি কোম্পানির নিচে এক লাইনে।" },
+    });
+  }
+  const paced = rows.filter((r) => r.pace).length;
+  if (paced > 0) {
+    out.push({
+      key: "pace",
+      fact: { en: `${paced} with a latest quarter to judge`, bn: `${paced}টির সর্বশেষ প্রান্তিক বিচার করা যায়` },
+      ask: { en: "Did the latest 3 months beat the year's own pace?", bn: "সর্বশেষ 3 মাস কি বছরের নিজের গতিকে ছাড়িয়েছে?" },
+      hint: { en: "Above, below or in line with how the year had been going.", bn: "বছর যেভাবে চলছিল, তার চেয়ে ভালো, খারাপ নাকি একই রকম।" },
+    });
+  }
+  const weak = counts.bad ?? 0;
+  if (weak > 0) {
+    out.push({
+      key: "weak",
+      fact: { en: `${weak} weaker than a year ago`, bn: `${weak}টি গত বছরের চেয়ে দুর্বল` },
+      tone: "bad",
+      ask: { en: "A bad quarter, or the start of a slide?", bn: "একটি খারাপ প্রান্তিক, নাকি পতনের শুরু?" },
+      hint: { en: "What the profit, the cash and the latest quarter say together.", bn: "মুনাফা, নগদ আর সর্বশেষ প্রান্তিক মিলিয়ে কী বলে।" },
+    });
+  }
+  const withExpect = coming.filter((c) => c.better_above != null || c.weaker_below != null).length;
+  if (coming.length > 0) {
+    out.push({
+      key: "coming",
+      fact: { en: `${coming.length} meetings in 2 weeks`, bn: `2 সপ্তাহে ${coming.length}টি সভা` },
+      ask: { en: "What must each company show?", bn: "প্রতিটি কোম্পানিকে কী দেখাতে হবে?" },
+      hint: withExpect
+        ? { en: `The profit line for Better or Weaker, on ${withExpect} of them.`, bn: `${withExpect}টির ভালো বা দুর্বল হওয়ার মুনাফার সীমা।` }
+        : undefined,
+    });
+  }
+  return out;
 }

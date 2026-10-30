@@ -181,7 +181,7 @@ export default function DateBoard({
       <ul className="dc-list">
         {g.items.map((e) => (
           <li key={`${e.trading_code}-${g.date}`}>
-            <DividendRow e={e} mode={kind} />
+            <DividendRow e={e} mode={kind} remind={kind === "record"} />
           </li>
         ))}
       </ul>

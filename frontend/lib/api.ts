@@ -460,6 +460,10 @@ export interface CorporateActionEvent {
     line_en: string;
     line_bn: string;
   } | null;
+  /** "Worth buying for the dividend?" (backend/services/dividend_forecast.py)
+   *  — how the price moved across its last record dates against the cash, and
+   *  what today's cash leaves after tax and fees. Premium (screen-only). */
+  capture?: DividendCapture | null;
   record_days_left: number | null;
   agm_days_left: number | null;
   /** Last normal-market buy day that still settles before the record date. */
@@ -571,6 +575,19 @@ export interface SectorDetailData {
   losers: SectorStockRow[];
   week_leaders: SectorStockRow[];
   related_sectors: SectorSummary[];
+  /** Our read this month (2026-10-31, Premium — screen-only). Absent from an older backend. */
+  read?: SectorRead | null;
+}
+
+export interface SectorRead {
+  /** Up to three plain sentences: price · profit · money. */
+  lines: { key: "price" | "profit" | "money"; tone: "good" | "bad" | "fair" | "neutral"; en: string; bn: string }[];
+  /** The highest graded Good-or-better company at a low price for its profit. */
+  best: { trading_code: string; company_name: string | null; score: number | null; tier: string | null; ltp: number | null; en: string; bn: string } | null;
+  /** Its share of DSE turnover, last 4 weeks against the 4 before. */
+  flow: { share_now: number; share_before: number; change_pct: number; word: "in" | "out" | "same" } | null;
+  /** How many of its companies have a latest report in the results feed. */
+  reported: number;
 }
 
 /** A row of the `dividend_declarations` ledger, as stored. */
@@ -613,12 +630,16 @@ export interface DividendCalendarData {
     cash_payers_upcoming: number;
     top_yield_pct: number | null;
     declarations_tracked: number;
+    /** Companies on "Coming next" (have not declared for this year yet). */
+    forecast?: number;
   };
   record_dates: CorporateActionEvent[];
   agms: CorporateActionEvent[];
   recent_declarations: CorporateActionEvent[];
   top_cash_dividends: CorporateActionEvent[];
   months: DividendCalendarMonth[];
+  /** "Coming next" (2026-10-31): who has not declared for this year yet. */
+  forecast?: DividendForecast[];
 }
 
 export interface PricePoint {
@@ -762,6 +783,85 @@ export async function getScores(): Promise<ScoresResponse> {
   return clientScores.promise;
 }
 
+// ---- The rankings page's Premium parts (2026-10-31, the Premium Desk plan step 3) ----
+
+/** One reason in words for a rank move (`rank_history._reason`). */
+export interface RankReason {
+  en: string;
+  bn: string;
+  /** A pillar key (`p1_biz` …), a category / accounts note, "score" or "others". */
+  kind: string;
+}
+
+export interface RankMove {
+  code: string;
+  from_rank: number;
+  to_rank: number;
+  /** + = climbed. */
+  places: number;
+  from_score: number | null;
+  to_score: number | null;
+  reason: RankReason;
+}
+
+export interface RankMovers {
+  from: string | null;
+  to: string | null;
+  /** A rule-change day sits in (or ends) the window: moves start after it. */
+  method: boolean;
+  total: number;
+  climbed_n: number;
+  fell_n: number;
+  climbed: RankMove[];
+  fell: RankMove[];
+  grade_changes: number;
+}
+
+/** The week's biggest rank moves (≥5 places), with the reason for each. */
+export async function getRankMovers(): Promise<RankMovers> {
+  return apiFetch<RankMovers>("/api/rankings/movers", 3600);
+}
+
+export interface RankHistory {
+  code: string;
+  /** Oldest first: date, rank, companies ranked that day. */
+  points: { d: string; r: number; n: number }[];
+  best: number;
+  worst: number;
+  first: string;
+  signal: { signal: string; strength?: string | null; reason_en: string; reason_bn?: string | null } | null;
+}
+
+/** One company's year of ranks + today's signal reason (client, on opening a row). */
+export async function getRankHistory(code: string): Promise<RankHistory> {
+  const res = await fetch(`${getApiUrl()}/api/rankings/history/${encodeURIComponent(code.toUpperCase())}`);
+  if (!res.ok) throw new Error(`Rank history fetch failed: ${res.status}`);
+  return res.json() as Promise<RankHistory>;
+}
+
+export type RankAlertKind = "top20" | "below_good";
+export interface RankAlert {
+  id: string;
+  code: string;
+  kind: RankAlertKind;
+  created_at: string | null;
+}
+
+export async function apiGetRankAlerts(): Promise<{ alerts: RankAlert[] }> {
+  return apiAuthFetch<{ alerts: RankAlert[] }>("/api/user/rank-alerts");
+}
+
+export async function apiAddRankAlert(code: string, kind: RankAlertKind): Promise<{ alerts: RankAlert[] }> {
+  return apiAuthFetch<{ alerts: RankAlert[] }>("/api/user/rank-alerts", {
+    method: "POST",
+    body: JSON.stringify({ code, kind }),
+  });
+}
+
+export async function apiRemoveRankAlert(id: string): Promise<{ alerts: RankAlert[] }> {
+  return apiAuthFetch<{ alerts: RankAlert[] }>(`/api/user/rank-alerts/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
 export async function getAllCodes(): Promise<string[]> {
   return apiFetch<string[]>("/api/companies/codes", 86400);
 }
@@ -813,6 +913,67 @@ export async function getDividendCalendar(): Promise<DividendCalendarData> {
   return apiFetch<DividendCalendarData>("/api/dividend-calendar", 86400);
 }
 
+export interface DividendCapture {
+  /** Past record dates read (1–3). */
+  events: number;
+  avg_drop: number;
+  avg_cash: number;
+  /** Today's cash a share after 10% tax and a round trip of fees. */
+  keep: number;
+  level: "good" | "watch" | "bad";
+  word_en: string;
+  word_bn: string;
+  line_en: string;
+  line_bn: string;
+}
+
+/** One "Coming next" row: `last_*` are free facts; the window, the expected
+ *  cash and the reasons are Premium (screen-only). */
+export interface DividendForecast {
+  trading_code: string;
+  company_name: string | null;
+  last_declared: string;
+  last_record_date: string | null;
+  last_cash_pct: number;
+  last_cash_per_share: number;
+  last_stock_pct: number | null;
+  face_value: number;
+  period_end: string | null;
+  next_period_end: string | null;
+  window_start: string;
+  window_end: string;
+  /** A yearly-results board meeting DSE has posted. */
+  meeting: string | null;
+  late: boolean;
+  /** Last year's record date a year on — where the income card puts it. */
+  expected_record: string | null;
+  kind: "estimate" | "same" | "may_skip" | "unknown";
+  expected_pct: number | null;
+  expected_cash_per_share: number | null;
+  change_pct: number | null;
+  word_en: string;
+  word_bn: string;
+  tone: "good" | "bad" | "neutral";
+  when_en: string;
+  when_bn: string;
+  why_en: string;
+  why_bn: string;
+}
+
+/** "Remind me" on the dividend calendar (Premium; 403
+ *  `limit_reached:dividend_reminders` for free readers). */
+export async function apiGetDividendReminders(): Promise<{ codes: string[] }> {
+  return apiAuthFetch<{ codes: string[] }>("/api/user/dividend-reminders");
+}
+
+export async function apiAddDividendReminder(code: string): Promise<{ codes: string[] }> {
+  return apiAuthFetch<{ codes: string[] }>(`/api/user/dividend-reminders/${encodeURIComponent(code)}`, { method: "POST" });
+}
+
+export async function apiRemoveDividendReminder(code: string): Promise<{ codes: string[] }> {
+  return apiAuthFetch<{ codes: string[] }>(`/api/user/dividend-reminders/${encodeURIComponent(code)}`, { method: "DELETE" });
+}
+
 /** One company's latest quarterly report — the free part of the explainer
  *  (backend services/results_explainer.py `feed_row`). */
 export interface LatestResultRow {
@@ -842,6 +1003,20 @@ export interface LatestResultRow {
   /** What the report means, one sentence (Premium on /results since 2026-10-29 — screen-only). */
   meaning_en?: string | null;
   meaning_bn?: string | null;
+  /** Better or worse than the year's own pace (2026-10-31, Premium — screen-only).
+   *  Null for a first quarter, a year without its 9 months, or a pace set by a loss. */
+  pace?: ResultPace | null;
+}
+
+export interface ResultPace {
+  word: "above" | "below" | "in_line";
+  /** What the latest 3 months would have been at the year's pace, and what they were. */
+  expected: number;
+  quarter: number;
+  headline_en: string;
+  headline_bn: string;
+  en: string;
+  bn: string;
 }
 
 export interface LatestResults {
@@ -1422,11 +1597,48 @@ export interface MarketStateData {
   };
   /** Absent when the backend is behind or the lists failed — the section then hides. */
   research?: MarketResearch | null;
+  /** Things to watch out for (2026-10-31): the caution list + the Z-risk watch. */
+  watch_out?: MarketWatchOut | null;
   stats: MarketStats;
 }
 
 export async function getMarketState(revalidate = 900): Promise<MarketStateData> {
   return apiFetch<MarketStateData>("/api/market/state", revalidate);
+}
+
+
+/** A share running hard with no company news (services/caution_list.py).
+ *  Free: who and how much; `headline` + `lines` are Premium (screen-only). */
+export interface CautionItem {
+  code: string;
+  name: string;
+  sector: string | null;
+  level: "red" | "amber";
+  pct: number;
+  /** 20 (about a month) or 60 (about three months) trading days. */
+  days: number;
+  since: string;
+  ltp: number | null;
+  headline: BiText;
+  lines: BiText[];
+}
+
+/** A company not yet in Z that looks close to it (services/z_risk.py).
+ *  Free: who; the reasons are Premium (screen-only). */
+export interface ZRiskItem {
+  code: string;
+  name: string;
+  sector: string | null;
+  category: string | null;
+  level: "red" | "amber";
+  reasons: (BiText & { key: "late_year" | "factory_closed" | "losses" | "old_accounts"; level: "red" | "amber" })[];
+}
+
+export interface MarketWatchOut {
+  caution: CautionItem[];
+  z_risk: ZRiskItem[];
+  /** What a move to Z means for a holder (Premium). */
+  z_means: BiText | null;
 }
 
 /** Client-side price history fetch (no Next.js cache) */
@@ -2247,6 +2459,8 @@ export interface HomeBundle {
   /** What the watcher spotted on the reader's stocks in the last 7 days
    *  (`portfolio_watch.digest`). Free readers see the counts, Premium the list. */
   week_watch?: WeekWatch | null;
+  /** The Desk card (2026-10-31): before the bell · after the close · the letter. */
+  desk?: DeskSummary | null;
   /** The screener card (2026-10-26): goal starts with counts + top three, and
    *  the reader's saved screens as of the last daily check. */
   screener?: { goals: ScreenerGoal[]; saved: ScreenerSaved[] } | null;
@@ -2274,6 +2488,74 @@ export async function apiOpenReportKey(code: string): Promise<{ status: "ok" | "
 /** Auth-only. The dashboard paints from this + `/api/scores` + `/api/market/state`. */
 export async function apiGetHomeBundle(): Promise<HomeBundle> {
   return apiAuthFetch<HomeBundle>("/api/user/home");
+}
+
+// ---------------------------------------------------------------------------
+// Your Desk (2026-10-31, the Premium Desk plan) — `/desk` + the dashboard card
+// ---------------------------------------------------------------------------
+
+/** One thing on the Desk: a watcher event or a Buy more / Sell flip. */
+export interface DeskItem {
+  id: string;
+  kind: PortfolioWatchEvent["kind"] | "signal";
+  code: string | null;
+  level: "good" | "watch" | "bad" | "neutral";
+  title_en: string;
+  title_bn: string;
+  body_en: string | null;
+  body_bn: string | null;
+  url: string;
+}
+
+/** One line of the Friday letter. */
+export interface LetterLine {
+  en: string;
+  bn: string;
+  tone: "good" | "bad" | "neutral";
+  url?: string;
+  code?: string;
+}
+
+export interface LetterPart {
+  key: "shares" | "market" | "lists" | "dates";
+  title_en: string;
+  title_bn: string;
+  /** The reader's own shares — free; the other three parts are Premium. */
+  free: boolean;
+  lines: LetterLine[];
+}
+
+export interface WeeklyLetter {
+  /** The Sunday the letter's week began. */
+  week: string;
+  parts: LetterPart[];
+  created_at?: string;
+}
+
+export interface Desk {
+  day: string;
+  premium: boolean;
+  has_shares: boolean;
+  brief: MorningBrief | null;
+  after_close: { day: string; items: DeskItem[] } | null;
+  letter: WeeklyLetter | null;
+  watching: { holdings: number; watchlist: number; alerts: number; dividend_reminders: number; rank_alerts: number };
+  month: { total: number; kinds: { kind: PortfolioWatchEvent["kind"]; count: number }[]; phrase_en?: string; phrase_bn?: string };
+}
+
+/** The dashboard's Desk card, from the home bundle. */
+export interface DeskSummary {
+  brief_n: number;
+  brief_first: MorningBriefItem | null;
+  after_close_n: number;
+  after_close_day: string | null;
+  after_close_first: DeskItem | null;
+  letter_week: string | null;
+  letter_first: { en: string; bn: string } | null;
+}
+
+export async function apiGetDesk(): Promise<Desk> {
+  return apiAuthFetch<Desk>("/api/user/desk");
 }
 
 // ---------------------------------------------------------------------------
@@ -2530,6 +2812,20 @@ export interface DailyTipsResponse {
 
 export async function getDailyTips(): Promise<DailyTipsResponse> {
   return apiFetch<DailyTipsResponse>("/api/daily-tips", 86400);
+}
+
+/** What Premium adds to each Buy on /buy-sell-signals (2026-10-31): when the
+ *  run began, our buy price, and the price past which it stops being a Buy. */
+export interface SignalDetail {
+  since: string | null;
+  /** The run reaches past the 120 days we look back. */
+  since_floor: boolean;
+  buy_below: number | null;
+  stop_above: number | null;
+}
+
+export async function getSignalDetail(): Promise<{ as_of: string; items: Record<string, SignalDetail> }> {
+  return apiFetch("/api/signals/detail", 3600);
 }
 
 // ---------------------------------------------------------------------------

@@ -428,6 +428,9 @@ class SectorDetailResponse(BaseModel):
     losers: list[SectorStockRow]
     week_leaders: list[SectorStockRow]
     related_sectors: list[SectorSummary]
+    # Our read this month (services/sector_service.sector_read, 2026-10-31) —
+    # Premium on the page (screen-only). Free-form: lines · best · flow · reported.
+    read: Optional[dict] = None
 
 
 class DividendSafety(BaseModel):
@@ -437,6 +440,50 @@ class DividendSafety(BaseModel):
     word_bn: str
     line_en: str
     line_bn: str
+
+
+class DividendCapture(BaseModel):
+    """"Worth buying for the dividend?" (services/dividend_forecast.py) — Premium on the page."""
+    events: int
+    avg_drop: float
+    avg_cash: float
+    keep: float
+    level: str
+    word_en: str
+    word_bn: str
+    line_en: str
+    line_bn: str
+
+
+class DividendForecast(BaseModel):
+    """"Coming next": a company that has not declared for this year yet.
+    `last_*` are free facts; the window and the expected cash are Premium."""
+    trading_code: str
+    company_name: Optional[str] = None
+    last_declared: str
+    last_record_date: Optional[str] = None
+    last_cash_pct: float
+    last_cash_per_share: float
+    last_stock_pct: Optional[float] = None
+    face_value: float
+    period_end: Optional[str] = None
+    next_period_end: Optional[str] = None
+    window_start: str
+    window_end: str
+    meeting: Optional[str] = None
+    late: bool = False
+    expected_record: Optional[str] = None
+    kind: str
+    expected_pct: Optional[float] = None
+    expected_cash_per_share: Optional[float] = None
+    change_pct: Optional[float] = None
+    word_en: str
+    word_bn: str
+    tone: str
+    when_en: str
+    when_bn: str
+    why_en: str
+    why_bn: str
 
 
 class CorporateActionEvent(BaseModel):
@@ -466,6 +513,7 @@ class CorporateActionEvent(BaseModel):
     amended: bool = False
     is_no_dividend: bool = False
     safety: Optional[DividendSafety] = None
+    capture: Optional[DividendCapture] = None
     record_days_left: Optional[int] = None
     agm_days_left: Optional[int] = None
     buy_by: Optional[str] = None
@@ -489,6 +537,7 @@ class DividendCalendarStats(BaseModel):
     cash_payers_upcoming: int
     top_yield_pct: Optional[float] = None
     declarations_tracked: int
+    forecast: int = 0
 
 
 class SettlementInfo(BaseModel):
@@ -507,6 +556,7 @@ class DividendCalendarResponse(BaseModel):
     recent_declarations: list[CorporateActionEvent]
     top_cash_dividends: list[CorporateActionEvent]
     months: list[CorporateActionMonth]
+    forecast: list[DividendForecast] = []
 
 
 class MarketMoverItem(BaseModel):

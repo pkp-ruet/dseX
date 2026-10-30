@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getMarketState } from "@/lib/api";
+import { getMarketState, type MarketStateData } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 import { bnDate } from "@/lib/bn";
 
@@ -12,6 +12,8 @@ import MarketHistory from "@/components/market-analysis/MarketHistory";
 import WhatCouldHappenNext from "@/components/market-analysis/WhatCouldHappenNext";
 import MarketResearchLists from "@/components/market-analysis/MarketResearchLists";
 import MarketDividends from "@/components/market-analysis/MarketDividends";
+import WatchOut from "@/components/market-analysis/WatchOut";
+import PageQuestions, { type PageQuestion } from "@/components/premium/PageQuestions";
 import { PersonalCodesProvider } from "@/components/market-analysis/PersonalCodes";
 import { T } from "@/components/i18n/T";
 import PageHeader from "@/components/ui/PageHeader";
@@ -89,8 +91,10 @@ export default async function MarketAnalysisPage() {
         isPartOf: { "@id": BASE_URL },
         primaryImageOfPage: OG_IMAGE,
         ...(data?.date ? { dateModified: data.date } : {}),
-        // No paywall markup: since 2026-10-29 the page's lists are free; the
-        // one Premium card (#ma-premium) sells the rest of each research list.
+        // The reasons on "Things to watch out for" are Premium (screen-only,
+        // 2026-10-31); the page's one question card (#ma-premium) names them.
+        isAccessibleForFree: false,
+        hasPart: { "@type": "WebPageElement", isAccessibleForFree: false, cssSelector: ".premium-locked" },
       },
       {
         "@type": "BreadcrumbList",
@@ -200,6 +204,23 @@ export default async function MarketAnalysisPage() {
           />
         </section>
 
+        {data.watch_out && (
+          <section className="mk-section" aria-labelledby="mk-watch">
+            <SectionHeader
+              id="mk-watch"
+              size="lg"
+              title={<T en="Things to watch out for" bn="যেসব বিষয়ে সাবধান থাকবেন" />}
+              lead={
+                <T
+                  en="Shares rising fast with no news from the company, and companies close to category Z."
+                  bn="কোম্পানির কোনো খবর ছাড়াই দ্রুত বাড়তে থাকা শেয়ার, আর Z ক্যাটাগরির কাছাকাছি কোম্পানি।"
+                />
+              }
+            />
+            <WatchOut data={data.watch_out} />
+          </section>
+        )}
+
         <section className="mk-section" aria-labelledby="mk-money">
           <SectionHeader
             id="mk-money"
@@ -216,6 +237,19 @@ export default async function MarketAnalysisPage() {
           <MarketDividends items={next?.dividends ?? []} />
         </section>
 
+        <PageQuestions
+          id="ma-premium"
+          area="market-analysis"
+          className="mk-section"
+          title={{ en: "The whole market is free. Here is what it leaves open.", bn: "পুরো বাজারের তথ্য ফ্রি। তবু কিছু প্রশ্ন থেকে যায়।" }}
+          lead={{
+            en: "Premium answers these in place on this page: every company on the lists, and the reason behind every warning.",
+            bn: "প্রিমিয়ামে এর উত্তর এই পেজেই: তালিকার সব কোম্পানি, আর প্রতিটি সতর্কতার কারণ।",
+          }}
+          rows={marketQuestions(data)}
+          label={{ en: "The market, explained", bn: "বাজারের ব্যাখ্যা" }}
+        />
+
         <p className="mk-disclaimer">
           <T
             en="This is educational information, not investment advice. Please read a share's full page before you decide."
@@ -227,4 +261,41 @@ export default async function MarketAnalysisPage() {
       <HubLinks group="today" exclude={["/market-analysis"]} />
     </PersonalCodesProvider>
   );
+}
+
+/** The page's question card rows, from today's real counts. */
+function marketQuestions(data: MarketStateData): PageQuestion[] {
+  const rows: PageQuestion[] = [];
+  const caution = data.watch_out?.caution ?? [];
+  const zRisk = data.watch_out?.z_risk ?? [];
+  if (caution.length > 0) {
+    rows.push({
+      key: "caution",
+      fact: { en: `${caution.length} running with no news`, bn: `${caution.length}টি খবর ছাড়াই বাড়ছে` },
+      tone: "fair",
+      ask: { en: "Why is each one a worry?", bn: "প্রতিটি কেন চিন্তার?" },
+      hint: { en: "What DSE asked, how we grade the company, and how few shares are with the public.", bn: "ডিএসই কী জানতে চেয়েছে, কোম্পানির গ্রেড, আর সাধারণ বিনিয়োগকারীদের হাতে কত কম শেয়ার।" },
+    });
+  }
+  if (zRisk.length > 0) {
+    rows.push({
+      key: "zrisk",
+      fact: { en: `${zRisk.length} close to Z`, bn: `${zRisk.length}টি Z-এর কাছাকাছি` },
+      tone: "bad",
+      ask: { en: "What puts each one at risk?", bn: "প্রতিটির ঝুঁকি কোথায়?" },
+      hint: { en: "The late year, the closed factory or the losses, and what a move to Z means for a holder.", bn: "দেরি হওয়া বছর, বন্ধ কারখানা বা লোকসান, আর Z-এ গেলে শেয়ারহোল্ডারের কী হয়।" },
+    });
+  }
+  const lists = data.research?.lists ?? [];
+  const more = lists.reduce((n, l) => n + Math.max(0, l.passed - 3), 0);
+  if (more > 0) {
+    rows.push({
+      key: "lists",
+      fact: { en: `${more} more on the six lists`, bn: `ছয় তালিকায় আরও ${more}টি` },
+      tone: "good",
+      ask: { en: "Which companies are they, and what could go wrong with each?", bn: "কোন কোম্পানি, আর প্রতিটির কী ঝুঁকি?" },
+      hint: { en: "Every company past the free top three, with its main risk.", bn: "ফ্রি শীর্ষ তিনটির পরের সব কোম্পানি, প্রধান ঝুঁকিসহ।" },
+    });
+  }
+  return rows;
 }

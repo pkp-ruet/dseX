@@ -168,3 +168,36 @@ def test_a_loss_year_reads_as_a_year():
     assert ex["level"] == "bad"
     assert ex["meaning_en"].startswith("The company made a loss for the year.")
     assert next(l for l in ex["lines"] if l["key"] == "price")["en"].startswith("It made a loss for the year")
+
+
+# ── The year's own pace (2026-10-31) ──────────────────────────────────────────
+from backend.services.results_explainer import pace_of_year  # noqa: E402
+
+
+def test_pace_above_when_the_latest_quarter_beats_the_years_rate():
+    # 9 months: 3.30 vs 3.00; latest quarter 1.30 vs 1.00. Earlier 6 months 2.00 vs 2.00 → flat pace.
+    p = pace_of_year(3.30, 3.00, 1.30, 1.00, 9)
+    assert p["word"] == "above" and p["expected"] == 1.00
+    assert "about level with last year" in p["en"] and "above the pace" in p["en"]
+
+
+def test_pace_below_and_in_line():
+    # earlier 6 months ran 20% ahead (2.40 vs 2.00); at that pace Q3 = 1.20, it came in at 1.00
+    assert pace_of_year(3.40, 3.00, 1.00, 1.00, 9)["word"] == "below"
+    assert pace_of_year(3.55, 3.00, 1.15, 1.00, 9)["word"] == "in_line"
+
+
+def test_no_pace_without_earlier_months_or_from_a_loss():
+    assert pace_of_year(1.0, 0.8, 1.0, 0.8, 3) is None          # Q1 has nothing before it
+    assert pace_of_year(1.0, 0.8, None, None, 12) is None       # a year with no 9-month report
+    assert pace_of_year(0.5, 2.0, 1.0, 1.0, 6) is None          # earlier months a loss this year
+    assert pace_of_year(2.0, 2.0, 1.0, -0.2, 6) is None         # last year's quarter a loss
+
+
+def test_explain_carries_the_pace():
+    rec = {"eps_cum": 3.30, "eps_cum_prev": 3.00, "eps_q": 1.30, "eps_q_prev": 1.00,
+           "months": 9, "quarter": 3, "period_end": "2026-09-30", "post_date": "2026-10-28"}
+    from backend.services.results_explainer import explain
+    ex = explain(rec)
+    assert ex["pace"]["word"] == "above"
+    assert ex["pace"]["headline_en"] == "Came in above the pace of the year so far."

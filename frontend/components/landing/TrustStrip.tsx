@@ -1,91 +1,56 @@
 import type { ReactNode } from "react";
 import { T } from "@/components/i18n/T";
-import ColourKey from "@/components/landing/ColourKey";
-import Stat from "@/components/ui/Stat";
-import type { TrustStats } from "@/lib/api";
 
 /**
- * Block 2 — the credibility signal and the colour key as ONE band
- * (2026-10-24; they were two strips stacked back to back, which read as admin
- * chrome before any real content).
- *
- * Top: the checkable numbers, number first in ink (`ui/Stat`) — colour is for
- * meaning, so the figures don't wear accents. Middle: the colour key, read
- * once so every card below is readable. Bottom: one sentence on where the data
- * comes from. No prose beyond that.
+ * Block 2 — four plain facts in one white band (rebuilt 2026-10-31). Each is a
+ * big word or number with one line under it; the last one is the promise the
+ * whole site keeps (no tips, no rumours). The colour key that used to sit here
+ * is gone: every coloured word on the page now says what it means.
  */
 
-interface Figure {
+interface Fact {
   key: string;
-  value: string;
-  label: ReactNode;
+  value: ReactNode;
+  line: ReactNode;
 }
 
-/** Column count on desktop — written out so Tailwind's JIT can see the class. */
-const COLS: Record<number, string> = {
-  1: "sm:grid-cols-1",
-  2: "sm:grid-cols-2",
-  3: "sm:grid-cols-3",
-  4: "sm:grid-cols-4",
-};
-
-export default function TrustStrip({
-  totalCount,
-  sectorCount,
-  trust,
-}: {
-  totalCount: number;
-  sectorCount: number;
-  trust: TrustStats | null;
-}) {
-  const users = trust?.user_count ?? 0;
-  const avg = trust?.review_average ?? null;
-  const reviews = trust?.review_count ?? 0;
-
-  // Built as a list so a missing figure (no reviews yet, say) shortens the row
-  // instead of leaving a hole in it.
-  const figures: Figure[] = [
-    { key: "scored", value: `${totalCount}`, label: <T en="Companies scored" bn="কোম্পানির স্কোর" /> },
+export default function TrustStrip({ totalCount }: { totalCount: number }) {
+  const facts: Fact[] = [
+    {
+      key: "graded",
+      value: `${totalCount}+`,
+      line: <T en="companies graded after every trading day" bn="কোম্পানির গ্রেড, প্রতিদিন বাজার বন্ধের পর" />,
+    },
+    {
+      key: "checks",
+      value: <T en="5 checks" bn="5টি যাচাই" />,
+      line: <T en="on every company: profit, loans, business, price, dividend" bn="প্রতিটি কোম্পানিতে: মুনাফা, ঋণ, ব্যবসা, দাম, ডিভিডেন্ড" />,
+    },
+    {
+      key: "lang",
+      value: <T en="বাংলা + EN" bn="বাংলা + EN" />,
+      line: <T en="every page, in plain words" bn="প্রতিটি পেজ, সহজ ভাষায়" />,
+    },
+    {
+      key: "tips",
+      value: <T en="0 tips" bn="0 টিপস" />,
+      line: <T en="and no rumours. Only the company’s own numbers." bn="আর কোনো গুজব নয়। শুধু কোম্পানির নিজের হিসাব।" />,
+    },
   ];
-  if (sectorCount > 0) {
-    figures.push({ key: "sectors", value: `${sectorCount}`, label: <T en="Sectors covered" bn="সেক্টর" /> });
-  }
-  if (users > 0) {
-    figures.push({
-      key: "users",
-      value: users.toLocaleString("en-US"),
-      label: <T en="People signed up" bn="জন অ্যাকাউন্ট খুলেছেন" />,
-    });
-  }
-  if (avg != null && reviews > 0) {
-    figures.push({
-      key: "rating",
-      value: `★ ${avg.toFixed(1)}`,
-      label: <T en={`From ${reviews} ratings`} bn={`${reviews}টি রেটিং থেকে`} />,
-    });
-  }
 
   return (
-    <section aria-label="Coverage, sources and how to read the colours" className="soft-card overflow-hidden">
-      {/* The numbers — four across on a desktop, 2×2 on a phone. */}
-      <div className={`grid grid-cols-2 gap-x-4 gap-y-5 px-4 py-5 sm:px-6 ${COLS[figures.length] ?? "sm:grid-cols-4"}`}>
-        {figures.map((f) => (
-          <Stat key={f.key} value={f.value} label={f.label} size="lg" />
+    <section aria-label="Why you can trust these numbers" className="lp-bleed border-y border-border bg-surface">
+      <ul className="mx-auto grid max-w-5xl grid-cols-2 lg:grid-cols-4">
+        {facts.map((f, i) => (
+          <li
+            key={f.key}
+            className={`px-4 py-6 sm:px-6 ${i % 2 === 1 ? "border-l border-border" : ""} ${i > 1 ? "border-t border-border lg:border-t-0" : ""} ${i === 2 ? "lg:border-l" : ""}`}
+          >
+            <p className="text-2xl font-bold tracking-tight text-text-main sm:text-3xl">{f.value}</p>
+            <p className="mt-1 text-sm leading-snug text-text-main sm:text-base">{f.line}</p>
+          </li>
         ))}
-      </div>
-
-      <div className="border-t border-border px-4 py-4 sm:px-6">
-        <ColourKey />
-      </div>
-
-      <div className="border-t border-border bg-surface-2 px-4 py-3 sm:px-6">
-        <p className="text-sm font-semibold leading-relaxed text-text-main">
-          <T
-            en="No tips and no rumours. Every figure comes from what companies publish and from each day's market data."
-            bn="কোনো টিপস বা গুজব নয়। প্রতিটি হিসাব কোম্পানির প্রকাশিত প্রতিবেদন আর প্রতিদিনের বাজারের তথ্য থেকে নেওয়া।"
-          />
-        </p>
-      </div>
+      </ul>
     </section>
   );
 }

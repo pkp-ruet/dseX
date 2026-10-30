@@ -1,22 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { ScoreItem } from "@/lib/api";
+import type { ScoreItem, SignalDetail } from "@/lib/api";
 import SignalChip from "@/components/ui/SignalChip";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import StarButton from "@/components/ui/StarButton";
 import StockRow from "@/components/ui/StockRow";
 import Tabs from "@/components/ui/Tabs";
 import Button from "@/components/ui/Button";
-import RowLock from "@/components/premium/RowLock";
-import LockPanel, { type LockTile } from "@/components/premium/LockPanel";
-import { FREE_SIGNAL_ROWS, splitFree } from "@/lib/free-share";
+import { Locked } from "@/components/premium/AnswerLock";
 import { T } from "@/components/i18n/T";
+import { formatDate, money } from "@/lib/formatters";
 import { useLang } from "@/context/LangContext";
-import { sectorBn } from "@/lib/bn";
-
-/** Locked rows a free reader sees with the company hidden (premium/RowLock). */
-const SIGNAL_PREVIEW_ROWS = 2;
+import { bnDate, sectorBn } from "@/lib/bn";
 
 type Tab = "all" | "strong";
 type SortKey = "match" | "gainers" | "losers" | "dividend";
@@ -25,6 +21,8 @@ interface Props {
   /** Every buy signal (strong + normal) — this page lists buys only. */
   buy: ScoreItem[];
   sectors: string[];
+  /** Premium's part of each row (`/api/signals/detail`); absent = not shown. */
+  detail?: Record<string, SignalDetail>;
 }
 
 /** `<option>` holds plain text only, so the menu reads the language through `useLang()`. */
@@ -60,7 +58,7 @@ function sortItems(list: ScoreItem[], sort: SortKey): ScoreItem[] {
   }
 }
 
-export default function SignalsExplorer({ buy, sectors }: Props) {
+export default function SignalsExplorer({ buy, sectors, detail = {} }: Props) {
   const [tab, setTab] = useState<Tab>("all");
   const [query, setQuery] = useState("");
   const [sector, setSector] = useState("all");
@@ -93,18 +91,6 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
   }, [base, query, sector, sort]);
 
   const shown = filtered.slice(0, limit);
-  // Free readers see the first FREE_SIGNAL_ROWS of the view; the rest sits
-  // behind the Premium lock (screen-only — the cards stay in the HTML).
-  const [free, locked] = splitFree(shown, FREE_SIGNAL_ROWS);
-  const rest = filtered.slice(FREE_SIGNAL_ROWS);
-  const restStrong = rest.filter(isStrong).length;
-  const restExcellent = rest.filter((i) => (i.score ?? 0) >= 75).length;
-  const lockTiles: LockTile[] = [
-    restStrong > 0
-      ? { value: String(restStrong), label: restStrong === 1 ? { en: "is a Strong buy", bn: "কেনার ভালো সুযোগ" } : { en: "are Strong buys", bn: "কেনার ভালো সুযোগ" } }
-      : null,
-    restExcellent > 0 ? { value: String(restExcellent), label: { en: "graded Excellent", bn: "গ্রেড চমৎকার" } } : null,
-  ].filter((t): t is LockTile => t != null);
   const isFiltered = query.trim() !== "" || sector !== "all";
 
   const reset = () => {
@@ -208,62 +194,24 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
             </p>
           </div>
         ) : (
-          // ONE list card: the free rows, then the rest of the same list
-          // behind the lock — for free readers the next rows with the company
-          // hidden and what Premium shows (premium/RowLock); plain rows for
-          // Premium, the seam disappears once it unlocks.
+          // ONE list card, every row free (2026-10-31, the Premium Desk plan:
+          // the Buy word is a fact we print on every share page). Premium adds
+          // the reason and the prices under each row (`SignalRow` → Locked).
           <div className="soft-card sg-card">
             <ul className="sg-rows">
-              {free.map((item) => (
-                <SignalRow key={item.trading_code} item={item} />
+              {shown.map((item) => (
+                <SignalRow key={item.trading_code} item={item} detail={detail[item.trading_code]} />
               ))}
             </ul>
-            {locked.length > 0 && (
-              <RowLock
-                className="sg-locked"
-                preview={
-                  <ul className="sg-rows">
-                    {locked.slice(0, SIGNAL_PREVIEW_ROWS).map((item) => (
-                      <SignalRow key={item.trading_code} item={item} masked />
-                    ))}
-                  </ul>
-                }
-                panel={
-                  <LockPanel job="find"
-                    variant="full"
-                    inset
-                    title={{
-                      en: `See the companies behind ${rest.length} more buy ${rest.length === 1 ? "signal" : "signals"}`,
-                      bn: `আরও ${rest.length}টি কেনার সংকেতের কোম্পানিগুলো দেখুন`,
-                    }}
-                    sub={{
-                      en: "Premium shows every buy signal today: the company, the reason for the signal, its score and its price, with Strong buys and sectors to filter.",
-                      bn: "প্রিমিয়ামে আজকের প্রতিটি কেনার সংকেত: কোম্পানি, সংকেতের কারণ, স্কোর আর দাম, সঙ্গে কেনার ভালো সুযোগ আর সেক্টর বাছাই।",
-                    }}
-                    tiles={lockTiles}
-                    codes={rest.map((i) => i.trading_code)}
-                    count={rest.length}
-                    lock="Buy signals"
-                    what={{ en: "Every buy signal", bn: "সব কেনার সংকেত" }}
+            {filtered.length > limit && (
+              <div className="flex justify-center pb-3 pt-2">
+                <Button variant="quiet" onClick={() => setLimit((l) => l + PAGE)}>
+                  <T
+                    en={`Show ${Math.min(PAGE, filtered.length - limit)} more`}
+                    bn={`আরও ${Math.min(PAGE, filtered.length - limit)}টি দেখুন`}
                   />
-                }
-              >
-                <ul className="sg-rows">
-                  {locked.map((item) => (
-                    <SignalRow key={item.trading_code} item={item} />
-                  ))}
-                </ul>
-                {filtered.length > limit && (
-                  <div className="flex justify-center pb-3 pt-2">
-                    <Button variant="quiet" onClick={() => setLimit((l) => l + PAGE)}>
-                      <T
-                        en={`Show ${Math.min(PAGE, filtered.length - limit)} more`}
-                        bn={`আরও ${Math.min(PAGE, filtered.length - limit)}টি দেখুন`}
-                      />
-                    </Button>
-                  </div>
-                )}
-              </RowLock>
+                </Button>
+              </div>
             )}
           </div>
         )}
@@ -273,35 +221,59 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
 }
 
 /**
- * One buy signal: the shared StockRow, with the reason as its line. Kept to
- * name · chip · reason · price · score ring — the grade pill repeated the
- * ring and the sector line repeated the filter, and both crowded the row.
+ * One buy signal: the shared StockRow — name · chip · sector · price · score
+ * ring, all free. Premium's part sits under the sector line: why it is a Buy,
+ * our buy price, the price past which it stops being one, and since when.
  */
-function SignalRow({ item, masked = false }: { item: ScoreItem; masked?: boolean }) {
+function SignalRow({ item, detail }: { item: ScoreItem; detail?: SignalDetail }) {
   const sig = item.signal;
-  // Masked (a free reader's preview of a locked row): the chip, sector and
-  // score show; the company and the reason (Premium on the stock page too) don't.
-  const sub = masked
-    ? item.sector
-      ? <T en={item.sector} bn={sectorBn(item.sector)} />
-      : undefined
-    : sig
-      ? <T en={sig.reason_en} bn={sig.reason_bn || sig.reason_en} />
-      : undefined;
   return (
     <StockRow
       code={item.trading_code}
       name={item.company_name}
       inset="bleed"
       className="sg-row"
-      masked={masked}
       tags={sig ? <SignalChip signal={sig.signal} strength={sig.strength} /> : undefined}
-      sub={sub}
-      subClamp
+      sub={item.sector ? <T en={item.sector} bn={sectorBn(item.sector)} /> : undefined}
+      detail={sig ? <SignalWhy reasonEn={sig.reason_en} reasonBn={sig.reason_bn} detail={detail} /> : undefined}
       price={item.ltp}
       change={item.change_pct}
       trailing={<ScoreBadge score={item.score} size="sm" />}
       action={<StarButton code={item.trading_code} size="md" />}
     />
+  );
+}
+
+function SignalWhy({ reasonEn, reasonBn, detail }: { reasonEn: string; reasonBn?: string | null; detail?: SignalDetail }) {
+  const since = detail?.since;
+  return (
+    <Locked as="span" className="sg-prem">
+      <span className="sg-prem-why">
+        <T en={reasonEn} bn={reasonBn || reasonEn} />
+      </span>
+      {detail && (detail.buy_below != null || detail.stop_above != null || since) && (
+        <span className="sg-prem-nums">
+          {detail.buy_below != null && (
+            <span>
+              <T en={`Our buy price: under ${money(detail.buy_below)}`} bn={`আমাদের কেনার দাম: ${money(detail.buy_below)}-এর নিচে`} />
+            </span>
+          )}
+          {detail.stop_above != null && (
+            <span>
+              <T en={`Stops being a Buy past ${money(detail.stop_above)}`} bn={`${money(detail.stop_above)} পার হলে আর কেনার সংকেত থাকবে না`} />
+            </span>
+          )}
+          {since && (
+            <span>
+              {detail.since_floor ? (
+                <T en="A Buy for over 4 months" bn="4 মাসের বেশি সময় ধরে কেনার সংকেত" />
+              ) : (
+                <T en={`A Buy since ${formatDate(since)}`} bn={`${bnDate(since)} থেকে কেনার সংকেত`} />
+              )}
+            </span>
+          )}
+        </span>
+      )}
+    </Locked>
   );
 }

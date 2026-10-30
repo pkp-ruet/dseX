@@ -18,7 +18,9 @@ import { RESULT_LEVEL, epsTk, quarterLabel, resultMove } from "@/lib/results";
  * locked-filter preview): level, quarter, EPS and the move shown, the company
  * hidden; a plain block, not a link.
  * What the report means (`meaning_en`) is the Premium line under it since
- * 2026-10-29 — always in the HTML, shown to Premium readers only (`Locked`).
+ * 2026-10-29, and since 2026-10-31 whether the latest quarter came in above or
+ * below the year's own pace (`pace`) — always in the HTML, shown to Premium
+ * readers only (`Locked`).
  * `mark` replaces the page's H / ★ tag (the dashboard passes its `OwnerMark`,
  * which reads the bundle's sets instead of `PersonalCodesProvider`).
  * Also the rows of the dashboard's results card (`ResultsPromoCard`).
@@ -67,9 +69,15 @@ export default function ResultRow({
             <T en={r.profit_en ?? ""} bn={r.profit_bn ?? ""} />
           </span>
         )}
-        {!masked && r.meaning_en && (
+        {!masked && (r.meaning_en || r.pace) && (
           <Locked as="span" className="rs-meaning">
-            <T en={r.meaning_en} bn={r.meaning_bn || r.meaning_en} />
+            {r.meaning_en && <T en={r.meaning_en} bn={r.meaning_bn || r.meaning_en} />}
+            {r.pace && (
+              <span className={`rs-pace rs-pace--${r.pace.word}`}>
+                <T en={r.pace.headline_en} bn={r.pace.headline_bn} />{" "}
+                <T en={r.pace.en} bn={r.pace.bn || r.pace.en} />
+              </span>
+            )}
           </Locked>
         )}
       </span>

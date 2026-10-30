@@ -719,3 +719,32 @@ details[open] > .pm-fold-summary .pm-fold-chev { transform: rotate(180deg); }
   font-weight: 600;
   color: var(--negative);
 }
+
+/* ── The page question card (2026-10-31, the Premium Desk plan) ─────────────
+   `components/premium/PageQuestions.tsx`: a market page's ONE Premium card —
+   free facts from the page beside the questions they leave. Same gold look as
+   the stock page's `.nq`, but a card of its own. */
+.pq-anchor { display: block; scroll-margin-top: 96px; }
+.pq {
+  display: grid;
+  gap: var(--space-4);
+  scroll-margin-top: 96px;
+  padding: 20px;
+  border: 1px solid rgb(var(--gold-rgb) / 0.45);
+  border-radius: var(--radius-md);
+  background: rgb(var(--gold-rgb) / 0.10);
+}
+@media (min-width: 640px) { .pq { padding: 28px; } }
+.pq-tag { display: inline-flex; align-items: center; gap: 6px; width: fit-content; padding: 4px 10px; border-radius: 999px; background: var(--surface); font-size: var(--fs-xs); font-weight: 700; color: var(--gold-ink); }
+.pq-title { font-size: var(--fs-lg); font-weight: 700; line-height: 1.3; color: var(--text); text-wrap: balance; }
+.pq-lead { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+.pq-rows { display: grid; }
+.pq-row { display: grid; grid-template-columns: fit-content(13rem) minmax(0, 1fr); gap: var(--space-3); align-items: start; padding: var(--space-3) 0; border-top: 1px solid rgb(var(--gold-rgb) / 0.35); }
+.pq-row:first-child { border-top: 0; padding-top: 0; }
+.pq-row .rp-chip { justify-self: start; max-width: 100%; }
+.pq-q { display: grid; gap: 2px; min-width: 0; }
+.pq-q b { font-size: var(--fs-md); line-height: 1.3; color: var(--text); }
+.pq-q span { font-size: var(--fs-sm); line-height: 1.4; color: var(--text); }
+@media (max-width: 420px) { .pq-row { grid-template-columns: minmax(0, 1fr); gap: var(--space-2); } }
+.pq-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.pq-fine { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }

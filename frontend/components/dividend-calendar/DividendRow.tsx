@@ -6,6 +6,7 @@ import { Locked } from "@/components/premium/AnswerLock";
 import { pct } from "@/lib/formatters";
 import type { CorporateActionEvent } from "@/lib/api";
 import { dayShort, daysWords } from "@/components/dividend-calendar/dates";
+import RemindButton from "@/components/dividend-calendar/RemindButton";
 
 type Mode = "record" | "agm" | "top" | "declared" | "dated";
 
@@ -109,17 +110,23 @@ function extras(e: CorporateActionEvent, mode: Mode): ReactNode[] {
  * Under a cash dividend, "Is it safe?" (`e.safety`, one word and one plain
  * sentence) — Premium since 2026-10-29, always in the HTML, shown to Premium
  * readers only (`Locked`). The rows themselves are free.
+ * Since 2026-10-31 a second Premium line sits beside it on a record date:
+ * "Worth buying for it?" (`e.capture` — how far the price moved across its last
+ * record dates, against the cash). `remind` adds the "Remind me" bell beside
+ * the row (outside the link) for a cash record date still ahead.
  */
 export default function DividendRow({
   e,
   mode = "record",
   rank,
   mark,
+  remind = false,
 }: {
   e: CorporateActionEvent;
   mode?: Mode;
   rank?: number;
   mark?: ReactNode;
+  remind?: boolean;
 }) {
   const more = extras(e, mode);
   const name = e.company_name || e.trading_code;
@@ -169,7 +176,7 @@ export default function DividendRow({
       </span>
     ) : null;
 
-  return (
+  const row = (
     <Link
       href={`/stock/${encodeURIComponent(e.trading_code)}#dividends`}
       prefetch={false}
@@ -199,8 +206,26 @@ export default function DividendRow({
             <T en={e.safety.line_en} bn={e.safety.line_bn} />
           </Locked>
         )}
+        {e.capture && mode === "record" && (
+          <Locked as="span" className="dc-safety">
+            <b className={`dc-safety-w dc-capture--${e.capture.level}`}>
+              <T en={e.capture.word_en} bn={e.capture.word_bn} />
+            </b>
+            <span className="dc-sep" aria-hidden="true"> · </span>
+            <T en={e.capture.line_en} bn={e.capture.line_bn} />
+          </Locked>
+        )}
       </span>
       <span className="dc-fig">{fig}</span>
     </Link>
+  );
+  const canRemind =
+    remind && mode === "record" && (e.cash_per_share ?? 0) > 0 && (e.buy_days_left == null || e.buy_days_left >= 0);
+  if (!canRemind) return row;
+  return (
+    <div className="dc-row-shell">
+      {row}
+      <RemindButton code={e.trading_code} />
+    </div>
   );
 }

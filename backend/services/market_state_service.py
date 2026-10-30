@@ -1213,10 +1213,26 @@ def _add_research(bundle: dict) -> None:
     (bundle.get("history") or {})["bargains"] = series
 
 
+def _add_watch_out(bundle: dict) -> None:
+    """Things to watch out for (2026-10-31): the caution list (prices running
+    on no news, services/caution_list.py) and the Z-risk watch (companies close
+    to category Z, services/z_risk.py). The page shows who free; each reason is
+    Premium (screen-only). Each part guarded on its own."""
+    from backend.services.caution_list import caution_list
+    from backend.services.z_risk import z_risk_list
+
+    bundle["watch_out"] = {
+        "caution": _guard("caution_list", lambda: caution_list().get("items") or [], []),
+        "z_risk": _guard("z_risk", lambda: z_risk_list().get("items") or [], []),
+        "z_means": _guard("z_means", lambda: z_risk_list().get("means"), None),
+    }
+
+
 @_ttl_cache(300)
 def compute_market_state() -> dict:
     bundle = _compute()[0]
     _add_research(bundle)
+    _add_watch_out(bundle)
     return bundle
 
 
