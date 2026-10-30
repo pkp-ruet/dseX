@@ -57,10 +57,11 @@ import { PREMIUM_PATH, usePremium } from "@/lib/premium";
  * and Premium readers: nothing on it is locked; the catch is the free cap
  * (FREE_LIMITS.watchlist = 5), shown in the count and, at the cap, one note.
  *
- * Order: count + share (+ the cap note) → hero (mood, one sentence, four
- * answers) → since-last-visit note → "What's new on your shares" (what
- * happened · coming up, lib/watch-updates.ts) → "Your shares" (add search,
- * one sort menu, THE table, see WatchTable.tsx) → news.
+ * Order: count + share (+ the cap note) → "Your shares" (add search, one
+ * sort menu, THE table, see WatchTable.tsx — first since 2026-10-30, user
+ * decision) → hero (mood, one sentence, four answers) → since-last-visit
+ * note → "What's new on your shares" (what happened · coming up,
+ * lib/watch-updates.ts) → news.
  *
  * Data: the scores, near-extremes and upcoming dividends (shared caches), the
  * news, the price alerts, and `GET /api/watchlist/updates` (results, results
@@ -650,20 +651,7 @@ function WatchlistTableInner() {
 
       {limits.watchlist !== null && codes.length >= limits.watchlist && <CapNote limit={limits.watchlist} />}
 
-      {ready && (
-        <WatchlistAnalysis codes={codes} scores={scores} meta={meta} />
-      )}
-
-      {ready && (
-        <div className="wl-stack mt-6 empty:hidden">
-          <SinceLastVisit codes={codes} rows={scoreRows} news={news} dividendSoon={dividends} />
-          <PriceAlertTip />
-        </div>
-      )}
-
-      {ready && <WatchUpdates view={view} loading={updatesLoading} />}
-
-      <section className={codes.length > 0 ? "wl-section" : undefined} aria-labelledby="wl-stocks">
+      <section aria-labelledby="wl-stocks">
         <SectionHeader
           id="wl-stocks"
           title={
@@ -752,6 +740,21 @@ function WatchlistTableInner() {
           </>
         )}
       </section>
+
+      {ready && (
+        <div className="wl-section">
+          <WatchlistAnalysis codes={codes} scores={scores} meta={meta} />
+        </div>
+      )}
+
+      {ready && (
+        <div className="wl-stack mt-6 empty:hidden">
+          <SinceLastVisit codes={codes} rows={scoreRows} news={news} dividendSoon={dividends} />
+          <PriceAlertTip />
+        </div>
+      )}
+
+      {ready && <WatchUpdates view={view} loading={updatesLoading} />}
 
       {codes.length > 0 && !error && (
         <WatchlistNews codes={codes} news={news} loading={newsLoading} />
