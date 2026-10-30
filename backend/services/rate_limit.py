@@ -135,6 +135,7 @@ RULES: list[Rule] = [
     _rule("screener-run", "POST", r"^/api/custom-lists/run$", 30, 15),
     _rule("recommend", "POST", r"^/api/recommendations$", 20, 10),
     _rule("glance", "GET", r"^/api/watchlist/glance$", 30, 15),
+    _rule("watch-updates", "GET", r"^/api/watchlist/updates$", 30, 15),
     _rule("news-multi", "GET", r"^/api/news/multi$", 30, 15),
     _rule("prices", "GET", r"^/api/company/[^/]+/prices$", 60, 30),
     # Writes.

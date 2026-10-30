@@ -3119,6 +3119,40 @@ export async function getWatchlistGlance(codes: string[]): Promise<GlanceRow[]> 
   return data.rows ?? [];
 }
 
+/** A dividend-calendar row on a followed code (free fields only). */
+export type WatchCalendarRow = Pick<
+  CorporateActionEvent,
+  | "trading_code" | "company_name" | "dividend_type" | "cash_pct" | "stock_pct" | "cash_per_share"
+  | "yield_pct" | "declaration_date" | "record_date" | "agm_date" | "amended" | "is_no_dividend"
+>;
+
+/** Everything new and coming on the followed codes (backend
+ *  services/watchlist_updates.py, 2026-10-30). Free facts only — the watchlist
+ *  page is the same for every reader; the free cap is the catch. */
+export interface WatchlistUpdates {
+  as_of: string;
+  /** The last trading day in the prices (absent from an older backend). */
+  price_date?: string | null;
+  /** Reports posted in the last 30 days (no "what it means"). */
+  results: LatestResultRow[];
+  /** Results meetings in the next two weeks (no "what to expect"). */
+  coming_results: Pick<UpcomingResult, "code" | "name" | "date" | "days" | "purpose" | "period_end" | "label_en" | "label_bn">[];
+  record_dates: WatchCalendarRow[];
+  agms: WatchCalendarRow[];
+  /** Dividends declared in the last 45 days. */
+  declared: WatchCalendarRow[];
+  /** Grade changes in the last 30 days, newest first. */
+  grades: Record<string, { date: string; from_tier: TierKey; to_tier: TierKey; from_score: number | null; to_score: number | null }[]>;
+  ranges: Record<string, { hi: number | null; lo: number | null }>;
+}
+
+export async function getWatchlistUpdates(codes: string[]): Promise<WatchlistUpdates | null> {
+  if (!codes.length) return null;
+  const res = await fetch(`${getApiUrl()}/api/watchlist/updates?codes=${encodeURIComponent(codes.join(","))}`);
+  if (!res.ok) throw new Error(`watchlist updates ${res.status}`);
+  return (await res.json()) as WatchlistUpdates;
+}
+
 // ---------------------------------------------------------------------------
 // Your own research lists (backend services/custom_lists.py). The menu and a
 // live run are public; saving is Premium (403 limit_reached:custom_lists).

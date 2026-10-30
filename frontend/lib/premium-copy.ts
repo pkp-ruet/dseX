@@ -281,12 +281,12 @@ export const ROWS: { what: Bi; job: Job; free: Bi; premium: Bi }[] = [
     job: "watch",
     what: { en: "Watchlist", bn: "ওয়াচলিস্ট" },
     free: {
-      en: "5 shares with their price, grade and move since you followed, and how many trade under fair value, have a record date soon, or carry a watch-out.",
-      bn: "5টি শেয়ার, তাদের দাম, গ্রেড আর অনুসরণের পর কতটা বদলেছে, আর এর কতগুলো ন্যায্য দামের নিচে, কতগুলোর রেকর্ড ডেট কাছে, বা কতগুলোতে সতর্কতা আছে।",
+      en: "The whole page for up to 5 shares: prices, grades, results, dividends, grade changes, your alerts, the dates ahead and the news.",
+      bn: "5টি পর্যন্ত শেয়ারের জন্য পুরো পেজ: দাম, গ্রেড, আর্থিক ফল, ডিভিডেন্ড, গ্রেড বদল, আপনার অ্যালার্ট, সামনের তারিখ আর খবর।",
     },
     premium: {
-      en: "No limit, and our read in every row: the price against fair value, whether it is a Buy today and at what price, the next record date or AGM, and every watch-out.",
-      bn: "কোনো সীমা নেই, আর প্রতিটি সারিতে আমাদের বিশ্লেষণ: দাম বনাম ন্যায্য দাম, আজ কেনা যায় কি না ও কোন দামে, পরের রেকর্ড ডেট বা এজিএম, আর সব সতর্কতা।",
+      en: "The same page for up to 200 shares.",
+      bn: "একই পেজ, 200টি পর্যন্ত শেয়ারের জন্য।",
     },
   },
   {

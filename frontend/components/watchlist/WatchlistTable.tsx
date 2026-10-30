@@ -8,8 +8,7 @@ import {
   getNearExtremes,
   getDividendsUpcoming,
   getWatchlistNews,
-  getWatchlistGlance,
-  type GlanceRow,
+  getWatchlistUpdates,
   type ScoreItem,
   type ScoresResponse,
   type NearExtremeItem,
@@ -17,6 +16,8 @@ import {
   type NearExtremesData,
   type WatchlistNewsItem,
   type WatchlistMeta,
+  type WatchlistUpdates,
+  type PriceAlert,
 } from "@/lib/api";
 import { cacheKeys, readCache, writeCache } from "@/lib/swr-cache";
 import {
@@ -28,6 +29,8 @@ import {
   removeFromWatchlist,
   setWatchlist,
 } from "@/lib/watchlist";
+import { getCachedAlerts, loadAlerts, subscribeAlerts } from "@/lib/price-alerts";
+import { buildWatchUpdates } from "@/lib/watch-updates";
 import { useAuth } from "@/context/AuthContext";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -44,17 +47,24 @@ import EmptyStateActions from "./EmptyStateActions";
 import ShareWatchlistButton from "./ShareWatchlistButton";
 import SinceLastVisit from "./SinceLastVisit";
 import WatchTable, { sinceFollowed, type WatchRow } from "./WatchTable";
+import WatchUpdates from "./WatchUpdates";
 import { toast } from "@/lib/toast";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
-import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
 
 /*
- * /watchlist (styles: app/styles/watchlist.css, `wl-*`). Order: count + share
- * → hero (mood, one sentence, four answers) → since-last-visit note → "Your
- * shares" (add search, one sort menu, THE table — free basics + Premium "our
- * read" in one row per stock, see WatchTable.tsx) → "What stands out" folds →
- * news. The separate Premium glance board was folded into the table
- * 2026-10-28 (user decision: one table, not two).
+ * /watchlist (styles: app/styles/watchlist.css, `wl-*`) — the one page for
+ * the shares you follow (2026-10-30, user decision). The same page for free
+ * and Premium readers: nothing on it is locked; the catch is the free cap
+ * (FREE_LIMITS.watchlist = 5), shown in the count and, at the cap, one note.
+ *
+ * Order: count + share (+ the cap note) → hero (mood, one sentence, four
+ * answers) → since-last-visit note → "What's new on your shares" (what
+ * happened · coming up, lib/watch-updates.ts) → "Your shares" (add search,
+ * one sort menu, THE table, see WatchTable.tsx) → news.
+ *
+ * Data: the scores, near-extremes and upcoming dividends (shared caches), the
+ * news, the price alerts, and `GET /api/watchlist/updates` (results, results
+ * meetings, record dates, AGMs, declarations, grade changes, yearly ranges).
  */
 
 function flatten(scores: ScoresResponse | null): ScoreItem[] {
@@ -80,20 +90,17 @@ interface ExtremeInfo {
   side: "high" | "low";
 }
 
-type SortKey = "az" | "recent" | "move" | "since" | "score" | "yield" | "value" | "event" | "risk";
+type SortKey = "news" | "az" | "recent" | "move" | "since" | "score" | "yield";
 
-/** One sort menu. The last three order by our read, so they are Premium —
- *  a free reader sees them, locked (the order alone would give it away). */
-const SORT_OPTIONS: { key: SortKey; en: string; bn: string; premium?: boolean }[] = [
+/** One sort menu, the same for every reader. */
+const SORT_OPTIONS: { key: SortKey; en: string; bn: string }[] = [
+  { key: "news", en: "What's new first", bn: "নতুন খবর আগে" },
   { key: "az", en: "A–Z", bn: "A–Z" },
   { key: "recent", en: "Recently added", bn: "সম্প্রতি যোগ করা" },
   { key: "move", en: "Biggest move today", bn: "আজ সবচেয়ে বেশি ওঠানামা" },
   { key: "since", en: "Best since you followed", bn: "অনুসরণের পর সবচেয়ে ভালো" },
   { key: "score", en: "Best score", bn: "সেরা স্কোর" },
   { key: "yield", en: "Highest dividend yield", bn: "সবচেয়ে বেশি ডিভিডেন্ড ইল্ড" },
-  { key: "value", en: "Most under fair value", bn: "ন্যায্য দামের সবচেয়ে নিচে", premium: true },
-  { key: "event", en: "Next record date or AGM", bn: "আগে রেকর্ড ডেট বা এজিএম", premium: true },
-  { key: "risk", en: "Most watch-outs", bn: "সবচেয়ে বেশি সতর্কতা", premium: true },
 ];
 
 // ---------------------------------------------------------------------------
@@ -270,6 +277,34 @@ function AddBar({ scores }: { scores: ScoresResponse | null }) {
 }
 
 // ---------------------------------------------------------------------------
+// The cap: the one thing Premium changes on this page
+// ---------------------------------------------------------------------------
+
+function CapNote({ limit }: { limit: number }) {
+  return (
+    <Card padding="none" className="wl-cap">
+      <div className="wl-cap-body">
+        <p className="wl-cap-title">
+          <T
+            en={`You follow ${limit} shares, the most a free account can.`}
+            bn={`আপনি ${limit}টি শেয়ার অনুসরণ করছেন, ফ্রি অ্যাকাউন্টে এর বেশি যায় না।`}
+          />
+        </p>
+        <p className="wl-cap-text">
+          <T
+            en="This page works the same with Premium. Premium lifts the limit, so you can follow up to 200 shares and see all their updates here."
+            bn="প্রিমিয়ামেও এই পেজ একই রকম। প্রিমিয়াম শুধু সীমা তুলে দেয়, তাই 200টি পর্যন্ত শেয়ার অনুসরণ করে সবগুলোর খবর এখানে দেখতে পারবেন।"
+          />
+        </p>
+      </div>
+      <Link href={`${PREMIUM_PATH}#pay`} prefetch={false} className="btn-primary btn-sm shrink-0">
+        <T en="Follow more with Premium" bn="প্রিমিয়ামে আরও অনুসরণ করুন" />
+      </Link>
+    </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main client component
 // ---------------------------------------------------------------------------
 
@@ -302,7 +337,6 @@ function dividendsToSet(data: DividendsUpcoming): Set<string> {
 function WatchlistTableInner() {
   const { isLoggedIn, isLoading } = useAuth();
   const { limits } = usePremium();
-  const premiumOpen = usePremiumOpen();
   const { lang } = useLang();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -334,16 +368,16 @@ function WatchlistTableInner() {
   const [error, setError] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0);
   const [importPrompt, setImportPrompt] = useState(false);
-  const [sort, setSort] = useState<SortKey>("az");
+  const [sort, setSort] = useState<SortKey>("news");
 
   // News fetched in parallel with public data — keyed on the sorted code list.
   const [news, setNews] = useState<WatchlistNewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(false);
 
-  // Our read on each stock (fair value, signal, next event, watch-outs) — the
-  // table's Premium half. Public payload; the lock is screen-only.
-  const [glance, setGlance] = useState<GlanceRow[] | null>(null);
-  const [glanceLoading, setGlanceLoading] = useState(false);
+  // Everything new and coming on the followed codes (free facts only).
+  const [updates, setUpdates] = useState<WatchlistUpdates | null>(null);
+  const [updatesLoading, setUpdatesLoading] = useState(false);
+  const [alerts, setAlerts] = useState<PriceAlert[]>([]);
 
   // Load watchlist when logged in.
   // loadWatchlist synchronously hydrates its module-level cache from
@@ -429,32 +463,41 @@ function WatchlistTableInner() {
     };
   }, [codes.join(",")]);
 
-  // Our read — same pattern: cached copy first, then the fresh one.
+  // Updates — same pattern: cached copy first, then the fresh one.
   useEffect(() => {
     if (!codes.length) {
-      setGlance([]);
-      setGlanceLoading(false);
+      setUpdates(null);
+      setUpdatesLoading(false);
       return;
     }
-    const key = cacheKeys.watchlistGlance(codes);
-    const cached = readCache<GlanceRow[]>(key);
-    setGlance(cached);
-    setGlanceLoading(!cached);
+    const key = cacheKeys.watchlistUpdates(codes);
+    const cached = readCache<WatchlistUpdates>(key);
+    setUpdates(cached);
+    setUpdatesLoading(!cached);
     let cancelled = false;
-    getWatchlistGlance(codes)
+    getWatchlistUpdates(codes)
       .then((fresh) => {
-        if (cancelled) return;
-        setGlance(fresh);
+        if (cancelled || !fresh) return;
+        setUpdates(fresh);
         writeCache(key, fresh);
       })
       .catch(() => {})
       .finally(() => {
-        if (!cancelled) setGlanceLoading(false);
+        if (!cancelled) setUpdatesLoading(false);
       });
     return () => {
       cancelled = true;
     };
   }, [codes.join(",")]);
+
+  // Price alerts: one reached lately, or one close now, is an update too.
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    const sync = () => setAlerts(getCachedAlerts());
+    loadAlerts().then(sync).catch(() => {});
+    sync();
+    return subscribeAlerts(sync);
+  }, [isLoggedIn]);
 
   // Shared-link import prompt
   useEffect(() => {
@@ -463,8 +506,7 @@ function WatchlistTableInner() {
     }
   }, [isLoggedIn, sharedCodes]);
 
-  // A Premium order picked before a membership ended falls back to A–Z.
-  const sortKey: SortKey = SORT_OPTIONS.find((o) => o.key === sort)?.premium && !premiumOpen ? "az" : sort;
+  const sortKey = sort;
 
   // Score rows for the table, in the chosen order.
   const scoreRows = useMemo(() => {
@@ -474,18 +516,22 @@ function WatchlistTableInner() {
       .filter((it): it is ScoreItem => Boolean(it));
   }, [scores, codes]);
 
+  const view = useMemo(
+    () => buildWatchUpdates({ rows: scoreRows, updates, alerts, news, extremes: extremesData }),
+    [scoreRows, updates, alerts, news, extremesData],
+  );
+
   const rows = useMemo<WatchRow[]>(() => {
-    const byCode = new Map((glance ?? []).map((g) => [g.code.toUpperCase(), g]));
     const built = scoreRows.map((item): WatchRow => {
       const code = item.trading_code.toUpperCase();
-      const g = byCode.get(code) ?? null;
+      const range = updates?.ranges?.[code];
       const ex = extremes.get(code)?.item;
       return {
         item,
-        glance: g,
         meta: meta[code] ?? null,
-        hi: g?.hi52 ?? ex?.w52_high ?? null,
-        lo: g?.lo52 ?? ex?.w52_low ?? null,
+        hi: range?.hi ?? ex?.w52_high ?? null,
+        lo: range?.lo ?? ex?.w52_low ?? null,
+        updates: view.byCode.get(code) ?? [],
       };
     });
     // Nulls sort last; ties fall back to A–Z so order is stable.
@@ -506,17 +552,15 @@ function WatchlistTableInner() {
       const x = a.item;
       const y = b.item;
       let d = 0;
-      if (sortKey === "recent") d = desc(addedMs(a), addedMs(b));
+      if (sortKey === "news") d = asc(a.updates[0]?.rank, b.updates[0]?.rank);
+      else if (sortKey === "recent") d = desc(addedMs(a), addedMs(b));
       else if (sortKey === "since") d = desc(sinceFollowed(x, a.meta), sinceFollowed(y, b.meta));
       else if (sortKey === "move") d = desc(abs(x.change_pct), abs(y.change_pct));
       else if (sortKey === "score") d = desc(x.score, y.score);
       else if (sortKey === "yield") d = desc(x.div_yield_pct, y.div_yield_pct);
-      else if (sortKey === "value") d = asc(a.glance?.fair?.gap_pct, b.glance?.fair?.gap_pct);
-      else if (sortKey === "event") d = asc(a.glance?.event?.days_left, b.glance?.event?.days_left);
-      else if (sortKey === "risk") d = desc(a.glance?.risks.length, b.glance?.risks.length);
       return d !== 0 ? d : x.trading_code.localeCompare(y.trading_code);
     });
-  }, [scoreRows, glance, extremes, meta, sortKey]);
+  }, [scoreRows, updates, extremes, meta, view, sortKey]);
 
   // Remove with a short undo window (shared toast) instead of an instant, silent
   // delete. The undo restores the original added-on date + price meta instead
@@ -599,28 +643,15 @@ function WatchlistTableInner() {
                 </>
               }
             />
-            {limits.watchlist !== null && codes.length >= limits.watchlist && (
-              <>
-                {" · "}
-                <Link href={PREMIUM_PATH} className="font-semibold text-primary-ink hover:underline">
-                  <T en="Follow more with Premium" bn="প্রিমিয়ামে আরও অনুসরণ করুন" />
-                </Link>
-              </>
-            )}
           </p>
           <ShareWatchlistButton codes={codes} />
         </div>
       )}
 
+      {limits.watchlist !== null && codes.length >= limits.watchlist && <CapNote limit={limits.watchlist} />}
+
       {ready && (
-        <WatchlistAnalysis
-          mode="snapshot"
-          codes={codes}
-          scores={scores}
-          extremes={extremesData}
-          dividends={dividendsData}
-          meta={meta}
-        />
+        <WatchlistAnalysis codes={codes} scores={scores} meta={meta} />
       )}
 
       {ready && (
@@ -629,6 +660,8 @@ function WatchlistTableInner() {
           <PriceAlertTip />
         </div>
       )}
+
+      {ready && <WatchUpdates view={view} loading={updatesLoading} />}
 
       <section className={codes.length > 0 ? "wl-section" : undefined} aria-labelledby="wl-stocks">
         <SectionHeader
@@ -694,21 +727,16 @@ function WatchlistTableInner() {
                 value={sortKey}
                 onChange={(e) => setSort(e.target.value as SortKey)}
               >
-                {SORT_OPTIONS.map((o) => {
-                  const locked = o.premium && !premiumOpen;
-                  const label = lang === "bn" ? `সাজানো: ${o.bn}` : `Sort: ${o.en}`;
-                  const tag = locked ? (lang === "bn" ? " · প্রিমিয়াম" : " · Premium") : "";
-                  return (
-                    <option key={o.key} value={o.key} disabled={locked}>
-                      {`${label}${tag}`}
-                    </option>
-                  );
-                })}
+                {SORT_OPTIONS.map((o) => (
+                  <option key={o.key} value={o.key}>
+                    {lang === "bn" ? `সাজানো: ${o.bn}` : `Sort: ${o.en}`}
+                  </option>
+                ))}
               </select>
             </div>
             <WatchTable
               rows={rows}
-              glanceLoading={glanceLoading}
+              loading={updatesLoading}
               onRemove={handleRemove}
               footer={
                 missing > 0 && (
@@ -724,17 +752,6 @@ function WatchlistTableInner() {
           </>
         )}
       </section>
-
-      {ready && (
-        <WatchlistAnalysis
-          mode="details"
-          codes={codes}
-          scores={scores}
-          extremes={extremesData}
-          dividends={dividendsData}
-          meta={meta}
-        />
-      )}
 
       {codes.length > 0 && !error && (
         <WatchlistNews codes={codes} news={news} loading={newsLoading} />
