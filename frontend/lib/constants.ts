@@ -113,9 +113,25 @@ export const SIGNAL_VAR: Record<AnySignalKind, string> = {
   sell:     "var(--negative)",
 };
 
-// Conviction — the backend upgrades a cheap Buy to "strong" when the stock is
-// deeply cheap AND still low in its 52-week range. The chip grammar is fixed in
-// components/ui/SignalChip.tsx: Strong Buy = filled, Buy = tinted positive,
-// Sell = tinted negative, `none` = nothing.
-export const STRONG_BUY_LABEL = "Strong buy";
-export const STRONG_BUY_LABEL_BN = "কেনার ভালো সুযোগ";
+// The price word on a Buy (2026-10-31: "Strong buy" was retired — what made a
+// Buy "strong" was only the price, so the price says it). The backend's
+// `strength: "strong"` (deeply cheap AND low in its yearly range) reads
+// "Very low price", an Excellent company at a middle price "Fair price", every
+// other Buy "Low price". Mirrors backend `signal_service.price_word`.
+export type PriceWordKey = "very_low" | "low" | "fair";
+
+export const PRICE_WORDS: Record<PriceWordKey, { en: string; bn: string; short: { en: string; bn: string } }> = {
+  very_low: { en: "Very low price", bn: "খুব কম দাম", short: { en: "Very low", bn: "খুব কম" } },
+  low:      { en: "Low price", bn: "কম দাম", short: { en: "Low", bn: "কম" } },
+  fair:     { en: "Fair price", bn: "ন্যায্য দাম", short: { en: "Fair", bn: "ন্যায্য" } },
+};
+
+/** The price word of a Buy signal; null for anything that isn't a Buy. */
+export function priceWordKey(
+  sig: { signal?: string | null; strength?: string | null; reason_key?: string | null } | null | undefined,
+): PriceWordKey | null {
+  if (!sig || sig.signal !== "buy") return null;
+  if (sig.strength === "strong") return "very_low";
+  if (sig.reason_key === "excellent_fair_price") return "fair";
+  return "low";
+}

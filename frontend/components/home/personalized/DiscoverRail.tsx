@@ -154,7 +154,7 @@ export default function DiscoverRail({
         )}
 
         {tipRows.length > 0 && (
-          <RailCard title={tt("tipsTitle")} sub={tt("tipsSub")} href="/buy-sell-signals#tips" linkLabel={tt("allTips")}>
+          <RailCard title={tt("tipsTitle")} sub={tt("tipsSub")} href="/buy-sell-signals" linkLabel={tt("allTips")}>
             {tipRows.map((tip) => {
               const kind = TIP_KIND[tip.category] ?? "kindTip";
               const tone = KIND_TONE[kind] ?? "primary";

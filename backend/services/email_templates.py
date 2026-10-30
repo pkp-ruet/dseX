@@ -604,7 +604,8 @@ def _daily_buys(buys: list[dict], total: int = 0) -> str:
     for b in buys:
         strong = b.get("strength") == "strong"
         bg, fg = _STRONG_BADGE if strong else _BUY_BADGE
-        label = "Strong buy" if strong else "Buy"
+        # "Strong buy" was retired 2026-10-31; the price says it.
+        label = "Buy · very low price" if strong else "Buy"
         name = (b.get("name") or "")[:26]
         code = b.get("code")
         url = b.get("url")

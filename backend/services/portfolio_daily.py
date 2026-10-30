@@ -255,10 +255,16 @@ def _facts(held_codes: set[str], today, followed_codes: Optional[set[str]] = Non
     except Exception:  # noqa: BLE001
         log.warning("answer change read failed", exc_info=True)
         answers = {}
+    try:
+        from backend.services.signal_today_service import signals_today
+        buylist = watch.buylist_changes(signals_today(), prices, followed_codes)
+    except Exception:  # noqa: BLE001
+        log.warning("buy list read failed", exc_info=True)
+        buylist = {}
     return {"prices": prices, "record": record, "results": results, "rows": rows,
             "score_before": before, "sector_class": sector_class, "grades": grades,
             "category": category, "lows": lows, "red_flags": red_flags,
-            "answers": answers}
+            "answers": answers, "buylist": buylist}
 
 
 def _trade_day(prices: dict) -> Optional[str]:

@@ -95,7 +95,8 @@ already say at the brokerage house.
 | score | স্কোর |
 | grade | গ্রেড |
 | Excellent · Good · Average · Weak | চমৎকার · ভালো · মাঝারি · দুর্বল |
-| Buy · Strong buy · Buy more · Sell | কেনা যায় · কেনার ভালো সুযোগ · আরও কেনা যায় · বিক্রি করুন |
+| Buy · Buy more · Sell | কেনা যায় · আরও কেনা যায় · বিক্রি করুন |
+| Very low price · Low price · Fair price (the price word on a Buy; "Strong buy" is retired) | খুব কম দাম · কম দাম · ন্যায্য দাম |
 | watchlist | ওয়াচলিস্ট |
 | portfolio | পোর্টফোলিও |
 | price alert | প্রাইস অ্যালার্ট |

@@ -2362,7 +2362,7 @@ export async function apiGetPortfolioHistory(pid?: string | null): Promise<Portf
 
 export interface PortfolioWatchEvent {
   id: string;
-  kind: "record" | "results" | "grade" | "category" | "drop" | "low52" | "red_flag" | "answer";
+  kind: "record" | "results" | "grade" | "category" | "drop" | "low52" | "red_flag" | "answer" | "buylist";
   code: string;
   level: "good" | "watch" | "bad";
   title_en: string;
@@ -2538,6 +2538,8 @@ export interface Desk {
   has_shares: boolean;
   brief: MorningBrief | null;
   after_close: { day: string; items: DeskItem[] } | null;
+  /** Who joined / left today's buy list (market-wide; null on a quiet day). */
+  buy_list?: { since: string; joined: string[]; joined_n: number; left_n: number } | null;
   letter: WeeklyLetter | null;
   watching: { holdings: number; watchlist: number; alerts: number; dividend_reminders: number; rank_alerts: number };
   month: { total: number; kinds: { kind: PortfolioWatchEvent["kind"]; count: number }[]; phrase_en?: string; phrase_bn?: string };
@@ -2826,6 +2828,51 @@ export interface SignalDetail {
 
 export async function getSignalDetail(): Promise<{ as_of: string; items: Record<string, SignalDetail> }> {
   return apiFetch("/api/signals/detail", 3600);
+}
+
+/** `GET /api/signals/today` — the buy signals page in one bundle (2026-10-31,
+ *  backend `signal_today.py`). Funnel, changes and price words are free; `why`,
+ *  the prices and `almost` are Premium (screen-only). */
+export interface SignalsToday {
+  as_of: string | null;
+  funnel: {
+    graded: number;
+    good: number;
+    buys: number;
+    left_out: ({ key: string; n: number } & BiText)[];
+  };
+  changes: {
+    since: string;
+    joined: string[];
+    left: { code: string; reason_key: string | null; reason: BiText | null }[];
+    /** So much moved at once that it was a rule change, not news. */
+    rebuilt: boolean;
+  } | null;
+  buys: Record<
+    string,
+    SignalDetail & {
+      price_word: "very_low" | "low" | "fair" | null;
+      /** Where today's price sits in its yearly range, 0 (low) to 100 (high). */
+      range_pct: number | null;
+      why: BiText[];
+    }
+  >;
+  almost: {
+    code: string;
+    reason_key: string | null;
+    group: string;
+    reason: BiText;
+    line: BiText | null;
+    /** The price under which it would come in, when the price keeps it off. */
+    under: number | null;
+    gap_pct: number | null;
+    score: number | null;
+    tier: string | null;
+  }[];
+}
+
+export async function getSignalsToday(): Promise<SignalsToday> {
+  return apiFetch("/api/signals/today", 3600);
 }
 
 // ---------------------------------------------------------------------------

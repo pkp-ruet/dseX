@@ -165,11 +165,7 @@ export interface Word {
 
 /** The one-word answer: the signal, worded the way the stock page words it. */
 export function landingAnswer(s: LandingStock): Word {
-  if (s.sig === "buy") {
-    return s.strong
-      ? { en: "Strong buy", bn: "কেনার ভালো সুযোগ", tone: "good" }
-      : { en: "Buy", bn: "কিনুন", tone: "good" };
-  }
+  if (s.sig === "buy") return { en: "Buy", bn: "কেনা যায়", tone: "good" };
   if (s.sig === "sell") return { en: "Avoid", bn: "এড়িয়ে চলুন", tone: "bad" };
   if (s.rk === "not_rated" || s.score == null) return { en: "Not rated yet", bn: "এখনো রেটিং নেই", tone: "neutral" };
   if (s.rk === "average_fundamentals") return { en: "No reason to buy", bn: "কেনার কারণ নেই", tone: "neutral" };
@@ -199,6 +195,7 @@ export function landingLights(s: LandingStock, tier: string, tierEn: string, tie
   const p4 = s.pillars[3];
   const price: Word =
     s.rk === "near_52w_high" ? { en: "Near its yearly top", bn: "বছরের সর্বোচ্চের কাছে", tone: "watch" }
+    : s.sig === "buy" && s.strong ? { en: "Very low", bn: "খুব কম", tone: "good" }
     : p4 == null ? { en: "Not known", bn: "জানা নেই", tone: "neutral" }
     : p4 >= 7 ? { en: "Low", bn: "কম", tone: "good" }
     : p4 >= 4 ? { en: "Fair", bn: "ন্যায্য", tone: "neutral" }

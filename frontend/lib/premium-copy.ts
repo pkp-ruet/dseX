@@ -271,12 +271,12 @@ export const ROWS: { what: Bi; job: Job; free: Bi; premium: Bi }[] = [
     job: "understand",
     what: { en: "Buy signals", bn: "কেনার সংকেত" },
     free: {
-      en: "Every Buy and Strong buy today, with its grade, price and sector.",
-      bn: "আজকের প্রতিটি কেনার সংকেত আর কেনার ভালো সুযোগ, গ্রেড, দাম আর সেক্টরসহ।",
+      en: "Every Buy today with its grade and how low the price is, and the good companies left out and why.",
+      bn: "আজকের প্রতিটি কেনার সংকেত, গ্রেড আর দাম কতটা কম, সঙ্গে বাদ পড়া ভালো কোম্পানিগুলো আর কেন বাদ পড়ল।",
     },
     premium: {
-      en: "Under every one: why it is a Buy, our buy price, the price where it stops being a Buy, and how long it has been one.",
-      bn: "প্রতিটির নিচে: কেন কেনার সংকেত, আমাদের কেনার দাম, কোন দামে আর কেনার সংকেত থাকবে না, আর কতদিন ধরে এটি কেনার সংকেত।",
+      en: "Under every one: why it is a Buy in three facts, our buy price, the price where it stops being one and since when. Plus the good companies almost on the list, and a note when the list changes.",
+      bn: "প্রতিটির নিচে: কেন কেনার সংকেত, তিনটি তথ্যে, আমাদের কেনার দাম, কোন দামে আর কেনার সংকেত থাকবে না আর কবে থেকে। সঙ্গে তালিকায় প্রায় ঢুকে যাওয়া ভালো কোম্পানিগুলো, আর তালিকা বদলালে একটি নোট।",
     },
   },
   {

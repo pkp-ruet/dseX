@@ -3349,6 +3349,10 @@ def build_answer(inp: dict, sections: dict) -> dict:
     # 2 · the price
     if reason == "near_52w_high":
         p_word, p_tone = bi("Near its yearly top", "বছরের সর্বোচ্চের কাছে"), "fair"
+    elif signal == "buy" and sig.get("strength") == "strong":
+        # What made a Buy "strong" was only the price (2026-10-31: the word
+        # "Strong buy" was retired, the price light says it instead).
+        p_word, p_tone = bi("Very low", "খুব কম"), "good"
     elif pr:
         p_word = pr["word"]
         p_tone = "bad" if p_word["en"] == "High" else pr["tone"]
@@ -3399,10 +3403,10 @@ def build_answer(inp: dict, sections: dict) -> dict:
                   "মাঝারি মানের কোম্পানি। কেনার মতো আলাদা কিছু নেই।")
     elif signal == "buy" and not block:
         decision, tone = "buy", "good"
-        word = bi("Strong buy", "জোরালোভাবে কেনা যায়") if sig.get("strength") == "strong" else bi("Buy", "কেনা যায়")
-        fair = p_word["en"] == "Fair"
-        line = bi(f"{good['en']} at a {'fair' if fair else 'low'} price, and nothing serious is wrong.",
-                  f"{good['bn']}, {'ন্যায্য' if fair else 'কম'} দামে পাওয়া যাচ্ছে, আর গুরুতর কোনো সমস্যা নেই।")
+        word = bi("Buy", "কেনা যায়")
+        pe, pb = {"Fair": ("fair", "ন্যায্য"), "Very low": ("very low", "খুব কম")}.get(p_word["en"], ("low", "কম"))
+        line = bi(f"{good['en']} at a {pe} price, and nothing serious is wrong.",
+                  f"{good['bn']}, {pb} দামে পাওয়া যাচ্ছে, আর গুরুতর কোনো সমস্যা নেই।")
     else:
         decision, word, tone = "wait", bi("Not yet", "এখন নয়"), "fair"
         if block:

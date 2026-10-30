@@ -236,7 +236,7 @@ export default function AdminCampaignsClient() {
                         className="text-xs font-bold px-2 py-0.5 rounded-full"
                         style={{ background: "var(--primary)", color: "var(--surface)" }}
                       >
-                        {b.strength === "strong" ? "Strong buy" : "Buy"}
+                        {b.strength === "strong" ? "Buy · very low price" : "Buy"}
                       </span>
                     </span>
                   </div>

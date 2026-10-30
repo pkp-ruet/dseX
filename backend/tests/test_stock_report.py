@@ -400,11 +400,12 @@ def _answer(inp, sig):
 
 def test_answer_buy_has_no_red_light():
     ans, lights = _answer(square(), _sig("buy", "quality_cheap", strength="strong"))
-    assert ans["decision"] == "buy" and ans["word"]["en"] == "Strong buy" and ans["tone"] == "good"
+    assert ans["decision"] == "buy" and ans["word"]["en"] == "Buy" and ans["tone"] == "good"
     assert ans["blocker"] is None
     assert all(l["tone"] != "bad" for l in lights.values())
     assert lights["company"]["word"]["en"] == "Excellent"
-    assert ans["line"]["en"] == "An excellent company at a low price, and nothing serious is wrong."
+    assert lights["price"]["word"]["en"] == "Very low"
+    assert ans["line"]["en"] == "An excellent company at a very low price, and nothing serious is wrong."
     # The free line carries no figures; the buy price is a separate (Premium) field.
     assert not any(ch.isdigit() for ch in ans["line"]["en"])
     assert ans["buy_price"] == 229

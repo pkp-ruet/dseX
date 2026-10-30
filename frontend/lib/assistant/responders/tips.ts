@@ -22,7 +22,7 @@ export async function tipsResponder(): Promise<MessageBlock[]> {
   blocks.push({
     type: "text",
     text: "",
-    link: { href: "/buy-sell-signals#tips", label: COPY.tips.seeAll, labelBn: COPY.tips.seeAllBn },
+    link: { href: "/buy-sell-signals", label: COPY.tips.seeAll, labelBn: COPY.tips.seeAllBn },
   });
   blocks.push({ type: "disclaimer" });
   return blocks;

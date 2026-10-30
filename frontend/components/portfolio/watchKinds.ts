@@ -10,6 +10,7 @@ export const KIND_TAG: Record<PortfolioWatchEvent["kind"], { en: string; bn: str
   low52: { en: "Yearly low", bn: "বছরের সর্বনিম্ন" },
   red_flag: { en: "Red flag", bn: "বড় সতর্কতা" },
   answer: { en: "Answer changed", bn: "উত্তর বদলেছে" },
+  buylist: { en: "Buy list", bn: "কেনার তালিকা" },
 };
 
 /** An event's level as a `Chip` tone. */

@@ -19,6 +19,7 @@ import { dayShort } from "@/components/dividend-calendar/dates";
 const KIND: Record<string, [string, string, string]> = {
   red_flag: ["red flag", "red flags", "বড় সতর্কতা"],
   answer: ["change in our answer", "changes in our answer", "আমাদের উত্তরে বদল"],
+  buylist: ["change on the buy list", "changes on the buy list", "কেনার তালিকায় বদল"],
   results: ["results report", "results reports", "আর্থিক ফল"],
   grade: ["grade change", "grade changes", "গ্রেড বদল"],
   record: ["record date", "record dates", "রেকর্ড ডেট"],
@@ -169,6 +170,21 @@ export default function DeskClient() {
             <ul className="desk-items">
               {desk.after_close.items.map((i) => <ItemRow key={i.id} i={i} />)}
             </ul>
+          )}
+          {desk.buy_list && (
+            <p className="desk-buylist">
+              <T
+                en={`On the buy list: ${desk.buy_list.joined_n} joined${
+                  desk.buy_list.joined.length ? ` (${desk.buy_list.joined.join(", ")}${desk.buy_list.joined_n > desk.buy_list.joined.length ? " …" : ""})` : ""
+                }, ${desk.buy_list.left_n} left. `}
+                bn={`কেনার তালিকায়: ${desk.buy_list.joined_n}টি এসেছে${
+                  desk.buy_list.joined.length ? ` (${desk.buy_list.joined.join(", ")}${desk.buy_list.joined_n > desk.buy_list.joined.length ? " …" : ""})` : ""
+                }, ${desk.buy_list.left_n}টি বাদ গেছে। `}
+              />
+              <Link href="/buy-sell-signals">
+                <T en="See the list" bn="তালিকা দেখুন" />
+              </Link>
+            </p>
           )}
         </DeskSection>
 

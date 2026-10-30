@@ -410,6 +410,7 @@ def snapshot_signals_today(date: Optional[str] = None) -> dict:
     except Exception:  # noqa: BLE001 — momentum is a modifier, never a blocker
         momentum = {}
     prices = load_latest_prices()  # true close on snap_date = the entry price
+    red = _latest_red_keys()
 
     db = get_db()
     col = db[_SNAPSHOT_COLLECTION]
@@ -429,7 +430,7 @@ def snapshot_signals_today(date: Optional[str] = None) -> dict:
             continue
         code = str(code).upper()
         mom = momentum.get(code)
-        sig = _signal_for_row(row, mom)
+        sig = _signal_for_row(row, mom, red.get(code))
         stale = row.get("stale_data")
         if stale is None:
             stale_val = None

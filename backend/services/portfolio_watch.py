@@ -15,9 +15,12 @@ Six things, each an *event* with English + Bengali copy:
               from ``stock_report_service.red_flag_changes``
     answer    our answer on the stock page changed (Buy → Not yet …) and held
               two days, from ``stock_report_service.answer_changes``
+    buylist   the share joined or left today's buy list, or came within 3% of
+              the price where it stops being a Buy (2026-10-31, the buy list
+              redesign), from ``signal_today_service.signals_today``
 
-``results``, ``grade``, ``red_flag`` and ``answer`` also cover the stocks a reader only
-follows (watchlist); the other four are about shares they hold.
+``results``, ``grade``, ``red_flag``, ``answer`` and ``buylist`` also cover the
+stocks a reader only follows (watchlist); the other four are about shares they hold.
 
 Events are built for every reader who holds the stock and stored in
 ``portfolio_watch_events`` (so a free reader's portfolio can say how many
@@ -186,6 +189,82 @@ def _answer_event(code: str, change: dict) -> Optional[dict]:
     }
 
 
+# A Buy within this share of its stop line (the near-the-yearly-high price
+# where it stops being a Buy) counts as "near its limit".
+NEAR_STOP_PCT = 3.0
+
+
+def _buylist_event(code: str, change: dict, day: str) -> Optional[dict]:
+    """`change` = {kind: joined | left | near, reason?: {en, bn}, stop?: price}."""
+    kind = change.get("kind")
+    if kind == "joined":
+        word = change.get("word") or {}
+        return {
+            "id": f"buylist-{code}-joined-{day}", "kind": "buylist", "code": code, "level": "good",
+            "title_en": f"{code} joined today's buy list",
+            "title_bn": f"{code} আজ কেনার তালিকায় এসেছে",
+            "body_en": (f"It now passes every check, at a {word['en'].lower()}." if word.get("en")
+                        else "It now passes every check."),
+            "body_bn": (f"এখন সব যাচাইয়ে উতরেছে, {word['bn']}।" if word.get("bn")
+                        else "এখন সব যাচাইয়ে উতরেছে।"),
+        }
+    if kind == "left":
+        r = change.get("reason") or {}
+        return {
+            "id": f"buylist-{code}-left-{day}", "kind": "buylist", "code": code, "level": "watch",
+            "title_en": f"{code} left the buy list",
+            "title_bn": f"{code} কেনার তালিকা থেকে বাদ গেছে",
+            "body_en": (f"The reason: {r['en'][0].lower() + r['en'][1:]}." if r.get("en")
+                        else "It no longer passes every check."),
+            "body_bn": f"কারণ: {r['bn']}।" if r.get("bn") else "এটি আর সব যাচাইয়ে উতরায় না।",
+        }
+    if kind == "near" and change.get("stop"):
+        stop = float(change["stop"])
+        return {
+            "id": f"buylist-{code}-near-{day}", "kind": "buylist", "code": code, "level": "watch",
+            "title_en": f"{code} is close to its limit",
+            "title_bn": f"{code} সীমার কাছাকাছি",
+            "body_en": f"Past {_money(stop)} it stops being a Buy, because the price would be near its top for the year.",
+            "body_bn": f"{_money(stop)} পার হলে আর কেনার সংকেত থাকবে না, কারণ দাম তখন বছরের সর্বোচ্চের কাছে।",
+        }
+    return None
+
+
+def buylist_changes(today: dict, prices: dict, codes) -> dict[str, dict]:
+    """{code: change} for the given codes from the page's bundle
+    (`signal_today_service.signals_today()`): joined / left since the last
+    trading day (none on a rule-change day), else `near` — today's close
+    crossed into the last 3% under the stop line (yesterday's close was below
+    it, so it fires once, not every day it stays there)."""
+    from backend.services.signal_today import PRICE_WORDS
+
+    codes = {c.upper() for c in codes or ()}
+    out: dict[str, dict] = {}
+    ch = today.get("changes") or {}
+    if ch and not ch.get("rebuilt"):
+        buys = today.get("buys") or {}
+        for c in ch.get("joined") or []:
+            if c in codes:
+                pw = (buys.get(c) or {}).get("price_word")
+                out[c] = {"kind": "joined",
+                          "word": {"en": PRICE_WORDS[pw][0], "bn": PRICE_WORDS[pw][1]} if pw in PRICE_WORDS else None}
+        for l in ch.get("left") or []:
+            if l.get("code") in codes:
+                out[l["code"]] = {"kind": "left", "reason": l.get("reason")}
+    for c, b in (today.get("buys") or {}).items():
+        if c not in codes or c in out:
+            continue
+        stop = b.get("stop_above")
+        p = prices.get(c) or {}
+        ltp, chg = p.get("ltp"), p.get("change")
+        if not stop or not isinstance(ltp, (int, float)) or not isinstance(chg, (int, float)):
+            continue
+        line = float(stop) * (1 - NEAR_STOP_PCT / 100)
+        if line <= float(ltp) < float(stop) and float(ltp) - float(chg) < line:
+            out[c] = {"kind": "near", "stop": stop}
+    return out
+
+
 def build_events(held: dict[str, int], facts: dict, day: str,
                  watched: Optional[set[str]] = None) -> list[dict]:
     """Events for one reader. `held` = {code: qty} across all their portfolios;
@@ -195,7 +274,8 @@ def build_events(held: dict[str, int], facts: dict, day: str,
     grades: {code: score_history.explain()}, category: {code: (old, new)},
     prices: {code: price row}, lows: {code: 52w low},
     red_flags: {code: stock_report_service.red_flag_changes() entry},
-    answers: {code: stock_report_service.answer_changes() entry}}."""
+    answers: {code: stock_report_service.answer_changes() entry},
+    buylist: {code: buylist_changes() entry}}."""
     from backend.services.score_history import grade_event
 
     out: list[dict] = []
@@ -227,6 +307,11 @@ def build_events(held: dict[str, int], facts: dict, day: str,
             e = _answer_event(code, ac)
             if e:
                 out.append(e)
+        bl = (facts.get("buylist") or {}).get(code)
+        if bl:
+            e = _buylist_event(code, bl, day)
+            if e:
+                out.append(e)
         if not qty:
             continue
         cat = (facts.get("category") or {}).get(code)
@@ -254,7 +339,8 @@ _LEVEL_ORDER = {"bad": 0, "watch": 1, "good": 2}
 
 
 # Where a single event of each kind opens on the stock page.
-_STOCK_ANCHOR = {"results": "results", "grade": "score-history", "red_flag": "red-flags", "answer": "ch-answer"}
+_STOCK_ANCHOR = {"results": "results", "grade": "score-history", "red_flag": "red-flags", "answer": "ch-answer",
+                 "buylist": "ch-answer"}
 
 
 def push_payload(events: list[dict], lang: str = "bn", url: str = "/portfolio?src=watch") -> Optional[dict]:
@@ -367,6 +453,7 @@ def trial_recap_payload(caught: int, days_left: int, lang: str = "bn") -> dict:
 KIND_WORDS = {
     "red_flag": ("red flag", "red flags", "বড় সতর্কতা"),
     "answer": ("change in our answer", "changes in our answer", "আমাদের উত্তরে বদল"),
+    "buylist": ("change on the buy list", "changes on the buy list", "কেনার তালিকায় বদল"),
     # A quarter or a full year (results_explainer.load_latest_results).
     "results": ("results report", "results reports", "আর্থিক ফল"),
     "grade": ("grade change", "grade changes", "গ্রেড বদল"),

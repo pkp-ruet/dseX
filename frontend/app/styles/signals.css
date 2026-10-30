@@ -3,8 +3,9 @@
    /market-analysis and /watchlist: one card style (.soft-card), hairlines
    instead of tinted boxes, numbers lead, company name first, colour only
    where it means something (Buy, up / down, grade). Every class here is
-   `sg-*` and belongs to app/buy-sell-signals, components/signals/* and
-   components/daily-tips/*.
+   `sg-*` and belongs to app/buy-sell-signals and components/signals/*.
+   2026-10-31: the buy list redesign (funnel, changes, price words, almost
+   on the list); the four summary tiles and today's tips left the page.
 
    Every grid names its phone column as `minmax(0, 1fr)` — a bare `1fr`
    sizes to the longest company name and pushes the card past the screen.
@@ -17,25 +18,32 @@
 @media (min-width: 768px) { .sg-section { margin-top: 72px; } }
 .sg-section > div:first-child { margin-bottom: var(--space-6); }
 
-/* ---- Summary: four numbers in a hairline grid, the rule folded under ---- */
-.sg-summary { padding: 0; overflow: hidden; }
-.sg-summary-grid {
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1px; background: var(--cell-rule);
-}
-@media (min-width: 900px) { .sg-summary-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-.sg-cell { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 20px 18px; background: var(--surface); }
-@media (min-width: 640px) { .sg-cell { padding: 26px 28px; } }
-.sg-cell-v {
+/* ---- Dateline (the eyebrow): when the list was checked ---- */
+.sg-dateline { display: inline-flex; align-items: center; gap: 8px; }
+.sg-dateline > i { width: 8px; height: 8px; border-radius: 999px; background: var(--positive); }
+
+/* ---- How the list was made: three numbers, one bar, the fold ---- */
+.sg-funnel { margin-top: var(--space-6); padding: 0; overflow: hidden; }
+.sg-funnel-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.sg-step { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 20px 16px 14px; }
+@media (min-width: 640px) { .sg-step { padding: 26px 28px 16px; } }
+.sg-step + .sg-step { border-left: 1px solid var(--cell-rule); }
+.sg-step-v {
   margin: 0; font-size: var(--fs-xl); font-weight: 700; line-height: 1.1;
   letter-spacing: -0.01em; font-variant-numeric: tabular-nums;
 }
-.sg-cell-k { margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
-.sg-cell-x { margin: 0; font-size: var(--fs-2xs); color: var(--text-muted); }
+.sg-step-k { margin: 0; font-size: var(--fs-xs); font-weight: 600; line-height: 1.35; color: var(--text); }
+@media (min-width: 640px) { .sg-step-k { font-size: var(--fs-sm); } }
+.sg-funnel-bar {
+  display: flex; height: 8px; margin: 4px 16px 20px; border-radius: 999px;
+  overflow: hidden; background: var(--surface-2);
+}
+@media (min-width: 640px) { .sg-funnel-bar { margin: 4px 28px 24px; } }
+.sg-funnel-bar > i { display: block; height: 100%; }
 
 .sg-why { border-top: 1px solid var(--cell-rule); }
 .sg-why > summary {
-  display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 18px;
+  display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 16px;
   list-style: none; cursor: pointer;
   font-size: var(--fs-sm); font-weight: 600; color: var(--primary-ink);
 }
@@ -44,24 +52,41 @@
 .sg-why > summary:hover { background: var(--surface-2); }
 .sg-why > summary svg { transition: transform 0.18s ease; }
 .sg-why[open] > summary svg { transform: rotate(180deg); }
-.sg-why-body { padding: 0 18px 22px; }
-@media (min-width: 640px) { .sg-why-body { padding: 0 28px 28px; } }
-.sg-why-list { margin: 0; }
-.sg-why-row {
-  display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px;
-  padding: 16px 0; border-top: 1px solid var(--cell-rule);
+.sg-out { margin: 0; padding: 0 16px; list-style: none; }
+@media (min-width: 640px) { .sg-out { padding: 0 28px; } }
+.sg-out > li {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+  padding: 12px 0; border-top: 1px solid var(--cell-rule); font-size: var(--fs-sm); color: var(--text);
 }
-@media (min-width: 640px) { .sg-why-row { grid-template-columns: 150px minmax(0, 1fr); gap: 16px; align-items: baseline; } }
-.sg-why-row dt { margin: 0; }
-.sg-why-row dd { margin: 0; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
-.sg-why-k { font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
-.sg-why-bn { margin: 4px 0 0; padding-top: 16px; border-top: 1px solid var(--cell-rule); font-size: var(--fs-sm); line-height: 1.7; color: var(--text-muted); }
+.sg-out > li strong { font-weight: 700; font-variant-numeric: tabular-nums; }
+.sg-out-note { margin: 0; padding: 12px 16px 20px; font-size: var(--fs-xs); line-height: 1.55; color: var(--text); }
+@media (min-width: 640px) { .sg-out-note { padding: 12px 28px 24px; } }
 
-.sg-updated { margin: 14px 2px 0; font-size: var(--fs-2xs); color: var(--text-muted); }
+/* ---- Since the last trading day ---- */
+.sg-changes {
+  margin: 14px 2px 0; display: flex; flex-direction: column; gap: 4px;
+  font-size: var(--fs-sm); line-height: 1.55; color: var(--text);
+}
+.sg-changes > p { margin: 0; }
+.sg-changes-h { font-size: var(--fs-xs); font-weight: 600; }
+.sg-changes strong { font-weight: 700; }
+.sg-changes-link { font-weight: 600; color: var(--text); text-decoration: underline; text-decoration-color: var(--border); text-underline-offset: 3px; }
+.sg-changes-link:hover { color: var(--primary-ink); text-decoration-color: currentColor; }
+
+.sg-section--first { margin-top: 48px; }
+@media (min-width: 768px) { .sg-section--first { margin-top: 56px; } }
+
+/* ---- Price-word chips ---- */
+.sg-chips {
+  display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; margin-top: 4px;
+  scrollbar-width: none;
+}
+.sg-chips::-webkit-scrollbar { display: none; }
+.sg-chips > * { flex: none; }
 
 /* ---- Filter bar ---- */
 .sg-filters {
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 20px;
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px;
 }
 .sg-search { position: relative; grid-column: 1 / -1; }
 @media (min-width: 768px) {
@@ -99,35 +124,24 @@
   display: grid; grid-template-columns: minmax(0, 1fr);
   margin: 0; padding: 0; list-style: none;
 }
-.sg-rows > .sg-row { border-top: 1px solid var(--cell-rule); }
-.sg-rows > .sg-row:first-child { border-top: 0; }
-.sg-rows > .sg-row > a, .sg-rows > .sg-row > span { padding-block: 18px; gap: 16px; }
-@media (min-width: 640px) { .sg-rows > .sg-row > a, .sg-rows > .sg-row > span { padding-block: 22px; } }
+/* A row is either a StockRow <li class="sg-row"> (almost on the list) or an
+   <li class="sg-li"> holding a StockRow <div class="sg-row"> + its signpost
+   (the Buy list, 2026-10-31). */
+.sg-rows > li { border-top: 1px solid var(--cell-rule); }
+.sg-rows > li:first-child { border-top: 0; }
+.sg-row > a, .sg-row > span { padding-block: 18px; gap: 16px; }
+@media (min-width: 640px) { .sg-row > a, .sg-row > span { padding-block: 22px; } }
 /* Inside a signal row (StockRow): air between the name line and the reason,
    and the reason at reading size — it is the point of the row. */
-.sg-rows > .sg-row > a > .min-w-0 > span + span {
+.sg-row > a > .min-w-0 > span + span {
   margin-top: 6px; font-size: var(--fs-sm); line-height: 1.55; color: var(--text-muted);
 }
 /* The locked rest continues the same list: hairline across the seam, and the
    lock card sits inside the list card as its last row. */
 /* A masked preview row's sector line reads like the reason line it stands in for. */
-.sg-rows > .sg-row > span > .min-w-0 > span + span {
+.sg-row > span > .min-w-0 > span + span {
   margin-top: 6px; font-size: var(--fs-sm); line-height: 1.55; color: var(--text-muted);
 }
-
-/* Today's tips are one open list (no lock), so they can pair up on a wide
-   screen without leaving a hole. */
-@media (min-width: 1024px) {
-  .sg-rows--two { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 64px; }
-  .sg-rows--two > .sg-row:nth-child(2) { border-top: 0; }
-}
-
-/* A tip is text-led, so its row is a block, not the StockRow flex line. */
-.sg-tip {
-  display: block; margin-inline: -12px; padding: 20px 12px;
-  border-radius: var(--radius-md); color: inherit; text-decoration: none;
-}
-.sg-tip:hover, .sg-tip:active { background: var(--surface-2); }
 
 .sg-empty-title { margin: 0; padding-top: 18px; font-size: var(--fs-md); font-weight: 700; color: var(--text); }
 .sg-empty { margin: 4px 0 0; padding-bottom: 18px; font-size: var(--fs-sm); color: var(--text-muted); }
@@ -138,6 +152,53 @@
   max-width: 72ch; font-size: var(--fs-2xs); line-height: 1.6; color: var(--text-muted);
 }
 
-/* Premium's part of a Buy row (2026-10-31): the reason, then the prices. */
-.sg-prem-why { display: block; margin-top: 2px; font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
-.sg-prem-nums { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-top: 4px; font-size: var(--fs-xs); font-weight: 600; color: var(--gold-ink); }
+/* A Buy row's free fact line: where the price sits this year, the yield, the sector. */
+.sg-facts { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; white-space: normal; }
+.sg-range-wrap { display: inline-flex; align-items: center; gap: 8px; }
+.sg-range { position: relative; display: inline-block; width: 56px; height: 6px; border-radius: 999px; background: var(--surface-2); }
+.sg-range > i {
+  position: absolute; top: 50%; width: 10px; height: 10px; margin-left: -5px; transform: translateY(-50%);
+  border-radius: 999px; background: var(--text); border: 2px solid var(--surface);
+}
+
+/* Premium's part of a Buy row (2026-10-31): three facts, then the prices. */
+.sg-prem-why { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; }
+.sg-prem-fact { display: block; padding-left: 14px; position: relative; font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
+.sg-prem-fact::before {
+  content: ""; position: absolute; left: 2px; top: 0.6em; width: 5px; height: 5px;
+  border-radius: 999px; background: var(--gold);
+}
+.sg-prem-nums { display: flex; flex-wrap: wrap; gap: 2px 14px; margin-top: 6px; font-size: var(--fs-xs); font-weight: 600; color: var(--gold-ink); }
+
+/* ---- Every share here passed ---- */
+.sg-checks { padding: 22px 18px; }
+@media (min-width: 640px) { .sg-checks { padding: 28px 32px; } }
+.sg-checks-h { margin: 0 0 14px; font-size: var(--fs-md); font-weight: 700; color: var(--text); }
+.sg-checks-list { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px 32px; }
+@media (min-width: 768px) { .sg-checks-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.sg-checks-list > li { display: flex; align-items: flex-start; gap: 10px; font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
+.sg-checks-list > li > svg { flex: none; margin-top: 2px; }
+.sg-checks-foot { margin: 16px 0 0; padding-top: 14px; border-top: 1px solid var(--cell-rule); font-size: var(--fs-xs); line-height: 1.55; color: var(--text); }
+.sg-checks-foot a { font-weight: 600; color: var(--primary-ink); text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---- Premium inside the list (2026-10-31, "premium cards on bottom") ----
+   The sample row shows its Premium part open; every other locked row ends
+   with one gold signpost; the page's Premium card sits after row 5. */
+.sg-prem--sample {
+  display: block; margin-top: 8px; padding: 10px 12px 12px;
+  border-radius: var(--radius); background: rgb(var(--gold-rgb) / 0.10);
+}
+.sg-sample-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: var(--fs-xs); font-weight: 700; color: var(--gold-ink);
+}
+.sg-sign {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 36px;
+  margin: -10px 0 12px; padding: 0 10px; border-radius: var(--radius);
+  font-size: var(--fs-xs); font-weight: 600; color: var(--gold-ink); text-decoration: none;
+}
+@media (min-width: 640px) { .sg-sign { margin-top: -14px; margin-bottom: 14px; } }
+.sg-sign:hover { background: rgb(var(--gold-rgb) / 0.10); }
+.sg-sign:active { background: rgb(var(--gold-rgb) / 0.18); }
+.sg-pq-slot { margin-block: 20px; }
+.sg-pq-slot:empty, .sg-pq-slot:has(> .pq-anchor) { margin-block: 0; }

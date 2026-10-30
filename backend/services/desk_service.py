@@ -130,6 +130,19 @@ def _codes(u: dict) -> tuple[dict[str, int], set[str]]:
     return _codes_of(u)
 
 
+def buy_list_line() -> Optional[dict]:
+    """The market-wide part of the after-close note (2026-10-31, the buy list
+    redesign): who joined and left today's buy list. None on a quiet day or a
+    rule-change day (the page says that one in words)."""
+    from backend.services.signal_today_service import signals_today
+
+    ch = (signals_today() or {}).get("changes") or {}
+    if not ch or ch.get("rebuilt") or not (ch.get("joined") or ch.get("left")):
+        return None
+    return {"since": ch.get("since"), "joined": (ch.get("joined") or [])[:5],
+            "joined_n": len(ch.get("joined") or []), "left_n": len(ch.get("left") or [])}
+
+
 def desk(user_id: str) -> dict:
     """The whole Desk for one reader."""
     from backend.services import entitlements, price_alert_service
@@ -152,6 +165,7 @@ def desk(user_id: str) -> dict:
         "has_shares": bool(held or watched),
         "brief": _safe("brief", lambda: today_brief(user_id), None),
         "after_close": _safe("after_close", lambda: after_close(recent, flips), None),
+        "buy_list": _safe("buy_list", buy_list_line, None),
         "letter": _safe("letter", lambda: latest_letter(user_id), None),
         "watching": {
             "holdings": len(held),

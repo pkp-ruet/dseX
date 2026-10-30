@@ -57,3 +57,7 @@
 .desk-card-icon { display: inline-grid; flex: none; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-sm); background: var(--surface-2); color: var(--text); }
 .desk-card-when { display: block; font-size: var(--fs-xs); font-weight: 700; color: var(--text); }
 .desk-card-text { display: block; margin-top: 2px; font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
+
+/* The buy list's market-wide line under "After the close" (2026-10-31). */
+.desk-buylist { margin: 12px 0 0; padding-top: 12px; border-top: 1px solid var(--cell-rule); font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
+.desk-buylist a { font-weight: 600; color: var(--primary-ink); text-decoration: underline; text-underline-offset: 3px; }

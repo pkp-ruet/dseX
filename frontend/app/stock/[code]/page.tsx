@@ -221,7 +221,7 @@ export default async function StockDetailPage({ params }: PageProps) {
     // neither goes into a rich-result answer.
     const sigText =
       sig === "buy"
-        ? ` Our rules currently show a ${detail.signal?.strength === "strong" ? "Strong Buy" : "Buy"} signal.`
+        ? " Our rules currently show a Buy signal."
         : sig === "sell"
           ? " Our rules currently show a Sell signal."
           : " Our rules show no buy or sell signal right now.";
