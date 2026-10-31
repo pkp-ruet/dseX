@@ -340,6 +340,9 @@ export interface AnswerLight {
   href: string;
   /** Why the light is what it is, one sentence with its figures (Premium). */
   why: Bi | null;
+  /** The company light only: which checks it is strong and weak on, in
+   *  words ("Strong: profit, finances · Weak: price"). Free. */
+  note?: Bi | null;
 }
 
 /** The answer card (2026-10-30): mirrors the Buy signal's rules exactly. */

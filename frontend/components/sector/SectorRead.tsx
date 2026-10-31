@@ -98,10 +98,10 @@ function sectorQuestions(data: SectorDetailData, read: Read): PageQuestion[] {
   if (read.best && goodPlus > 0) {
     rows.push({
       key: "best",
-      fact: { en: `${goodPlus} graded Good or better`, bn: `${goodPlus}টির গ্রেড ভালো বা তার বেশি` },
+      fact: { en: `${goodPlus} mostly strong or better`, bn: `${goodPlus}টি বেশিরভাগ দিকে শক্তিশালী বা তার বেশি` },
       tone: "good",
       ask: { en: "Which one is the best value today?", bn: "আজ কোনটি সবচেয়ে ভালো দামে?" },
-      hint: { en: "The highest graded company at a low price for its profit.", bn: "মুনাফার তুলনায় কম দামে থাকা সবচেয়ে ভালো গ্রেডের কোম্পানি।" },
+      hint: { en: "The strongest company at a low price for its profit.", bn: "মুনাফার তুলনায় কম দামে থাকা সবচেয়ে শক্তিশালী কোম্পানি।" },
     });
   }
   if (read.lines.some((l) => l.key === "price")) {

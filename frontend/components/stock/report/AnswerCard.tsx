@@ -113,6 +113,7 @@ function LightCell({ light, blocker, plus }: { light: StockAnswer["lights"][numb
         </span>
         <span className="ac-label">{tx(light.label)}</span>
         <span className="ac-lword">{tx(light.word)}</span>
+        {light.note && <span className="ac-lnote">{tx(light.note)}</span>}
       </a>
     </>
   );

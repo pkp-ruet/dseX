@@ -72,8 +72,7 @@ def check(alerts: list[dict], ranks: dict[str, int], scores: dict[str, Optional[
     return updated, fired
 
 
-_TIER_EN = {"excellent": "Excellent", "good": "Good", "average": "Average", "weak": "Weak"}
-_TIER_BN = {"excellent": "চমৎকার", "good": "ভালো", "average": "মাঝারি", "weak": "দুর্বল"}
+from backend.services.tiers import TIER_WORDS as _TIER_EN, TIER_WORDS_BN as _TIER_BN
 
 
 def line(f: dict, lang: str) -> str:
@@ -83,8 +82,8 @@ def line(f: dict, lang: str) -> str:
         return (f"{code} এখন র‍্যাঙ্কিংয়ের প্রথম 20-এ, {f.get('rank')} নম্বরে" if bn
                 else f"{code} is now in the top 20, at number {f.get('rank')}")
     t = f.get("tier_now") or "average"
-    return (f"{code}-এর গ্রেড ভালো থেকে নেমে {_TIER_BN.get(t, t)} হয়েছে" if bn
-            else f"{code} dropped below Good: it is now graded {_TIER_EN.get(t, t)}")
+    return (f"{code} “বেশিরভাগ দিকে শক্তিশালী” থেকে নেমে এখন “{_TIER_BN.get(t, t)}”" if bn
+            else f"{code} dropped out of “Mostly strong”: it is now “{_TIER_EN.get(t, t)}”")
 
 
 def push_payload(fired: list[dict], lang: str = "bn") -> Optional[dict]:

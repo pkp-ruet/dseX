@@ -99,8 +99,12 @@ _MON_FULL_EN = ["", "January", "February", "March", "April", "May", "June", "Jul
 _MON_BN = ["", "জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট",
            "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"]
 
-TIER_WORDS = {"excellent": "Excellent", "good": "Good", "average": "Average", "weak": "Weak"}
-TIER_WORDS_BN = {"excellent": "চমৎকার", "good": "ভালো", "average": "মাঝারি", "weak": "দুর্বল"}
+# The grade names (2026-10-31: the company ranking's groups — Strong all
+# round / Mostly strong / Mixed / Mostly weak — are the label everywhere).
+from backend.services.tiers import TIER_WORDS as _TW, TIER_WORDS_BN as _TWB
+
+TIER_WORDS = {k: _TW[k] for k in ("excellent", "good", "average", "weak")}
+TIER_WORDS_BN = {k: _TWB[k] for k in ("excellent", "good", "average", "weak")}
 
 # The five checks, in the names the stock page uses (components/stock/HealthCheck.tsx).
 PILLARS = [
@@ -2067,8 +2071,8 @@ def build_quality(inp: dict) -> Optional[dict]:
         else:
             head_en, head_bn = ("One of the weakest companies on the DSE.", "ডিএসইর সবচেয়ে দুর্বল কোম্পানিগুলোর একটি।")
     else:
-        head_en = f"We grade it {word['en'].lower()}."
-        head_bn = f"আমাদের গ্রেডে এটি {word['bn']}।"
+        head_en = f"On our checks, it is {word['en'].lower()}."
+        head_bn = f"আমাদের যাচাইয়ে এটি {word['bn']}।"
     if len(present) >= 2:
         best = max(present, key=lambda p: p[3])
         worst = min(present, key=lambda p: p[3])
@@ -2087,18 +2091,19 @@ def build_quality(inp: dict) -> Optional[dict]:
                   + (f"{healthy} of the {len(present)} look healthy." if healthy else "None of them look healthy."),
                   f"আমরা পাঁচটি বিষয় দেখি: মুনাফা, আর্থিক অবস্থা, ব্যবসা কতটা শক্তিশালী, দাম আর ডিভিডেন্ড। "
                   + (f"{len(present)}টির মধ্যে {healthy}টি ভালো।" if healthy else "কোনোটিই ভালো নয়।"))]
-    lines = [(75.0, "Excellent", "চমৎকার"), (60.0, "Good", "ভালো"), (45.0, "Average", "মাঝারি")]
+    lines = [(75.0, TIER_WORDS["excellent"], TIER_WORDS_BN["excellent"]), (60.0, TIER_WORDS["good"], TIER_WORDS_BN["good"]),
+             (45.0, TIER_WORDS["average"], TIER_WORDS_BN["average"])]
     above = next((l for l in lines if score < l[0]), None)
     below = next((l for l in lines if score >= l[0]), None)
     watch = None
     if above and above[0] - score < 3:
-        watch = bi(f"It is close to the next grade, {above[1]}. Good results could move it up.",
-                   f"এটি পরের গ্রেড, {above[2]}-এর কাছাকাছি। ভালো ফল এলে গ্রেড বাড়তে পারে।")
+        watch = bi(f"It is close to moving up to “{above[1]}”. Good results could move it up.",
+                   f"এটি “{above[2]}”-এ উঠে যাওয়ার কাছাকাছি। ভালো ফল এলে উঠতে পারে।")
     if below:
         gap = score - below[0]
         if gap < 3:
-            watch = bi(f"It only just makes the {below[1]} grade, so weak results could move it down.",
-                       f"এটি কোনোমতে {below[2]} গ্রেডে আছে, তাই দুর্বল ফল এলে গ্রেড নামতে পারে।")
+            watch = bi(f"It only just makes “{below[1]}”, so weak results could move it down.",
+                       f"এটি কোনোমতে “{below[2]}”-এ আছে, তাই দুর্বল ফল এলে নামতে পারে।")
     hist = inp.get("score_history") or {}
     ch = (hist.get("changes") or [])[:1]
     if ch:
@@ -2107,7 +2112,7 @@ def build_quality(inp: dict) -> Optional[dict]:
         t_bn = TIER_WORDS_BN.get(c.get("to_tier"), "")
         e, b = _day(c.get("date"))
         if t_en and e:
-            meaning.append(bi(f"Its grade last changed to {t_en} on {e}.", f"সর্বশেষ গ্রেড বদলে {t_bn} হয়েছে {b}।"))
+            meaning.append(bi(f"It last moved to “{t_en}” on {e}.", f"সর্বশেষ এটি “{t_bn}”-এ এসেছে {b}।"))
 
     return _section(
         "quality",
@@ -2376,10 +2381,10 @@ def build_alternatives(inp: dict) -> Optional[dict]:
         # Plain words (2026-10-30): stronger, and cheaper for its profit.
         from backend.services.tiers import tier_key
         t_them, t_me = tier_key(s), tier_key(my_score)
-        g_en = f"Graded {TIER_WORDS.get(t_them, '').lower()}, against {TIER_WORDS.get(t_me, '').lower()} for {code}"
-        g_bn = f"গ্রেড {TIER_WORDS_BN.get(t_them, '')}, যেখানে {code} {TIER_WORDS_BN.get(t_me, '')}"
+        g_en = f"{TIER_WORDS.get(t_them, '')}, where {code} is {TIER_WORDS.get(t_me, '').lower()}"
+        g_bn = f"{TIER_WORDS_BN.get(t_them, '')}, যেখানে {code} {TIER_WORDS_BN.get(t_me, '')}"
         if t_them == t_me:
-            g_en, g_bn = f"Same grade as {code} but stronger", f"{code}-এর মতো একই গ্রেড, তবে আরও শক্তিশালী"
+            g_en, g_bn = f"In the same group as {code}, but stronger", f"{code}-এর মতো একই দলে, তবে আরও শক্তিশালী"
         if my_pe and my_pe > 0:
             ch_en, ch_bn = ("much cheaper", "অনেক সস্তা") if pe <= my_pe * 0.7 else ("cheaper", "সস্তা")
             why = bi(f"{g_en}, and {ch_en} for the profit it makes.", f"{g_bn}; আর মুনাফার তুলনায় {ch_bn}।")
@@ -2493,8 +2498,8 @@ def rally_warning(r: dict, *, score: Optional[float], category: Optional[str],
         ))
     if tier in ("weak", "average"):
         red = True
-        lines.append(bi(f"We grade the company itself as {TIER_WORDS[tier].lower()}.",
-                        f"আমাদের গ্রেডে কোম্পানিটি নিজে {TIER_WORDS_BN[tier]}।"))
+        lines.append(bi(f"On our checks, the company itself is {TIER_WORDS[tier].lower()}.",
+                        f"আমাদের যাচাইয়ে কোম্পানিটি নিজে {TIER_WORDS_BN[tier]}।"))
     if cat == "Z":
         red = True
         lines.append(bi("It is in category Z, where DSE puts companies that missed a dividend or an AGM.",
@@ -3279,7 +3284,7 @@ def build_updated(inp: dict, red_flags: Optional[dict]) -> Optional[dict]:
     ch = ((inp.get("score_history") or {}).get("changes") or [])[:1]
     if ch and _d(ch[0].get("date")) and ch[0].get("to_tier") in TIER_WORDS:
         t = ch[0]["to_tier"]
-        cands.append((_d(ch[0]["date"]), 0, bi(f"after its grade changed to {TIER_WORDS[t]}", f"গ্রেড বদলে {TIER_WORDS_BN[t]} হওয়ার পর")))
+        cands.append((_d(ch[0]["date"]), 0, bi(f"after it moved to “{TIER_WORDS[t]}”", f"“{TIER_WORDS_BN[t]}”-এ আসার পর")))
     for i in notices.get("inspections") or []:
         if isinstance(i, dict) and i.get("status") == "closed" and _d(i.get("post_date")):
             cands.append((_d(i["post_date"]), 4, bi("after a DSE factory inspection", "ডিএসইর কারখানা পরিদর্শনের পর")))
@@ -3319,6 +3324,48 @@ _RISK_BLOCKS = {
 }
 
 
+# The five checks in running text, and the cut-offs the company ranking uses
+# for "strong" / "weak" (frontend lib/ranking.ts STRONG_AT / WEAK_BELOW).
+_CHECK_RUN = {"p1_biz": ("profit", "মুনাফা"), "p2_health": ("finances", "আর্থিক অবস্থা"),
+              "p3_moat": ("business", "ব্যবসার শক্তি"), "p4_val": ("price", "দাম"),
+              "p5_div": ("dividend", "ডিভিডেন্ড")}
+STRONG_AT, WEAK_BELOW = 7.0, 4.0
+
+
+def checks_line(row: dict) -> Optional[dict]:
+    """Which of the five checks it is strong and weak on, in words — the
+    ranking's checks line ("Strong: profit, finances · Weak: price"), so the
+    company light says what its grade name is made of. Free (it is free on
+    the ranking page too)."""
+    vals = [(k, _f(row.get(k))) for k in _CHECK_RUN]
+    vals = [(k, v) for k, v in vals if v is not None]
+    if not vals:
+        return None
+    strong = [k for k, v in vals if v >= STRONG_AT]
+    weak = [k for k, v in vals if v < WEAK_BELOW]
+    if len(strong) == 5:
+        return bi("Strong on all five checks", "পাঁচটি যাচাইয়েই শক্তিশালী")
+    if len(weak) == 5:
+        return bi("Weak on all five checks", "পাঁচটি যাচাইয়েই দুর্বল")
+
+    def join(keys, i):
+        words = [_CHECK_RUN[k][i] for k in keys]
+        if i == 1:
+            return ", ".join(words)
+        return words[0] if len(words) == 1 else ", ".join(words[:-1]) + " and " + words[-1]
+
+    en, bn_ = [], []
+    if strong:
+        en.append(f"Strong: {join(strong, 0)}")
+        bn_.append(f"শক্তিশালী: {join(strong, 1)}")
+    if weak:
+        en.append(f"Weak: {join(weak, 0)}")
+        bn_.append(f"দুর্বল: {join(weak, 1)}")
+    if not strong and not weak:
+        return bi("Fair on every check", "সব যাচাইয়েই মোটামুটি")
+    return bi(" · ".join(en), " · ".join(bn_))
+
+
 def build_answer(inp: dict, sections: dict) -> dict:
     """The answer card (2026-10-30): should you buy it today? One answer made
     from three lights (the company, the price, anything wrong) that mirror
@@ -3344,6 +3391,7 @@ def build_answer(inp: dict, sections: dict) -> dict:
         "tone": {"excellent": "good", "good": "good", "average": "fair", "weak": "bad"}.get(tier, "neutral"),
         "href": "#ch-company",
         "why": ql["headline"] if ql else None,
+        "note": checks_line(row) if tier not in (None, "unknown") else None,
     }
 
     # 2 · the price
@@ -3389,7 +3437,8 @@ def build_answer(inp: dict, sections: dict) -> dict:
     }
 
     # The answer.
-    good = bi("An excellent company", "চমৎকার কোম্পানি") if tier == "excellent" else bi("A good company", "ভালো কোম্পানি")
+    good = (bi("A company strong all round", "সব দিকে শক্তিশালী কোম্পানি") if tier == "excellent"
+            else bi("A mostly strong company", "বেশিরভাগ দিকে শক্তিশালী কোম্পানি"))
     blocker = None
     if tier == "unknown" or score is None:
         decision, word, tone = "unrated", bi("Not rated yet", "এখনো রেটিং নেই"), "neutral"
@@ -3405,7 +3454,7 @@ def build_answer(inp: dict, sections: dict) -> dict:
         decision, tone = "buy", "good"
         word = bi("Buy", "কেনা যায়")
         pe, pb = {"Fair": ("fair", "ন্যায্য"), "Very low": ("very low", "খুব কম")}.get(p_word["en"], ("low", "কম"))
-        line = bi(f"{good['en']} at a {pe} price, and nothing serious is wrong.",
+        line = bi(f"{good['en']}, at a {pe} price, and nothing serious is wrong.",
                   f"{good['bn']}, {pb} দামে পাওয়া যাচ্ছে, আর গুরুতর কোনো সমস্যা নেই।")
     else:
         decision, word, tone = "wait", bi("Not yet", "এখন নয়"), "fair"
@@ -3661,11 +3710,11 @@ def build_view(inp: dict, sections: dict, answer: dict) -> dict:
         cons.append(bi(cl["en"][0].upper() + cl["en"][1:] + ".", cl["bn"] + "।"))
 
     tier = (answer.get("lights") or [{}])[0].get("word", {}).get("en")
-    if tier == "Excellent":
-        pros.append(bi("We grade the business excellent, one of the strongest on the DSE.",
-                       "ব্যবসাকে আমরা চমৎকার গ্রেড দিই, ডিএসইর সবচেয়ে শক্তিশালীগুলোর একটি।"))
-    elif tier == "Weak":
-        cons.append(bi("We grade the business weak.", "ব্যবসাকে আমরা দুর্বল গ্রেড দিই।"))
+    if tier == TIER_WORDS["excellent"]:
+        pros.append(bi("The business is strong all round on our checks, one of the strongest on the DSE.",
+                       "আমাদের যাচাইয়ে ব্যবসাটি সব দিকে শক্তিশালী, ডিএসইর সবচেয়ে শক্তিশালীগুলোর একটি।"))
+    elif tier == TIER_WORDS["weak"]:
+        cons.append(bi("The business is mostly weak on our checks.", "আমাদের যাচাইয়ে ব্যবসাটি বেশিরভাগ দিকে দুর্বল।"))
     pc = _profit_cash_line(ty, ca)
     if pc and _word(ty) == "Growing" and _word(ca) != "No":
         pros.append(pc)
@@ -3727,14 +3776,14 @@ def build_view(inp: dict, sections: dict, answer: dict) -> dict:
             change.append(bi("If its profit keeps growing, today's price gets cheaper for the profit it makes.",
                              "মুনাফা বাড়তে থাকলে মুনাফার তুলনায় আজকের দাম সস্তা হয়ে আসবে।"))
     elif decision == "no_reason":
-        change.append(bi("If the business improves enough for our grade to reach Good.",
-                         "ব্যবসা এতটা ভালো হলে যে আমাদের গ্রেড ভালো-তে ওঠে।"))
+        change.append(bi("If the business improves enough to be “Mostly strong” on our checks.",
+                         "ব্যবসা এতটা ভালো হলে যে আমাদের যাচাইয়ে “বেশিরভাগ দিকে শক্তিশালী” হয়।"))
         if _word(pr) != "Low":
             change.append(bi("Even then, we would want a lower price for the profit it makes.",
                              "তখনও, মুনাফার তুলনায় আরও কম দাম চাইব।"))
     elif decision == "avoid":
-        change.append(bi("If the business recovers and our grade rises out of Weak.",
-                         "ব্যবসা ঘুরে দাঁড়ালে আর আমাদের গ্রেড দুর্বল থেকে ওপরে উঠলে।"))
+        change.append(bi("If the business recovers and moves up out of “Mostly weak”.",
+                         "ব্যবসা ঘুরে দাঁড়িয়ে “বেশিরভাগ দিকে দুর্বল” থেকে ওপরে উঠলে।"))
     else:
         change.append(bi("When it publishes enough figures for us to rate it.",
                          "রেটিং দেওয়ার মতো যথেষ্ট তথ্য প্রকাশ করলে।"))

@@ -8,7 +8,16 @@
  * our answer on buying it today, where it stood on the first day of the
  * history, and how close it is to another group.
  */
-import { PRICE_WORDS, priceWordKey, TIER_THRESHOLDS, type TierKey } from "@/lib/constants";
+import {
+  PRICE_WORDS,
+  priceWordKey,
+  TIER_LABELS,
+  TIER_LABELS_BN,
+  TIER_MEANINGS,
+  TIER_MEANINGS_BN,
+  TIER_THRESHOLDS,
+  type TierKey,
+} from "@/lib/constants";
 import { PILLARS } from "@/lib/landing";
 import type { ScoreItem } from "@/lib/api";
 
@@ -17,25 +26,14 @@ export type Bi = { en: string; bn: string };
 /** The four grades, named by what the company is like on our five checks.
  *  The lines match the data (2026-10-30: 16 of 19 Excellent companies strong
  *  on 4–5 checks; the typical Good one on 3, Average on 1, Weak on 0 with 3
- *  weak). The grade word stays beside it as a pill. */
-export const GROUP_NAMES: Record<TierKey, { name: Bi; line: Bi }> = {
-  excellent: {
-    name: { en: "Strong all round", bn: "সব দিকে শক্তিশালী" },
-    line: { en: "Strong on 4 or 5 of our 5 checks", bn: "আমাদের 5টি যাচাইয়ের 4 বা 5টিতে শক্তিশালী" },
-  },
-  good: {
-    name: { en: "Mostly strong", bn: "বেশিরভাগ দিকে শক্তিশালী" },
-    line: { en: "Strong on 2 or 3 checks, weak on none", bn: "2 বা 3টি যাচাইয়ে শক্তিশালী, কোনোটিতে দুর্বল নয়" },
-  },
-  average: {
-    name: { en: "Mixed", bn: "মিশ্র" },
-    line: { en: "Strong on 1 or 2 checks, weak on some", bn: "1 বা 2টি যাচাইয়ে শক্তিশালী, কয়েকটিতে দুর্বল" },
-  },
-  weak: {
-    name: { en: "Mostly weak", bn: "বেশিরভাগ দিকে দুর্বল" },
-    line: { en: "Weak on several checks", bn: "কয়েকটি যাচাইয়ে দুর্বল" },
-  },
-};
+ *  weak). Since 2026-10-31 these names are the grade's label everywhere, so
+ *  they live in lib/constants.ts and this map just pairs them with the line. */
+export const GROUP_NAMES: Record<TierKey, { name: Bi; line: Bi }> = Object.fromEntries(
+  (Object.keys(TIER_LABELS) as TierKey[]).map((t) => [
+    t,
+    { name: { en: TIER_LABELS[t], bn: TIER_LABELS_BN[t] }, line: { en: TIER_MEANINGS[t], bn: TIER_MEANINGS_BN[t] } },
+  ]),
+) as Record<TierKey, { name: Bi; line: Bi }>;
 
 /** Lower-case check names for running text ("Strong: profit, dividend"). */
 const CHECK: Record<string, Bi> = {

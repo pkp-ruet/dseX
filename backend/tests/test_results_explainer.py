@@ -21,7 +21,7 @@ def test_profit_up_with_price_and_score_lines():
     keys = [l["key"] for l in ex["lines"]]
     assert keys == ["profit", "quarter", "price", "score"]  # no cash line for a bank
     assert "6.1× its profit over the last 12 months (7.4× on last year's audited profit)" in ex["lines"][2]["en"]
-    assert "from 76 to 80 (Excellent)" in ex["lines"][3]["en"]
+    assert "from 76 to 80 (Strong all round)" in ex["lines"][3]["en"]
 
 
 def test_profit_up_but_cash_out_is_a_watch():

@@ -412,8 +412,8 @@ def sector_read(summary: dict, market: dict, stocks: list[dict], results: dict[s
             "score": best.get("score"),
             "tier": best.get("tier"),
             "ltp": best.get("ltp"),
-            "en": f"The best value in it today is {nm}: graded {TIER_WORDS[best['tier']].lower()}, at a low price for its profit.",
-            "bn": f"আজ এই সেক্টরে সবচেয়ে ভালো দামে আছে {nm}: গ্রেড {TIER_WORDS_BN[best['tier']]}, মুনাফার তুলনায় দাম কম।",
+            "en": f"The best value in it today is {nm}: {TIER_WORDS[best['tier']].lower()} on our checks, at a low price for its profit.",
+            "bn": f"আজ এই সেক্টরে সবচেয়ে ভালো দামে আছে {nm}: আমাদের যাচাইয়ে {TIER_WORDS_BN[best['tier']]}, মুনাফার তুলনায় দাম কম।",
         }
     return {"lines": lines, "best": best_out, "flow": flow, "reported": len(levels)}
 

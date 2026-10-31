@@ -3,10 +3,10 @@ Canonical fundamental-strength tier thresholds — the single source of truth
 for the backend.
 
 Aligned with frontend lib/constants.ts (TIER_THRESHOLDS / TIER_LABELS):
-    excellent   score >= 75    "Excellent"
-    good        score >= 60    "Good"
-    average     score >= 45    "Average"
-    weak        score <  45    "Weak"
+    excellent   score >= 75    "Strong all round"
+    good        score >= 60    "Mostly strong"
+    average     score >= 45    "Mixed"
+    weak        score <  45    "Mostly weak"
 
 Tiers describe how fundamentally strong the company is — nothing else.
 Action advice (Buy / Sell, else none) lives in services/signal_service.py and
@@ -26,32 +26,39 @@ AVERAGE = 45.0
 
 TIER_KEYS = ("excellent", "good", "average", "weak")
 
+# The grade names a reader sees (2026-10-31, after the company ranking
+# redesign): named by what the company is like on our five checks. The old
+# words (Excellent / Good / Average / Weak) are retired from the screen; the
+# keys stay. Mirrored by frontend lib/constants.ts TIER_LABELS.
 TIER_WORDS = {
-    "excellent": "Excellent",
-    "good": "Good",
-    "average": "Average",
-    "weak": "Weak",
+    "excellent": "Strong all round",
+    "good": "Mostly strong",
+    "average": "Mixed",
+    "weak": "Mostly weak",
     "unknown": "Unrated",
 }
 
-# Bengali tier words — mirrored by frontend lib/constants.ts TIER_LABELS_BN.
+# Bengali grade names — mirrored by frontend lib/constants.ts TIER_LABELS_BN.
 TIER_WORDS_BN = {
-    "excellent": "চমৎকার",
-    "good": "ভালো",
-    "average": "মাঝারি",
-    "weak": "দুর্বল",
+    "excellent": "সব দিকে শক্তিশালী",
+    "good": "বেশিরভাগ দিকে শক্তিশালী",
+    "average": "মিশ্র",
+    "weak": "বেশিরভাগ দিকে দুর্বল",
     "unknown": "রেটিং নেই",
 }
 
-# What each grade means on our five checks, in plain words (2026-10-31, the
-# company ranking redesign) — the ranking page's group names, mirrored by
-# frontend lib/ranking.ts GROUP_NAMES. The grade words above stay the label.
-GROUP_WORDS = {
-    "excellent": ("Strong all round", "সব দিকে শক্তিশালী"),
-    "good": ("Mostly strong", "বেশিরভাগ দিকে শক্তিশালী"),
-    "average": ("Mixed", "মিশ্র"),
-    "weak": ("Mostly weak", "বেশিরভাগ দিকে দুর্বল"),
-}
+# Kept for callers written before the names became the label (score_history's
+# push line). Same words as above.
+GROUP_WORDS = {k: (TIER_WORDS[k], TIER_WORDS_BN[k]) for k in TIER_KEYS}
+
+# "Mostly strong or better": the two top grades together, for counts.
+GOOD_OR_BETTER = ("mostly strong or better", "বেশিরভাগ দিকে শক্তিশালী বা তার বেশি")
+
+
+def tier_phrase(key: str) -> tuple[str, str]:
+    """A grade name for running text: lower-case English ("is mostly strong")."""
+    return TIER_WORDS.get(key, "Unrated").lower(), TIER_WORDS_BN.get(key, "রেটিং নেই")
+
 
 # Old key -> new key, for stored docs written before the 2026-07 rename
 # (e.g. users.last_recommendation picks). Read-time hygiene only — never

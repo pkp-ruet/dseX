@@ -157,7 +157,7 @@ export const RESEARCH_LISTS: ResearchListDef[] = [
     hookBn: "শেয়ারের দাম সর্বোচ্চ থেকে 20% বা তার বেশি কম, কিন্তু ব্যবসা এখনো মজবুত।",
     seoTitle: "Good DSE Stocks Trading Well Below Their 1-Year High",
     description:
-      "DSE companies whose share price is at least 20% below its 1-year high while the business still grades Good or better — with no auditor, regulator or meeting warnings in the last year.",
+      "DSE companies whose share price is at least 20% below its 1-year high while the business is still mostly strong or better on our checks — with no auditor, regulator or meeting warnings in the last year.",
     keywords: [
       "stocks near 52 week low Bangladesh",
       "beaten down good stocks DSE",

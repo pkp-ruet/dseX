@@ -94,7 +94,7 @@ already say at the brokerage house.
 | fair value | ন্যায্য দাম |
 | score | স্কোর |
 | grade | গ্রেড |
-| Excellent · Good · Average · Weak | চমৎকার · ভালো · মাঝারি · দুর্বল |
+| Strong all round · Mostly strong · Mixed · Mostly weak (the four grades, named by what the company is like on our five checks; Excellent / Good / Average / Weak are retired, 2026-10-31) | সব দিকে শক্তিশালী · বেশিরভাগ দিকে শক্তিশালী · মিশ্র · বেশিরভাগ দিকে দুর্বল (pill: … · বেশ শক্তিশালী · মিশ্র · বেশ দুর্বল) |
 | Buy · Buy more · Sell | কেনা যায় · আরও কেনা যায় · বিক্রি করুন |
 | Very low price · Low price · Fair price (the price word on a Buy; "Strong buy" is retired) | খুব কম দাম · কম দাম · ন্যায্য দাম |
 | watchlist | ওয়াচলিস্ট |

@@ -1,4 +1,4 @@
-import { getTier, TIER_LABELS, TIER_LABELS_BN, TIER_VAR, type TierKey } from "@/lib/constants";
+import { getTier, TIER_LABELS, TIER_PILL_BN, TIER_VAR, type TierKey } from "@/lib/constants";
 import { T } from "@/components/i18n/T";
 
 interface Props {
@@ -14,8 +14,9 @@ interface Props {
 }
 
 /**
- * THE tier rendering — the fundamental-strength word (Excellent / Good /
- * Average / Weak) as a tier-coloured pill. Soft (12% tint) by default, solid
+ * THE tier rendering — the grade's name (Strong all round / Mostly strong /
+ * Mixed / Mostly weak, since 2026-10-31) as a tier-coloured pill; Bengali uses
+ * the short pill forms. Soft (12% tint) by default, solid
  * optional. No other component hand-rolls a tier pill; pair it with
  * `ScoreBadge` for the number and `SignalChip` for the action.
  */
@@ -47,7 +48,7 @@ export default function TierPill({
       className={`inline-flex items-center rounded-full font-semibold whitespace-nowrap leading-tight ${className}`}
       style={style}
     >
-      <T en={TIER_LABELS[t]} bn={TIER_LABELS_BN[t]} />
+      <T en={TIER_LABELS[t]} bn={TIER_PILL_BN[t]} />
     </span>
   );
 }

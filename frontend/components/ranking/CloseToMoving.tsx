@@ -1,7 +1,6 @@
 "use client";
 
 import StockRow from "@/components/ui/StockRow";
-import TierPill from "@/components/ui/TierPill";
 import SectionHeader from "@/components/ui/SectionHeader";
 import RowLock from "@/components/premium/RowLock";
 import LockPanel from "@/components/premium/LockPanel";
@@ -112,7 +111,6 @@ function CloseItem({ r, masked = false }: { r: CloseRow; masked?: boolean }) {
           {r.dir === "up" ? "↑" : "↓"}
         </span>
       }
-      tags={<TierPill tier={r.from} />}
       sub={<T en={`${from.en} → ${to.en}, ${away.en} away`} bn={`${from.bn} → ${to.bn}, ${away.bn} দূরে`} />}
       subTone={r.dir === "up" ? "positive" : "negative"}
       // Which check would move it is the Premium answer.

@@ -204,16 +204,16 @@ export default function SectorHero({ summary: s }: { summary: SectorSummary }) {
                     ? `Over the last 7 days this sector moved ${Math.abs(rs).toFixed(1)}% ${rs >= 0 ? "ahead of" : "behind"} DSEX on average. `
                     : "") +
                   (good > 0
-                    ? `${good} of its ${s.company_count} companies are graded Good or better.`
-                    : "No company here is graded Good or better right now.")
+                    ? `${good} of its ${s.company_count} companies are mostly strong or better on our checks.`
+                    : "No company here is mostly strong or better on our checks right now.")
                 }
                 bn={
                   (rs != null
                     ? `গত 7 দিনে এই সেক্টর গড়ে ডিএসইএক্সের চেয়ে ${Math.abs(rs).toFixed(1)}% ${rs >= 0 ? "এগিয়ে" : "পিছিয়ে"} ছিল। `
                     : "") +
                   (good > 0
-                    ? `এর ${s.company_count}টি কোম্পানির মধ্যে ${good}টির গ্রেড ভালো বা তার ওপরে।`
-                    : "এখন এখানে কোনো কোম্পানির গ্রেড ভালো বা তার ওপরে নেই।")
+                    ? `এর ${s.company_count}টি কোম্পানির মধ্যে ${good}টি আমাদের যাচাইয়ে বেশিরভাগ দিকে শক্তিশালী বা তার বেশি।`
+                    : "এখন এখানে কোনো কোম্পানি আমাদের যাচাইয়ে বেশিরভাগ দিকে শক্তিশালী বা তার বেশি নয়।")
                 }
               />
             </p>

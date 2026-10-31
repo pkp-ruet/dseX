@@ -35,8 +35,8 @@ _GROUP = {"good_wait_price": "price", "quality_expensive": "price"}
 # Why a share left the list since the last trading day: the left-out words,
 # plus a grade that fell.
 _LEFT_EXTRA = {
-    "average_fundamentals": ("Grade fell to Average", "গ্রেড নেমে মাঝারি হয়েছে"),
-    "weak_fundamentals": ("Grade fell to Weak", "গ্রেড নেমে দুর্বল হয়েছে"),
+    "average_fundamentals": ("Fell to “Mixed”", "নেমে “মিশ্র” হয়েছে"),
+    "weak_fundamentals": ("Fell to “Mostly weak”", "নেমে “বেশিরভাগ দিকে দুর্বল” হয়েছে"),
     "not_rated": ("No longer rated", "এখন রেটিং নেই"),
 }
 
@@ -217,7 +217,7 @@ def why_facts(row: dict, sig: dict, sector_class: str = "GENERAL",
     if score and score >= 85:
         facts.append((60, bi("One of the strongest companies on the DSE.", "ডিএসইর সবচেয়ে শক্তিশালী কোম্পানিগুলোর একটি।")))
     elif sig.get("reason_key") == "excellent_fair_price" or (score and score >= 75):
-        facts.append((50, bi("Graded Excellent: strong on almost every check.", "চমৎকার গ্রেড: প্রায় প্রতিটি যাচাইয়ে ভালো।")))
+        facts.append((50, bi("Strong all round: strong on almost every one of our checks.", "সব দিকে শক্তিশালী: আমাদের প্রায় প্রতিটি যাচাইয়ে ভালো।")))
 
     facts.sort(key=lambda f: -f[0])
     return [f for _, f in facts[:limit]]

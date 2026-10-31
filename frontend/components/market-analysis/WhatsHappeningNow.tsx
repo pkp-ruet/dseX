@@ -4,6 +4,7 @@ import { T } from "@/components/i18n/T";
 import { sectorBn } from "@/lib/bn";
 import type { MarketSectorRow, MarketQuality } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
+import { TIER_LABELS, TIER_PILL_BN } from "@/lib/constants";
 import MkCard from "./MkCard";
 
 /** Bar + marker scale: ±5% fills the half-track. */
@@ -99,10 +100,10 @@ function Sectors({ sectors }: { sectors: MarketSectorRow[] }) {
 
 function Quality({ quality }: { quality: MarketQuality }) {
   const segs = [
-    { label: "Excellent", labelBn: "চমৎকার", n: quality.strong, bg: "bg-tier-excellent" },
-    { label: "Good", labelBn: "ভালো", n: quality.good, bg: "bg-tier-good" },
-    { label: "Average", labelBn: "মাঝারি", n: quality.soso, bg: "bg-tier-average" },
-    { label: "Weak", labelBn: "দুর্বল", n: quality.risky, bg: "bg-tier-weak" },
+    { label: TIER_LABELS.excellent, labelBn: TIER_PILL_BN.excellent, n: quality.strong, bg: "bg-tier-excellent" },
+    { label: TIER_LABELS.good, labelBn: TIER_PILL_BN.good, n: quality.good, bg: "bg-tier-good" },
+    { label: TIER_LABELS.average, labelBn: TIER_PILL_BN.average, n: quality.soso, bg: "bg-tier-average" },
+    { label: TIER_LABELS.weak, labelBn: TIER_PILL_BN.weak, n: quality.risky, bg: "bg-tier-weak" },
   ];
   const healthy = quality.strong + quality.good;
   const healthyPct = quality.total ? (healthy / quality.total) * 100 : 0;

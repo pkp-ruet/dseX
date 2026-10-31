@@ -152,7 +152,7 @@ def test_square_report_shape_and_numbers():
                                                      "owners", "cash", "safety", "quality"]
     words = {c["key"]: c["word"]["en"] for c in rep["scorecard"]}
     assert words == {"red_flags": "None", "price": "Low", "dividend": "Rising", "this_year": "Growing",
-                     "owners": "Buying", "cash": "Mostly", "safety": "Easily", "quality": "Excellent"}
+                     "owners": "Buying", "cash": "Mostly", "safety": "Easily", "quality": "Strong all round"}
     secs = rep["sections"]
     # The scorecard says the same thing as each section.
     for c in rep["scorecard"]:
@@ -403,9 +403,9 @@ def test_answer_buy_has_no_red_light():
     assert ans["decision"] == "buy" and ans["word"]["en"] == "Buy" and ans["tone"] == "good"
     assert ans["blocker"] is None
     assert all(l["tone"] != "bad" for l in lights.values())
-    assert lights["company"]["word"]["en"] == "Excellent"
+    assert lights["company"]["word"]["en"] == "Strong all round"
     assert lights["price"]["word"]["en"] == "Very low"
-    assert ans["line"]["en"] == "An excellent company at a very low price, and nothing serious is wrong."
+    assert ans["line"]["en"] == "A company strong all round, at a very low price, and nothing serious is wrong."
     # The free line carries no figures; the buy price is a separate (Premium) field.
     assert not any(ch.isdigit() for ch in ans["line"]["en"])
     assert ans["buy_price"] == 229
@@ -417,7 +417,7 @@ def test_answer_waits_on_the_price():
     ans, lights = _answer(inp, _sig("none", "quality_expensive", tier="good"))
     assert ans["decision"] == "wait" and ans["word"]["en"] == "Not yet" and ans["blocker"] == "price"
     assert lights["price"]["tone"] in ("fair", "bad")
-    assert ans["line"]["en"] == "A good company, but the price is high right now."
+    assert ans["line"]["en"] == "A mostly strong company, but the price is high right now."
 
 
 def test_answer_near_yearly_top():
@@ -441,7 +441,7 @@ def test_report_red_flag_overrides_a_stale_buy():
     ans, lights = _answer(inp, _sig("buy", "quality_cheap"))
     assert ans["decision"] == "wait" and ans["blocker"] == "risks"
     assert lights["risks"]["tone"] == "bad"
-    assert ans["line"]["en"].startswith("An excellent company, but we found a serious problem: DSE visited the factory")
+    assert ans["line"]["en"].startswith("A company strong all round, but we found a serious problem: DSE visited the factory")
 
 
 def test_answer_weak_and_average():
@@ -610,11 +610,11 @@ def test_watcher_answer_event():
 
     facts = {"answers": {"GP": {"day": "2026-10-29", "decision": "wait", "from": sr.bi("Buy", "কেনা যায়"),
                                 "to": sr.bi("Not yet", "এখন নয়"),
-                                "line": sr.bi("A good company, but the price is high right now.", "ক।")}}}
+                                "line": sr.bi("A mostly strong company, but the price is high right now.", "ক।")}}}
     events = build_events({}, facts, "2026-10-29", watched={"GP"})
     assert len(events) == 1 and events[0]["kind"] == "answer" and events[0]["level"] == "watch"
     assert events[0]["title_en"] == "Our answer on GP changed: Not yet"
-    assert events[0]["body_en"] == "It was Buy. A good company, but the price is high right now."
+    assert events[0]["body_en"] == "It was Buy. A mostly strong company, but the price is high right now."
     assert push_payload(events, "en")["url"] == "/stock/GP?src=watch#ch-answer"
 
 
@@ -662,3 +662,12 @@ def test_next_questions_pair_each_free_answer_with_its_question():
                 for half in (b["en"], b["bn"]):
                     assert not _MARKET_WORDS.search(half), half
                 assert not _RATIO_SPEAK.search(b["en"]), b["en"]
+
+
+def test_company_light_names_its_strong_and_weak_checks():
+    line = sr.checks_line({"p1_biz": 8.1, "p2_health": 7.4, "p3_moat": 5.0, "p4_val": 3.2, "p5_div": 6.0})
+    assert line == {"en": "Strong: profit and finances · Weak: price", "bn": "শক্তিশালী: মুনাফা, আর্থিক অবস্থা · দুর্বল: দাম"}
+    assert sr.checks_line({k: 8 for k in ("p1_biz", "p2_health", "p3_moat", "p4_val", "p5_div")})["en"] == "Strong on all five checks"
+    assert sr.checks_line({}) is None
+    lights = sr.build_report(square())["answer"]["lights"]
+    assert lights[0]["note"]["en"].startswith("Strong")

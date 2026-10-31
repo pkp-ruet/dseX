@@ -5,7 +5,7 @@ import {
 } from "recharts";
 import type { ScoreChange, ScoreHistory as ScoreHistoryData, ScoreTierKey } from "@/lib/api";
 import { CHART } from "@/lib/chart-theme";
-import { TIER_LABELS, TIER_LABELS_BN, TIER_THRESHOLDS } from "@/lib/constants";
+import { TIER_LABELS, TIER_LABELS_BN, TIER_PILL_BN, TIER_THRESHOLDS } from "@/lib/constants";
 import { formatDate } from "@/lib/formatters";
 import { bnDate } from "@/lib/bn";
 import type { Bi } from "@/lib/plain-language";
@@ -13,10 +13,11 @@ import Card from "@/components/ui/Card";
 import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
 
+// Each line is where a grade starts; its name sits just above it.
 const LINES = [
-  { y: TIER_THRESHOLDS.EXCELLENT, en: "Excellent", bn: "চমৎকার" },
-  { y: TIER_THRESHOLDS.GOOD, en: "Good", bn: "ভালো" },
-  { y: TIER_THRESHOLDS.AVERAGE, en: "Average", bn: "মাঝারি" },
+  { y: TIER_THRESHOLDS.EXCELLENT, en: TIER_LABELS.excellent, bn: TIER_PILL_BN.excellent },
+  { y: TIER_THRESHOLDS.GOOD, en: TIER_LABELS.good, bn: TIER_PILL_BN.good },
+  { y: TIER_THRESHOLDS.AVERAGE, en: TIER_LABELS.average, bn: TIER_PILL_BN.average },
 ];
 
 function tierWord(t: ScoreTierKey): Bi {
@@ -88,8 +89,8 @@ function ChangeRow({ c }: { c: ScoreChange }) {
         {c.from_score != null && c.since !== c.date && (
           <p className="mt-0.5 text-xs text-text-muted">
             <T
-              en={`Compared with ${date(c.since).en}, when it became ${tierWord(c.from_tier).en}`}
-              bn={`${date(c.since).bn}-এর সঙ্গে তুলনা, যেদিন এটি ${tierWord(c.from_tier).bn} হয়েছিল`}
+              en={`Compared with ${date(c.since).en}, when it moved to “${tierWord(c.from_tier).en}”`}
+              bn={`${date(c.since).bn}-এর সঙ্গে তুলনা, যেদিন এটি “${tierWord(c.from_tier).bn}”-এ এসেছিল`}
             />
           </p>
         )}
@@ -109,7 +110,7 @@ export function scoreHistorySummary(history: ScoreHistoryData): Bi | null {
   const tw = tierWord(now.tier);
   const since = date(first.date);
   return {
-    en: `The score is ${now.score.toFixed(0)} today (${tw.en}). We have checked it every trading day since ${since.en}, and the grade has changed ${n} ${n === 1 ? "time" : "times"}.`,
+    en: `The score is ${now.score.toFixed(0)} today (${tw.en.toLowerCase()}). We have checked it every trading day since ${since.en}, and the grade has changed ${n} ${n === 1 ? "time" : "times"}.`,
     bn: `আজ স্কোর ${now.score.toFixed(0)} (${tw.bn})। ${since.bn} থেকে প্রতি কার্যদিবসে আমরা এটি দেখছি, এর মধ্যে গ্রেড ${n} বার বদলেছে।`,
   };
 }
@@ -170,8 +171,8 @@ export default function ScoreHistory({ history }: { history: ScoreHistoryData })
         ) : (
           <p className="text-sm text-text-muted">
             <T
-              en={`The grade has stayed ${tw.en} since ${since.en}.`}
-              bn={`${since.bn} থেকে গ্রেড একই আছে: ${tw.bn}।`}
+              en={`It has stayed “${tw.en}” since ${since.en}.`}
+              bn={`${since.bn} থেকে এটি একই দলে আছে: “${tw.bn}”।`}
             />
           </p>
         )}

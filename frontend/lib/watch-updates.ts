@@ -254,10 +254,10 @@ export function buildWatchUpdates({
       code, kind: "grade", side: "past", date: ch.date, tone: rose ? "positive" : "negative", rank: 3,
       label: pair("Grade", "গ্রেড"),
       title: rose
-        ? pair(`Its grade rose from ${fromEn} to ${toEn}`, `গ্রেড ${fromBn} থেকে বেড়ে ${toBn} হয়েছে`)
-        : pair(`Its grade fell from ${fromEn} to ${toEn}`, `গ্রেড ${fromBn} থেকে কমে ${toBn} হয়েছে`),
+        ? pair(`Moved up from “${fromEn}” to “${toEn}”`, `“${fromBn}” থেকে “${toBn}”-তে উঠেছে`)
+        : pair(`Moved down from “${fromEn}” to “${toEn}”`, `“${fromBn}” থেকে “${toBn}”-তে নেমেছে`),
       line: scores,
-      short: pair(`Now ${toEn}`, `এখন ${toBn}`),
+      short: rose ? pair("Stronger now", "এখন আরও শক্তিশালী") : pair("Weaker now", "এখন আরও দুর্বল"),
       href: `/stock/${code}#ch-company`,
     });
   }

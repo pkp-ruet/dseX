@@ -19,7 +19,7 @@ export default function SignalsFunnel({ funnel }: { funnel: SignalsToday["funnel
       </h2>
       <div className="sg-funnel-grid">
         <Step value={graded} label={<T en="companies graded" bn="কোম্পানির গ্রেড দেওয়া হয়েছে" />} />
-        <Step value={good} label={<T en="good or excellent" bn="ভালো বা চমৎকার" />} />
+        <Step value={good} label={<T en="mostly strong or better" bn="বেশিরভাগ দিকে শক্তিশালী বা তার বেশি" />} />
         <Step value={buys} tone="positive" label={<T en="passed every check" bn="সব যাচাইয়ে উতরেছে" />} />
       </div>
       <div className="sg-funnel-bar" aria-hidden="true">

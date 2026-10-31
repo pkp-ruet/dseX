@@ -219,9 +219,9 @@ function RankAlerts({ item, rank }: { item: RankedItem; rank: number | null }) {
                 <T en="Tell me when it enters the top 20" bn="প্রথম 20-এ এলে জানান" />
               )
             ) : on ? (
-              <T en="Alert on: if it drops below Good" bn="অ্যালার্ট চালু: ভালো গ্রেডের নিচে নামলে" />
+              <T en="Alert on: if it drops out of “Mostly strong”" bn="অ্যালার্ট চালু: “বেশিরভাগ দিকে শক্তিশালী” থেকে নামলে" />
             ) : (
-              <T en="Tell me if it drops below Good" bn="ভালো গ্রেডের নিচে নামলে জানান" />
+              <T en="Tell me if it drops out of “Mostly strong”" bn="“বেশিরভাগ দিকে শক্তিশালী” থেকে নামলে জানান" />
             )}
           </Button>
         );

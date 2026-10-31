@@ -192,6 +192,7 @@
 .ac-light[data-tone="neutral"] .ac-dot { background: rgb(var(--text-muted-rgb) / 0.5); }
 .ac-label { margin-top: 4px; font-size: var(--fs-2xs); color: var(--text-muted); line-height: 1.2; }
 .ac-lword { font-size: var(--fs-sm); font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+.ac-lnote { font-size: var(--fs-2xs); line-height: 1.35; color: var(--text); overflow-wrap: anywhere; }
 .ac-why { list-style: none; margin: var(--space-4) 0 0; padding: var(--space-3) 0 0; border-top: 1px solid var(--border); display: grid; gap: var(--space-2); }
 .ac-why > li { font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
 .ac-why b { display: block; font-size: var(--fs-2xs); color: var(--text-muted); }
@@ -205,6 +206,7 @@
   .ac-light { min-height: 0; grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: var(--space-2); }
   .ac-light .ac-dot { grid-row: span 2; }
   .ac-label { margin-top: 0; }
+  .ac-lnote { grid-column: 2; }
 }
 
 /* ===================================================================

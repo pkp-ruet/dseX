@@ -44,7 +44,7 @@ def test_changes_name_joiners_and_leavers_with_todays_reason():
     c = st.changes(SIGNALS, prev, "2026-10-29")
     assert c["joined"] == ["BBB", "CCC"]
     assert [(l["code"], l["reason"]["en"]) for l in c["left"]] == [
-        ("FFF", "A serious warning in its report"), ("GGG", "Grade fell to Average")]
+        ("FFF", "A serious warning in its report"), ("GGG", "Fell to “Mixed”")]
     assert c["rebuilt"] is False and c["since"] == "2026-10-29"
     assert st.changes(SIGNALS, {}, None) is None
 

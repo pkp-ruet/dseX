@@ -130,15 +130,17 @@ export default function AboutPage() {
             en={
               <>
                 The score shows how strong a company looks across five checks. Higher is better. Companies are
-                then grouped into grades, <strong className="text-text-main">Excellent, Good, Average</strong> and{" "}
-                <strong className="text-text-main">Weak</strong>, so you can sort them quickly.
+                then grouped into four grades, named by what they are like on those checks:{" "}
+                <strong className="text-text-main">Strong all round, Mostly strong, Mixed</strong> and{" "}
+                <strong className="text-text-main">Mostly weak</strong>, so you can sort them quickly.
               </>
             }
             bn={
               <>
                 স্কোর দেখায় পাঁচটি যাচাইয়ে কোম্পানিটি কতটা শক্তিশালী। স্কোর যত বেশি, তত ভালো। এরপর কোম্পানিগুলো
-                গ্রেডে ভাগ হয়: <strong className="text-text-main">চমৎকার, ভালো, মাঝারি</strong> আর{" "}
-                <strong className="text-text-main">দুর্বল</strong>, যাতে দ্রুত বাছাই করতে পারেন।
+                চারটি গ্রেডে ভাগ হয়, যাচাইয়ে তারা কেমন সেই নামে:{" "}
+                <strong className="text-text-main">সব দিকে শক্তিশালী, বেশিরভাগ দিকে শক্তিশালী, মিশ্র</strong> আর{" "}
+                <strong className="text-text-main">বেশিরভাগ দিকে দুর্বল</strong>, যাতে দ্রুত বাছাই করতে পারেন।
               </>
             }
           />

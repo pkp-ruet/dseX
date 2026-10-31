@@ -120,8 +120,8 @@ export function buildProInsights(
     risk.push({
       level: weakW > 20 ? "bad" : "watch",
       text: L(
-        `${pct(weakW)} of your money is in companies we grade Weak on their business numbers.`,
-        `আপনার টাকার ${pct(weakW)} এমন কোম্পানিতে যাদের ব্যবসার হিসাব দুর্বল।`,
+        `${pct(weakW)} of your money is in companies that are mostly weak on our checks.`,
+        `আপনার টাকার ${pct(weakW)} এমন কোম্পানিতে, যারা আমাদের যাচাইয়ে বেশিরভাগ দিকে দুর্বল।`,
       ),
     });
   }

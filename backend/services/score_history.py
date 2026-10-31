@@ -187,15 +187,17 @@ def explain(prev: dict, cur: dict, from_tier: Optional[str] = None, to_tier: Opt
 
 
 def change_text(ch: dict) -> tuple[str, str]:
-    """One plain sentence: 'Grade fell from Good to Average (64 → 58)'."""
+    """One plain sentence: 'Moved down from “Mostly strong” to “Mixed” (64 → 58)'.
+    The grade names are the ranking's groups (2026-10-31), quoted so they
+    read as names."""
     f_en, f_bn = tier_words(ch["from_tier"])
     t_en, t_bn = tier_words(ch["to_tier"])
     nums = ""
     if ch.get("from_score") is not None and ch.get("to_score") is not None:
         nums = f" ({ch['from_score']:.0f} → {ch['to_score']:.0f})"
     rose = _ORDER.index(ch["to_tier"]) > _ORDER.index(ch["from_tier"])         if ch["to_tier"] in _ORDER and ch["from_tier"] in _ORDER else (ch.get("to_score") or 0) > (ch.get("from_score") or 0)
-    return (f"Grade {'rose' if rose else 'fell'} from {f_en} to {t_en}{nums}",
-            f"গ্রেড {f_bn} থেকে {t_bn} হয়েছে{nums}")
+    return (f"Moved {'up' if rose else 'down'} from “{f_en}” to “{t_en}”{nums}",
+            f"“{f_bn}” থেকে “{t_bn}”-তে {'উঠেছে' if rose else 'নেমেছে'}{nums}")
 
 
 # ---------------------------------------------------------------------------
@@ -332,12 +334,6 @@ def grade_event(code: str, ch: dict, day: str) -> dict:
     why = (ch.get("notes") or []) + (ch.get("drivers") or [])
     body_en = f"Main reason: {why[0]['en'].lower()}." if why else "See what changed on the stock page."
     body_bn = f"মূল কারণ: {why[0]['bn']}।" if why else "কী বদলেছে, তা শেয়ারের পেজে দেখুন।"
-    # The company ranking's group name for the new grade (2026-10-31).
-    from backend.services.tiers import GROUP_WORDS
-    group = GROUP_WORDS.get(ch.get("to_tier") or "")
-    if group:
-        body_en = f"It is now in “{group[0]}”. {body_en}"
-        body_bn = f"এখন “{group[1]}” দলে। {body_bn}"
     return {
         "id": f"grade-{code}-{day}", "kind": "grade", "code": code,
         "level": "good" if better else ("bad" if ch.get("to_tier") == "weak" else "watch"),

@@ -6,7 +6,7 @@ import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
 import { flattenTiers, type ScoreItem, type ScoresResponse, type WatchlistMeta } from "@/lib/api";
 import { changePct, changeTone } from "@/lib/formatters";
-import { getTier, TIER_LABELS, TIER_LABELS_BN, TIER_VAR, type TierKey } from "@/lib/constants";
+import { getTier, TIER_LABELS, TIER_PILL_BN, TIER_VAR, type TierKey } from "@/lib/constants";
 
 /*
  * The watchlist hero: a mood word for today, one sentence on the list, then
@@ -44,12 +44,12 @@ function TierMix({ counts, total }: { counts: Record<TierKey, number>; total: nu
   const { lang } = useLang();
   if (total === 0) return null;
   const shown = TIER_ORDER.filter((t) => counts[t] > 0);
-  const words = lang === "bn" ? TIER_LABELS_BN : TIER_LABELS;
+  const words = lang === "bn" ? TIER_PILL_BN : TIER_LABELS;
   return (
     <div className="wl-mix">
       <div className="wl-mix-head">
         <p className="wl-mix-title">
-          <T en="Quality mix" bn="কোন মানের শেয়ার কয়টি" />
+          <T en="How strong the companies are" bn="কোম্পানিগুলো কতটা শক্তিশালী" />
         </p>
       </div>
       <div className="wl-mix-bar" role="img" aria-label={shown.map((t) => `${words[t]} ${counts[t]}`).join(", ")}>
@@ -61,7 +61,7 @@ function TierMix({ counts, total }: { counts: Record<TierKey, number>; total: nu
         {shown.map((t) => (
           <li key={t}>
             <span className="wl-swatch" style={{ background: TIER_VAR[t] }} aria-hidden />
-            <T en={TIER_LABELS[t]} bn={TIER_LABELS_BN[t]} />
+            <T en={TIER_LABELS[t]} bn={TIER_PILL_BN[t]} />
             <b>{counts[t]}</b>
           </li>
         ))}
@@ -175,7 +175,9 @@ export default function WatchlistAnalysis({ codes, scores, meta }: Props) {
           : `আপনার ${n}টি শেয়ারের মধ্যে শক্তিশালী কোম্পানি কম, তাই ঝুঁকি বেশি।`,
     },
   };
-  const avgTier = story.avgScore != null ? getTier(story.avgScore) : null;
+  // Grades are counted, never averaged: an average of two grade names says nothing.
+  const strongCount = story.tierCounts.excellent + story.tierCounts.good;
+  const scored = TIER_ORDER.reduce((s, t) => s + story.tierCounts[t], 0);
 
   return (
     <section aria-labelledby="wl-hero-title">
@@ -226,13 +228,11 @@ export default function WatchlistAnalysis({ codes, scores, meta }: Props) {
             <span className="text-negative">{story.down}</span>
           </Answer>
           <Answer
-            q="Average score"
-            qBn="গড় স্কোর"
-            x={avgTier ? <T en={TIER_LABELS[avgTier]} bn={TIER_LABELS_BN[avgTier]} /> : undefined}
+            q="Mostly strong or better"
+            qBn="বেশিরভাগ দিকে শক্তিশালী বা তার বেশি"
+            x={scored > 0 ? <T en={`of the ${scored} we grade`} bn={`গ্রেড পাওয়া ${scored}টির মধ্যে`} /> : undefined}
           >
-            <span style={avgTier ? { color: TIER_VAR[avgTier] } : undefined}>
-              {story.avgScore != null ? Math.round(story.avgScore) : "—"}
-            </span>
+            <span className={strongCount > 0 ? "text-tier-good" : undefined}>{scored > 0 ? strongCount : "—"}</span>
           </Answer>
         </div>
         <TierMix counts={story.tierCounts} total={n} />

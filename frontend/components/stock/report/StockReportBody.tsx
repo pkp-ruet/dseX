@@ -282,7 +282,7 @@ export default function StockReportBody({ detail, report }: { detail: CompanyDet
   const standing = q?.rank && q.total ? standingWords(q.rank, q.total) : null;
   const companyHead = q ? (
     <div className="rq-chead">
-      <ToneChip word={{ en: `Graded ${q.word.en.toLowerCase()}`, bn: `গ্রেড: ${q.word.bn}` }} tone={q.tone} size="lg" />
+      <ToneChip word={q.word} tone={q.tone} size="lg" />
       {standing && (
         <span className="rq-chead-note">
           <T en={standing.en} bn={standing.bn} />

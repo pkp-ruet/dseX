@@ -28,7 +28,7 @@ def test_timeline_lists_grade_changes_measured_from_when_the_grade_began():
     assert [p["tier"] for p in tl["points"]] == ["good", "good", "average"]
     (ch,) = tl["changes"]
     assert ch["date"] == "2026-10-05" and ch["since"] == "2026-10-01"
-    assert ch["en"] == "Grade fell from Good to Average (62 → 58)"
+    assert ch["en"] == "Moved down from “Mostly strong” to “Mixed” (62 → 58)"
     assert ch["drivers"][0]["pillar"] == "p1_biz"
     assert tl["grade_changes"] == 1
 
@@ -70,9 +70,9 @@ def test_daily_state_diff_pushes_only_real_changes():
     assert list(out) == ["GP"]
     ev = sh.grade_event("GP", out["GP"], "2026-10-26")
     assert ev["id"] == "grade-GP-2026-10-26" and ev["level"] == "watch"
-    assert ev["title_en"] == "GP: grade fell from Good to Average (62 → 57)"
+    assert ev["title_en"] == "GP: moved down from “Mostly strong” to “Mixed” (62 → 57)"
     assert "finances became weaker" in ev["body_en"]
-    assert ev["body_en"].startswith("It is now in “Mixed”.")
+    assert ev["body_en"].startswith("Main reason:")
     assert cur["GP"]["anchor"]["score"] == 57
 
 

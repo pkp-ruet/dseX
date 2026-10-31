@@ -24,7 +24,7 @@ import { bnDate } from "@/lib/bn";
 import { recordDateInfo } from "@/lib/dividend-dates";
 import { RESULT_LEVEL } from "@/lib/results";
 import { classifyNews } from "@/lib/news-kind";
-import { getTier, TIER_LABELS, TIER_LABELS_BN, TIER_THRESHOLDS } from "@/lib/constants";
+import { getTier, TIER_LABELS, TIER_PILL_BN, TIER_THRESHOLDS } from "@/lib/constants";
 
 /**
  * The dashboard's stories (2026-10-28, user decision: "replace Your stocks
@@ -248,7 +248,7 @@ export function kindsPhrase(kinds: FrameKind[], lang: Lang): string {
 function gradeText(score: number | null | undefined, lang: Lang): string {
   if (score == null) return "--";
   const k = getTier(score);
-  return `${lang === "bn" ? TIER_LABELS_BN[k] : TIER_LABELS[k]} · ${Math.round(score)}`;
+  return `${lang === "bn" ? TIER_PILL_BN[k] : TIER_LABELS[k]} · ${Math.round(score)}`;
 }
 
 /** Codes as one short line: "GP, BATBC, SQURPHARMA…". */
@@ -1021,13 +1021,13 @@ function buildTodayStory(
       counts: [
         { value: `${b}`, label: L("Buy", "কেনা"), tone: b ? "positive" : "neutral" },
         { value: `${sl}`, label: L("Sell", "বিক্রি"), tone: sl ? "negative" : "neutral" },
-        { value: `${good}/${scored.length}`, label: L("Good or better", "ভালো বা তার বেশি") },
+        { value: `${good}/${scored.length}`, label: L("Mostly strong +", "বেশ শক্তিশালী +") },
       ],
       sentence:
         L(
-          `${good} of ${scored.length} are graded Good or better.`,
-          `${scored.length}টির মধ্যে ${good}টির গ্রেড ভালো বা তার চেয়ে বেশি।`,
-        ) + (weak ? L(` ${weak} ${plural(weak, "is", "are")} Weak.`, ` ${weak}টি দুর্বল।`) : ""),
+          `${good} of ${scored.length} are mostly strong or better on our checks.`,
+          `${scored.length}টির মধ্যে ${good}টি আমাদের যাচাইয়ে বেশিরভাগ দিকে শক্তিশালী বা তার বেশি।`,
+        ) + (weak ? L(` ${weak} ${plural(weak, "is", "are")} mostly weak.`, ` ${weak}টি বেশিরভাগ দিকে দুর্বল।`) : ""),
       rows: rows.length ? rows : undefined,
       cta: ctx.held.size
         ? { label: L("See your analysis", "বিশ্লেষণ দেখুন"), href: "/portfolio#ch-answer" }

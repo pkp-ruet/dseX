@@ -46,7 +46,7 @@ def test_market_part_keeps_to_five_lines():
     lines = wl.market_part(state)["lines"]
     assert len(lines) == 5
     assert lines[1]["en"] == "DSEX fell 0.6% this week, to 5,417."
-    assert lines[4]["en"] == "73 of 362 companies are graded Good or Excellent, 3 more than a week ago."
+    assert lines[4]["en"] == "73 of 362 companies are mostly strong or better, 3 more than a week ago."
 
 
 def test_new_on_lists_needs_a_baseline():

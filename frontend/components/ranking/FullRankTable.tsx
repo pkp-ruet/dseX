@@ -3,7 +3,6 @@
 import { Fragment, useMemo, useState, type MouseEvent, type ReactNode } from "react";
 import Link from "next/link";
 import { TIER_VAR, type TierKey } from "@/lib/constants";
-import TierPill from "@/components/ui/TierPill";
 import SignalChip from "@/components/ui/SignalChip";
 import { IconCrown } from "@/components/ui/icons";
 import { Locked } from "@/components/premium/AnswerLock";
@@ -266,7 +265,6 @@ export default function FullRankTable({ rows, grouped, sort, onSort, groupCounts
                     <h2 className="rk-group-title">
                       <T en={GROUP_NAMES[group.tier].name.en} bn={GROUP_NAMES[group.tier].name.bn} />
                     </h2>
-                    <TierPill tier={group.tier} />
                     <span className="rk-group-meaning">
                       <T en={GROUP_NAMES[group.tier].line.en} bn={GROUP_NAMES[group.tier].line.bn} />
                     </span>

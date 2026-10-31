@@ -287,8 +287,8 @@ export const ROWS: { what: Bi; job: Job; free: Bi; premium: Bi }[] = [
       bn: "প্রতিটি কোম্পানির র‍্যাঙ্ক, গ্রেড, পাঁচটি যাচাই, আর এ সপ্তাহে কে কতটা ওঠানামা করেছে।",
     },
     premium: {
-      en: "Best value first, your own ranking, why each mover moved, a year of rank for every company, and an alert when a share enters the top 20 or drops below Good.",
-      bn: "সেরা দামের ক্রম, আপনার নিজের র‍্যাঙ্কিং, প্রতিটি ওঠানামার কারণ, প্রতিটি কোম্পানির এক বছরের র‍্যাঙ্ক, আর শেয়ার প্রথম 20-এ এলে বা ভালো গ্রেডের নিচে নামলে অ্যালার্ট।",
+      en: "Best value first, your own ranking, why each mover moved, a year of rank for every company, and an alert when a share enters the top 20 or drops out of “Mostly strong”.",
+      bn: "সেরা দামের ক্রম, আপনার নিজের র‍্যাঙ্কিং, প্রতিটি ওঠানামার কারণ, প্রতিটি কোম্পানির এক বছরের র‍্যাঙ্ক, আর শেয়ার প্রথম 20-এ এলে বা “বেশিরভাগ দিকে শক্তিশালী” থেকে নামলে অ্যালার্ট।",
     },
   },
   {

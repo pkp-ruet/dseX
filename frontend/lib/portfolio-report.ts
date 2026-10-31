@@ -24,6 +24,7 @@
 import type { GlanceRow, PortfolioSignalEvent, PortfolioWatchEvent, ScoreItem, UpcomingResult } from "@/lib/api";
 import { sectorBn } from "@/lib/bn";
 import { companyShort, takaGroup } from "@/lib/formatters";
+import { TIER_LABELS, TIER_PILL_BN } from "@/lib/constants";
 import {
   isFinancialSector,
   type Grade,
@@ -522,12 +523,12 @@ function companiesChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: T
       : null,
     picture: {
       kind: "split",
-      label: `Money by grade: excellent ${pct(w("excellent"))}, good ${pct(w("good"))}, average ${pct(w("average"))}, weak ${pct(w("weak"))}`,
+      label: `Money by group: strong all round ${pct(w("excellent"))}, mostly strong ${pct(w("good"))}, mixed ${pct(w("average"))}, mostly weak ${pct(w("weak"))}`,
       parts: [
-        { key: "ex", value: w("excellent"), text: B(`Excellent ${pct(w("excellent"))}`, `চমৎকার ${pct(w("excellent"))}`), swatch: "good" as Swatch },
-        { key: "gd", value: w("good"), text: B(`Good ${pct(w("good"))}`, `ভালো ${pct(w("good"))}`), swatch: "info" as Swatch },
-        { key: "av", value: w("average"), text: B(`Average ${pct(w("average"))}`, `মাঝারি ${pct(w("average"))}`), swatch: "quiet" as Swatch },
-        { key: "wk", value: w("weak"), text: B(`Weak ${pct(w("weak"))}`, `দুর্বল ${pct(w("weak"))}`), swatch: "bad" as Swatch },
+        { key: "ex", value: w("excellent"), text: B(`${GRADE_PAIR.excellent.en} ${pct(w("excellent"))}`, `${GRADE_PAIR.excellent.bn} ${pct(w("excellent"))}`), swatch: "good" as Swatch },
+        { key: "gd", value: w("good"), text: B(`${GRADE_PAIR.good.en} ${pct(w("good"))}`, `${GRADE_PAIR.good.bn} ${pct(w("good"))}`), swatch: "info" as Swatch },
+        { key: "av", value: w("average"), text: B(`${GRADE_PAIR.average.en} ${pct(w("average"))}`, `${GRADE_PAIR.average.bn} ${pct(w("average"))}`), swatch: "quiet" as Swatch },
+        { key: "wk", value: w("weak"), text: B(`${GRADE_PAIR.weak.en} ${pct(w("weak"))}`, `${GRADE_PAIR.weak.bn} ${pct(w("weak"))}`), swatch: "bad" as Swatch },
         { key: "un", value: w("unscored"), text: B(`Not graded ${pct(w("unscored"))}`, `গ্রেড নেই ${pct(w("unscored"))}`), swatch: "navy" as Swatch },
       ].filter((p) => p.value > 0.5),
     },
@@ -700,9 +701,9 @@ function companiesChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: T
       line:
         f.n === 1
           ? goodCount
-            ? B("Graded Good or better", "গ্রেড ভালো বা আরও ভালো")
-            : B("Not graded Good yet", "গ্রেড এখনো ভালো নয়")
-          : B(`${goodCount} of ${f.n} are graded Good or better`, `${f.n}টির ${goodCount}টির গ্রেড ভালো বা আরও ভালো`),
+            ? B("Mostly strong or better on our checks", "আমাদের যাচাইয়ে বেশিরভাগ দিকে শক্তিশালী বা তার বেশি")
+            : B("Not mostly strong yet on our checks", "আমাদের যাচাইয়ে এখনো বেশিরভাগ দিকে শক্তিশালী নয়")
+          : B(`${goodCount} of ${f.n} are mostly strong or better`, `${f.n}টির মধ্যে ${goodCount}টি বেশিরভাগ দিকে শক্তিশালী বা তার বেশি`),
     },
     read: readOf(rows),
     rows,
@@ -713,11 +714,12 @@ function companiesChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: T
   };
 }
 
+// The grade names (lib/constants TIER_LABELS, the ranking's groups).
 const GRADE_PAIR: Record<string, Bi> = {
-  excellent: B("Excellent", "চমৎকার"),
-  good: B("Good", "ভালো"),
-  average: B("Average", "মাঝারি"),
-  weak: B("Weak", "দুর্বল"),
+  excellent: B(TIER_LABELS.excellent, TIER_PILL_BN.excellent),
+  good: B(TIER_LABELS.good, TIER_PILL_BN.good),
+  average: B(TIER_LABELS.average, TIER_PILL_BN.average),
+  weak: B(TIER_LABELS.weak, TIER_PILL_BN.weak),
   unscored: B("Not graded", "গ্রেড নেই"),
 };
 const TIER_TONE: Record<string, Tone> = { excellent: "good", good: "good", average: "neutral", weak: "bad", unscored: "neutral" };
@@ -1092,8 +1094,8 @@ function watchChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone 
     }),
     watch: f.sells.length
       ? B(
-          "A Sell mark goes away when the company's grade climbs back to Average or better. Selling is always your call.",
-          "কোম্পানির গ্রেড আবার মাঝারি বা তার ওপরে উঠলে বিক্রির সংকেত চলে যায়। বিক্রি করবেন কি না, সিদ্ধান্ত সবসময় আপনার।",
+          "A Sell mark goes away when the company climbs back to “Mixed” or better on our checks. Selling is always your call.",
+          "কোম্পানি আমাদের যাচাইয়ে আবার “মিশ্র” বা তার ওপরে উঠলে বিক্রির সংকেত চলে যায়। বিক্রি করবেন কি না, সিদ্ধান্ত সবসময় আপনার।",
         )
       : null,
     picture: null,

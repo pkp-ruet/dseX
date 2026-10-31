@@ -119,12 +119,12 @@ REASONS: dict[str, tuple[str, str]] = {
         "কোম্পানিটি শক্তিশালী, তবে এখন এর দাম বেশি।",
     ),
     "excellent_fair_price": (
-        "An excellent company at a fair price.",
-        "চমৎকার কোম্পানি, দামও ন্যায্য।",
+        "A company strong all round, at a fair price.",
+        "সব দিকে শক্তিশালী কোম্পানি, দামও ন্যায্য।",
     ),
     "good_wait_price": (
-        "A good company. It is fine to keep, but a lower price would be a better time to buy more.",
-        "ভালো কোম্পানি। ধরে রাখা যায়, তবে আরও কিনতে চাইলে দাম কমার অপেক্ষা করা ভালো।",
+        "A mostly strong company. It is fine to keep, but a lower price would be a better time to buy more.",
+        "বেশিরভাগ দিকে শক্তিশালী কোম্পানি। ধরে রাখা যায়, তবে আরও কিনতে চাইলে দাম কমার অপেক্ষা করা ভালো।",
     ),
     # --- holding-level (personalized overlay) ---
     "bought_high_still_expensive": (

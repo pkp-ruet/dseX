@@ -91,10 +91,11 @@ def _ok_fn(fn) -> Callable[[Any], Check]:
 # ---------------------------------------------------------------------------
 
 def _grade(v) -> Check:
-    words = {45: ("Average or better", "মাঝারি বা তার ওপরে"), 60: ("Good or better", "ভালো বা তার ওপরে"),
-             75: ("Excellent", "চমৎকার")}[v]
-    return rl.grade_at_least(v, f"Graded {words[0]}: a score of {v} or more",
-                             f"গ্রেড {words[1]}: স্কোর {v} বা তার বেশি")
+    words = {45: ("Mixed or better", "মিশ্র বা তার ওপরে"),
+             60: ("Mostly strong or better", "বেশিরভাগ দিকে শক্তিশালী বা তার ওপরে"),
+             75: ("Strong all round", "সব দিকে শক্তিশালী")}[v]
+    return rl.grade_at_least(v, f"{words[0]} on our checks: a score of {v} or more",
+                             f"আমাদের যাচাইয়ে {words[1]}: স্কোর {v} বা তার বেশি")
 
 
 def _pe_max(v) -> Check:
@@ -273,7 +274,8 @@ def _quarter_better(f, ctx):
 CATALOG: list[CheckDef] = [
     # Quality
     CheckDef("grade", "quality", "Our grade", "আমাদের গ্রেড", _grade,
-             [Option(45, "Average+", "মাঝারি+"), Option(60, "Good+", "ভালো+"), Option(75, "Excellent", "চমৎকার")], 60),
+             [Option(45, "Mixed+", "মিশ্র+"), Option(60, "Mostly strong+", "বেশ শক্তিশালী+"),
+              Option(75, "Strong all round", "সব দিকে শক্তিশালী")], 60),
     CheckDef("buy_today", "quality", "A Buy signal today", "আজ কেনার সংকেত",
              _ok_fn(Check("buy_today", "Has a Buy signal today", "আজ কেনার সংকেত আছে", _buy_today)), premium=True),
     CheckDef("roe_min", "quality", "Return on shareholders' money", "শেয়ারহোল্ডারদের টাকায় মুনাফার হার", _roe_min,
@@ -447,12 +449,12 @@ QUESTIONS: list[Question] = [
     Question("quality", "How good is the company?", "কোম্পানি কতটা ভালো?",
              "Our grade, from its yearly accounts", "বার্ষিক হিসাব দেখে আমাদের গ্রেড", *DONT_MIND, (
                  Level("Good", "ভালো", "Good company", "ভালো কোম্পানি",
-                       "Our grade is Good or better: 60 or more out of 100",
-                       "আমাদের গ্রেড ভালো বা তার বেশি: 100-এ 60 বা তার বেশি",
+                       "Mostly strong or better on our checks: 60 or more out of 100",
+                       "আমাদের যাচাইয়ে বেশিরভাগ দিকে শক্তিশালী বা তার বেশি: 100-এ 60 বা তার বেশি",
                        (_q("grade", 60),)),
                  Level("Very good", "খুব ভালো", "Very good company", "খুব ভালো কোম্পানি",
-                       "Our grade is Excellent: 75 or more out of 100",
-                       "আমাদের গ্রেড চমৎকার: 100-এ 75 বা তার বেশি",
+                       "Strong all round on our checks: 75 or more out of 100",
+                       "আমাদের যাচাইয়ে সব দিকে শক্তিশালী: 100-এ 75 বা তার বেশি",
                        (_q("grade", 75),)),
              )),
     Question("price", "Is the price low?", "দাম কি কম?",

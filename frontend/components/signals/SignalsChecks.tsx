@@ -4,8 +4,8 @@ import { T } from "@/components/i18n/T";
 /** The signal's own rules (backend `signal_service._signal_for_row`), in plain
  *  words. Keep in step with that rule order. */
 const CHECKS: { en: string; bn: string }[] = [
-  { en: "Graded Good or Excellent", bn: "গ্রেড ভালো বা চমৎকার" },
-  { en: "A low price, or a fair price for an Excellent company", bn: "দাম কম, অথবা চমৎকার কোম্পানির জন্য ন্যায্য দাম" },
+  { en: "Mostly strong or strong all round on our checks", bn: "আমাদের যাচাইয়ে বেশিরভাগ দিকে বা সব দিকে শক্তিশালী" },
+  { en: "A low price, or a fair price for a company strong all round", bn: "দাম কম, অথবা সব দিকে শক্তিশালী কোম্পানির জন্য ন্যায্য দাম" },
   { en: "Not near the top of its price range for the year", bn: "এ বছরের দামের সীমার ওপরের দিকে নয়" },
   { en: "No serious warning in its notices, and not in Z category", bn: "নোটিশে গুরুতর সতর্কতা নেই, Z ক্যাটাগরিতেও নয়" },
   { en: "Profit not down a quarter or more on last year", bn: "মুনাফা আগের বছরের চেয়ে এক-চতুর্থাংশ বা তার বেশি কমেনি" },

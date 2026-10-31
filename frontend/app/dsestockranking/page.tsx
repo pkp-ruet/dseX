@@ -326,8 +326,8 @@ export default async function DseStockRankingPage() {
             business</b>, from strongest to weakest, rebuilt after every trading day. Each company gets a score
             out of 100 from five checks on its own published accounts: earnings quality (30%), financial health
             (20%), competitive strength (20%), valuation against its sector (15%) and dividend sustainability
-            (15%). Scores of 75 and above are Excellent (strong all round), 60 to 74 Good (mostly strong), 45 to 59
-            Average (mixed), and below 45 Weak (mostly weak).
+            (15%). Scores of 75 and above are strong all round, 60 to 74 mostly strong, 45 to 59
+            mixed, and below 45 mostly weak.
           </>,
           <>
             The same rules apply to all {allRanked.length} companies, with one exception: banks, finance companies
@@ -349,7 +349,7 @@ export default async function DseStockRankingPage() {
             সবচেয়ে শক্ত থেকে সবচেয়ে দুর্বল পর্যন্ত, প্রতি লেনদেনের দিনের পর নতুন করে তৈরি। প্রতিটি কোম্পানি তার
             প্রকাশিত হিসাবের পাঁচটি যাচাই থেকে 100-এর মধ্যে স্কোর পায়: মুনাফার মান (30%), আর্থিক অবস্থা (20%),
             ব্যবসার শক্তি (20%), সেক্টরের তুলনায় দাম (15%) আর ডিভিডেন্ড দেওয়ার সামর্থ্য (15%)। 75 বা তার বেশি স্কোর
-            চমৎকার, 60 থেকে 74 ভালো, 45 থেকে 59 মাঝারি, আর 45-এর নিচে দুর্বল।
+            সব দিকে শক্তিশালী, 60 থেকে 74 বেশিরভাগ দিকে শক্তিশালী, 45 থেকে 59 মিশ্র, আর 45-এর নিচে বেশিরভাগ দিকে দুর্বল।
           </>,
           <>
             {allRanked.length}টি কোম্পানির জন্যই একই নিয়ম, শুধু একটি ব্যতিক্রম: ব্যাংক, আর্থিক প্রতিষ্ঠান আর বিমা
@@ -372,10 +372,10 @@ export default async function DseStockRankingPage() {
             aBn: "0 থেকে 100-এর একটি স্কোর, যা TopStockBD কোম্পানির প্রকাশিত আর্থিক হিসাব আর ডিএসইর দাম থেকে পাঁচটি যাচাইয়ের মাধ্যমে হিসাব করে: মুনাফার মান, আর্থিক অবস্থা, ব্যবসার শক্তি, দাম আর ডিভিডেন্ড দেওয়ার সামর্থ্য। এটি ব্যবসা কতটা শক্তিশালী তা মাপে, দাম কত দ্রুত বাড়ছে তা নয়।",
           },
           {
-            q: "Does an Excellent rank mean I should buy the share?",
-            a: "No. The rank describes the company, and the price is judged separately. A strong company can be expensive. The site shows a Buy signal only when the grade is Good or Excellent, the price is reasonable, the share trades enough to sell easily, and profit has not just dropped sharply.",
-            qBn: "চমৎকার র‍্যাঙ্ক মানেই কি শেয়ারটি কেনা উচিত?",
-            aBn: "না। র‍্যাঙ্ক কোম্পানির কথা বলে, দাম আলাদাভাবে বিচার করা হয়। শক্তিশালী কোম্পানির দামও বেশি হতে পারে। সাইটে কেনার সংকেত আসে তখনই, যখন গ্রেড ভালো বা চমৎকার, দাম যুক্তিসংগত, সহজে বিক্রি করার মতো লেনদেন হয়, আর মুনাফা সম্প্রতি অনেক কমেনি।",
+            q: "Does a top rank mean I should buy the share?",
+            a: "No. The rank describes the company, and the price is judged separately. A strong company can be expensive. The site shows a Buy signal only when the company is mostly strong or better, the price is reasonable, the share trades enough to sell easily, and profit has not just dropped sharply.",
+            qBn: "ওপরের দিকে র‍্যাঙ্ক মানেই কি শেয়ারটি কেনা উচিত?",
+            aBn: "না। র‍্যাঙ্ক কোম্পানির কথা বলে, দাম আলাদাভাবে বিচার করা হয়। শক্তিশালী কোম্পানির দামও বেশি হতে পারে। সাইটে কেনার সংকেত আসে তখনই, যখন কোম্পানি বেশিরভাগ দিকে শক্তিশালী বা তার বেশি, দাম যুক্তিসংগত, সহজে বিক্রি করার মতো লেনদেন হয়, আর মুনাফা সম্প্রতি অনেক কমেনি।",
           },
           {
             q: "How often is the DSE stock ranking updated?",

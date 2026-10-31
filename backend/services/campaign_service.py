@@ -318,9 +318,9 @@ def _badge_for_code(ctx: dict, code: str, ltp: Optional[float]) -> tuple[Optiona
     score = ctx["scores"].get(code)
     if score is not None:
         if score >= EXCELLENT:
-            return f"{TIER_WORDS['excellent']} rated · {int(round(score))}", "tier"
+            return f"{TIER_WORDS['excellent']} · score {int(round(score))}", "tier"
         if score >= GOOD:
-            return f"{TIER_WORDS['good']} rated · {int(round(score))}", "tier"
+            return f"{TIER_WORDS['good']} · score {int(round(score))}", "tier"
     return None, None
 
 

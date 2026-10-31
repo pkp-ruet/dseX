@@ -239,7 +239,7 @@ def grade_at_least(minimum: float, label_en: str, label_bn: str) -> Check:
         if s is None:
             return False, "Not rated", "রেটিং নেই"
         w_en, w_bn = grade_words(s)
-        return s >= minimum, f"Graded {w_en}, {_r(s, 0)} out of 100", f"গ্রেড {w_bn}, 100-এর মধ্যে {_r(s, 0)}"
+        return s >= minimum, f"{w_en}, a score of {_r(s, 0)}", f"{w_bn}, স্কোর {_r(s, 0)}"
     return Check(f"grade_{int(minimum)}", label_en, label_bn, fn)
 
 
@@ -377,7 +377,7 @@ CHEAP_NOT_BROKEN = ResearchList(
         PROFITABLE,
         Check("cheaper_than_own", "Priced below its own usual level", "নিজের স্বাভাবিক দামের চেয়ে কম", _cheaper_than_own),
         Check("cheaper_than_sector", "Priced below its sector", "সেক্টরের চেয়ে কম দামে", _cheaper_than_sector),
-        grade_at_least(60, "Graded Good or better, a score of 60 or more", "গ্রেড ভালো বা তার ওপরে, স্কোর 60 বা বেশি"),
+        grade_at_least(60, "Mostly strong or better on our checks, a score of 60 or more", "আমাদের যাচাইয়ে বেশিরভাগ দিকে শক্তিশালী বা তার ওপরে, স্কোর 60 বা বেশি"),
         PROFIT_HOLDING, DEBT_OK, NOT_Z, FRESH, TRADED,
     ],
     rank=lambda f: (_discount(f), _n(f.get("score")) or 0.0),
@@ -578,13 +578,13 @@ FALLEN_STRONG = ResearchList(
     idea_bn="ভালো কোম্পানি, যাদের শেয়ারের দাম এ বছর অনেক পড়েছে, অথচ ব্যবসা এখনো মজবুত দেখাচ্ছে।",
     checks=[
         Check("fell_20", "Price at least 20% below its 1-year high", "দাম এক বছরের সর্বোচ্চের চেয়ে অন্তত 20% কম", _fell_20),
-        grade_at_least(60, "Still graded Good or better, a score of 60 or more", "এখনো গ্রেড ভালো বা তার ওপরে, স্কোর 60 বা বেশি"),
+        grade_at_least(60, "Still mostly strong or better on our checks, a score of 60 or more", "এখনো আমাদের যাচাইয়ে বেশিরভাগ দিকে শক্তিশালী বা তার ওপরে, স্কোর 60 বা বেশি"),
         PROFIT_HOLDING, DEBT_OK, NOT_Z, FRESH, TRADED, NO_GOVERNANCE,
     ],
     rank=lambda f: _n(f.get("score")) or 0.0,
     headline=lambda f: (
-        f"{_r(_n(f.get('pct_below_high')) or 0, 0)}% below its 1-year high, still graded {grade_words(f.get('score'))[0]}",
-        f"এক বছরের সর্বোচ্চের চেয়ে {_r(_n(f.get('pct_below_high')) or 0, 0)}% কম, তবু গ্রেড {grade_words(f.get('score'))[1]}",
+        f"{_r(_n(f.get('pct_below_high')) or 0, 0)}% below its 1-year high, still {grade_words(f.get('score'))[0].lower()}",
+        f"এক বছরের সর্বোচ্চের চেয়ে {_r(_n(f.get('pct_below_high')) or 0, 0)}% কম, তবু {grade_words(f.get('score'))[1]}",
     ),
     columns=[
         Column("pct_below_high", "Below 1-year high", "সর্বোচ্চের চেয়ে কম", "pct"),
@@ -640,7 +640,7 @@ OWNERS_BUYING = ResearchList(
         Check("recent_report", "The latest report is less than 5 months old", "সর্বশেষ প্রতিবেদন 5 মাসের কম পুরোনো", _recent_report),
         Check("sponsor_up", "Owners raised their stake by 0.5 to 5 points in about 6 months", "প্রায় 6 মাসে উদ্যোক্তারা শেয়ার 0.5 থেকে 5 পয়েন্ট বাড়িয়েছেন", _sponsor_up),
         PROFITABLE,
-        grade_at_least(45, "Graded Average or better (45+)", "গ্রেড মাঝারি বা তার ওপরে (45+)"),
+        grade_at_least(45, "Mixed or better on our checks (45+)", "আমাদের যাচাইয়ে মিশ্র বা তার ওপরে (45+)"),
         NOT_Z, FRESH,
     ],
     rank=lambda f: _n(f.get("sponsor_delta")) or 0.0,

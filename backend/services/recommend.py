@@ -424,7 +424,8 @@ def _top_why(c: dict, lv: Optional[dict]) -> tuple[str, str, Optional[str]]:
     lv = lv or {}
     s = _n(c.get("score")) or 0.0
     p4 = _n(c.get("p4_val"))
-    lead = ("An excellent company", "চমৎকার কোম্পানি") if s >= 75 else ("A good company", "ভালো কোম্পানি")
+    lead = (("A company strong all round,", "সব দিকে শক্তিশালী কোম্পানি") if s >= 75
+            else ("A mostly strong company", "বেশিরভাগ দিকে শক্তিশালী কোম্পানি"))
     if p4 is not None and p4 >= 8:
         price = ("at a low price", "দামও কম")
     elif p4 is not None and p4 >= 7:
@@ -467,8 +468,8 @@ def words(c: dict, kind: str, anchor: Optional[str], shared: list[dict], prof: d
         s = _r(_n(c.get("score")) or 0, 0)
         a = _r(anchor_score or 0, 0)
         tag = (f"Stronger than {anchor}", f"{anchor}-এর চেয়ে শক্তিশালী")
-        why = (f"Same business as {anchor}, but a stronger company: graded {s} against {a}.",
-               f"{anchor}-এর মতো একই ব্যবসা, কিন্তু আরও শক্তিশালী কোম্পানি: গ্রেড {s}, {anchor}-এর {a}।")
+        why = (f"Same business as {anchor}, but a stronger company: a score of {s} against {a}.",
+               f"{anchor}-এর মতো একই ব্যবসা, কিন্তু আরও শক্তিশালী কোম্পানি: স্কোর {s}, {anchor}-এর {a}।")
         skip = ("grade",)
     elif kind == "similar":
         own = anchor in prof["held"]

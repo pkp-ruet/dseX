@@ -169,8 +169,8 @@ def market_part(state: Optional[dict]) -> dict:
         if delta:
             more_en = f", {abs(delta)} {'more' if delta > 0 else 'fewer'} than a week ago"
             more_bn = f", এক সপ্তাহ আগের চেয়ে {abs(delta)}টি {'বেশি' if delta > 0 else 'কম'}"
-        lines.append(line(f"{healthy} of {q['total']} companies are graded Good or Excellent{more_en}.",
-                          f"{q['total']}টি কোম্পানির মধ্যে {healthy}টির গ্রেড ভালো বা চমৎকার{more_bn}।",
+        lines.append(line(f"{healthy} of {q['total']} companies are mostly strong or better{more_en}.",
+                          f"{q['total']}টি কোম্পানির মধ্যে {healthy}টি বেশিরভাগ দিকে শক্তিশালী বা তার বেশি{more_bn}।",
                           "/dsestockranking"))
     if mood.get("sentence2") and len(lines) < 5:
         lines.append(line(mood["sentence2"], mood.get("sentence2_bn") or mood["sentence2"]))

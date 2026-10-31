@@ -11,22 +11,44 @@ export const TIER_THRESHOLDS = {
   AVERAGE:   45,
 };
 
+/** The four grades, named by what the company is like on our five checks
+ *  (2026-10-31, after the company ranking redesign): THE label for a grade
+ *  everywhere a reader sees one. The old words (Excellent / Good / Average /
+ *  Weak) are retired from the screen; the keys stay. Mirrors backend
+ *  tiers.TIER_WORDS. */
 export const TIER_LABELS = {
-  excellent: "Excellent",
-  good:      "Good",
-  average:   "Average",
-  weak:      "Weak",
+  excellent: "Strong all round",
+  good:      "Mostly strong",
+  average:   "Mixed",
+  weak:      "Mostly weak",
 } as const;
 
 export type TierKey = keyof typeof TIER_LABELS;
 
-/** Bengali tier words — mirrors backend TIER_WORDS_BN. */
+/** Bengali grade names — mirrors backend TIER_WORDS_BN. */
 export const TIER_LABELS_BN: Record<TierKey, string> = {
-  excellent: "চমৎকার",
-  good:      "ভালো",
-  average:   "মাঝারি",
-  weak:      "দুর্বল",
+  excellent: "সব দিকে শক্তিশালী",
+  good:      "বেশিরভাগ দিকে শক্তিশালী",
+  average:   "মিশ্র",
+  weak:      "বেশিরভাগ দিকে দুর্বল",
 };
+
+/** Shorter Bengali names for the pill only (table rows, the sticky bar),
+ *  where the full name would wrap. Sentences use TIER_LABELS_BN. */
+export const TIER_PILL_BN: Record<TierKey, string> = {
+  excellent: "সব দিকে শক্তিশালী",
+  good:      "বেশ শক্তিশালী",
+  average:   "মিশ্র",
+  weak:      "বেশ দুর্বল",
+};
+
+/** A grade name for running text, lower-case in English ("is mostly strong"). */
+export function tierWords(t: TierKey): { en: string; bn: string } {
+  return { en: TIER_LABELS[t].toLowerCase(), bn: TIER_LABELS_BN[t] };
+}
+
+/** "Mostly strong or better": the two top grades together, for counts. */
+export const GOOD_OR_BETTER = { en: "mostly strong or better", bn: "বেশিরভাগ দিকে শক্তিশালী বা তার বেশি" };
 
 /**
  * Hex twins of the `--tier-*` tokens in `app/globals.css :root` — for the
@@ -57,20 +79,20 @@ export const TIER_SCORE_LABELS: Record<TierKey, string> = {
   weak:      "Score < 45",
 };
 
-/** One-line plain-English meaning of each tier, in plain words. */
+/** What each grade means on our five checks — the line under its name. */
 export const TIER_MEANINGS: Record<TierKey, string> = {
-  excellent: "Among the strongest companies",
-  good:      "A sound, healthy company",
-  average:   "Mixed results, worth a closer look",
-  weak:      "Higher risk than most",
+  excellent: "Strong on 4 or 5 of our 5 checks",
+  good:      "Strong on 2 or 3 checks, weak on none",
+  average:   "Strong on 1 or 2 checks, weak on some",
+  weak:      "Weak on several checks",
 };
 
 /** Bengali meaning line — mirrors TIER_MEANINGS. */
 export const TIER_MEANINGS_BN: Record<TierKey, string> = {
-  excellent: "সবচেয়ে শক্ত কোম্পানিগুলোর একটি",
-  good:      "ভালো ও সুস্থ কোম্পানি",
-  average:   "ফল মিশ্র, ভালো করে দেখে নেওয়া দরকার",
-  weak:      "অন্যদের চেয়ে ঝুঁকি বেশি",
+  excellent: "আমাদের 5টি যাচাইয়ের 4 বা 5টিতে শক্তিশালী",
+  good:      "2 বা 3টি যাচাইয়ে শক্তিশালী, কোনোটিতে দুর্বল নয়",
+  average:   "1 বা 2টি যাচাইয়ে শক্তিশালী, কয়েকটিতে দুর্বল",
+  weak:      "কয়েকটি যাচাইয়ে দুর্বল",
 };
 
 export function getTier(score: number | null | undefined): TierKey {
