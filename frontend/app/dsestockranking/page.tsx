@@ -55,7 +55,8 @@ function dayLabel(iso: string, weekday = false): string {
 }
 
 /** The company ranking (simple leaderboard since 2026-11-01, user decision):
- *  rank, how far each company moved this week, the company. No groups, scores,
+ *  rank, how far each company moved this week, the company, its latest
+ *  price. No groups, scores,
  *  filters or explanations — the analysis lives on each stock page. */
 export default async function DseStockRankingPage() {
   // No catch on the main fetch: a throw lets ISR keep serving the last good
@@ -73,6 +74,8 @@ export default async function DseStockRankingPage() {
       code: i.trading_code,
       name: i.company_name ?? i.trading_code,
       move: !moves ? null : newCodes.has(i.trading_code) ? "new" : moves.places[i.trading_code] ?? 0,
+      price: i.ltp ?? null,
+      change: i.change_pct ?? null,
     }));
 
   const asOf = moves?.to ?? scores.computed_at ?? null;

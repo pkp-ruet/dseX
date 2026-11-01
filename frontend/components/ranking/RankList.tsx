@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { T } from "@/components/i18n/T";
 import { IconArrowDown, IconArrowUp, IconChevron } from "@/components/ui/icons";
+import { changePct, changeTone, money } from "@/lib/formatters";
 
 /** One place on the leaderboard. `move`: places climbed (+) or fell (−) since
  *  the comparison day, 0 = same place, "new" = not ranked then, null = no
@@ -13,13 +14,16 @@ export interface RankRow {
   code: string;
   name: string;
   move: number | "new" | null;
+  /** The latest official close and today's change (%). */
+  price: number | null;
+  change: number | null;
 }
 
 /** Rows shown before "Show all" — the list runs to rank 50. */
 const SHOW_TO_RANK = 50;
 
 /** The FIFA-style ranking (2026-11-01): rank, how far it
- *  moved, the company. Every row is in the HTML; rows past rank 50 wait
+ *  moved, the company, its latest price. Every row is in the HTML; rows past rank 50 wait
  *  behind one button. */
 export default function RankList({ rows, total }: { rows: RankRow[]; total: number }) {
   const [all, setAll] = useState(false);
@@ -50,6 +54,12 @@ export default function RankList({ rows, total }: { rows: RankRow[]; total: numb
                 <span className="rk-co">
                   <span className="rk-co-name">{r.name}</span>
                   <span className="rk-co-code">{r.code}</span>
+                </span>
+                <span className="rk-price">
+                  <span className="rk-price-now">{money(r.price)}</span>
+                  {r.change != null && (
+                    <span className={`rk-price-chg ${changeTone(r.change)}`}>{changePct(r.change)}</span>
+                  )}
                 </span>
                 <span className="rk-go" aria-hidden="true">
                   <span className="rk-go-word">

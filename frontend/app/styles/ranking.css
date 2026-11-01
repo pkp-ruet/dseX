@@ -95,7 +95,7 @@
 
 .rk-line {
   display: grid;
-  grid-template-columns: 40px 52px minmax(0, 1fr) 20px;
+  grid-template-columns: 40px 52px minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
   min-height: 64px;
@@ -105,7 +105,7 @@
   transition: background 0.15s ease;
 }
 @media (min-width: 480px) {
-  .rk-line { grid-template-columns: 40px 56px minmax(0, 1fr) auto; gap: 14px; padding: 10px 20px; }
+  .rk-line { grid-template-columns: 40px 56px minmax(0, 1fr) auto auto; gap: 14px; padding: 10px 20px; }
 }
 .rk-line:hover { background: color-mix(in srgb, var(--primary) 4%, var(--surface)); }
 .rk-line:active { background: var(--surface-2); }
@@ -143,7 +143,15 @@
 .rk-line:hover .rk-co-name { color: var(--primary-ink); }
 .rk-co-code { font-size: var(--fs-2xs); font-weight: 700; letter-spacing: 0.06em; color: var(--text); }
 
-.rk-go { display: inline-flex; align-items: center; gap: 4px; color: var(--text); }
+/* Latest price over today's change — the arrow column hides below 480px so
+   the name keeps its room on a phone (the whole row is still the link) */
+.rk-price { display: grid; justify-items: end; gap: 2px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rk-price-now { font-size: var(--fs-base); font-weight: 700; color: var(--text); }
+.rk-price-chg { font-size: var(--fs-2xs); font-weight: 700; }
+@media (min-width: 640px) { .rk-price { min-width: 84px; } }
+
+.rk-go { display: none; align-items: center; gap: 4px; color: var(--text); }
+@media (min-width: 480px) { .rk-go { display: inline-flex; } }
 .rk-go-word { display: none; font-size: var(--fs-xs); font-weight: 600; color: var(--primary-ink); }
 @media (min-width: 640px) { .rk-go-word { display: inline; } }
 .rk-go svg { transition: transform 0.15s ease; }
