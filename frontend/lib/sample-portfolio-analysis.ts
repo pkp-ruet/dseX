@@ -50,8 +50,8 @@ export function buildSampleAnalysis(
   return analyzeSample(portfolio, flattenScores(scores), lang);
 }
 
-/** The same run on a price map a page already holds (the portfolio report's
- *  sample answers). */
+/** The same run on a price map a page already holds (the sample pages' full
+ *  check, `lib/sample-portfolio-report.ts`). */
 export function analyzeSample(
   portfolio: SamplePortfolio,
   priceMap: Map<string, ScoreItem>,

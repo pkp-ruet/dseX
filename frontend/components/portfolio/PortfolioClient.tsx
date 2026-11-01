@@ -59,7 +59,9 @@ import Skeleton from "@/components/ui/Skeleton";
 import Sheet from "@/components/ui/Sheet";
 import AllocationChart from "./AllocationChart";
 import SectorBreakdownChart from "./SectorBreakdownChart";
-import { PageLockScope } from "@/components/premium/LockScope";
+import { OpenScope, PageLockScope } from "@/components/premium/LockScope";
+import { Locked } from "@/components/premium/AnswerLock";
+import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
 import Chip from "@/components/ui/Chip";
 import DashSectionNav from "@/components/home/personalized/DashSectionNav";
 import PfCard from "./PfCard";
@@ -72,7 +74,7 @@ import {
   IconSearch,
 } from "@/components/ui/icons";
 import { buildProInsights, buildPremiumStakes } from "@/lib/portfolio-pro";
-import { usePremium, isLimitError, PREMIUM_PATH } from "@/lib/premium";
+import { usePremium, isLimitError, MAX_HOLDINGS, PREMIUM_PATH } from "@/lib/premium";
 import { moneyMade, DEFAULT_PORTFOLIO_SETTINGS } from "@/lib/portfolio-ledger";
 import { savePremiumContext } from "@/lib/premium-context";
 import { toast } from "@/lib/toast";
@@ -94,13 +96,12 @@ import AddHoldingModal from "./AddHoldingModal";
 import BuySellModal from "./BuySellModal";
 import PortfolioNews from "./PortfolioNews";
 import PortfolioAnswer from "./report/PortfolioAnswer";
-import type { SampleAnswer } from "./report/PortfolioQuestions";
+import PortfolioPromo from "./report/PortfolioPromo";
 import PfReportChapter, { PfReportBand } from "./report/PfReportChapter";
 import PfPlanSection from "./report/PfPlanSection";
 import PfMoneyRoom from "./report/PfMoneyRoom";
 import { buildNextMove, gradeLifts } from "@/lib/portfolio-next";
 import { buildPortfolioReport } from "@/lib/portfolio-report";
-import { analyzeSample } from "@/lib/sample-portfolio-analysis";
 import { SAMPLE_PORTFOLIOS } from "@/lib/sample-portfolios";
 import { isoLocal, todayDhaka } from "@/lib/dividend-dates";
 import WatchlistAlertCell from "@/components/watchlist/WatchlistAlertCell";
@@ -634,7 +635,7 @@ export default function PortfolioClient() {
     [rows, priceMap, analysis, rebalance, lang],
   );
   const proInsights = useMemo(() => buildProInsights(analysis, priceMap, lang), [analysis, priceMap, lang]);
-  const { isPremium, state: planState, premiumUntil, limits } = usePremium();
+  const { isPremium, state: planState, premiumUntil } = usePremium();
   // An extra portfolio kept from a free month that has ended: readable, not editable.
   const readOnly = !isMain && !isPremium;
   const made = useMemo(() => moneyMade(holdings, priceMap, log, settings), [holdings, priceMap, log, settings]);
@@ -820,50 +821,32 @@ export default function PortfolioClient() {
     [analysis, nextBoth, rebalance, lifts, proInsights, priceMap, glance, results, myWatch, myFlips, valueDelta],
   );
 
-  // Two real answers from the risky sample portfolio (the samples are free),
-  // built only when a free reader opens the fold on the Premium card.
-  function sampleAnswers(): SampleAnswer | null {
-    const sp = SAMPLE_PORTFOLIOS.risky;
-    const { analysis: sa, rows: sr } = analyzeSample(sp, priceMap, lang);
-    if (sr.some((r) => r.ltp == null)) return null;
-    const sPlan = planFromEngine(null, lang);
-    const sr2 = buildPortfolioReport({
-      analysis: sa,
-      next: { en: buildNextMove(sa, sPlan, "en"), bn: buildNextMove(sa, sPlan, "bn") },
-      plan: sPlan,
-      lifts: [],
-      pro: buildProInsights(sa, priceMap, lang),
-      priceMap,
-      glance: new Map(),
-      results: [],
-      watch: [],
-      flips: [],
-      today: isoLocal(todayDhaka()),
-    });
-    const rows = sr2.chapters
-      .flatMap((c) => c.rows)
-      .filter((r) => (r.key === "one" || r.key === "paid" || r.key === "sector") && r.headline)
-      .slice(0, 2)
-      .map((r) => ({ ask: r.title, answer: r.headline! }));
-    if (!rows.length) return null;
-    return { name: { en: sp.name, bn: sp.nameBn }, href: `/sample-portfolio/${sp.slug}`, rows };
-  }
-
   const bn = lang === "bn";
+  // The analysis is Premium (2026-11-02): a free reader's chips skip its
+  // chapters and point at the one Premium card instead.
+  const reportOpen = usePremiumOpen();
   const navItems = useMemo(
-    () => [
-      { id: "pf-money", label: lang === "bn" ? "টাকা" : "Money" },
-      { id: "ch-answer", label: lang === "bn" ? "উত্তর" : "Answer" },
-      // The shares list sits right under the answer
-      { id: "pf-shares", label: lang === "bn" ? "শেয়ার" : "Shares" },
-      { id: "ch-companies", label: lang === "bn" ? "কোম্পানি" : "Companies" },
-      { id: "ch-spread", label: lang === "bn" ? "বণ্টন" : "Spread" },
-      { id: "ch-prices", label: lang === "bn" ? "দাম" : "Prices" },
-      { id: "ch-watch", label: lang === "bn" ? "নজর" : "Watch" },
-      { id: "ch-plan", label: lang === "bn" ? "পরিকল্পনা" : "Plan" },
-      { id: "ch-money", label: lang === "bn" ? "বিস্তারিত" : "Details" },
-    ],
-    [lang],
+    () =>
+      reportOpen
+        ? [
+            { id: "pf-money", label: lang === "bn" ? "টাকা" : "Money" },
+            { id: "ch-answer", label: lang === "bn" ? "উত্তর" : "Answer" },
+            // The shares list sits right under the answer
+            { id: "pf-shares", label: lang === "bn" ? "শেয়ার" : "Shares" },
+            { id: "ch-companies", label: lang === "bn" ? "কোম্পানি" : "Companies" },
+            { id: "ch-spread", label: lang === "bn" ? "বণ্টন" : "Spread" },
+            { id: "ch-prices", label: lang === "bn" ? "দাম" : "Prices" },
+            { id: "ch-watch", label: lang === "bn" ? "নজর" : "Watch" },
+            { id: "ch-plan", label: lang === "bn" ? "পরিকল্পনা" : "Plan" },
+            { id: "ch-money", label: lang === "bn" ? "বিস্তারিত" : "Details" },
+          ]
+        : [
+            { id: "pf-money", label: lang === "bn" ? "টাকা" : "Money" },
+            { id: "pf-shares", label: lang === "bn" ? "শেয়ার" : "Shares" },
+            { id: "pf-premium", label: lang === "bn" ? "প্রিমিয়াম" : "Premium" },
+            { id: "ch-money", label: lang === "bn" ? "বিস্তারিত" : "Details" },
+          ],
+    [lang, reportOpen],
   );
   const statementHref = isMain ? "/portfolio/statement" : `/portfolio/statement?pid=${encodeURIComponent(pid)}`;
 
@@ -872,11 +855,17 @@ export default function PortfolioClient() {
     [holdings],
   );
 
-  // A free portfolio holds up to 7 shares (2026-10-30): at the cap "+ Add
-  // stock" opens the Premium popup instead (buying more goes through "Bought more").
-  const holdingsLimit = limits.holdings;
+  // No free cap on shares since 2026-11-02 (was 7): every account holds up to
+  // MAX_HOLDINGS (100) shares a portfolio; buying more of one held always works.
   function openAdd() {
-    if (holdingsLimit != null && holdings.length >= holdingsLimit) return showLimitNotice("holdings");
+    if (holdings.length >= MAX_HOLDINGS) {
+      toast({
+        message: lang === "bn"
+          ? `একটি পোর্টফোলিওতে সর্বোচ্চ ${MAX_HOLDINGS}টি শেয়ার রাখা যায়। নতুন যোগ করতে একটি বাদ দিন।`
+          : `A portfolio can hold up to ${MAX_HOLDINGS} shares. Remove one to add another.`,
+      });
+      return;
+    }
     setAddOpen(true);
   }
 
@@ -1114,8 +1103,10 @@ export default function PortfolioClient() {
       ) : (
         // The portfolio report (2026-10-30): your money and the answer, your
         // shares, four question chapters, your plan, then every money card as
-        // tabs. Free readers meet Premium in one card under the answer; each
-        // closed chapter has one gold line back to it.
+        // tabs. Since 2026-11-02 everything we say is Premium, like the stock
+        // page: a free reader gets the money, the shares, ONE Premium card
+        // (`PortfolioPromo`, what the check found, counted) and the tabs. The
+        // answer and the analysis stay in the HTML, open, under one `Locked`.
         <PageLockScope anchor="pf-premium">
           <DashSectionNav items={navItems} lang={lang} />
 
@@ -1135,11 +1126,14 @@ export default function PortfolioClient() {
             />
             <h2 id="pf-money-h" className="sr-only">{L("Your money", "আপনার টাকা")}</h2>
 
-            {/* THE answer: is your portfolio in good shape? Four lights, and
-                the page's one Premium card under it (#pf-premium). */}
-            <div className="mt-4">
-              <PortfolioAnswer answer={report.answer} questions={report.questions} sample={sampleAnswers} />
-            </div>
+            {/* THE answer: is your portfolio in good shape? Four lights (Premium). */}
+            <Locked>
+              <OpenScope>
+                <div className="mt-4">
+                  <PortfolioAnswer answer={report.answer} />
+                </div>
+              </OpenScope>
+            </Locked>
 
             {/* Bonus shares + cash dividends kept right on the holding (with Undo) */}
             <CorrectionsCard
@@ -1400,22 +1394,38 @@ export default function PortfolioClient() {
 
           </section>
 
-          <PfReportBand answered={report.answered} />
-          {report.chapters.map((c) => (
-            <PfReportChapter key={c.key} chapter={c} />
-          ))}
+          {/* THE Premium card (#pf-premium) for a free reader; a Premium
+              reader keeps the anchor (the watcher's teaser push lands here). */}
+          {reportOpen ? (
+            <span id="pf-premium" className="dash-section block" aria-hidden="true" />
+          ) : (
+            <PortfolioPromo
+              grade={analysis.grade}
+              findings={report.findings}
+              sampleHref={`/sample-portfolio/${SAMPLE_PORTFOLIOS.diversified.slug}`}
+            />
+          )}
 
-          <PfPlanSection plan={report.plan} grade={analysis.grade}>
-            <div id="pf-whatif" className="dash-section">
-              <WhatIfCard rows={rows} priceMap={priceMap} allCodes={allCodes} lang={lang} />
-            </div>
-            <p className={`pf-disclaimer ${bnCls}`}>
-              {L(
-                "This analysis is for guidance only. Always do your own research before making investment decisions.",
-                "এই বিশ্লেষণ শুধু ধারণা দেওয়ার জন্য। বিনিয়োগের সিদ্ধান্ত নেওয়ার আগে সবসময় নিজে যাচাই করুন।",
-              )}
-            </p>
-          </PfPlanSection>
+          <Locked>
+            <OpenScope>
+              <PfReportBand answered={report.answered} />
+              {report.chapters.map((c) => (
+                <PfReportChapter key={c.key} chapter={c} />
+              ))}
+
+              <PfPlanSection plan={report.plan} grade={analysis.grade}>
+                <div id="pf-whatif" className="dash-section">
+                  <WhatIfCard rows={rows} priceMap={priceMap} allCodes={allCodes} lang={lang} />
+                </div>
+                <p className={`pf-disclaimer ${bnCls}`}>
+                  {L(
+                    "This analysis is for guidance only. Always do your own research before making investment decisions.",
+                    "এই বিশ্লেষণ শুধু ধারণা দেওয়ার জন্য। বিনিয়োগের সিদ্ধান্ত নেওয়ার আগে সবসময় নিজে যাচাই করুন।",
+                  )}
+                </p>
+              </PfPlanSection>
+            </OpenScope>
+          </Locked>
 
           {/* Every money card, as tabs — all free */}
           <PfMoneyRoom

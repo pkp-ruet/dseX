@@ -261,7 +261,7 @@ def add_holding(body: AddHoldingBody, current_user: dict = Depends(get_current_u
     if not existing and len(holdings) >= entitlements.HARD_LIMITS["holdings"]:
         raise HTTPException(
             status_code=400,
-            detail=f"A portfolio can hold up to {entitlements.HARD_LIMITS['holdings']} stocks.",
+            detail=f"A portfolio can hold up to {entitlements.HARD_LIMITS['holdings']} shares.",
         )
     if existing:
         # Merge: weighted-average cost across the combined quantity.

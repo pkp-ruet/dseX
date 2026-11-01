@@ -5,6 +5,8 @@ data in services/recommend_service.py — this router stays thin.
 - ``GET  /api/user/for-you``            the reader's picks ("Picked for you"); the
                                         home bundle carries the same thing as ``for_you``
 - ``GET  /api/user/portfolio/buy-next`` the portfolio's "What to buy next" (``?pid=``)
+- ``GET  /api/portfolio/sample-plan``   the same for a sample portfolio's holdings
+                                        (``/sample-portfolio/[slug]``, public)
 - ``POST /api/recommendations``         TopStock AI's "suggest stocks": quiz answers as
                                         stated tastes. Public; a signed-in reader's own
                                         stocks shape it too, and the answers are saved
@@ -12,7 +14,7 @@ data in services/recommend_service.py — this router stays thin.
 """
 from typing import Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, field_validator
 
 from backend.routers.auth import get_current_user, get_current_user_optional
@@ -91,3 +93,35 @@ def get_buy_next(current_user: dict = Depends(get_current_user), pid: Optional[s
 
     holdings = _with_signals(_state(current_user, _pid(pid))["holdings"])
     return recommend_service.for_portfolio(current_user, holdings)
+
+
+SAMPLE_MAX = 12
+
+
+def parse_sample_holdings(h: str) -> list[dict]:
+    """``CODE:QTY:PRICE,…`` -> holdings; a bad part is a 400, never a guess."""
+    out: list[dict] = []
+    for part in [x for x in (h or "").split(",") if x.strip()][:SAMPLE_MAX]:
+        bits = part.strip().split(":")
+        if len(bits) != 3:
+            raise HTTPException(status_code=400, detail="bad_holding")
+        code = bits[0].strip().upper()
+        try:
+            qty, price = int(bits[1]), float(bits[2])
+        except ValueError:
+            raise HTTPException(status_code=400, detail="bad_holding")
+        if not code.isascii() or not code.replace("-", "").isalnum() or len(code) > 20 or qty <= 0 or not 0 < price < 1e6:
+            raise HTTPException(status_code=400, detail="bad_holding")
+        out.append({"trading_code": code, "qty": qty, "buy_price": price})
+    return out
+
+
+@router.get("/portfolio/sample-plan")
+def get_sample_plan(h: str = Query("", max_length=400, description="CODE:QTY:PRICE,… (max 12)")):
+    """"What to buy next" for a sample portfolio (2026-11-02): the sample
+    pages show the whole portfolio check, the plan's buy ideas included. No
+    reader, no watchlist — the holdings alone shape it."""
+    holdings = parse_sample_holdings(h)
+    if not holdings:
+        raise HTTPException(status_code=400, detail="no_holdings")
+    return recommend_service.for_portfolio({}, holdings, watchlist=[])

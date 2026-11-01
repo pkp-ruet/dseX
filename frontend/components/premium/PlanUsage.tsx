@@ -32,12 +32,6 @@ export default function PlanUsage() {
   const keys = user?.report_keys;
   const rows: Row[] = [
     { key: "watchlist", label: { en: "Shares you follow", bn: "অনুসরণ করা শেয়ার" }, used: watch, limit: limitFor(user, "watchlist") },
-    {
-      key: "holdings",
-      label: { en: "Shares in your portfolio", bn: "পোর্টফোলিওর শেয়ার" },
-      used: null,
-      limit: limitFor(user, "holdings"),
-    },
     { key: "alerts", label: { en: "Price alerts on", bn: "চালু প্রাইস অ্যালার্ট" }, used: alerts, limit: limitFor(user, "alerts") },
     ...(!isPremium
       ? [{

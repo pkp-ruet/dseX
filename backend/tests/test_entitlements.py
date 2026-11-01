@@ -77,7 +77,7 @@ def test_watchlist_cap():
 
 def test_free_caps():
     assert FREE_LIMITS["watchlist"] == 5
-    assert FREE_LIMITS["holdings"] == 7
+    assert FREE_LIMITS["holdings"] is None  # no free cap since 2026-11-02
 
 
 def test_holdings_cap():

@@ -283,9 +283,9 @@ a.pf-hold-name:hover { color: var(--primary-ink); }
 
 /* ---- The portfolio report (2026-10-30) ----
    The stock report's shape for your money: THE answer card (`.ac` from
-   report-visuals.css) with four lights, its gold Premium half (`.nq`), the
-   chapters as one sheet each (`.rp-sheet.rc` + shared question rows), the
-   plan's lists, and the money tabs. */
+   report-visuals.css) with four lights, the chapters as one sheet each
+   (`.rp-sheet.rc` + shared question rows), the plan's lists, and the money
+   tabs. A free reader gets the stock page's Premium card (`.sp`) instead. */
 .ac.pfa { margin-bottom: 0; }
 .pfa-wordrow { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); margin-top: 2px; }
 .pfa-wordrow .ac-word { margin-top: 0; }
@@ -308,17 +308,11 @@ a.pf-hold-name:hover { color: var(--primary-ink); }
 @media (min-width: 768px) { .pf-band { margin-top: 64px; } }
 .pf-band + .pf-chapter { margin-top: var(--space-6); }
 
-/* Free facts under an answer, and the one locked line beside them */
+/* Facts under an answer (dates, the week's updates) */
 .pfr-facts { display: grid; gap: var(--space-2); }
 .pfr-facts ul { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
 .pfr-facts li { position: relative; padding-left: 14px; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
 .pfr-facts li::before { content: ""; position: absolute; left: 0; top: 0.6em; width: 6px; height: 6px; border-radius: 50%; background: var(--primary); }
-.pfr-lockline {
-  display: inline-flex; align-items: center; gap: 6px; width: fit-content; min-height: 40px;
-  font-size: var(--fs-sm); font-weight: 600; color: var(--gold-ink); text-decoration: none;
-}
-.pfr-lockline:hover { text-decoration: underline; }
-.pfr-lockline:active { opacity: 0.7; }
 
 /* The figures behind an answer: one line per share or sector */
 .pfr-figs { display: grid; margin: 0; padding: 0; list-style: none; }
@@ -346,3 +340,80 @@ a.pfp-item-t:hover { color: var(--primary-ink); text-decoration: underline; }
 .pfp-tag { flex: none; font-size: var(--fs-xs); font-weight: 700; }
 .pfp-item-l { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
 .pfp-item-a { font-size: var(--fs-sm); color: var(--text); }
+
+/* ---- Sample portfolio pages (`/sample-portfolio/[slug]`, 2026-11-02) ----
+   The full portfolio check, open, on a made-up portfolio: the story, one note
+   on what the page is, the money and the shares as one card, then the
+   portfolio page's own answer, chapters and plan, and one ask. */
+.smp { display: flex; flex-direction: column; gap: var(--space-6); }
+.smp-story { max-width: 70ch; font-size: var(--fs-md); line-height: 1.6; color: var(--text); }
+.smp-note {
+  max-width: 70ch; padding: var(--space-3) var(--space-4);
+  border-left: 3px solid var(--primary); border-radius: var(--radius-sm);
+  background: var(--surface-2); font-size: var(--fs-sm); line-height: 1.55; color: var(--text);
+}
+.smp-card { display: grid; gap: var(--space-4); padding: var(--space-4); }
+@media (min-width: 640px) { .smp-card { padding: var(--space-6); } }
+.smp-stats {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4);
+  padding-bottom: var(--space-4); border-bottom: 1px solid var(--border);
+}
+@media (min-width: 640px) { .smp-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.smp-rows { display: grid; margin: 0; padding: 0; list-style: none; }
+.smp-rows li + li { border-top: 1px solid var(--border); }
+.smp-row {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+  min-height: 56px; padding: var(--space-2) var(--space-2); margin: 0 calc(-1 * var(--space-2));
+  border-radius: var(--radius-sm); text-decoration: none; color: var(--text);
+}
+.smp-row:hover { background: var(--surface-2); }
+.smp-row:active { background: var(--border); }
+.smp-name { display: block; font-size: var(--fs-md); font-weight: 600; line-height: 1.3; }
+.smp-sub { display: block; margin-top: 2px; font-size: var(--fs-xs); line-height: 1.4; }
+.smp-right { display: grid; justify-items: end; gap: 2px; flex: none; font-size: var(--fs-sm); }
+.smp-right b { font-size: var(--fs-md); }
+.smp-cta { display: grid; gap: var(--space-3); padding: var(--space-6) var(--space-4); }
+@media (min-width: 640px) { .smp-cta { padding: var(--space-8); } }
+.smp-cta-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); }
+.smp-other { text-align: center; font-size: var(--fs-sm); }
+
+/* ---- "Your money in detail" tab bar (`PfMoneyRoom`, 2026-11-02) ----
+   A boxed bar so the six parts read as tabs: icon over label, three a row on
+   phones and six from 640px, the chosen one filled clay. */
+.pfm { display: grid; gap: var(--space-4); }
+.pfm-bar {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px;
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  background: var(--surface); box-shadow: var(--shadow-soft);
+}
+@media (min-width: 640px) { .pfm-bar { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+.pfm-tab {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  min-height: 64px; padding: var(--space-2) var(--space-1); border: 0; border-radius: var(--radius);
+  background: transparent; color: var(--text); font-size: var(--fs-sm); font-weight: 600; line-height: 1.2;
+  text-align: center; cursor: pointer;
+}
+.pfm-tab:hover { background: var(--surface-2); }
+.pfm-tab:active { background: var(--border); }
+.pfm-tab:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.pfm-tab[data-on="true"] { background: var(--primary); color: var(--surface); box-shadow: var(--shadow-soft); }
+.pfm-icon { display: inline-flex; color: var(--primary-ink); }
+.pfm-tab[data-on="true"] .pfm-icon { color: var(--surface); }
+
+/* The free sample as its own band at the foot of the portfolio's Premium
+   card (`PortfolioPromo`, 2026-11-02): warm fill, a clay icon, one button. */
+.pfp-sample {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: var(--space-3) var(--space-4);
+  padding: var(--space-4); border-top: 1px solid var(--border); background: var(--surface-2);
+}
+.pfp-sample-icon {
+  width: 44px; height: 44px; border-radius: var(--radius); display: grid; place-items: center;
+  background: var(--surface); color: var(--primary-ink); border: 1px solid var(--border);
+}
+.pfp-sample-text b { display: block; font-size: var(--fs-md); line-height: 1.3; color: var(--text); }
+.pfp-sample-text span { display: block; margin-top: 2px; font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
+.pfp-sample-btn { grid-column: 1 / -1; width: 100%; }
+@media (min-width: 640px) {
+  .pfp-sample { grid-template-columns: auto minmax(0, 1fr) auto; padding: var(--space-6) var(--space-8); }
+  .pfp-sample-btn { grid-column: auto; width: auto; }
+}

@@ -16,10 +16,15 @@ import { type AuthUser, getStoredUser } from "@/lib/auth";
 
 /** Mirrors backend `FREE_LIMITS` — used only when a cached user predates the
  *  plan fields; the server value always wins once /me has refreshed.
- *  Watchlist 5 and holdings (shares in one portfolio) 7 since 2026-10-30. */
-export const FREE_LIMITS = { watchlist: 5, holdings: 7, alerts: 3, ai_daily: 10, portfolios: 1, custom_lists: 0 } as const;
+ *  Watchlist 5 since 2026-10-30. Holdings (shares in one portfolio): no free
+ *  cap since 2026-11-02 (was 7), only `MAX_HOLDINGS` for everyone. */
+export const FREE_LIMITS = { watchlist: 5, holdings: null, alerts: 3, ai_daily: 10, portfolios: 1, custom_lists: 0 } as const;
 
 export type LimitKind = keyof typeof FREE_LIMITS;
+
+/** Shares in one portfolio, for every account (mirrors backend
+ *  `HARD_LIMITS["holdings"]`, 2026-11-02). Not a Premium limit. */
+export const MAX_HOLDINGS = 100;
 
 export const PREMIUM_PATH = "/premium";
 

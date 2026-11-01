@@ -1,13 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Locked } from "@/components/premium/AnswerLock";
-import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
 import QuestionRow from "@/components/report/QuestionRow";
-import Signpost from "@/components/report/Signpost";
 import { TONE_CLASS, ToneChip, tx } from "@/components/report/chip";
 import { CompareBars, DateLine, HundredBar } from "@/components/stock/visuals/kit";
-import { IconLock } from "@/components/ui/icons";
 import { T } from "@/components/i18n/T";
 import { PfChapterHead } from "../PfCard";
 import type { PfChapter, PfFigure, PfPicture, PfRow } from "@/lib/portfolio-report";
@@ -17,17 +13,10 @@ import type { PfChapter, PfFigure, PfPicture, PfRow } from "@/lib/portfolio-repo
  * chapter for your money: the question (h2) and one lead line, then ONE card:
  * the chapter's answer (the same as its light), its written read (Premium),
  * the question rows split by hairlines (`QuestionRow`, shared with the stock
- * page), and for a reader without the full check one gold footer linking up
- * to the Premium card under the answer (`#pf-premium`).
- *
- * How each row shows to that reader is set by the builder (`PfRow.free`):
- * `sample` open in full, `word` its answer word only, `lock` its question and
- * a lock, `answer` its word, free picture, free line and free facts (the
- * watch chapter: facts about the reader's own shares). Everything else stays
- * in the HTML under `Locked`.
+ * page). Premium since 2026-11-02: the page hides every chapter from a free
+ * reader under one `Locked` and shows its one Premium card instead.
  */
 export default function PfReportChapter({ chapter }: { chapter: PfChapter }) {
-  const open = usePremiumOpen();
   const read = chapter.read ? <p className="rc-read">{tx(chapter.read)}</p> : null;
   return (
     <section id={chapter.id} className="dash-section pf-chapter" aria-labelledby={`${chapter.id}-h`}>
@@ -38,39 +27,25 @@ export default function PfReportChapter({ chapter }: { chapter: PfChapter }) {
             <ToneChip word={chapter.head.word} tone={chapter.head.tone} size="lg" />
             <span className="rq-chead-note">{tx(chapter.head.line)}</span>
           </div>
-          {open && read}
+          {read}
         </div>
         {chapter.rows.map((r) => (
-          <PfQuestion key={r.key} row={r} open={open} />
+          <PfQuestion key={r.key} row={r} />
         ))}
-        {!open && read && <Locked>{read}</Locked>}
-        {!open && (
-          <Signpost text={chapter.signpost} href="#pf-premium" area="portfolio" lock={`pf-${chapter.key}`} foot />
-        )}
       </div>
     </section>
   );
 }
 
-function PfQuestion({ row, open }: { row: PfRow; open: boolean }) {
-  const pic = row.picture ? <PfPictureView pic={row.picture} /> : null;
-  const answerRow = row.free === "answer";
+function PfQuestion({ row }: { row: PfRow }) {
   const facts =
-    row.freeFacts.length > 0 || (!open && row.lockedNote) ? (
+    row.freeFacts.length > 0 ? (
       <div className="pfr-facts">
-        {row.freeFacts.length > 0 && (
-          <ul>
-            {row.freeFacts.map((f, i) => (
-              <li key={i}>{tx(f)}</li>
-            ))}
-          </ul>
-        )}
-        {!open && row.lockedNote && (
-          <a href="#pf-premium" className="pfr-lockline">
-            <IconLock size={14} />
-            {tx(row.lockedNote)}
-          </a>
-        )}
+        <ul>
+          {row.freeFacts.map((f, i) => (
+            <li key={i}>{tx(f)}</li>
+          ))}
+        </ul>
       </div>
     ) : undefined;
   return (
@@ -80,16 +55,12 @@ function PfQuestion({ row, open }: { row: PfRow; open: boolean }) {
       title={tx(row.title)}
       word={row.word}
       tone={row.tone}
-      picture={answerRow ? pic : undefined}
-      premiumPicture={answerRow ? undefined : pic}
+      picture={row.picture ? <PfPictureView pic={row.picture} /> : undefined}
       free={facts}
       headline={row.headline}
-      freeLine={answerRow ? row.freeLine : null}
       meaning={row.meaning}
       watch={row.watch}
       details={row.figures.length ? <PfFigures figures={row.figures} /> : undefined}
-      sample={row.free === "sample"}
-      teaser={row.free === "word" ? "word" : row.free === "lock" || row.free === "sample" ? "lock" : undefined}
     />
   );
 }
@@ -142,8 +113,6 @@ function PfFigures({ figures }: { figures: PfFigure[] }) {
 
 /** The band above the first chapter for a reader who sees everything. */
 export function PfReportBand({ answered }: { answered: number }) {
-  const open = usePremiumOpen();
-  if (!open) return null;
   return (
     <div className="rp-band pf-band" role="note">
       <div className="min-w-0">

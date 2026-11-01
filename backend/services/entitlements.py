@@ -7,8 +7,8 @@ later), and admins can grant or revoke days by hand. A user is premium while
 started the old free month keep its days until they run out
 (`premium_source="trial"`).
 
-Limits are enforced server-side for the watchlist, portfolio holdings and
-price alerts; the
+Limits are enforced server-side for the watchlist and price alerts (holdings
+have no free cap since 2026-11-02, only the hard ceiling); the
 TopStock AI cap is counted by the frontend (the assistant runs in the browser).
 The stock-page and portfolio locks are screen-only by design — the data still
 ships, the UI hides it (see CLAUDE.md "Premium").
@@ -16,16 +16,20 @@ ships, the UI hides it (see CLAUDE.md "Premium").
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-# Watchlist 5 and holdings 7 since 2026-10-30 (were 10 and unlimited). An
-# account already past either keeps what it has; it just can't add a new code.
+# Watchlist 5 since 2026-10-30 (was 10). An account already past it keeps
+# what it has; it just can't add a new code. Holdings: no free cap since
+# 2026-11-02 (user: "remove the free user portfolio stock cap"; it was 7 from
+# 2026-10-30) — None here; HARD_LIMITS["holdings"] (100) applies to everyone.
 FREE_LIMITS = {
-    "watchlist": 5, "holdings": 7, "alerts": 3, "ai_daily": 10, "portfolios": 1, "custom_lists": 0,
+    "watchlist": 5, "holdings": None, "alerts": 3, "ai_daily": 10, "portfolios": 1, "custom_lists": 0,
 }
 
 # Ceilings for every account, Premium included. Not a plan feature — a size cap
 # on what one account can store (the watchlist and holdings live on the user
 # document, which every signed-in request reads).
-HARD_LIMITS = {"watchlist": 200, "alerts": 50, "holdings": 300}
+# Holdings: 100 shares a portfolio since 2026-11-02 (user: "set a generic cap of
+# 100"; was 300) — the only cap on shares, free or Premium.
+HARD_LIMITS = {"watchlist": 200, "alerts": 50, "holdings": 100}
 
 # HTTPException detail strings the frontend matches (`lib/premium.ts:isLimitError`).
 LIMIT_WATCHLIST = "limit_reached:watchlist"

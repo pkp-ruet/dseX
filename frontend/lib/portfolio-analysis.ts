@@ -1292,7 +1292,7 @@ export function analyzePortfolio(
 // - every idea carries its number lines, the signal's own reason, one
 //   watch-out and an example amount (about 10% of the money, whole shares).
 // When gaps exist but nothing passes, it says so instead of lowering the bar.
-// This adapter keeps the plan's old shape so `RebalanceHelper`,
+// This adapter keeps the plan's old shape so the portfolio report,
 // `buildNextMove` and `gradeLifts` read it unchanged.
 
 export type RebalanceKind = BuyNextKind;

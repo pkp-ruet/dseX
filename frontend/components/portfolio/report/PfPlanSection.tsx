@@ -2,9 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
 import QuestionRow from "@/components/report/QuestionRow";
-import Signpost from "@/components/report/Signpost";
 import { TONE_CLASS, tx } from "@/components/report/chip";
 import { T } from "@/components/i18n/T";
 import { takaGroup } from "@/lib/formatters";
@@ -17,12 +15,10 @@ import { PfChapterHead } from "../PfCard";
  * your money, Premium: what to do first (ranked by the taka at stake, the
  * same `buildNextMove` as before), what would lift the grade (`gradeLifts`),
  * what to buy next (the recommendation engine's ideas for this portfolio),
- * and what to do with each share. A free reader sees the questions with a
- * lock and one gold line up to the Premium card; the try-a-change tool sits
- * under the card for everyone (its result is Premium, `WhatIfCard`).
+ * and what to do with each share, then the try-a-change tool. All Premium
+ * since 2026-11-02 (the page hides it from a free reader under one `Locked`).
  */
 export default function PfPlanSection({ plan, grade, children }: { plan: PfPlan; grade: Grade; children?: ReactNode }) {
-  const open = usePremiumOpen();
   const lift = plan.lifts[0]?.tag ?? null;
   const rows: { key: string; title: { en: string; bn: string }; word: { en: string; bn: string } | null; tone: "good" | "fair" | "bad" | "neutral"; body: ReactNode }[] = [
     {
@@ -118,18 +114,8 @@ export default function PfPlanSection({ plan, grade, children }: { plan: PfPlan;
             tone={r.tone}
             premiumPicture={r.body}
             headline={null}
-            teaser="lock"
           />
         ))}
-        {!open && (
-          <Signpost
-            text={{ en: "Your plan ranks every move by the taka at stake.", bn: "আপনার পরিকল্পনা প্রতিটি পদক্ষেপ টাকার পরিমাণ ধরে সাজায়।" }}
-            href="#pf-premium"
-            area="portfolio"
-            lock="pf-plan"
-            foot
-          />
-        )}
       </div>
       {children}
     </section>

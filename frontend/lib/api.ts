@@ -2213,6 +2213,12 @@ export interface BuyNext {
   none_reason: BiText | null;
 }
 
+/** "What to buy next" for a sample portfolio's holdings (public). */
+export async function getSamplePlan(holdings: { trading_code: string; qty: number; buy_price: number }[]): Promise<BuyNext> {
+  const h = holdings.map((x) => `${x.trading_code}:${x.qty}:${x.buy_price}`).join(",");
+  return apiFetch<BuyNext>(`/api/portfolio/sample-plan?h=${encodeURIComponent(h)}`, 3600);
+}
+
 /** The portfolio's "What to buy next" for one portfolio (main when no pid). */
 export async function apiGetBuyNext(pid?: string | null): Promise<BuyNext> {
   return apiAuthFetch<BuyNext>(`/api/user/portfolio/buy-next${pidQuery(pid)}`);
@@ -3478,6 +3484,14 @@ export async function getWatchlistGlance(codes: string[]): Promise<GlanceRow[]> 
   const res = await fetch(`${getApiUrl()}/api/watchlist/glance?codes=${encodeURIComponent(codes.join(","))}`);
   if (!res.ok) throw new Error(`glance ${res.status}`);
   const data = (await res.json()) as { rows: GlanceRow[] };
+  return data.rows ?? [];
+}
+
+/** The glance rows for a server-rendered page (the sample portfolios), with
+ *  the page's ISR cache instead of a fresh read. */
+export async function getGlanceCached(codes: string[], revalidate = 3600): Promise<GlanceRow[]> {
+  if (!codes.length) return [];
+  const data = await apiFetch<{ rows: GlanceRow[] }>(`/api/watchlist/glance?codes=${encodeURIComponent(codes.join(","))}`, revalidate);
   return data.rows ?? [];
 }
 

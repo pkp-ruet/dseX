@@ -19,7 +19,8 @@ type Bi = { en: string; bn: string };
 
 /** Per limit: the popup's title, what the reader can still do, and the first
  *  thing Premium gives them here. */
-const COPY: Record<LimitKind, (n: number) => { title: Bi; line: Bi; gets: Bi }> = {
+// No "holdings" entry since 2026-11-02: free accounts have no shares cap any more.
+const COPY: Partial<Record<LimitKind, (n: number) => { title: Bi; line: Bi; gets: Bi }>> = {
   watchlist: (n) => ({
     title: { en: `You follow ${n} shares, the most a free account can`, bn: `আপনি ${n}টি শেয়ার অনুসরণ করছেন, ফ্রি অ্যাকাউন্টে এর বেশি যায় না` },
     line: {
@@ -27,14 +28,6 @@ const COPY: Record<LimitKind, (n: number) => { title: Bi; line: Bi; gets: Bi }> 
       bn: "নতুন শেয়ার অনুসরণ করতে আগে একটি বাদ দিন। প্রিমিয়ামে যত খুশি শেয়ার অনুসরণ করতে পারবেন।",
     },
     gets: { en: "Follow as many shares as you like", bn: "যত খুশি শেয়ার অনুসরণ" },
-  }),
-  holdings: (n) => ({
-    title: { en: `Your portfolio has ${n} shares, the most a free account can`, bn: `আপনার পোর্টফোলিওতে ${n}টি শেয়ার আছে, ফ্রি অ্যাকাউন্টে এর বেশি যায় না` },
-    line: {
-      en: "You can still buy more of the shares you have. To add a new share, get Premium and keep every share you own in one place.",
-      bn: "যে শেয়ারগুলো আছে সেগুলো আরও কেনা যাবে। নতুন শেয়ার যোগ করতে প্রিমিয়াম নিন, আপনার সব শেয়ার এক জায়গায় রাখুন।",
-    },
-    gets: { en: "Every share you own in your portfolio", bn: "আপনার সব শেয়ার পোর্টফোলিওতে" },
   }),
   alerts: (n) => ({
     title: { en: `${n} price alerts are on, the most a free account can`, bn: `${n}টি প্রাইস অ্যালার্ট চালু আছে, ফ্রি অ্যাকাউন্টে এর বেশি যায় না` },
@@ -103,7 +96,9 @@ export default function LimitSheet() {
   if (!kind) return null;
 
   const n = storedLimit(kind) ?? FREE_LIMITS[kind];
-  const c = COPY[kind](n);
+  const make = COPY[kind];
+  if (!make || n == null) return null;
+  const c = make(n);
   const offer = user?.offer ?? null;
   const href = offer ? "/premium?plan=offer&src=limit#pay" : user ? `${PREMIUM_PATH}#pay` : PREMIUM_PATH;
   const close = () => setKind(null);

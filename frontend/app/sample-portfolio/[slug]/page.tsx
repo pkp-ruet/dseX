@@ -1,24 +1,29 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
-import { T, TBlock } from "@/components/i18n/T";
+import Button from "@/components/ui/Button";
+import { T } from "@/components/i18n/T";
 import { notFound } from "next/navigation";
-import { getScores } from "@/lib/api";
+import { getGlanceCached, getSamplePlan, getScores, getUpcomingResults } from "@/lib/api";
 import {
   SAMPLE_PORTFOLIOS,
   SAMPLE_SLUGS,
   getSamplePortfolio,
   type SampleSlug,
 } from "@/lib/sample-portfolios";
-import { buildSampleAnalysis } from "@/lib/sample-portfolio-analysis";
-import PortfolioAnalysisView from "@/components/portfolio/PortfolioAnalysisView";
-import SamplePortfolioStats from "@/components/sample-portfolio/SamplePortfolioStats";
+import { buildSampleReport } from "@/lib/sample-portfolio-report";
+import { OpenScope } from "@/components/premium/LockScope";
+import PortfolioAnswer from "@/components/portfolio/report/PortfolioAnswer";
+import PfReportChapter from "@/components/portfolio/report/PfReportChapter";
+import PfPlanSection from "@/components/portfolio/report/PfPlanSection";
+import SampleHoldings from "@/components/sample-portfolio/SampleHoldings";
+import SampleNav from "@/components/sample-portfolio/SampleNav";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
 type Props = { params: Promise<{ slug: string }> };
 
-export const revalidate = 86400;
+export const revalidate = 3600;
 
 export async function generateStaticParams() {
   return SAMPLE_SLUGS.map((slug) => ({ slug }));
@@ -26,9 +31,9 @@ export async function generateStaticParams() {
 
 const META: Record<SampleSlug, { title: string; description: string; keywords: string[] }> = {
   diversified: {
-    title: "Diversified DSE Portfolio — Sample Analysis",
+    title: "Diversified DSE Portfolio: Sample Check",
     description:
-      "See a real example of a well-built Dhaka Stock Exchange portfolio. Spread across 6 sectors, strong companies, fair entry prices — analysed line by line.",
+      "The full TopStockBD check on a well-built Dhaka Stock Exchange portfolio, at today's prices: the answer, its companies, spread, prices paid, warnings and a plan, in plain words.",
     keywords: [
       "diversified DSE portfolio",
       "Bangladesh stock portfolio example",
@@ -39,9 +44,9 @@ const META: Record<SampleSlug, { title: string; description: string; keywords: s
     ],
   },
   risky: {
-    title: "Risky DSE Portfolio — Sample Analysis",
+    title: "Risky DSE Portfolio: Sample Check",
     description:
-      "What does a risky Dhaka Stock Exchange portfolio look like? See a sample concentrated DSE bet with a single mid-tier stock at a peak buy price — analysed in plain English.",
+      "The full TopStockBD check on a risky Dhaka Stock Exchange portfolio, everything in one company bought near its peak: what goes wrong, and the plan to fix it, in plain words.",
     keywords: [
       "risky DSE portfolio",
       "concentrated stock portfolio",
@@ -112,16 +117,22 @@ export default async function SamplePortfolioPage({ params }: Props) {
   const portfolio = getSamplePortfolio(slug);
   if (!portfolio) notFound();
 
-  // No catch on the main fetch: a throw lets ISR keep serving the last good
-  // page; a rendered error state was cached as the page until the next purge.
-  const scores = await getScores();
+  const codes = portfolio.holdings.map((h) => h.trading_code.toUpperCase());
+  // The scores are the page's primary data: no catch, so a failure keeps the
+  // last good page (ISR). The rest only adds detail and may be missing.
+  const [scores, glance, upcoming, buyNext] = await Promise.all([
+    getScores(),
+    getGlanceCached(codes).catch(() => []),
+    getUpcomingResults().catch(() => null),
+    getSamplePlan(portfolio.holdings).catch(() => null),
+  ]);
 
-  const { rows, analysis } = buildSampleAnalysis(portfolio, scores);
-  const { analysis: analysisBn } = buildSampleAnalysis(portfolio, scores, "bn");
+  const { report, rows, analysis } = buildSampleReport(portfolio, scores, glance, upcoming?.meetings ?? [], buyNext);
   const meta = META[portfolio.slug];
+  const other = portfolio.slug === "diversified" ? SAMPLE_PORTFOLIOS.risky : SAMPLE_PORTFOLIOS.diversified;
 
   return (
-    <div className="space-y-8">
+    <div className="smp">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -129,11 +140,7 @@ export default async function SamplePortfolioPage({ params }: Props) {
         }}
       />
 
-      {/* Breadcrumb */}
-      <nav
-        aria-label="breadcrumb"
-        className="flex items-center gap-2 text-xs text-text-muted"
-      >
+      <nav aria-label="breadcrumb" className="flex items-center gap-2 text-xs text-text-muted">
         <Link href="/" className="hover:text-primary transition-colors">
           <T en="Home" bn="হোম" />
         </Link>
@@ -148,91 +155,65 @@ export default async function SamplePortfolioPage({ params }: Props) {
         title={<T en={portfolio.name} bn={portfolio.nameBn} />}
         lead={<T en={portfolio.tagline} bn={portfolio.taglineBn} />}
       />
-      <p className="text-text-main leading-relaxed text-sm sm:text-base">
+      <p className="smp-story">
         <T en={portfolio.narrative} bn={portfolio.narrativeBn} />
       </p>
 
-      {/* Quick stats */}
-      <SamplePortfolioStats rows={rows} analysis={analysis} />
-
-      <hr className="border-border" />
-
-      {/* Full analysis (verdict, good/bad/consider, sector chart, detailed holdings, disclaimer) */}
-      <TBlock
-        en={<PortfolioAnalysisView analysis={analysis} />}
-        bn={<PortfolioAnalysisView analysis={analysisBn} lang="bn" />}
-      />
-
-      <hr className="border-border" />
-
-      {/* CTA */}
-      <section
-        className="relative overflow-hidden rounded-lg border border-border bg-surface"
-        aria-label="Sign up CTA"
-      >
-        <div
-          className="h-1 w-full"
-          style={{ background: "linear-gradient(90deg, var(--primary), var(--primary))" }}
+      {/* What this page is: the full check, open, on a made-up portfolio. */}
+      <p className="smp-note" role="note">
+        <T
+          en="A made-up portfolio, checked with today's prices. Every part of the full check is open on this page, so you can see what TopStockBD does with your own shares."
+          bn="এটি একটি বানানো পোর্টফোলিও, আজকের দামে যাচাই করা। পূর্ণ যাচাইয়ের প্রতিটি অংশ এই পেজে খোলা, যাতে দেখতে পারেন আপনার নিজের শেয়ার নিয়ে টপস্টকবিডি কী করে।"
         />
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5">
-          <div>
-            <p className="text-sm sm:text-base font-semibold text-text-main leading-snug">
-              <T en="Would you like this check on your own portfolio?" bn="নিজের পোর্টফোলিওতে এই যাচাই চান?" />
-            </p>
-            <p className="text-xs text-text-muted mt-0.5">
-              <T
-                en="Add your shares and get the same plain report, free."
-                bn="আপনার শেয়ার যোগ করুন, আর ফ্রিতে একই সহজ রিপোর্ট পান।"
-              />
-            </p>
-          </div>
-          <div className="flex gap-2 shrink-0">
-            <Link
-              href="/register"
-              className="btn-primary"
-            >
-              <T en="Sign up free" bn="ফ্রি অ্যাকাউন্ট খুলুন" />
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z" />
-              </svg>
-            </Link>
-            <Link
-              href="/portfolio"
-              className="btn-quiet"
-            >
-              <T en="I have an account" bn="আমার অ্যাকাউন্ট আছে" />
-            </Link>
-          </div>
+      </p>
+
+      <SampleNav />
+
+      <SampleHoldings rows={rows} analysis={analysis} />
+
+      {/* The full check, as a Premium reader sees it on their own portfolio. */}
+      <OpenScope>
+        <div className="smp-report">
+          <PortfolioAnswer answer={report.answer} />
+          {report.chapters.map((c) => (
+            <PfReportChapter key={c.key} chapter={c} />
+          ))}
+          <PfPlanSection plan={report.plan} grade={analysis.grade} />
+        </div>
+      </OpenScope>
+
+      <section className="smp-cta soft-card" aria-labelledby="smp-cta-h">
+        <h2 id="smp-cta-h" className="text-xl font-bold text-text-main">
+          <T en="Get this check on your own shares" bn="নিজের শেয়ারে এই যাচাই নিন" />
+        </h2>
+        <p className="text-base text-text-main">
+          <T
+            en="Add your shares for free and see your money, your grade and what the check found. Premium opens every answer and checks your shares again after every close."
+            bn="ফ্রিতে আপনার শেয়ার যোগ করুন, দেখুন আপনার টাকা, গ্রেড আর যাচাইয়ে কী পাওয়া গেল। প্রিমিয়াম প্রতিটি উত্তর খুলে দেয়, আর প্রতিদিন বাজার বন্ধের পর আবার যাচাই করে।"
+          />
+        </p>
+        <div className="smp-cta-actions">
+          <Button href="/register" size="lg">
+            <T en="Create a free account" bn="ফ্রি অ্যাকাউন্ট খুলুন" />
+          </Button>
+          <Button href="/portfolio" variant="quiet" size="lg">
+            <T en="Open my portfolio" bn="আমার পোর্টফোলিও খুলুন" />
+          </Button>
         </div>
       </section>
 
-      {/* Other sample */}
-      <section className="text-center">
-        <p className="text-xs text-text-muted mb-2">
-          <T en="See the other sample portfolio" bn="অন্য নমুনা পোর্টফোলিওটি দেখুন" />
-        </p>
-        {portfolio.slug === "diversified" ? (
-          <Link
-            href="/sample-portfolio/risky"
-            className="text-sm font-semibold text-primary hover:underline"
-          >
-            <T en="See the risky portfolio check →" bn="ঝুঁকিপূর্ণ পোর্টফোলিওর যাচাই দেখুন →" />
-          </Link>
-        ) : (
-          <Link
-            href="/sample-portfolio/diversified"
-            className="text-sm font-semibold text-primary hover:underline"
-          >
-            <T en="See the diversified portfolio check →" bn="ছড়ানো পোর্টফোলিওর যাচাই দেখুন →" />
-          </Link>
-        )}
-      </section>
+      <p className="smp-other">
+        <Link href={`/sample-portfolio/${other.slug}`} className="font-semibold text-primary-ink hover:underline active:opacity-70">
+          <T en={`See the other sample: ${other.name}`} bn={`অন্য নমুনাটি দেখুন: ${other.nameBn}`} /> →
+        </Link>
+      </p>
+
+      <p className="pf-disclaimer">
+        <T
+          en="A sample for learning, not advice. Always do your own research before making investment decisions."
+          bn="শেখার জন্য একটি নমুনা, পরামর্শ নয়। বিনিয়োগের সিদ্ধান্ত নেওয়ার আগে সবসময় নিজে যাচাই করুন।"
+        />
+      </p>
     </div>
   );
 }

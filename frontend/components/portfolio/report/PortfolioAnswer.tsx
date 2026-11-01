@@ -1,14 +1,11 @@
 "use client";
 
-import { Locked } from "@/components/premium/AnswerLock";
-import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
 import { TONE_CLASS, tx } from "@/components/report/chip";
 import { IconCheck } from "@/components/ui/icons";
 import { T } from "@/components/i18n/T";
 import { takaGroup } from "@/lib/formatters";
-import type { PfAnswer, PfLight, PfQuestion } from "@/lib/portfolio-report";
+import type { PfAnswer, PfLight } from "@/lib/portfolio-report";
 import type { Tone } from "@/lib/stock-report";
-import PortfolioQuestions, { type SampleAnswer } from "./PortfolioQuestions";
 
 const MARK: Record<Tone, string> = { good: "", fair: "!", bad: "✕", neutral: "–" };
 
@@ -23,25 +20,13 @@ const MARK: Record<Tone, string> = { good: "", fair: "!", bad: "✕", neutral: "
  * never sits above the letter; the light that decided a not-good answer is
  * outlined.
  *
- * Free: the answer, the grade, the line, the four light words. Premium: why
- * each light is what it is, and the first move with the taka at stake. Then,
- * for a reader without the full check, the page's one Premium card
- * (`PortfolioQuestions`, `#pf-premium`). It replaced the grade ring, the three
- * scores out of 10 and the separate Premium card.
+ * Premium since 2026-11-02 (the page hides it from a free reader under one
+ * `Locked`, like the stock page's answer card): the answer, the four lights,
+ * why each light is what it is, and the first move with the taka at stake.
  */
-export default function PortfolioAnswer({
-  answer,
-  questions,
-  sample,
-}: {
-  answer: PfAnswer;
-  questions: PfQuestion[];
-  /** Two real answers from a sample portfolio, built when the fold opens. */
-  sample: () => SampleAnswer | null;
-}) {
-  const open = usePremiumOpen();
+export default function PortfolioAnswer({ answer }: { answer: PfAnswer }) {
   const whys = answer.lights.filter((l) => l.why);
-  const premiumPart = (
+  const why = (
     <>
       {whys.length > 0 && (
         <ul className="ac-why">
@@ -97,7 +82,7 @@ export default function PortfolioAnswer({
         ))}
       </div>
 
-      {(whys.length > 0 || answer.first) && (open ? premiumPart : <Locked>{premiumPart}</Locked>)}
+      {why}
 
       <div className="ac-foot">
         <span>
@@ -105,7 +90,6 @@ export default function PortfolioAnswer({
         </span>
       </div>
 
-      <PortfolioQuestions rows={questions} sample={sample} />
     </section>
   );
 }
