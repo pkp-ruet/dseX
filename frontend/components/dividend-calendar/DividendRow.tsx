@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { T } from "@/components/i18n/T";
-import TierPill from "@/components/ui/TierPill";
 import { Locked } from "@/components/premium/AnswerLock";
 import { pct } from "@/lib/formatters";
 import type { CorporateActionEvent } from "@/lib/api";
@@ -101,7 +100,8 @@ function extras(e: CorporateActionEvent, mode: Mode): ReactNode[] {
 
 /**
  * One company on the dividend calendar (and the dashboard's "Dividends
- * coming" card): company name first, then ticker · grade · Final/Interim, then
+ * coming" card): company name first, then ticker · Final/Interim (no grade
+ * pill since 2026-11-01 — the ranking's group words stay off this page), then
  * one muted line of extra facts; on the right the money leads — cash a share
  * with the yield at today's price under it (`top` ranks by the yield, so it
  * leads there; `dated` shows a date instead). Taps through to the stock
@@ -188,7 +188,6 @@ export default function DividendRow({
         <span className="dc-meta">
           <span className="dc-code">{e.trading_code}</span>
           {mark}
-          {e.tier && <TierPill tier={e.tier} />}
           {e.dividend_type && mode !== "dated" && (
             <>
               <span className="dc-sep" aria-hidden="true">·</span>
