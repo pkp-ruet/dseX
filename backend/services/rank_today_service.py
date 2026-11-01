@@ -47,3 +47,21 @@ def rankings_today() -> dict:
     except Exception:  # noqa: BLE001
         log.exception("rankings_today: history failed")
     return out
+
+
+@_ttl_cache(1800, max_entries=2)
+def week_rank_moves() -> dict | None:
+    """Just `moves` (each company's rank change this week) — the homepage's
+    ranking card reads it from the home bundle without the warnings pass."""
+    from backend.services import rank_history as rh
+    from backend.services.rank_history_service import rank_table
+
+    table = rank_table()
+    try:
+        from backend.services.score_history_service import method_days
+
+        mdays = set(method_days())
+    except Exception:  # noqa: BLE001
+        mdays = set()
+    start, end, _method = rh.week_window(table["dates"], mdays)
+    return rt.rank_moves(table, start, end)

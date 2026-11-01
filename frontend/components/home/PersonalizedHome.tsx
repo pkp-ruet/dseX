@@ -374,6 +374,7 @@ export default function PersonalizedHome() {
           <DiscoverRail
             stocks={allStocks}
             trending={top20}
+            moves={bundle?.rank_moves ?? null}
             held={heldSet}
             watched={watchedSet}
             lang={lang}

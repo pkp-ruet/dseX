@@ -2452,6 +2452,8 @@ export interface HomeBundle {
   };
   /** The six Premium research lists (2026-10-24): counts + top three each. */
   research_lists?: ResearchListSummary[];
+  /** This week's rank change for every company (2026-11-01, the ranking card). */
+  rank_moves?: RankingsToday["moves"];
   /** Quarterly results on the reader's own stocks, posted in the last three weeks. */
   new_results?: LatestResultRow[];
   /** The market's week of quarterly results (the free readers' /results promotion). */

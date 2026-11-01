@@ -77,8 +77,9 @@ export default function RankList({ rows, total }: { rows: RankRow[]; total: numb
   );
 }
 
-/** The rank change as a pill: ▲ 3 green, ▼ 2 red, – same, "New". */
-function Move({ move }: { move: RankRow["move"] }) {
+/** The rank change as a pill: ▲ 3 green, ▼ 2 red, – same, "New". Also the
+ *  dashboard's ranking card. */
+export function Move({ move }: { move: RankRow["move"] }) {
   const base = "rk-move";
   if (move === "new") {
     return (

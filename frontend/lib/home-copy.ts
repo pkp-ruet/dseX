@@ -117,10 +117,9 @@ const COPY = {
   whyItMatters: ["Why this matters", "কেন গুরুত্বপূর্ণ"],
 
   // Top ranked
-  rankedTitle: ["Highest-scoring companies", "সর্বোচ্চ স্কোরের কোম্পানি"],
+  rankedTitle: ["Strongest companies on the DSE", "ডিএসইর সবচেয়ে শক্তিশালী কোম্পানি"],
+  rankedSub: ["Ranked by our in-depth fundamental analysis", "আমাদের গভীর ফান্ডামেন্টাল বিশ্লেষণ দেখে সাজানো"],
   fullRanking: ["Full ranking", "পুরো র‍্যাঙ্কিং"],
-  ofN: ["of {n} companies scored", "{n}টি কোম্পানির মধ্যে"],
-  outOf100: ["/100", "/100"],
 
   // Lists rail
   // Research lists (homepage rail — the top three of each list, for every reader)
