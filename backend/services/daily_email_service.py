@@ -837,8 +837,10 @@ def build_daily_content(campaign_id: str) -> dict:
         "week_chg": (state.get("stats") or {}).get("week_change_pct"),
     }
 
-    buys, buys_total = _safe(lambda: _select_buys(prices, companies, campaign_id),
-                             ([], 0), "buys") or ([], 0)
+    # No "Today's buys" block since 2026-11-01 (user decision): Buy / Sell
+    # shows only inside the stock report and the portfolio's Premium parts.
+    # `_select_buys` stays for when the block comes back.
+    buys, buys_total = [], 0
     stories = _safe(lambda: _three_stories(rows, campaign_id), [], "stories") or []
     learn = _safe(lambda: _learn_one_thing(campaign_id), None, "learn")
     rotating = _rotating_block(state, campaign_id)

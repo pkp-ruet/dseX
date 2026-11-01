@@ -92,7 +92,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (epsFmt) details.push(`EPS ৳${epsFmt}`);
   if (divFmt != null) details.push(`last dividend ${divFmt}%`);
   const detailStr = details.length ? ` ${details.join(", ")}.` : "";
-  const description = `${name} (${code}) share price today ৳${ltpFmt}${chgFmt ? ` (${chgFmt}%)` : ""} on the Dhaka Stock Exchange.${detailStr} Dividend history, fundamental score, buy/sell signal and financials — free on TopStockBD.`;
+  const description = `${name} (${code}) share price today ৳${ltpFmt}${chgFmt ? ` (${chgFmt}%)` : ""} on the Dhaka Stock Exchange.${detailStr} Dividend history, fundamental score and financials — free on TopStockBD.`;
 
   const ogDesc = `${name} · ৳${ltpFmt} today${epsFmt ? ` · EPS ৳${epsFmt}` : ""}${divFmt != null ? ` · Dividend ${divFmt}%` : ""}. Free DSE stock analysis on TopStockBD.`;
 
@@ -219,18 +219,9 @@ export default async function StockDetailPage({ params }: PageProps) {
   const faqs: { q: string; a: string }[] = [];
 
   if (score != null) {
-    const sig = detail.signal?.signal;
-    // The signal word is free; its reason and the verdict prose are Premium, so
-    // neither goes into a rich-result answer.
-    const sigText =
-      sig === "buy"
-        ? " Our rules currently show a Buy signal."
-        : sig === "sell"
-          ? " Our rules currently show a Sell signal."
-          : " Our rules show no buy or sell signal right now.";
     faqs.push({
       q: `Is ${name} (${code}) a good stock to buy?`,
-      a: `TopStockBD scores ${code} ${Math.round(score)} out of 100 on fundamentals, which we call "${tierLabel}".${sigText} This is educational information, not investment advice.`,
+      a: `TopStockBD scores ${code} ${Math.round(score)} out of 100 on fundamentals, which we call "${tierLabel}". This is educational information, not investment advice.`,
     });
   }
   if (ltpNum != null) {
@@ -475,7 +466,6 @@ export default async function StockDetailPage({ params }: PageProps) {
         score={score}
         rank={num(score_row?.overall_rank)}
         total={num(score_row?.total_scored)}
-        signal={detail.signal ?? null}
         ltp={num(detail.latest_price.ltp)}
         changePct={num(detail.latest_price.change_pct)}
         sections={sections}

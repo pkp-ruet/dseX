@@ -93,6 +93,12 @@ def flip_items(flips: list[dict], day: Optional[str]) -> list[dict]:
     return out
 
 
+# Buy / Sell news stays off the Desk (2026-11-01, user decision: signals show
+# only inside the stock report and the portfolio's Premium sections). The
+# callers pass no flips, and these watcher kinds are skipped.
+NO_SIGNAL_KINDS = {"answer", "buylist"}
+
+
 def after_close(events: list[dict], flips: list[dict]) -> Optional[dict]:
     """The latest day the watcher found anything, its events + that day's
     flips, worst first. Pure (events newest first, as `recent_events` gives)."""
@@ -104,7 +110,8 @@ def after_close(events: list[dict], flips: list[dict]) -> Optional[dict]:
         day = max(flip_days)
     if not day:
         return None
-    items = [_event_item(e) for e in events if e.get("day") == day and e.get("kind") in watch.KIND_WORDS]
+    items = [_event_item(e) for e in events if e.get("day") == day and e.get("kind") in watch.KIND_WORDS
+             and e.get("kind") not in NO_SIGNAL_KINDS]
     items += flip_items(flips, day)
     if not items:
         return None
@@ -148,7 +155,6 @@ def desk(user_id: str) -> dict:
     from backend.services import entitlements, price_alert_service
     from backend.services.morning_brief_service import _dhaka_today, today_brief
     from backend.services.portfolio_daily import recent_events
-    from backend.services.portfolio_signal_service import list_recent_events
     from backend.services.weekly_letter_service import latest_letter
 
     u = _safe("user", lambda: _user(user_id), {"user_id": user_id})
@@ -157,15 +163,14 @@ def desk(user_id: str) -> dict:
     since = datetime.now(timezone.utc) - timedelta(days=AFTER_CLOSE_LOOKBACK_DAYS)
     recent = [e for e in events if _dhaka_day(e.get("created_at")) and
               _dhaka_day(e.get("created_at")) >= since.date().isoformat()]
-    flips = _safe("flips", lambda: list_recent_events(user_id), [])
     alerts = _safe("alerts", lambda: price_alert_service.list_alerts(user_id), [])
     return {
         "day": _dhaka_today().isoformat(),
         "premium": entitlements.is_premium(u),
         "has_shares": bool(held or watched),
         "brief": _safe("brief", lambda: today_brief(user_id), None),
-        "after_close": _safe("after_close", lambda: after_close(recent, flips), None),
-        "buy_list": _safe("buy_list", buy_list_line, None),
+        "after_close": _safe("after_close", lambda: after_close(recent, []), None),
+        "buy_list": None,
         "letter": _safe("letter", lambda: latest_letter(user_id), None),
         "watching": {
             "holdings": len(held),
@@ -185,7 +190,7 @@ def desk_summary(user_id: str, brief: Optional[dict], week_events: list[dict],
     newest letter's first line."""
     from backend.services.weekly_letter_service import latest_letter
 
-    ac = _safe("after_close", lambda: after_close(week_events, flips), None)
+    ac = _safe("after_close", lambda: after_close(week_events, []), None)
     letter = _safe("letter", lambda: latest_letter(user_id), None)
     first = None
     if letter:

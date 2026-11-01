@@ -26,7 +26,6 @@ const EXPLORE_PATHS = [
   "/share-bazar",
   "/dsestockranking",
   "/stocks",
-  "/buy-sell-signals",
   "/stock-insights",
   "/assistant",
   "/learn",

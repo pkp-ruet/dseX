@@ -6,12 +6,11 @@ import { getTier, TIER_LABELS, TIER_LABELS_BN } from "@/lib/constants";
 import { plainQuestions, shortName, type LandingStock } from "@/lib/landing";
 import type { SampleView } from "@/lib/landing-portfolio";
 import ScoreBadge from "@/components/ui/ScoreBadge";
-import SignalChip from "@/components/ui/SignalChip";
 
 /**
  * Block 3 — what the site does, as three jobs (2026-10-31). Each card opens on
  * a small piece of the real product, worked out from today's data — a
- * company's plain questions, today's top Buy signals, the portfolio check run
+ * company's plain questions, today's strongest companies, the portfolio check run
  * on a sample portfolio — then one title, one line and one link. This is
  * where a first-time visitor learns what TopStockBD is for.
  */
@@ -53,13 +52,13 @@ function Job({
 
 export default function WhatWeDo({
   questionStock,
-  buys,
+  top,
   sample,
 }: {
   /** A familiar company whose plain answers fill the first card. */
   questionStock: LandingStock | null;
-  /** Today's top Buy signals, best grade first. */
-  buys: LandingStock[];
+  /** Today's three strongest companies, best score first. */
+  top: LandingStock[];
   /** The portfolio check on the well-spread sample portfolio. */
   sample: SampleView | null;
 }) {
@@ -115,13 +114,13 @@ export default function WhatWeDo({
 
         <Job
           shot={
-            buys.length > 0 ? (
+            top.length > 0 ? (
               <>
                 <p className="text-sm font-semibold text-text-main">
-                  <T en="Today’s Buy signals" bn="আজকের কেনার সংকেত" />
+                  <T en="Today’s strongest companies" bn="আজকের সবচেয়ে শক্তিশালী কোম্পানি" />
                 </p>
                 <ul className="mt-1 divide-y divide-border">
-                  {buys.map((s) => {
+                  {top.map((s) => {
                     const tier = getTier(s.score);
                     return (
                       <li key={s.code} className="flex items-center gap-3 py-2.5">
@@ -132,7 +131,6 @@ export default function WhatWeDo({
                             {s.code} · <T en={TIER_LABELS[tier]} bn={TIER_LABELS_BN[tier]} />
                           </span>
                         </span>
-                        <SignalChip signal="buy" strength={s.strong ? "strong" : null} size="sm" />
                       </li>
                     );
                   })}
@@ -143,12 +141,12 @@ export default function WhatWeDo({
           title={<T en="Find shares worth a look" bn="দেখার মতো শেয়ার খুঁজুন" />}
           line={
             <T
-              en="Daily Buy signals, every company ranked, and a screener that asks six simple questions instead of formulas."
-              bn="প্রতিদিনের কেনার সংকেত, সব কোম্পানির র‍্যাঙ্কিং, আর সূত্রের বদলে ছয়টি সহজ প্রশ্নের স্ক্রিনার।"
+              en="Every company ranked by how strong its business is, and a screener that asks six simple questions instead of formulas."
+              bn="ব্যবসা কতটা শক্তিশালী তা দিয়ে সব কোম্পানির র‍্যাঙ্কিং, আর সূত্রের বদলে ছয়টি সহজ প্রশ্নের স্ক্রিনার।"
             />
           }
-          href="/buy-sell-signals"
-          link={<T en="See today’s signals →" bn="আজকের সংকেত দেখুন →" />}
+          href="/dsestockranking"
+          link={<T en="See the ranking →" bn="র‍্যাঙ্কিং দেখুন →" />}
         />
 
         <Job

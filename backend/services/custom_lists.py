@@ -59,6 +59,10 @@ class CheckDef:
     # A "power check" (crown in the screener): anyone can switch it on and see
     # the count; which stocks pass is Premium. Screen-only, like every lock.
     premium: bool = False
+    # Off the menu (2026-11-01: Buy / Sell signals left every page but the
+    # stock report and the portfolio's Premium sections). Kept in BY_KEY so a
+    # saved screen that already uses it still runs.
+    menu: bool = True
 
 
 GROUPS = [
@@ -277,7 +281,8 @@ CATALOG: list[CheckDef] = [
              [Option(45, "Mixed+", "মিশ্র+"), Option(60, "Mostly strong+", "বেশ শক্তিশালী+"),
               Option(75, "Strong all round", "সব দিকে শক্তিশালী")], 60),
     CheckDef("buy_today", "quality", "A Buy signal today", "আজ কেনার সংকেত",
-             _ok_fn(Check("buy_today", "Has a Buy signal today", "আজ কেনার সংকেত আছে", _buy_today)), premium=True),
+             _ok_fn(Check("buy_today", "Has a Buy signal today", "আজ কেনার সংকেত আছে", _buy_today)), premium=True,
+             menu=False),
     CheckDef("roe_min", "quality", "Return on shareholders' money", "শেয়ারহোল্ডারদের টাকায় মুনাফার হার", _roe_min,
              [Option(10, "10%+", "10%+"), Option(15, "15%+", "15%+"), Option(20, "20%+", "20%+")], 15),
     CheckDef("no_governance", "quality", "No auditor or regulator warnings", "নিরীক্ষক বা নিয়ন্ত্রকের কোনো সতর্কতা নেই",
@@ -744,6 +749,8 @@ def catalog(sectors: list[str]) -> dict:
     """The builder's menu, ready for the browser."""
     out = []
     for c in CATALOG:
+        if not c.menu:
+            continue
         opts = c.options
         if c.key == "sector":
             opts = [Option(s, s, _sector_bn(s)) for s in sorted(sectors)]

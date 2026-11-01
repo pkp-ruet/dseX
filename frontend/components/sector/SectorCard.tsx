@@ -70,14 +70,13 @@ export default function SectorCard({ sector: s }: { sector: SectorSummary }) {
 
       <TierBar counts={s.tier_counts} total={s.company_count} />
 
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         <Metric label={<T en="Score" bn="স্কোর" />} value={<ScoreBadge score={s.median_score} size="sm" />} />
         <Metric label={<T en="P/E" bn="পিই" />} value={s.median_pe != null ? s.median_pe.toFixed(1) : "—"} />
         <Metric
           label={<T en="Yield" bn="ইল্ড" />}
           value={s.median_yield_pct != null ? pct(s.median_yield_pct, 1) : "—"}
         />
-        <Metric label={<T en="Buy" bn="কেনা যায়" />} value={String(s.buy_signals)} />
       </div>
 
       {s.top_ranked && (

@@ -5,12 +5,10 @@
  *
  * Free: the group names, each company's strong / weak checks in words, its
  * serious warnings. Premium (shown under `Locked`): why it ranks where it does,
- * our answer on buying it today, where it stood on the first day of the
+ * where it stood on the first day of the
  * history, and how close it is to another group.
  */
 import {
-  PRICE_WORDS,
-  priceWordKey,
   TIER_LABELS,
   TIER_LABELS_BN,
   TIER_MEANINGS,
@@ -150,35 +148,6 @@ export function whyLine(item: ScoreItem & { tier: TierKey }): Bi {
     base = { en: "Fair on most checks, strong on none.", bn: "বেশিরভাগ যাচাইয়ে মোটামুটি, কোনোটিতে শক্তিশালী নয়।" };
   }
   return { en: base.en + cut.en, bn: base.bn + cut.bn };
-}
-
-/** The Buy signal's reason keys, worded as the stock page's answer. */
-const NOT_YET: Record<string, Bi> = {
-  quality_expensive: { en: "Not yet: the price is high right now.", bn: "এখন নয়: এখন দাম বেশি।" },
-  good_wait_price: { en: "Not yet: the price is only fair.", bn: "এখন নয়: দাম শুধু ঠিকঠাক।" },
-  near_52w_high: { en: "Not yet: the price is near its top for the year.", bn: "এখন নয়: দাম বছরের সর্বোচ্চের কাছে।" },
-  red_flag: { en: "Not yet: there is a serious warning in its notices.", bn: "এখন নয়: নোটিশে একটি গুরুতর সতর্কতা আছে।" },
-  heavy_debt: { en: "Not yet: its loans are bigger than its value.", bn: "এখন নয়: ঋণ বাজারমূল্যের চেয়েও বেশি।" },
-  thin_trading: { en: "Not yet: too few of its shares trade each day.", bn: "এখন নয়: প্রতিদিন খুব কম শেয়ার লেনদেন হয়।" },
-  earnings_dropped: { en: "Not yet: profit fell sharply in the latest results.", bn: "এখন নয়: সর্বশেষ ফলে মুনাফা অনেক কমেছে।" },
-  stale_financials: { en: "Not yet: its yearly accounts are old.", bn: "এখন নয়: বার্ষিক হিসাব পুরোনো।" },
-  z_category: { en: "Not yet: it is in Z category.", bn: "এখন নয়: এটি Z ক্যাটাগরিতে।" },
-  average_fundamentals: { en: "No reason to buy: nothing stands out enough.", bn: "কেনার কারণ নেই: আলাদা কিছু নেই।" },
-  not_rated: { en: "Not rated yet.", bn: "এখনো রেটিং নেই।" },
-};
-
-export type RankSignal = { signal: string; strength?: string | null; reason_key?: string | null } | null | undefined;
-
-/** "Our answer today: …" — the Buy signal, worded the way the stock page words it. */
-export function answerLine(sig: RankSignal): Bi | null {
-  if (!sig) return null;
-  if (sig.signal === "buy") {
-    const w = PRICE_WORDS[priceWordKey(sig) ?? "low"];
-    return { en: `Our answer today: Buy, at a ${w.en.toLowerCase()}.`, bn: `আজ আমাদের উত্তর: কেনা যায়, ${w.bn}ে।` };
-  }
-  if (sig.signal === "sell") return { en: "Our answer today: Avoid. The business is weak.", bn: "আজ আমাদের উত্তর: এড়িয়ে চলুন। ব্যবসা দুর্বল।" };
-  const w = NOT_YET[sig.reason_key ?? ""];
-  return w ? { en: `Our answer today: ${w.en}`, bn: `আজ আমাদের উত্তর: ${w.bn}` } : null;
 }
 
 const ORDER: TierKey[] = ["weak", "average", "good", "excellent"];

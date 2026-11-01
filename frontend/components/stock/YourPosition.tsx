@@ -8,7 +8,6 @@ import { getStoredUser } from "@/lib/auth";
 import { cacheKeys, readCache, writeCache } from "@/lib/swr-cache";
 import { loadWatchlist, getCachedWatchlist, getCachedWatchlistMeta, subscribeWatchlist } from "@/lib/watchlist";
 import { money, formatDate } from "@/lib/formatters";
-import { SIGNAL_LABELS, SIGNAL_LABELS_BN, SIGNAL_VAR } from "@/lib/constants";
 import { bnDate } from "@/lib/bn";
 import { T } from "@/components/i18n/T";
 import { IconWallet, IconStar } from "@/components/stock/StockIcons";
@@ -106,9 +105,6 @@ export default function YourPosition({ code, ltp }: Props) {
     const pl = valueNow != null ? valueNow - cost : null;
     const plPct = pl != null && cost > 0 ? (pl / cost) * 100 : null;
     const plCls = pl == null ? "text-text-muted" : pl >= 0 ? "text-positive" : "text-negative";
-    const rawSig = mine.find((h) => h.signal && h.signal.signal !== "none")?.signal ?? null;
-    const sig = rawSig && rawSig.signal !== "none" ? { ...rawSig, signal: rawSig.signal } : null;
-    const sigKind = sig?.signal as "buy_more" | "sell" | undefined;
 
     return (
       <div
@@ -152,26 +148,6 @@ export default function YourPosition({ code, ltp }: Props) {
             </dd>
           </div>
         </dl>
-        {sig && sigKind && (
-          <p className="mt-3 flex flex-wrap items-center gap-2 text-sm leading-snug text-text-main">
-            <span
-              className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold"
-              style={{
-                color: SIGNAL_VAR[sigKind],
-                background: `color-mix(in srgb, ${SIGNAL_VAR[sigKind]} 12%, transparent)`,
-                border: `1px solid color-mix(in srgb, ${SIGNAL_VAR[sigKind]} 28%, transparent)`,
-              }}
-            >
-              <T
-                en={<span className="uppercase tracking-wide">{SIGNAL_LABELS[sigKind]}</span>}
-                bn={SIGNAL_LABELS_BN[sigKind]}
-              />
-            </span>
-            <span>
-              <T en={sig.reason_en} bn={sig.reason_bn} />
-            </span>
-          </p>
-        )}
       </div>
     );
   }

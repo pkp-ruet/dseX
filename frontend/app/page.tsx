@@ -25,7 +25,7 @@ import FeedbackSection from "@/components/feedback/FeedbackSection";
 import OfferBanner from "@/components/premium/OfferBanner";
 import { freeReportCode } from "@/lib/free-report";
 
-// Hourly, not daily: the page renders today's movers and Buy signals, so
+// Hourly, not daily: the page renders today's movers and grades, so
 // day-old HTML would show yesterday's market. Matches the 3600s the scores /
 // market-state fetches below use.
 export const revalidate = 3600;
@@ -149,7 +149,10 @@ async function WhatWeDoSection({ promise }: { promise: Promise<ScoresResponse | 
   if (!scores || !data) return null;
   // The first card shows a familiar company other than the hero's.
   const questionStock = pickQuickCodes(data.stocks, 4).find((s) => s.code !== data.heroCode) ?? null;
-  const buys = data.stocks.filter((s) => s.sig === "buy").slice(0, 3);
+  const top = [...data.stocks]
+    .filter((s) => s.score != null)
+    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+    .slice(0, 3);
   // The real portfolio check on the well-spread sample; any failure just
   // leaves the third card without its picture.
   let sample: SampleView | null = null;
@@ -158,7 +161,7 @@ async function WhatWeDoSection({ promise }: { promise: Promise<ScoresResponse | 
   } catch {
     sample = null;
   }
-  return <WhatWeDo questionStock={questionStock} buys={buys} sample={sample} />;
+  return <WhatWeDo questionStock={questionStock} top={top} sample={sample} />;
 }
 
 async function MarketSection({

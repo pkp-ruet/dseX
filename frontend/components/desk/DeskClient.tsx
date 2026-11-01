@@ -33,8 +33,8 @@ const things = (n: number) => ({ en: `${n} ${n === 1 ? "thing" : "things"}`, bn:
 /**
  * Your Desk (`/desk`, 2026-10-31, the Premium Desk plan): today's edition of
  * what happened and what is coming on the reader's shares, by time of day —
- * Before the bell (9 AM brief) · After the close (the watcher + Buy more /
- * Sell flips) · Friday letter · Watching (what they have set up) — from one
+ * Before the bell (9 AM brief) · After the close (the watcher's news on
+ * your shares) · Friday letter · Watching (what they have set up) — from one
  * `GET /api/user/desk`. Every push, the renewal reminder and the dashboard's
  * Desk card open here.
  *
@@ -170,21 +170,6 @@ export default function DeskClient() {
             <ul className="desk-items">
               {desk.after_close.items.map((i) => <ItemRow key={i.id} i={i} />)}
             </ul>
-          )}
-          {desk.buy_list && (
-            <p className="desk-buylist">
-              <T
-                en={`On the buy list: ${desk.buy_list.joined_n} joined${
-                  desk.buy_list.joined.length ? ` (${desk.buy_list.joined.join(", ")}${desk.buy_list.joined_n > desk.buy_list.joined.length ? " …" : ""})` : ""
-                }, ${desk.buy_list.left_n} left. `}
-                bn={`কেনার তালিকায়: ${desk.buy_list.joined_n}টি এসেছে${
-                  desk.buy_list.joined.length ? ` (${desk.buy_list.joined.join(", ")}${desk.buy_list.joined_n > desk.buy_list.joined.length ? " …" : ""})` : ""
-                }, ${desk.buy_list.left_n}টি বাদ গেছে। `}
-              />
-              <Link href="/buy-sell-signals">
-                <T en="See the list" bn="তালিকা দেখুন" />
-              </Link>
-            </p>
           )}
         </DeskSection>
 

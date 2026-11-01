@@ -73,10 +73,10 @@ TRAIT_MIN_LEVEL = {"price": 2, "dividends": 1, "growth": 1, "safety": 1, "tradin
 def _buy(f, ctx):
     sig = f.get("signal")
     if sig == "buy":
-        return True, "A Buy signal today", "আজ 'কিনুন' সংকেত"
+        return True, "Good company, fair price today", "ভালো কোম্পানি, আজ ঠিকঠাক দাম"
     if sig == "sell":
-        return False, "A Sell signal today", "আজ 'বিক্রি' সংকেত"
-    return False, "No Buy signal today", "আজ 'কিনুন' সংকেত নেই"
+        return False, "The business is weak", "ব্যবসা দুর্বল"
+    return False, "Not at a good price today", "আজ দাম সুবিধার নয়"
 
 
 def _enough_data(f, ctx):
@@ -89,8 +89,10 @@ def _enough_data(f, ctx):
 
 
 GATE: list[rl.Check] = [
-    rl.Check("buy", "Has a Buy signal today: a good company at a fair price, traded enough, not at its yearly top",
-             "আজ 'কিনুন' সংকেত আছে: ভালো কোম্পানি, ঠিকঠাক দাম, যথেষ্ট লেনদেন, বছরের সর্বোচ্চে নয়", _buy),
+    # The Buy signal underneath; worded without it since 2026-11-01 (Buy /
+    # Sell shows only in the stock report and the portfolio's Premium parts).
+    rl.Check("buy", "A good company at a fair price today, traded enough, not at its yearly top",
+             "ভালো কোম্পানি, আজ ঠিকঠাক দাম, যথেষ্ট লেনদেন, বছরের সর্বোচ্চে নয়", _buy),
     rl.PROFITABLE,
     rl.NO_GOVERNANCE,
     rl.DEBT_OK,

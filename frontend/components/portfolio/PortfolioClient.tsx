@@ -57,7 +57,6 @@ import { getStoredUser } from "@/lib/auth";
 import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
 import Sheet from "@/components/ui/Sheet";
-import SignalChip from "@/components/ui/SignalChip";
 import AllocationChart from "./AllocationChart";
 import SectorBreakdownChart from "./SectorBreakdownChart";
 import { PageLockScope } from "@/components/premium/LockScope";
@@ -166,7 +165,7 @@ function rangePosition(row: ComputedRow): number | null {
   return Math.max(0, Math.min(1, (row.ltp - row.w52_low) / (row.w52_high - row.w52_low)));
 }
 
-type SortKey = "code" | "qty" | "avgcost" | "invested" | "ltp" | "curvalue" | "pnl" | "range" | "signal";
+type SortKey = "code" | "qty" | "avgcost" | "invested" | "ltp" | "curvalue" | "pnl" | "range";
 
 const COLUMNS: { key: SortKey; label: string }[] = [
   { key: "code", label: "Code" },
@@ -177,7 +176,6 @@ const COLUMNS: { key: SortKey; label: string }[] = [
   { key: "curvalue", label: "Value" },
   { key: "pnl", label: "Profit" },
   { key: "range", label: "Place in yearly range" },
-  { key: "signal", label: "Signal" },
 ];
 
 const SORT_LABEL_BN: Record<SortKey, string> = {
@@ -189,7 +187,6 @@ const SORT_LABEL_BN: Record<SortKey, string> = {
   curvalue: "মূল্য",
   pnl: "লাভ-ক্ষতি",
   range: "বছরের সীমায় অবস্থান",
-  signal: "সংকেত",
 };
 
 /** The sort menu: the useful orders, each in the direction a reader means. */
@@ -199,31 +196,24 @@ const SORT_OPTIONS: { key: SortKey; dir: "asc" | "desc" }[] = [
   { key: "pnl", dir: "asc" },
   { key: "invested", dir: "desc" },
   { key: "range", dir: "asc" },
-  { key: "signal", dir: "asc" },
   { key: "code", dir: "asc" },
 ];
-
-const SIGNAL_RANK: Record<SignalInfo["signal"], number> = { sell: 0, none: 1, buy_more: 2 };
 
 /** From this many stocks the list gets a search field and filter chips. */
 const FILTER_FROM = 8;
 
-type HoldFilter = "all" | "buy_more" | "sell" | "loss" | "updates";
+// No Buy more / Sell chips here (2026-11-01): the holding's signal shows only
+// in the Premium chapters below.
+type HoldFilter = "all" | "loss" | "updates";
 
 const FILTERS: { key: HoldFilter; en: string; bn: string }[] = [
   { key: "all", en: "All", bn: "সব" },
-  { key: "buy_more", en: "Buy more", bn: "আরও কেনা যায়" },
-  { key: "sell", en: "Sell", bn: "বিক্রি করুন" },
   { key: "loss", en: "In loss", bn: "লোকসানে" },
   { key: "updates", en: "Has updates", bn: "আপডেট আছে" },
 ];
 
 function matchesFilter(row: ComputedRow, f: HoldFilter, hasUpdates: boolean): boolean {
   switch (f) {
-    case "buy_more":
-      return row.signal.signal === "buy_more";
-    case "sell":
-      return row.signal.signal === "sell";
     case "loss":
       return row.pnl != null && row.pnl < 0;
     case "updates":
@@ -251,8 +241,6 @@ function sortValue(row: ComputedRow, key: SortKey): string | number | null {
       return row.pnl;
     case "range":
       return rangePosition(row);
-    case "signal":
-      return SIGNAL_RANK[row.signal.signal];
   }
 }
 
@@ -674,6 +662,7 @@ export default function PortfolioClient() {
     const rank = { bad: 0, watch: 1, good: 2 } as const;
     const by = new Map<string, PortfolioWatchEvent[]>();
     for (const e of [...myWatch].sort((a, b) => rank[a.level] - rank[b.level] || b.day.localeCompare(a.day))) {
+      if (e.kind === "answer" || e.kind === "buylist") continue; // Buy / Sell news: Premium chapters only
       const code = e.code.toUpperCase();
       const list = by.get(code) ?? [];
       if (list.length < 2 && !list.some((x) => x.kind === e.kind)) list.push(e);
@@ -688,7 +677,7 @@ export default function PortfolioClient() {
   const [filter, setFilter] = useState<HoldFilter>("all");
   const showFilters = holdings.length >= FILTER_FROM;
   const filterCounts = useMemo(() => {
-    const counts: Record<HoldFilter, number> = { all: rows.length, buy_more: 0, sell: 0, loss: 0, updates: 0 };
+    const counts: Record<HoldFilter, number> = { all: rows.length, loss: 0, updates: 0 };
     for (const r of rows) {
       const hasUpdates = updateTags.has(r.holding.trading_code.toUpperCase());
       for (const f of FILTERS) if (f.key !== "all" && matchesFilter(r, f.key, hasUpdates)) counts[f.key]++;
@@ -1309,14 +1298,8 @@ export default function PortfolioClient() {
                           <span className="pf-hold-chev"><IconChevronDown size={18} /></span>
                         </div>
 
-                        {(row.signal.signal !== "none" || tags.length > 0) && (
+                        {tags.length > 0 && (
                           <div className="pf-hold-mid">
-                            <SignalChip
-                              signal={row.signal.signal}
-                              reason={row.signal.reason}
-                              muted={row.signal.muted}
-                              lang={bn ? "bn" : "en"}
-                            />
                             {/* This stock's own updates, from chapter 2's list */}
                             {tags.map((e) => (
                               <Chip key={e.kind} tone={LEVEL_TONE[e.level]}>

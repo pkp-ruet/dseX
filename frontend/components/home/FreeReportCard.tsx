@@ -2,7 +2,6 @@ import Link from "next/link";
 import Button from "@/components/ui/Button";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import TierPill from "@/components/ui/TierPill";
-import SignalChip from "@/components/ui/SignalChip";
 import { IconCheck, IconCrown } from "@/components/ui/icons";
 import { T } from "@/components/i18n/T";
 import { changePct, changeTone, money } from "@/lib/formatters";
@@ -55,7 +54,6 @@ export default function FreeReportCard({
           </p>
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
             <TierPill score={item.score} />
-            {item.signal && <SignalChip signal={item.signal.signal} strength={item.signal.strength} />}
           </div>
         </div>
       </div>

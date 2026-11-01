@@ -3,19 +3,16 @@
 import { Fragment, useMemo, useState, type MouseEvent, type ReactNode } from "react";
 import Link from "next/link";
 import { TIER_VAR, type TierKey } from "@/lib/constants";
-import SignalChip from "@/components/ui/SignalChip";
 import { IconCrown } from "@/components/ui/icons";
 import { Locked } from "@/components/premium/AnswerLock";
 import { trackEvent } from "@/lib/track";
 import {
   GROUP_NAMES,
-  answerLine,
   checksLine,
   standingLine,
   warningWord,
   whyLine,
   type Bi,
-  type RankSignal,
 } from "@/lib/ranking";
 import StarButton from "@/components/ui/StarButton";
 import ScoreBadge from "@/components/ui/ScoreBadge";
@@ -32,8 +29,6 @@ import { sectorBn } from "@/lib/bn";
 
 export interface RankedItem extends ScoreItem {
   tier: TierKey;
-  /** The Buy signal without its reason sentences (they doubled the payload). */
-  sig?: RankSignal;
 }
 
 /** What the redesigned page adds to every row (2026-10-31): the serious
@@ -367,7 +362,6 @@ function RankRow({
             <Link prefetch={false} href={`/stock/${code}`} className="rk-name">
               {item.company_name ?? code}
             </Link>
-            {item.sig?.signal === "buy" && <SignalChip signal="buy" />}
             {warns && warns.length > 0 && <WarningTag code={code} keys={warns} />}
             {(category === "B" || (category === "Z" && !warns?.includes("category"))) && (
               <FlagTag
@@ -518,15 +512,14 @@ function WarningTag({ code, keys }: { code: string; keys: string[] }) {
 }
 
 /**
- * Premium's part of a row (2026-10-31): why it ranks where it does, our answer
- * on buying it today, and where it stood on the first day of the history /
+ * Premium's part of a row (2026-10-31): why it ranks where it does and where
+ * it stood on the first day of the history /
  * how close it is to another group. The sample row shows it open for every
  * reader; other rows hide it (`Locked`) and, while locked, show one gold
  * signpost to the page's Premium card.
  */
 function PremiumRow({ item, extras }: { item: RankedItem; extras: RankExtras }) {
   const sample = extras.sampleCode === item.trading_code;
-  const answer = answerLine(item.sig);
   const stand = standingLine(
     item,
     extras.then ? { date: "", rank: extras.then.ranks[item.trading_code] ?? null } : null,
@@ -534,7 +527,7 @@ function PremiumRow({ item, extras }: { item: RankedItem; extras: RankExtras }) 
     extras.then?.day.bn ?? "",
   );
   const why = whyLine(item);
-  const lines = [why, answer, stand.en ? stand : null].filter((l): l is Bi => !!l);
+  const lines = [why, stand.en ? stand : null].filter((l): l is Bi => !!l);
   const body = (
     <ul className="rk-prem-lines">
       {lines.map((l, i) => (

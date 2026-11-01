@@ -2049,7 +2049,7 @@ async function RenderShowcase() {
     "Cash flow",
     "Dividends",
     "Shareholding",
-    "Signals & news",
+    "News",
   ];
   const portfolioChips = [
     "Diversification",

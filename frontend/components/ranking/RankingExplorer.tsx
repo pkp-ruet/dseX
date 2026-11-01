@@ -407,7 +407,7 @@ export default function RankingExplorer({ items, counts, total, sectors, warning
 
       {/* The whole ranking is free (2026-10-29: facts are free). Premium adds
           (2026-10-31) the best-value order, your own ranking, and in each row's
-          quick view a year of rank, the signal's reason and rank alerts — all
+          quick view a year of rank and rank alerts — all
           named by the page's one Premium card, `#rk-premium`. */}
       <FullRankTable
         rows={shown}

@@ -12,7 +12,6 @@ import { T } from "@/components/i18n/T";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import TierPill from "@/components/ui/TierPill";
-import SignalChip from "@/components/ui/SignalChip";
 import { IconArrowRight, IconChevronDown } from "@/components/ui/icons";
 import WatchlistAlertCell from "./WatchlistAlertCell";
 import { UpdateRow } from "./WatchUpdates";
@@ -232,7 +231,6 @@ function Row({
   const name = companyShort(item.company_name) || code;
   const since = sinceFollowed(item, meta);
   const moreId = `wl-more-${code}`;
-  const sig = item.signal;
 
   return (
     <tbody className="wl-row" data-open={isOpen ? "" : undefined}>
@@ -251,7 +249,6 @@ function Row({
           <span className="wl-meta">
             <span className="wl-code">{code}</span>
             <TierPill tier={getTier(item.score)} />
-            {(sig?.signal === "buy" || sig?.signal === "sell") && <SignalChip signal={sig.signal} strength={sig.strength} />}
           </span>
         </td>
         <td data-cell="price" className="wl-num">

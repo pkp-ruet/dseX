@@ -3,7 +3,6 @@
 import type { ReactNode } from "react";
 import Card from "@/components/ui/Card";
 import StockRow from "@/components/ui/StockRow";
-import SignalChip from "@/components/ui/SignalChip";
 import Skeleton from "@/components/ui/Skeleton";
 import RowLock from "@/components/premium/RowLock";
 import LockPanel, { type LockTile } from "@/components/premium/LockPanel";
@@ -23,9 +22,9 @@ const PREMIUM_ANCHOR = "sc-premium";
  * across the six questions — not only what you asked for. The count leads;
  * the order and Save sit on one line under it; then the list. A free reader sees the first `freeRows`
  * (none with a power check on); the rest sits behind the shared row lock
- * (2026-10-28): the next rows with the company hidden — strength line and
- * Buy chip shown — then a panel saying what Premium shows, with what's hidden
- * as counts (how many have a Buy signal, the strength most of them share,
+ * (2026-10-28): the next rows with the company hidden, strength line shown
+ * — then a panel saying what Premium shows, with what's hidden
+ * as counts (the strength most of them share,
  * how many they follow; never names) and a button to the page's one Premium
  * section. Then the stocks that miss by one check (`ScreenerNearMisses`). How many each check leaves is shown on
  * the checks themselves (step 2), so there is no separate funnel here.
@@ -90,8 +89,6 @@ export default function ScreenerResults({
   const hiddenTiles: LockTile[] = [];
   let mine = 0;
   if (locked.length && Number.isFinite(freeRows)) {
-    const buys = locked.filter((x) => x.signal === "buy").length;
-    if (buys) hiddenTiles.push({ value: String(buys), label: { en: buys === 1 ? "has a Buy signal today" : "have a Buy signal today", bn: "আজ কেনার সংকেত" } });
     // The top-level strength most hidden stocks share, skipping one the answers already require.
     let best: { n: number; en: string; bn: string } | null = null;
     for (const q of questions) {
@@ -125,7 +122,6 @@ export default function ScreenerResults({
         )
       }
       subClamp
-      trailing={s.signal !== "none" ? <SignalChip signal={s.signal} size="sm" /> : undefined}
     />
     );
   };

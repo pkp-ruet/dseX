@@ -28,17 +28,9 @@ export interface LandingStock {
   /** Financial year the latest report covers. */
   year: number | null;
   stale: boolean;
-  sig: "buy" | "sell" | "none";
-  strong: boolean;
-  reasonBn: string | null;
-  reasonEn: string | null;
-  /** The signal's reason key (`signal_service.REASONS`), so the answer card can
-   *  name what is holding a good company back. */
-  rk: string | null;
 }
 
 export function toLandingStock(s: ScoreItem): LandingStock {
-  const sig = s.signal?.signal;
   return {
     code: s.trading_code,
     name: s.company_name,
@@ -59,11 +51,6 @@ export function toLandingStock(s: ScoreItem): LandingStock {
     ],
     year: s.last_reported_year ?? null,
     stale: Boolean(s.stale_data),
-    sig: sig === "buy" || sig === "sell" ? sig : "none",
-    strong: s.signal?.strength === "strong",
-    reasonBn: s.signal?.reason_bn ?? null,
-    reasonEn: s.signal?.reason_en ?? null,
-    rk: s.signal?.reason_key ?? null,
   };
 }
 
@@ -149,10 +136,10 @@ export const PILLARS: PillarMeta[] = [
 // was removed 2026-09-22.
 
 // ---------------------------------------------------------------------------
-// The answer card (2026-10-31 landing redesign): the stock page's "Should you
-// buy it today?" read, worked out from the /api/scores row alone. It follows
-// the backend signal (never derives buy / sell itself) and only names a
-// problem the signal itself found, so it can't disagree with the stock page.
+// The company card (2026-10-31 landing redesign; since 2026-11-01 it answers
+// "How strong is this company?" — Buy / Sell signals live only inside the
+// stock report and the portfolio's Premium sections). Worked out from the
+// /api/scores row alone.
 // ---------------------------------------------------------------------------
 
 export type WordTone = "good" | "watch" | "bad" | "neutral";
@@ -163,52 +150,57 @@ export interface Word {
   tone: WordTone;
 }
 
-/** The one-word answer: the signal, worded the way the stock page words it. */
-export function landingAnswer(s: LandingStock): Word {
-  if (s.sig === "buy") return { en: "Buy", bn: "কেনা যায়", tone: "good" };
-  if (s.sig === "sell") return { en: "Avoid", bn: "এড়িয়ে চলুন", tone: "bad" };
-  if (s.rk === "not_rated" || s.score == null) return { en: "Not rated yet", bn: "এখনো রেটিং নেই", tone: "neutral" };
-  if (s.rk === "average_fundamentals") return { en: "No reason to buy", bn: "কেনার কারণ নেই", tone: "neutral" };
-  return { en: "Not yet", bn: "এখনই নয়", tone: "watch" };
-}
-
-/** The problems the signal checks for, named in a few words. */
-const PROBLEM: Record<string, Word> = {
-  red_flag: { en: "A serious warning", bn: "গুরুতর সতর্কতা", tone: "bad" },
-  z_category: { en: "Z category", bn: "Z ক্যাটাগরি", tone: "bad" },
-  heavy_debt: { en: "Heavy loans", bn: "ঋণ অনেক বেশি", tone: "bad" },
-  stale_financials: { en: "Old accounts", bn: "পুরোনো হিসাব", tone: "bad" },
-  earnings_dropped: { en: "Profit fell sharply", bn: "মুনাফা অনেক কমেছে", tone: "watch" },
-  thin_trading: { en: "Hard to sell", bn: "বিক্রি করা কঠিন", tone: "watch" },
-};
-
 const TIER_TONE: Record<string, WordTone> = { excellent: "good", good: "good", average: "neutral", weak: "bad" };
 
+/** The grade as the card's one-word answer, in its tone. */
+export function landingGrade(tier: string, tierEn: string, tierBn: string): Word {
+  return { en: tierEn, bn: tierBn, tone: TIER_TONE[tier] ?? "neutral" };
+}
+
+/** "Strong: profit, finances · Weak: price" from the five checks (the
+ *  ranking's cut-offs: strong ≥ 7, weak < 4). */
+export function landingChecksLine(s: LandingStock): { en: string; bn: string } | null {
+  const strong = PILLARS.filter((_, i) => (s.pillars[i] ?? -1) >= 7);
+  const weak = PILLARS.filter((_, i) => s.pillars[i] != null && (s.pillars[i] as number) < 4);
+  if (!strong.length && !weak.length) return null;
+  const en: string[] = [];
+  const bn: string[] = [];
+  if (strong.length) {
+    en.push(`Strong: ${strong.map((p) => p.short.toLowerCase()).join(", ")}`);
+    bn.push(`শক্তিশালী: ${strong.map((p) => p.shortBn).join(", ")}`);
+  }
+  if (weak.length) {
+    en.push(`Weak: ${weak.map((p) => p.short.toLowerCase()).join(", ")}`);
+    bn.push(`দুর্বল: ${weak.map((p) => p.shortBn).join(", ")}`);
+  }
+  return { en: en.join(" · "), bn: bn.join(" · ") };
+}
+
 export interface Light {
-  key: "company" | "price" | "wrong";
+  key: "company" | "price" | "dividend";
   label: { en: string; bn: string };
   word: Word;
 }
 
-/** The three lights under the answer: the company, the price, anything wrong. */
+/** The three lights under the grade: the company, the price, the dividend. */
 export function landingLights(s: LandingStock, tier: string, tierEn: string, tierBn: string): Light[] {
   const p4 = s.pillars[3];
+  const p5 = s.pillars[4];
   const price: Word =
-    s.rk === "near_52w_high" ? { en: "Near its yearly top", bn: "বছরের সর্বোচ্চের কাছে", tone: "watch" }
-    : s.sig === "buy" && s.strong ? { en: "Very low", bn: "খুব কম", tone: "good" }
-    : p4 == null ? { en: "Not known", bn: "জানা নেই", tone: "neutral" }
+    p4 == null ? { en: "Not known", bn: "জানা নেই", tone: "neutral" }
     : p4 >= 7 ? { en: "Low", bn: "কম", tone: "good" }
     : p4 >= 4 ? { en: "Fair", bn: "ন্যায্য", tone: "neutral" }
     : { en: "High", bn: "বেশি", tone: "bad" };
-  const wrong: Word =
-    (s.rk ? PROBLEM[s.rk] : undefined)
-    ?? (s.sig === "buy"
-      ? { en: "Nothing serious", bn: "গুরুতর কিছু নেই", tone: "good" }
-      : { en: "See the report", bn: "রিপোর্টে দেখুন", tone: "neutral" });
+  const dividend: Word =
+    p5 == null ? { en: "Not known", bn: "জানা নেই", tone: "neutral" }
+    : !s.divY ? { en: "None lately", bn: "সম্প্রতি নেই", tone: "bad" }
+    : p5 >= 7 ? { en: "Steady", bn: "নিয়মিত", tone: "good" }
+    : p5 >= 4 ? { en: "Some years", bn: "কিছু বছর", tone: "neutral" }
+    : { en: "Patchy", bn: "অনিয়মিত", tone: "watch" };
   return [
-    { key: "company", label: { en: "The company", bn: "কোম্পানি" }, word: { en: tierEn, bn: tierBn, tone: TIER_TONE[tier] ?? "neutral" } },
+    { key: "company", label: { en: "The company", bn: "কোম্পানি" }, word: landingGrade(tier, tierEn, tierBn) },
     { key: "price", label: { en: "The price", bn: "দাম" }, word: price },
-    { key: "wrong", label: { en: "Anything wrong", bn: "কোনো সমস্যা" }, word: wrong },
+    { key: "dividend", label: { en: "Cash dividend", bn: "নগদ ডিভিডেন্ড" }, word: dividend },
   ];
 }
 

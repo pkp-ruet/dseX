@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import PageGuide from "@/components/seo/PageGuide";
-import Link from "next/link";
 import {
   flattenTiers,
   getMarketIndex,
@@ -85,12 +84,11 @@ export default async function DseStockRankingPage() {
 
   // Flatten all API tiers and re-classify client-side via getTier
   // `signal` (with its English + Bengali reason text, ~half the payload) is
-  // dropped: the table never reads it, and every row is serialized into the HTML.
-  // `sig` keeps the three short fields the Premium line needs.
-  const allRanked: RankedItem[] = flattenTiers(scores).map(({ signal, ...i }) => ({
+  // dropped: the page shows no Buy / Sell (2026-11-01), and every row is
+  // serialized into the HTML.
+  const allRanked: RankedItem[] = flattenTiers(scores).map(({ signal: _signal, ...i }) => ({
     ...i,
     tier: getTier(i.score),
-    sig: signal ? { signal: signal.signal, strength: signal.strength ?? null, reason_key: signal.reason_key } : null,
   }));
 
   // Build counts from re-classified tiers
@@ -216,10 +214,10 @@ export default async function DseStockRankingPage() {
               title={{ en: "The sample above, for every company", bn: "ওপরের নমুনাটি, প্রতিটি কোম্পানির জন্য" }}
               lead={{
                 en: first
-                  ? `You just saw why ${first.company_name ?? first.trading_code} ranks first and what we say about buying it today. Premium shows the same for all ${allRanked.length}, and more.`
+                  ? `You just saw why ${first.company_name ?? first.trading_code} ranks first and how close it is to another group. Premium shows the same for all ${allRanked.length}, and more.`
                   : `Premium shows why each company ranks where it does, and more.`,
                 bn: first
-                  ? `${first.company_name ?? first.trading_code} কেন প্রথম, আর আজ কেনা নিয়ে আমরা কী বলি, তা দেখলেন। প্রিমিয়ামে ${allRanked.length}টির প্রতিটির জন্য একই তথ্য, আর আরও কিছু।`
+                  ? `${first.company_name ?? first.trading_code} কেন প্রথম, আর অন্য দলের কতটা কাছে, তা দেখলেন। প্রিমিয়ামে ${allRanked.length}টির প্রতিটির জন্য একই তথ্য, আর আরও কিছু।`
                   : "প্রিমিয়ামে প্রতিটি কোম্পানি কেন যেখানে আছে, আর আরও কিছু।",
               }}
               rows={questions}
@@ -338,8 +336,7 @@ export default async function DseStockRankingPage() {
           </>,
           <>
             A high rank means a strong business, not a cheap share. Whether today&apos;s price is attractive is a
-            separate question, answered on each company page by the price check and the Buy or Sell signal, and
-            across the market on <Link href="/buy-sell-signals">Buy signals</Link>. Nobody can pay to move up this
+            separate question, answered on each company page by the price check. Nobody can pay to move up this
             list.
           </>,
         ]}
@@ -360,8 +357,7 @@ export default async function DseStockRankingPage() {
           </>,
           <>
             উঁচু র‍্যাঙ্ক মানে শক্তিশালী ব্যবসা, সস্তা শেয়ার নয়। আজকের দাম আকর্ষণীয় কি না, সেটি আলাদা প্রশ্ন। এর
-            উত্তর আছে প্রতিটি কোম্পানির পেজে দামের যাচাই আর কেনা বা বেচার সংকেতে, আর পুরো বাজারের জন্য{" "}
-            <Link href="/buy-sell-signals">কেনার সংকেত</Link> পেজে। টাকা দিয়ে কেউ এই তালিকায় ওপরে উঠতে পারে না।
+            উত্তর আছে প্রতিটি কোম্পানির পেজে দামের যাচাইয়ে। টাকা দিয়ে কেউ এই তালিকায় ওপরে উঠতে পারে না।
           </>,
         ]}
         faq={[
@@ -373,15 +369,15 @@ export default async function DseStockRankingPage() {
           },
           {
             q: "Does a top rank mean I should buy the share?",
-            a: "No. The rank describes the company, and the price is judged separately. A strong company can be expensive. The site shows a Buy signal only when the company is mostly strong or better, the price is reasonable, the share trades enough to sell easily, and profit has not just dropped sharply.",
+            a: "No. The rank describes the company, and the price is judged separately. A strong company can be expensive, so check the price on each company page before you decide.",
             qBn: "ওপরের দিকে র‍্যাঙ্ক মানেই কি শেয়ারটি কেনা উচিত?",
-            aBn: "না। র‍্যাঙ্ক কোম্পানির কথা বলে, দাম আলাদাভাবে বিচার করা হয়। শক্তিশালী কোম্পানির দামও বেশি হতে পারে। সাইটে কেনার সংকেত আসে তখনই, যখন কোম্পানি বেশিরভাগ দিকে শক্তিশালী বা তার বেশি, দাম যুক্তিসংগত, সহজে বিক্রি করার মতো লেনদেন হয়, আর মুনাফা সম্প্রতি অনেক কমেনি।",
+            aBn: "না। র‍্যাঙ্ক কোম্পানির কথা বলে, দাম আলাদাভাবে বিচার করা হয়। শক্তিশালী কোম্পানির দামও বেশি হতে পারে, তাই সিদ্ধান্তের আগে প্রতিটি কোম্পানির পেজে দামটি দেখে নিন।",
           },
           {
             q: "How often is the DSE stock ranking updated?",
-            a: "Prices and signals refresh after every trading day closes at 2:30 PM. Scores change when a company publishes new annual or quarterly figures, and the whole list is worked out again each day, so a new filing shows up the next morning.",
+            a: "Prices refresh after every trading day closes at 2:30 PM. Scores change when a company publishes new annual or quarterly figures, and the whole list is worked out again each day, so a new filing shows up the next morning.",
             qBn: "ডিএসই শেয়ার র‍্যাঙ্কিং কত ঘন ঘন হালনাগাদ হয়?",
-            aBn: "প্রতি লেনদেনের দিন দুপুর 2:30-এ বাজার বন্ধের পর দাম আর সংকেত হালনাগাদ হয়। কোম্পানি নতুন বার্ষিক বা প্রান্তিকের হিসাব প্রকাশ করলে স্কোর বদলায়, আর পুরো তালিকা প্রতিদিন নতুন করে হিসাব হয়, তাই নতুন হিসাব পরদিন সকালেই দেখা যায়।",
+            aBn: "প্রতি লেনদেনের দিন দুপুর 2:30-এ বাজার বন্ধের পর দাম হালনাগাদ হয়। কোম্পানি নতুন বার্ষিক বা প্রান্তিকের হিসাব প্রকাশ করলে স্কোর বদলায়, আর পুরো তালিকা প্রতিদিন নতুন করে হিসাব হয়, তাই নতুন হিসাব পরদিন সকালেই দেখা যায়।",
           },
           {
             q: "Which stocks are not ranked?",
@@ -416,8 +412,8 @@ function rankQuestions(
       tone: "good",
       ask: { en: "Why does each rank where it does?", bn: "প্রতিটি কেন যেখানে আছে সেখানে?" },
       hint: {
-        en: "The reason in plain words, and our answer on buying it today.",
-        bn: "সহজ ভাষায় কারণ, আর আজ কেনা নিয়ে আমাদের উত্তর।",
+        en: "The reason in plain words, and where it stood before.",
+        bn: "সহজ ভাষায় কারণ, আর আগে কোথায় ছিল।",
       },
     });
   }

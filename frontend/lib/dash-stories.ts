@@ -9,7 +9,6 @@ import type {
   MorningBrief,
   NearExtremesData,
   PortfolioHolding,
-  PortfolioSignalEvent,
   PortfolioWatchEvent,
   PriceAlert,
   ScoreItem,
@@ -78,8 +77,6 @@ export interface StoryFrame {
   label: string;
   headline: string;
   big?: { text: string; tone?: StoryTone; caption?: string };
-  /** A Buy / Buy more / Sell chip instead of a big number. */
-  chip?: "buy" | "buy_more" | "sell";
   /** Rose / same / fell counts as one bar. */
   bar?: { up: number; flat: number; down: number };
   /** Up to three counts side by side ("Right now"). */
@@ -146,7 +143,6 @@ const MOVE_PCT = 3; // a ±3% day is a big move
 const NEAR_TARGET_PCT = 3; // an armed price alert within 3% of the price
 const DAY_MS = 24 * 60 * 60 * 1000;
 const TRIGGER_RECENCY_MS = 2 * DAY_MS; // a hit target stays a story for ~2 days
-const SIGNAL_RECENCY_MS = 3 * DAY_MS; // a Buy more / Sell flip for ~3 days
 const NEWS_DAYS = 7;
 const MAX_NEWS = 5;
 /** Open frames per stock (a free reader's locked frame comes on top). */
@@ -284,7 +280,6 @@ export interface StoryInput {
   todayMove: { delta: number; pct: number } | null;
   marketIndex: MarketIndexData | null;
   alerts: PriceAlert[];
-  signalEvents: PortfolioSignalEvent[];
   results: LatestResultRow[];
   unusual: MarketUnusualStock[];
   extremes: NearExtremesData | null;
@@ -321,31 +316,15 @@ export function buildStories(i: StoryInput): Story[] {
   const dayWord = today ? L("today", "আজ") : L("last trading day", "শেষ লেনদেনের দিন");
 
   const qty = new Map<string, number>();
-  const ownSig = new Map<string, PortfolioHolding["signal"]>();
   for (const h of i.holdings) {
     const c = h.trading_code.toUpperCase();
     qty.set(c, (qty.get(c) ?? 0) + h.qty);
-    if (h.signal) ownSig.set(c, h.signal);
   }
   const held = new Set(qty.keys());
   const watched = new Set(i.watchlist.map((c) => c.toUpperCase()));
   const watchOnly = Array.from(watched).filter((c) => !held.has(c));
   const universe = new Set<string>([...held, ...watched]);
 
-  // A holding's own overlay wins (Buy more / Sell for the owner); a watched
-  // stock reads the canonical signal.
-  const sigOf = (code: string): "buy" | "buy_more" | "sell" | "none" => {
-    const mine = ownSig.get(code)?.signal;
-    if (mine && mine !== "none") return mine;
-    return priceMap.get(code)?.signal?.signal ?? "none";
-  };
-  const signalLine = (code: string): string | undefined => {
-    const s = sigOf(code);
-    if (s === "buy") return L("It has a Buy signal today.", "আজ এতে কেনার সংকেত আছে।");
-    if (s === "buy_more") return L("For you it is marked Buy more today.", "আজ আপনার জন্য এতে আরও কেনার সংকেত।");
-    if (s === "sell") return L("It is marked Sell today.", "আজ এতে বিক্রির সংকেত।");
-    return undefined;
-  };
   const stockLink = (code: string, anchor = ""): StoryLink => ({
     label: L("See the stock", "শেয়ারটি দেখুন"),
     href: `/stock/${encodeURIComponent(code)}${anchor}`,
@@ -377,9 +356,10 @@ export function buildStories(i: StoryInput): Story[] {
         label: L("Price alert", "প্রাইস অ্যালার্ট"),
         headline: L(`Reached your ${target} alert`, `আপনার ${target} অ্যালার্টে পৌঁছেছে`),
         big: { text: money(a.triggered_price ?? s?.ltp), caption: L("price when it got there", "পৌঁছানোর সময়ের দাম") },
-        sentence: `${L(`You asked us to tell you at ${target}.`, `আপনি ${target}-এ জানাতে বলেছিলেন।`)} ${
-          signalLine(code) ?? L("Take a look before you decide.", "সিদ্ধান্তের আগে একবার দেখে নিন।")
-        }`,
+        sentence: `${L(`You asked us to tell you at ${target}.`, `আপনি ${target}-এ জানাতে বলেছিলেন।`)} ${L(
+          "Take a look before you decide.",
+          "সিদ্ধান্তের আগে একবার দেখে নিন।",
+        )}`,
         rows: [
           { label: L("Grade", "গ্রেড"), value: gradeText(s?.score, lang) },
           { label: L("Price now", "এখনকার দাম"), value: money(s?.ltp) },
@@ -410,37 +390,6 @@ export function buildStories(i: StoryInput): Story[] {
       cta: stockLink(code),
       when: dayWord,
       tone: "neutral",
-    });
-  }
-
-  // ── Buy more / Sell flips on holdings (server-detected, end of day).
-  for (const ev of i.signalEvents) {
-    if (!ev.changed_at || ev.signal === "none") continue;
-    const t = Date.parse(ev.changed_at);
-    if (Number.isNaN(t) || now - t > SIGNAL_RECENCY_MS) continue;
-    const code = ev.trading_code.toUpperCase();
-    const own = ownSig.get(code);
-    const reason = own && own.signal === ev.signal ? (lang === "bn" ? own.reason_bn : own.reason_en) || null : null;
-    const sell = ev.signal === "sell";
-    const s = priceMap.get(code);
-    add(code, {
-      id: `sg:${code}:${ev.changed_at}`,
-      kind: "signal",
-      label: L("Signal changed", "সংকেত বদলেছে"),
-      headline: sell ? L("Now marked Sell", "এখন বিক্রির সংকেত") : L("Now marked Buy more", "এখন আরও কেনার সংকেত"),
-      chip: sell ? "sell" : "buy_more",
-      sentence:
-        reason ??
-        (sell
-          ? L("It is a good time to take another look at this one.", "শেয়ারটি আরেকবার ভেবে দেখার সময়।")
-          : L("A strong company at a low price.", "শক্তিশালী কোম্পানি, এখন দামও কম।")),
-      rows: [
-        { label: L("Grade", "গ্রেড"), value: gradeText(s?.score, lang) },
-        { label: L("Price now", "এখনকার দাম"), value: money(s?.ltp) },
-      ],
-      cta: { label: L("Read why", "কারণ পড়ুন"), href: `/stock/${encodeURIComponent(code)}#ch-verdict` },
-      when: day(ev.changed_at),
-      tone: sell ? "negative" : "positive",
     });
   }
 
@@ -730,6 +679,8 @@ export function buildStories(i: StoryInput): Story[] {
     for (const e of items) {
       if (done.has(e.id)) continue;
       done.add(e.id);
+      // "Our answer changed" and the buy list are Buy / Sell news: not here.
+      if (e.kind === "answer" || e.kind === "buylist") continue;
       const code = e.code.toUpperCase();
       const kind = WATCH_KIND[e.kind];
       if (has(code, kind)) continue;
@@ -845,7 +796,7 @@ export function buildStories(i: StoryInput): Story[] {
     return cb - ca;
   });
 
-  const todayStory = buildTodayStory(i, { held, watchOnly, universe, sigOf, L, dayWord, has });
+  const todayStory = buildTodayStory(i, { held, watchOnly, universe, L, dayWord, has });
   const out = stories.slice(0, MAX_STOCK_STORIES);
   return todayStory ? [todayStory, ...out] : out;
 }
@@ -884,7 +835,6 @@ function buildTodayStory(
     held: Set<string>;
     watchOnly: string[];
     universe: Set<string>;
-    sigOf: (code: string) => "buy" | "buy_more" | "sell" | "none";
     L: L;
     dayWord: string;
     /** A stock story already has a frame of this kind. */
@@ -982,58 +932,40 @@ function buildTodayStory(
     });
   }
 
-  // Right now: Buy (Buy more on a holding) / Sell, and grades.
+  // Right now: how strong your stocks are (the Buy / Sell counts left
+  // 2026-11-01 with the signals).
   const items = Array.from(ctx.universe)
     .map((c) => priceMap.get(c))
     .filter((s): s is ScoreItem => !!s);
-  const buy: string[] = [];
-  const sell: string[] = [];
-  for (const s of items) {
-    const sig = ctx.sigOf(s.trading_code.toUpperCase());
-    if (sig === "buy" || sig === "buy_more") buy.push(s.trading_code);
-    else if (sig === "sell") sell.push(s.trading_code);
-  }
   const scored = items.filter((s) => s.score != null);
   const good = scored.filter((s) => (s.score ?? 0) >= TIER_THRESHOLDS.GOOD).length;
-  const weak = scored.filter((s) => (s.score ?? 0) < TIER_THRESHOLDS.AVERAGE).length;
+  const weakCodes = scored.filter((s) => (s.score ?? 0) < TIER_THRESHOLDS.AVERAGE).map((s) => s.trading_code);
+  const weak = weakCodes.length;
   if (scored.length > 0) {
-    const b = buy.length;
-    const sl = sell.length;
-    const headline =
-      b && sl
-        ? L(
-            `${b} ${plural(b, "has", "have")} a Buy signal, ${sl} ${plural(sl, "is", "are")} marked Sell`,
-            `${b}টিতে কেনার সংকেত, ${sl}টিতে বিক্রির সংকেত`,
-          )
-        : b
-          ? L(`${b} of your stocks ${plural(b, "has", "have")} a Buy signal`, `আপনার ${b}টি শেয়ারে কেনার সংকেত`)
-          : sl
-            ? L(`${sl} of your stocks ${plural(sl, "is", "are")} marked Sell`, `আপনার ${sl}টি শেয়ারে বিক্রির সংকেত`)
-            : L("No Buy or Sell signal on your stocks", "আপনার শেয়ারে কেনা বা বিক্রির সংকেত নেই");
-    const rows: NonNullable<StoryFrame["rows"]> = [];
-    if (b) rows.push({ label: L("Buy", "কেনা"), value: codeList(buy), tone: "positive" });
-    if (sl) rows.push({ label: L("Sell", "বিক্রি"), value: codeList(sell), tone: "negative" });
     frames.push({
-      id: `now:${todayIso}:${b}:${sl}:${good}`,
+      id: `now:${todayIso}:${good}:${weak}`,
       kind: "now",
       label: L("Right now", "এই মুহূর্তে"),
-      headline,
+      headline: L(
+        `${good} of your ${scored.length} stocks ${plural(good, "is", "are")} mostly strong or better`,
+        `আপনার ${scored.length}টি শেয়ারের ${good}টি বেশিরভাগ দিকে শক্তিশালী বা তার বেশি`,
+      ),
       counts: [
-        { value: `${b}`, label: L("Buy", "কেনা"), tone: b ? "positive" : "neutral" },
-        { value: `${sl}`, label: L("Sell", "বিক্রি"), tone: sl ? "negative" : "neutral" },
-        { value: `${good}/${scored.length}`, label: L("Mostly strong +", "বেশ শক্তিশালী +") },
+        { value: `${good}/${scored.length}`, label: L("Mostly strong +", "বেশ শক্তিশালী +"), tone: good ? "positive" : "neutral" },
+        { value: `${weak}`, label: L("Mostly weak", "বেশ দুর্বল"), tone: weak ? "negative" : "neutral" },
       ],
-      sentence:
-        L(
-          `${good} of ${scored.length} are mostly strong or better on our checks.`,
-          `${scored.length}টির মধ্যে ${good}টি আমাদের যাচাইয়ে বেশিরভাগ দিকে শক্তিশালী বা তার বেশি।`,
-        ) + (weak ? L(` ${weak} ${plural(weak, "is", "are")} mostly weak.`, ` ${weak}টি বেশিরভাগ দিকে দুর্বল।`) : ""),
-      rows: rows.length ? rows : undefined,
+      sentence: weak
+        ? L(
+            `${weak} ${plural(weak, "is", "are")} mostly weak on our checks. Their pages say why.`,
+            `${weak}টি আমাদের যাচাইয়ে বেশিরভাগ দিকে দুর্বল। কেন, তা শেয়ারের পেজে আছে।`,
+          )
+        : L("None of them is mostly weak on our checks.", "এর কোনোটিই আমাদের যাচাইয়ে বেশিরভাগ দিকে দুর্বল নয়।"),
+      rows: weak ? [{ label: L("Mostly weak", "বেশ দুর্বল"), value: codeList(weakCodes), tone: "negative" }] : undefined,
       cta: ctx.held.size
         ? { label: L("See your analysis", "বিশ্লেষণ দেখুন"), href: "/portfolio#ch-answer" }
         : { label: L("See your watchlist", "ওয়াচলিস্ট দেখুন"), href: "/watchlist" },
       when: dayWord,
-      tone: sl ? "negative" : b ? "positive" : "neutral",
+      tone: weak ? "negative" : good ? "positive" : "neutral",
     });
   }
 
@@ -1236,8 +1168,8 @@ export function buildStarterStories(i: {
         label: L("Stories on your stocks", "আপনার শেয়ারের স্টোরি"),
         headline: L("Follow stocks to get stories on them", "শেয়ার ফলো করুন, তাদের নিয়ে স্টোরি পান"),
         sentence: L(
-          "Add stocks to your watchlist or your portfolio. Every day we tell you what changed on them: big moves, results, dividends and signals.",
-          "ওয়াচলিস্ট বা পোর্টফোলিওতে শেয়ার যোগ করুন। প্রতিদিন আমরা জানাব কী বদলেছে: বড় ওঠানামা, ফল, ডিভিডেন্ড আর সংকেত।",
+          "Add stocks to your watchlist or your portfolio. Every day we tell you what changed on them: big moves, results, dividends and grades.",
+          "ওয়াচলিস্ট বা পোর্টফোলিওতে শেয়ার যোগ করুন। প্রতিদিন আমরা জানাব কী বদলেছে: বড় ওঠানামা, ফল, ডিভিডেন্ড আর গ্রেড।",
         ),
         cta: { label: L("Build a watchlist", "ওয়াচলিস্ট বানান"), href: "/watchlist" },
         cta2: { label: L("Add your portfolio", "পোর্টফোলিও যোগ করুন"), href: "/portfolio" },

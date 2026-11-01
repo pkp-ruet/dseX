@@ -116,18 +116,6 @@ const COPY = {
   volumeX: ["{n} times its usual trading", "স্বাভাবিকের {n} গুণ লেনদেন"],
   whyItMatters: ["Why this matters", "কেন গুরুত্বপূর্ণ"],
 
-  // Buys
-  buysTitle: ["Buy signals today", "আজকের কেনার সংকেত"],
-  buysCount: ["{n} companies have a Buy signal today.", "আজ {n}টি কোম্পানিতে কেনার সংকেত আছে।"],
-  buysOne: ["1 company has a Buy signal today.", "আজ 1টি কোম্পানিতে কেনার সংকেত আছে।"],
-  buysNone: ["No company has a clear Buy signal today.", "আজ কোনো কোম্পানিতে স্পষ্ট কেনার সংকেত নেই।"],
-  allBuys: ["All buy signals", "সব কেনার সংকেত"],
-  strongTag: ["Strong", "জোরালো"],
-  buysNote: [
-    "Strong companies at a fair price. This is a starting point, not advice.",
-    "ন্যায্য দামে শক্তিশালী কোম্পানি। এটি শুরু করার জায়গা, পরামর্শ নয়।",
-  ],
-
   // Top ranked
   rankedTitle: ["Highest-scoring companies", "সর্বোচ্চ স্কোরের কোম্পানি"],
   fullRanking: ["Full ranking", "পুরো র‍্যাঙ্কিং"],
@@ -276,8 +264,8 @@ const COPY = {
     "তারপর সাজাই: আগে কোম্পানি কতটা ভালো, তারপর দাম, মুনাফা কোন দিকে যাচ্ছে, বছরের সর্বোচ্চ দাম থেকে কতটা নিচে, আর কতটা নিরাপদ। বাকিটা ঠিক করে আপনার নিজের শেয়ার: আপনার দুর্বল শেয়ারের একই ব্যবসার শক্তিশালী কোম্পানি, ভালোগুলোর মতো একই ব্যবসা, আপনার শেয়ারগুলোর মিল, বা যে খাত আপনার এখনো নেই।",
   ],
   forYouHowNever: [
-    "We never pick a stock its own page wouldn't call a Buy, never put more than 3 from one sector, and never lower the bar to fill the list.",
-    "যে শেয়ারকে তার নিজের পেজ 'কিনুন' বলে না, তা আমরা কখনো বাছাই করি না; এক খাত থেকে 3টির বেশি নিই না; তালিকা ভরাতে মান কমাই না।",
+    "We never pick a weak or expensive company, never put more than 3 from one sector, and never lower the bar to fill the list.",
+    "দুর্বল বা দামি কোম্পানি আমরা কখনো বাছাই করি না; এক সেক্টর থেকে 3টির বেশি নিই না; তালিকা ভরাতে মান কমাই না।",
   ],
   forYouNotAdvice: ["Ideas to look into, not advice. Read the stock's page before you buy.", "এগুলো খতিয়ে দেখার মতো আইডিয়া, পরামর্শ নয়। কেনার আগে শেয়ারের পেজ পড়ুন।"],
   forYouNudgeFew: ["Follow a few more stocks and your picks get sharper.", "আরও কয়েকটি শেয়ার ফলো করলে বাছাই আরও নিখুঁত হবে।"],

@@ -99,7 +99,8 @@ def test_templates_are_goals_then_research_lists():
 def test_catalog_marks_power_checks():
     cat = cl.catalog(SECTORS)
     power = {c["key"] for c in cat["checks"] if c["premium"]}
-    assert {"buy_today", "quarter_better", "cash_backed", "steady", "owners_buying"} <= power
+    assert {"quarter_better", "cash_backed", "steady", "owners_buying"} <= power
+    assert "buy_today" not in {c["key"] for c in cat["checks"]}
     assert not ({"grade", "yield_min", "pe_max", "sector"} & power)
 
 

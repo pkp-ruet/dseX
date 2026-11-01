@@ -3,7 +3,6 @@
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import StockRow from "@/components/ui/StockRow";
-import SignalChip from "@/components/ui/SignalChip";
 import RowLock from "@/components/premium/RowLock";
 import LockPanel from "@/components/premium/LockPanel";
 import { T } from "@/components/i18n/T";
@@ -57,7 +56,6 @@ export default function ScreenerNearMisses({
       }
       subTone="watch"
       subClamp
-      trailing={s.signal !== "none" ? <SignalChip signal={s.signal} size="sm" /> : undefined}
     />
     );
   };

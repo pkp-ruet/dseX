@@ -78,7 +78,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     data("", "daily", 1.0),
     data("/dsestockranking", "daily", 0.9),
-    data("/buy-sell-signals", "daily", 0.9),
     data("/stocks", "daily", 0.85),
     data("/market-analysis", "daily", 0.85),
     data("/dse-today", "daily", 0.85),

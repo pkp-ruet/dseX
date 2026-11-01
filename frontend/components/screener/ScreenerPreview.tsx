@@ -4,7 +4,6 @@ import Button from "@/components/ui/Button";
 import Sheet from "@/components/ui/Sheet";
 import Skeleton from "@/components/ui/Skeleton";
 import StockRow from "@/components/ui/StockRow";
-import SignalChip from "@/components/ui/SignalChip";
 import { T } from "@/components/i18n/T";
 import { strengthPair } from "@/lib/screener";
 import type { CustomListStock, ScreenerQuestion } from "@/lib/api";
@@ -16,7 +15,7 @@ const PREVIEW_ROWS = 3;
  * answer or another order runs that exact screen and shows the result here —
  * the count against today's, one plain line on what changed, and the first
  * three stocks with the company hidden (the shared row-lock preview: their
- * strengths and Buy chip shown) — with one button to the page's Premium
+ * strengths shown) — with one button to the page's Premium
  * section. A
  * sales sheet that shows the reader their own question answered, not a list
  * of features. Screen-only like every lock: the names are in the HTML.
@@ -107,7 +106,6 @@ export default function ScreenerPreview({
                         masked
                         sub={strong.en ? <T en={strong.en} bn={strong.bn} /> : undefined}
                         subClamp
-                        trailing={s.signal !== "none" ? <SignalChip signal={s.signal} size="sm" /> : undefined}
                       />
                     );
                   })}

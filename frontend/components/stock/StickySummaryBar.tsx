@@ -2,11 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import TierPill from "@/components/ui/TierPill";
-import SignalChip from "@/components/ui/SignalChip";
-import type { StockSignalInfo } from "@/lib/api";
 import { money, changePct as fmtChange, changeTone } from "@/lib/formatters";
 import StarButton from "@/components/ui/StarButton";
-import { usePremium } from "@/lib/premium";
 import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
 import StockSectionNav, { type NavSection } from "@/components/stock/StockSectionNav";
 import StickyStackMeasure, {
@@ -16,7 +13,6 @@ import StickyStackMeasure, {
   STOCK_JUMP_EVENT,
 } from "@/components/stock/StickyStackMeasure";
 import { T } from "@/components/i18n/T";
-import { useLang } from "@/context/LangContext";
 
 export { BAR_H, STOCK_BAR_VAR };
 
@@ -28,7 +24,6 @@ interface Props {
   score: number | null;
   rank: number | null;
   total: number | null;
-  signal?: StockSignalInfo | null;
   ltp: number | null;
   changePct: number | null;
   /** The section chips — the bar's second line — as a free reader sees the page. */
@@ -41,7 +36,7 @@ interface Props {
  * The stock page's ONE sticky element (2026-09-22 merge of the fixed summary
  * bar + the sticky section nav).
  *
- *   line 1  code · verdict · Buy chip · rank · star · price · change
+ *   line 1  code · verdict · rank · star · price · change
  *   line 2  the section chips (StockSectionNav), always visible once pinned
  *
  * The element's in-flow height is the chip row only. Line 1 is absolutely
@@ -56,13 +51,10 @@ interface Props {
  * while reading down and comes back on the first scroll up — the chips stay.
  */
 export default function StickySummaryBar({
-  code, score, rank, total, signal, ltp, changePct, sections, openSections,
+  code, score, rank, total, ltp, changePct, sections, openSections,
 }: Props) {
   const reportOpen = usePremiumOpen();
   const chips = reportOpen && openSections ? openSections : sections;
-  // The signal's reason is Premium; free readers get the chip without the tooltip.
-  const { isPremium } = usePremium();
-  const { bn } = useLang();
   const [show, setShow] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -138,21 +130,12 @@ export default function StickySummaryBar({
         >
           {/* everything here is shrink-0, so the code is the one thing that ellipsises */}
           <span className="font-bold text-sm shrink-0 max-w-[5.5rem] truncate text-text-main">{code}</span>
-          {/* score ring + tier word: from sm up — on a 360px phone code + Buy chip + star + price + % fills the line */}
+          {/* score ring + tier word: from sm up — on a 360px phone code + star + price + % fills the line */}
           {score != null && (
             <span className="hidden sm:inline-flex items-center gap-1.5 shrink-0">
               <ScoreBadge score={score} size="sm" />
               <TierPill score={score} size="sm" />
             </span>
-          )}
-          {signal && (
-            <SignalChip
-              signal={signal.signal}
-              strength={signal.strength}
-              reason={isPremium ? (bn ? signal.reason_bn : signal.reason_en) : null}
-              size="sm"
-              className="shrink-0"
-            />
           )}
 
           {rank != null && total != null && (

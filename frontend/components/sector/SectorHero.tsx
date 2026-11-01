@@ -157,7 +157,7 @@ export default function SectorHero({ summary: s }: { summary: SectorSummary }) {
               <T en="Grade mix" bn="গ্রেডের ভাগ" />
             </span>
             <span className="text-xs font-bold tabular-nums text-text-muted">
-              <T en={`${s.buy_signals} with a Buy signal`} bn={`${s.buy_signals}টিতে কেনার সংকেত`} />
+              <T en={`${s.company_count} companies`} bn={`${s.company_count}টি কোম্পানি`} />
             </span>
           </div>
           <TierBar counts={s.tier_counts} total={s.company_count} />

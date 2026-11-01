@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import TierPill from "@/components/ui/TierPill";
-import SignalChip from "@/components/ui/SignalChip";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import StarButton from "@/components/ui/StarButton";
 import { DataTable, SortTh, Th, StockIdent, Price, Change } from "@/components/ui/Table";
@@ -100,11 +99,6 @@ export default function SectorStockTable({
                   name={s.company_name}
                   after={
                     <>
-                      <SignalChip
-                        signal={s.signal?.signal}
-                        strength={s.signal?.strength}
-                        reason={lang === "bn" ? s.signal?.reason_bn || s.signal?.reason_en : s.signal?.reason_en}
-                      />
                       {s.stale_data && (
                         <span
                           title={L(

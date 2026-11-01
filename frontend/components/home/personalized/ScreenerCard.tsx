@@ -10,7 +10,6 @@ import DashHeader from "@/components/home/personalized/DashHeader";
 import OwnerMark from "@/components/home/personalized/OwnerMark";
 import Chip from "@/components/ui/Chip";
 import StockRow from "@/components/ui/StockRow";
-import SignalChip from "@/components/ui/SignalChip";
 import { tt } from "@/components/home/tt";
 import { T } from "@/components/i18n/T";
 
@@ -147,10 +146,6 @@ export default function ScreenerCard({
                 ? <T en={s.strengths.map((x) => x.en).join(" · ")} bn={s.strengths.map((x) => x.bn).join(" · ")} />
                 :<T en={s.checks.map((c) => c.value_en).join(" · ")} bn={s.checks.map((c) => c.value_bn).join(" · ")} />}
               subClamp
-              // On a phone the name, its figures and the price need the whole
-              // row; the Buy chip joins beside the name from 640px (a hidden
-              // `tags` item takes no gap, a hidden `trailing` slot would).
-              tags={s.signal !== "none" ? <span className="hidden sm:inline-flex"><SignalChip signal={s.signal} size="sm" /></span> : undefined}
               lang={lang}
             />
           ))}

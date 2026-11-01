@@ -149,17 +149,16 @@ export default function AboutPage() {
           <T
             en={
               <>
-                Separately, a share can carry a simple <strong className="text-text-main">Buy or Sell signal</strong>.
-                The grade tells you how strong the company is. The signal tells you whether now looks like a sensible
-                time to act, because it also weighs today&apos;s price and how much the share trades. When neither
-                applies, no signal is shown.
+                Separately, each share&apos;s <strong className="text-text-main">full report</strong> (Premium) answers
+                whether to buy it today. The grade tells you how strong the company is. That answer also weighs
+                today&apos;s price and how much the share trades.
               </>
             }
             bn={
               <>
-                এর বাইরে, একটি শেয়ারে সহজ একটি <strong className="text-text-main">কেনা বা বিক্রির সংকেত</strong> থাকতে
-                পারে। গ্রেড বলে কোম্পানিটি কতটা শক্তিশালী। সংকেত বলে এখন কিছু করার সময় কি না, কারণ এটি আজকের দাম আর
-                শেয়ারটির লেনদেন কতটা হয়, তা-ও দেখে। কোনোটিই না খাটলে কোনো সংকেত দেখানো হয় না।
+                এর বাইরে, প্রতিটি শেয়ারের <strong className="text-text-main">পূর্ণ রিপোর্ট</strong> (প্রিমিয়াম) বলে আজ
+                শেয়ারটি কেনা উচিত কি না। গ্রেড বলে কোম্পানিটি কতটা শক্তিশালী। আর ওই উত্তর আজকের দাম আর শেয়ারটির
+                লেনদেন কতটা হয়, তা-ও দেখে।
               </>
             }
           />

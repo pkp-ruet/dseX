@@ -8,10 +8,10 @@ import type { ResearchStock } from "@/lib/api";
 /**
  * The research list's Premium lock (2026-10-28, the shared row lock; since
  * 2026-10-29 it starts after the free top three): a free reader sees the next
- * research card with the company hidden — why it is on the list, its grade
- * and signal, its figures, the one risk, its number on every check — then a
- * panel saying what the rest holds, with counts from the hidden cards (Buy
- * signals, priced below our fair value, the reader's own). With nothing
+ * research card with the company hidden — why it is on the list, its grade,
+ * its figures, the one risk, its number on every check — then a panel saying
+ * what the rest holds, with counts from the hidden cards (priced below our
+ * fair value, the reader's own). With nothing
  * hidden past the top three, the lock holds only the side-by-side table and
  * what changed. Everything stays in the HTML.
  */
@@ -27,10 +27,8 @@ export default function ResearchLock({ children, preview, stocks, passed, hidden
   hidden: number;
   checks: number;
 }) {
-  const buys = stocks.filter((s) => s.signal === "buy").length;
   const cheap = stocks.filter((s) => s.fair_value?.stance === "cheap").length;
   const tiles: LockTile[] = [
-    buys > 0 ? { value: String(buys), label: { en: buys === 1 ? "has a Buy signal" : "have a Buy signal", bn: "কেনার সংকেত" } } : null,
     cheap > 0 ? { value: String(cheap), label: { en: "priced below our fair value", bn: "দাম আমাদের ন্যায্য দামের নিচে" } } : null,
   ].filter((t): t is LockTile => t != null);
 

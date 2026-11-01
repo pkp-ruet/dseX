@@ -4,7 +4,6 @@ import type {
   DividendsUpcoming,
   WatchlistNewsItem,
   PriceAlert,
-  PortfolioSignalEvent,
   PortfolioHolding,
   CorporateActionEvent,
   ScreenerSaved,
@@ -50,7 +49,6 @@ const NEAR_TARGET_PCT = 3; // an armed price alert within 3% of the price
 const MAX_MOVERS = 3;
 const MAX_NEWS = 3;
 const TRIGGER_RECENCY_MS = 2 * 24 * 60 * 60 * 1000; // surface a hit target for ~2 days
-const SIGNAL_RECENCY_MS = 3 * 24 * 60 * 60 * 1000; // surface a signal flip for ~3 days
 
 function fmtPrice(n: number): string {
   return Number(n.toFixed(2)).toString();
@@ -65,7 +63,7 @@ function rangeDetail(ltp: number | null, mark: number | null, side: "high" | "lo
 
 /**
  * Builds the personalized "what's new" list from data already loaded on the
- * home page — targets hit or close, Buy More / Sell flips on holdings, portfolio move,
+ * home page — targets hit or close, portfolio move,
  * big movers, 52-week extremes, upcoming dividends, and (optionally) latest
  * news. Ordered by importance.
  *
@@ -93,7 +91,6 @@ export function buildHomeAlerts(opts: {
   dividendCash?: CorporateActionEvent[];
   news?: WatchlistNewsItem[];
   triggeredAlerts?: PriceAlert[];
-  signalEvents?: PortfolioSignalEvent[];
   /** Saved screens (Premium readers only — a lapsed plan's screens aren't
    *  re-checked): one row per screen a stock joined at the last daily check. */
   savedScreens?: ScreenerSaved[];
@@ -112,7 +109,6 @@ export function buildHomeAlerts(opts: {
     dividendCash = [],
     news = [],
     triggeredAlerts,
-    signalEvents,
     savedScreens = [],
     dateKey,
     includeNews = true,
@@ -182,43 +178,6 @@ export function buildHomeAlerts(opts: {
       detail: codes3,
       href: `/screener?tab=saved&list=${encodeURIComponent(s.id)}`,
       tone: "neutral",
-    });
-  }
-
-  // 0.5 — Portfolio signal flips (server-detected, end-of-day). Both Buy More
-  // and Sell are surfaced: for an owner the Sell flip is the one alert that
-  // matters most. The reason comes from the holding's own signal when present.
-  for (const ev of signalEvents ?? []) {
-    if (!ev.changed_at || ev.signal === "none") continue;
-    const t = Date.parse(ev.changed_at);
-    if (Number.isNaN(t) || now - t > SIGNAL_RECENCY_MS) continue;
-    const code = ev.trading_code.toUpperCase();
-    const sig = held.get(code)?.signal ?? null;
-    const reason = sig && sig.signal === ev.signal ? (bn ? sig.reason_bn : sig.reason_en) || null : null;
-    const sell = ev.signal === "sell";
-    alerts.push({
-      id: `sg:${ev.trading_code}:${ev.changed_at}`,
-      kind: "signal",
-      code: ev.trading_code,
-      emoji: sell ? "🔴" : "🟢",
-      title: sell
-        ? bn
-          ? `${ev.trading_code}-এ এখন বিক্রির সংকেত`
-          : `${ev.trading_code} now has a Sell signal`
-        : bn
-          ? `${ev.trading_code}-এ এখন আরও কেনার সংকেত`
-          : `${ev.trading_code} now has a Buy more signal`,
-      detail:
-        reason ??
-        (sell
-          ? bn
-            ? "আরেকবার ভেবে দেখার সময়।"
-            : "It is a good time to take another look."
-          : bn
-            ? "শক্তিশালী কোম্পানি, এখন দামও কম।"
-            : "A strong company at a low price."),
-      href: `/stock/${ev.trading_code}`,
-      tone: sell ? "negative" : "positive",
     });
   }
 

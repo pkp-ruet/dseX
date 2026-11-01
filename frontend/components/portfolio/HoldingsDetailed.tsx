@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Card from "@/components/ui/Card";
 import { getBengaliSummaries } from "@/lib/api";
-import SignalChip from "@/components/ui/SignalChip";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import TierPill from "@/components/ui/TierPill";
 import type { TierKey } from "@/lib/constants";
@@ -130,13 +129,6 @@ export default function HoldingsDetailed({ analysis, lang = "en" }: Props) {
                   </p>
                 )}
                 <div className="flex items-center gap-2 mt-2.5 flex-wrap">
-                  <SignalChip
-                    signal={h.signal.signal}
-                    reason={h.signal.reason}
-                    muted={h.signal.muted}
-                    size="md"
-                    lang={bnMode ? "bn" : "en"}
-                  />
                   {tier ? (
                     <TierPill tier={tier} size="md" lang={bnMode ? "bn" : "en"} />
                   ) : (

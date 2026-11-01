@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { createPortal } from "react-dom";
 import Button from "@/components/ui/Button";
-import SignalChip from "@/components/ui/SignalChip";
 import { OwnerTag } from "@/components/home/personalized/OwnerMark";
 import {
   IconChartBars,
@@ -87,12 +86,6 @@ function Frame({ frame, lang }: { frame: StoryFrame; lang: Lang }) {
             {frame.big.text}
           </span>
           {frame.big.caption && <span className="mt-1.5 block text-sm text-text-muted">{frame.big.caption}</span>}
-        </div>
-      )}
-
-      {frame.chip && (
-        <div className="mt-4">
-          <SignalChip signal={frame.chip} size="md" />
         </div>
       )}
 

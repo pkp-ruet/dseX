@@ -1066,14 +1066,15 @@ function pricesChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone
 
 // ── Chapter 4 · watch ──────────────────────────────────────────────────────
 
-function watchChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone }): PfChapter {
-  // Is any share marked Sell? (the chip is free on every holding card)
+function watchChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone; count: number }): PfChapter {
+  // Is any share marked Sell? Premium since 2026-11-01: Buy more / Sell shows
+  // only in the portfolio's Premium sections (the holding cards dropped the chip).
   const sell: PfRow = {
     key: "sell",
     title: B("Is any share marked Sell?", "কোনো শেয়ারে কি বিক্রির সংকেত?"),
     word: f.sells.length === 0 ? B("None", "কোনোটিতে নয়") : f.sells.length === 1 ? same(f.sells[0].code) : B(`${f.sells.length} shares`, `${f.sells.length}টি শেয়ার`),
     tone: f.sells.length ? "bad" : "good",
-    free: "answer",
+    free: "lock",
     freeLine:
       f.sells.length === 0
         ? B("None of your shares is marked Sell today.", "আজ আপনার কোনো শেয়ারে বিক্রির সংকেত নেই।")
@@ -1157,7 +1158,16 @@ function watchChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone 
         ? B("Nothing new on your shares in the last 7 days.", "গত 7 দিনে আপনার শেয়ারে নতুন কিছু নেই।")
         : null,
     headline: null,
-    meaning: closed.slice(0, 6).map((e) => B(`${e.title_en}. ${e.body_en}`, `${e.title_bn}। ${e.body_bn}`)),
+    meaning: [
+      ...flips.slice(0, 3).map((e) =>
+        e.signal === "sell"
+          ? B(`${e.trading_code} is now marked Sell.`, `${e.trading_code}-এ এখন বিক্রির সংকেত।`)
+          : e.signal === "buy_more"
+            ? B(`${e.trading_code} is now marked Buy more.`, `${e.trading_code}-এ এখন আরও কেনার সংকেত।`)
+            : B(`${e.trading_code} no longer has a signal.`, `${e.trading_code}-এ এখন কোনো সংকেত নেই।`),
+      ),
+      ...closed.slice(0, 6).map((e) => B(`${e.title_en}. ${e.body_en}`, `${e.title_bn}। ${e.body_bn}`)),
+    ],
     watch: null,
     picture: null,
     figures: [],
@@ -1169,17 +1179,13 @@ function watchChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone 
               : B(`Since your last visit, your money fell ${takaGroup(-inp.sinceLast.delta)}.`, `আগের বার আসার পর আপনার টাকা কমেছে ${takaGroup(-inp.sinceLast.delta)}।`),
           ]
         : []),
-      ...flips.slice(0, 3).map((e) =>
-        e.signal === "sell"
-          ? B(`${e.trading_code} is now marked Sell.`, `${e.trading_code}-এ এখন বিক্রির সংকেত।`)
-          : e.signal === "buy_more"
-            ? B(`${e.trading_code} is now marked Buy more.`, `${e.trading_code}-এ এখন আরও কেনার সংকেত।`)
-            : B(`${e.trading_code} no longer has a signal.`, `${e.trading_code}-এ এখন কোনো সংকেত নেই।`),
-      ),
-      ...open.map((e) => B(`${e.title_en}. ${e.body_en}`, `${e.title_bn}। ${e.body_bn}`)),
+      ...open.filter((e) => e.kind !== "answer" && e.kind !== "buylist").map((e) => B(`${e.title_en}. ${e.body_en}`, `${e.title_bn}। ${e.body_bn}`)),
     ],
-    lockedNote: closed.length
-      ? B(`${closed.length} more update${closed.length === 1 ? "" : "s"} on your shares with Premium`, `প্রিমিয়ামে আপনার শেয়ারে আরও ${closed.length}টি আপডেট`)
+    lockedNote: closed.length + flips.length
+      ? B(
+          `${closed.length + flips.length} more update${closed.length + flips.length === 1 ? "" : "s"} on your shares with Premium`,
+          `প্রিমিয়ামে আপনার শেয়ারে আরও ${closed.length + flips.length}টি আপডেট`,
+        )
       : null,
   };
 
@@ -1249,18 +1255,17 @@ function watchChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone 
     key: "watch",
     id: "ch-watch",
     title: B("What should you watch?", "কোথায় নজর রাখবেন?"),
-    lead: B("Signals, warnings and dates on the shares you own.", "আপনার শেয়ারের সংকেত, সতর্কতা আর তারিখ।"),
+    lead: B("Warnings, changes and dates on the shares you own.", "আপনার শেয়ারের সতর্কতা, পরিবর্তন আর তারিখ।"),
     head: {
       word: light.word,
       tone: light.tone,
       line:
-        f.sells.length && f.serious.length
-          ? B(`${f.sells.length} marked Sell, ${f.serious.length} with a serious warning`, `${f.sells.length}টিতে বিক্রির সংকেত, ${f.serious.length}টিতে গুরুতর সতর্কতা`)
-          : f.sells.length
-            ? B(`${names(f.sells).en} marked Sell`, `${names(f.sells).bn}-এ বিক্রির সংকেত`)
-            : f.serious.length
-              ? B(`${names(f.serious.map((s) => s.h)).en}: a serious warning`, `${names(f.serious.map((s) => s.h)).bn}: গুরুতর সতর্কতা`)
-              : B("No Sell marks, no serious warnings", "বিক্রির সংকেত বা গুরুতর সতর্কতা নেই"),
+        // No Sell marks named here: the head is free (2026-11-01).
+        f.serious.length
+          ? B(`${names(f.serious.map((s) => s.h)).en}: a serious warning`, `${names(f.serious.map((s) => s.h)).bn}: গুরুতর সতর্কতা`)
+          : light.count
+            ? B(`${light.count} share${light.count === 1 ? "" : "s"} to decide on`, `${light.count}টি শেয়ার নিয়ে সিদ্ধান্ত নিতে হবে`)
+            : B("No serious warnings", "গুরুতর সতর্কতা নেই"),
     },
     read: null,
     rows,
@@ -1349,9 +1354,9 @@ function buildQuestions(inp: ReportInput, f: Facts, lights: PfLight[], issue: Sp
   if (f.sells.length) {
     out.push({
       key: "sell",
-      word: f.sells.length === 1 ? B(`${f.sells[0].code} marked Sell`, `${f.sells[0].code}-এ বিক্রির সংকেত`) : B(`${f.sells.length} marked Sell`, `${f.sells.length}টিতে বিক্রির সংকেত`),
+      word: B(`${f.sells.length} to decide on`, `${f.sells.length}টি নিয়ে সিদ্ধান্ত`),
       tone: "bad",
-      ask: B("Why, and what would change it?", "কেন, আর কীসে এটি বদলাবে?"),
+      ask: B("Which ones, and why?", "কোনগুলো, আর কেন?"),
       hint: B("The reason in plain words, and the line it must cross.", "কারণ সহজ ভাষায়, আর কোন সীমা পার হলে বদলাবে।"),
       weight: 85,
     });

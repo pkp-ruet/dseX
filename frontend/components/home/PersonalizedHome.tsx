@@ -163,7 +163,6 @@ export default function PersonalizedHome() {
   const dividends = bundle?.dividends ?? EMPTY_DIVIDENDS;
   const marketIndex = bundle?.market_index ?? null;
   const dividendCash = bundle?.dividend_cash ?? [];
-  const signalEvents = bundle?.signal_events ?? [];
   const movers = bundle?.movers ?? null;
   const top20 = bundle?.top20 ?? [];
   const calendarRows = bundle?.calendar?.record_dates ?? [];
@@ -185,8 +184,6 @@ export default function PersonalizedHome() {
     : new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
 
   const allStocks = useMemo(() => Array.from(priceMap.values()), [priceMap]);
-  // Buy signals ride along on the scores already in priceMap — no extra fetch.
-  const buys = useMemo(() => allStocks.filter((s) => s.signal?.signal === "buy"), [allStocks]);
 
 
 
@@ -214,7 +211,6 @@ export default function PersonalizedHome() {
     todayMove,
     marketIndex,
     alerts: priceAlerts,
-    signalEvents,
     results: newResults,
     unusual: marketState?.next?.unusual ?? [],
     extremes,
@@ -345,7 +341,7 @@ export default function PersonalizedHome() {
   //    engine: up to 15 picks built from the reader's own stocks, 3 free;
   //    user decision 2026-10-27, replacing the old random "picked for you"
   //    opener removed 2026-10-26), then the screener card (goal chips + top
-  //    three), ONE swipe rail for buy signals / top ranked / trending, and
+  //    three), ONE swipe rail for top ranked / trending, and
   //    the research lists. Different kinds of block, so they get more air
   //    between them than the other chapters' card pairs. ──
   const ideasChapter = (
@@ -376,7 +372,6 @@ export default function PersonalizedHome() {
         )}
         <div data-card="discover">
           <DiscoverRail
-            buys={buys}
             stocks={allStocks}
             trending={top20}
             held={heldSet}

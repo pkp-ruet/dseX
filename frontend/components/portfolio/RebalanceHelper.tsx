@@ -1,6 +1,5 @@
 import Link from "next/link";
 import ScoreBadge from "@/components/ui/ScoreBadge";
-import SignalChip from "@/components/ui/SignalChip";
 import Chip from "@/components/ui/Chip";
 import PfCard from "./PfCard";
 import AnswerLock, { BRIEF_CARD } from "@/components/premium/AnswerLock";
@@ -32,8 +31,8 @@ export default function RebalanceHelper({ plan, lang = "en" }: Props) {
         title={L("What to buy next", "এরপর কী কিনবেন")}
 
         note={L(
-          "Only stocks with a Buy signal today that also pass our safety checks: a profit, no auditor or regulator warnings, loans under control.",
-          "শুধু আজ কেনার সংকেত আছে এবং আমাদের নিরাপত্তা যাচাই পার হয়েছে এমন শেয়ার: মুনাফা আছে, নিরীক্ষক বা নিয়ন্ত্রকের সতর্কতা নেই, ঋণ নিয়ন্ত্রণে।",
+          "Only good companies at a fair price today that also pass our safety checks: a profit, no auditor or regulator warnings, loans under control.",
+          "শুধু আজ ঠিকঠাক দামে ভালো কোম্পানি, যেগুলো আমাদের নিরাপত্তা যাচাইও পার হয়েছে: মুনাফা আছে, নিরীক্ষক বা নিয়ন্ত্রকের সতর্কতা নেই, ঋণ নিয়ন্ত্রণে।",
         )}
         lang={lang}
         flush
@@ -93,7 +92,6 @@ export default function RebalanceHelper({ plan, lang = "en" }: Props) {
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <Chip>{p.tag}</Chip>
-                        <SignalChip signal="buy" strength={p.strong ? "strong" : "normal"} lang={bn ? "bn" : "en"} />
                       </div>
                       <Link
                         prefetch={false}
@@ -135,7 +133,7 @@ export default function RebalanceHelper({ plan, lang = "en" }: Props) {
 
                   {p.signalReason && (
                     <p className="mt-3 text-sm leading-relaxed text-text-muted">
-                      <span className="font-semibold text-text-main">{L("Why it's a Buy today: ", "আজ কেন কেনার সংকেত: ")}</span>
+                      <span className="font-semibold text-text-main">{L("Why it's here: ", "কেন এখানে: ")}</span>
                       {p.signalReason}
                     </p>
                   )}
@@ -178,8 +176,8 @@ export default function RebalanceHelper({ plan, lang = "en" }: Props) {
 
           <p className="border-t border-cell-rule px-4 py-3 text-xs leading-relaxed text-text-muted sm:px-6">
             {L(
-              `Ideas come from the ${plan.passed} of today's ${plan.buyPool} Buy signals that pass every safety check, the same pool as your dashboard's picks, and change as prices move. They are not financial advice, so please check a share yourself before buying.`,
-              `প্রস্তাবগুলো আজকের ${plan.buyPool}টি কেনার সংকেতের মধ্যে সব নিরাপত্তা যাচাই পার হওয়া ${plan.passed}টি থেকে নেওয়া (ড্যাশবোর্ডের বাছাইয়ের মতোই), আর দাম বদলালে বদলায়। এগুলো বিনিয়োগ পরামর্শ নয়, তাই কেনার আগে নিজে যাচাই করুন।`,
+              `Ideas come from the ${plan.passed} companies that pass every check today, the same pool as your dashboard's picks, and change as prices move. They are not financial advice, so please check a share yourself before buying.`,
+              `প্রস্তাবগুলো আজ সব যাচাই পার হওয়া ${plan.passed}টি কোম্পানি থেকে নেওয়া (ড্যাশবোর্ডের বাছাইয়ের মতোই), আর দাম বদলালে বদলায়। এগুলো বিনিয়োগ পরামর্শ নয়, তাই কেনার আগে নিজে যাচাই করুন।`,
             )}
           </p>
         </div>

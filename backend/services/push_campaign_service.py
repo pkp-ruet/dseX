@@ -402,11 +402,11 @@ def _cold_angle(ctx: dict, lang: str) -> dict:
     line. This is the segment most likely to churn; give them a reason to come."""
     bn = lang == "bn"
     mkt = _daily_market_pct(ctx)
-    tease = ("আজকের সেরা স্টক বাছাই তৈরি — দেখে নিন" if bn
-             else "today's top stock picks are ready — take a look")
+    tease = ("আজকের সবচেয়ে শক্তিশালী কোম্পানির তালিকা তৈরি — দেখে নিন" if bn
+             else "today's strongest companies are ranked — take a look")
     body = f"DSEX আজ {mkt:+.1f}% · {tease}" if (bn and mkt is not None) else \
            f"DSEX {mkt:+.1f}% today · {tease}" if mkt is not None else tease
-    return {"v": "pick", "url": "/buy-sell-signals", "body": body,
+    return {"v": "pick", "url": "/dsestockranking", "body": body,
             "title": "আজকের বাজার" if bn else "DSE today"}
 
 

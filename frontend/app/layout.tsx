@@ -78,7 +78,7 @@ export const metadata: Metadata = {
     template: "%s | TopStockBD",
   },
   description:
-    "Free fundamental analysis, stock scores, and daily Buy / Sell signals for every Dhaka Stock Exchange (DSE) listed company. See which companies are strong all round, mostly strong, mixed or mostly weak before you invest.",
+    "Free fundamental analysis and stock scores for every Dhaka Stock Exchange (DSE) listed company. See which companies are strong all round, mostly strong, mixed or mostly weak before you invest.",
   keywords: [
     "DSE", "Dhaka Stock Exchange", "DSEX", "Bangladesh stock market",
     "share market Bangladesh", "BD stock market", "DSE share price",
@@ -119,7 +119,7 @@ const ORG_JSON_LD = {
   name: "TopStockBD",
   url: "https://www.topstockbd.com",
   description:
-    "Free DSE share price live data, Dhaka Stock Exchange (DSEX) rankings, Bangladesh stock market news, DSE share price list, BD stock market signals, and DSE news — fundamental analysis for every DSE-listed company.",
+    "Free DSE share price live data, Dhaka Stock Exchange (DSEX) rankings, Bangladesh stock market news, DSE share price list, BD stock market analysis, and DSE news — fundamental analysis for every DSE-listed company.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

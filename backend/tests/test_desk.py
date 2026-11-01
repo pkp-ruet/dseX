@@ -40,3 +40,11 @@ def test_month_summary_counts_by_kind():
     m = month_summary(EVENTS)
     assert m["total"] == 3
     assert m["phrase_en"].startswith("1 ")
+
+
+def test_signal_news_stays_off_the_desk():
+    events = [{"id": "a1", "kind": "answer", "code": "GP", "day": "2026-10-29", "level": "watch",
+               "title_en": "x", "title_bn": "x", "body_en": "", "body_bn": ""},
+              {"id": "b1", "kind": "buylist", "code": "GP", "day": "2026-10-29", "level": "good",
+               "title_en": "x", "title_bn": "x", "body_en": "", "body_bn": ""}]
+    assert after_close(events, []) is None

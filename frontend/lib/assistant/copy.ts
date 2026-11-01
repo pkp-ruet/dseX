@@ -159,8 +159,8 @@ export const COPY = {
     introBn: "আজ জেনে রাখার মতো কয়েকটি বিষয়:",
     none: "There are no new tips right now. Please check again a little later.",
     noneBn: "এই মুহূর্তে নতুন কোনো টিপস নেই। একটু পরে আবার দেখুন।",
-    seeAll: "See today's buy signals",
-    seeAllBn: "আজকের কেনার সংকেত দেখুন",
+    seeAll: "See the company ranking",
+    seeAllBn: "কোম্পানির র‍্যাঙ্কিং দেখুন",
   },
 
   dividends: {

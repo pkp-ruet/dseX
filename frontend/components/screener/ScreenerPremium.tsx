@@ -17,8 +17,8 @@ const FEATURES = [
     bn: "ছয়টি প্রশ্নে নিজের উত্তর, আর এক বা একাধিক সেক্টর" },
   { en: "The shares that almost passed, and the one check each misses",
     bn: "প্রায় পাস করা শেয়ার, আর প্রতিটি কোন যাচাইয়ে বাদ পড়েছে" },
-  { en: "Change the exact rules behind each answer, and add extra checks such as a Buy signal today, a better quarter or owners buying",
-    bn: "প্রতিটি উত্তরের নিয়ম বদলান, আর আরও যাচাই যোগ করুন, যেমন আজ কেনার সংকেত, ভালো প্রান্তিক বা উদ্যোক্তা-পরিচালকদের কেনা" },
+  { en: "Change the exact rules behind each answer, and add extra checks such as a better quarter or owners buying",
+    bn: "প্রতিটি উত্তরের নিয়ম বদলান, আর আরও যাচাই যোগ করুন, যেমন ভালো প্রান্তিক বা উদ্যোক্তা-পরিচালকদের কেনা" },
   { en: "Save up to 5 screens", bn: "সর্বোচ্চ 5টি স্ক্রিন সেভ করুন" },
   { en: "A notification on the day a new share passes", bn: "নতুন শেয়ার পাস করলে সেদিনই নোটিফিকেশন" },
 ];

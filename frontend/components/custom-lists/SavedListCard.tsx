@@ -4,7 +4,6 @@ import Card from "@/components/ui/Card";
 import Chip from "@/components/ui/Chip";
 import Button from "@/components/ui/Button";
 import StockRow from "@/components/ui/StockRow";
-import SignalChip from "@/components/ui/SignalChip";
 import type { SavedCustomList } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 
@@ -74,7 +73,6 @@ export default function SavedListCard({
               name={s.name}
               price={s.price}
               change={s.change_pct}
-              trailing={s.signal !== "none" ? <SignalChip signal={s.signal} size="sm" /> : undefined}
               lang={bn ? "bn" : "en"}
             />
           ))}

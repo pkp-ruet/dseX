@@ -11,17 +11,11 @@ function flattenScores(scores: ScoresResponse): Map<string, ScoreItem> {
   return new Map(flattenTiers(scores).map((s) => [s.trading_code.toUpperCase(), s]));
 }
 
-/** Demo pages have no per-user portfolio API, so approximate the holding
- *  signal from the stock's market-level signal (buy ≈ buy more). */
-function sampleHoldingSignal(item: ScoreItem | undefined): HoldingSignalInfo | null {
-  const sig = item?.signal;
-  if (!sig || sig.signal === "none") return null;
-  return {
-    signal: sig.signal === "buy" ? "buy_more" : sig.signal,
-    reason_key: sig.reason_key,
-    reason_en: sig.reason_en,
-    reason_bn: sig.reason_bn,
-  };
+/** Sample portfolios carry no Buy more / Sell (2026-11-01): they are free
+ *  pages, and the holding signal shows only in the portfolio's Premium
+ *  sections. Without it the analysis leaves those lines out by itself. */
+function sampleHoldingSignal(_item: ScoreItem | undefined): HoldingSignalInfo | null {
+  return null;
 }
 
 function compute(holding: PortfolioHolding, priceMap: Map<string, ScoreItem>): ComputedRow {

@@ -43,7 +43,7 @@ const TOP_N = 20;
 
 /**
  * What Premium adds to a row's quick view on the rankings page (2026-10-31,
- * the Premium Desk plan step 3): why the signal says what it says, where the
+ * the Premium Desk plan step 3; the signal's reason left it 2026-11-01): where the
  * company stood every day of the last year, and two rank alerts. Fetched only
  * for a Premium reader; a free reader gets one line pointing at the page's
  * Premium card (`#rk-premium`), which names all of it.
@@ -76,8 +76,8 @@ export default function RankPremium({ item }: { item: RankedItem }) {
           onClick={() => trackEvent("premium_lock_tap", { area: "rankings", lock: "rankings-row", state })}
         >
           <T
-            en="Premium adds why this signal, a year of rank and rank alerts"
-            bn="প্রিমিয়ামে সংকেতের কারণ, এক বছরের র‍্যাঙ্ক আর র‍্যাঙ্ক অ্যালার্ট"
+            en="Premium adds a year of rank and rank alerts"
+            bn="প্রিমিয়ামে এক বছরের র‍্যাঙ্ক আর র‍্যাঙ্ক অ্যালার্ট"
           />
         </a>
       </p>
@@ -98,14 +98,6 @@ export default function RankPremium({ item }: { item: RankedItem }) {
       )}
       {hist && hist !== "error" && (
         <>
-          {hist.signal?.reason_en && (
-            <p className="rk-detail-reason">
-              <span className="font-semibold">
-                <T en="Why this signal: " bn="সংকেতের কারণ: " />
-              </span>
-              <T en={hist.signal.reason_en} bn={hist.signal.reason_bn || hist.signal.reason_en} />
-            </p>
-          )}
           <RankLine hist={hist} />
           <RankAlerts item={item} rank={hist.points[hist.points.length - 1]?.r ?? null} />
         </>

@@ -17,8 +17,8 @@ export const HERO = {
   // The rule (lib/premium-jobs.ts PREMIUM_RULE) as the headline, 2026-10-29.
   title: { en: "Facts are free. Our judgement is Premium.", bn: "সব তথ্য ফ্রি। আমাদের মতামত ও বিশ্লেষণ প্রিমিয়ামে।" },
   lead: {
-    en: "Every price, grade, Buy or Sell signal and DSE fact stays free for everyone. Premium does three jobs on top: it explains why, finds the shares worth a look, and watches your own shares every day.",
-    bn: "প্রতিটি দাম, গ্রেড, কেনা বা বিক্রির সংকেত আর ডিএসইর সব তথ্য সবার জন্য ফ্রি থাকবে। প্রিমিয়াম এর ওপর তিনটি কাজ করে: কারণ বুঝিয়ে বলে, দেখার মতো শেয়ার খুঁজে দেয়, আর প্রতিদিন আপনার নিজের শেয়ারে নজর রাখে।",
+    en: "Every price, grade and DSE fact stays free for everyone. Premium does three jobs on top: it explains why, finds the shares worth a look, and watches your own shares every day.",
+    bn: "প্রতিটি দাম, গ্রেড আর ডিএসইর সব তথ্য সবার জন্য ফ্রি থাকবে। প্রিমিয়াম এর ওপর তিনটি কাজ করে: কারণ বুঝিয়ে বলে, দেখার মতো শেয়ার খুঁজে দেয়, আর প্রতিদিন আপনার নিজের শেয়ারে নজর রাখে।",
   },
   from: { en: "From", bn: "মাত্র" },
   perMonth: { en: "a month on the yearly plan", bn: "মাসে, বছরের প্ল্যানে" },
@@ -112,8 +112,8 @@ export const STEPS: { title: Bi; sub: Bi }[] = [
 export const SECTIONS = {
   what: { en: "What Premium does for you", bn: "প্রিমিয়াম আপনার জন্য যা করে" },
   stayFree: {
-    en: "Prices, charts, news, scores and the Buy or Sell signal stay free for everyone.",
-    bn: "দাম, চার্ট, খবর, স্কোর আর কেনা বা বিক্রির সংকেত সবার জন্য ফ্রি থাকবে।",
+    en: "Prices, charts, news and scores stay free for everyone.",
+    bn: "দাম, চার্ট, খবর আর স্কোর সবার জন্য ফ্রি থাকবে।",
   },
   how: { en: "Start in three steps", bn: "তিন ধাপে শুরু করুন" },
   plan: { en: "Choose your plan", bn: "আপনার প্ল্যান বেছে নিন" },
@@ -148,12 +148,12 @@ export const ROWS: { what: Bi; job: Job; free: Bi; premium: Bi }[] = [
     job: "understand",
     what: { en: "Share page analysis", bn: "শেয়ারের পেজের বিশ্লেষণ" },
     free: {
-      en: "Prices, charts, financials, dividends, owners and news, the grade, the Buy or Sell signal, the answer on whether to buy it today with its three lights, one sample answer from the company's fundamentals, and 3 full reports a month on shares you choose.",
-      bn: "দাম, চার্ট, আর্থিক হিসাব, ডিভিডেন্ড, মালিকানা আর খবর, গ্রেড, কেনা বা বিক্রির সংকেত, আজ কেনা উচিত কি না তার উত্তর ও তিনটি আলো, কোম্পানির মৌলিক বিশ্লেষণের একটি নমুনা উত্তর, আর আপনার বাছাই করা শেয়ারে মাসে 3টি পূর্ণ রিপোর্ট।",
+      en: "Prices, charts, financials, dividends, owners and news, the grade, and 3 full reports a month on shares you choose.",
+      bn: "দাম, চার্ট, আর্থিক হিসাব, ডিভিডেন্ড, মালিকানা আর খবর, গ্রেড, আর আপনার বাছাই করা শেয়ারে মাসে 3টি পূর্ণ রিপোর্ট।",
     },
     premium: {
-      en: "The full report: the company's fundamentals and its price, every answer explained, a written read of every chapter, every picture filled in and explained, the fair price and our buy price, every warning, and Our view: the case for and against, and what would change our answer.",
-      bn: "পূর্ণ রিপোর্ট: কোম্পানির মৌলিক বিশ্লেষণ আর দাম, প্রতিটি উত্তরের ব্যাখ্যা, প্রতিটি অধ্যায়ের লেখা মত, প্রতিটি ছবি পূর্ণ আর ব্যাখ্যাসহ, ন্যায্য দাম আর আমাদের কেনার দাম, প্রতিটি সতর্কতা, আর আমাদের মত: পক্ষে-বিপক্ষে যুক্তি, আর কী হলে উত্তর বদলাবে।",
+      en: "The full report: whether to buy it today and why, the company's fundamentals and its price, every answer explained, a written read of every chapter, every picture filled in and explained, the fair price and our buy price, every warning, and Our view: the case for and against, and what would change our answer.",
+      bn: "পূর্ণ রিপোর্ট: আজ কেনা উচিত কি না আর কেন, কোম্পানির মৌলিক বিশ্লেষণ আর দাম, প্রতিটি উত্তরের ব্যাখ্যা, প্রতিটি অধ্যায়ের লেখা মত, প্রতিটি ছবি পূর্ণ আর ব্যাখ্যাসহ, ন্যায্য দাম আর আমাদের কেনার দাম, প্রতিটি সতর্কতা, আর আমাদের মত: পক্ষে-বিপক্ষে যুক্তি, আর কী হলে উত্তর বদলাবে।",
     },
   },
   {
@@ -187,12 +187,12 @@ export const ROWS: { what: Bi; job: Job; free: Bi; premium: Bi }[] = [
     job: "watch",
     what: { en: "Portfolio check", bn: "পোর্টফোলিও যাচাই" },
     free: {
-      en: "The answer to \"Is your portfolio in good shape?\" with your grade and its four lights, one full sample answer, your Sell marks, warning signs and coming dates, and every money figure.",
-      bn: "\"আপনার পোর্টফোলিও কি ভালো অবস্থায় আছে?\" প্রশ্নের উত্তর, গ্রেড আর চারটি আলো, একটি পূর্ণ নমুনা উত্তর, বিক্রির সংকেত, সতর্কসংকেত, সামনের তারিখ, আর টাকার সব হিসাব।",
+      en: "The answer to \"Is your portfolio in good shape?\" with your grade and its four lights, one full sample answer, warning signs and coming dates, and every money figure.",
+      bn: "\"আপনার পোর্টফোলিও কি ভালো অবস্থায় আছে?\" প্রশ্নের উত্তর, গ্রেড আর চারটি আলো, একটি পূর্ণ নমুনা উত্তর, সতর্কসংকেত, সামনের তারিখ, আর টাকার সব হিসাব।",
     },
     premium: {
-      en: "The full check: why each light is what it is, every answer on your companies, your spread and the prices you paid, and your plan: what to do first, what lifts your grade, what to buy next and what to do with each share.",
-      bn: "পূর্ণ যাচাই: প্রতিটি আলো কেন এমন, আপনার কোম্পানি, টাকার বণ্টন আর কেনার দাম নিয়ে প্রতিটি উত্তর, আর আপনার পরিকল্পনা: প্রথমে কী করবেন, কীসে গ্রেড বাড়বে, এরপর কী কিনবেন আর প্রতিটি শেয়ার নিয়ে কী করবেন।",
+      en: "The full check: why each light is what it is, which shares are marked Buy more or Sell, every answer on your companies, your spread and the prices you paid, and your plan: what to do first, what lifts your grade, what to buy next and what to do with each share.",
+      bn: "পূর্ণ যাচাই: প্রতিটি আলো কেন এমন, কোন শেয়ারে আরও কেনা বা বিক্রির সংকেত, আপনার কোম্পানি, টাকার বণ্টন আর কেনার দাম নিয়ে প্রতিটি উত্তর, আর আপনার পরিকল্পনা: প্রথমে কী করবেন, কীসে গ্রেড বাড়বে, এরপর কী কিনবেন আর প্রতিটি শেয়ার নিয়ে কী করবেন।",
     },
   },
   {
@@ -265,18 +265,6 @@ export const ROWS: { what: Bi; job: Job; free: Bi; premium: Bi }[] = [
     premium: {
       en: "No limit on shares, and up to six portfolios, so you can keep a parent's or spouse's BO account apart from yours.",
       bn: "শেয়ারের কোনো সীমা নেই, আর ছয়টি পর্যন্ত পোর্টফোলিও, যাতে মা-বাবা বা স্বামী/স্ত্রীর বিও অ্যাকাউন্ট আপনার থেকে আলাদা রাখতে পারেন।",
-    },
-  },
-  {
-    job: "understand",
-    what: { en: "Buy signals", bn: "কেনার সংকেত" },
-    free: {
-      en: "Every Buy today with its grade and how low the price is, and the good companies left out and why.",
-      bn: "আজকের প্রতিটি কেনার সংকেত, গ্রেড আর দাম কতটা কম, সঙ্গে বাদ পড়া ভালো কোম্পানিগুলো আর কেন বাদ পড়ল।",
-    },
-    premium: {
-      en: "Under every one: why it is a Buy in three facts, our buy price, the price where it stops being one and since when. Plus the good companies almost on the list, and a note when the list changes.",
-      bn: "প্রতিটির নিচে: কেন কেনার সংকেত, তিনটি তথ্যে, আমাদের কেনার দাম, কোন দামে আর কেনার সংকেত থাকবে না আর কবে থেকে। সঙ্গে তালিকায় প্রায় ঢুকে যাওয়া ভালো কোম্পানিগুলো, আর তালিকা বদলালে একটি নোট।",
     },
   },
   {
@@ -430,8 +418,8 @@ export const FAQS: { q: Bi; a: Bi }[] = [
   {
     q: { en: "What stays free?", bn: "কী কী ফ্রি থাকবে?" },
     a: {
-      en: "Prices, charts, financials, dividends, news, the score and grade of every share, every Buy and Sell signal, the rankings, the dividend calendar, results, the market pages and every update on your own shares. Premium adds the reasons, the full picked lists, and brings it all to you before you think to ask.",
-      bn: "দাম, চার্ট, আর্থিক হিসাব, ডিভিডেন্ড, খবর, প্রতিটি শেয়ারের স্কোর ও গ্রেড, প্রতিটি কেনা বা বিক্রির সংকেত, র‍্যাঙ্কিং, ডিভিডেন্ড ক্যালেন্ডার, আর্থিক ফল, বাজারের পেজগুলো আর আপনার শেয়ারের প্রতিটি খবর। প্রিমিয়াম এর ওপর কারণ, বাছাই করা পুরো তালিকা যোগ করে, আর জিজ্ঞেস করার আগেই সব আপনার কাছে পৌঁছে দেয়।",
+      en: "Prices, charts, financials, dividends, news, the score and grade of every share, the rankings, the dividend calendar, results, the market pages and every update on your own shares. Premium adds the reasons, the full picked lists, and brings it all to you before you think to ask.",
+      bn: "দাম, চার্ট, আর্থিক হিসাব, ডিভিডেন্ড, খবর, প্রতিটি শেয়ারের স্কোর ও গ্রেড, র‍্যাঙ্কিং, ডিভিডেন্ড ক্যালেন্ডার, আর্থিক ফল, বাজারের পেজগুলো আর আপনার শেয়ারের প্রতিটি খবর। প্রিমিয়াম এর ওপর কারণ, বাছাই করা পুরো তালিকা যোগ করে, আর জিজ্ঞেস করার আগেই সব আপনার কাছে পৌঁছে দেয়।",
     },
   },
   {

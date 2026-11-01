@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getTier, TIER_LABELS, TIER_LABELS_BN } from "@/lib/constants";
-import { checkWord, landingAnswer, landingLights, PILLARS, shortName, type LandingStock } from "@/lib/landing";
+import { checkWord, landingChecksLine, landingGrade, landingLights, PILLARS, shortName, type LandingStock } from "@/lib/landing";
 import { pillarColor } from "@/lib/insight-utils";
 import { changePct, changeTone, money } from "@/lib/formatters";
 import { sectorBn } from "@/lib/bn";
@@ -8,15 +8,16 @@ import { T } from "@/components/i18n/T";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 
 /**
- * The hero's proof (2026-10-31): the stock page's answer card for one real
- * company — "Should you buy it today?", the answer, the three lights and the
- * five checks behind the grade. Everything comes from the /api/scores row the
- * page already has; the answer follows the backend signal, so it never
- * disagrees with the stock page's Buy / Sell chip.
+ * The hero's proof (2026-10-31): one real company, read in plain words —
+ * "How strong is this company?", its grade, the three lights and the five
+ * checks behind the grade. Everything comes from the /api/scores row the page
+ * already has. No Buy / Sell here since 2026-11-01: that answer lives only in
+ * the stock report (Premium).
  */
 export default function AnswerCard({ stock }: { stock: LandingStock }) {
   const tier = getTier(stock.score);
-  const answer = landingAnswer(stock);
+  const answer = landingGrade(tier, TIER_LABELS[tier], TIER_LABELS_BN[tier]);
+  const checks = landingChecksLine(stock);
   const lights = landingLights(stock, tier, TIER_LABELS[tier], TIER_LABELS_BN[tier]);
   const initials = shortName(stock)
     .split(/\s+/)
@@ -26,7 +27,7 @@ export default function AnswerCard({ stock }: { stock: LandingStock }) {
     .toUpperCase();
 
   return (
-    <article className="soft-card lp-lift p-5 sm:p-6" aria-label={`${stock.name ?? stock.code}, our answer`}>
+    <article className="soft-card lp-lift p-5 sm:p-6" aria-label={`${stock.name ?? stock.code}, how strong it is`}>
       <div className="flex items-center gap-3">
         <span
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-sm font-bold text-text-main"
@@ -58,15 +59,15 @@ export default function AnswerCard({ stock }: { stock: LandingStock }) {
 
       <div className="mt-5 border-t border-border pt-5">
         <p className="text-sm font-semibold text-text-main">
-          <T en="Should you buy it today?" bn="আজ কি এটি কেনা উচিত?" />
+          <T en="How strong is this company?" bn="কোম্পানিটি কতটা শক্তিশালী?" />
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
           <span className="lp-word" data-size="lg" data-tone={answer.tone}>
             <T en={answer.en} bn={answer.bn} />
           </span>
-          {(stock.reasonEn || stock.reasonBn) && (
+          {checks && (
             <p className="min-w-0 flex-1 basis-56 text-sm leading-relaxed text-text-main">
-              <T en={stock.reasonEn ?? ""} bn={stock.reasonBn ?? stock.reasonEn ?? ""} />
+              <T en={checks.en} bn={checks.bn} />
             </p>
           )}
         </div>

@@ -195,10 +195,9 @@ export default function RankRowDetails({ item }: { item: RankedItem }) {
             </li>
           ))}
         </ul>
-        {/* What Premium adds to the ranking (2026-10-31): the signal's own
-            reason, a year of rank and rank alerts, fetched on open for a
-            Premium reader (the page drops `signal` from the rows to keep the
-            HTML small). The row's facts and checks above stay free. */}
+        {/* What Premium adds to the ranking (2026-10-31): a year of rank and
+            rank alerts, fetched on open for a Premium reader. The row's facts
+            and checks above stay free. */}
         <RankPremium item={item} />
         <div className="rk-detail-actions">
           <Button href={`/stock/${item.trading_code}`}>

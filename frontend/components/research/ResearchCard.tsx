@@ -6,7 +6,6 @@ import { getTier, TIER_LABELS, TIER_LABELS_BN } from "@/lib/constants";
 import { T } from "@/components/i18n/T";
 import { sectorBn } from "@/lib/bn";
 import ScoreBadge from "@/components/ui/ScoreBadge";
-import SignalChip from "@/components/ui/SignalChip";
 import Stat from "@/components/ui/Stat";
 import { StockRank } from "@/components/ui/StockRow";
 import { PersonalMark } from "@/components/market-analysis/PersonalCodes";
@@ -145,7 +144,6 @@ export default function ResearchCard({ s, masked = false }: { s: ResearchStock; 
         <span className="text-sm font-semibold text-text-main">
           <T en={TIER_LABELS[tier]} bn={TIER_LABELS_BN[tier]} />
         </span>
-        <SignalChip signal={s.signal} strength={s.strength} />
       </div>
 
       {!masked && fairValue}
