@@ -345,20 +345,22 @@ def _grade_point(c: dict) -> Optional[dict]:
     if s is None:
         return None
     w_en, w_bn = rl.grade_words(s)
-    return _pt(f"Our grade: {_r(s, 0)} out of 100 ({w_en})", f"আমাদের গ্রেড: 100-এর মধ্যে {_r(s, 0)} ({w_bn})")
+    return _pt(f"Our grade: {w_en.lower()} ({_r(s, 0)})", f"আমাদের গ্রেড: {w_bn} ({_r(s, 0)})")
 
 
 def _price_point(c: dict) -> Optional[dict]:
+    """Said as the stock report says P/E: years of its profit you pay for."""
     pe, own, sect = _n(c.get("current_pe")), _n(c.get("own_avg_pe")), _n(c.get("sector_median_pe"))
     if pe is None or pe <= 0:
         return None
-    if own and own > 0 and pe < own:
-        return _pt(f"Price is {_r(pe)}× its profit, below its usual {_r(own)}×",
-                   f"দাম মুনাফার {_r(pe)} গুণ, সাধারণত {_r(own)} গুণ থাকে")
-    if sect and sect > 0 and pe < sect:
-        return _pt(f"Price is {_r(pe)}× its profit, against {_r(sect)}× for its sector",
-                   f"দাম মুনাফার {_r(pe)} গুণ, খাতে {_r(sect)} গুণ")
-    return _pt(f"Price is {_r(pe)}× its profit", f"দাম মুনাফার {_r(pe)} গুণ")
+    yrs = max(1, round(pe))
+    if own and own > 0 and pe < own and round(own) > yrs:
+        return _pt(f"You pay {yrs} years of its profit; it is usually {round(own)}",
+                   f"দাম এখন এর {yrs} বছরের মুনাফার সমান; সাধারণত থাকে {round(own)} বছরের")
+    if sect and sect > 0 and pe < sect and round(sect) > yrs:
+        return _pt(f"You pay {yrs} years of its profit; similar companies cost {round(sect)}",
+                   f"দাম এখন এর {yrs} বছরের মুনাফার সমান; একই সেক্টরের কোম্পানিতে {round(sect)} বছরের")
+    return _pt(f"You pay {yrs} years of its profit", f"দাম এখন এর {yrs} বছরের মুনাফার সমান")
 
 
 def _dividend_point(c: dict) -> Optional[dict]:

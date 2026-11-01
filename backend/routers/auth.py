@@ -12,6 +12,7 @@ from backend.services.auth_service import (
     authenticate_user,
     create_access_token,
     decode_access_claims,
+    should_renew,
     token_revoked,
     get_user_by_id,
     normalize_email,
@@ -233,6 +234,7 @@ def get_me(current_user: dict = Depends(get_current_user)):
 @router.post("/ping")
 def ping(
     current_user: dict = Depends(get_current_user),
+    creds: Optional[HTTPAuthorizationCredentials] = Depends(_bearer),
     body: Optional[PingBody] = Body(default=None),
 ):
     now = datetime.now(timezone.utc)
@@ -270,4 +272,10 @@ def ping(
             )
         except Exception:  # noqa: BLE001 — analytics write must never fail the request
             logging.getLogger("auth").warning("user_events write failed", exc_info=True)
+    # Sliding sign-in: a token older than a day comes back renewed, so a reader
+    # who keeps visiting is never signed out (`auth_service.should_renew`).
+    # get_current_user already checked this token, so its claims are valid.
+    claims = decode_access_claims(creds.credentials) if creds else None
+    if claims and should_renew(claims):
+        return {"ok": True, "access_token": create_access_token(uid)}
     return {"ok": True}

@@ -5,41 +5,35 @@ import Link from "next/link";
 import type { ForYou, ForYouItem } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
 import { t } from "@/lib/home-copy";
-import { FREE_FORYOU_ROWS, splitFree } from "@/lib/free-share";
+import { formatDate } from "@/lib/formatters";
 import OwnerMark from "@/components/home/personalized/OwnerMark";
-import RowLock from "@/components/premium/RowLock";
-import LockPanel from "@/components/premium/LockPanel";
+import ForYouFunnel from "@/components/home/personalized/ForYouFunnel";
+import ForYouPromo from "@/components/home/personalized/ForYouPromo";
 import RecoRow from "@/components/reco/RecoRow";
-import Stat from "@/components/ui/Stat";
-import { StockPill, StockRowSkeleton } from "@/components/ui/StockRow";
+import { StockRowSkeleton } from "@/components/ui/StockRow";
 import { IconCheck, IconChevronDown, IconSparkle } from "@/components/ui/icons";
 
-/** Kinds whose pick is one of the reader's own stocks (the lock's "N are your stocks"). */
-const OWN = new Set(["add_more", "watched"]);
-/** Locked picks a free reader sees with the company hidden (premium/RowLock). */
-const FOR_YOU_PREVIEW_ROWS = 2;
+/** The picks shown in full; the rest are compact rows behind "See all". */
+const TOP = 3;
 
 /**
- * "Picked for you" (2026-10-28) — the recommendation engine's list, the first
- * block of the dashboard's Find stocks chapter.
+ * "Picked for you" — the recommendation engine's list, the first block of the
+ * dashboard's Find stocks chapter.
  *
- * Reads top to bottom like a short personal note: a small "Picked for you"
- * line, a headline that speaks to the reader by name ("Rahim, these 15 stocks
- * fit you best today"), one line on why they can trust it, then three numbers
- * — companies checked, how many passed every check, how many were picked. The
- * first `FREE_FORYOU_ROWS` picks are open with their reason, number lines and
- * one watch-out; the rest wait behind "See N more picks" (for a free reader
- * that opens the next two with the company hidden — kind word and reason
- * shown — and one line saying how many more, how many Strong buys and how
- * many are their own stocks (premium/RowLock) —
- * screen-only, like every lock). "How we pick" closes the card.
+ * Premium since 2026-11-01 (user: "everything of Picked for you will be a
+ * premium feature"): a free reader gets `ForYouPromo` — what the engine did
+ * for them in counts, what the list shows, one button — and never a company.
  *
- * No link out to the Buy-signals page (user decision 2026-10-28): the card is
- * the feature, not a doorway.
+ * The Premium view reads like a short personal note: who it is for, the
+ * three numbers behind it (analysed → passed → chosen), what it was matched
+ * to, then the top three in full (reason, number lines, one watch-out) and
+ * the rest as compact rows behind "See all". "How we pick" closes the card.
+ * No link out to another page: the card is the feature.
  */
 export default function ForYouCard({
   data,
   loading,
+  premium,
   name,
   held,
   watched,
@@ -47,6 +41,7 @@ export default function ForYouCard({
 }: {
   data: ForYou | null | undefined;
   loading: boolean;
+  premium: boolean;
   /** The reader's display name; the headline uses the first word of it. */
   name?: string | null;
   held: Set<string>;
@@ -58,7 +53,7 @@ export default function ForYouCard({
   const [more, setMore] = useState(false);
 
   const eyebrow = (
-    <p className="flex items-center gap-1.5 text-xs font-semibold text-primary-ink">
+    <p className="fy-eyebrow">
       <IconSparkle size={14} />
       {t(lang, "forYouEyebrow")}
     </p>
@@ -76,6 +71,8 @@ export default function ForYouCard({
     );
   }
 
+  if (!premium) return data.items.length > 0 ? <ForYouPromo data={data} name={name} lang={lang} /> : null;
+
   const personal = data.mode === "personal";
   const n = data.items.length;
   const first = (name ?? "").trim().split(/\s+/)[0] || "";
@@ -92,114 +89,78 @@ export default function ForYouCard({
       : t(lang, "forYouBasisWatched", { n: nWatched });
   const lead = personal ? t(lang, "forYouLeadPersonal", { basis }) : t(lang, "forYouLeadGeneric");
 
-  const [open, rest] = splitFree(data.items, FREE_FORYOU_ROWS);
+  const top = data.items.slice(0, TOP);
+  const rest = data.items.slice(TOP);
   const mark = (it: ForYouItem) => <OwnerMark code={it.code} held={held} watched={watched} lang={lang} />;
 
-  // The lock's line: how many more, how many Strong buys, how many are the reader's own.
-  const strong = rest.filter((it) => it.strong).length;
-  const ownRest = rest.filter((it) => OWN.has(it.kind)).length;
-  const lockKey = strong ? "forYouLockLineStrong" : "forYouLockLine";
-
   return (
-    <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
-      {/* A short personal note: who it is for, and why it can be trusted. */}
-      <div className="px-4 pt-4 sm:px-5 sm:pt-5">
-        <div className="flex items-center justify-between gap-3">
+    <section className={`soft-card fy ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
+      <div className="fy-head">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
           {eyebrow}
-          {data.new > 0 && <StockPill tone="positive">{t(lang, "forYouNewToday", { n: data.new })}</StockPill>}
+          <p className="text-xs text-text-muted">
+            {data.new > 0 && <span className="font-semibold text-positive">{t(lang, "forYouNewToday", { n: data.new })}</span>}
+            {data.new > 0 && data.as_of && " · "}
+            {data.as_of && t(lang, "forYouUpdated", { d: formatDate(data.as_of) })}
+          </p>
         </div>
-        <h3 className="mt-2 text-xl font-bold leading-snug text-text-main">{headline}</h3>
-        <p className="mt-1.5 text-sm leading-relaxed text-text-muted">{lead}</p>
+        <h3 className="fy-title">{headline}</h3>
+        <p className="fy-lead">{lead}</p>
+
+        {data.funnel.rated > 0 && <ForYouFunnel data={data} lang={lang} />}
+
+        {personal && data.traits.length > 0 && (
+          <p className="fy-traits">
+            <span>{t(lang, "forYouTraits")}</span> {data.traits.map((x) => tx(x.en, x.bn)).join(" · ")}
+          </p>
+        )}
+
+        {/* Make it theirs: no stocks yet → two doors; one or two → follow a few more. */}
+        {stocks === 0 ? (
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link prefetch={false} href="/watchlist" className="btn-primary btn-sm">
+              {t(lang, "forYouAddWatchlist")}
+            </Link>
+            <Link prefetch={false} href="/portfolio" className="btn-quiet btn-sm">
+              {t(lang, "forYouAddPortfolio")}
+            </Link>
+          </div>
+        ) : stocks < 3 ? (
+          <p className="mt-3 text-sm">
+            <Link prefetch={false} href="/watchlist" className="font-semibold text-primary-ink hover:underline">
+              {t(lang, "forYouNudgeFew")} →
+            </Link>
+          </p>
+        ) : null}
+
+        {data.note && <p className="mt-3 text-sm text-text-main">{tx(data.note.en, data.note.bn)}</p>}
       </div>
 
-      {/* The three numbers behind the list. */}
-      {data.funnel.rated > 0 && (
-        <div className="mx-4 mt-4 grid grid-cols-3 divide-x divide-border rounded-lg border border-border sm:mx-5">
-          <Stat value={data.funnel.rated} label={t(lang, "forYouStatChecked")} size="sm" className="px-3 py-2.5" />
-          <Stat value={data.funnel.passed} label={t(lang, "forYouStatPassed")} size="sm" className="px-3 py-2.5" />
-          <Stat value={n} label={t(lang, "forYouStatPicked")} size="sm" tone="primary" className="px-3 py-2.5" />
-        </div>
-      )}
-
-      {personal && data.traits.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5 px-4 pt-3 sm:px-5">
-          <span className="text-xs text-text-muted">{t(lang, "forYouTraits")}</span>
-          {data.traits.map((x) => (
-            <StockPill key={x.key} tone="primary">
-              {tx(x.en, x.bn)}
-            </StockPill>
-          ))}
-        </div>
-      )}
-
-      {/* Make it theirs: no stocks yet → two doors; one or two → follow a few more. */}
-      {stocks === 0 ? (
-        <div className="flex flex-wrap gap-2 px-4 pt-3 sm:px-5">
-          <Link prefetch={false} href="/watchlist" className="btn-primary btn-sm">
-            {t(lang, "forYouAddWatchlist")}
-          </Link>
-          <Link prefetch={false} href="/portfolio" className="btn-quiet btn-sm">
-            {t(lang, "forYouAddPortfolio")}
-          </Link>
-        </div>
-      ) : stocks < 3 ? (
-        <p className="px-4 pt-3 text-sm sm:px-5">
-          <Link prefetch={false} href="/watchlist" className="font-semibold text-primary-ink hover:underline">
-            {t(lang, "forYouNudgeFew")} →
-          </Link>
-        </p>
-      ) : null}
-
-      {data.note && <p className="px-4 pt-3 text-sm text-text-muted sm:px-5">{tx(data.note.en, data.note.bn)}</p>}
-
-      {open.length > 0 && (
-        <ol className="mt-4 divide-y divide-cell-rule border-t border-cell-rule">
-          {open.map((it, i) => (
-            <RecoRow key={it.code} item={it} rich rank={i + 1} mark={mark(it)} lang={lang} />
-          ))}
-        </ol>
+      {top.length > 0 && (
+        <>
+          <p className="fy-label">{t(lang, "forYouTop")}</p>
+          <ol className="divide-y divide-cell-rule">
+            {top.map((it, i) => (
+              <RecoRow key={it.code} item={it} rich rank={i + 1} mark={mark(it)} lang={lang} />
+            ))}
+          </ol>
+        </>
       )}
 
       {rest.length > 0 && more && (
-        <div className="border-t border-cell-rule">
-          <RowLock
-            preview={
-              <ol className="divide-y divide-cell-rule">
-                {rest.slice(0, FOR_YOU_PREVIEW_ROWS).map((it, i) => (
-                  <RecoRow key={it.code} item={it} rank={open.length + i + 1} lang={lang} masked />
-                ))}
-              </ol>
-            }
-            panel={
-              <LockPanel job="find"
-                title={{
-                  en: t("en", lockKey, { n: rest.length, s: strong }),
-                  bn: t("bn", lockKey, { n: rest.length, s: strong }),
-                }}
-                mine={ownRest}
-                count={rest.length}
-                lock="Picked for you"
-                what={{ en: t("en", "forYouLockLabel"), bn: t("bn", "forYouLockLabel") }}
-              />
-            }
-          >
-            <ol className="divide-y divide-cell-rule">
-              {rest.map((it, i) => (
-                <RecoRow key={it.code} item={it} rank={open.length + i + 1} mark={mark(it)} lang={lang} />
-              ))}
-            </ol>
-          </RowLock>
-        </div>
+        <>
+          <p className="fy-label">{t(lang, "forYouAlso")}</p>
+          <ol className="divide-y divide-cell-rule">
+            {rest.map((it, i) => (
+              <RecoRow key={it.code} item={it} rank={TOP + i + 1} mark={mark(it)} lang={lang} />
+            ))}
+          </ol>
+        </>
       )}
 
       {rest.length > 0 && (
-        <button
-          type="button"
-          aria-expanded={more}
-          onClick={() => setMore((v) => !v)}
-          className="flex min-h-12 w-full items-center justify-center gap-1.5 border-t border-border px-4 text-sm font-semibold text-primary-ink hover:bg-surface-2 active:bg-surface-2"
-        >
-          {more ? t(lang, "forYouSeeFewer") : t(lang, "forYouSeeMore", { n: rest.length })}
+        <button type="button" aria-expanded={more} onClick={() => setMore((v) => !v)} className="fy-more">
+          {more ? t(lang, "forYouSeeFewer") : t(lang, "forYouSeeMore", { n })}
           <span className={`transition-transform ${more ? "rotate-180" : ""}`} aria-hidden="true">
             <IconChevronDown size={16} />
           </span>
@@ -207,14 +168,14 @@ export default function ForYouCard({
       )}
 
       <details className="group border-t border-border px-4 sm:px-5">
-        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-text-muted hover:text-text-main">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-text-main">
           {t(lang, "forYouHow")}
           <span className="transition-transform group-open:rotate-180" aria-hidden="true">
             <IconChevronDown size={16} />
           </span>
         </summary>
         <div className="space-y-2 pb-4 text-sm text-text-main">
-          <p className="text-text-muted">{t(lang, "forYouHowChecks")}</p>
+          <p>{t(lang, "forYouHowChecks")}</p>
           <ul className="space-y-1.5">
             {data.funnel.checks.map((c) => (
               <li key={c.key} className="flex items-start gap-2">
@@ -222,13 +183,13 @@ export default function ForYouCard({
                   <IconCheck size={14} />
                 </span>
                 <span className="min-w-0 flex-1">{tx(c.en, c.bn)}</span>
-                <span className="shrink-0 tabular-nums text-text-muted">{c.left}</span>
+                <span className="shrink-0 tabular-nums">{c.left}</span>
               </li>
             ))}
           </ul>
           <p>{t(lang, "forYouHowRank")}</p>
           <p>{t(lang, "forYouHowNever")}</p>
-          <p className="text-text-muted">{t(lang, "forYouNotAdvice")}</p>
+          <p className="text-xs">{t(lang, "forYouNotAdvice")}</p>
         </div>
       </details>
     </section>

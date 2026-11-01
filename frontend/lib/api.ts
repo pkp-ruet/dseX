@@ -1670,7 +1670,7 @@ export async function getPriceHistory(code: string, range: "1y" | "2y" | "3y" | 
 // Auth types & helpers (client-side only)
 // ---------------------------------------------------------------------------
 
-import { type AuthUser, getToken, logout } from "@/lib/auth";
+import { type AuthUser, getToken, logout, setToken } from "@/lib/auth";
 
 export interface RegisterPayload {
   email?: string;
@@ -2645,7 +2645,7 @@ export async function apiAuthPing(
   if (extra?.platform) body.platform = extra.platform;
   const hasBody = Object.keys(body).length > 0;
   try {
-    await fetch(`${getApiUrl()}/api/auth/ping`, {
+    const res = await fetch(`${getApiUrl()}/api/auth/ping`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -2653,6 +2653,13 @@ export async function apiAuthPing(
       },
       ...(hasBody ? { body: JSON.stringify(body) } : {}),
     });
+    // Sliding sign-in: a token older than a day comes back renewed. Store it
+    // only if the reader is still on the token we sent (not signed out or
+    // signed in as someone else while the ping was in flight).
+    if (res.ok) {
+      const data = (await res.json()) as { access_token?: string };
+      if (data.access_token && getToken() === token) setToken(data.access_token);
+    }
   } catch {
     // fire-and-forget
   }

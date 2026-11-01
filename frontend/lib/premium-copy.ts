@@ -50,6 +50,7 @@ export const BENEFITS: { key: "why" | "portfolio" | "research" | "limits"; job?:
     job: "find",
     title: { en: "Research, done for you", bn: "গবেষণা আমরা করে দিই" },
     points: [
+      { en: "Your 10 to 15 picks for the day, chosen for your own shares", bn: "দিনের 10 থেকে 15টি বাছাই, আপনার নিজের শেয়ার মিলিয়ে" },
       { en: "All six research lists in full", bn: "ছয়টি গবেষণা তালিকা পুরোটা" },
       { en: "The full stock screener, with your screens checked every day", bn: "পুরো স্টক স্ক্রিনার, আর আপনার স্ক্রিন প্রতিদিন যাচাই" },
       { en: "Which dividends are safe, which are worth buying for, and who will pay next", bn: "কোন ডিভিডেন্ড নিরাপদ, কোনটির জন্য কেনা লাভজনক, আর এরপর কে দেবে" },
@@ -264,6 +265,18 @@ export const ROWS: { what: Bi; job: Job; free: Bi; premium: Bi }[] = [
     premium: {
       en: "No limit on shares, and up to six portfolios, so you can keep a parent's or spouse's BO account apart from yours.",
       bn: "শেয়ারের কোনো সীমা নেই, আর ছয়টি পর্যন্ত পোর্টফোলিও, যাতে মা-বাবা বা স্বামী/স্ত্রীর বিও অ্যাকাউন্ট আপনার থেকে আলাদা রাখতে পারেন।",
+    },
+  },
+  {
+    job: "find",
+    what: { en: "Picked for you", bn: "আপনার জন্য বাছাই" },
+    free: {
+      en: "How many companies we analysed, how many passed every check and how many we chose for you.",
+      bn: "কতগুলো কোম্পানি আমরা বিশ্লেষণ করেছি, কতগুলো সব যাচাই পার হয়েছে, আর আপনার জন্য কতগুলো বেছে নিয়েছি।",
+    },
+    premium: {
+      en: "Your 10 to 15 picks for the day, in order: why each one suits your own shares, the numbers that matter, one honest risk, and new picks marked after every close.",
+      bn: "দিনের 10 থেকে 15টি বাছাই, ক্রম অনুযায়ী: প্রতিটি কেন আপনার নিজের শেয়ারের সাথে মানানসই, জরুরি সংখ্যাগুলো, একটি খোলামেলা ঝুঁকি, আর প্রতিদিন বাজার বন্ধের পর নতুনগুলো চিহ্নিত।",
     },
   },
   {

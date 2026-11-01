@@ -31,8 +31,10 @@ export interface RecoRowItem {
  * and today's move on the right.
  *
  * `rich` (the open picks) gives the reason its own line at reading size, then
- * the number lines and one honest watch-out; compact rows keep tag + reason
- * on one clamped line. `rank` puts the pick's place in a numbered chip.
+ * the number lines on a hairline-ruled block and one honest watch-out in an
+ * amber band (`.reco-*` in app/styles/premium.css); compact rows give the
+ * tag its own line and the reason two lines at most (2026-11-01, user: the
+ * one-line tag + reason was too congested). `rank` puts the pick's place in a numbered chip.
  *
  * Follows the dashboard rule for ideas: a name, a reason, a kind word. No
  * "% match", no tier pill, no signal chip — every pick is a Buy already.
@@ -84,35 +86,26 @@ export default function RecoRow({
       mark={mark}
       masked={masked}
       tags={item.new ? <StockPill tone="positive">{t(lang, "forYouNew")}</StockPill> : undefined}
-      sub={
-        rich ? (
-          <span className="mt-1 inline-flex">{tag}</span>
-        ) : (
-          <>
-            {tag}
-            <span className="ml-1.5 text-text-muted">{why}</span>
-          </>
-        )
-      }
-      subClamp
+      className={`reco-row ${rich ? "reco-row--rich" : ""}`}
+      sub={<span className="mt-1 inline-flex">{tag}</span>}
       detail={
         rich ? (
           <>
-            <span className="mt-1.5 block text-sm leading-snug text-text-main">{why}</span>
+            <span className="reco-why">{why}</span>
             {(item.points?.length ?? 0) > 0 && (
-              <span className="mt-2 block space-y-1">
+              <span className="reco-facts">
                 {(item.points ?? []).map((p) => (
-                  <span key={p.en} className="flex items-start gap-2 text-text-muted">
-                    <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-text-muted" aria-hidden="true" />
+                  <span key={p.en} className="reco-fact">
+                    <span className="reco-fact-dot" aria-hidden="true" />
                     <span className="min-w-0">{L(p)}</span>
                   </span>
                 ))}
               </span>
             )}
             {item.watch && (
-              <span className="mt-1.5 flex items-start gap-1.5 text-watch">
+              <span className="reco-watch">
                 <span className="mt-0.5 shrink-0" aria-hidden="true">
-                  <IconAlert size={12} />
+                  <IconAlert size={14} />
                 </span>
                 <span className="min-w-0">
                   <span className="font-semibold">{t(lang, "forYouWatch")}</span> {L(item.watch)}
@@ -120,6 +113,8 @@ export default function RecoRow({
               </span>
             )}
           </>
+        ) : why ? (
+          <span className="reco-why reco-why--clamp">{why}</span>
         ) : undefined
       }
       action={action}

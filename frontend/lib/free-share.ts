@@ -6,11 +6,11 @@
 
 /**
  * THE free amount (2026-10-29, the Free vs Premium plan): the top 3 of every
- * list of other companies is free — signals, the screener, Picked for you,
- * the research lists. One number a reader learns after one page. Rankings,
- * results and the dividend calendar are open in full since 2026-10-29 (plan
- * step 4); the buy signals list and the dashboard stories since 2026-10-31
- * (the Premium Desk plan — Premium adds the reasons and the delivery).
+ * list of other companies is free — the screener and the research lists.
+ * One number a reader learns after one page. Rankings, results and the
+ * dividend calendar are open in full since 2026-10-29 (plan step 4); the
+ * buy signals list and the dashboard stories since 2026-10-31 (the Premium
+ * Desk plan — Premium adds the reasons and the delivery).
  */
 export const FREE_LIST_ROWS = 3;
 
@@ -19,9 +19,8 @@ export const FREE_LIST_ROWS = 3;
  *  2026-10-26). */
 export const FREE_SCREENER_ROWS = FREE_LIST_ROWS;
 
-/** The dashboard's "Picked for you": the picks a free reader sees in full;
- *  the rest of the 15 sits blurred behind one lock (user decision 2026-10-27). */
-export const FREE_FORYOU_ROWS = FREE_LIST_ROWS;
+/* The dashboard's "Picked for you" has no free rows since 2026-11-01: the
+   whole list is Premium, a free reader gets one Premium card. */
 
 /* The stock report has no free taste since 2026-11-01: the whole report is
    Premium (today's free report and report keys still open it). */

@@ -748,3 +748,85 @@ details[open] > .pm-fold-summary .pm-fold-chev { transform: rotate(180deg); }
 @media (max-width: 420px) { .pq-row { grid-template-columns: minmax(0, 1fr); gap: var(--space-2); } }
 .pq-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
 .pq-fine { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+
+/* ===================================================================
+   Picked for you (2026-11-01) — the dashboard's recommendation card.
+   Premium view (`.fy`, components/home/personalized/ForYouCard): a note
+   header, the three-step funnel, "Your top 3" in full, the rest behind
+   "See all". Free reader (`.fyp`, ForYouPromo): the stock page's Premium
+   card (`.sp`, report-visuals.css) with the funnel on its gold band.
+   The full rows are RecoRow `rich` (`.reco-*`).
+   =================================================================== */
+.fy { overflow: hidden; }
+.fy-head { padding: calc(var(--space-4) + var(--space-1)) var(--space-4) var(--space-4); }
+.fy-eyebrow { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); font-weight: 700; color: var(--primary-ink); }
+.fy-title { margin-top: var(--space-2); font-size: var(--fs-lg); font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; color: var(--text); text-wrap: balance; }
+.fy-lead { margin-top: var(--space-2); max-width: 62ch; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
+.fy-traits { margin-top: var(--space-3); font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+.fy-traits > span { font-weight: 600; }
+.fy-label {
+  padding: var(--space-3) var(--space-4) var(--space-2);
+  border-top: 1px solid var(--border);
+  font-size: var(--fs-xs); font-weight: 700; color: var(--text);
+}
+.fy-more {
+  display: flex; width: 100%; min-height: 48px; align-items: center; justify-content: center; gap: 6px;
+  border-top: 1px solid var(--border); padding: 0 var(--space-4);
+  font-size: var(--fs-sm); font-weight: 600; color: var(--primary-ink);
+}
+.fy-more:hover, .fy-more:active { background: var(--surface-2); }
+
+/* The funnel: analysed → passed → chosen. */
+.fy-funnel {
+  display: flex; align-items: stretch; gap: var(--space-1);
+  margin-top: var(--space-4);
+}
+.fy-step {
+  flex: 1 1 0; min-width: 0;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.fy-step > b { font-size: var(--fs-lg); font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; color: var(--text); }
+.fy-step > span { margin-top: 2px; font-size: var(--fs-xs); line-height: 1.3; color: var(--text); }
+.fy-step--end { border-color: rgb(var(--primary-rgb) / 0.45); background: rgb(var(--primary-rgb) / 0.07); }
+.fy-step--end > b { color: var(--primary-ink); }
+.fy-funnel-arrow { flex: none; display: grid; place-items: center; color: var(--text); }
+.fy-funnel--gold .fy-step { border-color: rgb(var(--gold-rgb) / 0.45); }
+.fy-funnel--gold .fy-step--end { border-color: var(--gold); background: var(--surface); }
+.fy-funnel--gold .fy-step--end > b { color: var(--gold-ink); }
+
+/* The free reader's card sits in the dashboard's spacing, not the stock page's. */
+.sp.fyp { margin: 0; }
+
+@media (min-width: 640px) {
+  .fy-head { padding: var(--space-6) calc(var(--space-4) + var(--space-1)) calc(var(--space-4) + var(--space-1)); }
+  .fy-label { padding-inline: calc(var(--space-4) + var(--space-1)); }
+  .fy-title { font-size: var(--fs-xl); }
+}
+
+/* RecoRow: room between rows; the compact rows' reason on its own lines. */
+.reco-row { padding-block: var(--space-2); }
+.reco-row--rich { padding-block: var(--space-3); }
+.reco-why.reco-why--clamp {
+  margin-top: 6px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+/* RecoRow rich: the reason, the number lines, one watch-out. */
+.reco-why { display: block; margin-top: var(--space-2); font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
+.reco-facts {
+  display: grid; gap: var(--space-2);
+  margin-top: var(--space-3); padding-top: var(--space-3);
+  border-top: 1px dashed var(--border);
+}
+.reco-fact { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--fs-xs); line-height: 1.45; color: var(--text); }
+.reco-fact-dot { flex: none; width: 6px; height: 6px; margin-top: 6px; border-radius: 50%; background: var(--primary); }
+.reco-watch {
+  display: flex; align-items: flex-start; gap: 6px;
+  margin-top: var(--space-3); padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: rgb(var(--watch-rgb) / 0.08);
+  font-size: var(--fs-xs); line-height: 1.45; color: var(--watch);
+}

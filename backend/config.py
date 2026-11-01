@@ -10,7 +10,7 @@ MONGODB_DB_NAME = os.getenv("MONGODB_DB_NAME", "dsex")
 # JWT — set JWT_SECRET as a persistent env var on Render (default randomizes on restart)
 JWT_SECRET = os.getenv("JWT_SECRET", secrets.token_hex(32))
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
-JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "10080"))  # 7 days
+JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "43200"))  # 30 days (was 7 until 2026-11-01)
 
 ADMIN_EMAILS: set[str] = {
     e.strip().lower()

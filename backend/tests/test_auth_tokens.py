@@ -9,6 +9,7 @@ from backend.services.auth_service import (
     decode_access_claims,
     decode_access_token,
     hash_password,
+    should_renew,
     token_revoked,
     verify_password,
 )
@@ -51,6 +52,20 @@ def test_token_revoked_by_cutoff():
     assert not token_revoked(claims, {"tokens_valid_after": earlier})
     assert not token_revoked(claims, {"tokens_valid_after": earlier.replace(tzinfo=None)})
     assert not token_revoked(claims, {})
+
+
+def test_login_lasts_30_days():
+    claims = decode_access_claims(create_access_token("u1"))
+    assert claims["exp"] - claims["iat"] == 30 * 24 * 3600
+
+
+def test_tokens_older_than_a_day_are_renewed():
+    claims = decode_access_claims(create_access_token("u1"))
+    issued = datetime.fromtimestamp(claims["iat"], tz=timezone.utc)
+    assert not should_renew(claims, issued + timedelta(hours=23))
+    assert should_renew(claims, issued + timedelta(days=1))
+    assert should_renew(claims, issued + timedelta(days=6))
+    assert should_renew({"sub": "u1"})  # no issue time: renew
 
 
 def test_verify_password_without_a_hash():

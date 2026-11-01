@@ -72,6 +72,25 @@ def decode_access_token(token: str) -> Optional[str]:
     return claims.get("sub") if claims else None
 
 
+# A token older than this is swapped for a fresh one on the reader's next page
+# view (`/api/auth/ping`), so anyone who visits within the token's lifetime
+# stays signed in. Until 2026-11-01 nothing renewed a token: every reader was
+# signed out 7 days after signing in, however often they came (~25% of each
+# day's visitors went through /login, some in the middle of a visit).
+RENEW_AFTER = timedelta(days=1)
+
+
+def should_renew(claims: dict, now: Optional[datetime] = None) -> bool:
+    """True when this valid login token was issued more than RENEW_AFTER ago
+    (or carries no readable issue time)."""
+    now = now or datetime.now(timezone.utc)
+    try:
+        issued = datetime.fromtimestamp(float(claims["iat"]), tz=timezone.utc)
+    except (KeyError, TypeError, ValueError, OverflowError):
+        return True
+    return now - issued >= RENEW_AFTER
+
+
 def token_revoked(claims: dict, user: dict) -> bool:
     """True when the token was issued before the account's `tokens_valid_after`
     (set when a Google sign-in takes over an account whose password was never

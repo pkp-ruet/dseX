@@ -338,7 +338,8 @@ export default function PersonalizedHome() {
   );
 
   // ── Chapter 3: Find stocks — "Picked for you" first (the recommendation
-  //    engine: up to 15 picks built from the reader's own stocks, 3 free;
+  //    engine: up to 15 picks built from the reader's own stocks, Premium
+  //    only since 2026-11-01 — a free reader gets the Premium card;
   //    user decision 2026-10-27, replacing the old random "picked for you"
   //    opener removed 2026-10-26), then the screener card (goal chips + top
   //    three), ONE swipe rail for top ranked / trending, and
@@ -352,6 +353,7 @@ export default function PersonalizedHome() {
           <ForYouCard
             data={bundle?.for_you}
             loading={!bundleSettled}
+            premium={planState === "premium"}
             name={user?.display_name}
             held={heldSet}
             watched={watchedSet}
