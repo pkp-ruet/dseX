@@ -14,13 +14,15 @@ log = logging.getLogger(__name__)
 @_ttl_cache(1800, max_entries=2)
 def rankings_today() -> dict:
     """{warnings: {CODE: [red keys]}, week: {from, to, up, down} | None,
-    then: {date, total, ranks} | None}."""
+    then: {date, total, ranks} | None,
+    moves: {from, to, places, new} | None} — moves = each company's rank
+    change over the week's window (the page's arrows)."""
     from backend.services import rank_history as rh
     from backend.services.rank_history_service import _rows_on, rank_table
     from backend.services.scoring_service import build_scores_df
     from backend.services.stock_report_service import latest_snapshots
 
-    out: dict = {"warnings": {}, "week": None, "then": None}
+    out: dict = {"warnings": {}, "week": None, "then": None, "moves": None}
     try:
         df = build_scores_df()
         codes = [str(c).upper() for c in df["trading_code"].tolist()] if df is not None and not df.empty else []
@@ -38,6 +40,7 @@ def rankings_today() -> dict:
             mdays = set()
         start, end, method = rh.week_window(table["dates"], mdays)
         if start and end:
+            out["moves"] = rt.rank_moves(table, start, end)
             out["week"] = {"from": start, "to": end, **rt.group_moves(_rows_on(start), _rows_on(end))}
         elif method:
             out["week"] = {"from": None, "to": end, "up": [], "down": [], "method": True}

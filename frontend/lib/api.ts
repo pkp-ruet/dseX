@@ -822,13 +822,18 @@ export async function getRankMovers(): Promise<RankMovers> {
   return apiFetch<RankMovers>("/api/rankings/movers", 3600);
 }
 
-/** `GET /api/rankings/today` (2026-10-31, the ranking redesign): red check
- *  keys from each company's stock report, this week's group moves, and every
- *  company's rank on the first day of the history (Premium line). */
+/** `GET /api/rankings/today`: red check keys from each company's stock
+ *  report, this week's group moves, every company's rank on the first day of
+ *  the history, and this week's rank change (the ranking page reads only
+ *  `moves` since 2026-11-01). */
 export interface RankingsToday {
   warnings: Record<string, string[]>;
   week: { from: string | null; to: string | null; up: string[]; down: string[]; method?: boolean } | null;
   then: { date: string; total: number | null; ranks: Record<string, number> } | null;
+  /** Each company's rank change over the week's window (+ = climbed; a code
+   *  that kept its place is absent; `new` = not ranked on `from`). Null on a
+   *  rule-change day. The ranking page's arrows. */
+  moves?: { from: string; to: string; places: Record<string, number>; new: string[] } | null;
 }
 
 export async function getRankingsToday(): Promise<RankingsToday> {

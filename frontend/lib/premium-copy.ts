@@ -53,7 +53,6 @@ export const BENEFITS: { key: "why" | "portfolio" | "research" | "limits"; job?:
       { en: "All six research lists in full", bn: "ছয়টি গবেষণা তালিকা পুরোটা" },
       { en: "The full stock screener, with your screens checked every day", bn: "পুরো স্টক স্ক্রিনার, আর আপনার স্ক্রিন প্রতিদিন যাচাই" },
       { en: "Which dividends are safe, which are worth buying for, and who will pay next", bn: "কোন ডিভিডেন্ড নিরাপদ, কোনটির জন্য কেনা লাভজনক, আর এরপর কে দেবে" },
-      { en: "Best value first, and the rankings in your own order", bn: "সেরা দামের ক্রম, আর আপনার নিজের ক্রমে র‍্যাঙ্কিং" },
     ],
   },
   {
@@ -265,18 +264,6 @@ export const ROWS: { what: Bi; job: Job; free: Bi; premium: Bi }[] = [
     premium: {
       en: "No limit on shares, and up to six portfolios, so you can keep a parent's or spouse's BO account apart from yours.",
       bn: "শেয়ারের কোনো সীমা নেই, আর ছয়টি পর্যন্ত পোর্টফোলিও, যাতে মা-বাবা বা স্বামী/স্ত্রীর বিও অ্যাকাউন্ট আপনার থেকে আলাদা রাখতে পারেন।",
-    },
-  },
-  {
-    job: "find",
-    what: { en: "Rankings", bn: "র‍্যাঙ্কিং" },
-    free: {
-      en: "Every company ranked, with its grade, the five checks and how far each company moved this week.",
-      bn: "প্রতিটি কোম্পানির র‍্যাঙ্ক, গ্রেড, পাঁচটি যাচাই, আর এ সপ্তাহে কে কতটা ওঠানামা করেছে।",
-    },
-    premium: {
-      en: "Best value first, your own ranking, why each mover moved, a year of rank for every company, and an alert when a share enters the top 20 or drops out of “Mostly strong”.",
-      bn: "সেরা দামের ক্রম, আপনার নিজের র‍্যাঙ্কিং, প্রতিটি ওঠানামার কারণ, প্রতিটি কোম্পানির এক বছরের র‍্যাঙ্ক, আর শেয়ার প্রথম 20-এ এলে বা “বেশিরভাগ দিকে শক্তিশালী” থেকে নামলে অ্যালার্ট।",
     },
   },
   {
