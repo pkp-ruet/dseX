@@ -454,40 +454,10 @@ export interface ReportChapter {
   rows: { key: QuestionKey; q: Bi }[];
 }
 
-/** The fundamentals a free reader sees (2026-10-30, user: "this fundamental
- *  analysis should be part of premium … free user can see 1/2 results max";
- *  plan https://claude.ai/artifact/KCBooTX7PK7a4PoKkcmoMP). In the company
- *  and price chapters (`ANSWERS_LOCKED_IN`) one row is open in full as a
- *  sample, one more shows only its one-word answer, and every other row shows
- *  just its question and a lock. Today's free report and report keys open all. */
-export const ANSWERS_LOCKED_IN = ["ch-company", "ch-price"];
-export const FREE_SAMPLE_ROW: QuestionKey = "this_year";
-export const FREE_WORD_ROWS: QuestionKey[] = ["dividend"];
-
-/** A locked chapter's one signpost line (2026-10-30): what the full report
- *  answers in it, pointing back up to the card under the answer. */
-export const CHAPTER_SIGNPOST: Record<string, Bi> = {
-  "ch-company": {
-    en: "In the full report: whether the profit is real cash, its loans, its place in its sector and its dividends, each explained",
-    bn: "পূর্ণ রিপোর্টে: মুনাফা আসলেই নগদে আসে কি না, এর ঋণ, সেক্টরে এর অবস্থান আর ডিভিডেন্ড, প্রতিটির ব্যাখ্যাসহ",
-  },
-  "ch-price": {
-    en: "In the full report: our fair price, the price we would buy under, and what the dividend is worth to you",
-    bn: "পূর্ণ রিপোর্টে: আমাদের হিসাবে ন্যায্য দাম, কোন দামের নিচে কেনা ভালো, আর ডিভিডেন্ড আপনার জন্য কতটা",
-  },
-  "ch-risks": {
-    en: "In the full report: each risk explained, and what would make it serious",
-    bn: "পূর্ণ রিপোর্টে: প্রতিটি ঝুঁকির ব্যাখ্যা, আর কী হলে তা গুরুতর হবে",
-  },
-  "ch-next": {
-    en: "In the full report: what each date means for you, and what the results must show",
-    bn: "পূর্ণ রিপোর্টে: প্রতিটি তারিখ আপনার জন্য কী, আর ফলে কী দেখা দরকার",
-  },
-  "ch-view": {
-    en: "In the full report: the case for and against, and what would change our answer",
-    bn: "পূর্ণ রিপোর্টে: পক্ষে-বিপক্ষে যুক্তি, আর কী হলে আমাদের উত্তর বদলাবে",
-  },
-};
+/** The whole report is Premium (2026-11-01, user: "everything we say about
+ *  the stock will be part of premium"): a free reader sees the price, the
+ *  chart, one Premium card and the data room (`ReportGate`). The free sample
+ *  row, answer words and chapter signposts of 2026-10-30 are gone. */
 
 /** Our view's sticky chip and anchor (it is not one of the question chapters). */
 export const VIEW_CHAPTER = { id: "ch-view", chip: { en: "Our view", bn: "আমাদের মত" } as Bi };
@@ -506,27 +476,27 @@ export const REPORT_CHAPTERS: ReportChapter[] = [
     chip: { en: "Company", bn: "কোম্পানি" },
     lead: {
       en: "Five questions about the business itself: profit, cash, loans, strength and dividends.",
-      bn: "ব্যবসা নিয়েই পাঁচটি প্রশ্ন: মুনাফা, নগদ, ঋণ, শক্তি আর ডিভিডেন্ড।",
+      bn: "ব্যবসাটি নিয়ে পাঁচটি প্রশ্ন: মুনাফা, নগদ টাকা, ঋণ, ব্যবসার শক্তি আর ডিভিডেন্ড।",
     },
     rows: [
-      { key: "this_year", q: { en: "Does it make money?", bn: "এটি কি মুনাফা করে?" } },
-      { key: "cash", q: { en: "Is the profit real cash?", bn: "মুনাফা কি আসলেই নগদে আসে?" } },
-      { key: "safety", q: { en: "Can it handle its loans?", bn: "ঋণ সামলাতে পারবে কি?" } },
-      { key: "quality", q: { en: "Is it strong in its business?", bn: "ব্যবসায় এটি কতটা শক্তিশালী?" } },
-      { key: "shares", q: { en: "Does it share its profit?", bn: "মুনাফার ভাগ দেয় কি?" } },
+      { key: "this_year", q: { en: "Does it make money?", bn: "কোম্পানিটি কি মুনাফা করছে?" } },
+      { key: "cash", q: { en: "Is the profit real cash?", bn: "মুনাফার টাকা কি সত্যিই হাতে আসে?" } },
+      { key: "safety", q: { en: "Can it handle its loans?", bn: "ঋণ কি সামলাতে পারবে?" } },
+      { key: "quality", q: { en: "Is it strong in its business?", bn: "নিজের ব্যবসায় কোম্পানিটি কতটা শক্তিশালী?" } },
+      { key: "shares", q: { en: "Does it share its profit?", bn: "মুনাফার ভাগ শেয়ারহোল্ডারদের দেয় কি?" } },
     ],
   },
   {
     id: "ch-price",
-    title: { en: "Is the price right?", bn: "দাম কি ঠিক আছে?" },
+    title: { en: "Is the price right?", bn: "দাম কি ন্যায্য?" },
     chip: { en: "Price", bn: "দাম" },
     lead: {
       en: "What you pay for its profit, what we think it is worth, and the cash it pays you.",
-      bn: "এর মুনাফার জন্য কত দিচ্ছেন, আমাদের হিসাবে এর মূল্য কত, আর আপনাকে কত নগদ দেয়।",
+      bn: "মুনাফার তুলনায় কত দাম দিচ্ছেন, আমাদের হিসাবে শেয়ারটির ন্যায্য দাম কত, আর নগদ ডিভিডেন্ড কত পাবেন।",
     },
     rows: [
-      { key: "price", q: { en: "What do you pay for its profit?", bn: "এর মুনাফার জন্য কত দিচ্ছেন?" } },
-      { key: "dividend", q: { en: "What does it pay you in cash?", bn: "আপনাকে কত নগদ দেয়?" } },
+      { key: "price", q: { en: "What do you pay for its profit?", bn: "মুনাফার তুলনায় কত দাম দিচ্ছেন?" } },
+      { key: "dividend", q: { en: "What does it pay you in cash?", bn: "নগদ ডিভিডেন্ড কত পাবেন?" } },
     ],
   },
   {
@@ -535,12 +505,12 @@ export const REPORT_CHAPTERS: ReportChapter[] = [
     chip: { en: "Risks", bn: "ঝুঁকি" },
     lead: {
       en: "Serious warnings in its notices, what the owners are doing, and the main risks.",
-      bn: "নোটিশে গুরুতর সতর্কতা, মালিকপক্ষ কী করছে, আর প্রধান ঝুঁকি।",
+      bn: "নোটিশে কোনো গুরুতর সতর্কতা আছে কি না, উদ্যোক্তা-পরিচালকেরা কী করছেন, আর মূল ঝুঁকিগুলো কী।",
     },
     rows: [
-      { key: "red_flags", q: { en: "Any red flags?", bn: "কোনো বড় সতর্কতা আছে?" } },
-      { key: "owners", q: { en: "Are the owners staying?", bn: "মালিকপক্ষ কি থাকছে?" } },
-      { key: "risks", q: { en: "What could go wrong?", bn: "কী ভুল হতে পারে?" } },
+      { key: "red_flags", q: { en: "Any red flags?", bn: "বড় কোনো সতর্কসংকেত আছে কি?" } },
+      { key: "owners", q: { en: "Are the owners staying?", bn: "উদ্যোক্তা-পরিচালকেরা কি শেয়ার ধরে রাখছেন?" } },
+      { key: "risks", q: { en: "What could go wrong?", bn: "কী কী ঝুঁকি আছে?" } },
     ],
   },
   {
@@ -549,11 +519,11 @@ export const REPORT_CHAPTERS: ReportChapter[] = [
     chip: { en: "Next", bn: "এরপর" },
     lead: {
       en: "The dates coming up, your own shares, and better choices in its sector.",
-      bn: "সামনের তারিখগুলো, আপনার নিজের শেয়ার, আর এর সেক্টরে আরও ভালো বিকল্প।",
+      bn: "সামনের তারিখগুলো, আপনার নিজের শেয়ার, আর একই সেক্টরে আরও ভালো বিকল্প।",
     },
     rows: [
       { key: "next", q: { en: "What's coming up?", bn: "সামনে কী আছে?" } },
-      { key: "you", q: { en: "You and this stock", bn: "আপনি আর এই শেয়ার" } },
+      { key: "you", q: { en: "You and this stock", bn: "এই শেয়ারে আপনার অবস্থান" } },
       { key: "alternatives", q: { en: "Is there a better choice?", bn: "আরও ভালো বিকল্প আছে কি?" } },
     ],
   },

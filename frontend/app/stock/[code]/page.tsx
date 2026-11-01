@@ -24,6 +24,9 @@ import StockVisitTracker from "@/components/analytics/StockVisitTracker";
 import DeepAnalysisReport from "@/components/stock/DeepAnalysisReport";
 import StockLockScope from "@/components/premium/LockScope";
 import AnswerCard from "@/components/stock/report/AnswerCard";
+import ReportGate from "@/components/stock/report/ReportGate";
+import PremiumPromo from "@/components/stock/report/PremiumPromo";
+import RallyBanner from "@/components/stock/report/RallyBanner";
 import StockReportBody, { reportChapters } from "@/components/stock/report/StockReportBody";
 import { VIEW_CHAPTER } from "@/lib/stock-report";
 import { StoryTable } from "@/components/stock/report/sections";
@@ -265,9 +268,10 @@ export default async function StockDetailPage({ params }: PageProps) {
     : null;
 
   // --- Decide which sections render, then build the jump-nav from that ---------
-  // "Facts are free, our judgement is Premium": every judgement on the stock
-  // lives in the report's Premium panels; the data room carries only public
-  // numbers and has no locks.
+  // 2026-11-01 (user: "everything we say about the stock will be part of
+  // premium"): a free reader sees the price, the chart, the one Premium card
+  // and the data room's raw numbers. The whole report — the answer, the four
+  // chapters, Our view, the written analysis — sits behind `ReportGate`.
   const hasValuation = financials.length > 0;
   const hasFinancials = financials.length > 0;
   const hasFacts =
@@ -277,15 +281,29 @@ export default async function StockDetailPage({ params }: PageProps) {
   const hasMomentum = !!momentum && momentum.momentum_grade !== "unknown";
   const hasPeers = (related_stocks?.length ?? 0) > 0;
 
-  // The chips (2026-10-30 rebuild): the answer, the report's four chapters
-  // (one per question) and the data room. The analyst note is a data-room tab.
-  // Without a report (it failed to build — every company had one on
-  // 2026-10-29) the page is the cover and the data room.
-  const sections: NavSection[] = [
+  // The chips: a reader with the full report gets the answer, the report's
+  // four chapters (one per question), Our view and the data room; a free
+  // reader gets the price, the one Premium card and the data room. Without a
+  // report (it failed to build — every company had one on 2026-10-29) the
+  // page is the cover and the data room.
+  const chapters = report ? reportChapters(report) : [];
+  const openSections: NavSection[] = [
     { id: "ch-overview", label: report?.answer ? "Answer" : "Overview", labelBn: report?.answer ? "উত্তর" : "এক নজরে" },
-    ...(report ? reportChapters(report).map((c) => ({ id: c.id, label: c.chip.en, labelBn: c.chip.bn })) : []),
+    ...chapters.map((c) => ({ id: c.id, label: c.chip.en, labelBn: c.chip.bn })),
     ...(report?.view ? [{ id: VIEW_CHAPTER.id, label: VIEW_CHAPTER.chip.en, labelBn: VIEW_CHAPTER.chip.bn }] : []),
     { id: "ch-data", label: "Data", labelBn: "তথ্য" },
+  ];
+  const sections: NavSection[] = [
+    { id: "ch-overview", label: "Price", labelBn: "দাম" },
+    ...(report ? [{ id: "ch-premium", label: "Premium", labelBn: "প্রিমিয়াম" }] : []),
+    { id: "ch-data", label: "Data", labelBn: "তথ্য" },
+  ];
+  // What the Premium card lists: the parts this share's report fills.
+  const promoHas = [
+    ...(report?.answer ? ["answer"] : []),
+    ...chapters.map((c) => c.id),
+    ...(report?.view ? [VIEW_CHAPTER.id] : []),
+    ...(deepReport ? ["note"] : []),
   ];
 
   // Current stock as the highlighted first row of the peer comparison.
@@ -388,6 +406,7 @@ export default async function StockDetailPage({ params }: PageProps) {
           key: "note",
           label: { en: "Written analysis", bn: "লেখা বিশ্লেষণ" },
           anchors: ["note"],
+          premium: true,
           body: (
             <div id="note" className="stock-anchor">
               <DeepAnalysisReport report={deepReport} fairValue={report ? null : detail.fair_value ?? null} code={profile.trading_code} />
@@ -430,21 +449,24 @@ export default async function StockDetailPage({ params }: PageProps) {
 
       <StockVisitTracker code={profile.trading_code} />
 
-      {/* The free report of the day opens every lock for everyone. In report
-          mode every other lock on the page points at the one offer. */}
+      {/* The free report of the day and a report key open the whole report. */}
       <StockLockScope code={profile.trading_code} anchor="ch-premium">
-      {/* Cover (2026-10-30 rebuild): name and price, then THE answer —
-          should you buy it today? — from three lights, then the chart. */}
+      {/* Cover: name and price (free). For a reader with the full report,
+          THE answer — should you buy it today? — follows, then the chart. */}
       <HeroSection detail={detail} />
-      {report?.answer && (
-        <AnswerCard
-          answer={report.answer}
-          code={profile.trading_code}
-          ltp={num(detail.latest_price.ltp)}
-          w52High={detail.latest_price.w52_high}
-          w52Low={detail.latest_price.w52_low}
-          questions={report.next_questions ?? []}
-        />
+      {report && (report.warning || report.answer) && (
+        <ReportGate>
+          {report.warning && <RallyBanner w={report.warning} />}
+          {report.answer && (
+            <AnswerCard
+              answer={report.answer}
+              code={profile.trading_code}
+              ltp={num(detail.latest_price.ltp)}
+              w52High={detail.latest_price.w52_high}
+              w52Low={detail.latest_price.w52_low}
+            />
+          )}
+        </ReportGate>
       )}
       <PriceChart code={profile.trading_code} events={report?.events} />
 
@@ -457,11 +479,16 @@ export default async function StockDetailPage({ params }: PageProps) {
         ltp={num(detail.latest_price.ltp)}
         changePct={num(detail.latest_price.change_pct)}
         sections={sections}
+        openSections={openSections}
       />
 
       {/* The report: four chapters of plain questions, Our view, then a short
-          closing offer. The one Premium card (#ch-premium) closes the answer. */}
-      {report && <StockReportBody detail={detail} report={report} />}
+          close. A free reader gets the one Premium card here instead. */}
+      {report && (
+        <ReportGate promo={<PremiumPromo code={profile.trading_code} name={name} has={promoHas} />}>
+          <StockReportBody detail={detail} report={report} />
+        </ReportGate>
+      )}
 
       {/* The data room: every raw number, in tabs, all free. */}
       <DataRoom panels={roomPanels} />

@@ -23,9 +23,8 @@ export const FREE_SCREENER_ROWS = FREE_LIST_ROWS;
  *  the rest of the 15 sits blurred behind one lock (user decision 2026-10-27). */
 export const FREE_FORYOU_ROWS = FREE_LIST_ROWS;
 
-/* The stock report's free taste of the fundamentals is one sample row and
-   one answer word (`FREE_SAMPLE_ROW` / `FREE_WORD_ROWS` in lib/stock-report.ts,
-   2026-10-30); the company chapter was free in full for a day before that. */
+/* The stock report has no free taste since 2026-11-01: the whole report is
+   Premium (today's free report and report keys still open it). */
 
 /** Research list pages and the research rows on /market-analysis and the
  *  dashboard: the top three companies are free (was fully locked until

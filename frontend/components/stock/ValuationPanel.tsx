@@ -12,6 +12,7 @@ import { CHART } from "@/lib/chart-theme";
 import type { Bi } from "@/lib/plain-language";
 import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
+import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
 
 const tx = (b: Bi) => <T en={b.en} bn={b.bn} />;
 
@@ -43,6 +44,7 @@ function tile(label: Bi, value: string, sub: Bi, color?: string) {
 }
 
 export default function ValuationPanel({ financials, latestPrice, scoreRow, valuation, verdictHref }: Props) {
+  const premiumOpen = usePremiumOpen();
   const [tab, setTab] = useState<Tab>("pe");
   const { bn } = useLang();
 
@@ -122,8 +124,8 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
       </div>
 
       {/* The ratios are free facts; our verdict on the price lives in the
-          report's price section, one link away. */}
-      {verdictHref && (
+          report's price section (Premium), one link away for a reader who has it. */}
+      {verdictHref && premiumOpen && (
         <p className="mb-4 text-sm text-text-muted">
           <T en="Is this price low or high? " bn="এই দাম কম না বেশি? " />
           <a href={verdictHref} className="font-semibold text-primary-ink hover:underline">

@@ -16,10 +16,8 @@ import {
   ThisYearPremium, sharesAnswer,
 } from "@/components/stock/report/sections";
 import type { CompanyDetail } from "@/lib/api";
-
-type Teaser = "word" | "lock";
 import {
-  ANSWERS_LOCKED_IN, CHAPTER_SIGNPOST, FREE_SAMPLE_ROW, FREE_WORD_ROWS, REPORT_CHAPTERS, VIEW_CHAPTER, type Bi, type CheckKey, type QuestionKey, type SectionBase, type SectionKey, type StockReport,
+  REPORT_CHAPTERS, VIEW_CHAPTER, type Bi, type CheckKey, type QuestionKey, type SectionBase, type SectionKey, type StockReport,
 } from "@/lib/stock-report";
 
 const CHECKS: CheckKey[] = ["red_flags", "price", "dividend", "this_year", "owners", "cash", "safety", "quality"];
@@ -67,13 +65,9 @@ export function reportChapters(report: StockReport): typeof REPORT_CHAPTERS {
  * plain questions (`QuestionRow`: question, word, picture, one line, what it
  * means, the figures folded). Then Our view, then a short closing offer.
  *
- * The full report (2026-10-30, plan https://claude.ai/artifact/1TuJ9dvifeXTLzs5wVwk2Q):
- * free gives the answers, Premium the full report. The fundamentals (plan
- * https://claude.ai/artifact/KCBooTX7PK7a4PoKkcmoMP): in the company and
- * price chapters a free reader gets one sample row and one answer word; the
- * other rows show only their question and a lock. A closed chapter shows its
- * free answers and one signpost back to the Premium card under the answer
- * (plan https://claude.ai/artifact/UHZTK5nvUVrtzzmq6c2oSX).
+ * All of it is Premium (2026-11-01): the page renders it inside `ReportGate`,
+ * open, and hides it from a reader without the full report, who gets the one
+ * Premium card instead. Nothing in here locks a row of its own.
  */
 export default function StockReportBody({ detail, report }: { detail: CompanyDetail; report: StockReport }) {
   const { profile, latest_price } = detail;
@@ -93,8 +87,6 @@ export default function StockReportBody({ detail, report }: { detail: CompanyDet
       details?: ReactNode; extraMeaning?: Bi[];
     },
     s: SectionBase,
-    open: boolean,
-    teaser?: Teaser,
   ) => (
     <QuestionRow
       key={k}
@@ -113,14 +105,11 @@ export default function StockReportBody({ detail, report }: { detail: CompanyDet
       watch={s.watch}
       source={s.source}
       action={share(k)}
-      sample={open}
-      teaser={teaser}
     />
   );
 
-  /** One row; `free` = the open free sample; `teaser` = closed down to its
-   *  question (+ its answer word for "word") in a locked fundamentals chapter. */
-  const row = (key: QuestionKey, q: Bi, free: boolean, teaser?: Teaser): { node: ReactNode } | null => {
+  /** One question row. */
+  const row = (key: QuestionKey, q: Bi): { node: ReactNode } | null => {
     switch (key) {
       case "this_year": {
         const ty = sec.this_year;
@@ -134,11 +123,11 @@ export default function StockReportBody({ detail, report }: { detail: CompanyDet
             free: ty ? <ThisYearFree s={ty} /> : undefined,
             premiumPicture: ty ? <ThisYearPremium s={ty} /> : undefined,
             details: <ThisYearDetails s={ty} story={st} />,
-          }, s, free, teaser),
+          }, s),
         };
       }
       case "cash":
-        return sec.cash ? { node: fromSection("cash", q, { premiumPicture: <CashPremium s={sec.cash} /> }, sec.cash, free, teaser) } : null;
+        return sec.cash ? { node: fromSection("cash", q, { premiumPicture: <CashPremium s={sec.cash} /> }, sec.cash) } : null;
       case "safety":
         return sec.safety
           ? {
@@ -152,7 +141,7 @@ export default function StockReportBody({ detail, report }: { detail: CompanyDet
                     <SafetyDetails s={sec.safety} />
                   </>
                 ),
-              }, sec.safety, free, teaser),
+              }, sec.safety),
             }
           : null;
       case "quality": {
@@ -183,8 +172,6 @@ export default function StockReportBody({ detail, report }: { detail: CompanyDet
               watch={ql?.watch ?? null}
               source={base.source}
               action={share("quality")}
-              sample={free}
-              teaser={teaser}
             />
           ),
         };
@@ -204,7 +191,6 @@ export default function StockReportBody({ detail, report }: { detail: CompanyDet
               picture={<SharesPicture s={d} />}
               headline={a.line}
               allFree
-              teaser={teaser}
             />
           ),
         };
@@ -224,7 +210,7 @@ export default function StockReportBody({ detail, report }: { detail: CompanyDet
                     w52Low={latest_price.w52_low}
                   />
                 ),
-              }, { ...sec.price, ...(priceAnswer(sec.price) ?? {}) }, free, teaser),
+              }, { ...sec.price, ...(priceAnswer(sec.price) ?? {}) }),
             }
           : null;
       case "dividend":
@@ -234,7 +220,7 @@ export default function StockReportBody({ detail, report }: { detail: CompanyDet
                 free: <DividendFree s={sec.dividend} />,
                 premiumPicture: <DividendPremium s={sec.dividend} />,
                 details: <DividendDetails s={sec.dividend} />,
-              }, sec.dividend, free, teaser),
+              }, sec.dividend),
             }
           : null;
       case "red_flags":
@@ -243,7 +229,7 @@ export default function StockReportBody({ detail, report }: { detail: CompanyDet
               node: fromSection("red_flags", q, {
                 free: <RedFlagsFree s={sec.red_flags} />,
                 details: <RedFlagsDetails s={sec.red_flags} />,
-              }, sec.red_flags, free, teaser),
+              }, sec.red_flags),
             }
           : null;
       case "owners":
@@ -252,17 +238,17 @@ export default function StockReportBody({ detail, report }: { detail: CompanyDet
               node: fromSection("owners", q, {
                 picture: <OwnersFree s={sec.owners} />,
                 details: <OwnersDetails s={sec.owners} />,
-              }, sec.owners, free, teaser),
+              }, sec.owners),
             }
           : null;
       case "risks":
         return sec.risks
-          ? { node: fromSection("risks", q, { details: <RisksDetails s={sec.risks} /> }, sec.risks, free, teaser) }
+          ? { node: fromSection("risks", q, { details: <RisksDetails s={sec.risks} /> }, sec.risks) }
           : null;
       case "next":
         return sec.next
           ? {
-              node: fromSection("next", q, { picture: <NextFree s={sec.next} />, details: <NextDetails s={sec.next} /> }, sec.next, free, teaser),
+              node: fromSection("next", q, { picture: <NextFree s={sec.next} />, details: <NextDetails s={sec.next} /> }, sec.next),
             }
           : null;
       case "you":
@@ -270,7 +256,7 @@ export default function StockReportBody({ detail, report }: { detail: CompanyDet
       case "alternatives":
         return sec.alternatives
           ? {
-              node: fromSection("alternatives", q, { details: <AlternativesDetails s={sec.alternatives} /> }, sec.alternatives, free, teaser),
+              node: fromSection("alternatives", q, { details: <AlternativesDetails s={sec.alternatives} /> }, sec.alternatives),
             }
           : null;
       default:
@@ -305,16 +291,7 @@ export default function StockReportBody({ detail, report }: { detail: CompanyDet
   ) : undefined;
 
   const chapters = reportChapters(report).map((c) => {
-    // Fundamentals (plan https://claude.ai/artifact/KCBooTX7PK7a4PoKkcmoMP):
-    // one sample row open, one answer word, the rest question + lock.
-    const locked = ANSWERS_LOCKED_IN.includes(c.id);
-    const rows = c.rows
-      .map((r) => {
-        const sample = locked && r.key === FREE_SAMPLE_ROW;
-        const teaser: Teaser | undefined = !locked ? undefined : sample || FREE_WORD_ROWS.includes(r.key) ? "word" : "lock";
-        return row(r.key, r.q, sample, teaser);
-      })
-      .filter(Boolean) as { node: ReactNode }[];
+    const rows = c.rows.map((r) => row(r.key, r.q)).filter(Boolean) as { node: ReactNode }[];
     return { c, rows };
   });
   // "You and this stock" only shows for a holder, so it isn't counted.
@@ -336,7 +313,6 @@ export default function StockReportBody({ detail, report }: { detail: CompanyDet
           lead={tx(c.lead)}
           head={c.id === "ch-company" ? companyHead : c.id === "ch-price" ? priceHead : undefined}
           read={report.reads?.[c.id as keyof NonNullable<StockReport["reads"]>] ?? null}
-          signpost={CHAPTER_SIGNPOST[c.id]}
         >
           {rows.map((r) => r.node)}
         </ReportChapter>

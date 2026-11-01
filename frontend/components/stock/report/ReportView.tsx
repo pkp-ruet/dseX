@@ -1,15 +1,12 @@
 "use client";
 
-import { Locked } from "@/components/premium/AnswerLock";
-import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
 import StockChapter from "@/components/stock/StockChapter";
 import WatchlistButton from "@/components/stock/WatchlistButton";
 import BuyBelowAlert from "@/components/stock/report/BuyBelowAlert";
-import { ChapterSignpost } from "@/components/stock/report/ReportChapter";
 import { money, tx } from "@/components/stock/report/fmt";
 import { T } from "@/components/i18n/T";
 import { trackEvent } from "@/lib/track";
-import { CHAPTER_SIGNPOST, VIEW_CHAPTER, type Bi, type ReportView as View } from "@/lib/stock-report";
+import { VIEW_CHAPTER, type Bi, type ReportView as View } from "@/lib/stock-report";
 
 function List({ items, mark, tone }: { items: Bi[]; mark: string; tone: "good" | "bad" | "info" }) {
   return (
@@ -31,8 +28,7 @@ function List({ items, mark, tone }: { items: Bi[]; mark: string; tone: "good" |
  * answer (the Buy signal's own lines turned into prices and events — the
  * backend's `build_view`), our buy price with an alert, and "watch this
  * report" (following the share brings one push when the answer changes).
- * Premium; a free reader gets one signpost back to the Premium card under
- * the answer (the content stays in the HTML under `Locked`).
+ * Premium, like the whole report (2026-11-01, `ReportGate`).
  */
 export default function ReportView({
   view,
@@ -47,7 +43,6 @@ export default function ReportView({
   w52High?: number | null;
   w52Low?: number | null;
 }) {
-  const open = usePremiumOpen();
   const body = (
     <div className="soft-card p-5 sm:p-6">
       <p className="vw-head">{tx(view.headline)}</p>
@@ -82,7 +77,7 @@ export default function ReportView({
         <p>
           <T
             en="Watch this report: follow the share and we send one notification when our answer changes, a red flag appears or new results land."
-            bn="এই রিপোর্টে নজর রাখুন: শেয়ারটি ফলো করুন, আমাদের উত্তর বদলালে, নতুন বড় সতর্কতা এলে বা নতুন ফল প্রকাশ হলে একটি নোটিফিকেশন পাঠাব।"
+            bn="এই রিপোর্টের ওপর নজর রাখুন। শেয়ারটি ফলো করলে আমাদের উত্তর বদলালে, নতুন কোনো বড় সতর্কতা দেখা দিলে বা নতুন ফল প্রকাশ হলে আমরা আপনাকে একটি নোটিফিকেশন পাঠাব।"
           />
         </p>
         <WatchlistButton code={code} />
@@ -98,16 +93,11 @@ export default function ReportView({
       lead={
         <T
           en="Everything above, put together: the case for, the case against, and what would change our answer."
-          bn="ওপরের সবকিছু একসঙ্গে: পক্ষে যুক্তি, বিপক্ষে যুক্তি, আর কী হলে আমাদের উত্তর বদলাবে।"
+          bn="ওপরের সব কথা এক জায়গায়: পক্ষে যুক্তি, বিপক্ষে যুক্তি, আর কী হলে আমাদের উত্তর বদলাবে।"
         />
       }
     >
-      {open ? body : (
-        <>
-          <ChapterSignpost id={VIEW_CHAPTER.id} text={CHAPTER_SIGNPOST[VIEW_CHAPTER.id]} />
-          <Locked>{body}</Locked>
-        </>
-      )}
+      {body}
     </StockChapter>
   );
 }

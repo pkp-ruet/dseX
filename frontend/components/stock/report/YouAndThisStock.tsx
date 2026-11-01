@@ -46,28 +46,28 @@ export default function YouAndThisStock({
   if (qty > 0 && avg != null) {
     freeLine = {
       en: `You own ${qty.toLocaleString("en-US")} shares at an average of ${money(avg)}.`,
-      bn: `আপনার ${qty.toLocaleString("en-US")}টি শেয়ার আছে, গড় দাম ${money(avg)}।`,
+      bn: `আপনার কাছে ${qty.toLocaleString("en-US")}টি শেয়ার আছে। গড় কেনা দাম ${money(avg)}।`,
     };
     if (upcomingCash != null) {
       const net = qty * upcomingCash * (1 - tax);
       lines.push({
         en: `Your ${qty.toLocaleString("en-US")} shares get about ${money(net)} after tax if you hold them on the record date.`,
-        bn: `রেকর্ড ডেটে ধরে রাখলে আপনার ${qty.toLocaleString("en-US")}টি শেয়ারে কর কাটার পর প্রায় ${money(net)} পাবেন।`,
+        bn: `রেকর্ড ডেটে শেয়ারগুলো আপনার কাছে থাকলে ${qty.toLocaleString("en-US")}টি শেয়ারে কর কাটার পর প্রায় ${money(net)} পাবেন।`,
       });
       inside.push({ en: "The cash the coming dividend pays on your shares", bn: "আসন্ন ডিভিডেন্ডে আপনার শেয়ারে কত নগদ আসবে" });
     }
     const even = (avg * (1 + FEE)) / (1 - FEE);
     lines.push({
       en: `To come out even after fees, you need to sell above ${money(even)}${ltp != null ? (ltp >= even ? ". Today's price is above that." : ". Today's price is below that.") : "."}`,
-      bn: `ফি বাদ দিয়ে সমান থাকতে হলে ${money(even)}-এর ওপরে বিক্রি করতে হবে${ltp != null ? (ltp >= even ? "। আজকের দাম তার ওপরে।" : "। আজকের দাম তার নিচে।") : "।"}`,
+      bn: `ফি দেওয়ার পরও লোকসান এড়াতে হলে ${money(even)}-এর ওপরে বিক্রি করতে হবে${ltp != null ? (ltp >= even ? "। আজকের দাম তার ওপরে।" : "। আজকের দাম তার নিচে।") : "।"}`,
     });
-    inside.push({ en: "Your break-even price after fees", bn: "ফি বাদ দিয়ে আপনার সমান থাকার দাম" });
+    inside.push({ en: "Your break-even price after fees", bn: "ফি ধরে কোন দামে বিক্রি করলে আপনার লোকসান হবে না" });
     if (ltp != null && ltp > 0) {
       const more = Math.max(1, Math.round(qty / 4));
       const newAvg = (cost + more * ltp) / (qty + more);
       lines.push({
         en: `Buying ${more.toLocaleString("en-US")} more at today's ${money(ltp)} would move your average from ${money(avg)} to ${money(newAvg)}.`,
-        bn: `আজকের ${money(ltp)} দামে আরও ${more.toLocaleString("en-US")}টি কিনলে আপনার গড় দাম ${money(avg)} থেকে হবে ${money(newAvg)}।`,
+        bn: `আজকের ${money(ltp)} দামে আরও ${more.toLocaleString("en-US")}টি কিনলে আপনার গড় দাম ${money(avg)} থেকে ${money(newAvg)} হবে।`,
       });
       inside.push({ en: "What buying more would do to your average", bn: "আরও কিনলে আপনার গড় দাম কত হবে" });
     }
@@ -84,24 +84,24 @@ export default function YouAndThisStock({
         const cashPart = upcomingCash != null ? shares * upcomingCash * (1 - tax) : null;
         lines.push({
           en: `৳10,000 buys ${shares} shares today${cashPart != null ? `, and they would get about ${money(cashPart)} after tax on the record date` : ""}.`,
-          bn: `আজ ৳10,000-এ ${shares}টি শেয়ার পাওয়া যায়${cashPart != null ? `, আর রেকর্ড ডেটে কর কাটার পর প্রায় ${money(cashPart)} পাওয়া যাবে` : ""}।`,
+          bn: `আজ ৳10,000 দিয়ে ${shares}টি শেয়ার কেনা যায়${cashPart != null ? `, আর রেকর্ড ডেটে সেগুলোতে কর কাটার পর প্রায় ${money(cashPart)} নগদ আসবে` : ""}।`,
         });
-        inside.push({ en: "What ৳10,000 buys today and the cash it would get", bn: "আজ ৳10,000-এ কী পাওয়া যায় আর কত নগদ আসবে" });
+        inside.push({ en: "What ৳10,000 buys today and the cash it would get", bn: "আজ ৳10,000 দিয়ে কতটি শেয়ার কেনা যায়, আর তাতে কত নগদ আসবে" });
       }
     }
     if (buyBelow != null) {
       lines.push({
         en: `Our buy-below price is ${money(buyBelow)}${ltp != null ? (ltp <= buyBelow ? ", and today's price is under it." : `, ${(((ltp - buyBelow) / ltp) * 100).toFixed(0)}% under today's price.`) : "."} You can set an alert there in the price section.`,
-        bn: `আমাদের কেনার সীমা ${money(buyBelow)}${ltp != null ? (ltp <= buyBelow ? ", আর আজকের দাম তার নিচে।" : `, আজকের দামের চেয়ে ${(((ltp - buyBelow) / ltp) * 100).toFixed(0)}% কম।`) : "।"} দামের অংশে সেখানে অ্যালার্ট দিতে পারেন।`,
+        bn: `আমাদের কেনার দাম ${money(buyBelow)}-এর নিচে${ltp != null ? (ltp <= buyBelow ? "। আজকের দাম এর নিচেই আছে।" : `। এটি আজকের দামের চেয়ে ${(((ltp - buyBelow) / ltp) * 100).toFixed(0)}% কম।`) : "।"} দামের অংশ থেকে এই দামে অ্যালার্ট দিতে পারেন।`,
       });
-      inside.push({ en: "How far today's price is from our buy-below price", bn: "আজকের দাম আমাদের কেনার সীমা থেকে কত দূরে" });
+      inside.push({ en: "How far today's price is from our buy-below price", bn: "আজকের দাম আমাদের কেনার দাম থেকে কতটা দূরে" });
     }
   }
 
   return (
     <section id="rp-you" className="rq stock-anchor" aria-labelledby="rp-you-t">
       <div className="rq-head">
-        <h3 id="rp-you-t"><T en="You and this stock" bn="আপনি আর এই শেয়ার" /></h3>
+        <h3 id="rp-you-t"><T en="You and this stock" bn="এই শেয়ারে আপনার অবস্থান" /></h3>
       </div>
       <p className="rq-answer">
         <T en={freeLine.en} bn={freeLine.bn} />
@@ -150,7 +150,7 @@ export default function YouAndThisStock({
         source={
           <T
             en="From your portfolio and watchlist. Fees are our 0.4% a side estimate; dividend tax 10%."
-            bn="আপনার পোর্টফোলিও আর ওয়াচলিস্ট থেকে। ফি প্রতি দিকে 0.4% ধরে হিসাব; ডিভিডেন্ডে কর 10%।"
+            bn="আপনার পোর্টফোলিও আর ওয়াচলিস্ট থেকে নেওয়া। কেনা আর বেচা প্রতিবারে 0.4% ফি এবং ডিভিডেন্ডে 10% কর ধরে হিসাব করা হয়েছে।"
           />
         }
       />

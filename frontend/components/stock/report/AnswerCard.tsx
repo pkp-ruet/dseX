@@ -1,14 +1,10 @@
 "use client";
 
-import { Locked } from "@/components/premium/AnswerLock";
-import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
-import YourPosition from "@/components/stock/YourPosition";
 import BuyBelowAlert from "@/components/stock/report/BuyBelowAlert";
-import NextQuestions from "@/components/stock/report/NextQuestions";
 import { TONE_CLASS, money, tx } from "@/components/stock/report/fmt";
 import { IconCheck } from "@/components/ui/icons";
 import { T } from "@/components/i18n/T";
-import type { NextQuestion, StockAnswer, Tone } from "@/lib/stock-report";
+import type { StockAnswer, Tone } from "@/lib/stock-report";
 
 const MARK: Record<Tone, string> = { good: "", fair: "!", bad: "✕", neutral: "–" };
 
@@ -21,13 +17,10 @@ const MARK: Record<Tone, string> = { good: "", fair: "!", bad: "✕", neutral: "
  * disagrees with the Buy / Sell chip; the light that decided a "not yet" is
  * outlined.
  *
- * Free: the answer, its line, the three light words. Premium: why each light
- * is what it is, and our buy price (with an alert). The reader's own shares
- * follow (`YourPosition`, signed-in holders and followers only), then — for
- * a reader who can't see the full report — the page's one Premium card
- * (`NextQuestions`, `#ch-premium`): the question each free answer leaves.
- * It replaced the scorecard (score ring, grade, take, three-line summary,
- * eight checks).
+ * Premium, like the whole report (2026-11-01, `ReportGate`): the answer, its
+ * line, the three lights, why each light is what it is, and our buy price
+ * (with an alert). It replaced the scorecard (score ring, grade, take,
+ * three-line summary, eight checks).
  */
 export default function AnswerCard({
   answer,
@@ -35,18 +28,15 @@ export default function AnswerCard({
   ltp,
   w52High,
   w52Low,
-  questions = [],
 }: {
   answer: StockAnswer;
-  questions?: NextQuestion[];
   code: string;
   ltp: number | null;
   w52High?: number | null;
   w52Low?: number | null;
 }) {
-  const open = usePremiumOpen();
   const whys = answer.lights.filter((l) => l.why);
-  const premiumPart = (
+  const why = (
     <>
       {whys.length > 0 && (
         <ul className="ac-why">
@@ -72,7 +62,7 @@ export default function AnswerCard({
   return (
     <section id="ch-answer" className="ac soft-card stock-anchor p-5 sm:p-7" aria-labelledby="ac-t">
       <p className="ac-ask">
-        <T en="Should you buy it today?" bn="আজ কি এটি কেনা উচিত?" />
+        <T en="Should you buy it today?" bn="আজ কি শেয়ারটি কেনা উচিত?" />
       </p>
       <h2 id="ac-t" className={`ac-word ${TONE_CLASS[answer.tone]}`}>
         {tx(answer.word)}
@@ -85,20 +75,13 @@ export default function AnswerCard({
         ))}
       </div>
 
-      {(whys.length > 0 || answer.buy_price != null) &&
-        (open ? premiumPart : <Locked>{premiumPart}</Locked>)}
+      {why}
 
       <div className="ac-foot">
         <span className="text-text-muted">
-          <T en="Tap a light to read that part of the report." bn="রিপোর্টের সেই অংশ পড়তে যেকোনো আলোয় চাপুন।" />
+          <T en="Tap a light to read that part of the report." bn="যে আলোয় চাপবেন, রিপোর্টের সেই অংশটি খুলবে।" />
         </span>
       </div>
-
-      <div className="ac-pos">
-        <YourPosition code={code} ltp={ltp} />
-      </div>
-
-      <NextQuestions code={code} rows={questions} />
     </section>
   );
 }

@@ -11,10 +11,10 @@ import type { Bi, Tone } from "@/lib/stock-report";
 
 /**
  * ONE question of a report (2026-10-30 rebuild; shared by the stock report
- * and, since the same day, the portfolio report): the question (h3)
- * and its one-word answer, a small picture, the answer in one sentence, what
- * it means and what to watch, then the figures folded under "See the
- * figures". Every row on the page reads the same way.
+ * and, since the same day, the portfolio report): the question (h3) and its
+ * one-word answer, the answer in one sentence, a small picture, what it
+ * means and what to watch (one labelled box), then the figures folded under
+ * "See the figures". Every row on the page reads the same way.
  *
  * Free / Premium, whole or nothing: a free reader gets the question, the
  * word, the free picture (public figures), the free line and the free facts.
@@ -93,18 +93,27 @@ export default function QuestionRow({
   const open = (allFree && !teaser) || sample || premiumOpen;
   const compact = !open && !!teaser;
 
+  // What it means and what to watch, in one labelled box (2026-11-01, user:
+  // "make the premium sections look more organized").
   const explain =
     meaning.length > 0 || watch ? (
       <div className="rq-explain">
-        {meaning.map((m, i) => (
-          <p key={i} className="text-sm leading-relaxed text-text-main sm:text-base">{tx(m)}</p>
-        ))}
+        {meaning.length > 0 && (
+          <div className="rq-explain-part">
+            <p className="rq-explain-k">
+              <T en="What this means" bn="এর মানে কী" />
+            </p>
+            {meaning.map((m, i) => (
+              <p key={i} className="rq-explain-p">{tx(m)}</p>
+            ))}
+          </div>
+        )}
         {watch && (
-          <div className="rp-watch">
-            <p className="text-xs font-bold text-text-muted">
+          <div className="rq-explain-part" data-watch="true">
+            <p className="rq-explain-k">
               <T en="What to watch" bn="যা খেয়াল রাখবেন" />
             </p>
-            <p className="mt-0.5 text-sm leading-snug text-text-main">{tx(watch)}</p>
+            <p className="rq-explain-p">{tx(watch)}</p>
           </div>
         )}
       </div>
@@ -117,9 +126,9 @@ export default function QuestionRow({
       <summary>
         <span className="rq-why-text">
           <b className="rq-why-closed"><T en="See the figures" bn="সংখ্যাগুলো দেখুন" /></b>
-          <b className="rq-why-opened"><T en="Hide the figures" bn="সংখ্যাগুলো বন্ধ করুন" /></b>
+          <b className="rq-why-opened"><T en="Hide the figures" bn="সংখ্যাগুলো লুকান" /></b>
           <span className="rq-why-hint">
-            <T en="The figures behind this answer, and where they come from" bn="এই উত্তরের পেছনের সংখ্যা, আর সেগুলো কোথা থেকে" />
+            <T en="The figures behind this answer, and where they come from" bn="যে হিসাব থেকে এই উত্তর, আর তথ্য কোথা থেকে নেওয়া" />
           </span>
         </span>
         <span className="rq-why-icon" aria-hidden="true">
@@ -166,12 +175,12 @@ export default function QuestionRow({
         </Locked>
       )}
 
-      {!compact && picture && <div className="rq-pic">{picture}</div>}
-
       {compact ? null : open ? (
+        // The answer leads; the pictures, what it means and the figures follow.
         <>
-          {premiumPicture && <div className="rq-pic">{premiumPicture}</div>}
           {headline && <p className="rq-answer">{tx(headline)}</p>}
+          {picture && <div className="rq-pic">{picture}</div>}
+          {premiumPicture && <div className="rq-pic">{premiumPicture}</div>}
           {free && <div className="rq-free">{free}</div>}
           {explain}
           {figures}
@@ -179,6 +188,7 @@ export default function QuestionRow({
       ) : (
         <>
           {freeLine && <p className="rq-answer">{tx(freeLine)}</p>}
+          {picture && <div className="rq-pic">{picture}</div>}
           {free && <div className="rq-free">{free}</div>}
           {(premiumPicture || headline || explain || details) && (
             <Locked>

@@ -7,6 +7,7 @@ import type { StockSignalInfo } from "@/lib/api";
 import { money, changePct as fmtChange, changeTone } from "@/lib/formatters";
 import StarButton from "@/components/ui/StarButton";
 import { usePremium } from "@/lib/premium";
+import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
 import StockSectionNav, { type NavSection } from "@/components/stock/StockSectionNav";
 import StickyStackMeasure, {
   BAR_H,
@@ -30,8 +31,10 @@ interface Props {
   signal?: StockSignalInfo | null;
   ltp: number | null;
   changePct: number | null;
-  /** The section chips — the bar's second line. */
+  /** The section chips — the bar's second line — as a free reader sees the page. */
   sections: NavSection[];
+  /** The chips once the full report is open (Premium, today's free report, a key). */
+  openSections?: NavSection[];
 }
 
 /**
@@ -53,8 +56,10 @@ interface Props {
  * while reading down and comes back on the first scroll up — the chips stay.
  */
 export default function StickySummaryBar({
-  code, score, rank, total, signal, ltp, changePct, sections,
+  code, score, rank, total, signal, ltp, changePct, sections, openSections,
 }: Props) {
+  const reportOpen = usePremiumOpen();
+  const chips = reportOpen && openSections ? openSections : sections;
   // The signal's reason is Premium; free readers get the chip without the tooltip.
   const { isPremium } = usePremium();
   const { bn } = useLang();
@@ -172,7 +177,7 @@ export default function StickySummaryBar({
       </div>
 
       {/* Line 2 — the chips; this is the element's in-flow height */}
-      <StockSectionNav sections={sections} />
+      <StockSectionNav sections={chips} />
       {/* writes the in-flow height to --stock-sticky-h for .stock-anchor */}
       <StickyStackMeasure />
     </div>

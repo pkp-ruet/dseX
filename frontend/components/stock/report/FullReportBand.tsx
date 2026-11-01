@@ -22,9 +22,9 @@ export default function FullReportBand({ code, report, questions }: { code: stri
   const scope = useLockScope();
   if (!open) return null;
   const title = isPremium ? (
-    <T en={`Your full report on ${code}`} bn={`${code}-এর আপনার পূর্ণ রিপোর্ট`} />
+    <T en={`Your full report on ${code}`} bn={`${code} নিয়ে আপনার পূর্ণ রিপোর্ট`} />
   ) : scope?.reason === "key" ? (
-    <T en={`Your free full report on ${code}`} bn={`${code}-এর আপনার ফ্রি পূর্ণ রিপোর্ট`} />
+    <T en={`Your free full report on ${code}`} bn={`${code} নিয়ে আপনার ফ্রি পূর্ণ রিপোর্ট`} />
   ) : (
     <T en={`Today's free full report: ${code}`} bn={`আজকের ফ্রি পূর্ণ রিপোর্ট: ${code}`} />
   );
@@ -46,7 +46,7 @@ export default function FullReportBand({ code, report, questions }: { code: stri
               {" · "}
             </>
           )}
-          <T en={`${questions} questions answered, each chapter read for you`} bn={`${questions}টি প্রশ্নের উত্তর, প্রতিটি অধ্যায় আপনার জন্য লেখা`} />
+          <T en={`${questions} questions answered, each chapter read for you`} bn={`${questions}টি প্রশ্নের উত্তর, আর প্রতিটি অধ্যায়ের সারকথা আপনার জন্য লেখা`} />
         </span>
       </div>
     </div>

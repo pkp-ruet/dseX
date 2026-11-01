@@ -198,8 +198,6 @@
 .ac-why b { display: block; font-size: var(--fs-2xs); color: var(--text-muted); }
 .ac-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-4); margin-top: var(--space-3); font-size: var(--fs-xs); }
 .ac-buyprice { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); margin-top: var(--space-3); padding: var(--space-3); border-radius: var(--radius); background: var(--surface-2); font-size: var(--fs-sm); }
-.ac-pos { margin-top: var(--space-4); }
-.ac-pos:empty { display: none; }
 @media (max-width: 380px) {
   .ac-lights { grid-template-columns: minmax(0, 1fr); }
   .ac-plus { display: none; }
@@ -226,9 +224,11 @@
 .rq-head h3 { min-width: 0; font-size: var(--fs-title); font-weight: 700; line-height: 1.3; color: var(--text); }
 .rq-chips { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; min-width: 0; max-width: 50%; }
 .rq-tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: var(--fs-2xs); font-weight: 600; color: var(--gold-ink); background: rgb(var(--gold-rgb) / 0.12); white-space: nowrap; }
-.rq-answer { margin-top: var(--space-2); font-size: var(--fs-md); line-height: 1.5; color: var(--text); }
-.rq-free { margin-top: var(--space-2); }
-.rq-pic { margin-top: var(--space-1); }
+/* The answer in one sentence: the line a reader takes away, so it leads. */
+.rq-answer { margin-top: var(--space-3); max-width: 65ch; font-size: var(--fs-md); font-weight: 600; line-height: 1.5; color: var(--text); }
+.rq-free { margin-top: var(--space-3); }
+.rq-pic { margin-top: var(--space-4); }
+.rq-answer + .rq-pic { margin-top: var(--space-3); }
 /* "See why we say this" (2026-10-30, user: easy to miss): a full-width tap
    bar in the clay tint that names what it holds, with a round chevron —
    not a quiet text link. Open, it reads "Hide the details" and the body sits
@@ -275,15 +275,34 @@
 /* ===================================================================
    The full report (2026-10-30, plan https://claude.ai/artifact/1TuJ9dvifeXTLzs5wVwk2Q)
    =================================================================== */
-/* Explanations sit open in a full report; only the figures fold. */
-.rq-explain { display: grid; gap: var(--space-3); margin-top: var(--space-3); }
-.rq-explain .rp-watch { margin-top: 0; }
+/* Explanations sit open in a full report; only the figures fold. What it
+   means and what to watch share one quiet box, each part labelled
+   (2026-11-01, user: "more organized, clean"). */
+.rq-explain {
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: rgb(var(--bg-rgb));
+  border: 1px solid var(--border);
+}
+.rq-explain-part + .rq-explain-part { margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--border); }
+.rq-explain-k { font-size: var(--fs-xs); font-weight: 700; color: var(--text); }
+.rq-explain-part[data-watch="true"] .rq-explain-k { color: var(--watch); }
+.rq-explain-p { margin-top: var(--space-1); max-width: 65ch; font-size: var(--fs-sm); line-height: 1.6; color: var(--text); }
+.rq-explain-p + .rq-explain-p { margin-top: var(--space-2); }
+@media (min-width: 640px) {
+  .rq-explain { padding: var(--space-4) var(--space-6); }
+  .rq-explain-p { font-size: var(--fs-base); }
+}
 
 /* A chapter is ONE card (2026-10-30, plan https://claude.ai/artifact/KCBooTX7PK7a4PoKkcmoMP):
    its answer, its read as the opening paragraph, the rows, a gold footer. */
 .rc-top { padding-top: var(--space-6); padding-bottom: var(--space-2); }
 .rc-top .rq-chead { margin-bottom: 0; }
-.rc-read { margin-top: var(--space-4); font-size: var(--fs-md); line-height: 1.6; color: var(--text); }
+/* The chapter's read, under "In short": a clay rule marks it as the summary. */
+.rc-sum { margin-top: var(--space-4); padding-left: var(--space-4); border-left: 3px solid rgb(var(--primary-rgb) / 0.55); }
+.rc-sum-k { font-size: var(--fs-xs); font-weight: 700; color: var(--primary-ink); }
+.rc-read { margin-top: var(--space-1); max-width: 65ch; font-size: var(--fs-md); line-height: 1.6; color: var(--text); }
 @media (min-width: 640px) { .rc-top { padding-top: var(--space-8); } }
 
 /* A closed fundamentals row: its question and a lock (or its answer word). */
@@ -336,9 +355,59 @@
 .vw-row p { font-size: var(--fs-sm); line-height: 1.45; color: var(--text); max-width: 46ch; }
 
 /* ===================================================================
-   The one Premium card, closing the answer card (2026-10-30, plan
-   https://claude.ai/artifact/UHZTK5nvUVrtzzmq6c2oSX): each free answer
-   beside the question it leaves. Bleeds to the card's edges (the answer
+   THE Premium card on the stock page (`#ch-premium`, 2026-11-01): a free
+   reader sees this where the report would be. Gold band on top (what
+   Premium does), white body (what the report answers about this share),
+   then the price and one button.
+   =================================================================== */
+.sp {
+  margin: var(--space-8) 0;
+  border: 1px solid rgb(var(--gold-rgb) / 0.55);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+.sp-top {
+  padding: var(--space-6) var(--space-4);
+  background: var(--gold-light);
+  border-bottom: 1px solid rgb(var(--gold-rgb) / 0.40);
+}
+.sp-tag { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--fs-sm); font-weight: 700; color: var(--gold-ink); }
+.sp-medal { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--gold); color: var(--surface); }
+.sp-title { margin-top: var(--space-3); font-size: var(--fs-xl); font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; color: var(--text); text-wrap: balance; }
+.sp-lead { margin-top: var(--space-2); max-width: 60ch; font-size: var(--fs-md); line-height: 1.5; color: var(--text); }
+
+.sp-body { padding: var(--space-6) var(--space-4) var(--space-4); }
+.sp-k { font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+.sp-rows { display: grid; gap: var(--space-4); margin-top: var(--space-4); }
+.sp-row { display: flex; align-items: flex-start; gap: var(--space-3); }
+.sp-icon { flex: none; width: 40px; height: 40px; border-radius: var(--radius); display: grid; place-items: center; background: var(--gold-light); color: var(--gold-ink); }
+.sp-row b { display: block; font-size: var(--fs-md); line-height: 1.3; color: var(--text); }
+.sp-row b + span { display: block; margin-top: 2px; font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
+.sp-also { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-6); }
+.sp-also > li { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 var(--space-3); border-radius: 999px; border: 1px solid var(--border); font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
+.sp-also > li > span { color: var(--gold-ink); display: inline-flex; }
+
+.sp-foot { display: grid; gap: var(--space-4); padding: var(--space-4); border-top: 1px solid var(--border); }
+.sp-price b { display: block; font-size: var(--fs-lg); font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+.sp-price span { display: block; margin-top: 2px; font-size: var(--fs-sm); color: var(--text); }
+.sp-cta { display: grid; gap: var(--space-2); }
+.sp-fine { padding: 0 var(--space-4) var(--space-6); font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+
+@media (min-width: 640px) {
+  .sp-top { padding: var(--space-8); }
+  .sp-title { font-size: var(--fs-2xl); }
+  .sp-body { padding: var(--space-8) var(--space-8) var(--space-6); }
+  .sp-rows { grid-template-columns: 1fr 1fr; gap: var(--space-6) var(--space-8); }
+  .sp-foot { grid-template-columns: minmax(0, 1fr) minmax(260px, 340px); align-items: center; padding: var(--space-6) var(--space-8); }
+  .sp-fine { padding: 0 var(--space-8) var(--space-8); }
+}
+
+/* ===================================================================
+   The portfolio report's Premium card, closing its answer card
+   (`PortfolioQuestions`; the stock page's own until 2026-11-01): each free
+   answer beside the question it leaves. Bleeds to the card's edges (the answer
    card is p-5 / sm:p-7) so it reads as the answer's lower half, in gold.
    =================================================================== */
 .nq {
@@ -371,7 +440,7 @@
 .nq-actions { display: grid; gap: var(--space-2); }
 .nq-fine { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
 
-/* A closed chapter's one signpost back to that card. */
+/* A closed chapter's one signpost back to its page's Premium card (the portfolio report). */
 .rq-sign {
   display: flex;
   align-items: flex-start;

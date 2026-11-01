@@ -52,32 +52,32 @@ export const PILLAR_NAMES: Record<string, { en: string; bn: string }> = {
 // Sub-metric keys per pillar, with their names in both languages.
 const PILLAR_SUBS: Record<string, { key: string; en: string; bn: string }[]> = {
   p1_biz: [
-    { key: "p1_eps_consist", en: "Years with a profit", bn: "মুনাফার বছর" },
+    { key: "p1_eps_consist", en: "Years with a profit", bn: "যত বছর মুনাফা হয়েছে" },
     { key: "p1_eps_cagr", en: "Profit growing over the years", bn: "বছরে বছরে মুনাফা বৃদ্ধি" },
-    { key: "p1_roe", en: "Profit on the owners' money", bn: "মালিকের টাকায় মুনাফা" },
-    { key: "p1_npm_trend", en: "Keeping more of each sale", bn: "প্রতি বিক্রিতে বেশি রাখা" },
+    { key: "p1_roe", en: "Profit on the owners' money", bn: "নিজস্ব মূলধনে মুনাফা" },
+    { key: "p1_npm_trend", en: "Keeping more of each sale", bn: "প্রতি বিক্রিতে বেশি মুনাফা থাকা" },
   ],
   p2_health: [
     // p2_de is null for banks / NBFIs and p2_capital is null for everyone else,
     // so exactly one leverage bar renders per company (rows with null hide).
     { key: "p2_de", en: "Few loans", bn: "কম ঋণ" },
-    { key: "p2_capital", en: "Its own money", bn: "নিজস্ব টাকা" },
+    { key: "p2_capital", en: "Its own money", bn: "নিজস্ব মূলধন" },
     { key: "p2_ic", en: "Can pay its interest", bn: "সুদ দেওয়ার সামর্থ্য" },
-    { key: "p2_cfo", en: "Profit coming in as cash", bn: "মুনাফা নগদে আসা" },
+    { key: "p2_cfo", en: "Profit coming in as cash", bn: "মুনাফার টাকা হাতে আসা" },
     { key: "p2_cash", en: "Cash in hand", bn: "হাতে নগদ" },
   ],
   p3_moat: [
-    { key: "p3_margin", en: "Profit kept from sales", bn: "বিক্রি থেকে থাকা মুনাফা" },
-    { key: "p3_rev_vol", en: "Steady sales", bn: "স্থির বিক্রি" },
-    { key: "p3_sector_rank", en: "Size in its sector", bn: "সেক্টরে আকার" },
-    { key: "p3_capex", en: "Spending on growth", bn: "প্রবৃদ্ধিতে বিনিয়োগ" },
+    { key: "p3_margin", en: "Profit kept from sales", bn: "বিক্রি থেকে যে মুনাফা থাকে" },
+    { key: "p3_rev_vol", en: "Steady sales", bn: "স্থিতিশীল বিক্রি" },
+    { key: "p3_sector_rank", en: "Size in its sector", bn: "সেক্টরে কোম্পানির আকার" },
+    { key: "p3_capex", en: "Spending on growth", bn: "ব্যবসা বাড়াতে খরচ" },
   ],
   p4_val: [
     { key: "p4_pe", en: "Price compared with profit", bn: "মুনাফার তুলনায় দাম" },
     { key: "p4_pb", en: "Price compared with what it owns", bn: "সম্পদের তুলনায় দাম" },
   ],
   p5_div: [
-    { key: "p5_consist", en: "Pays every year", bn: "প্রতি বছর দেয়" },
+    { key: "p5_consist", en: "Pays every year", bn: "প্রতি বছর ডিভিডেন্ড দেয়" },
     { key: "p5_payout", en: "Dividend it can afford", bn: "সামর্থ্যের মধ্যে ডিভিডেন্ড" },
     { key: "p5_yield", en: "Cash it pays on today's price", bn: "আজকের দামে নগদ ডিভিডেন্ড" },
     { key: "p5_dps_cagr", en: "Dividend growth", bn: "ডিভিডেন্ড বৃদ্ধি" },
@@ -102,8 +102,8 @@ function pillarNumbers(pillarKey: string, detail: CompanyDetail): Fig[] {
       // Plain words (2026-10-30): taka of profit per ৳100, never "ROE" / "margin".
       const roe = roe3yAvg(rows);
       const nm = last ? netMargin(last.net_profit, last.revenue ?? last.net_interest_income) : null;
-      push("Profit a year on every ৳100 of the owners' money", "মালিকের প্রতি ৳100-এ বছরে মুনাফা", roe == null ? null : `৳${roe.toFixed(0)}`);
-      push("Profit kept from every ৳100 it sells", "প্রতি ৳100 বিক্রিতে থাকা মুনাফা", nm == null ? null : `৳${nm.toFixed(0)}`);
+      push("Profit a year on every ৳100 of the owners' money", "নিজস্ব মূলধনের প্রতি ৳100-এ বছরে মুনাফা", roe == null ? null : `৳${roe.toFixed(0)}`);
+      push("Profit kept from every ৳100 it sells", "প্রতি ৳100 বিক্রিতে যত মুনাফা থাকে", nm == null ? null : `৳${nm.toFixed(0)}`);
       break;
     }
     case "p2_health": {
@@ -113,22 +113,22 @@ function pillarNumbers(pillarKey: string, detail: CompanyDetail): Fig[] {
       if (isLender) {
         const eq = toNum(last?.total_equity ?? null);
         const ta = toNum(last?.total_assets ?? null);
-        push("Its own money in every ৳100 it holds", "প্রতি ৳100 সম্পদে নিজস্ব টাকা", eq != null && ta != null && ta > 0 ? `৳${((eq / ta) * 100).toFixed(0)}` : null);
+        push("Its own money in every ৳100 it holds", "প্রতি ৳100 সম্পদে নিজস্ব মূলধন", eq != null && ta != null && ta > 0 ? `৳${((eq / ta) * 100).toFixed(0)}` : null);
       } else {
         const de = last ? debtToEquity(last.total_debt, last.total_equity) : null;
         const ic = last ? interestCoverage(last.ebit, last.interest_expense) : null;
-        push("Loans for every ৳100 of the owners' money", "মালিকের প্রতি ৳100-এর বিপরীতে ঋণ", de == null ? null : `৳${(de * 100).toFixed(0)}`);
+        push("Loans for every ৳100 of the owners' money", "নিজস্ব মূলধনের প্রতি ৳100-এর বিপরীতে ঋণ", de == null ? null : `৳${(de * 100).toFixed(0)}`);
         push("Times its profit could pay the interest", "মুনাফা দিয়ে সুদ কতবার দেওয়া যায়", ic == null ? null : `${ic.toFixed(1)}`);
       }
       {
         const cq = last ? cashFlowQuality(last.operating_cf, last.net_profit) : null;
-        push("Cash that came in for every ৳100 of profit", "প্রতি ৳100 মুনাফায় আসা নগদ", cq == null ? null : `৳${(cq * 100).toFixed(0)}`);
+        push("Cash that came in for every ৳100 of profit", "প্রতি ৳100 মুনাফায় যত নগদ হাতে এসেছে", cq == null ? null : `৳${(cq * 100).toFixed(0)}`);
       }
       break;
     }
     case "p3_moat": {
       const gm = last ? grossMargin(last.gross_profit, last.revenue ?? last.net_interest_income) : null;
-      push("Left from every ৳100 sold, before running costs", "প্রতি ৳100 বিক্রিতে খরচের আগে যা থাকে", gm == null ? null : `৳${gm.toFixed(0)}`);
+      push("Left from every ৳100 sold, before running costs", "পরিচালন খরচের আগে প্রতি ৳100 বিক্রিতে যা থাকে", gm == null ? null : `৳${gm.toFixed(0)}`);
       break;
     }
     case "p4_val": {
@@ -140,7 +140,7 @@ function pillarNumbers(pillarKey: string, detail: CompanyDetail): Fig[] {
       // "Years of its profit you pay for" is how the page says P/E (2026-10-30).
       void basis;
       void pb;
-      push("Years of its profit you pay for today", "আজকের দামে কত বছরের মুনাফা", pe != null ? `${pe.toFixed(0)}` : null);
+      push("Years of its profit you pay for today", "আজকের দামে কত বছরের মুনাফার দাম দিচ্ছেন", pe != null ? `${pe.toFixed(0)}` : null);
       push(
         avg ? `Usually, ${avg.en}` : "Usually",
         avg ? `সাধারণত, ${avg.bn}` : "সাধারণত",
@@ -149,11 +149,11 @@ function pillarNumbers(pillarKey: string, detail: CompanyDetail): Fig[] {
       break;
     }
     case "p5_div":
-      push("Cash a year on ৳100 at today's price", "আজকের দামে ৳100-এ বছরে নগদ", (() => {
+      push("Cash a year on ৳100 at today's price", "আজকের দামে ৳100 বিনিয়োগে বছরে নগদ", (() => {
         const y = toNum(sr.div_yield_pct as number | null);
         return y == null ? null : `৳${y.toFixed(1)}`;
       })());
-      push("Paid out of every ৳100 of profit", "প্রতি ৳100 মুনাফা থেকে দেওয়া", (() => {
+      push("Paid out of every ৳100 of profit", "প্রতি ৳100 মুনাফা থেকে যত দিয়েছে", (() => {
         const p = toNum(sr.payout_pct as number | null);
         return p == null ? null : `৳${p.toFixed(0)}`;
       })());

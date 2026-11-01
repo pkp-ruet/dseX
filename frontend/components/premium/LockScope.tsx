@@ -14,8 +14,11 @@ import { isFreeReport } from "@/lib/free-report";
  *
  * `unlocked` — everything opens (the free report of the day, or a report key
  * the reader used on this share — `reason` says which).
+ *
+ * `forced` — render open from the first paint, server included (`OpenScope`):
+ * the copy of a Premium part that sits hidden in the HTML for a free reader.
  */
-type Scope = { anchor?: string; unlocked?: boolean; reason?: "today" | "key" };
+type Scope = { anchor?: string; unlocked?: boolean; reason?: "today" | "key"; forced?: boolean };
 
 const Ctx = createContext<Scope | null>(null);
 
@@ -26,6 +29,14 @@ export function useLockScope(): Scope | null {
 /** Any other page with one Premium section (`/market-analysis` → `#ma-premium`). */
 export function PageLockScope({ anchor, children }: { anchor: string; children: ReactNode }) {
   return <Ctx.Provider value={{ anchor }}>{children}</Ctx.Provider>;
+}
+
+/** Everything inside renders as a Premium reader sees it, server included.
+ *  Wrap it in a `Locked` OUTSIDE this scope — that one decides whether the
+ *  reader sees it (the stock report's hidden copy, 2026-11-01). */
+export function OpenScope({ children }: { children: ReactNode }) {
+  const parent = useContext(Ctx);
+  return <Ctx.Provider value={{ ...parent, unlocked: true, forced: true }}>{children}</Ctx.Provider>;
 }
 
 /** The stock page's scope: the whole page opens when this is today's free

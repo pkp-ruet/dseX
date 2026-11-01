@@ -116,7 +116,7 @@ export function ThisYearDetails({ s, story }: { s?: ThisYearSection; story?: Sto
     <>
       {g && (
         <div className="rp-facts" data-cols="3">
-          <Fact label={{ en: "Years looked at", bn: "যত বছর দেখা" }} value={<T en={`${g.years} years`} bn={`${g.years} বছর`} />} />
+          <Fact label={{ en: "Years looked at", bn: "যত বছরের হিসাব" }} value={<T en={`${g.years} years`} bn={`${g.years} বছর`} />} />
           <Fact label={{ en: "Sales grew each year by about", bn: "প্রতি বছর বিক্রি বেড়েছে প্রায়" }} value={signedPct(g.sales_pct)} />
           <Fact label={{ en: "Profit grew each year by about", bn: "প্রতি বছর মুনাফা বেড়েছে প্রায়" }} value={signedPct(g.profit_pct)} />
         </div>
@@ -128,7 +128,7 @@ export function ThisYearDetails({ s, story }: { s?: ThisYearSection; story?: Sto
             {s.next.date && (
               <>
                 {" · "}
-                {s.next.approx && <T en="around " bn="সম্ভাব্য " />}
+                {s.next.approx && <T en="around " bn="আনুমানিক " />}
                 <DateT iso={s.next.date} />
               </>
             )}
@@ -137,7 +137,7 @@ export function ThisYearDetails({ s, story }: { s?: ThisYearSection; story?: Sto
             <p>
               <T
                 en={`To keep growing, profit for each share has to beat last year's ${perShare(s.next.beat)} for the same months.`}
-                bn={`মুনাফা বাড়তে থাকলে শেয়ারপ্রতি মুনাফা গত বছরের একই সময়ের ${perShare(s.next.beat)}-এর বেশি হতে হবে।`}
+                bn={`প্রবৃদ্ধি ধরে রাখতে হলে এবার শেয়ারপ্রতি মুনাফা গত বছরের একই সময়ের ${perShare(s.next.beat)}-এর বেশি হতে হবে।`}
               />
             </p>
           )}
@@ -169,8 +169,8 @@ export function StoryTable({ s }: { s: StorySection }) {
             <th className="py-2 pr-3 font-semibold"><T en="Year" bn="বছর" /></th>
             <th className="py-2 pr-3 text-right font-semibold"><T en="Sales" bn="বিক্রি" /></th>
             <th className="py-2 pr-3 text-right font-semibold"><T en="Profit" bn="মুনাফা" /></th>
-            <th className="py-2 pr-3 text-right font-semibold"><T en="Kept from ৳100 sold" bn="৳100 বিক্রিতে থাকে" /></th>
-            <th className="py-2 text-right font-semibold"><T en="Profit on owners' money" bn="মালিকের টাকায় মুনাফা" /></th>
+            <th className="py-2 pr-3 text-right font-semibold"><T en="Kept from ৳100 sold" bn="প্রতি ৳100 বিক্রিতে মুনাফা" /></th>
+            <th className="py-2 text-right font-semibold"><T en="Profit on owners' money" bn="নিজস্ব মূলধনে মুনাফা" /></th>
           </tr>
         </thead>
         <tbody>
@@ -205,10 +205,10 @@ export function CashPremium({ s }: { s: CashSection }) {
       <HundredBar
         label={`This year, ${Math.round(Math.min(100, r))} percent of its profit came in as cash`}
         parts={[
-          { key: "cash", value: Math.min(100, r), swatch: last.ratio < 50 ? "fair" : "good", text: <T en="Came in as real cash" bn="আসল নগদ হয়ে এসেছে" /> },
-          ...(r < 100 ? [{ key: "not", value: 100 - r, swatch: "quiet" as const, text: <T en="Not in cash yet" bn="এখনো নগদ হয়নি" /> }] : []),
+          { key: "cash", value: Math.min(100, r), swatch: last.ratio < 50 ? "fair" : "good", text: <T en="Came in as real cash" bn="নগদে হাতে এসেছে" /> },
+          ...(r < 100 ? [{ key: "not", value: 100 - r, swatch: "quiet" as const, text: <T en="Not in cash yet" bn="এখনো নগদে আসেনি" /> }] : []),
         ]}
-        caption={<T en="This year's profit, split by how much of it arrived as money" bn="এ বছরের মুনাফা, কতটা টাকা হয়ে এসেছে সেই ভাগে" />}
+        caption={<T en="This year's profit, split by how much of it arrived as money" bn="এ বছরের মুনাফার কত অংশ নগদে হাতে এসেছে" />}
       />
       {s.years.length >= 2 && (
         <YearBars
@@ -220,7 +220,7 @@ export function CashPremium({ s }: { s: CashSection }) {
             <>
               <T
                 en="Each year: how much of the profit came in as cash. Reaching the line means all of it did. "
-                bn="প্রতি বছর মুনাফার কতটা নগদ হয়ে এসেছে। দাগ পর্যন্ত পৌঁছালে পুরোটাই এসেছে। "
+                bn="প্রতি বছর মুনাফার কতটা নগদে হাতে এসেছে। দাগ ছুঁলে বুঝবেন পুরোটাই এসেছে। "
               />
               <Term k="cash_flow" />
             </>
@@ -242,8 +242,8 @@ export function SafetyFree({ s }: { s: SafetySection }) {
       label={`Credit rating ${r.long_term} from ${r.agency}`}
       caption={
         <>
-          <T en={`Credit grade from ${r.agency}`} bn={`${r.agency}-এর ঋণমান`} />
-          {r.outlook ? <T en={`, ${r.outlook.toLowerCase()} outlook`} bn={`, দৃষ্টিভঙ্গি ${r.outlook}`} /> : null}
+          <T en={`Credit grade from ${r.agency}`} bn={`${r.agency}-এর দেওয়া ঋণমান`} />
+          {r.outlook ? <T en={`, ${r.outlook.toLowerCase()} outlook`} bn={`, আউটলুক ${r.outlook}`} /> : null}
           {" · "}
           <DateT iso={r.date} />
           {" · "}
@@ -260,7 +260,7 @@ export function SafetyPremium({ s }: { s: SafetySection }) {
   if (m.no_loans) {
     return (
       <p className="text-sm font-semibold text-positive">
-        <T en="It has no loans." bn="এর কোনো ঋণ নেই।" />
+        <T en="It has no loans." bn="কোম্পানিটির কোনো ঋণ নেই।" />
       </p>
     );
   }
@@ -272,19 +272,19 @@ export function SafetyPremium({ s }: { s: SafetySection }) {
           max={150}
           label={`Its loans next to the money it has kept from past years: ${m.saved_pct < 50 ? "comfortable" : m.saved_pct <= 100 ? "worth watching" : "heavy"}`}
           zones={[
-            { key: "ok", from: 0, to: 50, tone: "good", name: <T en="Comfortable" bn="স্বস্তির" /> },
+            { key: "ok", from: 0, to: 50, tone: "good", name: <T en="Comfortable" bn="স্বস্তিতে" /> },
             { key: "watch", from: 50, to: 100, tone: "fair", name: <T en="Watch" bn="নজরে রাখুন" /> },
             { key: "heavy", from: 100, to: 150, tone: "bad", name: <T en="Heavy" bn="বেশি" /> },
           ]}
-          pins={[{ key: "now", value: Math.min(150, m.saved_pct), main: true, text: <T en="Its loans" bn="এর ঋণ" /> }]}
-          caption={<T en="Its loans next to the money it has kept from past years" bn="আগের বছরগুলোতে জমানো টাকার তুলনায় এর ঋণ" />}
+          pins={[{ key: "now", value: Math.min(150, m.saved_pct), main: true, text: <T en="Its loans" bn="কোম্পানির ঋণ" /> }]}
+          caption={<T en="Its loans next to the money it has kept from past years" bn="আগের বছরগুলোতে জমানো টাকার তুলনায় কোম্পানির ঋণ" />}
         />
       )}
       {m.cover != null && (
         <p className="mt-3 text-sm text-text-main">
           <T
             en={m.cover >= 3 ? "Its profit pays the interest on its loans easily." : m.cover >= 1.5 ? "Its profit covers the interest on its loans, but not by much." : m.cover >= 1 ? "Its profit barely covers the interest on its loans." : "Its profit does not cover the interest on its loans."}
-            bn={m.cover >= 3 ? "মুনাফা দিয়ে ঋণের সুদ সহজেই দেওয়া যায়।" : m.cover >= 1.5 ? "মুনাফা দিয়ে ঋণের সুদ মেটে, তবে খুব বেশি জায়গা থাকে না।" : m.cover >= 1 ? "মুনাফা দিয়ে ঋণের সুদ কোনোমতে মেটে।" : "মুনাফা দিয়ে ঋণের সুদও মেটে না।"}
+            bn={m.cover >= 3 ? "কোম্পানিটি মুনাফা থেকে ঋণের সুদ সহজেই দিতে পারে।" : m.cover >= 1.5 ? "মুনাফা থেকে ঋণের সুদ দেওয়া যায়, তবে হাতে খুব বেশি থাকে না।" : m.cover >= 1 ? "মুনাফা থেকে ঋণের সুদ কোনোমতে দেওয়া যায়।" : "মুনাফা দিয়ে ঋণের সুদও পুরোটা দেওয়া যায় না।"}
           />{" "}
           <Term k="interest_cover" />
         </p>
@@ -329,8 +329,8 @@ const ordinal = (n: number) => {
 /** The three ranks that answer "is it strong in its business?", by the
  *  backend's English label: its size, how much of each sale it keeps, our grade. */
 const STRENGTH_RANKS: { en: string; name: Bi }[] = [
-  { en: "Sales", name: { en: "Size (its sales)", bn: "আকার (বিক্রি)" } },
-  { en: "Profit kept from sales", name: { en: "Profit it keeps from each sale", bn: "প্রতি বিক্রিতে যা মুনাফা থাকে" } },
+  { en: "Sales", name: { en: "Size (its sales)", bn: "বিক্রির আকার" } },
+  { en: "Profit kept from sales", name: { en: "Profit it keeps from each sale", bn: "প্রতিটি বিক্রি থেকে কতটা মুনাফা থাকে" } },
   { en: "Our score", name: { en: "Our grade", bn: "আমাদের গ্রেড" } },
 ];
 
@@ -347,7 +347,7 @@ export function StrengthPicture({ sector }: { sector: SectorSection }) {
       <p className="mb-2 text-sm text-text-muted">
         <T
           en={`Compared with the other ${sector.peers - 1} ${sector.peers - 1 === 1 ? "company" : "companies"} in ${sector.sector}:`}
-          bn={`${sector.sector} সেক্টরের অন্য ${sector.peers - 1}টি কোম্পানির সঙ্গে তুলনায়:`}
+          bn={`${sector.sector} সেক্টরের বাকি ${sector.peers - 1}টি কোম্পানির তুলনায়:`}
         />
       </p>
       {rows.map(({ en, name, rank }) => {
@@ -362,7 +362,7 @@ export function StrengthPicture({ sector }: { sector: SectorSection }) {
             value={
               r.rank === 1
                 ? <T en="The best" bn="সবার সেরা" />
-                : <T en={`${ordinal(r.rank)} of ${r.of}`} bn={`${r.of}টির মধ্যে ${r.rank} নম্বর`} />
+                : <T en={`${ordinal(r.rank)} of ${r.of}`} bn={`${r.of}টির মধ্যে ${r.rank} নম্বরে`} />
             }
           />
         );
@@ -380,10 +380,10 @@ export function QualityDetails({ detail, showBars = true }: { detail: CompanyDet
       {showBars && (
         <div className="mb-4">
           <p className="mb-2 text-sm font-bold text-text-main">
-            <T en="How we grade the whole company" bn="পুরো কোম্পানিকে যেভাবে গ্রেড দিই" />
+            <T en="How we grade the whole company" bn="পুরো কোম্পানিকে আমরা যেভাবে গ্রেড দিই" />
           </p>
           <p className="mb-3 text-xs text-text-muted">
-            <T en="The five things we look at. A longer bar is better." bn="আমরা যে পাঁচটি বিষয় দেখি। দাগ যত লম্বা, তত ভালো।" />
+            <T en="The five things we look at. A longer bar is better." bn="আমরা পাঁচটি বিষয় দেখি। দাগ যত লম্বা, অবস্থা তত ভালো।" />
           </p>
           <PillarBars scoreRow={detail.score_row} />
         </div>
@@ -412,12 +412,12 @@ export function sharesAnswer(s: DividendSection): { word: Bi; tone: Tone; line: 
   const word: Bi =
     paid === n ? { en: "Every year", bn: "প্রতি বছর" }
     : paid >= n / 2 ? { en: "Most years", bn: "বেশির ভাগ বছর" }
-    : paid > 0 ? { en: "Rarely", bn: "কদাচিৎ" }
-    : { en: "No", bn: "না" };
+    : paid > 0 ? { en: "Rarely", bn: "খুব কম" }
+    : { en: "No", bn: "দেয় না" };
   const tone: Tone = paid === n ? "good" : paid >= n / 2 ? "fair" : "bad";
   const line: Bi =
     paid === n
-      ? { en: `It paid a cash dividend in each of the last ${n} years.`, bn: `গত ${n} বছরের প্রতিটিতে নগদ ডিভিডেন্ড দিয়েছে।` }
+      ? { en: `It paid a cash dividend in each of the last ${n} years.`, bn: `গত ${n} বছরের প্রতি বছরই নগদ ডিভিডেন্ড দিয়েছে।` }
       : { en: `It paid a cash dividend in ${paid} of the last ${n} years.`, bn: `গত ${n} বছরের মধ্যে ${paid} বছর নগদ ডিভিডেন্ড দিয়েছে।` };
   return { word, tone, line };
 }
@@ -437,7 +437,7 @@ export function SharesPicture({ s }: { s: DividendSection }) {
         x: yy(y.year),
         tone: y.cash_ps <= 0 ? "bad" : i === h.length - 1 ? "good" : undefined,
       }))}
-      caption={<T en="Cash dividend, taka a share, each year" bn="প্রতি বছর শেয়ারপ্রতি নগদ ডিভিডেন্ড, টাকায়" />}
+      caption={<T en="Cash dividend, taka a share, each year" bn="প্রতি বছর শেয়ারপ্রতি কত টাকা নগদ ডিভিডেন্ড" />}
     />
   );
 }
@@ -450,9 +450,9 @@ export function SharesPicture({ s }: { s: DividendSection }) {
 export function priceAnswer(s: PriceSection): { word: Bi; tone: Tone } | null {
   const { now, usual } = s.pe;
   if (now == null || usual == null || now <= 0 || usual <= 0) return null;
-  if (now < usual * 0.9) return { word: { en: "Less than usual", bn: "সাধারণের চেয়ে কম" }, tone: "good" };
-  if (now > usual * 1.1) return { word: { en: "More than usual", bn: "সাধারণের চেয়ে বেশি" }, tone: "bad" };
-  return { word: { en: "About usual", bn: "সাধারণের মতো" }, tone: "neutral" };
+  if (now < usual * 0.9) return { word: { en: "Less than usual", bn: "স্বাভাবিকের চেয়ে কম" }, tone: "good" };
+  if (now > usual * 1.1) return { word: { en: "More than usual", bn: "স্বাভাবিকের চেয়ে বেশি" }, tone: "bad" };
+  return { word: { en: "About usual", bn: "স্বাভাবিকের মতোই" }, tone: "neutral" };
 }
 
 /** What you pay for ৳1 of yearly profit, now vs its usual vs its sector. */
@@ -469,7 +469,7 @@ export function PricePicture({ s }: { s: PriceSection }) {
       <p className="text-sm text-text-muted">
         <T
           en={`Today ${money(s.today)}. It made no profit in its latest results, so there is no price-for-profit figure.`}
-          bn={`আজ ${money(s.today)}। সর্বশেষ ফলে মুনাফা নেই, তাই মুনাফার তুলনায় দামের হিসাব হয় না।`}
+          bn={`আজকের দাম ${money(s.today)}। সর্বশেষ ফলে কোম্পানিটির মুনাফা হয়নি, তাই মুনাফার তুলনায় দাম কত, সেই হিসাব করা যায় না।`}
         />
       </p>
     );
@@ -482,7 +482,7 @@ export function PricePicture({ s }: { s: PriceSection }) {
         <>
           <T
             en="How many years of its profit you pay for. A shorter bar means a cheaper share. "
-            bn="কত বছরের মুনাফার দাম দিচ্ছেন। ছোট দাগ মানে শেয়ারটি সস্তা। "
+            bn="কত বছরের মুনাফার সমান দাম দিচ্ছেন। দাগ যত ছোট, শেয়ারটি তত সস্তা। "
           />
           <Term k="pe" />
         </>
@@ -534,21 +534,21 @@ export function PriceDetails({ s, code, ltp, w52High, w52Low }: {
       {s.scenarios.length > 0 && (
         <div className="mt-4">
           <p className="text-sm font-bold text-text-main">
-            <T en="Three paths for the next 12 months" bn="আগামী 12 মাসের তিনটি পথ" />
+            <T en="Three paths for the next 12 months" bn="আগামী 12 মাসের তিনটি সম্ভাবনা" />
           </p>
           <Paths
             today={s.today}
             todayText={<T en={`From today's ${money(s.today)}`} bn={`আজকের ${money(s.today)} থেকে`} />}
             label={`Three prices in 12 months: ${s.scenarios.map((sc) => `${money(sc.price)} if ${sc.label.en}`).join("; ")}`}
             paths={s.scenarios.map((sc, i) => ({ key: String(i), price: sc.price, priceText: money(sc.price), name: tx(sc.label) }))}
-            caption={<T en="These are sums from its profit and its usual price, not a forecast." bn="এগুলো মুনাফা আর স্বাভাবিক দাম থেকে হিসাব, পূর্বাভাস নয়।" />}
+            caption={<T en="These are sums from its profit and its usual price, not a forecast." bn="এগুলো কোম্পানির মুনাফা আর স্বাভাবিক দামের ভিত্তিতে করা হিসাব, কোনো পূর্বাভাস নয়।" />}
           />
         </div>
       )}
       {s.methods.length > 0 && (
         <div className="mt-4">
           <p className="text-sm font-bold text-text-main">
-            <T en="How we worked out what it's worth" bn="এর মূল্য যেভাবে হিসাব করেছি" />
+            <T en="How we worked out what it's worth" bn="শেয়ারটির ন্যায্য দাম আমরা যেভাবে হিসাব করেছি" />
           </p>
           <ul className="rp-rows">
             {s.methods.map((m, i) => (
@@ -589,7 +589,7 @@ export function DividendFree({ s }: { s: DividendSection }) {
             {l.yield_pct != null && (
               <span className="text-text-muted">
                 {" · "}
-                <T en={`about ${l.yield_pct.toFixed(1)}% a year on today's price, like interest`} bn={`আজকের দামে বছরে প্রায় ${l.yield_pct.toFixed(1)}%, সুদের মতো`} />
+                <T en={`about ${l.yield_pct.toFixed(1)}% a year on today's price, like interest`} bn={`আজকের দামে বছরে প্রায় ${l.yield_pct.toFixed(1)}%, অনেকটা সুদের মতো`} />
               </span>
             )}
           </>
@@ -616,9 +616,9 @@ export function DividendPremium({ s }: { s: DividendSection }) {
         <MoneySteps
           label={`10,000 taka buys ${k.shares} shares and gets about ${Math.round(k.net)} taka a year after tax`}
           steps={[
-            { key: "in", value: "৳10,000", name: <T en="put in today" bn="আজ বিনিয়োগ" /> },
+            { key: "in", value: "৳10,000", name: <T en="put in today" bn="আজ বিনিয়োগ করলে" /> },
             { key: "sh", value: k.shares.toLocaleString("en-US"), name: <T en="shares" bn="শেয়ার" /> },
-            { key: "out", value: money(k.net), name: <T en={`a year after ${s.tax_pct}% tax`} bn={`বছরে, ${s.tax_pct}% করের পর`} />, tone: "good" },
+            { key: "out", value: money(k.net), name: <T en={`a year after ${s.tax_pct}% tax`} bn={`${s.tax_pct}% কর কাটার পর বছরে`} />, tone: "good" },
           ]}
         />
       )}
@@ -627,7 +627,7 @@ export function DividendPremium({ s }: { s: DividendSection }) {
           label={`Of its profit, ${Math.round(Math.min(100, s.payout_pct))} percent paid out as dividend`}
           parts={
             s.payout_pct > 100
-              ? [{ key: "paid", value: 100, swatch: "bad", text: <T en="It paid out more than it earned" bn="আয়ের চেয়ে বেশি দিয়েছে" /> }]
+              ? [{ key: "paid", value: 100, swatch: "bad", text: <T en="It paid out more than it earned" bn="মুনাফার চেয়ে বেশি দিয়েছে" /> }]
               : [
                   { key: "paid", value: s.payout_pct, swatch: "primary", text: <T en="Paid to shareholders" bn="শেয়ারহোল্ডারদের দিয়েছে" /> },
                   { key: "kept", value: 100 - s.payout_pct, swatch: "quiet", text: <T en="Kept to grow the business" bn="ব্যবসা বাড়াতে রেখেছে" /> },
@@ -692,7 +692,7 @@ export function RedFlagsFree({ s }: { s: RedFlagsSection }) {
         caption={
           <T
             en={`We checked ${s.counts.checks} things: ${red} serious, ${amber} worth a look, ${pass} fine`}
-            bn={`আমরা ${s.counts.checks}টি বিষয় দেখেছি: ${red}টি গুরুতর, ${amber}টি দেখে নেওয়ার মতো, ${pass}টি ঠিক আছে`}
+            bn={`আমরা ${s.counts.checks}টি বিষয় যাচাই করেছি: ${red}টি গুরুতর, ${amber}টি একবার দেখে নেওয়ার মতো, ${pass}টিতে সমস্যা নেই`}
           />
         }
       />
@@ -710,7 +710,7 @@ export function RedFlagsDetails({ s }: { s: RedFlagsSection }) {
       {passed.length > 0 && (
         <div className="mt-4 border-t border-border pt-3">
           <p className="text-xs font-bold text-text-muted">
-            <T en={`Passed ${passed.length} checks`} bn={`${passed.length}টি যাচাইয়ে উত্তীর্ণ`} />
+            <T en={`Passed ${passed.length} checks`} bn={`${passed.length}টি বিষয়ে কোনো সমস্যা পাওয়া যায়নি`} />
           </p>
           <ul className="rp-passed">
             {passed.map((c) => (
@@ -764,7 +764,7 @@ export function OwnersFree({ s }: { s: OwnersSection }) {
           {s.rule30.ok ? <IconCheck size={12} /> : null}{" "}
           <T
             en={`Founders and directors hold ${s.rule30.pct.toFixed(1)}%; the rule asks for at least 30%.`}
-            bn={`উদ্যোক্তা-পরিচালকদের হাতে ${s.rule30.pct.toFixed(1)}%; নিয়মে অন্তত 30% লাগে।`}
+            bn={`উদ্যোক্তা-পরিচালকদের হাতে আছে ${s.rule30.pct.toFixed(1)}% শেয়ার। নিয়ম অনুযায়ী অন্তত 30% থাকতে হয়।`}
           />{" "}
           <Term k="sponsors" />
         </p>
@@ -879,7 +879,7 @@ export function NextFree({ s }: { s: NextSection }) {
         name: tx(it.label),
         when: (
           <>
-            {it.approx && <T en="around " bn="সম্ভাব্য " />}
+            {it.approx && <T en="around " bn="আনুমানিক " />}
             <DateT iso={it.date} />
           </>
         ),
@@ -920,7 +920,7 @@ export function AlternativesDetails({ s }: { s: AlternativesSection }) {
           </Link>
           <span className="shrink-0 text-right text-xs text-text-muted tabular-nums nums">
             <span className="block"><TierPill tier={getTier(a.score)} /></span>
-            {a.pe != null && <T en={`${Math.round(a.pe)} years of profit`} bn={`${Math.round(a.pe)} বছরের মুনাফা`} />}
+            {a.pe != null && <T en={`${Math.round(a.pe)} years of profit`} bn={`${Math.round(a.pe)} বছরের মুনাফার দাম`} />}
           </span>
         </li>
       ))}

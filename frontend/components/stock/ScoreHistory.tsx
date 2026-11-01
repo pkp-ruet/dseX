@@ -54,7 +54,7 @@ function ChangeRow({ c }: { c: ScoreChange }) {
           <p className="mt-1 text-sm text-text-muted">
             <T
               en="On that day we changed how we score every company. It is not news about this company."
-              bn="সেদিন আমরা সব কোম্পানির স্কোর হিসাবের নিয়ম বদলেছিলাম। এটি এই কোম্পানির কোনো খবর নয়।"
+              bn="সেদিন আমরা সব কোম্পানির স্কোর হিসাবের নিয়ম বদলেছিলাম। এর সঙ্গে এই কোম্পানির কোনো খবরের সম্পর্ক নেই।"
             />
           </p>
         ) : reasons.length ? (
@@ -75,7 +75,7 @@ function ChangeRow({ c }: { c: ScoreChange }) {
           <p className="mt-1 text-sm text-text-muted">
             <T
               en="We have kept the reasons for grade changes only since 25 Oct 2026."
-              bn="গ্রেড বদলের কারণ আমরা 25 অক্টোবর 2026 থেকে রাখছি।"
+              bn="গ্রেড বদলের কারণ আমরা 25 অক্টোবর 2026 থেকে লিখে রাখছি।"
             />
           </p>
         ) : (
@@ -90,7 +90,7 @@ function ChangeRow({ c }: { c: ScoreChange }) {
           <p className="mt-0.5 text-xs text-text-muted">
             <T
               en={`Compared with ${date(c.since).en}, when it moved to “${tierWord(c.from_tier).en}”`}
-              bn={`${date(c.since).bn}-এর সঙ্গে তুলনা, যেদিন এটি “${tierWord(c.from_tier).bn}”-এ এসেছিল`}
+              bn={`${date(c.since).bn}-এর তুলনায়, যেদিন কোম্পানিটি “${tierWord(c.from_tier).bn}” দলে এসেছিল`}
             />
           </p>
         )}
@@ -111,7 +111,7 @@ export function scoreHistorySummary(history: ScoreHistoryData): Bi | null {
   const since = date(first.date);
   return {
     en: `The score is ${now.score.toFixed(0)} today (${tw.en.toLowerCase()}). We have checked it every trading day since ${since.en}, and the grade has changed ${n} ${n === 1 ? "time" : "times"}.`,
-    bn: `আজ স্কোর ${now.score.toFixed(0)} (${tw.bn})। ${since.bn} থেকে প্রতি কার্যদিবসে আমরা এটি দেখছি, এর মধ্যে গ্রেড ${n} বার বদলেছে।`,
+    bn: `আজকের স্কোর ${now.score.toFixed(0)}, গ্রেড “${tw.bn}”। ${since.bn} থেকে আমরা প্রতি লেনদেনের দিন স্কোরটি দেখছি। এর মধ্যে গ্রেড ${n} বার বদলেছে।`,
   };
 }
 
@@ -172,7 +172,7 @@ export default function ScoreHistory({ history }: { history: ScoreHistoryData })
           <p className="text-sm text-text-muted">
             <T
               en={`It has stayed “${tw.en}” since ${since.en}.`}
-              bn={`${since.bn} থেকে এটি একই দলে আছে: “${tw.bn}”।`}
+              bn={`${since.bn} থেকে কোম্পানিটি “${tw.bn}” দলেই আছে।`}
             />
           </p>
         )}
