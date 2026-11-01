@@ -1,28 +1,14 @@
 """
-Your own research lists — the rules, kept pure so they can be tested.
+The screener's old checks — kept for two readers since the 2026-11-01 rebuild
+(the screener itself now filters public figures, ``screener.py``):
 
-A Premium reader builds a list from a fixed menu of plain checks, each with a
-few allowed settings ("pays at least 4% a year", "price ÷ profit 10 or less",
-"in the Bank sector"). The menu is ``CATALOG``; a saved list is a *spec*:
-
-    {"checks": [{"key": "yield_min", "value": 4}, {"key": "grade", "value": 60}],
-     "sort": "yield"}
-
-``build_list`` turns a spec into the same ``ResearchList`` the six editorial
-lists use, so the funnel, each stock's own figure on every check and "why it
-left" all come from ``research_lists`` unchanged.
-
-Settings are a short list of choices, never free numbers: on a phone a chip
-row beats a slider, and every value the backend accepts is one we have
-written words for.
-
-Since 2026-10-27 the screener's main way in is SIX QUESTIONS (``QUESTIONS``:
-how strong · how cheap · cash dividends · profit growing · how safe · easy to
-trade), three choices each. A choice is a bundle of menu checks, so the
-answers expand into an ordinary spec (``spec_from_answers``) and a spec built
-that way is read back into answers (``answers_from_spec``); a spec that isn't
-a combination of answers is a "fine-tune" screen (exact checks, Premium to
-edit). The engine only ever sees checks.
+- screens saved before then: a spec of plain checks from ``CATALOG``
+  (``{"checks": [{"key": "yield_min", "value": 4}], "sort": "yield"}``), run
+  through ``build_list`` -> ``research_lists.run_list`` until the reader edits
+  the screen in the new screener;
+- the recommendation engine, which reads each company's strengths on the six
+  questions (``QUESTIONS``, ``question_sat``, ``best_levels``,
+  ``strength_tags``) for its "style" fit and its row tags.
 
 No performance claims, same as the editorial lists.
 """
@@ -63,17 +49,6 @@ class CheckDef:
     # stock report and the portfolio's Premium sections). Kept in BY_KEY so a
     # saved screen that already uses it still runs.
     menu: bool = True
-
-
-GROUPS = [
-    ("quality", "Quality", "মান"),
-    ("price", "Price", "দাম"),
-    ("dividends", "Dividends", "ডিভিডেন্ড"),
-    ("growth", "Profit", "মুনাফা"),
-    ("safety", "Safety", "নিরাপত্তা"),
-    ("market", "Trading and size", "লেনদেন ও আকার"),
-    ("sector", "Sector", "সেক্টর"),
-]
 
 
 def _sector_bn(name: str) -> str:
@@ -348,60 +323,6 @@ CATALOG: list[CheckDef] = [
 ]
 BY_KEY = {c.key: c for c in CATALOG}
 
-# One plain sentence per check — what it means, and why it is there. Shown
-# under each check in the screener and in the "Add a check" menu.
-HELP: dict[str, tuple[str, str]] = {
-    "grade": ("Our score from 0 to 100, from five checks on the company's accounts. A score of 60 or more is Good.",
-              "কোম্পানির হিসাবের পাঁচটি দিক দেখে 0 থেকে 100-এর মধ্যে আমাদের স্কোর। 60 বা তার বেশি মানে ভালো।"),
-    "buy_today": ("Our daily signal: a good company at a fair price, traded enough, and not near its yearly high.",
-                  "আমাদের দৈনিক সংকেত: ভালো কোম্পানি, ন্যায্য দাম, যথেষ্ট লেনদেন, আর বছরের সর্বোচ্চ দামের কাছে নয়।"),
-    "roe_min": ("The profit a year for every ৳100 the owners have in the company. Higher means it uses money well.",
-                "কোম্পানিতে মালিকদের প্রতি ৳100-এ বছরে কত মুনাফা হয়। বেশি মানে টাকা ভালোভাবে কাজে লাগায়।"),
-    "no_governance": ("No auditor objection, BSEC action or postponed AGM in the last year.",
-                      "গত এক বছরে নিরীক্ষকের আপত্তি, বিএসইসির ব্যবস্থা বা এজিএম স্থগিতের ঘটনা নেই।"),
-    "not_expensive": ("Our price check does not call it expensive for what it earns and owns.",
-                      "যা আয় করে আর যে সম্পদ আছে, তার তুলনায় আমাদের হিসাবে দাম বেশি নয়।"),
-    "pe_max": ("How many years of today's profit the price pays for. Lower is cheaper.",
-               "আজকের দামে কত বছরের মুনাফা কিনছেন। কম মানে সস্তা।"),
-    "cheaper_than_own": ("Its P/E is below the level this company usually trades at.",
-                         "এর পিই কোম্পানিটির স্বাভাবিক মাত্রার চেয়ে কম।"),
-    "cheaper_than_sector": ("Its P/E is below the middle company in its sector.",
-                            "এর পিই নিজের সেক্টরের মাঝামাঝি কোম্পানির চেয়ে কম।"),
-    "below_high": ("How far the price has fallen from its highest point in the last 12 months.",
-                   "গত 12 মাসের সর্বোচ্চ দাম থেকে কতটা কমেছে।"),
-    "lower_half": ("Nearer its 12-month low than its high, so the price has not run up yet.",
-                   "গত 12 মাসের সর্বোচ্চের চেয়ে সর্বনিম্নের কাছাকাছি, তাই দাম এখনো বেশি বাড়েনি।"),
-    "yield_min": ("Cash dividend a year against today's price. 5% means ৳500 a year on ৳10,000.",
-                  "আজকের দামের তুলনায় বছরে কত নগদ ডিভিডেন্ড। 5% মানে ৳10,000-এ বছরে ৳500।"),
-    "paid_years": ("How many of the last 5 years it paid a cash dividend.",
-                   "গত 5 বছরের কত বছর নগদ ডিভিডেন্ড দিয়েছে।"),
-    "affordable": ("It keeps some profit back, so the dividend can last.",
-                   "মুনাফার কিছু অংশ রেখে দেয়, তাই ডিভিডেন্ড টিকে থাকতে পারে।"),
-    "cash_backed": ("Cash from the business keeps up with its profit, so the dividend is not just a figure on paper.",
-                    "ব্যবসার নগদ আয় মুনাফার সঙ্গে মেলে, তাই ডিভিডেন্ড শুধু কাগজের হিসাব নয়।"),
-    "profitable": ("Made a profit in its latest results.", "সর্বশেষ হিসাবে মুনাফা করেছে।"),
-    "profit_min": ("The latest year's profit against the year before.", "সর্বশেষ বছরের মুনাফা, আগের বছরের তুলনায়।"),
-    "growing": ("Profit has risen by about 5% a year or more over five years.",
-                "পাঁচ বছরে মুনাফা বছরে প্রায় 5% বা তার বেশি হারে বেড়েছে।"),
-    "steady": ("Profit never fell sharply in any year along the way.", "এই সময়ে কোনো বছর মুনাফা খুব বেশি কমেনি।"),
-    "quarter_better": ("The latest quarterly report shows more profit than the same months last year.",
-                       "সর্বশেষ প্রান্তিকের প্রতিবেদনে মুনাফা গত বছরের একই সময়ের চেয়ে বেশি।"),
-    "owners_buying": ("Sponsors and directors hold more shares than in the earlier report.",
-                      "আগের প্রতিবেদনের চেয়ে উদ্যোক্তা-পরিচালকদের হাতে শেয়ার বেড়েছে।"),
-    "debt": ("What the company owes. Banks, finance companies and insurers are not checked.",
-             "কোম্পানির ঋণ। ব্যাংক, আর্থিক প্রতিষ্ঠান ও বিমা কোম্পানির ক্ষেত্রে এটি দেখা হয় না।"),
-    "category": ("DSE's own grouping. A holds its AGM and pays on time; Z has stopped doing so.",
-                 "ডিএসইর নিজের শ্রেণি। A সময়মতো এজিএম করে ও ডিভিডেন্ড দেয়; Z তা বন্ধ করেছে।"),
-    "fresh": ("Its yearly accounts are recent, so the figures are current.",
-              "বার্ষিক হিসাব সাম্প্রতিক, তাই সংখ্যাগুলো হালনাগাদ।"),
-    "turnover": ("The money that changes hands in the share each day. More means it is easier to buy and sell.",
-                 "প্রতিদিন কত টাকার শেয়ার কেনাবেচা হয়। বেশি মানে সহজে কেনা-বেচা যায়।"),
-    "mcap": ("What all its shares are worth together. Bigger companies tend to be steadier.",
-             "সব শেয়ারের মোট দাম। বড় কোম্পানি সাধারণত বেশি স্থির।"),
-    "sector": ("Only companies from the DSE sectors you pick, one or several.",
-               "শুধু আপনার বাছাই করা ডিএসই সেক্টরের কোম্পানি, এক বা একাধিক।"),
-}
-
 SORTS = {
     "score": ("Best score first", "বেশি স্কোর আগে", lambda f: _n(f.get("score")) or 0.0),
     "yield": ("Highest dividend first", "বেশি ডিভিডেন্ড আগে", lambda f: _n(f.get("div_yield_pct")) or 0.0),
@@ -516,55 +437,6 @@ QUESTIONS: list[Question] = [
              )),
 ]
 Q_BY_KEY = {q.key: q for q in QUESTIONS}
-NO_ANSWERS = {q.key: 0 for q in QUESTIONS}
-
-
-def _pairs(checks) -> set:
-    return {(c["key"], tuple(c["value"]) if isinstance(c["value"], list) else c["value"]) for c in checks}
-
-
-def spec_from_answers(answers: Any, sectors: Any = None, sort: Optional[str] = None) -> dict:
-    """Six answers (+ optional sectors, one or several) -> a raw spec, sectors
-    first, then the questions in order. ValueError on an unknown question or
-    choice."""
-    if not isinstance(answers, dict):
-        raise ValueError("bad_answers")
-    for k, v in answers.items():
-        if k not in Q_BY_KEY:
-            raise ValueError(f"unknown_question:{k}")
-        if not isinstance(v, int) or isinstance(v, bool) or not 0 <= v <= 2:
-            raise ValueError(f"bad_answer:{k}")
-    checks: list[dict] = []
-    names = sector_list(sectors)
-    if names:
-        checks.append(_q("sector", names[0] if len(names) == 1 else names))
-    for q in QUESTIONS:
-        lvl = answers.get(q.key, 0)
-        if lvl:
-            checks.extend(dict(c) for c in q.levels[lvl - 1].checks)
-    return {"checks": checks, "sort": sort or DEFAULT_SORT}
-
-
-def answers_from_spec(spec: dict) -> Optional[dict]:
-    """A normalized spec read back as ``{"answers", "sectors"}`` (sectors = []
-    for every sector), or None when it isn't exactly a combination of answers
-    (a fine-tune screen)."""
-    checks = spec.get("checks") or []
-    sectors = next((sector_list(c["value"]) for c in checks if c["key"] == "sector"), [])
-    rest = {p for p in _pairs(checks) if p[0] != "sector"}
-    answers, rebuilt = {}, set()
-    for q in QUESTIONS:
-        best = 0
-        for i, lvl in enumerate(q.levels, start=1):
-            need = _pairs(lvl.checks)
-            if need <= rest and (not best or len(need) > len(_pairs(q.levels[best - 1].checks))):
-                best = i
-        answers[q.key] = best
-        if best:
-            rebuilt |= _pairs(q.levels[best - 1].checks)
-    if rebuilt != rest:
-        return None
-    return {"answers": answers, "sectors": sectors}
 
 
 _LEVEL_CHECKS: dict[str, list[list[Check]]] = {}
@@ -592,55 +464,6 @@ def best_levels(sat: dict[str, list[bool]]) -> dict[str, int]:
     return {k: (2 if v[2] else 1 if v[1] else 0) for k, v in sat.items()}
 
 
-def facet_counts(rows: list[tuple[bool, dict[str, list[bool]]]], answers: dict[str, int]) -> dict[str, list[int]]:
-    """How many companies each choice would leave, the other answers held.
-    ``rows`` = [(in the chosen sectors, sat)] for every rated company."""
-    out = {q.key: [0, 0, 0] for q in QUESTIONS}
-    for sector_ok, sat in rows:
-        if not sector_ok:
-            continue
-        fails = [k for k, lvl in answers.items() if lvl and not sat[k][lvl]]
-        if len(fails) > 1:
-            continue
-        for q in QUESTIONS:
-            if fails and fails[0] != q.key:
-                continue  # fails another question whatever this one says
-            for lvl in (0, 1, 2):
-                if sat[q.key][lvl]:
-                    out[q.key][lvl] += 1
-    return out
-
-
-def question_misses(rows: list[tuple[dict, bool, dict[str, list[bool]]]],
-                    answers: dict[str, int]) -> list[tuple[dict, str]]:
-    """[(facts, the one question it misses)] — rated companies in the chosen
-    sectors that meet every answer but one."""
-    out = []
-    for f, sector_ok, sat in rows:
-        if not sector_ok:
-            continue
-        fails = [k for k, lvl in answers.items() if lvl and not sat[k][lvl]]
-        if len(fails) == 1:
-            out.append((f, fails[0]))
-    return out
-
-
-def want_lines(answers: dict[str, int], sectors: list[str]) -> list[dict]:
-    """A screen's answers in words, for a card that shows what a pick asks:
-    [{q_en, q_bn, a_en, a_bn}] — only the questions not left at "doesn't
-    matter", then the sectors when there are any."""
-    out = []
-    for q in QUESTIONS:
-        lvl = answers.get(q.key, 0)
-        if lvl:
-            l = q.levels[lvl - 1]
-            out.append({"key": q.key, "q_en": q.title_en, "q_bn": q.title_bn, "a_en": l.label_en, "a_bn": l.label_bn})
-    if sectors:
-        out.append({"key": "sector", "q_en": "Which business sectors?", "q_bn": "কোন সেক্টরের ব্যবসা?",
-                    "a_en": ", ".join(sectors), "a_bn": ", ".join(_sector_bn(s) for s in sectors)})
-    return out
-
-
 def strength_tags(levels: Optional[dict[str, int]]) -> list[dict]:
     """A stock's strengths in words ("Very good company", "Low price" …), in
     question order — the same words the screener's rows use."""
@@ -653,151 +476,17 @@ def strength_tags(levels: Optional[dict[str, int]]) -> list[dict]:
     return out
 
 
-def hidden_summary(stocks: list[dict], answers: Optional[dict[str, int]]) -> dict:
-    """What sits past the free rows, as counts: how many have a Buy signal,
-    and the top-level strength most of them share (skipping one the answers
-    already require, which every stock has). Names stay out."""
-    buys = sum(1 for x in stocks if x.get("signal") == "buy")
-    best = None
-    for q in QUESTIONS:
-        if (answers or {}).get(q.key, 0) >= 2:
-            continue
-        n = sum(1 for x in stocks if ((x.get("levels") or {}).get(q.key, 0)) >= 2)
-        if n and (best is None or n > best["n"]):
-            l = q.levels[1]
-            best = {"n": n, "en": l.tag_en, "bn": l.tag_bn}
-    return {"count": len(stocks), "buys": buys, "strength": best}
-
-
-def miss_value(f: dict, qkey: str, lvl: int, ctx: rl.Ctx) -> tuple[str, str]:
-    """The company's own figure on the first check of that choice it fails."""
-    for c in _level_checks(qkey)[lvl]:
-        ok, en, bn = rl.run_check(c, f, ctx)
-        if not ok:
-            return en, bn
-    return "", ""
-
-def _c(key, value=True):
-    return {"key": key, "value": value}
-
-
-def _goal(id_, title_en, title_bn, blurb_en, blurb_bn, answers, sort, sectors=()):
-    """A one-tap preset of the six questions."""
-    full = {**NO_ANSWERS, **answers}
-    return {"id": id_, "kind": "goal", "title_en": title_en, "title_bn": title_bn,
-            "blurb_en": blurb_en, "blurb_bn": blurb_bn, "answers": full, "sectors": list(sectors),
-            "spec": spec_from_answers(full, list(sectors), sort)}
-
-
-def _from_list(id_, lst: ResearchList, checks, sort):
-    """The screener's take on one of the six research lists, built from menu
-    checks so the reader can change it. Close to the list, not identical — the
-    blurb says so, and links the list itself."""
-    return {"id": id_, "kind": "research", "title_en": lst.title_en, "title_bn": lst.title_bn,
-            "blurb_en": "Our research list, rebuilt from the checks here so you can change it",
-            "blurb_bn": "আমাদের গবেষণা তালিকা, এখানের যাচাইগুলো দিয়ে বানানো, যাতে আপনি বদলাতে পারেন",
-            "research_slug": lst.slug, "spec": {"checks": checks, "sort": sort}}
-
-
-# Ready-made starting points in the screener: goals first (one tap for a
-# beginner — they replaced the three-question quiz), then the research lists.
-TEMPLATES = [
-    _goal("good_cheap", "Good and cheap", "ভালো আর সস্তা",
-          "A good company at a low price, and safe", "ভালো কোম্পানি, কম দাম, আর নিরাপদ",
-          {"quality": 1, "price": 2, "safety": 1}, "cheap"),
-    _goal("steady_payers", "Cash every year", "প্রতি বছর নগদ",
-          "Pays 4% or more in cash every year, and safe", "প্রতি বছর 4% বা তার বেশি নগদ দেয়, আর নিরাপদ",
-          {"dividends": 2, "safety": 1}, "yield"),
-    _goal("beginner", "Safe for a beginner", "নতুনদের জন্য নিরাপদ",
-          "Good, safe, big companies that are easy to sell", "ভালো, নিরাপদ ও বড় কোম্পানি, যা সহজে বিক্রি করা যায়",
-          {"quality": 1, "safety": 1, "trading": 2}, "score"),
-    _goal("big_growing", "Profit going up", "মুনাফা বাড়ছে",
-          "Profit going up, price not too high, and safe", "মুনাফা বাড়ছে, দাম বেশি নয়, আর নিরাপদ",
-          {"price": 1, "growth": 2, "safety": 1}, "growth"),
-    _goal("best_companies", "Best companies", "সেরা কোম্পানি",
-          "Our top grade, and safe", "আমাদের সেরা গ্রেড, আর নিরাপদ",
-          {"quality": 2, "safety": 1}, "score"),
-    _goal("strong_banks", "Strong banks", "শক্তিশালী ব্যাংক",
-          "Good banks at a price that is not too high", "ভালো ব্যাংক, দাম বেশি নয়",
-          {"quality": 1, "price": 1}, "score", sectors=["Bank"]),
-    _from_list("rl_cash_machines", rl.CASH_MACHINES,
-               [_c("paid_years", 5), _c("affordable"), _c("cash_backed"), _c("yield_min", 4), _c("not_expensive")],
-               "yield"),
-    _from_list("rl_cheap_not_broken", rl.CHEAP_NOT_BROKEN,
-               [_c("profitable"), _c("cheaper_than_own"), _c("cheaper_than_sector"), _c("grade", 60),
-                _c("debt", "ok")], "cheap"),
-    _from_list("rl_profits_rising", rl.PROFITS_RISING,
-               [_c("quarter_better"), _c("lower_half"), _c("fresh")], "growth"),
-    _from_list("rl_debt_free", rl.DEBT_FREE_GROWING,
-               [_c("debt", "none"), _c("roe_min", 10), _c("growing"), _c("steady")], "score"),
-    _from_list("rl_fallen_strong", rl.FALLEN_STRONG,
-               [_c("below_high", 20), _c("grade", 60), _c("profitable"), _c("no_governance")], "score"),
-    _from_list("rl_owners_buying", rl.OWNERS_BUYING,
-               [_c("owners_buying"), _c("profitable"), _c("category", "not_z")], "score"),
-]
-TEMPLATE_BY_ID = {t["id"]: t for t in TEMPLATES}
-# Retired starts, so old links (homepage card, pushes) still open something close.
-TEMPLATE_ALIASES = {"fallen_good": "rl_fallen_strong"}
-DEFAULT_TEMPLATE = "good_cheap"
-
-
 # ---------------------------------------------------------------------------
 # Specs
 # ---------------------------------------------------------------------------
 
-def catalog(sectors: list[str]) -> dict:
-    """The builder's menu, ready for the browser."""
-    out = []
-    for c in CATALOG:
-        if not c.menu:
-            continue
-        opts = c.options
-        if c.key == "sector":
-            opts = [Option(s, s, _sector_bn(s)) for s in sorted(sectors)]
-        help_en, help_bn = HELP.get(c.key, ("", ""))
-        options = []
-        for o in opts:
-            chk = c.make(o.value)
-            options.append({"value": o.value, "label_en": o.label_en, "label_bn": o.label_bn,
-                            "sentence_en": chk.label_en, "sentence_bn": chk.label_bn})
-        out.append({
-            "key": c.key, "group": c.group, "name_en": c.name_en, "name_bn": c.name_bn,
-            "help_en": help_en, "help_bn": help_bn,
-            "options": options,
-            "default": (opts[0].value if c.key == "sector" and opts else c.default),
-            "label_en": None if c.options or c.key == "sector" else c.make(True).label_en,
-            "label_bn": None if c.options or c.key == "sector" else c.make(True).label_bn,
-            "premium": c.premium,
-        })
-    return {
-        "questions": [{
-            "key": q.key, "title_en": q.title_en, "title_bn": q.title_bn,
-            "blurb_en": q.blurb_en, "blurb_bn": q.blurb_bn,
-            "levels": [{"label_en": q.any_en, "label_bn": q.any_bn, "tag_en": None, "tag_bn": None,
-                        "means_en": q.blurb_en, "means_bn": q.blurb_bn}] + [
-                {"label_en": l.label_en, "label_bn": l.label_bn, "tag_en": l.tag_en, "tag_bn": l.tag_bn,
-                 "means_en": l.means_en, "means_bn": l.means_bn} for l in q.levels],
-        } for q in QUESTIONS],
-        "groups": [{"key": k, "en": en, "bn": bn} for k, en, bn in GROUPS],
-        "checks": out,
-        "sorts": [{"key": k, "en": v[0], "bn": v[1]} for k, v in SORTS.items()],
-        "templates": TEMPLATES,
-        "max_checks": MAX_CHECKS,
-        "max_lists": MAX_LISTS,
-    }
-
-
-def normalize_spec(spec: Any, sectors: list[str], allow_empty: bool = False) -> dict:
-    """A clean spec, or ValueError with a short reason. Keeps the reader's
-    order, drops nothing silently: an unknown check or setting is an error.
-    ``allow_empty``: a live run may have no checks at all (every question at
-    "any" = every rated company); a saved screen may not."""
+def normalize_spec(spec: Any, sectors: list[str]) -> dict:
+    """A clean old spec, or ValueError with a short reason (an unknown check or
+    setting, a sector that left the DSE)."""
     if not isinstance(spec, dict):
         raise ValueError("bad_spec")
-    if spec.get("answers") is not None:
-        spec = spec_from_answers(spec["answers"], spec.get("sectors") or spec.get("sector"), spec.get("sort"))
     raw = spec.get("checks")
-    if not isinstance(raw, list) or (not raw and not allow_empty):
+    if not isinstance(raw, list) or not raw:
         raise ValueError("no_checks")
     if len(raw) > MAX_CHECKS:
         raise ValueError("too_many_checks")

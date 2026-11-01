@@ -1,20 +1,22 @@
 """
-Your own research lists — data side. Rules live in ``custom_lists.py`` (pure).
+Saved screens — data side. The screener's rules live in ``screener.py`` (pure,
+public figures, since 2026-11-01); screens saved before that keep their old
+checks (``custom_lists.py``) and run on them until the reader edits one.
 
 Storage: ``users.custom_lists`` = up to ``MAX_LISTS`` of
 
     {id, name, spec, alerts, members, joined, left, changed_on, checked_on,
      created_at, updated_at}
 
-``members`` is every code that passed the list at the last daily check (None
-until the first check), ``joined`` / ``left`` what changed on ``changed_on``.
-The daily job (``run_alerts``, called from ``portfolio-daily``) re-runs every
-Premium reader's lists and sends one push a day naming the newcomers.
+``spec`` is a screener spec (``{"v": 2, "filters", "sort", "dir"}``) or an old
+``{"checks", "sort"}`` one. ``members`` is every code that passed at the last
+daily check (None until the first check), ``joined`` / ``left`` what changed
+on ``changed_on``. The daily job (``run_alerts``, called from
+``portfolio-daily``) re-runs every Premium reader's screens and sends one push
+a day naming the newcomers. Saving is Premium and enforced in the router.
 
-Running a spec (``run``) is open to everyone — the screener (``/screener``)
-shows a free reader how many companies pass and the first few; the rest is
-screen-locked, like every other lock.
-Saving is Premium and enforced here.
+``facts`` / ``question_table`` stay here for the recommendation engine, which
+still reads each company's strengths on the old six questions.
 """
 from __future__ import annotations
 
@@ -25,14 +27,10 @@ from typing import Optional
 
 from backend.services import custom_lists as cl
 from backend.services import research_lists as rl
+from backend.services import screener as sc
 from backend.services.db_service import _ttl_cache, get_db
 
 logger = logging.getLogger(__name__)
-
-RESULT_CAP = 50
-NEAR_CAP = 20  # stocks that miss exactly one check, shown under the passers
-GOAL_TOP = 3  # = the screener's free rows, so the homepage card needs no lock
-
 
 def _users():
     return get_db()["users"]
@@ -58,25 +56,9 @@ def sectors() -> list[str]:
     return sorted({f.get("sector") for f in facts().values() if f.get("sector")})
 
 
-def catalog() -> dict:
-    return cl.catalog(sectors())
-
-
 def _ctx() -> rl.Ctx:
     from backend.services.research_lists_service import _ctx as base_ctx
     return base_ctx()
-
-
-def _run(spec: dict, ctx: Optional[rl.Ctx] = None) -> dict:
-    lst = cl.build_list(spec)
-    return rl.run_list(lst, list(facts().values()), ctx or _ctx()) | {"_list": lst}
-
-
-def run_template(template_id: str) -> dict:
-    """A ready-made starting point, run — the screener's server-rendered view.
-    KeyError on an unknown id (a retired one resolves to its replacement)."""
-    template_id = cl.TEMPLATE_ALIASES.get(template_id, template_id)
-    return run(cl.TEMPLATE_BY_ID[template_id]["spec"])
 
 
 @_ttl_cache(900)
@@ -87,128 +69,6 @@ def question_table() -> dict[str, dict[str, list[bool]]]:
     return {code: cl.question_sat(f, ctx) for code, f in facts().items() if rl._n(f.get("score")) is not None}
 
 
-def _row(f: dict, rank: int) -> dict:
-    return {
-        "rank": rank, "code": f["code"], "name": f.get("name"), "sector": f.get("sector"),
-        "price": rl._n(f.get("ltp")), "change_pct": rl._n(f.get("change_pct")),
-        "score": rl._n(f.get("score")), "signal": f.get("signal") or "none",
-    }
-
-
-def _near_questions(answers: dict, sectors: list[str], lst: rl.ResearchList, ctx: rl.Ctx) -> dict:
-    """Near misses for a screen built from the six questions: the stocks that
-    meet every answer but one, counted per question."""
-    table, fx = question_table(), facts()
-    want = set(sectors)
-    rows = [(fx[c], not want or fx[c].get("sector") in want, sat) for c, sat in table.items() if c in fx]
-    misses = cl.question_misses(rows, answers)
-    misses.sort(key=lambda m: lst.rank(m[0]), reverse=True)
-
-    def label(qk):
-        q = cl.Q_BY_KEY[qk]
-        lvl = q.levels[answers[qk] - 1]
-        return f"{q.title_en} ({lvl.label_en})", f"{q.title_bn} ({lvl.label_bn})"
-
-    held: dict[str, int] = {}
-    for _f, qk in misses:
-        held[qk] = held.get(qk, 0) + 1
-    order = [q.key for q in cl.QUESTIONS]
-    by = []
-    for qk, n in sorted(held.items(), key=lambda kv: (-kv[1], order.index(kv[0]))):
-        en, bn = label(qk)
-        by.append({"key": qk, "label_en": en, "label_bn": bn, "count": n})
-    stocks = []
-    for r, (f, qk) in enumerate(misses[:NEAR_CAP]):
-        en, bn = label(qk)
-        ven, vbn = cl.miss_value(f, qk, answers[qk], ctx)
-        stocks.append(_row(f, r + 1) | {"levels": cl.best_levels(table[f["code"]]),
-                                         "miss": {"key": qk, "label_en": en, "label_bn": bn,
-                                                  "value_en": ven, "value_bn": vbn}})
-    return {"by": "question", "total": len(misses), "by_check": by, "stocks": stocks}
-
-
-def _near(spec: dict, lst: rl.ResearchList, ctx: rl.Ctx) -> dict:
-    """The stocks that miss exactly one check: how many, how many each check
-    holds back (keyed by the spec's check key, so the page can open that
-    check's settings) and the first NEAR_CAP with the figure that missed."""
-    keys = [c["key"] for c in spec["checks"]]
-    skip = frozenset(i for i, k in enumerate(keys) if k == "sector")
-    misses = rl.near_misses(lst, list(facts().values()), ctx, skip)
-    held: dict[int, int] = {}
-    for _f, i, _en, _bn in misses:
-        held[i] = held.get(i, 0) + 1
-    by_check = [{"key": keys[i], "label_en": lst.checks[i].label_en, "label_bn": lst.checks[i].label_bn,
-                 "count": n} for i, n in sorted(held.items(), key=lambda kv: (-kv[1], kv[0]))]
-    stocks = [_row(f, r + 1) | {"miss": {"key": keys[i], "label_en": lst.checks[i].label_en,
-                                         "label_bn": lst.checks[i].label_bn, "value_en": en, "value_bn": bn}}
-              for r, (f, i, en, bn) in enumerate(misses[:NEAR_CAP])]
-    return {"by": "check", "total": len(misses), "by_check": by_check, "stocks": stocks}
-
-
-def run(spec_in: dict, near: bool = True) -> dict:
-    """The builder's live result: funnel, pass count, the first RESULT_CAP
-    stocks with their own figure on every check and their strengths on the six
-    questions, and (``near``) the stocks that miss by one. A spec that reads
-    as six answers also gets ``answers`` + ``facets`` (how many each choice
-    would leave); any other spec is a fine-tune screen (``answers`` None).
-    Raises ValueError on a bad spec."""
-    spec = cl.normalize_spec(spec_in, sectors(), allow_empty=True)
-    ctx = _ctx()
-    res = _run(spec, ctx)
-    lst = res["_list"]
-    table = question_table()
-    stocks = []
-    for i, f in enumerate(res["passed"][:RESULT_CAP]):
-        stocks.append(_row(f, i + 1) | {
-            "levels": cl.best_levels(table[f["code"]]) if f["code"] in table else None,
-            "checks": [{"key": c["key"], "value_en": c["value_en"], "value_bn": c["value_bn"]}
-                       for c in rl.check_values(lst, f, ctx)],
-        })
-    read = cl.answers_from_spec(spec)
-    facets = None
-    if read:
-        fx, want = facts(), set(read["sectors"])
-        rows = [(not want or (fx.get(c) or {}).get("sector") in want, sat) for c, sat in table.items()]
-        facets = cl.facet_counts(rows, read["answers"])
-    near_out = None
-    if near:
-        near_out = _near_questions(read["answers"], read["sectors"], lst, ctx) if read else _near(spec, lst, ctx)
-    return {"spec": spec, "answers": read["answers"] if read else None, "sectors": read["sectors"] if read else None,
-            "facets": facets, "universe": res["universe"], "funnel": res["funnel"],
-            "passed": len(res["passed"]), "stocks": stocks, "near": near_out}
-
-
-@_ttl_cache(900)
-def goals_summary() -> list[dict]:
-    """The goal starts, run — the homepage "Find stocks your way" card: each
-    goal's pass count, what it asks in words (``wants``), its top ``GOAL_TOP``
-    stocks with their strengths, and what sits past them as counts
-    (``hidden`` + ``hidden_codes``, so the card can count the reader's own).
-    Goals use no power checks and the top three are the screener's free rows,
-    so nothing here is locked. A goal that no longer runs (its sector left
-    the DSE) is skipped."""
-    out = []
-    for tp in cl.TEMPLATES:
-        if tp["kind"] != "goal":
-            continue
-        try:
-            res = run(tp["spec"], near=False)
-        except ValueError:
-            continue
-        rest = res["stocks"][GOAL_TOP:]
-        out.append({
-            "id": tp["id"], "title_en": tp["title_en"], "title_bn": tp["title_bn"],
-            "blurb_en": tp["blurb_en"], "blurb_bn": tp["blurb_bn"],
-            "passed": res["passed"], "universe": res["universe"],
-            "wants": cl.want_lines(tp.get("answers") or {}, tp.get("sectors") or []),
-            "top": [s | {"checks": s["checks"][:2], "strengths": cl.strength_tags(s.get("levels"))}
-                    for s in res["stocks"][:GOAL_TOP]],
-            "hidden": cl.hidden_summary(rest, res.get("answers")),
-            "hidden_codes": [s["code"] for s in rest],
-        })
-    return out
-
-
 # ---------------------------------------------------------------------------
 # Saved lists
 # ---------------------------------------------------------------------------
@@ -217,22 +77,45 @@ def _iso(v) -> Optional[str]:
     return v.isoformat() if isinstance(v, datetime) else v
 
 
+def _live(spec: dict) -> dict:
+    """A saved spec, run: {passed, codes, top}. ValueError when it no longer
+    runs (a sector that left the DSE)."""
+    from backend.services import screener_service as ss
+
+    if sc.is_v2(spec):
+        res = ss.run(spec)
+        return {"passed": res["passed"], "codes": res["codes"],
+                "top": [ss.stock_brief(r) for r in res["rows"][:3]]}
+    spec = cl.normalize_spec(spec, sectors())
+    passed = rl.run_list(cl.build_list(spec), list(facts().values()), _ctx())["passed"]
+    return {"passed": len(passed), "codes": [f["code"] for f in passed],
+            "top": [{"code": f["code"], "name": f.get("name"), "price": rl._n(f.get("ltp")),
+                     "change_pct": rl._n(f.get("change_pct"))} for f in passed[:3]]}
+
+
 def _public(doc: dict, live: Optional[dict] = None) -> dict:
     names = {c: (facts().get(c) or {}).get("name") or c for c in (doc.get("joined") or []) + (doc.get("left") or [])}
+    spec = doc.get("spec") or {}
     out = {
-        "id": doc["id"], "name": doc.get("name"), "spec": doc.get("spec"),
-        "summary": cl.summary(doc.get("spec") or {}),
+        "id": doc["id"], "name": doc.get("name"), "spec": spec,
+        "summary": sc.summary(spec) if sc.is_v2(spec) else cl.summary(spec),
         "alerts": bool(doc.get("alerts", True)),
         "joined": [{"code": c, "name": names.get(c, c)} for c in doc.get("joined") or []],
         "left": [{"code": c, "name": names.get(c, c)} for c in doc.get("left") or []],
         "changed_on": doc.get("changed_on"),
         "created_at": _iso(doc.get("created_at")),
         "updated_at": _iso(doc.get("updated_at")),
+        "legacy": not sc.is_v2(spec),
     }
+    if not sc.is_v2(spec):
+        # An old screen opens in the new screener as the closest filters.
+        filters, dropped = sc.from_checks(spec.get("checks") or [])
+        out["filters_spec"] = {"v": 2, "filters": filters, "sort": sc.DEFAULT_SORT, "dir": sc.DEFAULT_DIR}
+        out["dropped"] = [{"key": k, "en": cl.BY_KEY[k].name_en, "bn": cl.BY_KEY[k].name_bn}
+                          for k in dropped if k in cl.BY_KEY]
     if live is not None:
         out["passed"] = live["passed"]
-        out["top"] = [{"code": s["code"], "name": s["name"], "price": s["price"], "change_pct": s["change_pct"],
-                       "score": s["score"], "signal": s["signal"]} for s in live["stocks"][:3]]
+        out["top"] = live["top"]
     return out
 
 
@@ -245,7 +128,7 @@ def list_for_user(user_id: str) -> list[dict]:
     out = []
     for d in _docs(user_id):
         try:
-            live = run(d.get("spec") or {}, near=False)
+            live = _live(d.get("spec") or {})
         except ValueError:
             live = None  # a sector that left the DSE — the card says so
         out.append(_public(d, live) | {"broken": live is None})
@@ -275,7 +158,11 @@ def create(user_id: str, name, spec_in, alerts: bool = True) -> dict:
     docs = _docs(user_id)
     if len(docs) >= cl.MAX_LISTS:
         raise ValueError("too_many_lists")
-    spec = cl.normalize_spec(spec_in, sectors())
+    from backend.services import screener_service as ss
+
+    spec = sc.normalize_spec(spec_in, ss.sectors())
+    if not spec["filters"]:
+        raise ValueError("no_filters")  # "every company" is not worth watching
     now = datetime.now(timezone.utc)
     doc = {
         "id": uuid.uuid4().hex[:10], "name": cl.clean_name(name), "spec": spec,
@@ -283,7 +170,7 @@ def create(user_id: str, name, spec_in, alerts: bool = True) -> dict:
         "changed_on": None, "checked_on": None, "created_at": now, "updated_at": now,
     }
     # Today's passers are the baseline: tomorrow's newcomers are the news.
-    doc["members"] = [f["code"] for f in _run(spec)["passed"]][:cl.MEMBERS_CAP]
+    doc["members"] = _live(spec)["codes"][:cl.MEMBERS_CAP]
     _users().update_one({"user_id": user_id}, {"$push": {"custom_lists": doc}})
     return _public(doc)
 
@@ -299,12 +186,15 @@ def update(user_id: str, list_id: str, name=None, spec_in=None, alerts: Optional
     if alerts is not None:
         doc["alerts"] = sets["custom_lists.$.alerts"] = bool(alerts)
     if spec_in is not None:
-        spec = cl.normalize_spec(spec_in, sectors())
+        from backend.services import screener_service as ss
+
+        spec = sc.normalize_spec(spec_in, ss.sectors())
+        if not spec["filters"]:
+            raise ValueError("no_filters")
         if spec != doc.get("spec"):
             # New rules, new baseline — yesterday's members mean nothing now.
             doc["spec"] = sets["custom_lists.$.spec"] = spec
-            doc["members"] = sets["custom_lists.$.members"] = \
-                [f["code"] for f in _run(spec)["passed"]][:cl.MEMBERS_CAP]
+            doc["members"] = sets["custom_lists.$.members"] = _live(spec)["codes"][:cl.MEMBERS_CAP]
             doc["joined"] = sets["custom_lists.$.joined"] = []
             doc["left"] = sets["custom_lists.$.left"] = []
             doc["changed_on"] = sets["custom_lists.$.changed_on"] = None
@@ -332,16 +222,16 @@ def push_payload(changes: list[tuple[dict, list[str]]], lang: str = "bn") -> Opt
     if len(changes) == 1:
         d, joined = changes[0]
         names = ", ".join(joined[:3]) + ("…" if len(joined) > 3 else "")
-        title = (f"'{d['name']}' তালিকায় নতুন {len(joined)}টি শেয়ার" if bn
-                 else f"{len(joined)} new {'share' if len(joined) == 1 else 'shares'} on your list '{d['name']}'")
+        title = (f"'{d['name']}' স্ক্রিনে নতুন {len(joined)}টি শেয়ার" if bn
+                 else f"{len(joined)} new {'share' if len(joined) == 1 else 'shares'} on your screen '{d['name']}'")
         url = f"/screener?tab=saved&list={d['id']}&src=alert"
     else:
         total = sum(len(j) for _, j in changes)
-        title = (f"আপনার {len(changes)}টি তালিকায় নতুন {total}টি শেয়ার" if bn
-                 else f"{total} new shares on {len(changes)} of your lists")
+        title = (f"আপনার {len(changes)}টি স্ক্রিনে নতুন {total}টি শেয়ার" if bn
+                 else f"{total} new shares on {len(changes)} of your screens")
         names = " · ".join(f"{d['name']}: {', '.join(j[:2])}" for d, j in changes[:3])
         url = "/screener?tab=saved&src=alert"
-    body = (f"আজ সবগুলো যাচাইয়ে পাস করেছে: {names}" if bn else f"Passed every check today: {names}")
+    body = (f"আজ সব ফিল্টারে মিলেছে: {names}" if bn else f"Matched every filter today: {names}")
     return {"title": title, "body": body, "url": url, "tag": "customlists"}
 
 
@@ -352,7 +242,6 @@ def run_alerts(now: datetime, day: str, push_ok: bool) -> int:
     from backend.services import entitlements, push_service
 
     sends = get_db()["push_sends"]
-    ctx = _ctx()
     cache: dict[str, list[str]] = {}
     pushed = 0
     for u in _users().find(
@@ -367,13 +256,13 @@ def run_alerts(now: datetime, day: str, push_ok: bool) -> int:
         for d in u.get("custom_lists") or []:
             if d.get("checked_on") == day:
                 continue
-            try:
-                spec = cl.normalize_spec(d.get("spec") or {}, sectors())
-            except ValueError:
-                continue
+            spec = d.get("spec") or {}
             key = repr(spec)
             if key not in cache:
-                cache[key] = [f["code"] for f in _run(spec, ctx)["passed"]][:cl.MEMBERS_CAP]
+                try:
+                    cache[key] = _live(spec)["codes"][:cl.MEMBERS_CAP]
+                except ValueError:
+                    continue
             now_codes = cache[key]
             joined, left = cl.diff_members(d.get("members"), now_codes)
             sets = {"custom_lists.$.members": now_codes, "custom_lists.$.checked_on": day}

@@ -1,0 +1,214 @@
+/* screener — /screener (components/screener/*, rebuilt 2026-11-01).
+   Tokens only: var(--fs-*), var(--radius*), var(--shadow-*), colour vars.
+   The page is: ready-made screens (chips) → "Your filters" card (filter
+   chips + Add a filter) → the result table (.data-table). */
+
+/* --- "Your filters" card --- */
+.scr-filters {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-soft);
+}
+@media (min-width: 640px) { .scr-filters { padding: 18px 20px; } }
+
+.scr-link {
+  min-height: 40px;
+  padding: 0 4px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--primary-ink);
+}
+.scr-link:hover { text-decoration: underline; }
+
+/* One filter: the label opens its sheet, the cross takes it off. */
+.scr-chip {
+  display: inline-flex;
+  align-items: stretch;
+  min-height: 40px;
+  border: 1px solid var(--text);
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.scr-chip-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 4px 0 14px;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--text);
+}
+.scr-chip-x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  color: var(--text);
+}
+.scr-chip-main:hover, .scr-chip-x:hover { background: var(--border); }
+.scr-chip-main:active, .scr-chip-x:active { background: var(--border); }
+
+.scr-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 16px 0 12px;
+  border: 1px dashed var(--primary);
+  border-radius: 999px;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--primary-ink);
+  background: var(--surface);
+}
+.scr-add:hover { background: var(--primary-soft); }
+.scr-add:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Order select, same look as the watchlist's. */
+.scr-select {
+  max-width: 100%;
+  height: 40px;
+  padding: 0 32px 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background-color: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.scr-select:hover { border-color: var(--text-muted); }
+.scr-select:focus-visible { outline: none; border-color: var(--primary); box-shadow: var(--ring); }
+
+/* --- Filter sheet --- */
+.scr-view-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--gold-soft);
+  border-radius: var(--radius);
+  background: var(--gold-light);
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+.scr-view-note svg { flex: 0 0 auto; margin-top: 2px; color: var(--gold-ink); }
+
+/* The whole market on one figure; the chosen range is lit. */
+.scr-hist {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 64px;
+  margin-top: 12px;
+}
+.scr-hist-bar {
+  flex: 1 1 0;
+  min-width: 0;
+  border-radius: 2px 2px 0 0;
+  background: var(--border);
+}
+.scr-hist-bar.is-on { background: var(--primary); }
+
+/* A ready-made range with its count. */
+.scr-preset {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 6px 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text);
+}
+.scr-preset:hover { border-color: var(--text-muted); }
+.scr-preset.is-on { border-color: var(--text); background: var(--text); color: var(--surface); }
+.scr-preset-n {
+  min-width: 28px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-align: center;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.scr-preset.is-on .scr-preset-n { background: var(--surface); color: var(--text); }
+.scr-preset-n.is-zero { color: var(--negative); }
+
+/* Set filter checkbox. */
+.scr-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--surface);
+}
+.scr-check.is-on { border-color: var(--primary); background: var(--primary); }
+
+/* --- Result table: fewer figure columns on narrower screens --- */
+/* .data-table keeps every cell on one line, so five figure columns don't fit
+   a tablet-width card; hide the later ones instead of cutting the right edge.
+   Under 640px the rows are cards and data-secondary decides. */
+@media (min-width: 640px) and (max-width: 767.98px) {
+  .data-table .scr-mid { display: none; }
+}
+@media (min-width: 640px) and (max-width: 1023.98px) {
+  .data-table .scr-wide, .data-table .scr-wider { display: none; }
+}
+@media (min-width: 1024px) and (max-width: 1279.98px) {
+  .data-table .scr-wider { display: none; }
+}
+/* Heads may wrap to two lines ("Market cap (৳ crore)" is wider than its
+   numbers), and long company names truncate sooner than on other tables. */
+@media (min-width: 640px) {
+  .scr-table .dt-sort { white-space: normal; line-height: 1.25; padding-top: 6px; padding-bottom: 6px; }
+  .scr-table .dt-num .dt-sort { text-align: right; }
+  .scr-table .dt-name { max-width: 200px; }
+}
+
+/* --- Result cards on phones (< 640px) ---
+   Three figure lines share a card's width (~100px each). The shared
+   .data-table captions are capitals on one line, which cut "Trading a day
+   (৳ lakh)" to "TRADING A DA…"; here they read in sentence case and may wrap
+   to two lines, with the figure pinned to the bottom so the three line up. */
+@media (max-width: 639.98px) {
+  .scr-table td[data-cell="meta"] {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 2px;
+    white-space: normal;
+    overflow: visible;
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    color: var(--text);
+  }
+  .scr-table td[data-cell="meta"]::before {
+    margin-bottom: 0;
+    font-size: var(--fs-2xs);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--text-muted);
+    overflow-wrap: anywhere;
+  }
+  .scr-table td[data-cell="meta"] + td[data-cell="meta"] {
+    padding-left: 8px;
+    border-left: 1px solid var(--cell-rule);
+  }
+  .scr-table .dt-name { max-width: 100%; }
+}

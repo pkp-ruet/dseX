@@ -2,183 +2,86 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Button from "@/components/ui/Button";
-import Card from "@/components/ui/Card";
 import Chip from "@/components/ui/Chip";
 import Sheet from "@/components/ui/Sheet";
 import Tabs from "@/components/ui/Tabs";
-import { IconBell, IconCheck, IconChevronDown, IconList, IconLock, IconTune } from "@/components/ui/icons";
 import EmptyState from "@/components/ui/EmptyState";
 import Skeleton from "@/components/ui/Skeleton";
+import { IconBell, IconClose, IconCrown, IconPlus } from "@/components/ui/icons";
+import AnswerLock from "@/components/premium/AnswerLock";
 import { PageLockScope } from "@/components/premium/LockScope";
 import { showLimitNotice } from "@/components/premium/LimitNotice";
 import SavedListCard from "@/components/custom-lists/SavedListCard";
-import ScreenerStarts from "./ScreenerStarts";
-import ScreenerQuestions, { questionId } from "./ScreenerQuestions";
-import ScreenerChecks from "./ScreenerChecks";
-import ScreenerResults from "./ScreenerResults";
-import ScreenerPremium, { SCREENER_ANCHOR } from "./ScreenerPremium";
-import ScreenerPreview from "./ScreenerPreview";
-import { trackEvent } from "@/lib/track";
 import { T } from "@/components/i18n/T";
-import Link from "next/link";
+import FilterSheet from "./FilterSheet";
+import AddFilterSheet from "./AddFilterSheet";
+import ScreenerTable, { PAGE } from "./ScreenerTable";
+import ScreenerPremium, { SCREENER_ANCHOR } from "./ScreenerPremium";
 import { useAuth } from "@/context/AuthContext";
 import { useLang } from "@/context/LangContext";
 import { usePremium, isLimitError } from "@/lib/premium";
-import { FREE_SCREENER_ROWS } from "@/lib/free-share";
 import { useUrlParams, useUrlSync } from "@/lib/use-url-state";
-import { loadWatchlist } from "@/lib/watchlist";
 import { toast } from "@/lib/toast";
-import { decodeAnswers, encodeAnswers, noAnswers, sameAnswers, sameSet } from "@/lib/screener";
+import { trackEvent } from "@/lib/track";
+import { formatDate } from "@/lib/formatters";
 import {
-  apiCreateCustomList, apiDeleteCustomList, apiGetCustomLists, apiUpdateCustomList, runCustomList,
-  type CustomCheckDef, type CustomCheckValue, type CustomListCatalog, type CustomListResult,
-  type CustomListSpec, type CustomListTemplate, type SavedCustomList, type ScreenerAnswers,
-  type ScreenerRequest,
+  DEFAULT_SORT, EMPTY_SPEC, applyScreen, decodeFilters, encodeFilters, matchReady, sameSpec, setFilter,
+  tableColumns, unpackRows, valueWords,
+} from "@/lib/screener";
+import {
+  apiCreateCustomList, apiDeleteCustomList, apiGetCustomLists, apiUpdateCustomList,
+  type SavedCustomList, type ScreenerFilter, type ScreenerFilterDef, type ScreenerSpec, type ScreenerUniverse,
 } from "@/lib/api";
 
-type Tab = "build" | "saved";
-const TABS: Tab[] = ["build", "saved"];
-const FINE_ID = "sc-fine";
-/** Retired start ids → their replacement (old homepage links and pushes). */
-const START_ALIASES: Record<string, string> = { fallen_good: "rl_fallen_strong" };
-
-/** What each order is for, in plain words — shown in the order sheet to everyone. */
-const SORT_HELP: Record<string, { en: string; bn: string }> = {
-  score: { en: "For quality: the strongest companies on our grade come first",
-           bn: "মানের জন্য: আমাদের গ্রেডে সবচেয়ে শক্তিশালী কোম্পানি আগে" },
-  yield: { en: "For income: the most cash dividend for the price comes first",
-           bn: "আয়ের জন্য: দামের তুলনায় সবচেয়ে বেশি নগদ ডিভিডেন্ড আগে" },
-  cheap: { en: "For bargains: the lowest price for the profit comes first",
-           bn: "কম দামের জন্য: মুনাফার তুলনায় সবচেয়ে কম দাম আগে" },
-  size: { en: "For safety: the biggest companies come first",
-          bn: "নিরাপত্তার জন্য: সবচেয়ে বড় কোম্পানি আগে" },
-  growth: { en: "For growth: the fastest-rising profit comes first",
-            bn: "বৃদ্ধির জন্য: সবচেয়ে দ্রুত বাড়া মুনাফা আগে" },
-};
+type Tab = "screen" | "saved";
+const TABS: Tab[] = ["screen", "saved"];
 
 /** Visible copy as both languages, so the server HTML needs no re-render to switch. */
 const tt = (en: string, bn: string) => <T en={en} bn={bn} />;
 
-/** A locked change a free reader tapped — previewed, not applied. */
-type Preview = { kind: "answer"; key: string; level: number } | { kind: "order"; sort: string };
-
-/** The screen: the six answers (+ a sector), or exact checks (a fine-tune screen). */
-type Screen =
-  | { kind: "q"; answers: ScreenerAnswers; sectors: string[]; sort: string }
-  | { kind: "c"; checks: CustomListSpec["checks"]; sort: string };
-
-/** `grade:60,yield_min:4,fresh:1,sector:Bank|Cement` — exact checks in the URL, so a link restores them. */
-function encodeChecks(checks: CustomListSpec["checks"]): string {
-  return checks.map((c) => {
-    const v = c.value === true ? "1" : Array.isArray(c.value) ? c.value.map(encodeURIComponent).join("|") : encodeURIComponent(String(c.value));
-    return `${c.key}:${v}`;
-  }).join(",");
-}
-
-function decodeChecks(raw: string, byKey: Map<string, CustomCheckDef>): CustomListSpec["checks"] {
-  const out: CustomListSpec["checks"] = [];
-  for (const part of raw.split(",")) {
-    const i = part.indexOf(":");
-    const key = i < 0 ? part : part.slice(0, i);
-    const val = i < 0 ? "1" : decodeURIComponent(part.slice(i + 1));
-    const def = byKey.get(key);
-    if (!def || out.some((c) => c.key === key)) continue;
-    if (key === "sector") {
-      const names = part.slice(i + 1).split("|").map(decodeURIComponent)
-        .filter((n) => def.options.some((o) => o.value === n));
-      if (names.length) out.push({ key, value: names.length === 1 ? names[0] : names });
-      continue;
-    }
-    if (!def.options.length) {
-      out.push({ key, value: true });
-      continue;
-    }
-    const opt = def.options.find((o) => String(o.value) === val);
-    if (opt) out.push({ key, value: opt.value });
-  }
-  return out;
-}
-
-const request = (s: Screen): ScreenerRequest =>
-  s.kind === "q" ? { answers: s.answers, sectors: s.sectors, sort: s.sort } : { checks: s.checks, sort: s.sort };
-const screenKey = (s: Screen) => JSON.stringify(request(s));
-
-function fromTemplate(tp: CustomListTemplate): Screen {
-  const sort = tp.spec.sort ?? "score";
-  return tp.answers
-    ? { kind: "q", answers: tp.answers, sectors: tp.sectors ?? [], sort }
-    : { kind: "c", checks: tp.spec.checks, sort };
-}
-
 /**
- * The stock screener (`/screener`, rebuilt around six questions 2026-10-27).
- * Two tabs on one page:
- * - Build: ONE card — quick picks on top (a shortcut that fills in the
- *   answers; it lights up while the answers match it), then the SIX
- *   QUESTIONS, each a three-way switch with a live count under every choice,
- *   and a sector picker; under it "See the exact rules" — the checks
- *   the answers stand for, readable by everyone, changeable with Premium. A
- *   screen that isn't six answers (a research start, an old link, a saved
- *   screen edited by hand) is a fine-tune screen: the rules show instead of
- *   the questions. Then the stocks, each with its strengths, the ones that
- *   miss one answer, and a link to the research lists. Free readers see the first
- *   `FREE_SCREENER_ROWS` (none with a power check on); the rest blurs and
- *   points at the ONE Premium section `#sc-premium`.
- * - Saved: the old `/my-lists` cards (saving is Premium, enforced server-side).
- * The server renders the Build tab with `initialTemplate` already run, so the
- * HTML Google reads has real rows.
+ * The stock screener (`/screener`, rebuilt 2026-11-01 — user: the six graded
+ * questions were "very complicated to understand and use" and "totally based
+ * on our analysis"). A screener of public figures, the way investors already
+ * think ("yield over 5%, P/E under 10, category A"):
+ *
+ * - ready-made screens as one chip row — each just loads visible filters;
+ * - the screen's filters as chips ("P/E: Under 10 ✕") + "Add a filter";
+ *   a filter's sheet (`FilterSheet`) explains the figure, shows where most
+ *   DSE shares sit, and counts every choice before you pick it;
+ * - the result as the page: a sortable table whose columns follow the
+ *   filters (`ScreenerTable`).
+ *
+ * Every company's figures arrive with the page (`GET /api/screener`), so
+ * filtering, counting and sorting happen here with no request. Everything on
+ * public figures is free, every row. Premium = TopStockBD's view as filters
+ * (grade, price check, warnings: anyone sees the count, the shares are
+ * screen-locked) and saved screens with a daily alert. Saved = the reader's
+ * screens; old ones (six questions / checks) open as the closest filters.
  */
-export default function ScreenerClient({
-  catalog,
-  initial,
-  initialTemplate,
-}: {
-  catalog: CustomListCatalog;
-  initial: CustomListResult | null;
-  initialTemplate: string;
-}) {
+export default function ScreenerClient({ data }: { data: ScreenerUniverse }) {
   const { isLoggedIn, isLoading: authLoading } = useAuth();
   const { isPremium, state } = usePremium();
   const { bn } = useLang();
   const t = useCallback((en: string, b: string) => (bn ? b : en), [bn]);
 
-  const byKey = useMemo(() => new Map(catalog.checks.map((c) => [c.key, c] as const)), [catalog]);
-  const questions = useMemo(() => catalog.questions ?? [], [catalog]);
-  const sectorOptions = useMemo(() => byKey.get("sector")?.options.map((o) => ({
-    value: String(o.value), label_en: o.label_en, label_bn: o.label_bn,
-  })) ?? [], [byKey]);
-  const templates = catalog.templates;
-  const findTemplate = useCallback(
-    (id: string | null) => (id ? templates.find((x) => x.id === (START_ALIASES[id] ?? id)) : undefined),
-    [templates],
-  );
-  const defaultScreen = useMemo<Screen>(() => {
-    const tp = findTemplate(initialTemplate) ?? templates[0];
-    return fromTemplate(tp);
-  }, [findTemplate, initialTemplate, templates]);
+  const rows = useMemo(() => unpackRows(data), [data]);
+  const defs = useMemo(() => new Map(data.filters.map((f) => [f.key, f] as const)), [data]);
+  const ranges = useMemo(() => data.filters.filter((f) => f.kind === "range"), [data]);
 
-  const [tab, setTab] = useState<Tab>("build");
-  const [screen, setScreen] = useState<Screen>(defaultScreen);
-  const [result, setResult] = useState<CustomListResult | null>(initial);
-  const [running, setRunning] = useState(false);
-  const [runError, setRunError] = useState(false);
-  const [checkOpen, setCheckOpen] = useState<string | null>(null);
-  const [fineOpen, setFineOpen] = useState(false);
-  const [lockOpen, setLockOpen] = useState(false);
-  const [preview, setPreview] = useState<Preview | null>(null);
-  const [previewRes, setPreviewRes] = useState<CustomListResult | null>(null);
-  const [previewError, setPreviewError] = useState(false);
-  const previewSeq = useRef(0);
+  const [tab, setTab] = useState<Tab>("screen");
+  const [spec, setSpec] = useState<ScreenerSpec>(EMPTY_SPEC);
+  const [limit, setLimit] = useState(PAGE);
+  const [sheet, setSheet] = useState<string | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
 
   const [saved, setSaved] = useState<SavedCustomList[] | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [alerts, setAlerts] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [sortOpen, setSortOpen] = useState(false);
   const [saveOpen, setSaveOpen] = useState(false);
-  const [followed, setFollowed] = useState<string[]>([]);
-  const buildRef = useRef<HTMLDivElement>(null);
+  const topRef = useRef<HTMLDivElement>(null);
 
   // URL → state, once after mount.
   const params = useUrlParams();
@@ -186,168 +89,104 @@ export default function ScreenerClient({
     if (!params) return;
     const tb = params.get("tab") as Tab | null;
     if (tb && TABS.includes(tb)) setTab(tb);
-    const a = params.get("a");
-    const c = params.get("c");
-    const sortP = params.get("sort");
-    const sort = sortP && catalog.sorts.some((s) => s.key === sortP) ? sortP : "score";
-    const tp = findTemplate(params.get("start"));
-    if (a != null && questions.length) {
-      // `sectors=Bank|Cement`; `sector=Bank` is the one-sector form of older links.
-      const raw = params.get("sectors") ?? params.get("sector") ?? "";
-      const sectors = raw.split("|").filter((x) => sectorOptions.some((o) => o.value === x));
-      setScreen({ kind: "q", answers: decodeAnswers(a, questions), sectors, sort });
-    } else if (c) {
-      const checks = decodeChecks(c, byKey);
-      if (checks.length) setScreen({ kind: "c", checks, sort });
-    } else if (tp) {
-      setScreen(fromTemplate(tp));
+    const ready = data.ready.find((r) => r.id === params.get("ready"));
+    if (ready) return setSpec(ready.spec);
+    const f = params.get("f");
+    const sort = params.get("sort");
+    const dir = params.get("dir");
+    if (f || sort) {
+      setSpec({
+        v: 2,
+        filters: f ? decodeFilters(f, defs) : [],
+        sort: sort && (sort === "name" || ranges.some((r) => r.key === sort)) ? sort : DEFAULT_SORT,
+        dir: dir === "asc" ? "asc" : "desc",
+      });
     }
-  }, [params, findTemplate, byKey, catalog.sorts, questions, sectorOptions]);
+  }, [params, data.ready, defs, ranges]);
 
-  // The quick pick the answers match (lit on the card), and whether the
-  // order matches it too (then the URL is just its name).
-  const goals = useMemo(() => templates.filter((tp) => tp.kind === "goal" && tp.answers), [templates]);
-  const matchedGoal = screen.kind === "q"
-    ? goals.find((g) => sameAnswers(g.answers!, screen.answers) && sameSet(g.sectors ?? [], screen.sectors))
-    : undefined;
-  const urlGoal = matchedGoal && (matchedGoal.spec.sort ?? "score") === screen.sort ? matchedGoal : undefined;
-
-  // State → URL. A quick pick is one word; anything else is its answers or checks.
+  // State → URL: a ready-made screen is its name; anything else its filters.
+  const ready = matchReady(spec, data.ready);
+  const exactReady = ready && sameSpec(ready.spec, spec) ? ready : undefined;
+  const defaultOrder = spec.sort === DEFAULT_SORT && spec.dir === "desc";
   useUrlSync(
     {
-      tab: tab === "build" ? null : tab,
-      start: urlGoal && urlGoal.id !== initialTemplate ? urlGoal.id : null,
-      a: !urlGoal && screen.kind === "q" ? encodeAnswers(screen.answers) || "none" : null,
-      sectors: !urlGoal && screen.kind === "q" && screen.sectors.length ? screen.sectors.join("|") : null,
-      c: !urlGoal && screen.kind === "c" ? encodeChecks(screen.checks) : null,
-      sort: urlGoal ? null : screen.sort,
+      tab: tab === "screen" ? null : tab,
+      ready: exactReady?.id ?? null,
+      f: !exactReady && spec.filters.length ? encodeFilters(spec.filters) : null,
+      sort: exactReady || defaultOrder ? null : spec.sort,
+      dir: exactReady || defaultOrder ? null : spec.dir,
     },
     params !== null,
   );
-
-  // Run the screen live, a moment after the last change.
-  const lastRun = useRef(initial ? screenKey(defaultScreen) : "");
-  useEffect(() => {
-    const key = screenKey(screen);
-    if (key === lastRun.current) return;
-    setRunning(true);
-    const timer = window.setTimeout(() => {
-      lastRun.current = key;
-      runCustomList(request(screen))
-        .then((r) => {
-          setResult(r);
-          setRunError(false);
-          // Exact checks that turn out to be six answers become a questions screen.
-          if (screen.kind === "c" && r.answers && questions.length) {
-            const next: Screen = { kind: "q", answers: r.answers, sectors: r.sectors ?? [], sort: screen.sort };
-            lastRun.current = screenKey(next);
-            setScreen(next);
-          }
-        })
-        .catch(() => setRunError(true))
-        .finally(() => setRunning(false));
-    }, 350);
-    return () => window.clearTimeout(timer);
-  }, [screen, questions.length]);
 
   const loadSaved = useCallback(() => {
     if (!isLoggedIn) return;
     apiGetCustomLists().then((r) => setSaved(r.lists)).catch(() => setSaved([]));
   }, [isLoggedIn]);
-
   useEffect(() => {
-    if (authLoading || !isLoggedIn) return;
-    loadSaved();
-    loadWatchlist().then(setFollowed).catch(() => {});
+    if (!authLoading && isLoggedIn) loadSaved();
   }, [authLoading, isLoggedIn, loadSaved]);
 
-  // ?list=<id> (the daily push) opens that saved screen in the builder.
+  // ?list=<id> (the daily push) opens that saved screen.
   const openedFromUrl = useRef(false);
   useEffect(() => {
     if (openedFromUrl.current || !saved || !params) return;
     openedFromUrl.current = true;
-    const id = params.get("list");
-    const hit = id ? saved.find((l) => l.id === id) : undefined;
+    const hit = saved.find((l) => l.id === params.get("list"));
     if (hit) edit(hit);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [saved, params]);
 
-  // The exact checks behind the screen: its own, or what the answers expand to.
-  const checks: CustomListSpec["checks"] =
-    screen.kind === "c" ? screen.checks : result?.answers ? result.spec.checks : [];
-  const isFine = screen.kind === "c" || !questions.length;
-  const canTune = isPremium || !questions.length;
-  // Free readers: quick picks, every count and the first rows are free;
-  // setting their own answers and sectors is Premium (screen-only, like every lock).
-  const locked = !isPremium && questions.length > 0;
+  const result = useMemo(() => applyScreen(rows, spec), [rows, spec]);
+  const columns = useMemo(() => tableColumns(spec, defs), [spec, defs]);
+  const viewOn = spec.filters.some((f) => defs.get(f.key)?.premium);
+  const locked = viewOn && !isPremium;
 
-  const answer = (key: string, level: number) => {
-    setScreen((s) => s.kind === "q" ? { ...s, answers: { ...s.answers, [key]: level } } : s);
+  const change = (next: ScreenerSpec) => {
+    setSpec(next);
+    setLimit(PAGE);
   };
-  const setSectors = (sectors: string[]) => {
-    setScreen((s) => s.kind === "q" ? { ...s, sectors } : s);
+  const applyFilter = (key: string, f: ScreenerFilter | null) => {
+    change(setFilter(spec, key, f));
+    setSheet(null);
+    if (f && defs.get(key)?.premium && !isPremium) {
+      trackEvent("premium_lock_view", { area: "screener", lock: "Screener view filter", state });
+    }
   };
-  // Fine-tuning turns the screen into exact checks.
-  const changeChecks = (fn: (c: CustomListSpec["checks"]) => CustomListSpec["checks"]) => {
-    setScreen((s) => ({ kind: "c", checks: fn(s.kind === "c" ? s.checks : checks), sort: s.sort }));
+  const sortBy = (key: string) => {
+    const d = defs.get(key);
+    const first: "asc" | "desc" = key === "name" ? "asc" : d && !d.high_good ? "asc" : "desc";
+    change({ ...spec, sort: key, dir: spec.sort === key ? (spec.dir === "asc" ? "desc" : "asc") : first });
   };
-  const addCheck = (c: CustomCheckDef) => {
-    if (checks.some((x) => x.key === c.key) || checks.length >= catalog.max_checks) return;
-    changeChecks((xs) => [...xs, { key: c.key, value: c.default ?? true }]);
-  };
-  const setValue = (key: string, value: CustomCheckValue) =>
-    changeChecks((xs) => xs.map((c) => (c.key === key ? { ...c, value } : c)));
-  const removeCheck = (key: string) => changeChecks((xs) => xs.filter((c) => c.key !== key));
-  const setSort = (key: string) => setScreen((s) => ({ ...s, sort: key }));
-
-  const pick = (tp: CustomListTemplate) => {
+  const pickReady = (id: string) => {
+    const r = data.ready.find((x) => x.id === id);
+    if (!r) return;
+    if (exactReady?.id === id) return change(EMPTY_SPEC);
     setEditingId(null);
-    setName(t(tp.title_en, tp.title_bn));
-    setAlerts(true);
-    setScreen(fromTemplate(tp));
+    setName(t(r.title_en, r.title_bn));
+    change(r.spec);
+    trackEvent("screener_ready", { id });
   };
-  const startOver = () => pick(findTemplate(initialTemplate) ?? templates[0]);
 
   function edit(l: SavedCustomList) {
+    const next = l.legacy ? l.filters_spec : (l.spec as ScreenerSpec);
+    if (!next) return;
     setEditingId(l.id);
     setName(l.name);
     setAlerts(l.alerts);
-    setScreen({ kind: "c", checks: l.spec.checks, sort: l.spec.sort ?? "score" });
-    setTab("build");
-    window.setTimeout(() => buildRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
-  }
-
-  /** "Change" on the near-miss block: jump to that question, or open that check. */
-  const changeMissed = (key: string, by: "question" | "check") => {
-    if (by === "question") {
-      const el = document.getElementById(questionId(key));
-      el?.scrollIntoView({ behavior: "smooth", block: "start" });
-      el?.querySelector<HTMLButtonElement>('[aria-checked="true"]')?.focus({ preventScroll: true });
-      return;
+    change(next);
+    setTab("screen");
+    if (l.dropped?.length) {
+      toast({
+        message: t(
+          `This screen was made in the old screener. ${l.dropped.map((d) => d.en).join(", ")} has no filter here, so it was left out. Save to keep the new version.`,
+          `স্ক্রিনটি পুরোনো স্ক্রিনারে বানানো। ${l.dropped.map((d) => d.bn).join(", ")}-এর কোনো ফিল্টার এখানে নেই, তাই বাদ গেছে। নতুন রূপটি রাখতে সেভ করুন।`,
+        ),
+        tone: "neutral",
+      });
     }
-    setFineOpen(true);
-    if (canTune && checks.some((c) => c.key === key)) setCheckOpen(key);
-    else window.setTimeout(() => document.getElementById(FINE_ID)?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
-  };
-
-  /** Free readers: run the change they tapped and show what it would give. */
-  const openPreview = (pv: Preview) => {
-    if (pv.kind === "answer" && screen.kind !== "q") return setLockOpen(true);
-    const next: Screen = pv.kind === "answer" && screen.kind === "q"
-      ? { ...screen, answers: { ...screen.answers, [pv.key]: pv.level } }
-      : { ...screen, sort: pv.kind === "order" ? pv.sort : screen.sort };
-    const seq = ++previewSeq.current;
-    setPreview(pv);
-    setPreviewRes(null);
-    setPreviewError(false);
-    trackEvent("premium_lock_view", { area: "screener", lock: pv.kind === "answer" ? "Screener answer" : "Screener order", state });
-    runCustomList(request(next))
-      .then((r) => { if (seq === previewSeq.current) setPreviewRes(r); })
-      .catch(() => { if (seq === previewSeq.current) setPreviewError(true); });
-  };
-  const previewQ = preview?.kind === "answer" ? questions.find((q) => q.key === preview.key) : undefined;
-  const previewLevel = previewQ && preview?.kind === "answer" ? previewQ.levels[preview.level] : undefined;
-  const previewSort = preview?.kind === "order" ? catalog.sorts.find((so) => so.key === preview.sort) : undefined;
+    window.setTimeout(() => topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
+  }
 
   /** true once saved. */
   const save = async (): Promise<boolean> => {
@@ -359,11 +198,10 @@ export default function ScreenerClient({
       toast({ message: t("Give the screen a name first.", "আগে স্ক্রিনের একটি নাম দিন।"), tone: "neutral" });
       return false;
     }
-    if (screen.kind === "q" ? !screen.sectors.length && !Object.values(screen.answers).some(Boolean) : !screen.checks.length) {
-      toast({ message: t("Answer at least one question first.", "আগে অন্তত একটি প্রশ্নের উত্তর দিন।"), tone: "neutral" });
+    if (!spec.filters.length) {
+      toast({ message: t("Add at least one filter first.", "আগে অন্তত একটি ফিল্টার যোগ করুন।"), tone: "neutral" });
       return false;
     }
-    const spec = request(screen);
     setSaving(true);
     try {
       if (editingId) {
@@ -373,7 +211,7 @@ export default function ScreenerClient({
         const { list } = await apiCreateCustomList(name, spec, alerts);
         setEditingId(list.id);
         toast({
-          message: t("Screen saved. We will tell you when a new share passes.", "স্ক্রিন সেভ হয়েছে। নতুন কোনো শেয়ার পাস করলে জানিয়ে দেব।"),
+          message: t("Screen saved. We will tell you when a new share matches.", "স্ক্রিন সেভ হয়েছে। নতুন কোনো শেয়ার মিললে জানিয়ে দেব।"),
           tone: "success",
         });
       }
@@ -385,8 +223,7 @@ export default function ScreenerClient({
         const msg = (err as Error)?.message ?? "";
         toast({
           message: msg === "too_many_lists"
-            ? t(`You can keep ${catalog.max_lists} screens. Delete one to add another.`,
-                `সর্বোচ্চ ${catalog.max_lists}টি স্ক্রিন রাখা যায়। নতুন যোগ করতে একটি মুছুন।`)
+            ? t("You can keep 5 screens. Delete one to add another.", "সর্বোচ্চ 5টি স্ক্রিন রাখা যায়। নতুন যোগ করতে একটি মুছুন।")
             : t("We couldn't save the screen. Please try again.", "স্ক্রিন সেভ হয়নি। আবার চেষ্টা করুন।"),
           tone: "error",
         });
@@ -418,25 +255,31 @@ export default function ScreenerClient({
     }
   };
 
-  // Free share: the first FREE_SCREENER_ROWS, none once a power check is on.
-  const powerOn = checks.some((c) => byKey.get(c.key)?.premium);
-  const freeRows = isPremium ? Infinity : powerOn ? 0 : FREE_SCREENER_ROWS;
-  const shown = result ? Math.min(result.stocks.length, freeRows) : 0;
-  const hidden = result ? Math.max(0, result.passed - shown) : 0;
-  const yours = result ? result.stocks.filter((s) => followed.includes(s.code)).length : 0;
   const lists = saved ?? [];
-  const sortDef = catalog.sorts.find((so) => so.key === screen.sort);
-  const facets = screen.kind === "q" && result?.answers ? result.facets ?? null : null;
-  const fineShown = isFine || fineOpen;
-
   const tabLabel: Record<Tab, ReactNode> = {
-    build: tt("Build a screen", "স্ক্রিন বানান"),
+    screen: tt("Screen", "স্ক্রিন"),
     saved: lists.length ? tt(`Saved (${lists.length})`, `সেভ করা (${lists.length})`) : tt("Saved", "সেভ করা"),
   };
+  const sheetDef: ScreenerFilterDef | null = sheet ? defs.get(sheet) ?? null : null;
+  const total = rows.length;
+  const n = result.length;
+
+  const table = (
+    <ScreenerTable
+      rows={result}
+      columns={columns}
+      defs={defs}
+      spec={spec}
+      limit={limit}
+      onSort={sortBy}
+      onMore={() => setLimit((x) => x + PAGE)}
+      bn={bn}
+    />
+  );
 
   return (
     <PageLockScope anchor={SCREENER_ANCHOR}>
-      <div>
+      <div ref={topRef} className="scroll-mt-24">
         <Tabs
           tabs={TABS.map((k) => ({ key: k, label: tabLabel[k] }))}
           value={tab}
@@ -446,250 +289,173 @@ export default function ScreenerClient({
           className="mb-6"
         />
 
-        {tab === "build" && (
-          <div role="tabpanel" aria-labelledby="sc-tab-build" ref={buildRef} className="scroll-mt-24 space-y-10">
-            <section aria-label={t("Find stocks", "শেয়ার খুঁজুন")}>
-              {editingId && (
-                <p className="mb-3 text-sm text-text-muted">
-                  {tt(`You are changing your saved screen "${name}".`, `আপনি সেভ করা স্ক্রিন "${name}" বদলাচ্ছেন।`)}{" "}
-                  <button type="button" onClick={startOver} className="font-semibold text-primary hover:underline">
-                    {tt("Start fresh", "নতুন করে শুরু করুন")}
-                  </button>
-                </p>
-              )}
-              <div className="space-y-4">
-                {isFine ? (
-                  questions.length > 0 && (
-                    <Card>
-                      <p className="text-base font-semibold text-text-main">
-                        {tt("This screen uses exact rules", "এই স্ক্রিনে নির্দিষ্ট নিয়ম ব্যবহার হয়েছে")}
-                      </p>
-                      <p className="mt-1 text-sm text-text-muted">
-                        {tt("It does not fit the six questions, so its rules are listed below.",
-                           "এটি ছয়টি প্রশ্নে মেলে না, তাই নিয়মগুলো নিচে দেওয়া হলো।")}
-                      </p>
-                      <Button variant="quiet" className="mt-3" onClick={startOver}>
-                        {tt("Use the six questions instead", "বরং ছয়টি প্রশ্ন দিয়ে খুঁজুন")}
-                      </Button>
-                    </Card>
-                  )
-                ) : (
-                  screen.kind === "q" && (
-                    <ScreenerQuestions
-                      questions={questions}
-                      answers={{ ...noAnswers(questions), ...screen.answers }}
-                      picked={screen.sectors}
-                      sectors={sectorOptions}
-                      facets={facets}
-                      running={running}
-                      locked={locked}
-                      onAnswer={answer}
-                      onSectors={setSectors}
-                      onLocked={(key, level) => (key != null && level != null ? openPreview({ kind: "answer", key, level }) : setLockOpen(true))}
-                      header={
-                        <ScreenerStarts
-                          goals={goals}
-                          active={matchedGoal?.id ?? null}
-                          locked={locked}
-                          onLocked={() => setLockOpen(true)}
-                          onPick={pick}
-                          t={t}
-                        />
-                      }
-                      t={t}
-                    />
-                  )
-                )}
-
-                <div id={FINE_ID} className="scroll-mt-32">
-                  {!isFine && (
-                    <button
-                      type="button"
-                      aria-expanded={fineOpen}
-                      aria-controls={`${FINE_ID}-body`}
-                      onClick={() => setFineOpen((v) => !v)}
-                      className="flex min-h-12 w-full items-center gap-2 rounded-lg px-1 text-left text-sm font-semibold text-primary hover:bg-surface-2 active:bg-surface-2"
-                    >
-                      <IconTune size={16} />
-                      <span className="flex-1">{tt("See the exact rules", "ঠিক কী যাচাই হচ্ছে দেখুন")}</span>
-                      <span className={`text-text-muted transition-transform ${fineOpen ? "rotate-180" : ""}`} aria-hidden>
-                        <IconChevronDown size={16} />
-                      </span>
-                    </button>
-                  )}
-                  {fineShown && (
-                    <div id={`${FINE_ID}-body`} className={isFine ? undefined : "mt-2"}>
-                      <p className="mb-2 text-sm text-text-muted">
-                        {canTune
-                          ? tt("A share must pass every one of these. Tap one to change it or take it out.",
-                              "একটি শেয়ারকে এর প্রতিটিতে পাস করতে হবে। বদলাতে বা বাদ দিতে একটিতে চাপুন।")
-                          : tt("This is exactly what your answers check. A share must pass every one.",
-                              "আপনার উত্তরগুলো ঠিক এগুলোই যাচাই করে। একটি শেয়ারকে প্রতিটিতে পাস করতে হবে।")}
-                      </p>
-                      {checks.length > 0 ? (
-                        <ScreenerChecks
-                          catalog={catalog}
-                          byKey={byKey}
-                          spec={{ checks, sort: screen.sort }}
-                          funnel={result?.funnel ?? null}
-                          funnelKeys={result ? result.spec.checks.map((c) => c.key) : null}
-                          universe={result?.universe ?? null}
-                          running={running}
-                          readOnly={!canTune}
-                          open={checkOpen}
-                          onOpen={setCheckOpen}
-                          onAdd={addCheck}
-                          onSet={setValue}
-                          onRemove={removeCheck}
-                          t={t}
-                        />
-                      ) : (
-                        <p className="text-sm text-text-muted">
-                          {tt("There are no rules yet, so every rated company is in. Answer a question above to begin.",
-                             "এখনো কোনো নিয়ম নেই, তাই রেটিং পাওয়া সব কোম্পানি আছে। শুরু করতে ওপরে একটি প্রশ্নের উত্তর দিন।")}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
+        {tab === "screen" && (
+          <div role="tabpanel" aria-labelledby="sc-tab-screen" className="space-y-6">
+            {/* Ready-made screens: each loads visible filters. */}
+            <section aria-labelledby="scr-ready-title">
+              <h2 id="scr-ready-title" className="mb-2 text-sm font-semibold text-text-main">
+                {tt("Ready-made screens", "তৈরি স্ক্রিন")}
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {data.ready.map((r) => (
+                  <Chip key={r.id} active={ready?.id === r.id} onClick={() => pickReady(r.id)}>
+                    {tt(r.title_en, r.title_bn)}
+                  </Chip>
+                ))}
               </div>
+              {ready && <p className="mt-2 text-sm text-text-main">{tt(ready.blurb_en, ready.blurb_bn)}</p>}
             </section>
 
-            <ScreenerResults
-              result={result}
-              running={running}
-              error={runError}
-              freeRows={freeRows}
-              powerOn={powerOn}
-              questions={questions}
-              followed={followed}
-              onChangeCheck={changeMissed}
-              t={t}
-              toolbar={
-                <>
-                  {/* The order is part of setting your own screen — Premium, like the answers. */}
-                  <Chip
-                    onClick={() => setSortOpen(true)}
-                    icon={locked ? <IconLock size={14} /> : <IconList size={14} />}
-                  >
-                    {tt(sortDef?.en ?? "Best score first", sortDef?.bn ?? "বেশি স্কোর আগে")}
-                  </Chip>
-                  <Chip onClick={() => setSaveOpen(true)} icon={<IconBell size={14} />}>
-                    {editingId ? tt("Save changes", "বদল সেভ করুন") : tt("Save screen", "স্ক্রিন সেভ করুন")}
-                  </Chip>
-                </>
-              }
-            />
-
-            <Link
-              href="/stock-insights#research"
-              prefetch={false}
-              className="flex min-h-12 items-center justify-between gap-3 rounded-lg border border-border bg-surface px-4 py-3 text-sm hover:bg-surface-2 active:bg-surface-2"
-            >
-              <span>
-                <span className="block font-semibold text-text-main">{tt("Our six research lists", "আমাদের ছয়টি গবেষণা তালিকা")}</span>
-                <span className="block text-text-muted">
-                  {tt("Ideas we test in the open, with every step shown", "যে ধারণাগুলো আমরা খোলাখুলি যাচাই করি, প্রতিটি ধাপসহ")}
-                </span>
-              </span>
-              <span className="text-primary" aria-hidden>→</span>
-            </Link>
-
-            {/* Your own answers are Premium */}
-            <Sheet
-              open={lockOpen}
-              onClose={() => setLockOpen(false)}
-              title={tt("Set up your own screen with Premium", "প্রিমিয়ামে নিজের মতো স্ক্রিন সাজান")}
-              footer={
-                <div className="flex w-full gap-2">
-                  <Button variant="quiet" className="flex-1" onClick={() => setLockOpen(false)}>
-                    {tt("Not now", "এখন না")}
-                  </Button>
-                  <Button href={`#${SCREENER_ANCHOR}`} variant="primary" className="flex-1" onClick={() => setLockOpen(false)}>
-                    {tt("See Premium", "প্রিমিয়াম দেখুন")}
-                  </Button>
-                </div>
-              }
-            >
-              <ul className="space-y-2 text-sm text-text-main">
-                <li>{tt("Free: the six quick picks, the count under every answer and the first 3 shares.",
-                       "ফ্রি: ছয়টি দ্রুত বাছাই, প্রতিটি উত্তরের নিচের সংখ্যা আর প্রথম 3টি শেয়ার।")}</li>
-                <li>{tt("Premium: change any answer, pick one or several sectors, change the order, see every share and save your screens.",
-                       "প্রিমিয়াম: যেকোনো উত্তর বদলান, এক বা একাধিক সেক্টর বাছুন, ক্রম বদলান, সব শেয়ার দেখুন আর স্ক্রিন সেভ করুন।")}</li>
-              </ul>
-            </Sheet>
-
-            {/* Order */}
-            <Sheet
-              open={sortOpen}
-              onClose={() => setSortOpen(false)}
-              title={tt("Order the shares", "শেয়ার সাজান")}
-            >
-              {locked && (
-                <p className="mb-2 text-sm text-text-muted">
-                  {tt("Changing the order is part of Premium. Tap one to see which shares it puts on top.",
-                      "ক্রম বদলানো প্রিমিয়ামের অংশ। কোন শেয়ার ওপরে আসে, তা দেখতে একটিতে চাপুন।")}
+            {/* The screen's filters */}
+            <section className="scr-filters" aria-labelledby="scr-filters-title">
+              <div className="flex items-center justify-between gap-3">
+                <h2 id="scr-filters-title" className="text-base font-semibold text-text-main">
+                  {tt("Your filters", "আপনার ফিল্টার")}
+                </h2>
+                {spec.filters.length > 0 && (
+                  <button type="button" className="scr-link" onClick={() => change({ ...spec, filters: [] })}>
+                    {tt("Clear all", "সব মুছুন")}
+                  </button>
+                )}
+              </div>
+              {editingId && (
+                <p className="mt-1 text-sm text-text-main">
+                  {tt(`You are changing your saved screen "${name}".`, `আপনি সেভ করা স্ক্রিন "${name}" বদলাচ্ছেন।`)}
                 </p>
               )}
-              <ul className="divide-y divide-border">
-                {catalog.sorts.map((so) => {
-                  const on = screen.sort === so.key;
-                  const help = SORT_HELP[so.key];
+              <ul className="mt-3 flex flex-wrap gap-2">
+                {spec.filters.map((f) => {
+                  const d = defs.get(f.key);
+                  if (!d) return null;
+                  const w = valueWords(f, d);
                   return (
-                    <li key={so.key}>
+                    <li key={f.key} className="scr-chip">
+                      <button type="button" className="scr-chip-main" onClick={() => setSheet(f.key)}>
+                        {d.premium && <span className="text-gold-ink"><IconCrown size={14} /></span>}
+                        <span className="font-normal">{tt(d.short_en, d.short_bn)}:</span>
+                        <span>{tt(w.en, w.bn)}</span>
+                      </button>
                       <button
                         type="button"
-                        aria-pressed={on}
-                        onClick={() => {
-                          setSortOpen(false);
-                          if (on) return;
-                          if (locked) openPreview({ kind: "order", sort: so.key });
-                          else setSort(so.key);
-                        }}
-                        className="flex min-h-14 w-full items-center justify-between gap-3 py-3 text-left active:bg-surface-2"
+                        className="scr-chip-x"
+                        onClick={() => applyFilter(f.key, null)}
+                        aria-label={t(`Remove ${d.short_en}`, `${d.short_bn} বাদ দিন`)}
                       >
-                        <span className="min-w-0">
-                          <span className={`block text-base text-text-main ${on ? "font-semibold" : ""}`}>{tt(so.en, so.bn)}</span>
-                          {help && <span className="block text-sm text-text-muted">{tt(help.en, help.bn)}</span>}
-                        </span>
-                        {on ? (
-                          <span className="shrink-0 text-primary"><IconCheck size={18} /></span>
-                        ) : locked ? (
-                          <span className="shrink-0 text-text-muted"><IconLock size={16} /></span>
-                        ) : null}
+                        <IconClose size={14} />
                       </button>
                     </li>
                   );
                 })}
+                <li>
+                  <button type="button" className="scr-add" onClick={() => setAddOpen(true)}
+                    disabled={spec.filters.length >= data.max_filters}>
+                    <IconPlus size={16} />
+                    {tt("Add a filter", "ফিল্টার যোগ করুন")}
+                  </button>
+                </li>
               </ul>
-            </Sheet>
+              {!spec.filters.length && (
+                <p className="mt-3 text-sm text-text-main">
+                  {tt("No filters yet, so every company we cover is listed. Pick a ready-made screen or add a filter: price, P/E, dividend, profit, size, sector and more.",
+                     "এখনো কোনো ফিল্টার নেই, তাই আমাদের সব কোম্পানি দেখানো হচ্ছে। একটি তৈরি স্ক্রিন বাছুন বা ফিল্টার যোগ করুন: দাম, পিই, ডিভিডেন্ড, মুনাফা, আকার, সেক্টর আরও অনেক কিছু।")}
+                </p>
+              )}
+            </section>
 
-            {/* What a locked change would give (free readers) */}
-            <ScreenerPreview
-              open={!!preview}
-              onClose={() => setPreview(null)}
-              title={previewQ && previewLevel
-                ? `${t(previewQ.title_en, previewQ.title_bn)} ${t(previewLevel.label_en, previewLevel.label_bn)}`
-                : previewSort ? t(previewSort.en, previewSort.bn) : ""}
-              line={previewLevel
-                ? t(previewLevel.means_en, previewLevel.means_bn)
-                : preview?.kind === "order" && SORT_HELP[preview.sort]
-                  ? t(SORT_HELP[preview.sort].en, SORT_HELP[preview.sort].bn)
-                  : null}
-              count={previewRes?.passed ?? null}
-              current={preview?.kind === "answer" ? result?.passed ?? null : null}
-              stocks={previewRes?.stocks ?? null}
-              loading={!previewRes && !previewError}
-              error={previewError}
-              cta={preview?.kind === "order"
-                ? t("Change the order with Premium", "প্রিমিয়ামে ক্রম বদলান")
-                : t("See them with Premium", "প্রিমিয়ামে দেখুন")}
-              ctaHref={`#${SCREENER_ANCHOR}`}
-              questions={questions}
-              onCta={() => {
-                trackEvent("premium_lock_tap", { area: "screener", lock: preview?.kind === "order" ? "Screener order" : "Screener answer", state });
-                setPreview(null);
-              }}
+            {/* The result */}
+            <section aria-labelledby="scr-result-title" className="space-y-3">
+              <div className="flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <h2 id="scr-result-title" className="text-xl font-bold text-text-main tabular-nums">
+                    {spec.filters.length
+                      ? tt(`${n} of ${total} shares match`, `${total}টির মধ্যে ${n}টি শেয়ার মিলেছে`)
+                      : tt(`All ${total} companies`, `সব ${total}টি কোম্পানি`)}
+                  </h2>
+                  {data.as_of && (
+                    <p className="text-sm text-text-main">
+                      {tt(`Figures from the close on ${formatDate(data.as_of)}. Tap a column to sort.`,
+                         `${formatDate(data.as_of)}-এর ক্লোজিং দামের হিসাব। সাজাতে কলামে চাপুন।`)}
+                    </p>
+                  )}
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <label htmlFor="scr-sort" className="sr-only">{t("Order", "ক্রম")}</label>
+                  <select
+                    id="scr-sort"
+                    className="scr-select"
+                    value={spec.sort}
+                    onChange={(e) => sortBy(e.target.value)}
+                  >
+                    <option value="name">{t("Company, A to Z", "কোম্পানি, নাম অনুযায়ী")}</option>
+                    {ranges.map((r) => (
+                      <option key={r.key} value={r.key}>{t(r.short_en, r.short_bn)}</option>
+                    ))}
+                  </select>
+                  <Button
+                    variant="quiet"
+                    onClick={() => change({ ...spec, dir: spec.dir === "asc" ? "desc" : "asc" })}
+                    aria-label={t("Flip the order", "ক্রম উল্টে দিন")}
+                  >
+                    {spec.sort === "name"
+                      ? (spec.dir === "asc" ? tt("A first", "আগে A") : tt("Z first", "আগে Z"))
+                      : (spec.dir === "desc" ? tt("Highest first", "বেশি আগে") : tt("Lowest first", "কম আগে"))}
+                  </Button>
+                  <Button variant="quiet" onClick={() => setSaveOpen(true)}>
+                    <IconBell size={16} />
+                    {editingId ? tt("Save changes", "বদল সেভ করুন") : tt("Save", "সেভ করুন")}
+                  </Button>
+                </div>
+              </div>
+
+              {n === 0 ? (
+                <EmptyState
+                  title={tt("No share matches every filter", "কোনো শেয়ার সব ফিল্টারে মেলেনি")}
+                  message={tt("Take a filter off, or widen a range. The number beside each choice shows what you would get.",
+                             "একটি ফিল্টার বাদ দিন, বা সীমা বাড়ান। প্রতিটি বিকল্পের পাশের সংখ্যা দেখায় কতগুলো পাবেন।")}
+                />
+              ) : locked ? (
+                <AnswerLock
+                  job="find"
+                  lock="Screener view filter"
+                  lines={[
+                    { en: `Which ${n} shares pass your screen with our view on it`,
+                      bn: `আমাদের মতসহ আপনার স্ক্রিনে কোন ${n}টি শেয়ার মেলে` },
+                    { en: "Take off the crowned filter to see every share for free",
+                      bn: "মুকুট দেওয়া ফিল্টারটি বাদ দিলে সব শেয়ার ফ্রিতে দেখবেন" },
+                  ]}
+                  brief
+                >
+                  {table}
+                </AnswerLock>
+              ) : (
+                table
+              )}
+            </section>
+
+            <ScreenerPremium viewCount={viewOn ? n : null} t={t} />
+
+            <p className="text-sm text-text-main">
+              {tt("A screen is a starting point for your own research, not advice to buy.",
+                 "স্ক্রিন আপনার নিজের যাচাইয়ের শুরু মাত্র, কেনার পরামর্শ নয়।")}
+            </p>
+
+            <FilterSheet
+              def={sheetDef}
+              current={sheet ? spec.filters.find((f) => f.key === sheet) ?? null : null}
+              filters={spec.filters}
+              rows={rows}
+              locked={!!sheetDef?.premium && !isPremium}
+              onApply={(f) => sheet && applyFilter(sheet, f)}
+              onClose={() => setSheet(null)}
+              t={t}
+            />
+            <AddFilterSheet
+              open={addOpen}
+              groups={data.groups}
+              filters={data.filters}
+              active={spec.filters.map((f) => f.key)}
+              onPick={(d) => { setAddOpen(false); setSheet(d.key); }}
+              onClose={() => setAddOpen(false)}
               t={t}
             />
 
@@ -705,7 +471,7 @@ export default function ScreenerClient({
                     {tt("Sign in to save", "সেভ করতে সাইন ইন করুন")}
                   </Button>
                 ) : !isPremium ? (
-                  <Button href="#sc-premium" variant="primary" block onClick={() => setSaveOpen(false)}>
+                  <Button href={`#${SCREENER_ANCHOR}`} variant="primary" block onClick={() => setSaveOpen(false)}>
                     {tt("Saving is part of Premium", "সেভ করা প্রিমিয়ামের অংশ")}
                   </Button>
                 ) : (
@@ -716,9 +482,9 @@ export default function ScreenerClient({
               }
             >
               <div className="space-y-3">
-                <p className="text-sm text-text-muted">
-                  {tt("We run it every trading day and tell you when a new share passes.",
-                      "প্রতি লেনদেনের দিন আমরা এটি চালাই, আর নতুন কোনো শেয়ার পাস করলে জানাই।")}
+                <p className="text-sm text-text-main">
+                  {tt("We run it after every close and tell you when a new share matches.",
+                      "প্রতিদিন বাজার বন্ধের পর আমরা এটি চালাই, আর নতুন কোনো শেয়ার মিললে জানাই।")}
                 </p>
                 <div>
                   <label htmlFor="sc-name" className="mb-1.5 block text-sm font-semibold text-text-main">
@@ -735,7 +501,7 @@ export default function ScreenerClient({
                 </div>
                 <label htmlFor="sc-alerts" className="flex min-h-10 items-center gap-2 text-sm text-text-main">
                   <input id="sc-alerts" type="checkbox" checked={alerts} onChange={(e) => setAlerts(e.target.checked)} />
-                  {tt("Tell me when a new share passes every check", "নতুন কোনো শেয়ার সব যাচাইয়ে পাস করলে জানান")}
+                  {tt("Tell me when a new share matches", "নতুন কোনো শেয়ার মিললে জানান")}
                 </label>
                 {editingId && isPremium && (
                   <Button variant="link" onClick={() => { setEditingId(null); setName(""); }}>
@@ -743,20 +509,13 @@ export default function ScreenerClient({
                   </Button>
                 )}
                 {!isPremium && (
-                  <p className="text-sm text-text-muted">
-                    {tt(`Premium keeps up to ${catalog.max_lists} screens, each checked every trading day.`,
-                       `প্রিমিয়ামে সর্বোচ্চ ${catalog.max_lists}টি স্ক্রিন রাখা যায়, আর প্রতি লেনদেনের দিন সেগুলো যাচাই হয়।`)}
+                  <p className="text-sm text-text-main">
+                    {tt("Premium keeps up to 5 screens, each checked after every close.",
+                       "প্রিমিয়ামে সর্বোচ্চ 5টি স্ক্রিন রাখা যায়, আর প্রতিদিন বাজার বন্ধের পর সেগুলো যাচাই হয়।")}
                   </p>
                 )}
               </div>
             </Sheet>
-
-            <ScreenerPremium passed={result?.passed ?? null} hidden={hidden} yours={yours} t={t} />
-
-            <p className="text-xs text-text-muted">
-              {tt("A screen is a starting point for your own research, not advice to buy.",
-                 "স্ক্রিন আপনার নিজের যাচাইয়ের শুরু মাত্র, কেনার পরামর্শ নয়।")}
-            </p>
           </div>
         )}
 
@@ -765,8 +524,8 @@ export default function ScreenerClient({
             {!isLoggedIn && !authLoading ? (
               <EmptyState
                 title={tt("Sign in to keep your screens", "স্ক্রিন রাখতে সাইন ইন করুন")}
-                message={tt("Saved screens run every trading day and tell you when a new share passes.",
-                           "সেভ করা স্ক্রিন প্রতি লেনদেনের দিন চলে, আর নতুন শেয়ার পাস করলে জানায়।")}
+                message={tt("Saved screens run after every close and tell you when a new share matches.",
+                           "সেভ করা স্ক্রিন প্রতিদিন বাজার বন্ধের পর চলে, আর নতুন শেয়ার মিললে জানায়।")}
                 actions={[{ href: "/login?next=%2Fscreener%3Ftab%3Dsaved", label: tt("Sign in", "সাইন ইন") }]}
               />
             ) : saved === null ? (
@@ -774,9 +533,9 @@ export default function ScreenerClient({
             ) : lists.length === 0 ? (
               <EmptyState
                 title={tt("No saved screens yet", "এখনো কোনো স্ক্রিন সেভ করা নেই")}
-                message={tt("Build a screen and save it. We will check it for you every trading day.",
-                           "একটি স্ক্রিন বানিয়ে সেভ করুন। প্রতি লেনদেনের দিন আমরা সেটি যাচাই করব।")}
-                actions={[{ onClick: () => setTab("build"), label: tt("Build a screen", "স্ক্রিন বানান") }]}
+                message={tt("Build a screen and save it. We will check it for you after every close.",
+                           "একটি স্ক্রিন বানিয়ে সেভ করুন। প্রতিদিন বাজার বন্ধের পর আমরা সেটি যাচাই করব।")}
+                actions={[{ onClick: () => setTab("screen"), label: tt("Build a screen", "স্ক্রিন বানান") }]}
               />
             ) : (
               <div className="space-y-4">

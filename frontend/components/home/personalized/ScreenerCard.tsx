@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import type { ScreenerGoal, ScreenerSaved } from "@/lib/api";
+import type { ScreenerReadyCard, ScreenerSaved } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
 import { t } from "@/lib/home-copy";
 import { usePremium } from "@/lib/premium";
@@ -13,51 +13,43 @@ import StockRow from "@/components/ui/StockRow";
 import { tt } from "@/components/home/tt";
 import { T } from "@/components/i18n/T";
 
-const DEFAULT_GOAL = "good_cheap";
+const DEFAULT_SCREEN = "high_dividend";
 
 /**
- * "Find stocks your way" — the screener on both homepages, in the screener's
- * own look (2026-10-27): the quick picks as one chip row; under it what the
- * chosen pick asks, as the screener's questions and answers ("Is the price
- * low? · Low"); the pass count; the top three with their strength line
- * ("Very good company · Low price · Pays every year"); then one link into
- * `/screener` with that pick started. Picks use no power checks and three
- * rows are the screener's free share, so the card is fully open — the lock
- * lives on the screener. (The "Among the other 22 · 16 have a Buy signal…"
- * line was dropped 2026-10-29: the dashboard asks for Premium once, in
- * `DeskCard`.)
+ * "Find stocks your way" — the screener on the dashboard, in the screener's
+ * own look (2026-11-01): the ready-made screens as one chip row; under it the
+ * chosen screen's filters in words ("Yield: 5% or more"); the match count; the
+ * top three, each with the figure that put it there; then one link into
+ * `/screener` with that screen loaded. Every screen is on public figures and
+ * every row of the screener is free, so nothing here is locked.
  *
  * Premium readers with saved screens get them on top: each screen's count at
- * the last daily check and who joined then (also a key point in "Your stocks today").
- *
- * Server render = the default pick, so the landing page's HTML has real rows.
+ * the last daily check and who joined then.
  */
 export default function ScreenerCard({
-  goals,
+  ready,
   saved = [],
   held,
   watched,
   lang = "en",
 }: {
-  goals: ScreenerGoal[] | null | undefined;
+  ready: ScreenerReadyCard[] | null | undefined;
   saved?: ScreenerSaved[];
   held: Set<string>;
   watched: Set<string>;
   lang?: Lang;
 }) {
-  const bn = lang === "bn";
   const tx = (en: string, b: string) => <T en={en} bn={b} />;
   const { isPremium } = usePremium();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const list = goals ?? [];
+  const list = ready ?? [];
   const [picked, setPicked] = useState<string | null>(null);
   if (!list.length) return null;
-  const goal = list.find((g) => g.id === picked) ?? list.find((g) => g.id === DEFAULT_GOAL) ?? list[0];
+  const screen = list.find((g) => g.id === picked) ?? list.find((g) => g.id === DEFAULT_SCREEN) ?? list[0];
   const screens = mounted && isPremium ? saved.slice(0, 3) : [];
-  const href = `/screener?start=${encodeURIComponent(goal.id)}`;
-
+  const href = `/screener?ready=${encodeURIComponent(screen.id)}`;
 
   return (
     <section className="soft-card overflow-hidden">
@@ -99,41 +91,37 @@ export default function ScreenerCard({
         </div>
       )}
 
-      {/* Quick picks — the same chip row the screener opens with. */}
+      {/* Ready-made screens — the same chip row the screener opens with. */}
       <div className="flex flex-wrap gap-2 px-4 pt-3 sm:px-5" role="group" aria-label={t(lang, "screenerTitle")}>
         {list.map((g) => (
-          <Chip key={g.id} active={g.id === goal.id} onClick={() => setPicked(g.id)}>
+          <Chip key={g.id} active={g.id === screen.id} onClick={() => setPicked(g.id)}>
             {tx(g.title_en, g.title_bn)}
           </Chip>
         ))}
       </div>
 
-      {/* What the pick asks, as the screener's questions and answers. */}
-      {goal.wants && goal.wants.length > 0 ? (
-        <div className="px-4 pt-3 sm:px-5">
-          <p className="mb-1.5 text-xs font-semibold text-text-muted">{tt("screenerAsks")}</p>
-          <ul className="overflow-hidden rounded-lg border border-border">
-            {goal.wants.map((w) => (
-              <li key={w.key} className="flex items-center justify-between gap-3 border-b border-border px-3 py-2 last:border-b-0">
-                <span className="min-w-0 text-sm text-text-muted">{tx(w.q_en, w.q_bn)}</span>
-                <span className="shrink-0 rounded-md bg-primary-soft px-2 py-0.5 text-sm font-semibold text-primary">
-                  {tx(w.a_en, w.a_bn)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : (
-        <p className="px-4 pt-3 text-sm text-text-muted sm:px-5">{tx(goal.blurb_en, goal.blurb_bn)}</p>
-      )}
+      {/* The screen's filters in words. */}
+      <div className="px-4 pt-3 sm:px-5">
+        <p className="text-sm text-text-main">{tx(screen.blurb_en, screen.blurb_bn)}</p>
+        {screen.words.length > 0 && (
+          <>
+            <p className="mb-1.5 mt-3 text-xs font-semibold text-text-muted">{tt("screenerAsks")}</p>
+            <ul className="flex flex-wrap gap-1.5">
+              {screen.words.map((w) => (
+                <li key={w.key}><Chip>{tx(w.en, w.bn)}</Chip></li>
+              ))}
+            </ul>
+          </>
+        )}
+      </div>
 
       <p className="px-4 pt-4 text-base font-semibold text-text-main sm:px-5">
-        {tt("screenerPassToday", { n: goal.passed })}
+        {tt("screenerPassToday", { n: screen.passed })}
       </p>
 
-      {goal.top.length > 0 ? (
+      {screen.top.length > 0 ? (
         <ul className="mt-1 divide-y divide-cell-rule">
-          {goal.top.map((s) => (
+          {screen.top.map((s) => (
             <StockRow
               key={s.code}
               inset="card"
@@ -142,10 +130,7 @@ export default function ScreenerCard({
               price={s.price}
               change={s.change_pct}
               mark={<OwnerMark code={s.code} held={held} watched={watched} lang={lang} />}
-              sub={s.strengths?.length
-                ? <T en={s.strengths.map((x) => x.en).join(" · ")} bn={s.strengths.map((x) => x.bn).join(" · ")} />
-                :<T en={s.checks.map((c) => c.value_en).join(" · ")} bn={s.checks.map((c) => c.value_bn).join(" · ")} />}
-              subClamp
+              sub={s.metric?.en ? <T en={s.metric.en} bn={s.metric.bn} /> : undefined}
               lang={lang}
             />
           ))}
@@ -154,13 +139,12 @@ export default function ScreenerCard({
         <p className="px-4 py-3 text-sm text-text-muted sm:px-5">{tt("screenerNone")}</p>
       )}
 
-
       <Link
         prefetch={false}
         href={href}
         className="flex min-h-12 items-center justify-center border-t border-border px-4 text-sm font-semibold text-primary-ink hover:bg-surface-2 active:bg-surface-2 sm:justify-start sm:px-5"
       >
-        {goal.passed > goal.top.length ? tt("screenerSeeAll", { n: goal.passed }) : tt("screenerChange")} →
+        {screen.passed > screen.top.length ? tt("screenerSeeAll", { n: screen.passed }) : tt("screenerChange")} →
       </Link>
     </section>
   );

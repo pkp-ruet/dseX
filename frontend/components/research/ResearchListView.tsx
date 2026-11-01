@@ -181,14 +181,14 @@ export default function ResearchListView({ data, def }: { data: ResearchListDeta
           <T
             en={
               <>
-                Want different checks? <Link href="/screener">Build your own in the screener</Link>. You choose the
-                checks and settings, and we tell you on the day a new share passes them.
+                Want to look for something else? <Link href="/screener">Filter every DSE share in the screener</Link>
+                by price, P/E, dividend, profit, size or sector.
               </>
             }
             bn={
               <>
-                অন্য যাচাই চান? <Link href="/screener">স্ক্রিনারে নিজের তালিকা বানান</Link>। যাচাই আর সেটিং আপনি
-                বেছে নেবেন, আর নতুন কোনো শেয়ার পাস করলে সেদিনই আমরা জানাব।
+                অন্য কিছু খুঁজতে চান? <Link href="/screener">স্ক্রিনারে ডিএসইর সব শেয়ার ফিল্টার করুন</Link>:
+                দাম, পিই, ডিভিডেন্ড, মুনাফা, আকার বা সেক্টর দিয়ে।
               </>
             }
           />

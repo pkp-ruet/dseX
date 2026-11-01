@@ -147,13 +147,13 @@ export default async function StockInsightsPage() {
           })}
           <Link prefetch={false} href="/screener" className="soft-card rl-hub-card">
             <h3 className="rl-hub-title">
-              <T en="Build your own in the screener" bn="স্ক্রিনারে নিজের তালিকা বানান" />
+              <T en="Filter every share in the screener" bn="স্ক্রিনারে সব শেয়ার ফিল্টার করুন" />
             </h3>
             <Txt
               as="p"
               className="rl-hub-idea"
-              en="Choose your own checks on dividend, price, profit, loans and sector. We tell you on the day a new share passes them."
-              bn="ডিভিডেন্ড, দাম, মুনাফা, ঋণ আর সেক্টর নিয়ে নিজের শর্ত বেছে নিন। নতুন কোনো শেয়ার পাস করলে সেদিনই জানাব।"
+              en="Set your own filters on price, P/E, dividend, profit, size, loans and sector. Free, every share."
+              bn="দাম, পিই, ডিভিডেন্ড, মুনাফা, আকার, ঋণ আর সেক্টর দিয়ে নিজের ফিল্টার দিন। ফ্রি, সব শেয়ার।"
             />
           </Link>
         </div>

@@ -8,8 +8,9 @@ import type { SavedCustomList } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 
 /**
- * One saved list: its checks in words, how many companies pass today, who
+ * One saved screen: its filters in words, how many companies match today, who
  * joined or left at the last daily check, the top three, and its controls.
+ * A screen saved in the old screener says so; opening it moves it to filters.
  */
 export default function SavedListCard({
   list, bn, canEdit, onEdit, onToggleAlerts, onDelete,
@@ -31,7 +32,7 @@ export default function SavedListCard({
           <h3 className="text-base font-bold text-text-main">{list.name}</h3>
           {list.passed != null && (
             <span className="text-sm text-text-muted tabular-nums">
-              {t(`${list.passed} pass today`, `আজ ${list.passed}টি পাস`)}
+              {t(`${list.passed} match today`, `আজ ${list.passed}টি মিলেছে`)}
             </span>
           )}
         </div>
@@ -42,8 +43,14 @@ export default function SavedListCard({
         </ul>
         {list.broken && (
           <p className="mt-3 text-sm text-negative">
-            {t("One of its checks no longer works (a sector changed). Edit the list to fix it.",
-               "এর একটি শর্ত আর কাজ করছে না (খাত বদলেছে)। ঠিক করতে তালিকাটি বদলান।")}
+            {t("One of its filters no longer works (a sector changed). Open the screen to fix it.",
+               "এর একটি ফিল্টার আর কাজ করছে না (সেক্টর বদলেছে)। ঠিক করতে স্ক্রিনটি খুলুন।")}
+          </p>
+        )}
+        {list.legacy && (
+          <p className="mt-3 text-sm text-text-main">
+            {t("Made in the old screener. It keeps running as it was; open it to move it to the new filters.",
+               "পুরোনো স্ক্রিনারে বানানো। এটি আগের মতোই চলছে; নতুন ফিল্টারে আনতে স্ক্রিনটি খুলুন।")}
           </p>
         )}
         {(list.joined.length > 0 || list.left.length > 0) && list.changed_on && (

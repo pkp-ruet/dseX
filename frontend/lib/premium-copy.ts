@@ -52,7 +52,7 @@ export const BENEFITS: { key: "why" | "portfolio" | "research" | "limits"; job?:
     points: [
       { en: "Your 10 to 15 picks for the day, chosen for your own shares", bn: "দিনের 10 থেকে 15টি বাছাই, আপনার নিজের শেয়ার মিলিয়ে" },
       { en: "All six research lists in full", bn: "ছয়টি গবেষণা তালিকা পুরোটা" },
-      { en: "The full stock screener, with your screens checked every day", bn: "পুরো স্টক স্ক্রিনার, আর আপনার স্ক্রিন প্রতিদিন যাচাই" },
+      { en: "Our own view as screener filters, and your screens checked every day", bn: "স্ক্রিনারের ফিল্টারে আমাদের মত, আর আপনার স্ক্রিন প্রতিদিন যাচাই" },
       { en: "Which dividends are safe, which are worth buying for, and who will pay next", bn: "কোন ডিভিডেন্ড নিরাপদ, কোনটির জন্য কেনা লাভজনক, আর এরপর কে দেবে" },
     ],
   },
@@ -295,12 +295,12 @@ export const ROWS: { what: Bi; job: Job; free: Bi; premium: Bi }[] = [
     job: "find",
     what: { en: "Stock screener", bn: "স্টক স্ক্রিনার" },
     free: {
-      en: "The six quick picks, the count under every answer, the first 3 shares, and which answer holds back the most.",
-      bn: "ছয়টি দ্রুত বাছাই, প্রতিটি উত্তরের নিচের সংখ্যা, প্রথম 3টি শেয়ার, আর কোন উত্তরে সবচেয়ে বেশি শেয়ার আটকে যায়।",
+      en: "Every filter on public figures (price, P/E, P/B, dividend, profit, size, trading, loans, sector, category), the ready-made screens, every share that matches and every order.",
+      bn: "সাধারণ তথ্যের সব ফিল্টার (দাম, পিই, পিবি, ডিভিডেন্ড, মুনাফা, আকার, লেনদেন, ঋণ, সেক্টর, ক্যাটাগরি), তৈরি স্ক্রিন, মিলে যাওয়া প্রতিটি শেয়ার আর যেকোনো ক্রম।",
     },
     premium: {
-      en: "Your own answers to the six questions, one or more sectors, every share that passes, and the shares that miss by one answer. You can change the exact rules, add extra checks (a Buy today, a better quarter, owners buying, and more), and save up to 5 screens that are checked every trading day, with a phone alert when a new share passes.",
-      bn: "ছয়টি প্রশ্নে নিজের উত্তর, এক বা একাধিক সেক্টর, পাস করা প্রতিটি শেয়ার, আর মাত্র একটি উত্তরে বাদ পড়া শেয়ার। নিয়ম বদলাতে পারবেন, বাড়তি যাচাই যোগ করতে পারবেন (আজ কেনা যায়, ভালো প্রান্তিক, উদ্যোক্তা-পরিচালকরা কিনছেন, আরও কিছু), আর 5টি পর্যন্ত স্ক্রিন সেভ করতে পারবেন, যা প্রতি লেনদেনের দিনে যাচাই হয়। নতুন শেয়ার পাস করলে ফোনে নোটিফিকেশন পাবেন।",
+      en: "Our own view as filters: our grade of the company, our check of the price and serious warnings, with the shares that pass them. Save up to 5 screens that are checked after every close, with a phone alert when a new share matches.",
+      bn: "ফিল্টার হিসেবে আমাদের মত: কোম্পানির ওপর আমাদের গ্রেড, দামের যাচাই আর গুরুতর সতর্কতা, আর সেগুলোতে মেলা শেয়ার। 5টি পর্যন্ত স্ক্রিন সেভ করুন, যা প্রতিদিন বাজার বন্ধের পর যাচাই হয়। নতুন শেয়ার মিললে ফোনে নোটিফিকেশন পাবেন।",
     },
   },
   {

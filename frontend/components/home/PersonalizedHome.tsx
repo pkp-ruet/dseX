@@ -341,7 +341,7 @@ export default function PersonalizedHome() {
   //    engine: up to 15 picks built from the reader's own stocks, Premium
   //    only since 2026-11-01 — a free reader gets the Premium card;
   //    user decision 2026-10-27, replacing the old random "picked for you"
-  //    opener removed 2026-10-26), then the screener card (goal chips + top
+  //    opener removed 2026-10-26), then the screener card (ready-made screens + top
   //    three), ONE swipe rail for top ranked / trending, and
   //    the research lists. Different kinds of block, so they get more air
   //    between them than the other chapters' card pairs. ──
@@ -361,10 +361,10 @@ export default function PersonalizedHome() {
           />
         </div>
         {freeReportCard}
-        {(bundle?.screener?.goals?.length ?? 0) > 0 && (
+        {(bundle?.screener?.ready?.length ?? 0) > 0 && (
           <div data-card="screener">
             <ScreenerCard
-              goals={bundle?.screener?.goals}
+              ready={bundle?.screener?.ready}
               saved={bundle?.screener?.saved}
               held={heldSet}
               watched={watchedSet}

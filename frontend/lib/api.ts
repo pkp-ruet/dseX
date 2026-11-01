@@ -2473,9 +2473,9 @@ export interface HomeBundle {
   week_watch?: WeekWatch | null;
   /** The Desk card (2026-10-31): before the bell · after the close · the letter. */
   desk?: DeskSummary | null;
-  /** The screener card (2026-10-26): goal starts with counts + top three, and
-   *  the reader's saved screens as of the last daily check. */
-  screener?: { goals: ScreenerGoal[]; saved: ScreenerSaved[] } | null;
+  /** The screener card (2026-11-01): the ready-made screens with counts + top
+   *  three, and the reader's saved screens as of the last daily check. */
+  screener?: { ready: ScreenerReadyCard[]; saved: ScreenerSaved[] } | null;
   /** "Picked for you" (2026-10-28) — the recommendation engine's list. */
   for_you?: ForYou | null;
 }
@@ -3516,138 +3516,99 @@ export async function getWatchlistUpdates(codes: string[]): Promise<WatchlistUpd
 }
 
 // ---------------------------------------------------------------------------
-// Your own research lists (backend services/custom_lists.py). The menu and a
-// live run are public; saving is Premium (403 limit_reached:custom_lists).
+// The stock screener (backend services/screener.py, rebuilt 2026-11-01):
+// filters on public figures. `GET /api/screener` ships every scored company's
+// figures; the page filters, counts and sorts them in the browser
+// (lib/screener.ts). Saving a screen is Premium (403 limit_reached:custom_lists).
 // ---------------------------------------------------------------------------
 
-/** A check setting; the sector check takes a list when several sectors are picked. */
-export type CustomCheckValue = string | number | boolean | string[];
+export type ScreenerUnit = "taka" | "pct" | "x" | "crore" | "lakh" | "paid";
 
-export interface CustomCheckDef {
+export interface ScreenerFilterDef {
   key: string;
   group: string;
+  /** range = a figure between two bounds · set = one of some values. */
+  kind: "range" | "set";
+  /** Plain name, on the filter sheet and in the menu. */
   name_en: string;
   name_bn: string;
-  /** One plain sentence: what the check means and why it is there. */
-  help_en?: string;
-  help_bn?: string;
-  /** Empty = a plain on/off check. `sentence_*` = the whole check at that setting. */
-  options: {
-    value: CustomCheckValue; label_en: string; label_bn: string;
-    sentence_en?: string; sentence_bn?: string;
-  }[];
-  default: CustomCheckValue | null;
-  /** The full check sentence, for on/off checks. */
-  label_en: string | null;
-  label_bn: string | null;
-  /** A power check: anyone can switch it on and see the count; which stocks
-   *  pass is Premium (screen-only). */
+  /** Column head and chip. */
+  short_en: string;
+  short_bn: string;
+  help_en: string;
+  help_bn: string;
+  unit: ScreenerUnit;
+  /** The market word, shown small after the plain name ("P/E"). */
+  term: string | null;
+  decimals: number;
+  /** A figure that can go either way (today's change, profit change). */
+  signed: boolean;
+  /** Higher is the better end, so the column sorts high to low first. */
+  high_good: boolean;
+  /** TopStockBD's view: the count is free, which shares pass is Premium. */
   premium: boolean;
+  presets: { min: number | null; max: number | null; en: string; bn: string }[];
+  options: { value: string; en: string; bn: string }[];
 }
 
-export interface CustomListTemplate {
-  id: string;
-  /** goal = one-tap starting point · research = one of the six research lists, rebuilt from menu checks. */
-  kind: "goal" | "research";
-  title_en: string;
-  title_bn: string;
-  blurb_en: string;
-  blurb_bn: string;
-  research_slug?: string;
-  spec: CustomListSpec;
-  /** Goal starts only: the six answers (+ sectors, [] = all) the start sets. */
-  answers?: ScreenerAnswers;
-  sectors?: string[];
-}
-
-export interface CustomListSpec {
-  checks: { key: string; value: CustomCheckValue }[];
-  sort?: string;
-}
-
-/** {question key: 0 any · 1 · 2} — the screener's six questions. */
-export type ScreenerAnswers = Record<string, number>;
-
-/** What the screener runs or saves: the six answers, or exact checks (fine-tune). */
-export type ScreenerRequest =
-  | CustomListSpec
-  | { answers: ScreenerAnswers; sectors?: string[]; sort?: string };
-
-export interface ScreenerQuestion {
+export interface ScreenerFilter {
   key: string;
+  min?: number | null;
+  max?: number | null;
+  in?: string[];
+}
+
+export interface ScreenerSpec {
+  v: 2;
+  filters: ScreenerFilter[];
+  sort: string;
+  dir: "asc" | "desc";
+}
+
+export interface ScreenerReady {
+  id: string;
   title_en: string;
   title_bn: string;
   blurb_en: string;
   blurb_bn: string;
-  /** Three choices: [any, 1, 2]. `tag_*` = the strength word on a result row (null for "any");
-   *  `means_*` = what the choice checks, in one line. */
-  levels: {
-    label_en: string; label_bn: string;
-    tag_en: string | null; tag_bn: string | null;
-    means_en: string; means_bn: string;
-  }[];
+  spec: ScreenerSpec;
+  /** The figure a card shows beside each share. */
+  metric: string;
 }
 
-export interface CustomListCatalog {
-  /** The six questions (absent from a backend older than 2026-10-27). */
-  questions?: ScreenerQuestion[];
+export interface ScreenerUniverse {
   groups: { key: string; en: string; bn: string }[];
-  checks: CustomCheckDef[];
-  sorts: { key: string; en: string; bn: string }[];
-  templates: CustomListTemplate[];
-  max_checks: number;
-  max_lists: number;
+  filters: ScreenerFilterDef[];
+  ready: ScreenerReady[];
+  max_filters: number;
+  /** The price day the figures are from. */
+  as_of: string | null;
+  /** Filter keys, in the order each row carries its figures. */
+  cols: string[];
+  /** [code, name, figure per `cols` …] — one per scored company. */
+  rows: (string | number | null)[][];
 }
 
-export interface CustomListStock {
-  rank: number;
+/** The whole screener for the server render (ISR). */
+export async function getScreener(): Promise<ScreenerUniverse> {
+  return apiFetch("/api/screener", 900);
+}
+
+/** A share on a saved-screen card or a homepage card. */
+export interface ScreenerStock {
   code: string;
   name: string | null;
-  sector: string | null;
   price: number | null;
   change_pct: number | null;
-  score: number | null;
-  signal: "buy" | "sell" | "none";
-  checks: { key: string; value_en: string; value_bn: string }[];
-  /** The strongest choice it meets on each of the six questions — its strengths. */
-  levels?: ScreenerAnswers | null;
-}
-
-/** A stock that fails exactly one check of the screen, and the figure that missed. */
-export interface CustomListNearStock extends Omit<CustomListStock, "checks"> {
-  miss: { key: string; label_en: string; label_bn: string; value_en: string; value_bn: string };
-}
-
-/** Stocks one check away from the screen (never a miss on a sector check). */
-export interface CustomListNear {
-  /** question = misses one of the six answers (`key` = question key) · check = misses one exact check. */
-  by?: "question" | "check";
-  total: number;
-  /** How many each check (or question) holds back, most first. */
-  by_check: { key: string; label_en: string; label_bn: string; count: number }[];
-  stocks: CustomListNearStock[];
-}
-
-export interface CustomListResult {
-  spec: CustomListSpec;
-  universe: number;
-  funnel: { key: string; label_en: string; label_bn: string; left: number }[];
-  passed: number;
-  stocks: CustomListStock[];
-  /** Null on the homepage goals; absent from a backend older than 2026-10-27. */
-  near?: CustomListNear | null;
-  /** The screen read as six answers, or null for a fine-tune screen. */
-  answers?: ScreenerAnswers | null;
-  /** The sectors the screen keeps ([] = every sector); null for a fine-tune screen. */
-  sectors?: string[] | null;
-  /** How many stocks each choice would leave, the other answers held: {question: [any, 1, 2]}. */
-  facets?: Record<string, number[]> | null;
+  /** The figure that put it there ("Yield 7.2%"), on the homepage card. */
+  metric?: BiText | null;
 }
 
 export interface SavedCustomList {
   id: string;
   name: string;
-  spec: CustomListSpec;
+  /** A screener spec, or the old checks of a screen saved before 2026-11-01. */
+  spec: ScreenerSpec | { checks: { key: string; value: unknown }[]; sort?: string };
   summary: { key: string; en: string; bn: string }[];
   alerts: boolean;
   joined: { code: string; name: string }[];
@@ -3656,34 +3617,28 @@ export interface SavedCustomList {
   created_at: string | null;
   updated_at: string | null;
   passed?: number;
-  top?: Pick<CustomListStock, "code" | "name" | "price" | "change_pct" | "score" | "signal">[];
+  top?: ScreenerStock[];
   /** Its sector left the DSE list — the reader has to edit it. */
   broken?: boolean;
+  /** Saved before the 2026-11-01 screener: it opens as the closest filters,
+   *  and `dropped` names the old checks no public figure covers. */
+  legacy?: boolean;
+  filters_spec?: ScreenerSpec;
+  dropped?: { key: string; en: string; bn: string }[];
 }
 
-export async function getCustomListCatalog(): Promise<CustomListCatalog> {
-  const res = await fetch(`${getApiUrl()}/api/custom-lists/catalog`);
-  if (!res.ok) throw new Error(`catalog ${res.status}`);
-  return res.json() as Promise<CustomListCatalog>;
-}
-
-/** One goal start, run — the homepage "Find stocks your way" card. `top` is
- *  the screener's free rows, so nothing on the card is locked. */
-export interface ScreenerGoal {
+/** One ready-made screen, run — the homepage "Find stocks your way" card. */
+export interface ScreenerReadyCard {
   id: string;
   title_en: string;
   title_bn: string;
   blurb_en: string;
   blurb_bn: string;
+  /** Its filters in words. */
+  words: { key: string; en: string; bn: string }[];
   passed: number;
   universe: number;
-  /** What the pick asks, in words: the answered questions (+ sectors). Absent from an older backend. */
-  wants?: { key: string; q_en: string; q_bn: string; a_en: string; a_bn: string }[];
-  top: (CustomListStock & { strengths?: { en: string; bn: string }[] })[];
-  /** What sits past the top three, as counts (names stay out). */
-  hidden?: { count: number; buys: number; strength: { n: number; en: string; bn: string } | null };
-  /** Codes past the top three — only to count the reader's own stocks among them. */
-  hidden_codes?: string[];
+  top: ScreenerStock[];
 }
 
 /** A saved screen as of its last daily check (no live run). */
@@ -3697,41 +3652,17 @@ export interface ScreenerSaved {
   new_today: { code: string; name: string }[];
 }
 
-export async function getScreenerGoals(): Promise<{ goals: ScreenerGoal[] }> {
-  return apiFetch("/api/custom-lists/goals", 900);
-}
-
-/** The screener's menu for the server render (ISR). */
-export async function getScreenerCatalog(): Promise<CustomListCatalog> {
-  return apiFetch("/api/custom-lists/catalog", 900);
-}
-
-/** One ready-made starting point, run — the screener's server-rendered first view. */
-export async function getScreenerStart(templateId: string): Promise<CustomListResult> {
-  return apiFetch(`/api/custom-lists/templates/${encodeURIComponent(templateId)}`, 900);
-}
-
-export async function runCustomList(spec: ScreenerRequest): Promise<CustomListResult> {
-  const res = await fetch(`${getApiUrl()}/api/custom-lists/run`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(spec),
-  });
-  if (!res.ok) throw new Error(`run ${res.status}`);
-  return res.json() as Promise<CustomListResult>;
-}
-
 export async function apiGetCustomLists(): Promise<{ lists: SavedCustomList[]; can_save: boolean }> {
   return apiAuthFetch("/api/user/custom-lists");
 }
 
-export async function apiCreateCustomList(name: string, spec: ScreenerRequest, alerts = true): Promise<{ list: SavedCustomList }> {
+export async function apiCreateCustomList(name: string, spec: ScreenerSpec, alerts = true): Promise<{ list: SavedCustomList }> {
   return apiAuthFetch("/api/user/custom-lists", { method: "POST", body: JSON.stringify({ name, spec, alerts }) });
 }
 
 export async function apiUpdateCustomList(
   id: string,
-  patch: { name?: string; spec?: ScreenerRequest; alerts?: boolean },
+  patch: { name?: string; spec?: ScreenerSpec; alerts?: boolean },
 ): Promise<{ list: SavedCustomList }> {
   return apiAuthFetch(`/api/user/custom-lists/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(patch) });
 }

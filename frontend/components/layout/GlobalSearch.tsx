@@ -73,8 +73,8 @@ const PAGES: PageShortcut[] = [
     labelBn: "স্টক স্ক্রিনার",
     sub: "Find stocks by dividend, price, profit or sector",
     subBn: "ডিভিডেন্ড, দাম, মুনাফা বা সেক্টর দিয়ে শেয়ার খুঁজুন",
-    keys: ["screener", "screen", "filter", "find", "cheap", "low pe", "dividend", "high dividend", "safe",
-      "beginner", "growing", "বাছাই", "স্ক্রিনার", "খুঁজুন", "সস্তা", "লভ্যাংশ"],
+    keys: ["screener", "screen", "filter", "find", "cheap", "low pe", "pe", "pb", "book value", "dividend",
+      "high dividend", "yield", "market cap", "eps", "growing", "বাছাই", "স্ক্রিনার", "খুঁজুন", "সস্তা", "লভ্যাংশ"],
   },
   {
     href: "/sectors",

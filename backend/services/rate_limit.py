@@ -5,7 +5,7 @@ signed in counts against their account, anyone else against their IP address,
 and every request also counts against an IP-wide ceiling. Phone networks here
 put many readers behind one address (carrier NAT), so the per-IP numbers are
 generous; the tight ones sit on the endpoints a script would hammer (sign in,
-sign up, the screener run, the recommendation engine) and on the ones that
+sign up, the recommendation engine) and on the ones that
 write something (feedback, stock visits, push tests, payments).
 
 In-process, per worker (Render runs one). Each limiter is a bounded LRU, so a
@@ -132,7 +132,6 @@ RULES: list[Rule] = [
     _rule("register", "POST", r"^/api/auth/register$", 30 * PER_HOUR, 10, by_ip=True),
     _rule("google", "POST", r"^/api/auth/google$", 30, 15, by_ip=True),
     # Expensive public compute.
-    _rule("screener-run", "POST", r"^/api/custom-lists/run$", 30, 15),
     _rule("recommend", "POST", r"^/api/recommendations$", 20, 10),
     _rule("glance", "GET", r"^/api/watchlist/glance$", 30, 15),
     _rule("watch-updates", "GET", r"^/api/watchlist/updates$", 30, 15),

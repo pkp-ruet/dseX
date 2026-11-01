@@ -2,14 +2,13 @@ import type { Metadata } from "next";
 import PageHeader from "@/components/ui/PageHeader";
 import { T } from "@/components/i18n/T";
 import ScreenerClient from "@/components/screener/ScreenerClient";
-import { getScreenerCatalog, getScreenerStart } from "@/lib/api";
-import { FREE_SCREENER_ROWS } from "@/lib/free-share";
+import { getScreener } from "@/lib/api";
+import { applyScreen, EMPTY_SPEC, unpackRows } from "@/lib/screener";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
-const START = "good_cheap";
-const TITLE = "Stock Screener — Find DSE Stocks Your Way";
+const TITLE = "Stock Screener — Filter Every DSE Share";
 const DESCRIPTION =
-  "Screen every Dhaka Stock Exchange (DSE) company by answering six plain questions — how strong, how cheap, dividends, profit growth, safety, trading — and see which stocks match, refreshed every trading day.";
+  "Filter every Dhaka Stock Exchange (DSE) share by price, P/E, P/B, dividend yield, EPS, profit growth, market cap, daily trading, sector and category. Free, updated after every trading day.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -18,10 +17,10 @@ export const metadata: Metadata = {
     "DSE stock screener",
     "stock screener Bangladesh",
     "Dhaka Stock Exchange screener",
-    "find DSE stocks",
-    "best DSE stocks to buy",
-    "dividend stocks DSE",
-    "low PE stocks Bangladesh",
+    "low PE stocks DSE",
+    "high dividend yield stocks Bangladesh",
+    "DSE stocks below book value",
+    "DSE market cap list",
     "শেয়ার স্ক্রিনার",
   ],
   alternates: { canonical: "/screener" },
@@ -31,13 +30,10 @@ export const metadata: Metadata = {
 export const revalidate = 900;
 
 export default async function ScreenerPage() {
-  // No catch on the main fetch: a throw lets ISR keep serving the last good
-  // page; a rendered error state was cached as the page until the next purge.
-  const [catalog, start] = await Promise.all([
-    getScreenerCatalog(),
-    getScreenerStart(START).catch(() => null),
-  ]);
-  const free = (start?.stocks ?? []).slice(0, FREE_SCREENER_ROWS);
+  // No catch: a throw lets ISR keep serving the last good page; a rendered
+  // error state was cached as the page until the next purge.
+  const data = await getScreener();
+  const biggest = applyScreen(unpackRows(data), EMPTY_SPEC).slice(0, 20);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -50,9 +46,6 @@ export default async function ScreenerPage() {
         description: DESCRIPTION,
         inLanguage: "en",
         isPartOf: { "@id": BASE_URL },
-        // Past the first few stocks a screen is Premium (screen-only lock).
-        isAccessibleForFree: false,
-        hasPart: { "@type": "WebPageElement", isAccessibleForFree: false, cssSelector: ".premium-locked" },
       },
       {
         "@type": "BreadcrumbList",
@@ -61,16 +54,16 @@ export default async function ScreenerPage() {
           { "@type": "ListItem", position: 2, name: "Stock Screener", item: `${BASE_URL}/screener` },
         ],
       },
-      ...(free.length
+      ...(biggest.length
         ? [{
             "@type": "ItemList",
-            name: "Good and cheap DSE stocks today",
-            numberOfItems: free.length,
-            itemListElement: free.map((s, i) => ({
+            name: "Largest DSE companies by market cap",
+            numberOfItems: biggest.length,
+            itemListElement: biggest.map((r, i) => ({
               "@type": "ListItem",
               position: i + 1,
-              name: s.name ?? s.code,
-              url: `${BASE_URL}/stock/${encodeURIComponent(s.code)}`,
+              name: r.name,
+              url: `${BASE_URL}/stock/${encodeURIComponent(r.code)}`,
             })),
           }]
         : []),
@@ -80,19 +73,17 @@ export default async function ScreenerPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <div className="page-narrow">
-        <PageHeader
-          eyebrow={<T en="Stock screener" bn="শেয়ার স্ক্রিনার" />}
-          title={<T en="Find DSE shares your way" bn="নিজের মতো করে ডিএসইর শেয়ার খুঁজুন" />}
-          lead={
-            <T
-              en="Answer six plain questions. The number under each answer shows how many shares you would get."
-              bn="ছয়টি সহজ প্রশ্নের উত্তর দিন। প্রতিটি উত্তরের নিচের সংখ্যা দেখায়, কতগুলো শেয়ার পাবেন।"
-            />
-          }
-        />
-        <ScreenerClient catalog={catalog} initial={start} initialTemplate={START} />
-      </div>
+      <PageHeader
+        eyebrow={<T en="Stock screener" bn="শেয়ার স্ক্রিনার" />}
+        title={<T en="Filter every DSE share" bn="ডিএসইর সব শেয়ার ফিল্টার করুন" />}
+        lead={
+          <T
+            en="Use the numbers every DSE site shows: price, P/E, dividend, profit, size, sector. Pick a ready-made screen or add your own filters. Free, every row."
+            bn="সব ডিএসই সাইটে যে সংখ্যা থাকে, সেগুলো দিয়েই খুঁজুন: দাম, পিই, ডিভিডেন্ড, মুনাফা, আকার, সেক্টর। একটি তৈরি স্ক্রিন বাছুন বা নিজের ফিল্টার দিন। সব সারি ফ্রি।"
+          />
+        }
+      />
+      <ScreenerClient data={data} />
     </>
   );
 }

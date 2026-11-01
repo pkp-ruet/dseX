@@ -141,8 +141,8 @@ export default function WhatWeDo({
           title={<T en="Find shares worth a look" bn="দেখার মতো শেয়ার খুঁজুন" />}
           line={
             <T
-              en="Every company ranked by how strong its business is, and a screener that asks six simple questions instead of formulas."
-              bn="ব্যবসা কতটা শক্তিশালী তা দিয়ে সব কোম্পানির র‍্যাঙ্কিং, আর সূত্রের বদলে ছয়টি সহজ প্রশ্নের স্ক্রিনার।"
+              en="Every company ranked by how strong its business is, and a screener that filters every share by price, P/E, dividend and more."
+              bn="ব্যবসা কতটা শক্তিশালী তা দিয়ে সব কোম্পানির র‍্যাঙ্কিং, আর দাম, পিই, ডিভিডেন্ডসহ নানা সংখ্যায় সব শেয়ার ফিল্টার করার স্ক্রিনার।"
             />
           }
           href="/dsestockranking"

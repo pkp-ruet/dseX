@@ -29,6 +29,7 @@ from backend.services import price_alert_service
 from backend.services.auth_service import get_user_watchlist, get_user_watchlist_meta
 from backend.services.corporate_actions_service import build_dividend_calendar
 from backend.services import custom_lists_service
+from backend.services import screener_service
 from backend.services.research_lists_service import list_index
 from backend.services.rank_today_service import week_rank_moves
 from backend.services.results_explainer import results_for, results_summary
@@ -148,10 +149,10 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
     research_lists = _safe("research_lists", list_index, [])
     # This week's rank change for every company (the ranking card's pills).
     rank_moves = _safe("rank_moves", week_rank_moves, None)
-    # The screener card: the goal starts (counts + top three, all free) and the
-    # reader's saved screens with who joined at the last daily check.
+    # The screener card: the ready-made screens (count + top three, all free)
+    # and the reader's saved screens with who joined at the last daily check.
     screener = {
-        "goals": _safe("screener_goals", custom_lists_service.goals_summary, []),
+        "ready": _safe("screener_ready", screener_service.ready_summary, []),
         "saved": _safe("screener_saved", lambda: custom_lists_service.saved_news(user_id), []),
     }
     # Quarterly results on the reader's own stocks, posted in the last three
