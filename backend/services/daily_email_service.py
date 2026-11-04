@@ -74,10 +74,6 @@ MAX_BUYS = 3         # Buy cards in the mail; the rest live behind "see all"
 MAX_HEADLINES = 3
 MAX_WATCHLIST = 3    # per-user movers in the personal strip
 
-# The running "how our featured picks did" line. Flip to False to ship the
-# mail with only the single-day scorecard and no aggregate track record.
-SHOW_TRACK_RECORD = True
-TRACK_RECORD_EMAILS = 6   # how many past daily emails the running line covers
 
 # One doc per day: {date, codes[]}. Lets the mail mark a Buy as "new today"
 # instead of showing the same five codes for a week with no way to tell.
@@ -641,61 +637,9 @@ def _headlines(campaign_id: str) -> list[dict]:
     return out
 
 
-# --- Block 9: how the featured picks did ------------------------------------
-
-def _yesterday_scorecard(prices: dict, today_id: str) -> Optional[dict]:
-    """How the most recent previous daily email's featured buys have moved since."""
-    doc = get_db()["email_campaigns"].find_one(
-        {"campaign_id": {"$regex": "^daily-", "$lt": today_id}, "featured.0": {"$exists": True}},
-        sort=[("campaign_id", -1)],
-    )
-    if not doc:
-        return None
-    items, up = [], 0
-    for f in doc.get("featured", [])[:3]:
-        code, base = f.get("code"), f.get("ltp")
-        cur = (prices.get(code) or {}).get("ltp")
-        if code and base and cur:
-            chg = round((cur - base) / base * 100, 1)
-            items.append({"code": code, "change_pct": chg})
-            if chg > 0:
-                up += 1
-    if not items:
-        return None
-    label = None
-    try:
-        dt = datetime.strptime(doc["campaign_id"].replace("daily-", ""), "%Y%m%d")
-        label = f"{dt.day} {dt:%b}"
-    except ValueError:
-        pass
-    return {"items": items, "up_count": up, "total": len(items), "date_label": label,
-            "record": _safe(lambda: _track_record(prices, today_id), None, "track record")}
-
-
-def _track_record(prices: dict, today_id: str) -> Optional[dict]:
-    """Across the last few daily emails, how many featured picks are higher now
-    than when we showed them. Bounded and factual — set SHOW_TRACK_RECORD=False
-    to leave it out entirely."""
-    if not SHOW_TRACK_RECORD:
-        return None
-    docs = list(
-        get_db()["email_campaigns"]
-        .find({"campaign_id": {"$regex": "^daily-", "$lt": today_id},
-               "featured.0": {"$exists": True}}, {"_id": 0, "featured": 1})
-        .sort("campaign_id", -1).limit(TRACK_RECORD_EMAILS)
-    )
-    total = up = 0
-    for d in docs:
-        for f in d.get("featured") or []:
-            base = f.get("ltp")
-            cur = (prices.get(f.get("code")) or {}).get("ltp")
-            if base and cur:
-                total += 1
-                if cur > base:
-                    up += 1
-    if total < 5:  # too thin to mean anything
-        return None
-    return {"up": up, "total": total, "emails": len(docs)}
+# --- Block 9 ("how our picks did") was removed 2026-11-04 (audit EL1): no
+# performance or track-record claims anywhere, and the daily mail has had no
+# featured picks to score since 2026-11-01, so it fell back to the 6 Oct ones.
 
 
 # --- Per-user: your watchlist today -----------------------------------------
@@ -724,7 +668,6 @@ def personal_block(user: dict, content: dict) -> Optional[dict]:
         return None
     prices = content.get("_prices") or {}
     names = content.get("_names") or {}
-    signals = content.get("_signals") or {}
     campaign_id = content.get("campaign_id", "")
 
     rows = []
@@ -738,7 +681,6 @@ def personal_block(user: dict, content: dict) -> Optional[dict]:
             "name": _trim(names.get(code) or "", 22),
             "ltp": _f(p.get("ltp")),
             "change_pct": chg,
-            "signal": (signals.get(code) or {}).get("signal"),
             "url": _stock_url(code, campaign_id),
             "_sort": abs(chg) if chg is not None else -1.0,
         })
@@ -845,7 +787,6 @@ def build_daily_content(campaign_id: str) -> dict:
     learn = _safe(lambda: _learn_one_thing(campaign_id), None, "learn")
     rotating = _rotating_block(state, campaign_id)
     headlines = _safe(lambda: _headlines(campaign_id), [], "headlines") or []
-    scorecard = _safe(lambda: _yesterday_scorecard(prices, campaign_id), None, "scorecard")
 
     div_count = _recent_dividend_count()
     mood, mood_kind = _mood(idx)
@@ -873,11 +814,10 @@ def build_daily_content(campaign_id: str) -> dict:
         "learn": learn,
         "rotating": rotating,
         "headlines": headlines,
-        "scorecard": scorecard,
         "cta_text": cta_text,
         "cta_url": cta_url,
         # stored on the campaign doc so tomorrow's email can score these picks
-        "featured": [{"code": b["code"], "ltp": b["ltp"]} for b in buys if b.get("ltp")],
+        "featured": [],
         # render-time inputs for the per-user block; not part of the shared copy
         "_prices": prices,
         "_names": names,
@@ -939,7 +879,6 @@ def _block_manifest(content: dict) -> list[dict]:
     rot = content.get("rotating") or {}
     story = content.get("story") or {}
     learn = content.get("learn") or {}
-    sc = content.get("scorecard") or {}
     buys_total = content.get("buys_total") or 0
     return [
         {"key": "story", "label": "Today's story",
@@ -961,11 +900,6 @@ def _block_manifest(content: dict) -> list[dict]:
         {"key": "headlines", "label": "Headlines",
          "detail": f"{len(content.get('headlines') or [])} stories",
          "ok": bool(content.get("headlines"))},
-        {"key": "scorecard", "label": "Scorecard",
-         "detail": (f"{sc.get('up_count')}/{sc.get('total')} up"
-                    + (f" · record {sc['record']['up']}/{sc['record']['total']}"
-                       if sc.get("record") else "")) if sc else "no past email yet",
-         "ok": bool(sc)},
     ]
 
 

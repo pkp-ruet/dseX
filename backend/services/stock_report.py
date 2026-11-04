@@ -22,9 +22,12 @@ what the price did around a past record date, never what our signals did.
 from __future__ import annotations
 
 import math
+import re
 import statistics
 from datetime import date, datetime, timedelta
 from typing import Any, Optional
+
+from utils.dividend_years import ledger_years
 
 # ---------------------------------------------------------------- thresholds
 
@@ -80,6 +83,9 @@ GROWING_PCT = 5.0
 _RATING_ORDER = ["AAA", "AA+", "AA", "AA-", "A+", "A", "A-", "BBB+", "BBB", "BBB-",
                  "BB+", "BB", "BB-", "B+", "B", "B-", "CCC+", "CCC", "CCC-", "CC", "C", "D"]
 INVESTMENT_GRADE_LAST = "BBB-"
+# A lender's own money above this share of its assets is bad data
+# (scoring_service.LENDER_CUSHION_MAX_PCT).
+LENDER_CUSHION_MAX_PCT = 40.0
 STRONG_RATING_LAST = "AA-"
 
 # A lender's own money as a share of its assets (scoring_service._a2_capital_score
@@ -276,8 +282,18 @@ def _cagr(first: Optional[float], last: Optional[float], years: int) -> Optional
     return ((last / first) ** (1.0 / years) - 1.0) * 100.0
 
 
+# CRAB's long-term grades carry a number where CRISL / ECRL carry a sign:
+# AA1 = AA+, AA2 = AA, AA3 = AA-, A1 = A+, BBB1 = BBB+ … (2026-11-04, audit
+# RP1: 40 rated companies — HEIDELBCEM "AA2" — read as "a low grade" and
+# turned the safety word "Risky").
+_CRAB_SUFFIX = re.compile(r"^(AA|A|BBB|BB|B|CCC)([123])$")
+
+
 def _rating_rank(grade: Optional[str]) -> Optional[int]:
     g = (grade or "").strip().upper().replace(" ", "")
+    m = _CRAB_SUFFIX.match(g)
+    if m:
+        g = m.group(1) + {"1": "+", "2": "", "3": "-"}[m.group(2)]
     return _RATING_ORDER.index(g) if g in _RATING_ORDER else None
 
 
@@ -676,6 +692,11 @@ def build_this_year(inp: dict) -> Optional[dict]:
     full_year = bool(table and table["done"] >= 4 and table.get("annual")) or bool(fb_year)
     if fy_eps_cur is not None and fy_eps_cur <= 0:
         lead = bi("It is making a loss right now.", "কোম্পানিটি এখন লোকসানে চলছে।")
+    elif fy_eps_prev is not None and fy_eps_prev <= 0 and fy_eps_cur is not None and fy_eps_cur > 0:
+        lead = (bi("It is back to a profit this year, after a loss the year before.",
+                   "আগের বছর লোকসানের পর এ বছর কোম্পানিটি আবার মুনাফায় ফিরেছে।") if full_year
+                else bi("It is back to a profit so far this year, after a loss in the same months a year before.",
+                        "গত বছরের একই সময়ে লোকসানের পর এ বছর এ পর্যন্ত কোম্পানিটি আবার মুনাফায় ফিরেছে।"))
     elif pct is not None:
         lead = _profit_change_line(pct, "this year" if full_year else "so far this year",
                                    "এ বছর" if full_year else "এ বছর এ পর্যন্ত")
@@ -1160,7 +1181,8 @@ def build_price(inp: dict) -> Optional[dict]:
         n = len(methods)
         inside.append(bi(f"What we think a fair price is, worked out {n} {'way' if n == 1 else 'ways'}",
                          f"{n}টি উপায়ে হিসাব করা ন্যায্য দাম"))
-        inside.append(bi("The price we would buy under, with a one-tap alert", "কোন দামের নিচে কেনা ভালো, সঙ্গে এক ট্যাপে প্রাইস অ্যালার্ট"))
+        if buy_below:
+            inside.append(bi("The price we would buy under, with a one-tap alert", "কোন দামের নিচে কেনা ভালো, সঙ্গে এক ট্যাপে প্রাইস অ্যালার্ট"))
     if scenarios:
         inside.append(bi("Where the price could be in a year, in three cases",
                          "তিনটি অবস্থায় এক বছর পর দাম কত হতে পারে"))
@@ -1189,15 +1211,20 @@ def build_price(inp: dict) -> Optional[dict]:
         profit_fall=profit_fall, scenarios=scenarios,
         pe={"now": round(pe_now, 2) if pe_now else None, "usual": round(usual, 2) if usual else None,
             "sector": round(sector_pe, 2) if sector_pe else None},
-        _verdict=verdict,
+        _verdict=verdict, _buy_watch=watch is not None,
     )
 
 
 # ---------------------------------------------------------------- dividend
 
 def _div_history(inp: dict) -> dict[int, float]:
-    """{fiscal year: cash dividend ৳ a share} — the company page's list, with the
-    ledger's sum of interim + final for the years it has."""
+    """{fiscal year: cash dividend ৳ a share} — the company page's list of
+    finished years, filled from the ledger (interim + final) for a finished year
+    the page doesn't have yet or shows smaller. A year with only an interim so
+    far is left out: GP's FY2026 interim is not "the FY2026 dividend", and
+    comparing it with FY2025's full year read as a cut (2026-11-04, DT2). The
+    ledger only holds about a year, so it never overrides a larger page figure
+    (MARICO's page has FY2026's interims from before our news window)."""
     face = _f(inp.get("face_value")) or 10.0
     out: dict[int, float] = {}
     for pair in (inp.get("company") or {}).get("cash_dividends") or []:
@@ -1207,15 +1234,12 @@ def _div_history(inp: dict) -> dict[int, float]:
             continue
         if pct is not None:
             out[y] = round(pct * face / 100.0, 2)
-    ledger: dict[int, float] = {}
-    for d in inp.get("ledger") or []:
-        pe = _d(d.get("period_end"))
-        cash = _f(d.get("cash_pct"))
-        if pe is None or cash is None:
+    for y, slot in ledger_years(inp.get("ledger") or []).items():
+        if not slot["complete"]:
             continue
-        ledger[pe.year] = ledger.get(pe.year, 0.0) + cash
-    for y, pct in ledger.items():
-        out[y] = round(pct * face / 100.0, 2)
+        cps = round(slot["cash_pct"] * face / 100.0, 2)
+        if y not in out or cps > out[y]:
+            out[y] = cps
     return out
 
 
@@ -1808,11 +1832,21 @@ def build_safety(inp: dict) -> Optional[dict]:
 
     if sc in _LENDERS:
         ext = sorted(inp.get("extended_financials") or [], key=lambda r: int(r.get("year") or 0))
+        from backend.services.scoring_service import lender_equity
         cushion = None
+        nav_ps = _f((inp.get("score_row") or {}).get("nav_ps"))
+        shares = _f((inp.get("company") or {}).get("total_shares"))
         for r in reversed(ext):
             eq, ta = _f(r.get("total_equity")), _f(r.get("total_assets"))
             if eq and ta and ta > 0:
-                cushion = eq / ta * 100.0
+                # Equity = assets (a 100% cushion) is a scraping error for 23
+                # NBFIs — insolvent FASFIN read "a good amount of its own
+                # money". DSE's NAV × shares stands in for the latest year;
+                # an older row with the error is skipped (audit RP2).
+                own = lender_equity(eq, ta, nav_ps if r is ext[-1] else None, shares)
+                if own is None:
+                    continue
+                cushion = own / ta * 100.0
                 break
         if cushion is not None:
             cushion = round(cushion, 1)
@@ -1894,9 +1928,10 @@ def build_safety(inp: dict) -> Optional[dict]:
                 break
     if rating:
         rk = _rating_rank(rating["long_term"])
-        ig = rk is not None and rk <= _RATING_ORDER.index(INVESTMENT_GRADE_LAST)
-        strong = rk is not None and rk <= _RATING_ORDER.index(STRONG_RATING_LAST)
-        t = "good" if strong else "neutral" if ig else "bad"
+        known = rk is not None
+        ig = known and rk <= _RATING_ORDER.index(INVESTMENT_GRADE_LAST)
+        strong = known and rk <= _RATING_ORDER.index(STRONG_RATING_LAST)
+        t = "good" if strong else "neutral" if (ig or not known) else "bad"
         m_en, m_bn = _mon(rating["date"])
         facts.append({"label": bi("Credit rating", "ক্রেডিট রেটিং"),
                       "value": bi(f"{rating['long_term']} ({rating['agency']}, {m_en})", f"{rating['long_term']} ({rating['agency']}, {m_bn})"),
@@ -1906,10 +1941,11 @@ def build_safety(inp: dict) -> Optional[dict]:
         plain.append(
             bi(f"A rating agency gives it a top grade for paying its debts ({g}).", f"ঋণ শোধের সামর্থ্য বিচার করে একটি রেটিং এজেন্সি কোম্পানিটিকে উঁচু রেটিং দিয়েছে ({g})।") if strong
             else bi(f"A rating agency gives it a fair grade for paying its debts ({g}).", f"ঋণ শোধের সামর্থ্য বিচার করে একটি রেটিং এজেন্সি কোম্পানিটিকে মাঝারি রেটিং দিয়েছে ({g})।") if ig
+            else bi(f"A rating agency rates its ability to pay its debts {g}.", f"ঋণ শোধের সামর্থ্য বিচার করে একটি রেটিং এজেন্সি কোম্পানিটিকে {g} রেটিং দিয়েছে।") if not known
             else bi(f"A rating agency gives it a low grade for paying its debts ({g}).", f"ঋণ শোধের সামর্থ্য বিচার করে একটি রেটিং এজেন্সি কোম্পানিটিকে নিচের দিকের রেটিং দিয়েছে ({g})।"))
-        if not ig:
+        if known and not ig:
             bump(3)
-        elif not strong:
+        elif known and not strong:
             bump(1)
     if cat:
         t = "good" if cat == "A" else "fair" if cat == "B" else "bad" if cat == "Z" else "neutral"
@@ -2059,9 +2095,15 @@ def build_quality(inp: dict) -> Optional[dict]:
             head_en, head_bn = ("By our measure, it is the strongest company on the DSE.",
                                 "আমাদের হিসাবে এটি ডিএসইর সবচেয়ে শক্তিশালী কোম্পানি।")
         elif rank <= 10:
-            head_en = (f"One of the strongest companies on the DSE: only {rank - 1} "
-                       f"{'company scores' if rank == 2 else 'companies score'} higher in our checks.")
-            head_bn = f"এটি ডিএসইর সবচেয়ে শক্তিশালী কোম্পানিগুলোর একটি। আমাদের যাচাইয়ে মাত্র {rank - 1}টি কোম্পানি এর চেয়ে এগিয়ে আছে।"
+            above = row.get("higher_count")
+            above = int(above) if isinstance(above, (int, float)) and above == above else rank - 1
+            if above <= 0:
+                head_en, head_bn = ("By our measure, it is among the strongest companies on the DSE.",
+                                    "আমাদের হিসাবে এটি ডিএসইর সবচেয়ে শক্তিশালী কোম্পানিগুলোর একটি।")
+            else:
+                head_en = (f"One of the strongest companies on the DSE: only {above} "
+                           f"{'company scores' if above == 1 else 'companies score'} higher in our checks.")
+                head_bn = f"এটি ডিএসইর সবচেয়ে শক্তিশালী কোম্পানিগুলোর একটি। আমাদের যাচাইয়ে মাত্র {above}টি কোম্পানি এর চেয়ে এগিয়ে আছে।"
         elif share <= 0.25:
             head_en, head_bn = ("Stronger than most companies on the DSE.", "ডিএসইর বেশির ভাগ কোম্পানির চেয়ে এটি শক্তিশালী।")
         elif share <= 0.5:
@@ -2196,19 +2238,31 @@ def build_story(inp: dict) -> Optional[dict]:
             bi("It now keeps more of each sale as profit than it used to.", "এখন প্রতিটি বিক্রি থেকে আগের চেয়ে বেশি মুনাফা থাকে।") if better
             else bi("It now keeps less of each sale as profit than it used to.", "এখন প্রতিটি বিক্রি থেকে আগের চেয়ে কম মুনাফা থাকে।") if worse
             else bi("It keeps about the same share of each sale as profit as it used to.", "প্রতিটি বিক্রি থেকে আগের মতোই মুনাফা থাকে।"))
-    changes = []
-    for a, b in zip(rows, rows[1:]):
-        if a.get("profit_cr") and b.get("profit_cr") is not None and a["profit_cr"] > 0:
-            changes.append((b["year"], (b["profit_cr"] - a["profit_cr"]) / a["profit_cr"] * 100.0))
-    if len(changes) >= 2:
-        best = max(changes, key=lambda c: c[1])
-        worst = min(changes, key=lambda c: c[1])
-        meaning.append(bi(
-            f"Its best year for profit was {best[0]}, and its weakest was {worst[0]}"
-            + (", when profit fell." if worst[1] < 0 else "."),
-            f"মুনাফার দিক থেকে সবচেয়ে ভালো বছর ছিল {best[0]} সাল, আর সবচেয়ে দুর্বল {worst[0]} সাল"
-            + ("। সে বছর মুনাফা কমেছিল।" if worst[1] < 0 else "।"),
-        ))
+    # Best / weakest = the years with the most and least profit (2026-11-04,
+    # audit RP6). It used to be the biggest year-on-year change, so POWERGRID
+    # read "its best year for profit was 2022" for a year profit fell.
+    prof = [(r["year"], r["profit_cr"]) for r in rows if r.get("profit_cr") is not None]
+    losses_now = 0
+    for _, v in reversed(prof):
+        if v >= 0:
+            break
+        losses_now += 1
+    if losses_now >= 2:
+        meaning.insert(0, bi(f"It has made a loss in each of its last {losses_now} years.",
+                             f"শেষ {losses_now} বছরের প্রতিটিতেই কোম্পানিটির লোকসান হয়েছে।"))
+    elif losses_now == 1:
+        meaning.insert(0, bi(f"It made a loss in {prof[-1][0]}, its latest year.",
+                             f"সর্বশেষ বছর, {prof[-1][0]} সালে, কোম্পানিটির লোকসান হয়েছে।"))
+    if len(prof) >= 3:
+        best = max(prof, key=lambda c: c[1])
+        worst = min(prof, key=lambda c: c[1])
+        if best[0] != worst[0] and best[1] > 0:
+            meaning.append(bi(
+                f"Its most profitable year was {best[0]}, and its weakest was {worst[0]}"
+                + (", when it made a loss." if worst[1] < 0 else "."),
+                f"সবচেয়ে বেশি মুনাফা হয়েছিল {best[0]} সালে, আর সবচেয়ে কম {worst[0]} সালে"
+                + ("। সে বছর লোকসান হয়েছিল।" if worst[1] < 0 else "।"),
+            ))
     n = len(rows)
     return _section(
         "story",
@@ -2218,7 +2272,7 @@ def build_story(inp: dict) -> Optional[dict]:
         free_line=bi("Its sales and profit for every year we have.",
                      "যত বছরের হিসাব আমাদের কাছে আছে, তার প্রতিটি বছরের বিক্রি আর মুনাফা।"),
         inside=[bi(f"What changed over {n} years, in plain words", f"{n} বছরে কী বদলেছে, সহজ ভাষায়"),
-                bi("Its best and weakest year", "এর সবচেয়ে ভালো আর সবচেয়ে দুর্বল বছর"),
+                bi("Its most and least profitable year", "কোন বছর মুনাফা সবচেয়ে বেশি আর কোন বছর সবচেয়ে কম"),
                 bi("Whether it keeps more of each sale than before", "প্রতিটি বিক্রি থেকে আগের চেয়ে বেশি মুনাফা থাকছে কি না")],
         meaning=meaning, watch=None,
         years=rows, growth=growth,
@@ -3486,8 +3540,29 @@ def build_answer(inp: dict, sections: dict) -> dict:
         "decision": decision, "word": word, "tone": tone, "line": line,
         "lights": [company, price, risks],
         "blocker": blocker,
-        "buy_price": (pr or {}).get("buy_below"),
+        "buy_price": answer_buy_price(decision, blocker, (pr or {}).get("buy_below"), _f(inp.get("ltp"))),
     }
+
+
+def answer_buy_price(decision: Optional[str], blocker: Optional[str],
+                     buy_below: Optional[float], ltp: Optional[float]) -> Optional[float]:
+    """Our buy price, only where it means something (2026-11-04, audit PR2):
+
+    * "Not yet" because of the price — buying under it is what we're waiting for.
+    * "Buy" — only when today's price is already under it ("already under the
+      price we would buy under"). A Buy at ৳65 beside "a good buy under ৳46.6"
+      (BRACBANK) contradicted itself.
+
+    Never for Avoid, "No reason to buy", or a "Not yet" held back by a risk
+    (category Z, old accounts, a red flag): buying cheaper would not change
+    the answer. 127 companies showed "a good buy under ৳X" with an alert."""
+    if buy_below is None:
+        return None
+    if decision == "wait" and blocker == "price":
+        return buy_below
+    if decision == "buy" and ltp is not None and ltp <= buy_below:
+        return buy_below
+    return None
 
 
 # ---------------------------------------------------------------- the full report
@@ -3949,6 +4024,10 @@ def build_report(inp: dict) -> dict:
             "risks": risks, "story": story, "sector": sector, "alternatives": alts}
     scorecard = build_scorecard(work, inp)
     answer = build_answer(inp, work)
+    if price and price.get("buy_below") is not None and answer.get("buy_price") is None:
+        price["buy_below"] = None
+        if price.get("_buy_watch"):
+            price["watch"] = None
     reads = build_reads(inp, work)
     view = build_view(inp, work, answer)
     next_questions = build_next_questions(inp, work, answer, view, reads)

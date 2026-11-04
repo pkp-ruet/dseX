@@ -244,6 +244,12 @@ def _facts(held_codes: set[str], today, followed_codes: Optional[set[str]] = Non
     except Exception:  # noqa: BLE001
         lows = {}
     try:
+        from backend.services.db_service import load_ex_day_moves
+        ex_moves = {c: m for c, m in load_ex_day_moves().items() if c in held_codes}
+    except Exception:  # noqa: BLE001
+        log.warning("ex-day moves read failed", exc_info=True)
+        ex_moves = {}
+    try:
         from backend.services.stock_report_service import red_flag_changes
         red_flags = red_flag_changes(followed_codes)
     except Exception:  # noqa: BLE001
@@ -267,7 +273,7 @@ def _facts(held_codes: set[str], today, followed_codes: Optional[set[str]] = Non
     return {"prices": prices, "record": record, "results": results, "rows": rows,
             "score_before": before, "sector_class": sector_class, "grades": grades,
             "category": category, "lows": lows, "red_flags": red_flags,
-            "answers": answers, "buylist": buylist, "prior": prior}
+            "answers": answers, "buylist": buylist, "prior": prior, "ex_moves": ex_moves}
 
 
 def _prior_closes(held_codes: set[str], days: int = watch.BACK_PRIOR_DAYS) -> dict[str, dict]:
@@ -347,11 +353,23 @@ def after_close_payload(events: list[dict], lang: str = "bn") -> Optional[dict]:
     """A Premium reader's after-close note: "After the close: N things on your
     shares", opening the Desk. One event keeps the watcher's own push (a lone
     result or grade change opens its card on the stock page)."""
-    payload = watch.push_payload(events, lang, "/desk?src=watch")
-    if payload and len(events) > 1:
-        n = len(events)
+    if len(events) <= 1:
+        return watch.push_payload(events, lang, "/desk?src=watch")
+    # Count what the Desk will show: it leaves out our-answer and buy-list
+    # events, so "After the close: 3 things" opened a Desk with 2 (audit EL2).
+    shown = [e for e in events if e.get("kind") not in watch.PREMIUM_ONLY_KINDS]
+    if not shown:
+        # Only answer changes: the most serious one opens its answer card.
+        return watch.push_payload(sorted(events, key=lambda e: watch._LEVEL_ORDER.get(e.get("level"), 3))[:1],
+                                  lang, "/desk?src=watch")
+    payload = watch.push_payload(shown, lang, "/desk?src=watch")
+    if payload and len(shown) > 1:
+        n = len(shown)
         payload["title"] = (f"বাজার বন্ধের পর: আপনার শেয়ারে {n}টি খবর" if lang != "en"
                             else f"After the close: {n} things on your shares")
+    elif payload:
+        # One thing the Desk shows (plus answer changes it doesn't): open the Desk.
+        payload["url"] = "/desk?src=watch"
     return payload
 
 

@@ -154,8 +154,9 @@ def z_risk_list() -> dict:
         d = _as_date(a.get("fy_end"))
         if d:
             decided[code] = d
+    from backend.services.db_service import OWN_DIVIDENDS
     for d in db.dividend_declarations.find(
-        {"period_end": {"$ne": None}},
+        {"period_end": {"$ne": None}, **OWN_DIVIDENDS},
         {"_id": 0, "trading_code": 1, "period_end": 1, "dividend_type": 1},
     ).batch_size(1000):
         if "interim" in str(d.get("dividend_type") or "").lower():

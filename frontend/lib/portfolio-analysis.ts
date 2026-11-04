@@ -29,14 +29,18 @@ export type AnalysisLang = "en" | "bn";
 export function portfolioTodayMove(
   holdings: PortfolioHolding[],
   priceMap: Map<string, ScoreItem>,
+  /** The day's move with a record date's dividend / bonus taken out (bundle
+   *  `ex_moves`) — DSE's raw change reads it as a fall (2026-11-04). */
+  exMoves?: Record<string, number>,
 ): { delta: number; pct: number } | null {
   let delta = 0;
   let prevValue = 0;
   let any = false;
   for (const h of holdings) {
-    const item = priceMap.get(h.trading_code.toUpperCase());
+    const code = h.trading_code.toUpperCase();
+    const item = priceMap.get(code);
     const ltp = item?.ltp;
-    const pct = item?.change_pct;
+    const pct = exMoves?.[code] ?? item?.change_pct;
     if (ltp == null || pct == null) continue;
     // A -100% (or worse) change means a bad price row (e.g. a zero official
     // close scraped intraday), and would make prevClose = ltp / 0 = Infinity —

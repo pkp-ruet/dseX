@@ -2462,6 +2462,9 @@ export interface HomeBundle {
   rank_moves?: RankingsToday["moves"];
   /** Quarterly results on the reader's own stocks, posted in the last three weeks. */
   new_results?: LatestResultRow[];
+  /** The day's move on the reader's stocks whose record date fell since the
+   *  previous close, with the dividend / bonus taken out (2026-11-04). */
+  ex_moves?: Record<string, number>;
   /** The market's week of quarterly results — the dashboard's results tile in
    *  `MarketLinks` (counts only; `latest` is no longer shown since 2026-11-04). */
   results_week?: {

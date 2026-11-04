@@ -77,7 +77,20 @@ def _closes(codes: set[str], week: str, today: date) -> tuple[dict[str, float], 
         target = then if day < week else now
         if code not in target or target[code][0] < day:
             target[code] = (day, float(px))
-    return {c: v for c, (_d, v) in then.items()}, {c: v for c, (_d, v) in now.items()}
+    # The week's opening close on today's footing: a record date inside the
+    # week took the dividend / bonus out of the price, which read as "fell 17%
+    # this week" (audit EL3).
+    try:
+        from backend.services.db_service import adjustment_factor_fn, load_corporate_actions
+        acts = load_corporate_actions(days=30)
+    except Exception:  # noqa: BLE001 — unadjusted beats no letter
+        acts = {}
+    out_then: dict[str, float] = {}
+    for c, (d0, v) in then.items():
+        d1 = now.get(c, (d0, v))[0]
+        rel = [a for a in acts.get(c) or [] if d0 <= a["record_date"] < d1]
+        out_then[c] = adjustment_factor_fn(rel)(d0, v) if rel else v
+    return out_then, {c: v for c, (_d, v) in now.items()}
 
 
 def _list_news(week: str) -> tuple[dict[str, list[str]], list[dict], bool]:

@@ -27,6 +27,9 @@ from scrapers.news import (  # noqa: E402
 )
 
 
+from utils.dividend_years import OTHER_COMPANY_TITLE_RE  # noqa: E402
+
+
 def _d(value):
     return value.date().isoformat() if hasattr(value, "date") else "—"
 
@@ -104,6 +107,12 @@ def main() -> int:
     )
 
     stale = [] if args.no_prune else find_stale_docs(db, real)
+    # Another group company's dividend stored under this code ("Dividend
+    # declaration of a Subsidiary") — never this company's, whatever its date.
+    if not args.no_prune:
+        seen = {d["_id"] for d in stale}
+        stale += [d for d in db.dividend_declarations.find({"title": OTHER_COMPANY_TITLE_RE})
+                  if d["_id"] not in seen]
     if stale:
         print(f"\n-- {len(stale)} doc(s) written from follow-up notices, to be removed --")
         for doc in stale:

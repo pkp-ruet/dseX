@@ -85,3 +85,20 @@ def test_teaser_without_free_names_count_kinds_and_codes_only():
     one = teaser_payload(evs[:1], None, "bn", "/x")
     assert one["title"] == "আজ GP-এ একটি আপডেট" and "প্রিমিয়াম" in one["body"]
     assert teaser_payload([], None) is None
+
+
+def test_pick_free_never_opens_our_answer():
+    # An Avoid ranks worst, so it used to be the free reader's open event
+    # ("Our answer on X changed: Avoid. It was Buy …"; audit EL2).
+    ans, rec = _ev("a", "answer", "GP", "bad"), _ev("b", "record", "ACI", "good")
+    assert pick_free([ans, rec])["id"] == "b"
+    assert pick_free([ans]) is None
+
+
+def test_after_close_counts_what_the_desk_shows():
+    from backend.services.portfolio_daily import after_close_payload
+    evs = [_ev("a", "answer", "GP", "bad"), _ev("b", "results", "ACI", "bad"), _ev("c", "record", "BATBC", "good")]
+    p = after_close_payload(evs, "en")
+    assert p["title"] == "After the close: 2 things on your shares" and p["url"] == "/desk?src=watch"
+    lone = after_close_payload([_ev("a", "answer", "GP", "bad"), _ev("b", "record", "ACI", "good")], "en")
+    assert lone["url"] == "/desk?src=watch"            # the Desk shows the record date

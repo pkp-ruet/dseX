@@ -40,3 +40,13 @@ def test_stream_matches_old_pass():
                 })
     rnd.shuffle(rows)
     assert _stream_adjusted_ranges(iter(rows), acts) == _old(rows, acts)
+
+
+def test_ex_day_move_takes_the_dividend_out():
+    # WALTONHIL-like: ৳120 before, ৳18 cash + 10% bonus, opens at ৳100 —
+    # DSE's raw change reads −16.7%; on today's footing it rose.
+    from backend.services.db_service import ex_day_move
+    acts = [{"record_date": "2026-09-20", "cash_ps": 18.0, "stock_pct": 10.0}]
+    assert ex_day_move(100.0, 120.0, "2026-09-18", acts) == 7.84
+    assert ex_day_move(100.0, 120.0, "2026-09-21", acts) is None    # record date before the last close
+    assert ex_day_move(100.0, 120.0, "2026-09-18", []) is None

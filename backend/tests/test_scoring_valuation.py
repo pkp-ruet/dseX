@@ -77,3 +77,74 @@ def test_p5_latest_payout_and_newer_fy_yield():
     _, w = _a2_pillar5(fin_rows("WALTONHIL"), 340.0, 10.0, ledger_cash_pct={2025: 175.0, 2026: 180.0})
     assert w["div_latest_fy"] == 2026
     assert w["div_yield_pct"] == pytest.approx(18.0 / 340 * 100, abs=0.05)
+
+
+# --------------------------------------------------------------------------- #
+# 2026-11-04 audit, round 1 (GR1, GR2, GR4, RP2, DT2)
+# --------------------------------------------------------------------------- #
+
+def test_a_high_margin_that_slipped_is_not_scored_like_a_tiny_one():
+    from backend.services.scoring_service import _a2_gm_score
+    # BATBC-like: 49.8% gross margin, down 1.3 points — fell to 2.0 before.
+    slipped = _a2_gm_score(49.8, -1.3)
+    assert slipped > 8.0
+    assert _a2_gm_score(5.0, 0.0) < 3.0
+    # Still ordered: a falling margin scores below the same steady margin.
+    assert _a2_gm_score(35.0, -3.0) < _a2_gm_score(35.0, 0.0) < _a2_gm_score(35.0, 3.0)
+    # No cliffs: nearby inputs give nearby scores.
+    assert abs(_a2_gm_score(30.5, -1.1) - _a2_gm_score(30.5, -0.9)) < 0.01
+
+
+def test_negative_nav_has_no_pb():
+    rows = [dict(r) for r in fin_rows("JAMUNAOIL")]
+    rows[-1]["nav_per_share"] = -21.8            # equity wiped out this year
+    _, sub = _a2_pillar4(rows, 9.0, 10.0, 1.0)
+    assert sub["p4_pb"] == 0.0 and sub["current_pb"] is None
+    # A negative interim NAV counts as the latest too.
+    _, sub2 = _a2_pillar4(fin_rows("JAMUNAOIL"), 175.0, 19.7, 0.75, nav_override=-14.65)
+    assert sub2["p4_pb"] == 0.0
+
+
+def test_sector_median_needs_five_peers():
+    from backend.services.scoring_service import peer_median
+    market = [(f"M{i}", float(v)) for i, v in enumerate([8, 10, 12, 14, 16, 18, 20])]
+    tiny = [("SELF", 9.0), ("A", 136.0)]               # Ceramics: one profitable peer
+    assert peer_median(tiny, "SELF", market) == 14.0   # the market's median stands in
+    five = [("SELF", 9.0)] + [(c, v) for c, v in [("A", 10.0), ("B", 11.0), ("C", 12.0), ("D", 13.0), ("E", 14.0)]]
+    assert peer_median(five, "SELF", market) == 12.0
+
+
+def test_lender_cushion_of_100_percent_is_bad_data():
+    ext = [{"year": 2024, "total_equity": 5e9, "total_assets": 5e9, "operating_cf": 1e8, "net_profit": 1e8}]
+    _, sub = _a2_pillar2(ext, is_financial=True)
+    assert sub["p2_capital"] is None                    # FASFIN read as a strong lender
+    ext[0]["total_assets"] = 5e10                       # a real 10% cushion still scores
+    _, sub = _a2_pillar2(ext, is_financial=True)
+    assert sub["p2_capital"] is not None
+
+
+def test_an_interim_alone_does_not_replace_the_full_years_yield():
+    # GP: FY2025 audited 215%; FY2026 so far only a 105% interim.
+    rows = [{"year": y, "eps": e, "cash_dividend_pct": c}
+            for y, e, c in [(2021, 25.6, 275.0), (2022, 22.9, 250.0), (2023, 22.9, 125.0),
+                            (2024, 24.6, 330.0), (2025, 27.0, 215.0)]]
+    _, sub = _a2_pillar5(rows, 231.0, 10.0, ledger_cash_pct={2025: 105.0, 2026: 105.0},
+                         ledger_complete={2025})
+    assert sub["div_yield_pct"] == pytest.approx(21.5 / 231.0 * 100, abs=0.05)
+    assert sub["div_latest_fy"] == 2025
+    # Once the final is declared the newer year stands in.
+    _, done = _a2_pillar5(rows, 231.0, 10.0, ledger_cash_pct={2026: 230.0}, ledger_complete={2026})
+    assert done["div_latest_fy"] == 2026
+
+
+def test_lender_cushion_falls_back_to_dse_nav():
+    from backend.services.scoring_service import lender_equity
+    # IDLC: Amarstock equity = assets (৳148.9bn); DSE NAV ৳49.96 × 458.3m shares.
+    own = lender_equity(148.9e9, 148.9e9, 49.96, 458_307_579)
+    assert own == pytest.approx(22.9e9, rel=0.01)
+    assert lender_equity(148.9e9, 148.9e9, None, None) is None
+    assert lender_equity(15e9, 150e9, 49.96, 458_307_579) == 15e9      # a believable figure stays
+    assert lender_equity(5e9, 5e9, -125.6, 100_000_000) < 0           # FASFIN: negative equity is real
+    ext = [{"year": 2024, "total_equity": 148.9e9, "total_assets": 148.9e9, "operating_cf": 1.9e9}]
+    _, sub = _a2_pillar2(ext, is_financial=True, lender_nav=(49.96, 458_307_579))
+    assert sub["p2_capital"] is not None

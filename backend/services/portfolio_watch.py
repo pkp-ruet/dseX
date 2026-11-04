@@ -363,6 +363,11 @@ def build_events(held: dict[str, int], facts: dict, day: str,
                 out.append(e)
         p = prices.get(code) or {}
         cp = p.get("change_pct")
+        # The first trade after a record date: the dividend / bonus leaving the
+        # price is not a fall (audit EL3).
+        ex = (facts.get("ex_moves") or {}).get(code)
+        if ex and isinstance(ex.get("change_pct"), (int, float)):
+            cp = ex["change_pct"]
         if isinstance(cp, (int, float)) and cp <= DROP_PCT:
             out.append(_drop_event(code, qty, float(cp), p.get("change"), day))
         lo = (facts.get("lows") or {}).get(code)
@@ -428,12 +433,20 @@ def week_start(day: str) -> str:
     return (d - timedelta(days=(d.weekday() + 1) % 7)).isoformat()
 
 
+# Kinds that carry our answer on a share (Buy / Not yet / Avoid) or the buy
+# list — Premium only, never a free reader's open event (2026-11-04, audit EL2:
+# an Avoid ranks worst, so "Our answer on X changed: Avoid. It was Buy …" went
+# out in full in free teaser pushes). The Desk leaves them out too.
+PREMIUM_ONLY_KINDS = {"answer", "buylist"}
+
+
 def pick_free(events: list[dict]) -> Optional[dict]:
     """The event a free reader gets in full this week: the most serious of the
     first day anything happened (worst level first, then the order built)."""
-    if not events:
+    open_ = [e for e in events or [] if e.get("kind") not in PREMIUM_ONLY_KINDS]
+    if not open_:
         return None
-    return min(enumerate(events), key=lambda ie: (_LEVEL_ORDER.get(ie[1].get("level"), 3), ie[0]))[1]
+    return min(enumerate(open_), key=lambda ie: (_LEVEL_ORDER.get(ie[1].get("level"), 3), ie[0]))[1]
 
 
 def _kinds_of(events: list[dict]) -> list[dict]:

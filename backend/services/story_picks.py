@@ -179,17 +179,10 @@ def pick_story_stocks(rows: list[dict], total_count: int,
     if len(out) < 3:
         return []
 
-    # Attach the signal reason, dropping any sentence an earlier card already
-    # used so the three never print the same line twice.
-    used: set = set()
+    # No signal reason on the cards (2026-11-04, audit EL1): the Buy / Sell
+    # reason belongs to the stock report and the portfolio's Premium parts.
     for card in out:
-        sig = card["row"].get("signal") or {}
-        en = (sig.get("reason_en") or "").strip()
         card["reason_en"] = None
         card["reason_bn"] = None
-        if en and en not in used:
-            used.add(en)
-            card["reason_en"] = en
-            card["reason_bn"] = (sig.get("reason_bn") or "").strip() or None
 
     return out

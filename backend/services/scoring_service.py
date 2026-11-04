@@ -17,6 +17,7 @@ from backend.services.db_service import (
 )
 from backend.services.interim_service import load_interims, interim_facts
 from utils.sector import normalize_sector
+from utils.dividend_years import group_by_code, ledger_years
 
 logger = logging.getLogger(__name__)
 
@@ -97,6 +98,51 @@ NEG_INTERIM_CFO_CAP = 3.0
 # (their "loans" are the business) or insurers.
 DEBT_OVER_RESERVE_P2_CAP = 6.9   # never "Strong money health"
 DEBT_OVER_MCAP_P2_CAP = 3.9      # "Weak money health"
+
+
+# A bank / NBFI's own money (equity) above this share of its assets is bad
+# data, not a strong lender (Amarstock: equity = assets for 23 NBFIs).
+LENDER_CUSHION_MAX_PCT = 40.0
+
+def lender_equity(eq, ta, nav_ps, shares) -> Optional[float]:
+    """A bank / NBFI's own money for the capital cushion. Amarstock stores
+    "total equity and liabilities" as equity for 23 NBFIs (equity = assets, a
+    100% cushion): then DSE's own NAV per share × shares stands in — IDLC
+    ৳49.96 × 458m = ৳22.9bn against ৳148.9bn of assets, 15%. None when neither
+    gives a believable figure (audit RP2, 2026-11-04)."""
+    try:
+        eq_f, ta_f = float(eq), float(ta)
+    except (TypeError, ValueError):
+        return None
+    if _is_nanish(eq_f) or _is_nanish(ta_f) or ta_f <= 0:
+        return None
+    if eq_f / ta_f * 100 <= LENDER_CUSHION_MAX_PCT:
+        return eq_f
+    try:
+        alt = float(nav_ps) * float(shares)
+    except (TypeError, ValueError):
+        return None
+    if _is_nanish(alt) or alt / ta_f * 100 > LENDER_CUSHION_MAX_PCT:
+        return None
+    return alt
+
+
+# Sector-median valuation needs this many OTHER profitable, non-Z companies in
+# the sector; fewer, and the whole market's median stands in (audit GR4).
+SECTOR_MIN_PEERS = 5
+# DSE groups with no common business — never a peer group.
+NO_PEER_SECTORS = {"Miscellaneous"}
+
+
+def peer_median(pairs: list[tuple[str, float]], exclude_code: str,
+                market: list[tuple[str, float]]) -> Optional[float]:
+    """Median of the sector's other companies' ratios; with fewer than
+    SECTOR_MIN_PEERS of them, the market's (also excluding the company)."""
+    vals = [v for c, v in pairs if c != exclude_code]
+    if len(vals) >= SECTOR_MIN_PEERS:
+        return _median(vals)
+    everyone = [v for c, v in market if c != exclude_code]
+    return _median(everyone) if everyone else None
 
 
 def debt_load(loan_mn, reserve_mn, mcap_mn) -> dict:
@@ -183,13 +229,29 @@ def _a2_cash_assets_score(pct: float) -> float:
     return _score(pct, [(0, 2), (5, 5), (10, 7), (15, 10)])
 
 
+# Gross margin level (avg %, over the years we have) -> score, before the trend
+# nudge. Pinned near the old step ladder's centres (30%+ steady = 8, 15-30% = 5)
+# so the scale didn't move — only the cliff went (2026-11-04, audit GR1): a
+# 49.8% margin that slipped 1.3 points fell through every branch to 2.0, the
+# same as a 5% trader (BATBC, RECKITTBEN, RENATA, IBNSINA … 69 companies).
+_GM_LEVEL_ANCHORS = [(0, 1.0), (10, 2.5), (15, 4.5), (30, 7.5), (50, 9.0)]
+# Net margin runs at roughly half the gross figure (the insurer fallback).
+_NPM_LEVEL_ANCHORS = [(0, 1.0), (4, 2.5), (8, 4.5), (15, 7.5), (25, 9.0)]
+
+
+def _margin_score(avg: float, trend: float, anchors, move: float) -> float:
+    """Continuous level + a ±1 nudge when the margin moved more than `move`
+    percentage points (last two years against the first two)."""
+    level = _score(avg, anchors)
+    if trend > move:
+        level += 1.0
+    elif trend < -move:
+        level -= 1.0
+    return max(0.0, min(10.0, level))
+
+
 def _a2_gm_score(avg_gm: float, trend: float) -> float:
-    stable = abs(trend) <= 1.0
-    if avg_gm > 30 and trend > 0:   return 10.0
-    if avg_gm > 30 and stable:      return 8.0
-    if avg_gm >= 15 and trend > 0:  return 7.0
-    if avg_gm >= 15 and stable:     return 5.0
-    return 2.0
+    return _margin_score(avg_gm, trend, _GM_LEVEL_ANCHORS, 2.0)
 
 
 def _a2_nim_score(avg_nim: float, trend: float) -> float:
@@ -212,12 +274,7 @@ def _a2_npm_score(avg_npm: float, trend: float) -> float:
     """Score net-profit margin level+trend — the insurer fallback when no
     gross-profit line exists. Thresholds sit at roughly half the gross-margin
     ones because net margin runs well below gross."""
-    stable = abs(trend) <= 1.0
-    if avg_npm > 15 and trend > 0:  return 10.0
-    if avg_npm > 15 and stable:     return 8.0
-    if avg_npm >= 8 and trend > 0:  return 7.0
-    if avg_npm >= 8 and stable:     return 5.0
-    return 2.0
+    return _margin_score(avg_npm, trend, _NPM_LEVEL_ANCHORS, 1.0)
 
 
 def _effective_revenue(er: dict, is_financial: bool = False) -> Optional[float]:
@@ -516,7 +573,8 @@ def _a2_pillar1(fin_last5: list[dict], ext_last5: list[dict],
 
 def _a2_pillar2(ext_last5: list[dict], is_financial: bool = False,
                 is_insurance: bool = False,
-                interim_nocfps: Optional[float] = None) -> tuple[float, dict]:
+                interim_nocfps: Optional[float] = None,
+                lender_nav: Optional[tuple] = None) -> tuple[float, dict]:
     """`interim_nocfps` is this year's year-to-date operating cash per share from
     the latest quarterly report; when it is negative the company is burning cash
     NOW, so the multi-year cash-from-profit metric is capped (industrials only)."""
@@ -530,9 +588,11 @@ def _a2_pillar2(ext_last5: list[dict], is_financial: bool = False,
         # Banks / NBFIs: leverage is a capital cushion (equity / assets), not
         # borrowings / equity — see _a2_capital_score for why.
         m1 = None
-        if not _is_nanish(eq) and not _is_nanish(ta) and float(ta) > 0:
-            m1_capital = _a2_capital_score(float(eq) / float(ta) * 100)
-        # else: balance-sheet totals never scraped — renormalize
+        nav_ps, shares = lender_nav or (None, None)
+        own = lender_equity(eq, ta, nav_ps, shares)
+        if own is not None:
+            m1_capital = _a2_capital_score(own / float(ta) * 100)
+        # else: balance-sheet totals never scraped, or impossible — renormalize
     elif not _is_nanish(debt) and not _is_nanish(eq):
         # Negative equity is distress (0), not a data gap.
         m1 = _a2_de_score(float(debt) / float(eq)) if float(eq) > 0 else 0.0
@@ -817,13 +877,17 @@ def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
         else:
             pe_score = 0.0
 
-    curr_nav = next((r["nav_per_share"] for r in reversed(fin_last5)
-                     if r.get("nav_per_share") is not None and r["nav_per_share"] > 0), None)
-    if nav_override is not None and nav_override > 0:
+    # The LATEST NAV whatever its sign — the same rule as EPS above. A company
+    # whose losses have wiped out its equity has no P/B; it used to borrow an
+    # older positive NAV and score "cheap on book value" (GIB, UNIONBANK,
+    # PHOENIXFIN … 12 companies at 6-10; 2026-11-04, audit GR2).
+    curr_nav = next((float(r["nav_per_share"]) for r in reversed(fin_last5)
+                     if not _is_nanish(r.get("nav_per_share"))), None)
+    if nav_override is not None and not _is_nanish(nav_override):
         curr_nav = float(nav_override)
     has_sector_pb = sector_median_pb is not None and sector_median_pb > 0
 
-    if curr_nav is None:
+    if curr_nav is None or curr_nav <= 0:
         pb_score = 0.0
     else:
         current_pb = ltp / curr_nav
@@ -877,7 +941,8 @@ def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
 
 def _a2_pillar5(fin_last5: list[dict], ltp: Optional[float],
                 face: Optional[float], is_financial: bool = False,
-                ledger_cash_pct: Optional[dict[int, float]] = None) -> tuple[float, dict]:
+                ledger_cash_pct: Optional[dict[int, float]] = None,
+                ledger_complete: Optional[set[int]] = None) -> tuple[float, dict]:
     """Dividend pillar: consistency 0.35 · payout affordability 0.30 · yield 0.20 ·
     growth 0.15.
 
@@ -891,7 +956,9 @@ def _a2_pillar5(fin_last5: list[dict], ltp: Optional[float],
     `ledger_cash_pct` maps fiscal year -> cash % declared per the news ledger
     (dividend_declarations); it only fills a year whose audited-table dividend
     cell was blank. When the ledger has nothing for that year either, the blank
-    means what DSE shows: no dividend.
+    means what DSE shows: no dividend. `ledger_complete` names the years whose
+    final is declared; only those can stand in as "the latest year" for the
+    yield (None = every ledger year, the old behaviour).
     """
     empty = {"p5_dps_cagr": 0.0, "p5_consist": 0.0, "p5_yield": 0.0, "p5_payout": 0.0,
              "div_yield_pct": None, "payout_pct": None, "payout_latest_pct": None,
@@ -943,7 +1010,8 @@ def _a2_pillar5(fin_last5: list[dict], ltp: Optional[float],
     latest_dps = dps_vals[-1] if dps_vals else 0.0
     table_max_year = max((y for y, _, _ in years), default=None)
     newer = {y: v for y, v in ledger.items()
-             if table_max_year is not None and y > table_max_year and v and v > 0}
+             if table_max_year is not None and y > table_max_year and v and v > 0
+             and (ledger_complete is None or y in ledger_complete)}
     if newer:
         latest_dps = newer[max(newer)] * face_val / 100.0
     div_yield_pct = None
@@ -1319,24 +1387,28 @@ def _compute_scores_df(
     # Cash dividend % per fiscal year from the news ledger, used by pillar 5 only
     # to fill a blank dividend cell in the audited table. Interim + final for the
     # same period-end year are summed (DSE's table shows the year's total).
+    # The fiscal year comes from the company's own year-end month (an interim for
+    # the quarter to Sep 2025 is MARICO's FY2026), and a year counts as complete
+    # only once its final is declared (utils/dividend_years.py) — so GP's FY2026
+    # interim no longer stands in for a whole year's dividend.
     ledger_by_code: dict[str, dict[int, float]] = {}
+    ledger_complete_by_code: dict[str, set[int]] = {}
     try:
-        for d in db.dividend_declarations.find(
+        rows = list(db.dividend_declarations.find(
             {"cash_pct": {"$ne": None}, "period_end": {"$ne": None}},
-            {"trading_code": 1, "period_end": 1, "cash_pct": 1, "_id": 0},
-        ):
-            pe = d.get("period_end")
-            try:
-                fy = pe.year if isinstance(pe, datetime) else int(str(pe)[:4])
-            except (TypeError, ValueError):
-                continue
-            if fin_max_year is not None and fy > fin_max_year:
-                continue  # backtest: a declaration not yet knowable
-            per_year = ledger_by_code.setdefault(d["trading_code"], {})
-            per_year[fy] = per_year.get(fy, 0.0) + float(d.get("cash_pct") or 0.0)
+            {"trading_code": 1, "period_end": 1, "cash_pct": 1, "dividend_type": 1,
+             "title": 1, "_id": 0},
+        ))
+        for lcode, lrows in group_by_code(rows).items():
+            for fy, slot in ledger_years(lrows).items():
+                if fin_max_year is not None and fy > fin_max_year:
+                    continue  # backtest: a declaration not yet knowable
+                ledger_by_code.setdefault(lcode, {})[fy] = slot["cash_pct"]
+                if slot["complete"]:
+                    ledger_complete_by_code.setdefault(lcode, set()).add(fy)
     except Exception as e:  # noqa: BLE001 — the ledger is a fill-in, never a blocker
         logger.warning("dividend ledger unavailable for scoring: %s", e)
-        ledger_by_code = {}
+        ledger_by_code, ledger_complete_by_code = {}, {}
 
     # Latest quarterly report per company (TTM EPS, latest NAV, this-year trend).
     # Skipped in backtests: news posts carry no fiscal-year filter, so they would
@@ -1366,30 +1438,46 @@ def _compute_scores_df(
         if f:
             if f.get("ttm_eps") is not None:
                 eps_v, basis = float(f["ttm_eps"]), "ttm"
-            if f.get("nav") is not None and f["nav"] > 0:
-                nav_v = float(f["nav"])
+            if f.get("nav") is not None:
+                nav_v = float(f["nav"])   # latest, whatever its sign
         return eps_v, nav_v, basis
 
     # Pre-compute sector P/E and P/B values keyed by code so the per-company median
     # can exclude the company itself (otherwise a small sector's median is biased toward self).
+    #
+    # Peers (2026-11-04, audit GR4): Z shares stay out (a near-zero EPS gives a
+    # P/E in the hundreds), DSE's "Miscellaneous" is not a sector, and a sector
+    # needs SECTOR_MIN_PEERS others to have a median at all — else the market's
+    # median stands in. Miscellaneous's median P/E was 120.6 and Ceramics had one
+    # profitable peer (136), so BSC and BERGERPBL scored a full 10 on "cheap
+    # against its industry".
     sector_pes: dict[str, list[tuple[str, float]]] = {}
     sector_pbs: dict[str, list[tuple[str, float]]] = {}
+    market_pes: list[tuple[str, float]] = []
+    market_pbs: list[tuple[str, float]] = []
     for code, comp in companies.items():
         sector = comp.get("sector", "") or ""
         p = (prices.get(code) or {}).get("ltp")
         if not p or p <= 0:
             continue
+        if (comp.get("market_category") or "").strip().upper() == "Z":
+            continue
         # Same EPS / NAV the company itself is judged on — a loss-maker has no P/E
         # and must not enter the sector median on a stale positive figure.
         eps_v, nav_v, _ = _effective_eps_nav(code)
+        own_sector = sector if sector and sector not in NO_PEER_SECTORS else None
         if eps_v is not None and eps_v > 0:
-            sector_pes.setdefault(sector, []).append((code, p / eps_v))
+            market_pes.append((code, p / eps_v))
+            if own_sector:
+                sector_pes.setdefault(own_sector, []).append((code, p / eps_v))
         if nav_v is not None and nav_v > 0:
-            sector_pbs.setdefault(sector, []).append((code, p / nav_v))
+            market_pbs.append((code, p / nav_v))
+            if own_sector:
+                sector_pbs.setdefault(own_sector, []).append((code, p / nav_v))
 
-    def _sector_median_excluding(pairs: list[tuple[str, float]], exclude_code: str) -> Optional[float]:
-        vals = [v for c, v in pairs if c != exclude_code]
-        return _median(vals) if vals else None
+    def _sector_median_excluding(pairs: list[tuple[str, float]], exclude_code: str,
+                                 market: list[tuple[str, float]]) -> Optional[float]:
+        return peer_median(pairs, exclude_code, market)
 
     rows = []
     for code, comp in companies.items():
@@ -1409,8 +1497,8 @@ def _compute_scores_df(
         is_insurance = sector_class == "INSURANCE"
         # Sector medians computed *excluding the current company* so its own valuation
         # doesn't pull the comparison toward itself in small sectors.
-        sect_pe_for_self = _sector_median_excluding(sector_pes.get(sector, []), code)
-        sect_pb_for_self = _sector_median_excluding(sector_pbs.get(sector, []), code)
+        sect_pe_for_self = _sector_median_excluding(sector_pes.get(sector, []), code, market_pes)
+        sect_pb_for_self = _sector_median_excluding(sector_pbs.get(sector, []), code, market_pbs)
 
         ifacts = interim_by_code.get(code)
         eff_eps, eff_nav, eps_basis = _effective_eps_nav(code)
@@ -1423,7 +1511,8 @@ def _compute_scores_df(
         now_nocfps = (ifacts or {}).get("nocfps_cum")
         if ifacts is None and latest_fin.get("provisional") is True and not _is_nanish(latest_fin.get("nocfps")):
             now_nocfps = float(latest_fin["nocfps"])
-        p2, sub2 = _a2_pillar2(ext_last5, is_financial, is_insurance, interim_nocfps=now_nocfps)
+        p2, sub2 = _a2_pillar2(ext_last5, is_financial, is_insurance, interim_nocfps=now_nocfps,
+                               lender_nav=(eff_nav, comp.get("total_shares")))
         # Loan load from DSE's company page caps Financial Health for industrials
         # (see DEBT_OVER_* above) so "Strong money health" can't sit beside loans
         # bigger than the company's savings or its market value.
@@ -1442,7 +1531,8 @@ def _compute_scores_df(
                                eps_override=eff_eps if eps_basis == "ttm" else None,
                                nav_override=(ifacts or {}).get("nav"))
         p5, sub5 = _a2_pillar5(fin_rows, ltp, face, is_financial,
-                               ledger_cash_pct=ledger_by_code.get(code))
+                               ledger_cash_pct=ledger_by_code.get(code),
+                               ledger_complete=ledger_complete_by_code.get(code))
 
         final = p1 * 0.30 + p2 * 0.20 + p3 * 0.20 + p4 * 0.15 + p5 * 0.15
 
@@ -1517,8 +1607,10 @@ def _compute_scores_df(
 
         # Data freshness: a dividend declared for a fiscal year the audited table
         # does not have yet (WALTONHIL: FY2026 dividend, EPS still FY2025).
-        ledger_years = [y for y in (ledger_by_code.get(code) or {}) if y]
-        newer_dividend_fy = max(ledger_years) if ledger_years else None
+        # Only a year whose final is out: an interim says nothing about the
+        # audited table being behind (GP's FY2026 is still running).
+        done_years = [y for y in (ledger_complete_by_code.get(code) or ()) if y]
+        newer_dividend_fy = max(done_years) if done_years else None
         if newer_dividend_fy is not None and (fy_eps_year is None or newer_dividend_fy <= fy_eps_year):
             newer_dividend_fy = None
         if newer_dividend_fy is not None:
@@ -1591,7 +1683,11 @@ def get_company_score_row(trading_code: str) -> Optional[dict]:
     row = mdf[mdf["trading_code"] == trading_code]
     if row.empty:
         return None
-    scored = mdf[mdf["score"].notna()].sort_values("score", ascending=False).reset_index(drop=True)
+    # Ties broken by code, like the ranking page (rank_history) — an unstable
+    # sort put 62 tied companies one place off it (audit GR13).
+    scored = (mdf[mdf["score"].notna()]
+              .sort_values(["score", "trading_code"], ascending=[False, True], kind="mergesort")
+              .reset_index(drop=True))
     rank_pos = scored[scored["trading_code"] == trading_code].index
     d = row.iloc[0].to_dict()
     # Convert NaN to None for JSON serialisation
@@ -1600,4 +1696,7 @@ def get_company_score_row(trading_code: str) -> Optional[dict]:
             d[k] = None
     d["overall_rank"] = int(rank_pos[0]) + 1 if len(rank_pos) else None
     d["total_scored"] = len(scored)
+    # "Only N companies score higher" counts strictly higher scores, not ties.
+    own = d.get("score")
+    d["higher_count"] = int((scored["score"] > own).sum()) if own is not None else None
     return d

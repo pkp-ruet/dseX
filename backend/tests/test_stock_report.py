@@ -671,3 +671,83 @@ def test_company_light_names_its_strong_and_weak_checks():
     assert sr.checks_line({}) is None
     lights = sr.build_report(square())["answer"]["lights"]
     assert lights[0]["note"]["en"].startswith("Strong")
+
+
+# ---------------------------------------------------------------- audit round 1 (2026-11-04)
+
+def test_crab_grades_are_ranked_like_crisl():
+    assert sr._rating_rank("AA2") == sr._rating_rank("AA")
+    assert sr._rating_rank("AA1") == sr._rating_rank("AA+")
+    assert sr._rating_rank("AA3") == sr._rating_rank("AA-")
+    assert sr._rating_rank("BBB1") == sr._rating_rank("BBB+")
+    assert sr._rating_rank("ZZ9") is None
+
+
+def test_crab_aa2_is_not_a_low_grade():
+    # HEIDELBCEM: "It has no loans. A rating agency gives it a low grade … (AA2)" → Risky.
+    inp = square()
+    inp["notices"]["ratings"] = [{"agency": "CRAB", "long_term": "AA2", "short_term": "ST-1",
+                                  "outlook": "Stable", "post_date": date(2026, 6, 1)}]
+    safety = sr.build_report(inp)["sections"]["safety"]
+    text = " ".join(p["en"] for p in [safety["headline"]] + (safety.get("meaning") or []) if p)
+    assert "low grade" not in text
+    assert safety["word"]["en"] != "Risky"
+
+
+def test_answer_buy_price_only_where_it_changes_the_answer():
+    f = sr.answer_buy_price
+    assert f("wait", "price", 200.0, 230.0) == 200.0       # waiting for the price
+    assert f("buy", None, 229.0, 218.8) == 229.0           # already under it
+    assert f("buy", None, 46.6, 65.0) is None              # BRACBANK: Buy at ৳65, "buy under ৳46.6"
+    assert f("avoid", None, 20.0, 25.0) is None            # ACI (Avoid)
+    assert f("no_reason", None, 20.0, 25.0) is None
+    assert f("wait", "risks", 20.0, 25.0) is None          # Z / old accounts / a red flag
+
+
+def test_avoid_shows_no_buy_price_anywhere():
+    inp = red_flag_company()
+    inp["signal"] = _sig("sell", "weak_fundamentals", tier="weak")
+    rep = sr.build_report(inp)
+    assert rep["answer"]["buy_price"] is None and rep["view"]["buy_price"] is None
+    price = rep["sections"].get("price") or {}
+    assert price.get("buy_below") is None
+    assert "good buy" not in ((price.get("watch") or {}).get("en") or "")
+
+
+def test_dividend_history_leaves_out_a_year_with_only_an_interim():
+    inp = square()
+    inp["ledger"] = inp["ledger"] + [
+        {"declaration_date": "2027-01-20", "cash_pct": 50.0, "dividend_type": "Interim", "period_end": "2026-12-31"}]
+    hist = sr._div_history(inp)
+    assert 2027 not in hist                                  # June year end: the Dec half is FY2027
+    assert hist[2026] == 13.0                                # FY2026's final, ৳13 a share
+
+
+def test_back_to_profit_is_not_n_times_as_much():
+    inp = square()
+    inp["notices"]["annual"][0]["eps_prev"] = -2.0
+    ty = sr.build_report(inp)["sections"]["this_year"]
+    assert "times as much" not in ty["headline"]["en"]
+    assert "back to a profit" in ty["headline"]["en"]
+
+
+def test_story_names_the_most_profitable_year_and_recent_losses():
+    inp = square()
+    inp["extended_financials"] = [
+        {"year": y, "revenue": r * 1e7, "net_profit": n * 1e7, "total_equity": 5000e7}
+        for y, r, n in [(2020, 900, 100), (2021, 1000, 150), (2022, 1100, 120), (2023, 1150, -20), (2024, 1200, -30)]
+    ]
+    story = sr.build_story(inp)
+    lines = [m["en"] for m in story["meaning"]]
+    assert lines[0] == "It has made a loss in each of its last 2 years."
+    assert any("most profitable year was 2021" in l and "weakest was 2024" in l for l in lines)
+    assert not any("best year for profit was 2022" in l for l in lines)
+
+
+def test_lender_line_skips_a_100_percent_cushion():
+    inp = red_flag_company()
+    inp["sector_class"] = "NBFI"
+    inp["extended_financials"] = [{"year": 2024, "total_equity": 5e9, "total_assets": 5e9}]
+    safety = sr.build_safety(inp) or {}
+    text = " ".join(p["en"] for p in [safety.get("headline")] + (safety.get("meaning") or []) if p)
+    assert "good amount of its own money" not in text

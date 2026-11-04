@@ -9,6 +9,11 @@ from datetime import datetime, timedelta
 from typing import Optional
 from pymongo import MongoClient
 from backend.config import MONGODB_URI, MONGODB_DB_NAME
+from utils.dividend_years import OTHER_COMPANY_TITLE_RE
+
+# Ledger rows that are another group company's dividend ("Dividend declaration of
+# a Subsidiary") are not this company's — every ledger read leaves them out.
+OWN_DIVIDENDS = {"title": {"$not": OTHER_COMPANY_TITLE_RE}}
 
 # ---------------------------------------------------------------------------
 # Connection singleton
@@ -303,6 +308,53 @@ def adjustment_factor_fn(actions: list[dict]):
     return f
 
 
+def ex_day_move(ltp, ycp, prev_day: str, actions: list[dict]) -> Optional[float]:
+    """Today's change %, with the previous close (`ycp`, from `prev_day`) put on
+    today's footing for record dates on or after `prev_day` — or None when no
+    record date fell in between. Pure. DSE's own change is close − ycp, so the
+    first trade after a record date shows the dividend / bonus leaving the price
+    as a fall: WALTONHIL's 10% bonus + ৳18 cash read −12.0% on 21 Sep 2026."""
+    rel = [a for a in actions or [] if a.get("record_date") and a["record_date"] >= prev_day[:10]]
+    if not rel or not ltp or not ycp:
+        return None
+    adj = adjustment_factor_fn(rel)(prev_day, ycp)
+    if not adj or adj <= 0:
+        return None
+    return round((float(ltp) - adj) / adj * 100.0, 2)
+
+
+@_ttl_cache(900)
+def load_ex_day_moves() -> dict[str, dict]:
+    """{code: {"change_pct": the adjusted move, "raw_pct": DSE's, "record_date"}}
+    for stocks whose latest trade is their first after a record date (audit EL3,
+    2026-11-04). Personal alerts read this instead of the raw change, so a
+    dividend or bonus leaving the price is not "fell 12% today"."""
+    prices = load_latest_prices()
+    acts = load_corporate_actions(days=30)
+    db = get_db()
+    out: dict[str, dict] = {}
+    for code, rows in acts.items():
+        p = prices.get(code) or {}
+        day = str(p.get("date") or "")[:10]
+        if not day:
+            continue
+        recent = [a for a in rows if a.get("record_date") and a["record_date"] < day]
+        if not recent:
+            continue
+        prev = db.stock_prices.find_one({"trading_code": code, "date": {"$lt": day}},
+                                        {"_id": 0, "date": 1}, sort=[("date", -1)])
+        if not prev:
+            continue
+        pday = str(prev.get("date"))[:10]
+        move = ex_day_move(p.get("ltp"), p.get("ycp"), pday, recent)
+        if move is None:
+            continue
+        rel = [a for a in recent if a["record_date"] >= pday]
+        out[code] = {"change_pct": move, "raw_pct": p.get("change_pct"),
+                     "record_date": max(a["record_date"] for a in rel)}
+    return out
+
+
 def adjust_price_rows(rows: list[dict], actions: list[dict]) -> list[dict]:
     """Copies of price-history rows with ltp/high/low/close/ycp adjusted for the
     record dates in `actions`; rows changed carry ``adjusted: True``."""
@@ -334,7 +386,7 @@ def load_corporate_actions(days: int = 400) -> dict[str, list[dict]]:
     faces = {c["trading_code"]: c.get("face_value") for c in load_companies()}
     out: dict[str, list[dict]] = {}
     for d in get_db().dividend_declarations.find(
-        {"record_date": {"$gte": since}},
+        {"record_date": {"$gte": since}, **OWN_DIVIDENDS},
         {"_id": 0, "trading_code": 1, "record_date": 1, "cash_pct": 1, "stock_pct": 1, "dividend_pct": 1},
     ):
         rd = d.get("record_date")
@@ -549,7 +601,7 @@ def load_dividend_history() -> list[dict]:
     """Every stored declaration, newest first — interim + final, all years."""
     db = get_db()
     docs = list(
-        db.dividend_declarations.find({}, {"_id": 0}).sort("declaration_date", -1)
+        db.dividend_declarations.find(OWN_DIVIDENDS, {"_id": 0}).sort("declaration_date", -1)
     )
     return [_isoformat_declaration(d) for d in docs]
 

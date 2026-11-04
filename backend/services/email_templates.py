@@ -526,10 +526,7 @@ def _daily_stories(stories: list[dict]) -> str:
                 f'padding:3px 9px;border-radius:20px;margin-right:6px;">'
                 f'{_esc(s.get("metric_label") or "")} <b style="color:{TEXT};">{_esc(s["metric_value"])}</b></span>'
             )
-        reason = ""
-        if s.get("reason_en"):
-            reason = (f'<div style="font-size:12px;color:{MUTED};line-height:1.5;margin-top:6px;">'
-                      f'{_esc(s["reason_en"])}</div>')
+        reason = ""   # the Buy signal's reason left the mail with the signal (audit EL1)
         cards.append(
             f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" '
             f'style="background:{SURFACE};border:1px solid {BORDER};border-left:3px solid {fg};'
@@ -565,12 +562,9 @@ def _daily_personal(personal: Optional[dict]) -> str:
         code, url = it.get("code"), it.get("url")
         code_html = (f'<a href="{url}" style="color:{INDIGO};text-decoration:none;font-weight:700;">{code}</a>'
                      if url else f'<b>{code}</b>')
-        sig = it.get("signal")
+        # No Buy / Sell chip (2026-11-01 decision, audit EL1): the signal shows
+        # only inside the stock report and the portfolio's Premium parts.
         chip = ""
-        if sig in ("buy", "sell"):
-            bg, fg = (POS_BG, POS_TX) if sig == "buy" else (NEG_BG, NEG)
-            chip = (f'<span style="font-size:10px;font-weight:700;background:{bg};color:{fg};'
-                    f'padding:2px 8px;border-radius:20px;margin-left:6px;">{sig.title()}</span>')
         rows.append(
             f'<tr style="{border}"><td style="padding:9px 0;font-size:13px;">{code_html}'
             f'<span style="color:{MUTED};font-size:11px;"> {_esc(it.get("name") or "")}</span>{chip}</td>'
@@ -756,41 +750,6 @@ def _daily_headlines(items: list[dict]) -> str:
     )
 
 
-def _daily_scorecard(sc: Optional[dict]) -> str:
-    """Green 'how our last picks did' strip — the trust-builder."""
-    if not sc or not sc.get("items"):
-        return ""
-    bits = []
-    for it in sc["items"]:
-        chg = it.get("change_pct")
-        if chg is None:
-            bits.append(it["code"])
-        else:
-            bits.append(f'{it["code"]} {"+" if chg >= 0 else "−"}{abs(chg):.1f}%')
-    line = " · ".join(bits)
-    up, total = sc.get("up_count"), sc.get("total")
-    tail = f" · {up} of {total} up" if up is not None and total else ""
-    label = sc.get("date_label")
-    head = f"How our {label} picks did" if label else "How yesterday's picks did"
-    rec = sc.get("record")
-    rec_line = ""
-    if rec and rec.get("total"):
-        rec_line = (
-            f'<div style="font-size:12px;color:{POS_TX};margin-top:6px;opacity:.9;">'
-            f'Across the last {rec["emails"]} emails, {rec["up"]} of {rec["total"]} featured picks '
-            f'are higher now than when we showed them.</div>'
-        )
-    return (
-        f'<tr><td style="padding:10px 24px 4px;">'
-        f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:{POS_BG};border-radius:10px;">'
-        f'<tr><td style="padding:12px 14px;">'
-        f'<div style="font-size:12px;font-weight:700;color:{POS_TX};">{head}</div>'
-        f'<div style="font-size:13px;color:{POS_TX};margin-top:4px;line-height:1.5;">{line} — one day later{tail}.</div>'
-        f'{rec_line}'
-        f'</td></tr></table></td></tr>'
-    )
-
-
 def build_daily_html(*, content: dict, unsubscribe_url: str, pixel_url: str,
                      personal: Optional[dict] = None) -> str:
     """Assemble the full daily email. `content` is shared across all recipients;
@@ -825,7 +784,6 @@ def build_daily_html(*, content: dict, unsubscribe_url: str, pixel_url: str,
         _daily_learn(content.get("learn")),
         _daily_rotating(content.get("rotating")),
         _daily_headlines(content.get("headlines") or []),
-        _daily_scorecard(content.get("scorecard")),
     ] if s)
 
     return f"""<!DOCTYPE html>

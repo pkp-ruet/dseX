@@ -32,6 +32,7 @@ from backend.services import custom_lists_service
 from backend.services import screener_service
 from backend.services.research_lists_service import list_index
 from backend.services.rank_today_service import week_rank_moves
+from backend.services.db_service import load_ex_day_moves
 from backend.services.results_explainer import results_for, results_summary
 from backend.services.daily_tips_service import get_daily_tips
 from backend.services.db_service import (
@@ -160,6 +161,10 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
     new_results = _safe("new_results", lambda: results_for(mine), [])
     # The market's week of results — the dashboard promotes /results with it.
     results_week = _safe("results_week", results_summary, None)
+    # The day's move on the reader's stocks when a record date fell in between,
+    # with the dividend / bonus taken out (audit EL3): {code: change %}.
+    ex_moves = _safe("ex_moves", lambda: {c: m["change_pct"] for c, m in load_ex_day_moves().items()
+                                          if c in mine}, {})
     # Results meetings on the reader's stocks in the next two weeks (dates +
     # what to expect — the expectation is Premium, a screen-only lock) and
     # today's before-the-bell brief (Premium readers; the morning job).
@@ -214,6 +219,7 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
         "rank_moves": rank_moves,
         "new_results": new_results,
         "results_week": results_week,
+        "ex_moves": ex_moves,
         "results_soon": results_soon,
         "brief": brief,
         "week_watch": week_watch,

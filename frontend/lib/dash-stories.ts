@@ -296,6 +296,8 @@ export interface StoryInput {
   savedScreens: ScreenerSaved[];
   /** Results meetings on the reader's stocks, next two weeks (bundle `results_soon`). */
   resultsSoon?: UpcomingResult[];
+  /** The day's move with a record date's dividend / bonus taken out (bundle `ex_moves`). */
+  exMoves?: Record<string, number>;
   /** Today's before-the-bell brief (Premium; bundle `brief`). */
   brief?: MorningBrief | null;
 }
@@ -460,13 +462,23 @@ export function buildStories(i: StoryInput): Story[] {
   for (const u of i.unusual) if (u.volume_ratio > 1) unusual.set(u.trading_code.toUpperCase(), u);
   for (const code of universe) {
     const s = priceMap.get(code);
-    const pct = s?.change_pct;
+    // The first trade after a record date: DSE's change counts the dividend or
+    // bonus leaving the price as a fall (WALTONHIL read −12%), so use the move
+    // with it taken out (2026-11-04, audit EL3).
+    const exMove = i.exMoves?.[code];
+    const pct = exMove ?? s?.change_pct;
     const u = unusual.get(code);
     if (s && pct != null && Math.abs(pct) >= MOVE_PCT) {
       const up = pct > 0;
       const abs = Math.abs(pct).toFixed(1);
       const rows: NonNullable<StoryFrame["rows"]> = [{ label: L("Price now", "এখনকার দাম"), value: money(s.ltp) }];
       const q = qty.get(code);
+      if (exMove != null) {
+        rows.push({
+          label: L("Record date", "রেকর্ড ডেট"),
+          value: L("Dividend taken out of the move", "ডিভিডেন্ড বাদ দিয়ে হিসাব"),
+        });
+      }
       if (q && s.ltp != null) {
         const delta = q * (s.ltp - s.ltp / (1 + pct / 100));
         rows.push({

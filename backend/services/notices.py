@@ -771,19 +771,13 @@ def _load_ledger_cash() -> dict[str, dict[int, float]]:
     """{code: {fiscal year: cash % declared, interim + final summed}} — the same
     sum scoring fills a blank dividend cell from."""
     from backend.services.db_service import get_db
-    out: dict[str, dict[int, float]] = {}
-    for d in get_db().dividend_declarations.find(
+    from utils.dividend_years import group_by_code, ledger_cash_by_year
+    rows = list(get_db().dividend_declarations.find(
         {"cash_pct": {"$ne": None}, "period_end": {"$ne": None}},
-        {"_id": 0, "trading_code": 1, "period_end": 1, "cash_pct": 1},
-    ):
-        pe = d.get("period_end")
-        try:
-            fy = pe.year if isinstance(pe, (datetime, date)) else int(str(pe)[:4])
-        except (TypeError, ValueError):
-            continue
-        per = out.setdefault(d["trading_code"], {})
-        per[fy] = per.get(fy, 0.0) + float(d.get("cash_pct") or 0.0)
-    return out
+        {"_id": 0, "trading_code": 1, "period_end": 1, "cash_pct": 1, "dividend_type": 1, "title": 1},
+    ))
+    # Same fiscal-year rule and subsidiary filter as scoring (utils/dividend_years).
+    return {code: ledger_cash_by_year(r) for code, r in group_by_code(rows).items()}
 
 
 def load_ledger_cash() -> dict[str, dict[int, float]]:

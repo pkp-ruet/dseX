@@ -63,6 +63,8 @@ _STOCK_RES = (
     re.compile(r"(?:stock|bonus)\s+(?:dividend|share)s?\s*(?:of|@|:|at)?\s*(\d+(?:\.\d+)?)\s*%", re.IGNORECASE),
 )
 
+from utils.dividend_years import is_other_company_dividend  # noqa: E402
+
 logger = logging.getLogger(__name__)
 
 
@@ -164,6 +166,11 @@ def is_declaration_news(item: dict) -> bool:
     title = item.get("title") or ""
     if not is_declaration_title(title):
         return False
+    # "Dividend declaration of a Subsidiary", "Declaration of Dividend by
+    # Associate Company": another company's dividend, not this one's (KPCL's
+    # 35% stake was stored as a 35% dividend — a 39% yield).
+    if is_other_company_dividend(title):
+        return False
     if _SUPPLEMENTARY_TITLE_RE.search(_without_code_prefix(title, item.get("trading_code"))):
         return False
     return not _AMENDMENT_BODY_RE.match(item.get("body") or "")
@@ -249,6 +256,10 @@ def apply_declaration_amendment(db, item: dict) -> bool:
     company's most recent declaration on or before the notice date. Returns True if
     something was changed.
     """
+    # A subsidiary's / associate's declaration is neither this company's dividend
+    # nor a correction of it — its record date is the other company's.
+    if is_other_company_dividend(item.get("title")):
+        return False
     body = item.get("body") or ""
     updates = {}
     for field, label in (("record_date", _RECORD_LABEL_RE), ("agm_date", _AGM_LABEL_RE)):

@@ -187,7 +187,7 @@ export default function PersonalizedHome() {
 
 
   // Portfolio move today (the money card shows it, and the Today story's first frame).
-  const todayMove = hasPortfolio ? portfolioTodayMove(holdings!, priceMap) : null;
+  const todayMove = hasPortfolio ? portfolioTodayMove(holdings!, priceMap, bundle?.ex_moves) : null;
 
   // Before the open (or on a non-trading day) the prices are the previous
   // close — the glance strip must not say "today" at 9 AM.
@@ -221,6 +221,7 @@ export default function PersonalizedHome() {
     savedScreens: premium ? bundle?.screener?.saved ?? [] : [],
     resultsSoon: bundle?.results_soon ?? [],
     brief: premium ? bundle?.brief ?? null : null,
+    exMoves: bundle?.ex_moves ?? {},
   });
   const stories = isBrandNew
     ? buildStarterStories({
