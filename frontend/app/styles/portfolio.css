@@ -307,6 +307,11 @@ a.pf-hold-name:hover { color: var(--primary-ink); }
 .pf-band { margin-top: 48px; }
 @media (min-width: 768px) { .pf-band { margin-top: 64px; } }
 .pf-band + .pf-chapter { margin-top: var(--space-6); }
+/* The answer card sits under the band, after your shares (2026-11-04) */
+.pf-answer-slot { margin-top: var(--space-6); }
+/* Bonus shares + dividends, last on the page; nothing to show = no gap */
+.pf-tail { margin-top: 48px; }
+.pf-tail:empty { display: none; }
 
 /* Facts under an answer (dates, the week's updates) */
 .pfr-facts { display: grid; gap: var(--space-2); }

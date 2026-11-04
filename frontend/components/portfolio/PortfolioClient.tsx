@@ -832,9 +832,9 @@ export default function PortfolioClient() {
       reportOpen
         ? [
             { id: "pf-money", label: lang === "bn" ? "টাকা" : "Money" },
-            { id: "ch-answer", label: lang === "bn" ? "উত্তর" : "Answer" },
-            // The shares list sits right under the answer
+            // The shares list sits right under the money, the answer after it (2026-11-04)
             { id: "pf-shares", label: lang === "bn" ? "শেয়ার" : "Shares" },
+            { id: "ch-answer", label: lang === "bn" ? "উত্তর" : "Answer" },
             { id: "ch-companies", label: lang === "bn" ? "কোম্পানি" : "Companies" },
             { id: "ch-spread", label: lang === "bn" ? "বণ্টন" : "Spread" },
             { id: "ch-prices", label: lang === "bn" ? "দাম" : "Prices" },
@@ -1130,26 +1130,9 @@ export default function PortfolioClient() {
             />
             <h2 id="pf-money-h" className="sr-only">{L("Your money", "আপনার টাকা")}</h2>
 
-            {/* THE answer: is your portfolio in good shape? Four lights (Premium). */}
-            <Locked>
-              <OpenScope>
-                <div className="mt-4">
-                  <PortfolioAnswer answer={report.answer} />
-                </div>
-              </OpenScope>
-            </Locked>
-
-            {/* Bonus shares + cash dividends kept right on the holding (with Undo) */}
-            <CorrectionsCard
-              log={log}
-              suggestions={suggestions}
-              holdings={holdings}
-              lang={lang}
-              readOnly={readOnly}
-              onAction={runAction}
-            />
-
-            {/* The stocks you own — one card, one row per stock */}
+            {/* The stocks you own — one card, one row per stock. Right under the
+                money since 2026-11-04 (user decision): the answer and the
+                analysis follow the shares. */}
             <div id="pf-shares" className="dash-section mt-4 flex flex-col gap-3">
               <div className="pf-hold-bar">
                 <h3 className={`text-lg font-bold text-text-main ${bnCls}`} lang={bn ? "bn" : undefined}>
@@ -1413,6 +1396,10 @@ export default function PortfolioClient() {
           <Locked>
             <OpenScope>
               <PfReportBand answered={report.answered} />
+              {/* THE answer: is your portfolio in good shape? Four lights. */}
+              <div className="pf-answer-slot">
+                <PortfolioAnswer answer={report.answer} />
+              </div>
               {report.chapters.map((c) => (
                 <PfReportChapter key={c.key} chapter={c} />
               ))}
@@ -1499,6 +1486,19 @@ export default function PortfolioClient() {
               },
             ]}
           />
+
+          {/* Bonus shares + cash dividends kept right on the holding (with Undo).
+              Last on the page since 2026-11-04 (user decision). */}
+          <div className="pf-tail">
+            <CorrectionsCard
+              log={log}
+              suggestions={suggestions}
+              holdings={holdings}
+              lang={lang}
+              readOnly={readOnly}
+              onAction={runAction}
+            />
+          </div>
         </PageLockScope>
       )}
 
