@@ -16,11 +16,11 @@
  * everyday words, at most one familiar number a sentence, no scores out of 10,
  * no ratios, Western digits in Bengali. Every sentence is an `{en, bn}` pair.
  *
- * Free / Premium, whole or nothing (rendered by `components/portfolio/report`):
- * free = the answer word, the grade, one line, the four light words, each
- * chapter's answer, one sample row ("How strong are they?"), one answer word
- * ("How much rides on one share?") and the watch chapter's answers. Premium =
- * why each light, the first move, the chapter reads, every other row, the plan.
+ * Rendered by `components/portfolio/report`, all of it Premium. Clean pass
+ * 2026-11-04 (user: "too much text"): no chapter reads or lead lines, no
+ * "why" under each light (they repeated the rows' first sentences); a row's
+ * share-by-share findings ride in `points` (shown open), its general "why it
+ * matters" in `meaning` (folded with the figures).
  */
 import type { GlanceRow, PortfolioSignalEvent, PortfolioWatchEvent, ScoreItem, UpcomingResult } from "@/lib/api";
 import { sectorBn } from "@/lib/bn";
@@ -50,8 +50,6 @@ export interface PfLight {
   tone: Tone;
   /** The chapter it opens. */
   href: string;
-  /** Why the light is what it is (Premium). */
-  why: Bi | null;
 }
 
 export interface PfAnswer {
@@ -95,18 +93,17 @@ export interface PfRow {
   picture: PfPicture | null;
   /** The figures, folded. */
   figures: PfFigure[];
-  /** Facts under the answer (dates, the week's updates). */
-  freeFacts: Bi[];
+  /** What this row found, share by share, shown open as a short list:
+   *  dates, warnings, the week's updates, the reasons behind a mark. The
+   *  general "why it matters" stays in `meaning`, folded (2026-11-04). */
+  points: Bi[];
 }
 
 export interface PfChapter {
   key: ChapterKey;
   id: string;
   title: Bi;
-  lead: Bi;
   head: { word: Bi; tone: Tone; line: Bi };
-  /** The chapter's written read (Premium). */
-  read: Bi | null;
   rows: PfRow[];
 }
 
@@ -183,10 +180,6 @@ const join = (parts: Bi[], sepEn = " ", sepBn = " "): Bi => ({
   en: parts.map((p) => p.en).filter(Boolean).join(sepEn),
   bn: parts.map((p) => p.bn).filter(Boolean).join(sepBn),
 });
-const firstSentence = (s: string) => {
-  const m = s.match(/^.*?[.।!?](\s|$)/);
-  return (m ? m[0] : s).trim();
-};
 
 /** Plain names for the sectors people talk about. */
 const SECTOR_PLAIN: Record<string, string> = {
@@ -383,10 +376,10 @@ export function buildPortfolioReport(inp: ReportInput): PortfolioReport {
   const chapters = [companies, spread, prices, ...(loss ? [loss] : []), watch];
 
   const lights: PfLight[] = [
-    { key: "companies", label: B("Your companies", "আপনার কোম্পানি"), ...cl, href: "#ch-companies", why: companies.rows[0]?.headline ?? null },
-    { key: "spread", label: B("Your spread", "টাকার বণ্টন"), ...sl, href: "#ch-spread", why: spread.rows.find((r) => r.tone === sl.tone)?.headline ?? spread.rows[0]?.headline ?? null },
-    { key: "prices", label: B("Prices you paid", "কেনার দাম"), ...pl, href: "#ch-prices", why: prices.rows[0]?.headline ?? null },
-    { key: "watch", label: B("To watch", "নজর রাখুন"), word: wl.word, tone: wl.tone, href: "#ch-watch", why: watch.rows[0]?.headline ?? null },
+    { key: "companies", label: B("Your companies", "আপনার কোম্পানি"), ...cl, href: "#ch-companies" },
+    { key: "spread", label: B("Your spread", "টাকার বণ্টন"), ...sl, href: "#ch-spread" },
+    { key: "prices", label: B("Prices you paid", "কেনার দাম"), ...pl, href: "#ch-prices" },
+    { key: "watch", label: B("To watch", "নজর রাখুন"), word: wl.word, tone: wl.tone, href: "#ch-watch" },
   ];
 
   const answer = buildAnswer(inp, f, lights, issue);
@@ -537,7 +530,7 @@ function companiesChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: T
         value: GRADE_PAIR[h.tierKey],
         tone: TIER_TONE[h.tierKey],
       })),
-    freeFacts: [],
+    points: [],
   };
 
   // Is their profit growing?
@@ -610,7 +603,7 @@ function companiesChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: T
         value: t.v > 5 ? B("Up", "বেড়েছে") : t.v < -5 ? B("Down", "কমেছে") : B("About the same", "প্রায় একই"),
         tone: (t.v > 5 ? "good" : t.v < -5 ? "bad" : "neutral") as Tone,
       })),
-    freeFacts: [],
+    points: [],
   };
 
   // Will they keep paying you?
@@ -675,7 +668,7 @@ function companiesChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: T
       value: B(x.s.word_en, x.s.word_bn),
       tone: (x.s.level === "safe" ? "good" : x.s.level === "watch" ? "fair" : "bad") as Tone,
     })),
-    freeFacts: [],
+    points: [],
   };
 
   const rows = [strength, profit, pay];
@@ -683,7 +676,6 @@ function companiesChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: T
     key: "companies",
     id: "ch-companies",
     title: B("Are your companies good?", "আপনার কোম্পানিগুলো কি ভালো?"),
-    lead: B("What you own matters more than anything else on this page.", "আপনি কী কিনেছেন, এই পেজে সেটিই সবচেয়ে জরুরি।"),
     head: {
       word: light.word,
       tone: light.tone,
@@ -694,7 +686,6 @@ function companiesChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: T
             : B("Not mostly strong yet on our checks", "আমাদের যাচাইয়ে এখনো বেশিরভাগ দিকে শক্তিশালী নয়")
           : B(`${goodCount} of ${f.n} are mostly strong or better`, `${f.n}টির মধ্যে ${goodCount}টি বেশিরভাগ দিকে শক্তিশালী বা তার বেশি`),
     },
-    read: readOf(rows),
     rows,
   };
 }
@@ -710,16 +701,6 @@ const GRADE_PAIR: Record<string, Bi> = {
 const TIER_TONE: Record<string, Tone> = { excellent: "good", good: "good", average: "neutral", weak: "bad", unscored: "neutral" };
 
 const lowerFirst = (s: string) => (s ? s[0].toLowerCase() + s.slice(1) : s);
-
-/** A chapter's read: the first sentence of its first three answers. */
-function readOf(rows: PfRow[]): Bi | null {
-  const hs = rows.map((r) => r.headline).filter(Boolean) as Bi[];
-  if (!hs.length) return null;
-  return {
-    en: hs.slice(0, 3).map((h) => firstSentence(h.en)).join(" "),
-    bn: hs.slice(0, 3).map((h) => firstSentence(h.bn)).join(" "),
-  };
-}
 
 // ── Chapter 2 · spread ─────────────────────────────────────────────────────
 
@@ -757,7 +738,7 @@ function spreadChapter(inp: ReportInput, f: Facts, issue: SpreadIssue, light: { 
       rows: byWeight.slice(0, 3).map((h, i) => ({ key: h.code, name: same(nameOf(h)), value: h.weightPct, text: pct(h.weightPct), me: i === 0 })),
     },
     figures: byWeight.map((h) => ({ key: h.code, code: h.code, label: same(nameOf(h)), value: same(`${pct(h.weightPct)} · ${takaGroup(valueOf(h))}`) })),
-    freeFacts: [],
+    points: [],
   };
 
   const secs = inp.analysis.sectorSpread;
@@ -808,7 +789,7 @@ function spreadChapter(inp: ReportInput, f: Facts, issue: SpreadIssue, light: { 
         }
       : null,
     figures: secs.map((s) => ({ key: s.name, label: sectorWord(s.name), value: same(`${pct(s.weightPct)} · ${s.count}`) })),
-    freeFacts: [],
+    points: [],
   };
 
   const eff = Math.max(1, Math.round(inp.analysis.effectiveStocks));
@@ -841,7 +822,7 @@ function spreadChapter(inp: ReportInput, f: Facts, issue: SpreadIssue, light: { 
             ],
           },
     figures: [],
-    freeFacts: [],
+    points: [],
   };
 
   const rows = [one, sector, carry];
@@ -849,7 +830,6 @@ function spreadChapter(inp: ReportInput, f: Facts, issue: SpreadIssue, light: { 
     key: "spread",
     id: "ch-spread",
     title: B("Is your money spread well?", "আপনার টাকা কি ভালোভাবে ছড়ানো?"),
-    lead: B("Too much in one place means one bad event can hurt most of your money.", "এক জায়গায় বেশি টাকা থাকলে একটি খারাপ ঘটনায় বেশিরভাগ টাকার ক্ষতি হয়।"),
     head: {
       word: light.word,
       tone: light.tone,
@@ -858,7 +838,6 @@ function spreadChapter(inp: ReportInput, f: Facts, issue: SpreadIssue, light: { 
           ? B("Banks and finance: more than half", "ব্যাংক ও আর্থিক প্রতিষ্ঠান: অর্ধেকের বেশি")
           : B(`${shares(f.n).en} in ${secs.length} business${secs.length === 1 ? "" : "es"}`, `${secs.length}টি ব্যবসায় ${f.n}টি শেয়ার`),
     },
-    read: readOf(rows),
     rows,
   };
 }
@@ -918,7 +897,7 @@ function pricesChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone
             : B("Fair price", "ন্যায্য দাম"),
       tone: (h.entryValuation === "cheap" ? "good" : h.entryValuation === "expensive" ? "fair" : "neutral") as Tone,
     })),
-    freeFacts: [],
+    points: [],
   };
 
   // What are they worth today? (the stock page's fair value)
@@ -978,7 +957,7 @@ function pricesChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone
               : B("Near fair", "ন্যায্যের কাছে"),
         tone: (x.gap < -10 ? "good" : x.gap > 10 ? "fair" : "neutral") as Tone,
       })),
-    freeFacts: [],
+    points: [],
   };
 
   // Which are near their yearly top?
@@ -1005,7 +984,7 @@ function pricesChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone
       label: same(nameOf(h)),
       value: h.pnlPct != null ? B(`${h.pnlPct >= 0 ? "+" : ""}${Math.round(h.pnlPct)}% since you bought`, `কেনার পর ${h.pnlPct >= 0 ? "+" : ""}${Math.round(h.pnlPct)}%`) : B("Near its top", "সর্বোচ্চের কাছে"),
     })),
-    freeFacts: [],
+    points: [],
   };
 
   const rows = [paid, worth, topRow];
@@ -1013,7 +992,6 @@ function pricesChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone
     key: "prices",
     id: "ch-prices",
     title: B("Did you pay fair prices?", "কি ন্যায্য দাম দিয়েছেন?"),
-    lead: B("A good company bought too dear can still lose you money.", "ভালো কোম্পানিও বেশি দামে কিনলে লোকসান হতে পারে।"),
     head: {
       word: light.word,
       tone: light.tone,
@@ -1024,7 +1002,6 @@ function pricesChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone
             ? B(`None of ${judged.length} was bought above its usual price`, `${judged.length}টির কোনোটিই স্বাভাবিকের চেয়ে বেশি দামে কেনা নয়`)
             : B(`${cheap.length + (judged.length - cheap.length - over.length)} of ${judged.length} bought at a fair price or less`, `${judged.length}টির ${cheap.length + (judged.length - cheap.length - over.length)}টি ন্যায্য বা কম দামে কেনা`),
     },
-    read: readOf(rows),
     rows,
   };
 }
@@ -1202,7 +1179,7 @@ function lossChapter(inp: ReportInput, f: Facts, lf: LossFacts): PfChapter {
       value: B(`${pct(x.downPct)} down · ${takaGroup(x.down)}`, `${pct(x.downPct)} কম · ${takaGroup(x.down)}`),
       tone: (x.downPct >= 25 ? "bad" : "fair") as Tone,
     })),
-    freeFacts: [],
+    points: [],
   };
 
   // Is it the company, or only the price?
@@ -1237,8 +1214,6 @@ function lossChapter(inp: ReportInput, f: Facts, lf: LossFacts): PfChapter {
         "A strong company whose price fell can climb back as its profit grows. A company that got weaker gives its price less reason to come back.",
         "শক্তিশালী কোম্পানির দাম কমলে মুনাফা বাড়ার সঙ্গে সঙ্গে আবার উঠতে পারে। কোম্পানি নিজেই দুর্বল হলে দাম ফেরার কারণ কমে যায়।",
       ),
-      ...whyLines.slice(2),
-      ...worse.slice(1, 3).map((x) => B(`${nameOf(x.h)}: ${x.why.en}.`, `${nameOf(x.h)}: ${x.why.bn}।`)),
     ],
     watch: worse.length
       ? B(`Adding more to ${nameOf(worse[0].h)} puts more of your money on a weaker company.`, `${nameOf(worse[0].h)}-এ আরও কিনলে দুর্বল কোম্পানিতে আরও টাকা আটকাবে।`)
@@ -1257,7 +1232,8 @@ function lossChapter(inp: ReportInput, f: Facts, lf: LossFacts): PfChapter {
         })),
     },
     figures: items.map((x) => ({ key: x.h.code, code: x.h.code, label: same(nameOf(x.h)), value: KIND_WORD[x.kind], tone: KIND_TONE[x.kind] })),
-    freeFacts: [],
+    // The other shares' reasons, open (2026-11-04).
+    points: [...whyLines.slice(2), ...worse.slice(1, 3).map((x) => B(`${nameOf(x.h)}: ${x.why.en}.`, `${nameOf(x.h)}: ${x.why.bn}।`))],
   };
 
   // What price gets your money back?
@@ -1320,7 +1296,7 @@ function lossChapter(inp: ReportInput, f: Facts, lf: LossFacts): PfChapter {
       ),
       tone: (x.rise <= 10 ? "fair" : "bad") as Tone,
     })),
-    freeFacts: [],
+    points: [],
   };
 
   // What would buying more do? Only on a company that is not weaker; the
@@ -1393,7 +1369,7 @@ function lossChapter(inp: ReportInput, f: Facts, lf: LossFacts): PfChapter {
         `আরও ${takaGroup(e.spend)} (${e.q.toLocaleString("en-US")}টি শেয়ার) · গড় ${money(e.avg)} · দরকার ${signedPct(e.rise)}`,
       ),
     })),
-    freeFacts: [],
+    points: [],
   };
 
   // What does the money earn while you wait?
@@ -1444,7 +1420,7 @@ function lossChapter(inp: ReportInput, f: Facts, lf: LossFacts): PfChapter {
       value: x.cash > 0 ? B(`${takaGroup(x.cash)} a year`, `বছরে ${takaGroup(x.cash)}`) : B("No cash dividend", "নগদ ডিভিডেন্ড নেই"),
       tone: (x.cash > 0 ? "good" : "neutral") as Tone,
     })),
-    freeFacts: [],
+    points: [],
   };
 
   const rows = [down, why, even, more, wait];
@@ -1452,16 +1428,11 @@ function lossChapter(inp: ReportInput, f: Facts, lf: LossFacts): PfChapter {
     key: "loss",
     id: "ch-loss",
     title: B("What about your shares in a loss?", "লোকসানে থাকা শেয়ারগুলোর কী হবে?"),
-    lead: B(
-      "Whether to wait, and what gets your money back, share by share.",
-      "অপেক্ষা করবেন কি না, আর কীভাবে টাকা ফিরবে, প্রতিটি শেয়ার ধরে।",
-    ),
     head: {
       word: n === 1 ? B("1 share in a loss", "1টি শেয়ার লোকসানে") : B(`${n} shares in a loss`, `${n}টি শেয়ার লোকসানে`),
       tone: worsePct > 10 ? "bad" : "fair",
       line: B(`${takaGroup(lf.down)} below what you paid`, `কেনা দামের চেয়ে ${takaGroup(lf.down)} কম`),
     },
-    read: readOf(rows),
     rows,
   };
 }
@@ -1483,16 +1454,15 @@ function watchChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone;
             `${names(f.sells).en} ${f.sells.length === 1 ? "is" : "are"} marked Sell, with ${takaGroup(f.sells.reduce((a, h) => a + valueOf(h), 0))} in ${f.sells.length === 1 ? "it" : "them"}.`,
             `${names(f.sells).bn}-এ বিক্রির সংকেত, এতে আছে ${takaGroup(f.sells.reduce((a, h) => a + valueOf(h), 0))}।`,
           ),
-    meaning: f.sells.slice(0, 3).map((h) => {
-      const g = inp.glance.get(h.code.toUpperCase())?.signal;
-      return g?.reason_en ? B(`${nameOf(h)}: ${g.reason_en}`, `${nameOf(h)}: ${g.reason_bn || g.reason_en}`) : same(`${nameOf(h)}: ${h.signal.reason}`);
-    }),
-    watch: f.sells.length
-      ? B(
-          "A Sell mark goes away when the company climbs back to “Mixed” or better on our checks. Selling is always your call.",
-          "কোম্পানি আমাদের যাচাইয়ে আবার “মিশ্র” বা তার ওপরে উঠলে বিক্রির সংকেত চলে যায়। বিক্রি করবেন কি না, সিদ্ধান্ত সবসময় আপনার।",
-        )
-      : null,
+    meaning: f.sells.length
+      ? [
+          B(
+            "A Sell mark goes away when the company climbs back to “Mixed” or better on our checks. Selling is always your call.",
+            "কোম্পানি আমাদের যাচাইয়ে আবার “মিশ্র” বা তার ওপরে উঠলে বিক্রির সংকেত চলে যায়। বিক্রি করবেন কি না, সিদ্ধান্ত সবসময় আপনার।",
+          ),
+        ]
+      : [],
+    watch: null,
     picture: null,
     figures: f.hs
       .filter((h) => h.signal.signal !== "none")
@@ -1503,7 +1473,11 @@ function watchChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone;
         value: h.signal.signal === "sell" ? B("Sell", "বিক্রি") : B("Buy more", "আরও কেনা যায়"),
         tone: (h.signal.signal === "sell" ? "bad" : "good") as Tone,
       })),
-    freeFacts: [],
+    // Why each share is marked Sell, shown open (2026-11-04).
+    points: f.sells.slice(0, 3).map((h) => {
+      const g = inp.glance.get(h.code.toUpperCase())?.signal;
+      return g?.reason_en ? B(`${nameOf(h)}: ${g.reason_en}`, `${nameOf(h)}: ${g.reason_bn || g.reason_en}`) : same(`${nameOf(h)}: ${h.signal.reason}`);
+    }),
   };
 
   // Any warning signs? (the stock report's red flags on each share)
@@ -1524,11 +1498,11 @@ function watchChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone;
       : f.amber > 0
         ? B(`Nothing seriously wrong. We found ${f.amber} smaller thing${f.amber === 1 ? "" : "s"} worth a look.`, `গুরুতর কিছু নেই। দেখার মতো ${f.amber}টি ছোট বিষয় পেয়েছি।`)
         : B("Nothing seriously wrong on any of your shares.", "আপনার কোনো শেয়ারে গুরুতর কিছু নেই।"),
-    meaning: risks.slice(0, 5).map(({ h, r }) => B(`${nameOf(h)}: ${r.en}.`, `${nameOf(h)}: ${r.bn}।`)),
+    meaning: [],
     watch: null,
     picture: null,
     figures: [],
-    freeFacts: [],
+    points: risks.slice(0, 5).map(({ h, r }) => B(`${nameOf(h)}: ${r.en}.`, `${nameOf(h)}: ${r.bn}।`)),
   };
 
   // What changed this week?
@@ -1546,20 +1520,13 @@ function watchChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone;
       week.length + flips.length === 0
         ? B("Nothing new on your shares in the last 7 days.", "গত 7 দিনে আপনার শেয়ারে নতুন কিছু নেই।")
         : null,
-    meaning: [
-      ...flips.slice(0, 3).map((e) =>
-        e.signal === "sell"
-          ? B(`${e.trading_code} is now marked Sell.`, `${e.trading_code}-এ এখন বিক্রির সংকেত।`)
-          : e.signal === "buy_more"
-            ? B(`${e.trading_code} is now marked Buy more.`, `${e.trading_code}-এ এখন আরও কেনার সংকেত।`)
-            : B(`${e.trading_code} no longer has a signal.`, `${e.trading_code}-এ এখন কোনো সংকেত নেই।`),
-      ),
-      ...closed.slice(0, 6).map((e) => B(`${e.title_en}. ${e.body_en}`, `${e.title_bn}। ${e.body_bn}`)),
-    ],
+    meaning: [],
     watch: null,
     picture: null,
     figures: [],
-    freeFacts: [
+    // One list, at most six lines (2026-11-04): the move since the last
+    // visit, then the week's updates and mark changes.
+    points: [
       ...(inp.sinceLast && Math.abs(inp.sinceLast.delta) >= 1
         ? [
             inp.sinceLast.delta > 0
@@ -1568,7 +1535,15 @@ function watchChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone;
           ]
         : []),
       ...open.filter((e) => e.kind !== "answer" && e.kind !== "buylist").map((e) => B(`${e.title_en}. ${e.body_en}`, `${e.title_bn}। ${e.body_bn}`)),
-    ],
+      ...flips.slice(0, 3).map((e) =>
+        e.signal === "sell"
+          ? B(`${e.trading_code} is now marked Sell.`, `${e.trading_code}-এ এখন বিক্রির সংকেত।`)
+          : e.signal === "buy_more"
+            ? B(`${e.trading_code} is now marked Buy more.`, `${e.trading_code}-এ এখন আরও কেনার সংকেত।`)
+            : B(`${e.trading_code} no longer has a signal.`, `${e.trading_code}-এ এখন কোনো সংকেত নেই।`),
+      ),
+      ...closed.map((e) => B(`${e.title_en}. ${e.body_en}`, `${e.title_bn}। ${e.body_bn}`)),
+    ].slice(0, 6),
   };
 
   // What's coming up? (dates are public; what results must show is Premium)
@@ -1607,7 +1582,8 @@ function watchChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone;
         : m.expect_en.length
           ? B(m.expect_en[0], m.expect_bn[0] || m.expect_en[0])
           : null;
-    dates.push({ key: `m-${h.code}`, date: m.date, name: B(`${h.code} results`, `${h.code} আর্থিক ফল`), line: B(m.label_en, m.label_bn || m.label_en), locked: exp });
+    // "GP Q3 results · Thu 6 Nov · what it must show" (2026-11-04)
+    dates.push({ key: `m-${h.code}`, date: m.date, name: B(`${h.code} ${m.label_en}`, `${h.code} ${m.label_bn || m.label_en}`), line: B("", ""), locked: exp });
   }
   dates.sort((x, y) => x.date.localeCompare(y.date));
   const coming: PfRow = {
@@ -1616,17 +1592,16 @@ function watchChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone;
     word: dates.length ? B(`${dates.length} date${dates.length === 1 ? "" : "s"}`, `${dates.length}টি তারিখ`) : B("Nothing soon", "শিগগিরই কিছু নেই"),
     tone: "neutral",
     headline: dates.length ? null : B("No record dates, meetings or results on your shares in the next 30 days.", "আগামী 30 দিনে আপনার শেয়ারে কোনো রেকর্ড ডেট, সভা বা ফল নেই।"),
-    meaning: dates.filter((d) => d.locked).map((d) => B(`${d.name.en}: ${d.locked!.en}`, `${d.name.bn}: ${d.locked!.bn}`)),
+    meaning: [],
     watch: null,
-    picture: dates.length
-      ? {
-          kind: "dates",
-          label: dates.slice(0, 4).map((d) => `${d.name.en} ${d.date}`).join(", "),
-          items: dates.slice(0, 4).map((d, i) => ({ key: d.key, name: d.name, when: dayWords(d.date), strong: i === 0 })),
-        }
-      : null,
+    // The dates are the list itself (2026-11-04: the date-line picture
+    // repeated them); what a results day must show rides on its own line.
+    picture: null,
     figures: [],
-    freeFacts: dates.slice(0, 6).map((d) => join([d.name, B("·", "·"), dayWords(d.date), B("·", "·"), d.line])),
+    points: dates.slice(0, 6).map((d) => {
+      const tail = d.line.en ? d.line : d.locked;
+      return join([d.name, B("·", "·"), dayWords(d.date), ...(tail ? [B("·", "·"), tail] : [])]);
+    }),
   };
 
   const rows = [sell, warn, changed, coming];
@@ -1634,7 +1609,6 @@ function watchChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone;
     key: "watch",
     id: "ch-watch",
     title: B("What should you watch?", "কোথায় নজর রাখবেন?"),
-    lead: B("Warnings, changes and dates on the shares you own.", "আপনার শেয়ারের সতর্কতা, পরিবর্তন আর তারিখ।"),
     head: {
       word: light.word,
       tone: light.tone,
@@ -1646,7 +1620,6 @@ function watchChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone;
             ? B(`${light.count} share${light.count === 1 ? "" : "s"} to decide on`, `${light.count}টি শেয়ার নিয়ে সিদ্ধান্ত নিতে হবে`)
             : B("No serious warnings", "গুরুতর সতর্কতা নেই"),
     },
-    read: null,
     rows,
   };
 }

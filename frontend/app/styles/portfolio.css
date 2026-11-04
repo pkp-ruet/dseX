@@ -298,26 +298,37 @@ a.pf-hold-name:hover { color: var(--primary-ink); }
 @media (min-width: 640px) { .pfa-lights { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (max-width: 380px) { .pfa-lights { grid-template-columns: minmax(0, 1fr); } }
 .pfa-lights .ac-light { padding: var(--space-3); }
-.pfa-move { margin-top: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius); background: var(--surface-2); }
+/* "Do this first" under the lights: one warm box, the taka on the right */
+.pfa-move { margin-top: var(--space-4); padding: var(--space-4); border-radius: var(--radius-md); background: var(--surface-2); }
+.pfa-move-top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
 .pfa-move-k { font-size: var(--fs-xs); font-weight: 700; color: var(--primary-ink); }
-.pfa-move-t { margin-top: 2px; font-size: var(--fs-md); font-weight: 700; line-height: 1.3; color: var(--text); }
-.pfa-move-l { margin-top: 4px; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
-.pfa-move-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-4); margin-top: var(--space-2); font-size: var(--fs-sm); }
+.pfa-move-amt { display: inline-flex; align-items: baseline; gap: 4px; flex: none; font-size: var(--fs-xs); color: var(--text); white-space: nowrap; }
+.pfa-move-amt b { font-size: var(--fs-md); font-weight: 700; font-variant-numeric: tabular-nums; }
+.pfa-move-t { margin-top: 4px; font-size: var(--fs-md); font-weight: 700; line-height: 1.35; color: var(--text); }
+.pfa-move-l { margin-top: 4px; max-width: 65ch; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
+.pfa-move-link {
+  display: inline-flex; align-items: center; gap: 4px; min-height: 40px; margin-top: 2px;
+  font-size: var(--fs-sm); font-weight: 600; color: var(--primary-ink); text-decoration: none;
+}
+.pfa-move-link:hover { text-decoration: underline; }
+.pfa-move-link:active { opacity: 0.7; }
 
-.pf-band { margin-top: 48px; }
-@media (min-width: 768px) { .pf-band { margin-top: 64px; } }
-.pf-band + .pf-chapter { margin-top: var(--space-6); }
-/* The answer card sits under the band, after your shares (2026-11-04) */
-.pf-answer-slot { margin-top: var(--space-6); }
+/* The head over the analysis (Premium readers): a gold badge, the title, one
+   line (2026-11-04, was a gold note box). The answer card sits under it. */
+.pf-check-head { display: grid; justify-items: start; gap: 6px; margin-top: 48px; }
+@media (min-width: 768px) { .pf-check-head { margin-top: 64px; } }
+.pf-check-badge {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 2px 10px;
+  border-radius: 999px; background: rgb(var(--gold-rgb) / 0.14); color: var(--gold-ink);
+  font-size: var(--fs-xs); font-weight: 700;
+}
+.pf-check-title { margin: 0; font-size: var(--fs-xl); font-weight: 700; line-height: 1.15; letter-spacing: -0.015em; color: var(--text); }
+@media (min-width: 640px) { .pf-check-title { font-size: var(--fs-2xl); } }
+.pf-check-sub { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+.pf-answer-slot { margin-top: var(--space-4); }
 /* Bonus shares + dividends, last on the page; nothing to show = no gap */
 .pf-tail { margin-top: 48px; }
 .pf-tail:empty { display: none; }
-
-/* Facts under an answer (dates, the week's updates) */
-.pfr-facts { display: grid; gap: var(--space-2); }
-.pfr-facts ul { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
-.pfr-facts li { position: relative; padding-left: 14px; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
-.pfr-facts li::before { content: ""; position: absolute; left: 0; top: 0.6em; width: 6px; height: 6px; border-radius: 50%; background: var(--primary); }
 
 /* The figures behind an answer: one line per share or sector */
 .pfr-figs { display: grid; margin: 0; padding: 0; list-style: none; }
@@ -327,24 +338,98 @@ a.pf-hold-name:hover { color: var(--primary-ink); }
 a.pfr-figs-k:hover { color: var(--primary-ink); text-decoration: underline; }
 .pfr-figs b { flex: none; font-weight: 700; text-align: right; }
 
-/* Your plan: numbered moves, ideas, each share's action */
-.pfp-list { display: grid; margin: var(--space-2) 0 0; padding: 0; list-style: none; }
+/* ---- The chapters and the plan, clean pass (2026-11-04) ----
+   ONE card per chapter: the question, then its answer chip with one count
+   line, then the rows split by hairlines. A row = question + answer word,
+   one sentence, the picture, a short list of what it found, one watch line,
+   and one quiet fold for why it matters and the figures. */
+.pfc-wrap { margin-top: var(--space-6); }
+@media (min-width: 640px) { .pfc-wrap { margin-top: var(--space-8); } }
+.pfc { padding: 0 var(--space-4); }
+@media (min-width: 640px) { .pfc { padding: 0 var(--space-8); } }
+.pfc-head { display: grid; gap: var(--space-3); padding: var(--space-6) 0 var(--space-4); border-bottom: 1px solid var(--border); }
+.pfc-title { margin: 0; font-size: var(--fs-lg); font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; color: var(--text); }
+@media (min-width: 640px) { .pfc-title { font-size: var(--fs-xl); } }
+.pfc-answer { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
+.pfc-sub { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+
+.pfq { padding: var(--space-6) 0; }
+.pfq + .pfq { border-top: 1px solid var(--border); }
+.pfq-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
+.pfq-head h3 { min-width: 0; font-size: var(--fs-md); font-weight: 700; line-height: 1.35; color: var(--text); }
+.pfq-head .rp-chip { max-width: 55%; }
+@media (max-width: 639px) {
+  .pfq-head { flex-direction: column; gap: var(--space-2); }
+  .pfq-head .rp-chip { max-width: 100%; }
+}
+.pfq-answer { margin-top: var(--space-3); max-width: 65ch; font-size: var(--fs-md); line-height: 1.55; color: var(--text); }
+.pfq-pic { margin-top: var(--space-4); }
+.pfq-points { display: grid; gap: var(--space-2); margin: var(--space-4) 0 0; padding: 0; list-style: none; }
+.pfq-points li {
+  position: relative; padding-left: var(--space-4); max-width: 65ch;
+  font-size: var(--fs-sm); line-height: 1.55; color: var(--text);
+}
+.pfq-points li::before {
+  content: ""; position: absolute; left: 0; top: 0.6em; width: 6px; height: 6px;
+  border-radius: 50%; background: var(--primary);
+}
+.pfq-watch {
+  display: flex; align-items: flex-start; gap: var(--space-2); margin-top: var(--space-4); max-width: 65ch;
+  padding: var(--space-3); border-radius: var(--radius); background: rgb(var(--watch-rgb) / 0.08);
+  font-size: var(--fs-sm); line-height: 1.5; color: var(--text);
+}
+.pfq-watch-icon { flex: none; display: inline-flex; margin-top: 1px; color: var(--watch); }
+
+/* The fold: a quiet full-width row, 44px, clay words and a chevron */
+.pfq-more { margin-top: var(--space-4); border-top: 1px dashed var(--border); }
+.pfq-more > summary {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+  min-height: 44px; padding-top: var(--space-2); cursor: pointer; list-style: none;
+  font-size: var(--fs-sm); font-weight: 600; color: var(--primary-ink);
+}
+.pfq-more > summary::-webkit-details-marker { display: none; }
+.pfq-more > summary:hover { text-decoration: underline; }
+.pfq-more > summary:active { opacity: 0.7; }
+.pfq-more > summary:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: var(--radius-sm); }
+.pfq-more-icon { display: inline-flex; flex: none; transition: transform 0.15s ease; }
+.pfq-more[open] .pfq-more-icon { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) { .pfq-more-icon { transition: none; } }
+.pfq-more-body { display: grid; gap: var(--space-3); margin-top: var(--space-2); }
+.pfq-more-p { max-width: 65ch; font-size: var(--fs-sm); line-height: 1.6; color: var(--text); }
+.pfq-more--tight { margin-top: var(--space-2); border-top: 0; }
+.pfq-more--tight > summary { min-height: 40px; padding-top: 0; }
+
+/* Your plan: numbered first steps, grade lifts, ideas, each share */
+.pfp-list { display: grid; margin: var(--space-3) 0 0; padding: 0; list-style: none; }
 .pfp-list--num { counter-reset: pfp; }
 .pfp-item { display: grid; gap: 4px; padding: var(--space-3) 0; border-top: 1px solid var(--border); }
 .pfp-item:first-child { border-top: 0; padding-top: 0; }
-.pfp-list--num > .pfp-item { counter-increment: pfp; position: relative; padding-left: 32px; }
+.pfp-list--num > .pfp-item { counter-increment: pfp; position: relative; padding-left: 36px; }
 .pfp-list--num > .pfp-item::before {
   content: counter(pfp); position: absolute; left: 0; top: var(--space-3);
-  width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
+  width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
   background: var(--text); color: var(--surface); font-size: var(--fs-xs); font-weight: 700;
 }
 .pfp-list--num > .pfp-item:first-child::before { top: 0; }
 .pfp-item-top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
-.pfp-item-t { min-width: 0; font-size: var(--fs-md); font-weight: 700; line-height: 1.3; color: var(--text); text-decoration: none; }
+.pfp-item-t { min-width: 0; font-size: var(--fs-md); font-weight: 700; line-height: 1.35; color: var(--text); text-decoration: none; }
 a.pfp-item-t:hover { color: var(--primary-ink); text-decoration: underline; }
 .pfp-tag { flex: none; font-size: var(--fs-xs); font-weight: 700; }
-.pfp-item-l { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+.pfp-amt { display: inline-flex; align-items: baseline; gap: 4px; flex: none; font-size: var(--fs-xs); color: var(--text); white-space: nowrap; }
+.pfp-amt b { font-size: var(--fs-md); font-weight: 700; font-variant-numeric: tabular-nums; }
+.pfp-item-l { max-width: 65ch; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
 .pfp-item-a { font-size: var(--fs-sm); color: var(--text); }
+.pfp-lift { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) 0; }
+.pfp-lift-tag {
+  flex: none; display: inline-flex; align-items: center; min-height: 28px; padding: 2px 10px;
+  border-radius: 999px; background: rgb(var(--positive-rgb) / 0.12); color: var(--positive);
+  font-size: var(--fs-sm); font-weight: 700; font-variant-numeric: tabular-nums;
+}
+.pfp-hold-names { min-width: 0; font-size: var(--fs-md); line-height: 1.5; color: var(--text); }
+.pfp-hold-name { font-weight: 700; color: var(--text); text-decoration: none; }
+a.pfp-hold-name:hover { color: var(--primary-ink); text-decoration: underline; }
+.pfr-figs li.pfp-hold-why { display: grid; gap: 2px; justify-content: stretch; }
+.pfp-hold-why .pfr-figs-k { font-weight: 700; }
 
 /* ---- Sample portfolio pages (`/sample-portfolio/[slug]`, 2026-11-02) ----
    The full portfolio check, open, on a made-up portfolio: the story, one note

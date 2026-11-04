@@ -10,8 +10,9 @@ import { usePremium } from "@/lib/premium";
 import type { Bi, Tone } from "@/lib/stock-report";
 
 /**
- * ONE question of a report (2026-10-30 rebuild; shared by the stock report
- * and, since the same day, the portfolio report): the question (h3) and its
+ * ONE question of a report (2026-10-30 rebuild; the stock report's — the
+ * portfolio report used it too until its own leaner row, `PfQuestion` in
+ * `components/portfolio/report/PfReportChapter.tsx`, 2026-11-04): the question (h3) and its
  * one-word answer, the answer in one sentence, a small picture, what it
  * means and what to watch (one labelled box), then the figures folded under
  * "See the figures". Every row on the page reads the same way.
