@@ -72,19 +72,35 @@ function PfQuestion({ row }: { row: PfRow }) {
         </p>
       )}
       {hasMore && (
+        // A full-width clay tap bar that says what it holds (2026-11-04, user:
+        // the quiet text fold was "hard to find, user may miss this").
         <details className="pfq-more">
           <summary>
-            <span>
-              {row.meaning.length > 0 && row.figures.length > 0 ? (
-                <T en="Why it matters · the figures" bn="কেন জরুরি · সংখ্যাগুলো" />
-              ) : row.meaning.length > 0 ? (
-                <T en="Why it matters" bn="কেন জরুরি" />
-              ) : (
-                <T en="See the figures" bn="সংখ্যাগুলো দেখুন" />
-              )}
+            <span className="pfq-more-text">
+              <b className="pfq-more-closed">
+                {row.meaning.length > 0 && row.figures.length > 0 ? (
+                  <T en="Why it matters, and the figures" bn="কেন জরুরি, আর সংখ্যাগুলো" />
+                ) : row.meaning.length > 0 ? (
+                  <T en="Why it matters" bn="কেন জরুরি" />
+                ) : (
+                  <T en="See the figures" bn="সংখ্যাগুলো দেখুন" />
+                )}
+              </b>
+              <b className="pfq-more-opened">
+                <T en="Hide the details" bn="বিস্তারিত লুকান" />
+              </b>
+              <span className="pfq-more-hint">
+                {row.meaning.length > 0 && row.figures.length > 0 ? (
+                  <T en="What it means for you, and the figures behind it" bn="আপনার জন্য এর মানে, আর এর পেছনের হিসাব" />
+                ) : row.meaning.length > 0 ? (
+                  <T en="What it means for your money" bn="আপনার টাকার জন্য এর মানে" />
+                ) : (
+                  <T en="The figures behind this answer" bn="এই উত্তরের পেছনের হিসাব" />
+                )}
+              </span>
             </span>
             <span className="pfq-more-icon" aria-hidden="true">
-              <IconChevronDown size={16} />
+              <IconChevronDown size={18} />
             </span>
           </summary>
           <div className="pfq-more-body">
@@ -125,10 +141,17 @@ export function PfPictureView({ pic }: { pic: PfPicture }) {
   );
 }
 
-/** The figures behind an answer: one line per share or sector. */
+/** A value this long reads better under the name than beside it. */
+const LONG_VALUE = 26;
+
+/** The figures behind an answer: one line per share or sector. When any
+ *  value is long ("৳2,770 · +6% from today · this year's high ৳2,777") the
+ *  whole list puts each value under its name (2026-11-04: side by side, a
+ *  long value ran over the name on phones). */
 function PfFigures({ figures }: { figures: PfFigure[] }) {
+  const stack = figures.some((f) => Math.max(f.value.en.length, f.value.bn.length) > LONG_VALUE);
   return (
-    <ul className="pfr-figs">
+    <ul className={`pfr-figs${stack ? " pfr-figs--stack" : ""}`}>
       {figures.map((f) => (
         <li key={f.key}>
           {f.code ? (

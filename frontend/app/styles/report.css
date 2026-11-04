@@ -185,12 +185,18 @@
 .rp-rows { list-style: none; margin: var(--space-3) 0 0; padding: 0; }
 .rp-rows > li {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: baseline;
-  gap: var(--space-3);
+  gap: 2px var(--space-3);
   padding: var(--space-2) 0;
   border-bottom: 1px dashed var(--border);
 }
+/* The label keeps a real width and the value drops under it when the row is
+   too narrow, never over it (2026-11-04, the portfolio's figures had a long
+   value running over the name on phones; same shape here). */
+.rp-rows > li > :first-child { flex: 1 1 9rem; min-width: 0; overflow-wrap: break-word; }
+.rp-rows > li > :last-child:not(:first-child) { max-width: 100%; margin-left: auto; overflow-wrap: break-word; }
 .rp-rows > li:last-child { border-bottom: 0; }
 
 /* ---- Bars (cash per ৳100, dividend history, ten-year story) ---------- */

@@ -300,9 +300,9 @@ a.pf-hold-name:hover { color: var(--primary-ink); }
 .pfa-lights .ac-light { padding: var(--space-3); }
 /* "Do this first" under the lights: one warm box, the taka on the right */
 .pfa-move { margin-top: var(--space-4); padding: var(--space-4); border-radius: var(--radius-md); background: var(--surface-2); }
-.pfa-move-top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
+.pfa-move-top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px var(--space-3); }
 .pfa-move-k { font-size: var(--fs-xs); font-weight: 700; color: var(--primary-ink); }
-.pfa-move-amt { display: inline-flex; align-items: baseline; gap: 4px; flex: none; font-size: var(--fs-xs); color: var(--text); white-space: nowrap; }
+.pfa-move-amt { display: inline-flex; align-items: baseline; gap: 4px; flex: none; margin-left: auto; font-size: var(--fs-xs); color: var(--text); white-space: nowrap; }
 .pfa-move-amt b { font-size: var(--fs-md); font-weight: 700; font-variant-numeric: tabular-nums; }
 .pfa-move-t { margin-top: 4px; font-size: var(--fs-md); font-weight: 700; line-height: 1.35; color: var(--text); }
 .pfa-move-l { margin-top: 4px; max-width: 65ch; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
@@ -330,19 +330,34 @@ a.pf-hold-name:hover { color: var(--primary-ink); }
 .pf-tail { margin-top: 48px; }
 .pf-tail:empty { display: none; }
 
-/* The figures behind an answer: one line per share or sector */
+/* The figures behind an answer: one line per share or sector. The name keeps
+   a real width and the value may wrap, or drop under the name when the row
+   is too narrow — never over it (2026-11-04: `flex: none` on the value let a
+   long one run over the name on phones). */
 .pfr-figs { display: grid; margin: 0; padding: 0; list-style: none; }
-.pfr-figs li { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); padding: var(--space-2) 0; border-top: 1px solid var(--border); font-size: var(--fs-sm); }
+.pfr-figs li {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px var(--space-3);
+  padding: var(--space-2) 0; border-top: 1px solid var(--border); font-size: var(--fs-sm);
+}
 .pfr-figs li:first-child { border-top: 0; }
-.pfr-figs-k { min-width: 0; color: var(--text); text-decoration: none; }
+.pfr-figs-k { flex: 1 1 9rem; min-width: 0; color: var(--text); text-decoration: none; overflow-wrap: break-word; }
 a.pfr-figs-k:hover { color: var(--primary-ink); text-decoration: underline; }
-.pfr-figs b { flex: none; font-weight: 700; text-align: right; }
+a.pfr-figs-k:active { opacity: 0.7; }
+.pfr-figs b { flex: 0 1 auto; max-width: 100%; margin-left: auto; font-weight: 700; text-align: right; overflow-wrap: break-word; }
+/* Long values: the name on its own line, the value under it, read left to
+   right; side by side again from 640px, the value in its own column. */
+.pfr-figs--stack li { display: grid; gap: 2px; }
+.pfr-figs--stack .pfr-figs-k { font-weight: 700; }
+.pfr-figs--stack b { margin-left: 0; font-weight: 400; text-align: left; }
+@media (min-width: 640px) {
+  .pfr-figs--stack li { grid-template-columns: minmax(0, 12rem) minmax(0, 1fr); gap: var(--space-4); }
+}
 
 /* ---- The chapters and the plan, clean pass (2026-11-04) ----
    ONE card per chapter: the question, then its answer chip with one count
    line, then the rows split by hairlines. A row = question + answer word,
    one sentence, the picture, a short list of what it found, one watch line,
-   and one quiet fold for why it matters and the figures. */
+   and one clay tap bar for why it matters and the figures. */
 .pfc-wrap { margin-top: var(--space-6); }
 @media (min-width: 640px) { .pfc-wrap { margin-top: var(--space-8); } }
 .pfc { padding: 0 var(--space-4); }
@@ -380,24 +395,43 @@ a.pfr-figs-k:hover { color: var(--primary-ink); text-decoration: underline; }
 }
 .pfq-watch-icon { flex: none; display: inline-flex; margin-top: 1px; color: var(--watch); }
 
-/* The fold: a quiet full-width row, 44px, clay words and a chevron */
-.pfq-more { margin-top: var(--space-4); border-top: 1px dashed var(--border); }
+/* The fold: a full-width clay tap bar that says what it holds, with a round
+   clay chevron (2026-11-04, user: the quiet text fold was easy to miss; the
+   stock page's `.rq-why` look). Open, it reads "Hide the details" and the
+   body sits under a clay rule. */
+.pfq-more { margin-top: var(--space-4); }
 .pfq-more > summary {
   display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
-  min-height: 44px; padding-top: var(--space-2); cursor: pointer; list-style: none;
-  font-size: var(--fs-sm); font-weight: 600; color: var(--primary-ink);
+  min-height: 52px; padding: var(--space-2) var(--space-3) var(--space-2) var(--space-4);
+  border: 1.5px solid rgb(var(--primary-rgb) / 0.45); border-radius: var(--radius-md);
+  background: rgb(var(--primary-rgb) / 0.08); cursor: pointer; list-style: none;
+  font-size: var(--fs-md); font-weight: 700; line-height: 1.25; color: var(--primary-ink);
 }
 .pfq-more > summary::-webkit-details-marker { display: none; }
-.pfq-more > summary:hover { text-decoration: underline; }
-.pfq-more > summary:active { opacity: 0.7; }
-.pfq-more > summary:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: var(--radius-sm); }
-.pfq-more-icon { display: inline-flex; flex: none; transition: transform 0.15s ease; }
-.pfq-more[open] .pfq-more-icon { transform: rotate(180deg); }
-@media (prefers-reduced-motion: reduce) { .pfq-more-icon { transition: none; } }
-.pfq-more-body { display: grid; gap: var(--space-3); margin-top: var(--space-2); }
+.pfq-more > summary:hover { background: rgb(var(--primary-rgb) / 0.13); }
+.pfq-more > summary:active { background: rgb(var(--primary-rgb) / 0.18); }
+.pfq-more > summary:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.pfq-more-text { display: grid; gap: 2px; min-width: 0; }
+.pfq-more-opened { display: none; }
+.pfq-more[open] .pfq-more-closed, .pfq-more[open] .pfq-more-hint { display: none; }
+.pfq-more[open] .pfq-more-opened { display: block; }
+.pfq-more-hint { font-size: var(--fs-sm); font-weight: 400; line-height: 1.35; color: var(--text); }
+.pfq-more-icon {
+  flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--primary); color: var(--surface);
+}
+.pfq-more-icon svg { transition: transform 0.15s ease; }
+.pfq-more[open] .pfq-more-icon svg { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) { .pfq-more-icon svg { transition: none; } }
+.pfq-more-body {
+  display: grid; gap: var(--space-3); margin-top: var(--space-3);
+  padding-left: var(--space-4); border-left: 3px solid rgb(var(--primary-rgb) / 0.45);
+}
 .pfq-more-p { max-width: 65ch; font-size: var(--fs-sm); line-height: 1.6; color: var(--text); }
-.pfq-more--tight { margin-top: var(--space-2); border-top: 0; }
-.pfq-more--tight > summary { min-height: 40px; padding-top: 0; }
+/* The plan's "why hold these" bar: the same look, a size smaller */
+.pfq-more--tight { margin-top: var(--space-3); }
+.pfq-more--tight > summary { min-height: 44px; font-size: var(--fs-sm); }
+.pfq-more--tight .pfq-more-icon { width: 28px; height: 28px; }
 
 /* Your plan: numbered first steps, grade lifts, ideas, each share */
 .pfp-list { display: grid; margin: var(--space-3) 0 0; padding: 0; list-style: none; }
@@ -411,11 +445,13 @@ a.pfr-figs-k:hover { color: var(--primary-ink); text-decoration: underline; }
   background: var(--text); color: var(--surface); font-size: var(--fs-xs); font-weight: 700;
 }
 .pfp-list--num > .pfp-item:first-child::before { top: 0; }
-.pfp-item-top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
-.pfp-item-t { min-width: 0; font-size: var(--fs-md); font-weight: 700; line-height: 1.35; color: var(--text); text-decoration: none; }
+/* Title and tag / taka: the title keeps a real width; the tag drops under it
+   when the row is too narrow, never over it (2026-11-04). */
+.pfp-item-top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px var(--space-3); }
+.pfp-item-t { flex: 1 1 10rem; min-width: 0; overflow-wrap: break-word; font-size: var(--fs-md); font-weight: 700; line-height: 1.35; color: var(--text); text-decoration: none; }
 a.pfp-item-t:hover { color: var(--primary-ink); text-decoration: underline; }
-.pfp-tag { flex: none; font-size: var(--fs-xs); font-weight: 700; }
-.pfp-amt { display: inline-flex; align-items: baseline; gap: 4px; flex: none; font-size: var(--fs-xs); color: var(--text); white-space: nowrap; }
+.pfp-tag { flex: 0 1 auto; max-width: 100%; margin-left: auto; font-size: var(--fs-xs); font-weight: 700; text-align: right; }
+.pfp-amt { display: inline-flex; align-items: baseline; gap: 4px; flex: none; margin-left: auto; font-size: var(--fs-xs); color: var(--text); white-space: nowrap; }
 .pfp-amt b { font-size: var(--fs-md); font-weight: 700; font-variant-numeric: tabular-nums; }
 .pfp-item-l { max-width: 65ch; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
 .pfp-item-a { font-size: var(--fs-sm); color: var(--text); }
