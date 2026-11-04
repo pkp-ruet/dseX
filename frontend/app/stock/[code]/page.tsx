@@ -29,6 +29,7 @@ import PremiumPromo from "@/components/stock/report/PremiumPromo";
 import RallyBanner from "@/components/stock/report/RallyBanner";
 import StockReportBody, { reportChapters } from "@/components/stock/report/StockReportBody";
 import { VIEW_CHAPTER } from "@/lib/stock-report";
+import { buildStockPromo } from "@/lib/stock-promo";
 import { StoryTable } from "@/components/stock/report/sections";
 import DataRoom, { type RoomPanel } from "@/components/stock/report/DataRoom";
 import { formatDate, money } from "@/lib/formatters";
@@ -475,7 +476,7 @@ export default async function StockDetailPage({ params }: PageProps) {
       {/* The report: four chapters of plain questions, Our view, then a short
           close. A free reader gets the one Premium card here instead. */}
       {report && (
-        <ReportGate promo={<PremiumPromo code={profile.trading_code} name={name} has={promoHas} />}>
+        <ReportGate promo={<PremiumPromo code={profile.trading_code} name={name} has={promoHas} lead={buildStockPromo(report)} ltp={num(detail.latest_price.ltp)} />}>
           <StockReportBody detail={detail} report={report} />
         </ReportGate>
       )}

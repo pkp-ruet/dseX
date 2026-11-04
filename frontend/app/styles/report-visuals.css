@@ -339,6 +339,86 @@
 .rp-band b { display: block; font-size: var(--fs-md); color: var(--text); line-height: 1.3; }
 .rp-band span { font-size: var(--fs-sm); color: var(--text); }
 
+/* ---- The Premium cards, enriched (2026-11-04) ----
+   Shared by the portfolio's `PortfolioPromo` and the stock page's
+   `PremiumPromo` on the `.sp` card: a taka or question headline with the
+   areas / lights as dots, the nearest real date, three findings + chips, a
+   short timeline of what happened, a free taste, and the price against the
+   reader's own money. */
+.spx-stake { display: grid; gap: var(--space-1); margin-top: var(--space-3); }
+.spx-stake b {
+  font-size: var(--fs-2xl); font-weight: 700; line-height: 1.05; letter-spacing: -0.02em;
+  color: var(--text); font-variant-numeric: tabular-nums;
+}
+.spx-stake span { font-size: var(--fs-lg); font-weight: 700; line-height: 1.3; color: var(--text); text-wrap: balance; }
+@media (min-width: 640px) { .spx-stake b { font-size: var(--fs-display); } }
+.spx-areas {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3);
+  margin-top: var(--space-4); font-size: var(--fs-sm); font-weight: 600; color: var(--text);
+}
+.spx-dots { display: inline-flex; gap: 6px; }
+/* The stock card's safety checks, counted, under the lights */
+.spx-checks { display: flex; align-items: flex-start; gap: var(--space-2); margin-top: var(--space-2); font-size: var(--fs-sm); font-weight: 600; line-height: 1.5; color: var(--text); }
+.spx-checks svg { flex: none; margin-top: 2px; color: var(--negative); }
+.spx-dots i { width: 14px; height: 14px; border-radius: 50%; background: rgb(var(--text-muted-rgb) / 0.4); }
+.spx-dots i[data-tone="good"] { background: var(--positive); }
+.spx-dots i[data-tone="fair"] { background: var(--watch); }
+.spx-dots i[data-tone="bad"] { background: var(--negative); }
+
+.spx-soon {
+  display: flex; align-items: flex-start; gap: var(--space-3); margin-bottom: var(--space-6);
+  padding: var(--space-3) var(--space-4); border-radius: var(--radius-md);
+  border: 1px solid rgb(var(--primary-rgb) / 0.35); background: rgb(var(--primary-rgb) / 0.08);
+  font-size: var(--fs-sm); font-weight: 600; line-height: 1.5; color: var(--text);
+}
+.spx-soon-icon { flex: none; display: inline-flex; margin-top: 1px; color: var(--primary-ink); }
+
+.spx-finds { display: grid; gap: var(--space-3); margin: var(--space-4) 0 0; padding: 0; list-style: none; }
+.spx-finds li { display: flex; align-items: center; gap: var(--space-3); }
+.spx-finds b { min-width: 0; font-size: var(--fs-md); line-height: 1.35; color: var(--text); }
+.spx-more { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-top: var(--space-4); }
+.spx-more-k { font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+.spx-chip {
+  display: inline-flex; align-items: center; min-height: 30px; padding: 2px 12px; border-radius: 999px;
+  background: var(--gold-light); color: var(--gold-ink); font-size: var(--fs-xs); font-weight: 700;
+}
+.spx-shows { display: flex; align-items: center; gap: 6px; margin-top: var(--space-4); font-size: var(--fs-sm); font-weight: 700; color: var(--gold-ink); }
+
+/* What Premium would have told them: a short timeline, a dot per day in the
+   day's worst colour on one rule. */
+.spx-missed { margin-top: var(--space-6); padding-top: var(--space-6); border-top: 1px solid var(--border); }
+.spx-days { display: grid; margin: var(--space-3) 0 0 6px; padding: 0; list-style: none; border-left: 2px solid var(--border); }
+.spx-days li {
+  position: relative; display: grid; grid-template-columns: 4.75rem minmax(0, 1fr); gap: var(--space-3);
+  padding: var(--space-2) 0 var(--space-2) var(--space-4); font-size: var(--fs-sm); line-height: 1.5; color: var(--text);
+}
+.spx-days li::before {
+  content: ""; position: absolute; left: -7px; top: calc(var(--space-2) + 0.35em);
+  width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--surface);
+  background: rgb(var(--text-muted-rgb) / 0.5);
+}
+.spx-days li[data-tone="good"]::before { background: var(--positive); }
+.spx-days li[data-tone="fair"]::before { background: var(--watch); }
+.spx-days li[data-tone="bad"]::before { background: var(--negative); }
+.spx-day { font-weight: 700; font-variant-numeric: tabular-nums; }
+@media (max-width: 380px) { .spx-days li { grid-template-columns: minmax(0, 1fr); gap: 0; } }
+.spx-days-more { margin-top: var(--space-2); font-size: var(--fs-sm); color: var(--text); }
+
+/* One answer free a month: a dashed gold box, solid once opened */
+.spx-taste {
+  margin-top: var(--space-6); padding: var(--space-4); border-radius: var(--radius-md);
+  border: 1.5px dashed rgb(var(--gold-rgb) / 0.65); background: rgb(var(--gold-rgb) / 0.06);
+}
+.spx-taste[data-open="true"] { border-style: solid; background: var(--surface); }
+.spx-taste-k { font-size: var(--fs-xs); font-weight: 700; color: var(--gold-ink); }
+.spx-taste-q { margin-top: var(--space-1); font-size: var(--fs-md); font-weight: 700; line-height: 1.35; color: var(--text); }
+.spx-taste-act { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); margin-top: var(--space-3); font-size: var(--fs-xs); color: var(--text); }
+.spx-taste-note { margin-top: var(--space-2); font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+.spx-taste-row .pfq { padding: var(--space-3) 0 var(--space-2); }
+
+/* The price against their own money, under the price */
+.sp-price .spx-against { margin-top: var(--space-2); font-weight: 600; }
+
 /* Our view: the case for and against, what would change our answer. */
 .vw-head { font-size: var(--fs-md); font-weight: 700; line-height: 1.45; color: var(--text); }
 .vw-cases { display: grid; gap: var(--space-4); margin-top: var(--space-6); }
