@@ -3,7 +3,9 @@ GET /api/user/home — the logged-in homepage in ONE request.
 
 The dashboard used to fire eleven requests on mount (portfolio, watchlist,
 alerts, signal events, picks, tips, news, near-extremes, dividends, index,
-market state) and every card popped in on its own. On a budget Android phone
+market state) and every card popped in on its own. Keys nothing rendered
+(tips, market news, popular, report codes, Bengali summaries, signal events)
+left the bundle on 2026-11-05 (audit EL11). On a budget Android phone
 talking to a cold Render instance that was the page's biggest problem. This
 bundle returns everything personal plus the *personal slices* of the public
 data (dividends / 52-week extremes / news for the user's own codes), so the
@@ -34,23 +36,18 @@ from backend.services.research_lists_service import list_index
 from backend.services.rank_today_service import week_rank_moves
 from backend.services.db_service import load_ex_day_moves
 from backend.services.results_explainer import results_for, results_summary
-from backend.services.daily_tips_service import get_daily_tips
 from backend.services.db_service import (
     load_market_index,
     load_market_movers,
-    load_market_news,
     load_news_for_codes,
-    load_popular_stocks,
 )
 from backend.services.top20_service import compute_top20
-from backend.services.deep_analysis_service import list_report_codes
 from backend.services.desk_service import desk_summary
 from backend.services.portfolio_daily import recent_events
 from backend.services.portfolio_signal_service import list_recent_events
 from backend.services.portfolio_watch import digest
 from backend.services.recommend_service import for_user
 from backend.services.morning_brief_service import results_calendar, today_brief
-from backend.services.summaries_service import load_stock_summaries
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/user", tags=["home"])
@@ -58,9 +55,7 @@ router = APIRouter(prefix="/api/user", tags=["home"])
 T = TypeVar("T")
 
 NEWS_LIMIT = 20
-MARKET_NEWS_LIMIT = 12
 TOP20_LIMIT = 8
-POPULAR_LIMIT = 8
 # Dividend board on the dashboard: record dates inside this many days.
 CALENDAR_DAYS = 14
 CALENDAR_LIMIT = 12
@@ -98,10 +93,8 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
     # "Picked for you" — the recommendation engine, ranked against the
     # holdings + watchlist already loaded above (no second read).
     for_you = _safe("for_you", lambda: for_user(current_user, holdings=holdings, watchlist=codes), None)
-    pick_codes = {i["code"] for i in ((for_you or {}).get("items") or [])}
 
     mine_t = tuple(sorted(mine))
-    all_codes_t = tuple(sorted(mine | pick_codes))
 
     news = _safe("news", lambda: load_news_for_codes(mine_t)[:NEWS_LIMIT] if mine_t else [], [])
     dividends = _safe(
@@ -129,22 +122,7 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
     # Market chapter — all from services that are already cached.
     movers = _safe("movers", load_market_movers, None)
 
-    def _market_news() -> list[dict]:
-        out = []
-        for n in load_market_news(MARKET_NEWS_LIMIT):
-            body = n.get("body")
-            out.append({
-                "trading_code": (n.get("trading_code") or "").strip() or "—",
-                "company_name": n.get("company_name"),
-                "title": (n.get("title") or "").strip() or "Untitled",
-                "body": (body[:160] if isinstance(body, str) else None),
-                "post_date": n.get("post_date"),
-            })
-        return out
-
-    market_news = _safe("market_news", _market_news, [])
     top20 = _safe("top20", lambda: ((compute_top20() or {}).get("items") or [])[:TOP20_LIMIT], [])
-    popular = _safe("popular", lambda: ((load_popular_stocks(limit=POPULAR_LIMIT) or {}).get("items") or []), [])
     # The six research lists (homepage rail): names for Premium readers, the
     # counts alone in the promotion card for everyone else — the page decides.
     research_lists = _safe("research_lists", list_index, [])
@@ -173,8 +151,9 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
 
     near = _safe("near_extremes", lambda: _dump(get_near_extremes()), None)
     market_index = _safe("market_index", load_market_index, None)
-    tips = _safe("tips", get_daily_tips, {"date": None, "tips": []})
     alerts = _safe("alerts", lambda: price_alert_service.list_alerts(user_id), [])
+    # Recent Buy more / Sell flips: the Desk card reads them (not shipped on
+    # their own since 2026-11-05 — nothing on the dashboard rendered them).
     signal_events = _safe("signal_events", lambda: list_recent_events(user_id), [])
     # What the watcher spotted on the reader's stocks this week. Free readers
     # see the counts, Premium readers the list (screen-only lock, like the rest).
@@ -184,36 +163,20 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
     # Friday letter, from what is loaded above + the newest letter.
     desk = _safe("desk", lambda: desk_summary(user_id, brief, week_events, signal_events), None)
 
-    report_codes = _safe(
-        "report_codes",
-        lambda: sorted({c.upper() for c in list_report_codes()} & set(all_codes_t)),
-        [],
-    )
-    summaries_bn = _safe(
-        "summaries_bn",
-        lambda: load_stock_summaries(all_codes_t) if all_codes_t else {},
-        {},
-    )
 
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "holdings": holdings,
         "watchlist": {"codes": codes, "meta": meta},
         "alerts": alerts,
-        "signal_events": signal_events,
         "for_you": for_you,
-        "tips": tips,
         "news": news,
         "market_index": market_index,
         "dividends": dividends,
         "near_extremes": near,
         "dividend_cash": dividend_cash,
-        "report_codes": report_codes,
-        "summaries_bn": summaries_bn,
         "movers": movers,
-        "market_news": market_news,
         "top20": top20,
-        "popular": popular,
         "calendar": calendar,
         "research_lists": research_lists,
         "rank_moves": rank_moves,

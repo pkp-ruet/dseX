@@ -7,7 +7,9 @@ stock; seeding those files into the database is a separate step handled later.
 
 This writer is the gate: it rejects a malformed / half-written report (clear
 message, non-zero exit, nothing written) so bad LLM output never becomes an
-official report file. On success it stamps metadata and writes the final doc.
+official report file. Since 2026-11-05 (audit SP2) it also rejects a report
+that breaks the writing rules of docs/voice.md: Bengali numerals, em dashes,
+idioms, bare market words, and pointers at page parts that don't exist. On success it stamps metadata and writes the final doc.
 
 The report should carry the `source_hash` and `data_completeness` copied from
 its fact pack (the cost gate in `status.py` reads them back). If they're
@@ -17,11 +19,13 @@ Usage (from the repo root):
 
     py scripts/deep_analysis/save_analysis.py --code GP --file _work/GP.analysis.json --facts _work/GP.json
     py scripts/deep_analysis/save_analysis.py --dir _work        # every *.analysis.json in _work/
+    py scripts/deep_analysis/save_analysis.py --check            # read-only: rule breaks in saved reports
     # optional: --out-dir some/other/folder   (default: data/deep_analysis)
 """
 import argparse
 import json
 import pathlib
+import re
 import sys
 from datetime import datetime, timezone
 
@@ -50,6 +54,67 @@ _SECTION_FIELDS = ("title_en", "takeaway_en", "body_en", "title_bn", "takeaway_b
 
 class ValidationError(ValueError):
     pass
+
+
+# ---------------------------------------------------------------------------
+# Writing rules (2026-11-05, audit SP2 — docs/voice.md). The 80 reports of
+# July 2026 carried 5,673 em dashes, 471 Bengali numerals, "cushion" ×163,
+# "fortress" ×32, "skin in the game" ×11, and 79 pointed the reader at a
+# "value today box" and a Buy/Sell signal the page no longer shows.
+# ---------------------------------------------------------------------------
+
+# Bengali numerals render broken on some phones: Western digits only.
+_BN_DIGITS = re.compile(r"[০-৯]")
+# No half-sentences glued with dashes: an em dash anywhere, or an en dash /
+# hyphen with spaces around it ("strong – but"). A range ("2021–2025") is fine.
+_DASH = re.compile(r"—|\s[–-]\s")
+# Idioms the voice guide rules out, and words that sound like a sales pitch.
+IDIOMS = (
+    "cushion", "fortress", "blue-chip", "blue chip", "skin in the game", "moat", "war chest",
+    "catalyst", "bounce back", "on the line", "tailwind", "headwind", "double-edged",
+    "sweet spot", "bellwether", "no-brainer", "rock-solid", "rock solid", "golden goose",
+    "cash cow", "deep pockets",
+)
+_IDIOM = re.compile(r"\b(" + "|".join(re.escape(w) for w in IDIOMS) + r")\b", re.I)
+# Parts of the page that are not there: the report must never point at them.
+_PAGE_POINTERS = re.compile(
+    r"value[\s-]today|buy\s*/\s*sell|signal shown|beside this report|live value (?:box|estimate)"
+    r"|strong buy|\bDSEF\b", re.I)
+# Market words a reader doesn't know, bare (say the idea in plain words).
+_JARGON = re.compile(r"\b(EPS|P/E|P/B|NAV|ROE|TTM|YoY|CAGR|EBIT)\b|ইপিএস|পিই|এনএভি")
+
+
+def _texts(doc: dict):
+    """(where, text) for every reader-facing text field of a report."""
+    for f in ("headline_en", "headline_bn", "bottom_line_en", "bottom_line_bn",
+              "data_note_en", "data_note_bn"):
+        if isinstance(doc.get(f), str):
+            yield f, doc[f]
+    for s in doc.get("sections") or []:
+        if not isinstance(s, dict):
+            continue
+        for f in _SECTION_FIELDS:
+            if isinstance(s.get(f), str):
+                yield f"{s.get('key')}.{f}", s[f]
+
+
+def writing_issues(doc: dict) -> list[str]:
+    """Every break of the writing rules, one line each ("story.body_en: em dash or
+    spaced dash (3)"). Empty when the report reads cleanly."""
+    out: list[str] = []
+    for where, text in _texts(doc):
+        checks = (
+            ("Bengali numerals (use Western digits)", _BN_DIGITS.findall(text)),
+            ("em dash or spaced dash (use a full stop or a comma)", _DASH.findall(text)),
+            ("idiom", [m.group(1).lower() for m in _IDIOM.finditer(text)]),
+            ("points at a part of the page that isn't there", [m.group(0) for m in _PAGE_POINTERS.finditer(text)]),
+            ("market word with no plain name", [m.group(0) for m in _JARGON.finditer(text)]),
+        )
+        for label, hits in checks:
+            if hits:
+                sample = ", ".join(sorted({h.strip() for h in hits if h.strip()})[:3])
+                out.append(f"{where}: {label} ({len(hits)}{': ' + sample if sample else ''})")
+    return out
 
 
 def _nonempty_str(v) -> bool:
@@ -85,6 +150,10 @@ def validate(doc: dict) -> None:
             if not _nonempty_str(s.get(f)):
                 raise ValidationError(f"[{code}] section '{s.get('key')}' missing/empty '{f}'")
 
+    issues = writing_issues(doc)
+    if issues:
+        raise ValidationError(f"[{code}] breaks the writing rules:\n  " + "\n  ".join(issues))
+
 
 def _load_json(path: pathlib.Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
@@ -119,6 +188,26 @@ def write_report(doc: dict, out_dir: pathlib.Path) -> pathlib.Path:
     return path
 
 
+def check_folder(folder: pathlib.Path) -> int:
+    """Print each saved report's writing-rule breaks; exit 1 when any has one."""
+    bad = 0
+    files = sorted(folder.glob("*.json"))
+    for p in files:
+        try:
+            issues = writing_issues(_load_json(p))
+        except json.JSONDecodeError as e:
+            issues = [f"not valid JSON: {e}"]
+        if issues:
+            bad += 1
+            print(f"{p.stem}: {len(issues)} field(s)")
+            for i in issues[:6]:
+                print(f"  {i}")
+            if len(issues) > 6:
+                print(f"  … and {len(issues) - 6} more")
+    print(f"\n{bad} of {len(files)} report(s) break the writing rules.")
+    return 1 if bad else 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate + write deep-analysis report files (no DB).")
     parser.add_argument("--file", help="A single *.analysis.json draft report")
@@ -127,10 +216,15 @@ def main() -> int:
     parser.add_argument("--dir", help="Directory of *.analysis.json drafts (batch)")
     parser.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR),
                         help=f"Where to write <CODE>.json (default: {DEFAULT_OUT_DIR})")
+    parser.add_argument("--check", nargs="?", const=str(DEFAULT_OUT_DIR), metavar="FOLDER",
+                        help="Read-only: list the writing-rule breaks in every saved report "
+                             f"(default folder: {DEFAULT_OUT_DIR}); writes nothing")
     args = parser.parse_args()
 
+    if args.check:
+        return check_folder(pathlib.Path(args.check))
     if not args.file and not args.dir:
-        parser.error("give --file or --dir")
+        parser.error("give --file, --dir or --check")
 
     out_dir = pathlib.Path(args.out_dir)
 

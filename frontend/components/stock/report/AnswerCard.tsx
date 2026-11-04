@@ -59,6 +59,8 @@ export default function AnswerCard({
         {tx(answer.word)}
       </h2>
       <p className="ac-line">{tx(answer.line)}</p>
+      {/* Since when (2026-11-05, audit N8): from the daily report snapshots. */}
+      {answer.history && <p className="ac-history">{tx(answer.history.line)}</p>}
 
       <div className="ac-lights">
         {answer.lights.map((l, i) => (

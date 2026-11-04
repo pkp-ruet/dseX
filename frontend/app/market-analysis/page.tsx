@@ -68,7 +68,7 @@ export const metadata: Metadata = {
 };
 
 const EMPTY_QUALITY = { total: 0, strong: 0, good: 0, soso: 0, risky: 0, median_score: null };
-const EMPTY_CHANCES = { best: "", on_sale: [], income: [], rising: [], fallen: [] };
+const EMPTY_CHANCES = { income: [], rising: [], fallen: [] };
 const EMPTY_HISTORY = { index: [], daily: [] };
 
 export default async function MarketAnalysisPage() {

@@ -21,7 +21,7 @@ READY_TOP = 3  # shares a homepage card shows per ready-made screen
 
 def _sector_bn(name: str) -> str:
     try:
-        from backend.services.summaries_service import _sector_bn as word
+        from utils.sector import sector_bn as word
         return word(name) or name
     except Exception:  # noqa: BLE001 — a label helper must never break a page
         return name

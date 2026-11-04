@@ -156,6 +156,23 @@ def _audit_opinion(code: str) -> Optional[dict]:
         return None
 
 
+ANSWER_DAYS = 120
+
+
+def _answer_days(code: str) -> list[dict]:
+    """The answers stored in the last `ANSWER_DAYS` days ({date, decision,
+    answer_word}), newest first — the answer card's "since when" line."""
+    try:
+        from backend.services.db_service import get_db
+        since = (_today() - timedelta(days=ANSWER_DAYS)).isoformat()
+        return list(get_db()[SNAPSHOT_COLLECTION].find(
+            {"trading_code": code.upper(), "date": {"$gte": since}, "decision": {"$exists": True}},
+            {"_id": 0, "date": 1, "decision": 1, "answer_word": 1},
+        ).sort("date", -1).limit(ANSWER_DAYS))
+    except Exception:  # noqa: BLE001 — the line is a refinement
+        return []
+
+
 def gather(code: str, *, company: Optional[dict] = None, score_row: Optional[dict] = None,
            financials: Optional[list] = None, extended_financials: Optional[list] = None,
            holdings: Optional[list] = None, prices: Optional[list] = None,
@@ -222,7 +239,7 @@ def gather(code: str, *, company: Optional[dict] = None, score_row: Optional[dic
     except Exception:  # noqa: BLE001
         ledger = []
     try:
-        from backend.services.summaries_service import _sector_bn
+        from utils.sector import sector_bn as _sector_bn
         sector_bn = _sector_bn(sector) or sector
     except Exception:  # noqa: BLE001
         sector_bn = sector
@@ -271,6 +288,8 @@ def gather(code: str, *, company: Optional[dict] = None, score_row: Optional[dic
         "notices_ok": notices_ok,
         "governance": governance_items(news or []),
         "audit_opinion": _audit_opinion(code),
+        # Our stored answer on each day (audit N8): "Buy since 12 Oct".
+        "answer_days": _answer_days(code),
         "watch_items": watch_items,
         "score_history": score_history,
         "sector_rows": sector_rows,
@@ -359,7 +378,9 @@ def store_snapshots(codes: Optional[list[str]] = None) -> dict:
 
 def latest_snapshots(codes) -> dict[str, dict]:
     """{code: newest snapshot row in the last 21 days} — red / amber counts and
-    the red keys + lines (the portfolio report's warning signs)."""
+    the red + amber keys and lines (the portfolio report's warning signs, the
+    research cards' and picks' watch-out). Rows stored before 2026-11-05 have
+    no amber lines."""
     from backend.services.db_service import get_db
 
     codes = sorted({c.upper() for c in codes or [] if c})
@@ -369,7 +390,8 @@ def latest_snapshots(codes) -> dict[str, dict]:
     out: dict[str, dict] = {}
     for d in get_db()[SNAPSHOT_COLLECTION].find(
         {"trading_code": {"$in": codes}, "date": {"$gte": since}},
-        {"_id": 0, "trading_code": 1, "date": 1, "red": 1, "amber": 1, "red_keys": 1, "red_lines": 1},
+        {"_id": 0, "trading_code": 1, "date": 1, "red": 1, "amber": 1, "red_keys": 1, "red_lines": 1,
+         "amber_keys": 1, "amber_lines": 1},
     ).sort("date", -1):
         out.setdefault(d["trading_code"], d)
     return out

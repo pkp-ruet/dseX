@@ -18,9 +18,8 @@ from utils.sector import normalize_sector
 from backend.services.scoring_service import get_company_score_row, build_scores_df
 from backend.services.signal_service import get_signal, wire_fields
 from backend.services.top20_service import compute_momentum_for_code
-from backend.services.summaries_service import load_stock_summary, load_stock_summaries
 from backend.services.deep_analysis_service import (
-    load_report, report_teaser, list_report_codes, compute_fair_value,
+    load_report, report_teaser, list_report_codes, compute_fair_value, report_staleness,
 )
 from backend.models.responses import (
     CompanyDetailResponse, CompanyProfile, LatestPrice,
@@ -76,16 +75,6 @@ def get_todays_news():
         title = n.get("title")
         n["title"] = (title.strip() if isinstance(title, str) and title.strip() else "Untitled")
     return news
-
-
-@router.get("/api/summaries/multi")
-def get_multi_summaries(codes: str):
-    """Cached Bengali 'এক নজরে' one-liners for a set of codes → {code: summary}."""
-    # Sorted + deduped so the TTL-cache key is stable regardless of order.
-    code_list = tuple(sorted({c.strip().upper() for c in codes.split(",") if c.strip()}))[:100]
-    if not code_list:
-        return {}
-    return load_stock_summaries(code_list)
 
 
 @router.get("/api/company/{code}", response_model=CompanyDetailResponse)
@@ -371,7 +360,6 @@ def get_company_detail(code: str):
         signal=signal_model,
         valuation=valuation_model,
         sector_context=sector_context_model,
-        bengali_summary=load_stock_summary(trading_code),
         fair_value=fair_value_model,
         deep_analysis=deep_analysis_model,
         ownership=ownership,
@@ -383,25 +371,6 @@ def get_company_detail(code: str):
     )
 
 
-@router.get("/api/company/{code}/questions")
-def get_company_questions(code: str):
-    """The report's next questions with their answers (2026-10-30): the stock
-    page's Premium card shows two of them from today's free report as a
-    sample of the full report. Small, so the card fetches it on tap."""
-    from backend.services.stock_report_service import build_report
-
-    code = (code or "").upper()
-    company = get_company(code)
-    if not company:
-        raise HTTPException(status_code=404, detail=f"Unknown code '{code}'")
-    report = build_report(code) or {}
-    return {
-        "code": code,
-        "name": company.get("company_name") or code,
-        "rows": report.get("next_questions") or [],
-    }
-
-
 @router.get("/api/deep-analysis/codes")
 def get_deep_analysis_codes() -> list[str]:
     """Every trading code that has a deep-analysis report (for sitemap / static params)."""
@@ -410,22 +379,17 @@ def get_deep_analysis_codes() -> list[str]:
 
 @router.get("/api/company/{code}/analysis", response_model=DeepAnalysisResponse)
 def get_company_analysis(code: str):
-    """Full durable narrative for one code + the live value box beside it.
+    """The written analysis for one code (the data room's "Written analysis"
+    tab) + whether it was written before the company's latest results.
 
-    404 when no report has been written for the code yet (the frontend hides the
-    sub-page and its teaser in that case)."""
+    404 when no report has been written for the code yet (the page then has no
+    such tab). The live value box that used to sit beside it is gone
+    (2026-11-05, audit SP14): the stock report's price chapter carries it."""
     report = load_report(code)
     if not report:
         raise HTTPException(status_code=404, detail=f"No deep analysis for '{code}'")
 
-    fair_value_model = None
-    try:
-        fv = compute_fair_value(report["trading_code"])
-        fair_value_model = FairValue(**fv) if fv else None
-    except Exception:
-        fair_value_model = None
-
     return DeepAnalysisResponse(
         report=DeepAnalysisReport(**report),
-        fair_value=fair_value_model,
+        written_before_results=report_staleness(report["trading_code"], report.get("as_of_date")),
     )

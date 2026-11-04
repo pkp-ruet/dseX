@@ -1,9 +1,8 @@
-"""#9 dividend ledger parsing, #16 peer note, and the Bengali summary agreeing
-with the numeric sections."""
+"""#9 dividend ledger parsing and #16 peer note. (The Bengali summary tests left
+with summaries_service, 2026-11-05.)"""
 from datetime import datetime, timezone
 
 from backend.services.sub_industry import peer_note
-from backend.services.summaries_service import _render_bengali
 from scrapers.news import build_declaration_doc, is_declaration_news
 
 NOW = datetime(2026, 3, 12, tzinfo=timezone.utc)
@@ -45,36 +44,6 @@ def test_peer_note():
     assert "tobacco" in peer_note("BATBC", "Food & Allied", 0)["en"]
     assert "Miscellaneous" in peer_note("BSC", "Miscellaneous", 0)["en"]
     assert peer_note("SQURPHARMA", "Pharmaceuticals & Chemicals", 4) is None
-
-
-def facts(**kw):
-    base = {"name": "Test PLC", "sector": "Fuel & Power", "quality": "strong", "score": 83, "rank": None,
-            "total": None, "eps": 58.7, "eps_yoy_pct": 47, "area_value": 9.2, "div_yield_pct": 9.7,
-            "area_dividend": 8.7, "area_health": 8.5, "stale_data": False}
-    base.update(kw)
-    return base
-
-
-def test_summary_says_this_year_is_down():
-    text = _render_bengali(facts(interim_eps_yoy_pct=-28, interim_label_bn="মার্চ 2026 পর্যন্ত 9 মাস"))
-    assert "28% কম" in text
-    assert "মুনাফা বেড়েছে।" not in text
-
-
-def test_summary_debt_warning_survives_the_sentence_cap():
-    text = _render_bengali(facts(debt_level="over_reserve", area_health=8.3))
-    assert "ঋণ এর জমানো মুনাফার চেয়ে বেশি" in text
-    assert "ঋণের চাপ তুলনামূলক কম" not in text
-
-
-def test_summary_valuation_follows_p4():
-    assert "তুলনামূলক বেশি" in _render_bengali(facts(area_value=3.99))
-    assert "তুলনামূলক কম" in _render_bengali(facts(area_value=9.2))
-
-
-def test_bank_summary_has_no_loan_pressure_line():
-    text = _render_bengali(facts(sector="Bank", is_lender=True, area_health=9.3))
-    assert "ঋণের চাপ" not in text
 
 
 def test_bracketed_code_declaration_is_not_a_follow_up():

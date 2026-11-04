@@ -14,8 +14,9 @@ import {
 import { DateT, Label, TONE_CLASS, money, perShare, signedPct, tx } from "@/components/stock/report/fmt";
 import type { CompanyDetail } from "@/lib/api";
 import type {
-  AlternativesSection, Bi, CashSection, DividendSection, NextSection, OwnersSection, PriceSection,
-  QualitySection, RedFlagsSection, RisksSection, SafetySection, SectorSection, StorySection, ThisYearSection, Tone,
+  AlternativesSection, Bi, CashSection, CoreSection, DividendSection, LiquiditySection, NextSection, OwnersSection,
+  PriceSection, QualitySection, RedFlagsSection, RisksSection, SafetySection, SectorSection, StorySection,
+  ThisYearSection, Tone,
 } from "@/lib/stock-report";
 
 /**
@@ -228,6 +229,54 @@ export function CashPremium({ s }: { s: CashSection }) {
         />
       )}
     </>
+  );
+}
+
+// ------------------------------------------------------------------ 2b · does the profit come from its business?
+
+/** Of every ৳100 of its latest profit, how much its business made (audit N2). */
+export function CorePicture({ s }: { s: CoreSection }) {
+  if (s.share <= 0) return null;
+  const biz = Math.min(100, s.share);
+  return (
+    <HundredBar
+      label={`In ${s.year}, its business made ${biz} of every 100 taka of its profit`}
+      parts={[
+        { key: "biz", value: biz, swatch: biz >= 80 ? "good" : "fair", text: <T en="From its business" bn="ব্যবসা থেকে" /> },
+        ...(biz < 100
+          ? [{ key: "other", value: 100 - biz, swatch: "quiet" as const, text: <T en="From other income" bn="অন্য আয় থেকে" /> }]
+          : []),
+      ]}
+      caption={<T en={`Its ${s.year} profit, split by where it came from`} bn={`${s.year} সালের মুনাফা, কোথা থেকে এসেছে সে অনুযায়ী`} />}
+    />
+  );
+}
+
+/** The figures: each year's business profit against the whole profit. */
+export function CoreDetails({ s }: { s: CoreSection }) {
+  if (!s.years.length) return null;
+  return (
+    <ul className="rp-rows">
+      {[...s.years].reverse().map((y) => (
+        <li key={y.year} className="text-sm">
+          <span className="text-text-muted">
+            <T
+              en={`${y.year}: its business ${crore(y.business_cr)}, whole profit ${crore(y.profit_cr)}`}
+              bn={`${y.year}: ব্যবসা থেকে ${croreBnT(y.business_cr)}, মোট মুনাফা ${croreBnT(y.profit_cr)}`}
+            />
+          </span>
+          <b className={`text-right ${TONE_CLASS[y.share >= 80 ? "good" : y.share >= 50 ? "fair" : "bad"]}`}>
+            {y.share <= 0 ? (
+              <T en="Its business lost money" bn="ব্যবসা লোকসানে" />
+            ) : y.share >= 100 ? (
+              <T en="All of it" bn="পুরোটাই" />
+            ) : (
+              <T en={`৳${y.share} of every ৳100`} bn={`প্রতি ৳100-এ ৳${y.share}`} />
+            )}
+          </b>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -673,6 +722,14 @@ function FlagList({ checks }: { checks: RedFlagsSection["checks"] }) {
               <span className="mt-0.5 block text-xs text-text-muted">
                 <T en="Notice: " bn="নোটিশ: " />
                 {c.evidence.title} · <DateT iso={c.evidence.date} />
+                {c.evidence.url && (
+                  <>
+                    {" · "}
+                    <a href={c.evidence.url} target="_blank" rel="noopener noreferrer" className="rp-evidence-link">
+                      <T en="Read the auditor's report" bn="নিরীক্ষকের প্রতিবেদন পড়ুন" />
+                    </a>
+                  </>
+                )}
               </span>
             )}
           </span>
@@ -929,5 +986,62 @@ export function AlternativesDetails({ s }: { s: AlternativesSection }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+// ------------------------------------------------------------------ can you sell it? (audit N6)
+
+const daysWords = (d: number | null): Bi | null =>
+  d == null ? null : d <= 1
+    ? { en: "Within a day", bn: "এক দিনের মধ্যে" }
+    : { en: `About ${Math.ceil(d)} trading days`, bn: `প্রায় ${Math.ceil(d)} লেনদেনের দিন` };
+
+/** The figures: a normal day's trading, how long ৳1 lakh and ৳10 lakh take,
+ *  and the shares not held by its owners or the government. */
+export function LiquidityDetails({ s }: { s: LiquiditySection }) {
+  const lakh = (mn: number | null) =>
+    mn == null ? null : mn >= 10
+      ? { en: `৳${(mn / 10).toFixed(1)} crore`, bn: `৳${(mn / 10).toFixed(1)} কোটি` }
+      : { en: `৳${Math.round(mn * 10).toLocaleString("en-US")} lakh`, bn: `৳${Math.round(mn * 10).toLocaleString("en-US")} লাখ` };
+  const rows: { label: Bi; value: Bi | null; tone?: Tone }[] = [
+    { label: { en: "Traded on a normal day (last 7 days)", bn: "সাধারণ একটি দিনের লেনদেন (শেষ 7 দিন)" }, value: lakh(s.turnover_mn) },
+    { label: { en: "Time to sell ৳1 lakh", bn: "৳1 লাখ বিক্রি করতে সময়" }, value: daysWords(s.days_1lakh) },
+    { label: { en: "Time to sell ৳10 lakh", bn: "৳10 লাখ বিক্রি করতে সময়" }, value: daysWords(s.days_10lakh) },
+    {
+      label: { en: "With investors other than its owners and the government", bn: "উদ্যোক্তা-পরিচালক আর সরকারের বাইরে অন্যদের হাতে" },
+      value: s.float_pct == null ? null : {
+        en: `${Math.round(s.float_pct)} of every 100 shares${s.float_mn != null ? `, about ${lakh(s.float_mn)?.en}` : ""}`,
+        bn: `প্রতি 100টির মধ্যে ${Math.round(s.float_pct)}টি${s.float_mn != null ? `, প্রায় ${lakh(s.float_mn)?.bn}` : ""}`,
+      },
+    },
+  ];
+  const shown = rows.filter((r) => r.value);
+  if (!shown.length) return null;
+  return (
+    <ul className="rp-rows">
+      {shown.map((r, i) => (
+        <li key={i} className="text-sm">
+          <span className="text-text-muted">{tx(r.label)}</span>
+          <b className="text-right text-text-main">{tx(r.value!)}</b>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+// ------------------------------------------------------------------ against a bank deposit (audit N11)
+
+/** Two sentences under the price answer: what ৳100 paid today earns in
+ *  profit and pays in cash, beside a one-year bank deposit (FDR) after tax. */
+export function DepositLine({ s }: { s: PriceSection }) {
+  const d = s.deposit;
+  if (!d || !d.lines.length) return null;
+  return (
+    <div className="rp-deposit">
+      <p className="rp-deposit-k"><T en="Against a bank deposit" bn="ব্যাংক এফডিআরের সঙ্গে তুলনা" /></p>
+      {d.lines.map((l, i) => (
+        <p key={i} className="text-sm leading-relaxed text-text-main">{tx(l)}</p>
+      ))}
+    </div>
   );
 }

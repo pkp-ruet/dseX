@@ -46,8 +46,11 @@ Run these from the **repo root**. Use any working directory for the JSON files (
 
 ## The report — structure
 
-The reader gets the thesis in ~20 seconds from the headline + bottom line (a live "value today"
-box sits beside them on the page), then the full story in plain words. Target **~1,500–2,000
+The reader gets the thesis in ~20 seconds from the headline + bottom line, then the full story in
+plain words. On the stock page the report is the "Written analysis" tab of the data room, under
+the full stock report. That report is built live every day: our answer on buying it today, the
+price chapter with our fair price, the red flags. Your report is the durable story behind it, so
+it never repeats or points at any of that. Target **~1,500–2,000
 words of English**, mirrored by a full **Bengali** version. Medium depth — thorough but
 mobile-friendly.
 
@@ -69,7 +72,7 @@ mobile-friendly.
 | `business_model` | How does it make money? | Where revenue comes from, who pays, what drives sales. |
 | `earnings` | Is it actually making money? | Profit/earnings trend over the years (growing, shrinking, bumpy), how well it turns sales into profit. |
 | `financial_health` | Is it financially safe? | Debt vs its own money, cash generation, whether it could survive a bad year. |
-| `valuation` | How do we judge if it's fairly priced? | Explain the *method* in plain words — comparing the price to how the share has usually been priced, to similar companies, to the value of its assets, and to its dividend — plus durable inputs like profit per share and its own usual pricing level. **Do not state today's price, the current P/E, the dividend yield, specific fair-value figures, or a cheap/fair/expensive verdict** — the live "value today" box carries those. |
+| `valuation` | How do we judge if it's fairly priced? | Explain the *method* in plain words — comparing the price to how the share has usually been priced, to similar companies, to the value of its assets, and to its dividend — plus durable inputs like profit per share and its own usual pricing level. **Do not state today's price, the current price for its profit, the dividend yield, specific fair-value figures, or a cheap/fair/expensive verdict.** The stock report's price chapter carries those, live. |
 | `dividend` | Does it reward shareholders? | Dividend history and how reliable it is, the dividend **amount** and % of face value, and whether the payout looks safe (how much of profit it uses). Cite the dividend amount, **not** today's yield (yield is live). |
 | `moat` | What makes it special? | Its edge — market position, brand, scale, and how its margins / size / growth compare with the peers in the fact pack. **Do not cite our score, tier, or sector rank** (those are live). Or honestly say if it has little edge. |
 | `bull_case` | Why it could do well | **3–5 bullet points.** Grounded, durable reasons to be positive. |
@@ -102,11 +105,13 @@ an optional `data_note` when the underlying data is old or thin.
   daily price into the prose: today's price, the current P/E or P/B, the dividend **yield**, the
   cheap/fair/expensive stance, specific fair-value taka figures, recent returns (1m/3m/1y), the
   52-week position, or momentum. **Also never quote our own score, our tier, our sector rank
-  ("Nth of M companies"), or the scorecard words ("rates as okay / strong")** — those are the
-  live scorecard / ranking and would contradict the live box the moment a score moves. When you
-  discuss competitive position, argue it from **real figures instead** — its margins, size, and
-  growth versus the peers listed in the fact pack. All of the above are shown live beside the
-  report; refer to "the live value estimate" rather than quoting a number.
+  ("Nth of M companies"), our group words ("Strong all round", "Mostly strong", "Mixed", "Mostly
+  weak") or the retired ones ("Excellent", "Good", "Average", "Weak" as a grade)**. Those move every
+  day and would contradict the live report the moment a score moves. When you discuss competitive
+  position, argue it from **real figures instead**: its margins, size, and growth versus the peers
+  listed in the fact pack.
+- **Never point at a part of the page.** No "value today box", no "Buy/Sell signal shown beside
+  this report", no "live value estimate", no "see above". The page changes; your report doesn't.
 - **Numbers — copy from `figures`, never compute.** The fact pack has a **`figures`** block with
   every key number already converted to **crore taka** or **taka per share**, rounded and labelled
   (`figures.per_year`, `figures.latest`, `figures.growth`, `figures.profile`, `figures.ownership`).
@@ -115,9 +120,20 @@ an optional `data_note` when the underlying data is old or thin.
   yourself is exactly what causes magnitude errors (e.g. writing "a few hundred crore" for an
   ৳82-crore figure). If a number you want isn't in `figures`, describe it in words, don't compute it.
 - **Educational, not advice.** Describe and explain; give both the bull and bear sides. Never
-  tell the reader to buy or sell, and never predict future prices. The app's current Buy/Sell
-  signal is shown **live** beside the report — do not bake a specific buy/sell/hold verdict into
-  the prose (it moves with the price), and never derive your own.
+  tell the reader to buy or sell, and never predict future prices. Our answer on buying it today
+  is in the live stock report. Do not bake a buy / sell / hold verdict into the prose (it moves
+  with the price), never derive your own, and never mention a Buy/Sell signal.
+- **The calm-advisor voice (`docs/voice.md`).** Short, complete sentences, one idea each.
+  **No dashes joining half-sentences**: no em dash (—) and no spaced dash ( – ) anywhere, in
+  English or Bengali; use a full stop or a comma. A range like 2021–2025 is fine. **No idioms or
+  hype**: not "cushion", "fortress", "blue-chip", "skin in the game", "moat", "war chest",
+  "catalyst", "bounce back", "tailwind", "headwind", "cash cow". Bengali is written for Bengali
+  readers, not translated: read it aloud, and use the investors' words (ডিভিডেন্ড, সেক্টর not খাত,
+  উদ্যোক্তা-পরিচালক, নিজস্ব মূলধন).
+- **`save_analysis.py` enforces these.** It rejects Bengali numerals, em dashes and spaced
+  dashes, the idioms above, bare market words (EPS, P/E, P/B, NAV, ROE, TTM, YoY, CAGR, EBIT and
+  ইপিএস, পিই, এনএভি), "Strong buy", "DSEF" and pointers at page parts. Fix the draft, never the
+  check. `py scripts/deep_analysis/save_analysis.py --check` lists the breaks in the saved files.
 - End every report with the disclaimer.
 
 ## Output format (exactly what `save_analysis.py` accepts)

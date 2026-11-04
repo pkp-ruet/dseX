@@ -193,6 +193,7 @@
 .ac-label { margin-top: 4px; font-size: var(--fs-2xs); color: var(--text-muted); line-height: 1.2; }
 .ac-lword { font-size: var(--fs-sm); font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
 .ac-lnote { font-size: var(--fs-2xs); line-height: 1.35; color: var(--text); overflow-wrap: anywhere; }
+.ac-history { margin-top: var(--space-2); font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
 .ac-buyprice { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); margin-top: var(--space-3); padding: var(--space-3); border-radius: var(--radius); background: var(--surface-2); font-size: var(--fs-sm); }
 @media (max-width: 380px) {
   .ac-lights { grid-template-columns: minmax(0, 1fr); }
@@ -217,7 +218,6 @@
 }
 .rq-head h3 { min-width: 0; font-size: var(--fs-title); font-weight: 700; line-height: 1.3; color: var(--text); }
 .rq-chips { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; min-width: 0; max-width: 50%; }
-.rq-tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: var(--fs-2xs); font-weight: 600; color: var(--gold-ink); background: rgb(var(--gold-rgb) / 0.12); white-space: nowrap; }
 /* The answer in one sentence: the line a reader takes away, so it leads. */
 .rq-answer { margin-top: var(--space-3); max-width: 65ch; font-size: var(--fs-md); font-weight: 600; line-height: 1.5; color: var(--text); }
 .rq-free { margin-top: var(--space-3); }
@@ -279,25 +279,14 @@
 /* ===================================================================
    The full report (2026-10-30, plan https://claude.ai/artifact/1TuJ9dvifeXTLzs5wVwk2Q)
    =================================================================== */
-/* Explanations sit open in a full report; only the figures fold. What it
-   means and what to watch share one quiet box, each part labelled
-   (2026-11-01, user: "more organized, clean"). */
-.rq-explain {
-  margin-top: var(--space-4);
-  padding: var(--space-4);
-  border-radius: var(--radius-md);
-  background: rgb(var(--bg-rgb));
-  border: 1px solid var(--border);
-}
-.rq-explain-part + .rq-explain-part { margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--border); }
-.rq-explain-k { font-size: var(--fs-xs); font-weight: 700; color: var(--text); }
-.rq-explain-part[data-watch="true"] .rq-explain-k { color: var(--watch); }
-.rq-explain-p { margin-top: var(--space-1); max-width: 65ch; font-size: var(--fs-sm); line-height: 1.6; color: var(--text); }
-.rq-explain-p + .rq-explain-p { margin-top: var(--space-2); }
-@media (min-width: 640px) {
-  .rq-explain { padding: var(--space-4) var(--space-6); }
-  .rq-explain-p { font-size: var(--fs-base); }
-}
+/* Against a bank deposit (audit N11): two sentences under the price answer. */
+.rp-deposit { display: grid; gap: var(--space-1); padding: var(--space-3); border-radius: var(--radius); background: var(--surface-2); }
+.rp-deposit-k { font-size: var(--fs-xs); font-weight: 700; color: var(--text); }
+.rp-evidence-link { color: var(--primary-ink); text-decoration: underline; text-underline-offset: 2px; }
+
+/* The meaning paragraphs inside a row's fold (`.rq-why-meaning`). */
+.rq-explain-p { max-width: 65ch; font-size: var(--fs-sm); line-height: 1.6; color: var(--text); }
+@media (min-width: 640px) { .rq-explain-p { font-size: var(--fs-base); } }
 
 /* A chapter is ONE card (2026-10-30), clean pass 2026-11-04: the chapter's
    question as the card's title, its answer chip and one line under it, then
@@ -320,26 +309,6 @@
 @media (min-width: 640px) { .rpb-title { font-size: var(--fs-2xl); } }
 .rpb-sub { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
 .rpb + .rpc { margin-top: var(--space-4); }
-
-/* A closed fundamentals row: its question and a lock (or its answer word). */
-.rq[data-compact="true"] { padding: var(--space-4) 0; }
-.rq[data-compact="true"] .rq-head { flex-direction: row; align-items: center; }
-.rq[data-compact="true"] .rq-head h3 { font-size: var(--fs-md); }
-.rq[data-compact="true"] .rq-chips { justify-content: flex-end; }
-.rq-lockchip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 32px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: rgb(var(--gold-rgb) / 0.14);
-  color: var(--gold-ink);
-  font-size: var(--fs-xs);
-  font-weight: 700;
-  white-space: nowrap;
-}
-
 
 /* ---- The Premium cards, enriched (2026-11-04) ----
    Shared by the portfolio's `PortfolioPromo` and the stock page's

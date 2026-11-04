@@ -245,7 +245,7 @@ def test_old_governance_news_expires():
 
 def test_governance_reaches_the_signal_board():
     flags = build_flags({}, [], fin_rows("JAMUNAOIL"), {"market_category": "A"}, [NEWS["JAMUNAOIL_QO"]], now=NOW)
-    assert any("qualified opinion" in r for r in flags["red"])
+    assert any("did not fully approve its accounts" in r for r in flags["red"])
     assert_bilingual(flags["items"])
 
 

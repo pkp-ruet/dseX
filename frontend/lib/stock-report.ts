@@ -5,18 +5,21 @@
  * The page (2026-10-30 rebuild): the answer card (should you buy it today?
  * one answer from three lights), then four chapters, one per question
  * (`REPORT_CHAPTERS`), each a list of plain questions answered with a word,
- * a picture and one line. The backend's sections feed those questions. The rule:
- * free readers see WHAT we found (every fact, each check's verdict word, every
- * serious red flag); Premium shows WHY, WHAT COMES NEXT and WHAT TO DO.
+ * a picture and one line, then Our view. The backend's sections feed those
+ * questions.
  *
- * The backend ships every part (locks are screen-only, like everywhere else);
- * each field below says whether the page shows it free or only to Premium.
+ * All of it is Premium since 2026-11-01: a free reader sees the price, the
+ * chart, one Premium card and the data room; the report sits in the HTML
+ * under one lock (`ReportGate`) and opens in place for Premium, today's free
+ * report and a report key. The per-field "free" / "Premium" notes below are
+ * from the 2026-10-28 plan and say only where a figure comes from now.
+ *
  * Every sentence is a {en, bn} pair in the calm-advisor voice (docs/voice.md),
  * Western digits, money as "৳1,234" / "৳45.6".
  *
  * Every section is optional: the backend leaves one out when the stock has no
- * data for it, and an older backend sends no `report` at all — the page then
- * falls back to its existing parts.
+ * data for it; with no `report` at all the page shows the cover, the data
+ * room and the written analysis.
  */
 
 export type Bi = { en: string; bn: string };
@@ -32,7 +35,7 @@ export type CheckKey =
 /** Every section key (the eight checks + the extra sections). */
 export type SectionKey =
   | CheckKey
-  | "next" | "risks" | "story" | "sector" | "alternatives";
+  | "next" | "risks" | "story" | "sector" | "alternatives" | "core" | "liquidity";
 
 export interface ScoreCheck {
   key: CheckKey;
@@ -80,8 +83,9 @@ export interface FlagCheck {
   level: FlagLevel;
   /** What we found, one line: "Clean audit opinion", "DSE found the factory closed (25 Jun 2026)". */
   detail: Bi;
-  /** The notice behind it, when there is one. */
-  evidence: { title: string; date: string } | null;
+  /** The notice behind it, when there is one; `url` = the document itself
+   *  (the auditor's report PDF, 2026-11-05). */
+  evidence: { title: string; date: string; url?: string | null } | null;
 }
 
 export interface RedFlagsSection extends SectionBase {
@@ -113,6 +117,17 @@ export interface PriceSection extends SectionBase {
   scenarios: { label: Bi; price: number }[];
   /** P/E now, its usual (own median), the sector median (free — public numbers). */
   pe: { now: number | null; usual: number | null; sector: number | null };
+  /** Against a bank deposit (2026-11-05, audit N11): for every ৳100 paid today,
+   *  the profit it earns a year and the cash it pays after tax, beside a
+   *  one-year FDR after tax. Two plain sentences, no verdict. */
+  deposit?: {
+    profit_per_100: number | null;
+    cash_per_100: number | null;
+    fdr_pct: number;
+    fdr_net_per_100: number;
+    fdr_as_of: string;
+    lines: Bi[];
+  } | null;
 }
 
 // ---------------------------------------------------------------- dividend
@@ -288,6 +303,34 @@ export interface NextSection extends SectionBase {
   }[];
 }
 
+/** Does the profit come from its business? (2026-11-05, audit N2) Not for
+ *  banks, NBFIs and insurers. */
+export interface CoreSection extends SectionBase {
+  key: "core";
+  /** Oldest first: the business's own profit (before interest and tax) and
+   *  the whole profit, ৳ crore, and the business's share of every ৳100 (capped
+   *  at 100; negative = the business lost money). */
+  years: { year: number; business_cr: number; profit_cr: number; share: number }[];
+  usual: number | null;
+  year: number;
+  share: number;
+  one_off: boolean;
+}
+
+/** Can you sell it when you want to? (2026-11-05, audit N6) */
+export interface LiquiditySection extends SectionBase {
+  key: "liquidity";
+  /** A normal day's trading, 7-day average, ৳ million. */
+  turnover_mn: number | null;
+  /** Trading days to sell ৳1 lakh / ৳10 lakh at a tenth of a normal day. */
+  days_1lakh: number | null;
+  days_10lakh: number | null;
+  /** Shares not with its owners or the government, % and ৳ million. */
+  float_pct: number | null;
+  float_mn: number | null;
+  last_trade: string | null;
+}
+
 export interface RisksSection extends SectionBase {
   key: "risks";
   /** Count free; the risks and their triggers Premium. */
@@ -355,7 +398,7 @@ export interface AnswerLight {
 /** The answer card (2026-10-30): mirrors the Buy signal's rules exactly. */
 export interface StockAnswer {
   decision: "buy" | "wait" | "no_reason" | "avoid" | "unrated";
-  /** "Buy", "Strong buy", "Not yet", "No reason to buy", "Avoid" (free). */
+  /** "Buy", "Not yet", "No reason to buy", "Avoid", "Not rated yet". */
   word: Bi;
   tone: Tone;
   /** One line built from the three light words, no figures (free). */
@@ -365,6 +408,16 @@ export interface StockAnswer {
   blocker: "company" | "price" | "risks" | null;
   /** Our buy-below price (Premium). */
   buy_price: number | null;
+  /** Our answer over time (2026-11-05, audit N8), from the daily report
+   *  snapshots: "Our answer has been “Buy” since 12 Oct. Before that it was
+   *  “Not yet”." `changes` = how often it changed in the last 30 days. */
+  history?: {
+    since: string;
+    before: Bi | null;
+    first_record: string | null;
+    changes: number;
+    line: Bi;
+  } | null;
 }
 
 /** The report's ending (2026-10-30, the full report plan): the case for, the
@@ -381,20 +434,6 @@ export interface ReportView {
   inside: Bi[];
 }
 
-/** One row of the free reader's Premium card under the answer (2026-10-30,
- *  plan https://claude.ai/artifact/UHZTK5nvUVrtzzmq6c2oSX): an answer the
- *  reader already has (`word`, free on the page) and the question it leaves
- *  (`ask` + `hint`). `answer` is the full report's answer — shown only as the
- *  sample from today's free report. */
-export interface NextQuestion {
-  key: "answer" | "price" | "red_flags" | "this_year" | "owners" | "next" | "dividend" | "alternatives";
-  word: Bi;
-  tone: Tone;
-  ask: Bi;
-  hint: Bi;
-  answer: Bi | null;
-}
-
 /** The chapter ids a written read can belong to. */
 export type ReadChapter = "ch-company" | "ch-price" | "ch-risks" | "ch-next";
 
@@ -407,8 +446,6 @@ export interface StockReport {
   reads?: Partial<Record<ReadChapter, Bi>>;
   /** Where the report ends: Our view (Premium). */
   view?: ReportView | null;
-  /** The free reader's Premium card: up to five questions this share leaves. */
-  next_questions?: NextQuestion[];
   /** Date of the data (latest price day). */
   as_of: string;
   /** Dateline: when the report last changed and why (free). */
@@ -434,6 +471,8 @@ export interface StockReport {
     story?: StorySection;
     sector?: SectorSection;
     alternatives?: AlternativesSection;
+    core?: CoreSection;
+    liquidity?: LiquiditySection;
   };
   /** The offer's lines: what Premium shows on THIS share, from counts (free). */
   offer: Bi[];
@@ -442,7 +481,7 @@ export interface StockReport {
 /** Report order on the page (the scorecard keeps the first eight). */
 export const SECTION_ORDER: SectionKey[] = [
   "red_flags", "price", "dividend", "this_year", "next",
-  "owners", "cash", "safety", "quality", "story", "sector", "risks", "alternatives",
+  "owners", "liquidity", "cash", "core", "safety", "quality", "story", "sector", "risks", "alternatives",
 ];
 
 /** A question row on the page. Most rows are one backend section; a few
@@ -483,12 +522,13 @@ export const REPORT_CHAPTERS: ReportChapter[] = [
     title: { en: "Is it a good company?", bn: "কোম্পানিটি কি ভালো?" },
     chip: { en: "Company", bn: "কোম্পানি" },
     lead: {
-      en: "Five questions about the business itself: profit, cash, loans, strength and dividends.",
-      bn: "ব্যবসাটি নিয়ে পাঁচটি প্রশ্ন: মুনাফা, নগদ টাকা, ঋণ, ব্যবসার শক্তি আর ডিভিডেন্ড।",
+      en: "Questions about the business itself: profit, cash, where the profit comes from, loans, strength and dividends.",
+      bn: "ব্যবসাটি নিয়ে কয়েকটি প্রশ্ন: মুনাফা, নগদ টাকা, মুনাফা কোথা থেকে আসে, ঋণ, ব্যবসার শক্তি আর ডিভিডেন্ড।",
     },
     rows: [
       { key: "this_year", q: { en: "Does it make money?", bn: "কোম্পানিটি কি মুনাফা করছে?" } },
       { key: "cash", q: { en: "Is the profit real cash?", bn: "মুনাফার টাকা কি সত্যিই হাতে আসে?" } },
+      { key: "core", q: { en: "Does the profit come from its business?", bn: "মুনাফা কি ব্যবসা থেকেই আসে?" } },
       { key: "safety", q: { en: "Can it handle its loans?", bn: "ঋণ কি সামলাতে পারবে?" } },
       { key: "quality", q: { en: "Is it strong in its business?", bn: "নিজের ব্যবসায় কোম্পানিটি কতটা শক্তিশালী?" } },
       { key: "shares", q: { en: "Does it share its profit?", bn: "মুনাফার ভাগ শেয়ারহোল্ডারদের দেয় কি?" } },
@@ -512,12 +552,13 @@ export const REPORT_CHAPTERS: ReportChapter[] = [
     title: { en: "Could anything go wrong?", bn: "কোনো সমস্যা হতে পারে কি?" },
     chip: { en: "Risks", bn: "ঝুঁকি" },
     lead: {
-      en: "Serious warnings in its notices, what the owners are doing, and the main risks.",
-      bn: "নোটিশে কোনো গুরুতর সতর্কতা আছে কি না, উদ্যোক্তা-পরিচালকেরা কী করছেন, আর মূল ঝুঁকিগুলো কী।",
+      en: "Serious warnings in its notices, what the owners are doing, whether you can sell it, and the main risks.",
+      bn: "নোটিশে কোনো গুরুতর সতর্কতা আছে কি না, উদ্যোক্তা-পরিচালকেরা কী করছেন, দরকারে বিক্রি করা যাবে কি না, আর মূল ঝুঁকিগুলো কী।",
     },
     rows: [
       { key: "red_flags", q: { en: "Any red flags?", bn: "বড় কোনো সতর্কসংকেত আছে কি?" } },
       { key: "owners", q: { en: "Are the owners staying?", bn: "উদ্যোক্তা-পরিচালকেরা কি শেয়ার ধরে রাখছেন?" } },
+      { key: "liquidity", q: { en: "Can you sell it when you want to?", bn: "দরকারের সময় বিক্রি করতে পারবেন কি?" } },
       { key: "risks", q: { en: "What could go wrong?", bn: "কী কী ঝুঁকি আছে?" } },
     ],
   },

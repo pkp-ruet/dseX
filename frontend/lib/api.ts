@@ -297,10 +297,18 @@ export interface DeepAnalysisReport {
   generated_at: string | null;
 }
 
-/** Sub-page bundle: the durable narrative + the live value box beside it. */
+/** When the company posted results after its written analysis was built. */
+export interface WrittenBeforeResults {
+  /** The results post date (ISO). */
+  posted: string;
+  /** Yearly results (else a quarter). */
+  full_year: boolean;
+}
+
+/** The written analysis (the data room's tab) + whether it predates the latest results. */
 export interface DeepAnalysisResponse {
   report: DeepAnalysisReport;
-  fair_value: FairValue | null;
+  written_before_results?: WrittenBeforeResults | null;
 }
 
 export interface CompanyDetail {
@@ -319,7 +327,6 @@ export interface CompanyDetail {
   signal?: StockSignalInfo | null;
   valuation?: ValuationContext | null;
   sector_context?: SectorContext | null;
-  bengali_summary?: string | null;
   /** Live "value today" box (may be null when there's no sensible basis). */
   fair_value?: FairValue | null;
   /** Deep-analysis teaser (null when no report exists for this code). */
@@ -814,14 +821,9 @@ export async function getRankMovers(): Promise<RankMovers> {
   return apiFetch<RankMovers>("/api/rankings/movers", 3600);
 }
 
-/** `GET /api/rankings/today`: red check keys from each company's stock
- *  report, this week's group moves, every company's rank on the first day of
- *  the history, and this week's rank change (the ranking page reads only
- *  `moves` since 2026-11-01). */
+/** `GET /api/rankings/today`: this week's rank change (2026-11-05: only
+ *  `moves` — the warnings, group moves and first-day ranks were dropped). */
 export interface RankingsToday {
-  warnings: Record<string, string[]>;
-  week: { from: string | null; to: string | null; up: string[]; down: string[]; method?: boolean } | null;
-  then: { date: string; total: number | null; ranks: Record<string, number> } | null;
   /** Each company's rank change over the week's window (+ = climbed; a code
    *  that kept its place is absent; `new` = not ranked on `from`). Null on a
    *  rule-change day. The ranking page's arrows. */
@@ -1361,18 +1363,6 @@ export async function getRange52w(codes: string[]): Promise<Range52wItem[]> {
   }
 }
 
-/** Client-side bulk Bengali "এক নজরে" summaries → {code: summary}. */
-export async function getBengaliSummaries(codes: string[]): Promise<Record<string, string>> {
-  if (!codes.length) return {};
-  try {
-    const res = await fetch(`${getApiUrl()}/api/summaries/multi?codes=${encodeURIComponent(codes.join(","))}`);
-    if (!res.ok) return {};
-    return (await res.json()) as Record<string, string>;
-  } catch {
-    return {};
-  }
-}
-
 // ---- Market State (the "complete picture of the market right now" page) ----
 
 export type MoodTone = "up" | "down" | "weak" | "steady";
@@ -1392,7 +1382,6 @@ export interface MarketMood {
   tone: MoodTone;
   sentence: string;
   sentence2: string;
-  best_lens: string;
   bands?: MarketMoodBands;
   /** Bengali twins (2026-10-27); absent from an older backend. */
   label_bn?: string;
@@ -1500,7 +1489,6 @@ export interface MarketSinceYesterday {
   breadth_rank: { better_than: number; of: number } | null;
   sectors_up: string[];
   sectors_down: string[];
-  new_on_sale: MarketNewName[];
   new_near_high: MarketNewName[];
   new_near_low: MarketNewName[];
   new_unusual: MarketNewName[];
@@ -1599,8 +1587,6 @@ export interface MarketStateData {
     dividends: MarketDividendEvent[];
   };
   chances: {
-    best: string;
-    on_sale: MarketChanceStock[];
     income: MarketChanceStock[];
     rising: MarketChanceStock[];
     fallen: MarketChanceStock[];
@@ -2423,8 +2409,6 @@ export interface HomeBundle {
   holdings: PortfolioHolding[];
   watchlist: WatchlistResponse;
   alerts: PriceAlert[];
-  signal_events: PortfolioSignalEvent[];
-  tips: DailyTipsResponse;
   /** Latest news on holdings ∪ watchlist (newest first, capped server-side). */
   news: WatchlistNewsItem[];
   market_index: MarketIndexData | null;
@@ -2433,16 +2417,10 @@ export interface HomeBundle {
   near_extremes: NearExtremesData | null;
   /** Calendar record-date rows (cash per share worked out) for the user's codes. */
   dividend_cash: CorporateActionEvent[];
-  /** User's codes (+ the for-you pick codes) that have a deep-analysis report. */
-  report_codes: string[];
-  /** Cached Bengali "এক নজরে" one-liners, keyed by trading code. */
-  summaries_bn: Record<string, string>;
   /** Market chapter (added 2026-09-16) — optional so a bundle assembled by the
    *  legacy fallback still type-checks. */
   movers?: MarketMoversData | null;
-  market_news?: DseTodayNewsItem[];
   top20?: Top20Item[];
-  popular?: PopularStockItem[];
   calendar?: {
     /** Record dates inside the next two weeks, market-wide. */
     record_dates: CorporateActionEvent[];
@@ -2760,48 +2738,6 @@ export interface Top20Response {
 export async function getTop20(): Promise<Top20Response> {
   return apiFetch<Top20Response>("/api/top-20", 86400);
 }
-
-// ---------------------------------------------------------------------------
-// Daily Picks — "Today's Top Picks" (3 per day)
-// ---------------------------------------------------------------------------
-
-export type DailyPickSource = "dsef" | "dse_top20";
-
-export interface DailyPickItem {
-  slot: number;                // 1, 2, or 3
-  source: DailyPickSource;
-  source_label: string;        // plain-English: "Trending" or "Top Quality"
-  trading_code: string;
-  company_name: string | null;
-  sector: string | null;
-  score: number | null;
-  ltp: number | null;
-  change_pct: number | null;
-  return_7d_pct: number | null;
-  reasons: string[];
-}
-
-export interface DailyPickYesterdayItem {
-  slot: number;
-  trading_code: string;
-  company_name: string | null;
-}
-
-export interface DailyPickYesterday {
-  date: string;
-  picks: DailyPickYesterdayItem[];
-}
-
-export interface DailyPickResponse {
-  date: string;
-  picks: DailyPickItem[];
-  yesterday: DailyPickYesterday | null;
-}
-
-export async function getDailyPick(): Promise<DailyPickResponse> {
-  return apiFetch<DailyPickResponse>("/api/daily-pick", 86400);
-}
-
 
 // ---------------------------------------------------------------------------
 // TopStockBD Tips — ~10 plain-English fundamental tips, refreshed daily
@@ -3463,70 +3399,6 @@ export async function apiAdminDeleteScoreAdjustment(trading_code: string): Promi
     `/api/admin/score-adjustment?trading_code=${encodeURIComponent(trading_code)}`,
     { method: "DELETE" },
   );
-}
-
-// ---------------------------------------------------------------------------
-// Admin — Daily Picks controls
-// ---------------------------------------------------------------------------
-
-export interface AdminDailyPickSkip {
-  trading_code: string;
-  company_name: string | null;
-  score_when_skipped: number | null;
-  from_slot: number | null;
-  skipped_at: string | null;
-  skipped_by: string | null;
-}
-
-export interface AdminDailyPickItem extends DailyPickItem {
-  picked_at: string | null;
-}
-
-export interface AdminDailyPickState {
-  date: string;
-  picks: AdminDailyPickItem[];        // ordered by slot (1, 2, 3) — NOT randomized
-  skips_today: AdminDailyPickSkip[];
-  yesterday: DailyPickYesterday | null;
-}
-
-export async function apiAdminGetDailyPick(): Promise<AdminDailyPickState> {
-  return apiAuthFetch<AdminDailyPickState>("/api/admin/daily-pick");
-}
-
-export interface AdminRefreshSlotResponse {
-  skipped: string | null;
-  new_code: string | null;
-  slot: number;
-  state: AdminDailyPickState;
-}
-
-/** Refresh a single slot. Calls the Next.js proxy route which forwards to the
- *  backend and revalidates the homepage's `market-data` ISR cache so the new
- *  pick is visible to all visitors immediately. */
-export async function apiAdminRefreshDailyPickSlot(slot: number): Promise<AdminRefreshSlotResponse> {
-  const token = getToken();
-  if (!token) throw new Error("AUTH_EXPIRED");
-  const res = await fetch("/api/admin/refresh-pick", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ slot }),
-  });
-  if (res.status === 401) {
-    logout();
-    throw new Error("AUTH_EXPIRED");
-  }
-  if (res.status === 409) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body?.detail || "No remaining candidates for that slot today");
-  }
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body?.detail || body?.error || `Refresh failed: ${res.status}`);
-  }
-  return res.json() as Promise<AdminRefreshSlotResponse>;
 }
 
 // ---------------------------------------------------------------------------

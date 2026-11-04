@@ -25,7 +25,6 @@ import { n } from "./analytics/shared";
 const ADMIN_LINKS = [
   { href: "/admin/payments", label: "Payments" },
   { href: "/admin/scores", label: "Score Adjustments" },
-  { href: "/admin/daily-pick", label: "Today's Top Stock" },
   { href: "/admin/tips", label: "Edit Tips" },
   { href: "/admin/feedback", label: "Feedback" },
   { href: "/admin/campaigns", label: "Email Campaigns" },

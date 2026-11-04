@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.services.rate_limit import RateLimitMiddleware
 
-from backend.routers import scores, companies, dividends, audit, prices, market_movers, market_intelligence, market_index, stock_lists, auth, user, portfolio, dse_today, admin, market_analysis, market_state, stock_visits, top20, daily_pick, daily_tips, recommendations, feedback, campaigns, email, notifications, price_alerts, trust, corporate_actions, sectors, home, premium, research_lists, watchlist_glance, custom_lists, results, signals
+from backend.routers import scores, companies, dividends, audit, prices, market_movers, market_intelligence, market_index, stock_lists, auth, user, portfolio, dse_today, admin, market_analysis, market_state, stock_visits, top20, daily_tips, recommendations, feedback, campaigns, email, notifications, price_alerts, trust, corporate_actions, sectors, home, premium, research_lists, watchlist_glance, custom_lists, results, signals
 from backend.routers import rankings
 from backend.routers import dividend_reminders
 from backend.routers import desk
@@ -57,7 +57,6 @@ app.include_router(market_analysis.router)
 app.include_router(market_state.router)
 app.include_router(stock_visits.router)
 app.include_router(top20.router)
-app.include_router(daily_pick.router)
 app.include_router(daily_tips.router)
 app.include_router(recommendations.router)
 app.include_router(feedback.router)
@@ -103,9 +102,7 @@ def _ensure_stock_visits():
 def startup():
     from backend.services.auth_service import ensure_users_indexes
     from backend.services.feedback_service import ensure_feedback_indexes
-    from backend.services.daily_pick_service import ensure_daily_picks_indexes
     from backend.services.daily_tips_service import ensure_daily_tips_indexes
-    from backend.services.summaries_service import ensure_summaries_indexes
     from backend.services.score_adjustments_service import ensure_indexes as ensure_score_adj_indexes
     from backend.services.email_service import ensure_email_indexes
     from backend.services.push_service import ensure_push_indexes
@@ -116,9 +113,7 @@ def startup():
     for name, fn in (
         ("users", ensure_users_indexes),
         ("feedback", ensure_feedback_indexes),
-        ("daily_picks", ensure_daily_picks_indexes),
         ("daily_tips", ensure_daily_tips_indexes),
-        ("summaries", ensure_summaries_indexes),
         ("score_adjustments", ensure_score_adj_indexes),
         ("email", ensure_email_indexes),
         ("push", ensure_push_indexes),

@@ -683,14 +683,6 @@ def _build_mood(advancing_pct, price_pos_pct, cheap_pct, week_change_pct, feelin
         sentence2_bn = ("দাম মোটামুটি স্বাভাবিক। শক্তিশালী কোম্পানিতে মন দেওয়া আর হঠাৎ লাফানো "
                         "শেয়ারের পেছনে না ছোটাই ভালো।")
 
-    # Which opportunity list to highlight
-    if tone == "up":
-        best_lens = "rising"
-    elif value_band == "cheap" or tone in ("weak", "down"):
-        best_lens = "on_sale"
-    else:
-        best_lens = "income"
-
     return {
         "label": label,
         "label_bn": label_bn,
@@ -699,7 +691,6 @@ def _build_mood(advancing_pct, price_pos_pct, cheap_pct, week_change_pct, feelin
         "sentence_bn": sentence_bn,
         "sentence2": sentence2,
         "sentence2_bn": sentence2_bn,
-        "best_lens": best_lens,
         "bands": {
             "breadth": breadth_band,
             "price": price_band,
@@ -770,7 +761,6 @@ def _since_yesterday(
     cheap_now: Optional[float],
     advancing_now: Optional[float],
     sector_status_now: dict,
-    on_sale_codes: list[str],
     near_high_codes: list[str],
     near_low_codes: list[str],
     unusual_codes: list[str],
@@ -794,7 +784,6 @@ def _since_yesterday(
         "breadth_rank": None,
         "sectors_up": [],
         "sectors_down": [],
-        "new_on_sale": [],
         "new_near_high": [],
         "new_near_low": [],
         "new_unusual": [],
@@ -844,7 +833,6 @@ def _since_yesterday(
         fresh = [c for c in now_codes if c not in prev_set]
         return [{"trading_code": c, "company_name": names.get(c)} for c in fresh[:_NEW_NAMES_CAP]]
 
-    out["new_on_sale"] = _new("on_sale_codes", on_sale_codes)
     out["new_near_high"] = _new("near_high_codes", near_high_codes)
     out["new_near_low"] = _new("near_low_codes", near_low_codes)
     out["new_unusual"] = _new("unusual_codes", unusual_codes)
@@ -1050,22 +1038,13 @@ def _compute(df=None) -> tuple[dict, dict]:
         lp = _num((prices.get(code) or {}).get("ltp"))
         return round(lp, 2) if lp is not None else None
 
-    on_sale = []
     income = []
     fallen = []
     for r in recs:
         code = r.get("trading_code")
         sc = _num(r.get("score"))
-        pe = _num(r.get("current_pe"))
-        own = _num(r.get("own_avg_pe"))
-        sect_pe = _num(r.get("sector_median_pe"))
         dy = _num(r.get("div_yield_pct"))
         sec = _plain_sector(r.get("sector"))
-        if sc is not None and sc >= 60 and pe is not None and 0 < pe < 150 and (
-            (own is not None and pe < own) or (sect_pe is not None and pe < sect_pe)
-        ):
-            on_sale.append({"trading_code": code, "company_name": _name(code), "last_price": _last_price(code),
-                            "sector": sec, "score": round(sc), "pe": round(pe, 1)})
         if dy is not None and 0 < dy < 30 and (sc is None or sc >= 45):
             income.append({"trading_code": code, "company_name": _name(code), "last_price": _last_price(code),
                            "sector": sec, "div_yield_pct": round(dy, 1)})
@@ -1073,7 +1052,6 @@ def _compute(df=None) -> tuple[dict, dict]:
             fallen.append({"trading_code": code, "company_name": _name(code), "last_price": _last_price(code),
                            "sector": sec, "score": round(sc), "ret_1m": ret_1m.get(code)})
 
-    on_sale.sort(key=lambda x: x["score"], reverse=True)
     income.sort(key=lambda x: x["div_yield_pct"], reverse=True)
     fallen.sort(key=lambda x: x["score"], reverse=True)
 
@@ -1100,7 +1078,6 @@ def _compute(df=None) -> tuple[dict, dict]:
         "daily": _daily_series(snaps_desc),
     }
 
-    on_sale_codes = [x["trading_code"] for x in on_sale]
     near_high_codes = [x["trading_code"] for x in near_high]
     near_low_codes_list = [x["trading_code"] for x in near_low]
     unusual_codes = [x["trading_code"] for x in unusual]
@@ -1110,7 +1087,7 @@ def _compute(df=None) -> tuple[dict, dict]:
         healthy_now=healthy_now, total_now=quality["total"], median_now=median_score_raw,
         cheap_now=cheap_pct, advancing_now=advancing_pct,
         sector_status_now=sector_status_now,
-        on_sale_codes=on_sale_codes, near_high_codes=near_high_codes,
+        near_high_codes=near_high_codes,
         near_low_codes=near_low_codes_list, unusual_codes=unusual_codes,
         names={c: (companies.get(c) or {}).get("company_name") for c in companies},
     )
@@ -1142,8 +1119,6 @@ def _compute(df=None) -> tuple[dict, dict]:
             "dividends": dividends,
         },
         "chances": {
-            "best": mood["best_lens"],
-            "on_sale": on_sale[:6],
             "income": income[:6],
             "rising": rising[:6],
             "fallen": fallen[:6],
@@ -1181,7 +1156,6 @@ def _compute(df=None) -> tuple[dict, dict]:
         "median_div_yield": round(_median(dy_vals), 2) if dy_vals else None,
         "median_score": median_score_raw,
         "sector_status": sector_status_now,
-        "on_sale_codes": on_sale_codes,
         "near_high_codes": near_high_codes,
         "near_low_codes": near_low_codes_list,
         "unusual_codes": unusual_codes,
@@ -1278,7 +1252,6 @@ def compute_and_store_market_snapshot(df=None) -> Optional[dict]:
         "total_scored": total,
         "healthy_pct": round(healthy / total * 100, 1) if total else None,
         "sector_status": extras.get("sector_status") or {},
-        "on_sale_codes": extras.get("on_sale_codes") or [],
         "near_high_codes": extras.get("near_high_codes") or [],
         "near_low_codes": extras.get("near_low_codes") or [],
         "unusual_codes": extras.get("unusual_codes") or [],

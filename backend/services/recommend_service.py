@@ -51,9 +51,9 @@ def pool() -> dict:
     that passes the safety gate, with conviction, its one watch-out and the
     fair-value range (looked up for the passers only)."""
     from backend.services.custom_lists_service import facts as signal_facts, question_table
-    from backend.services.research_lists_service import _as_of, _ctx, _fair_value, _risk
+    from backend.services.research_lists_service import _as_of, _ctx, _fair_value, _risk, report_snapshots
     from backend.services.signal_service import build_signals
-    from backend.services.summaries_service import _sector_bn
+    from utils.sector import sector_bn as _sector_bn
 
     facts = signal_facts()
     # Each company's strongest choice on the screener's six questions.
@@ -70,8 +70,9 @@ def pool() -> dict:
         # Warm the gate's one slow check (a year of news) for every Buy at once.
         list(ex.map(lambda f: ctx.governance(f["code"]), buys))
     run = rl.run_list(rc.gate_list(), list(facts.values()), ctx)
+    snaps = report_snapshots([f["code"] for f in run["passed"]])
     with ThreadPoolExecutor(_WORKERS) as ex:
-        extras = list(ex.map(lambda f: (_risk(f), _fair_value(f["code"])), run["passed"]))
+        extras = list(ex.map(lambda f: (_risk(f, snaps), _fair_value(f["code"])), run["passed"]))
 
     cands = []
     for f, (risk, fair) in zip(run["passed"], extras):

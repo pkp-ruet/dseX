@@ -1,46 +1,24 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Locked } from "@/components/premium/AnswerLock";
-import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
-import { IconAlert, IconChevronDown, IconLock } from "@/components/ui/icons";
+import { IconAlert, IconChevronDown } from "@/components/ui/icons";
 import { T } from "@/components/i18n/T";
 import { SectionFoot, ToneChip, tx } from "@/components/report/chip";
-import { usePremium } from "@/lib/premium";
 import type { Bi, Tone } from "@/lib/stock-report";
 
 /**
  * ONE question of a report (2026-10-30 rebuild; the stock report's — the
  * portfolio report used it too until its own leaner row, `PfQuestion` in
- * `components/portfolio/report/PfReportChapter.tsx`, 2026-11-04): the question (h3) and its
- * one-word answer, the answer in one sentence, a small picture, what it
- * means and what to watch (one labelled box), then the figures folded under
- * "See the figures". Every row on the page reads the same way.
+ * `components/portfolio/report/PfReportChapter.tsx`, 2026-11-04).
  *
- * Free / Premium, whole or nothing: a free reader gets the question, the
- * word, the free picture (public figures), the free line and the free facts.
- * The Premium picture, the answer, the explanation and the figures stay in
- * the HTML under `Locked` (hidden). What the full report adds is said once,
- * in the Premium card under the answer, and each closed chapter points back
- * to it in one line (`ReportChapter`). A row of the free chapter (`sample`)
- * is open for everyone.
- *
- * Fundamentals (2026-10-30, plan https://claude.ai/artifact/KCBooTX7PK7a4PoKkcmoMP):
- * a row with `teaser` is closed down to its question — plus its one-word
- * answer for `teaser="word"`, else a lock — and nothing else; everything
- * stays in the HTML under `Locked`. The open sample wears "Free sample".
- *
- * The full report (2026-10-30, plan
- * https://claude.ai/artifact/1TuJ9dvifeXTLzs5wVwk2Q): an open row shows its
- * explanation in the open — a Premium reader paid for it — and folds only
- * the figures and the source.
- *
- * Clean pass 2026-11-04 (user: the Premium report is "full of text and
- * unorganized", after the portfolio check's same pass): an open row reads
- * question + word, the answer, the picture(s), the facts, ONE amber line on
- * what to watch, then ONE clay tap bar — "Why it matters, and the figures" —
- * that folds what it means (the general paragraphs) with the figures and
- * their source. A row with no figures keeps its source line outside.
+ * The whole report is Premium (2026-11-01) and the page renders it inside
+ * `ReportGate`, open, so a row has one layout (clean pass 2026-11-04): the
+ * question (h3) and its one-word answer, the answer in one sentence, the
+ * picture(s), the facts, ONE amber line on what to watch, then ONE clay tap
+ * bar — "Why it matters, and the figures" — that folds what it means (the
+ * general paragraphs) with the figures and their source. A row with no
+ * figures keeps its source line outside. The locked and teaser layouts of
+ * 2026-10-30 were deleted with the audit's dead-code pass (SP14, 2026-11-05).
  */
 export default function QuestionRow({
   id,
@@ -52,15 +30,11 @@ export default function QuestionRow({
   free,
   premiumPicture,
   headline,
-  freeLine,
   details,
   meaning = [],
   watch = null,
   source,
   action,
-  sample = false,
-  allFree = false,
-  teaser,
   anchorClass = "stock-anchor",
 }: {
   /** Anchor id (`rp-<key>`). */
@@ -70,63 +44,24 @@ export default function QuestionRow({
   title: ReactNode;
   word: Bi | null;
   tone: Tone;
-  /** The free picture: public figures only. */
+  /** The picture built on public figures. */
   picture?: ReactNode;
-  /** Free facts under the answer (dates, red flags named). */
+  /** Facts under the answer (dates, red flags named). */
   free?: ReactNode;
-  /** A picture built on our figures (Premium). */
+  /** A second picture, built on our figures. */
   premiumPicture?: ReactNode;
-  /** The answer with its number (Premium unless `allFree`). */
+  /** The answer with its number. */
   headline: Bi | null;
-  /** The free reader's line. */
-  freeLine?: Bi | null;
-  /** The figures (Premium), folded. */
+  /** The figures, folded. */
   details?: ReactNode;
   meaning?: Bi[];
   watch?: Bi | null;
   source?: Bi | null;
   /** A control at the end of the source line (the share button). */
   action?: ReactNode;
-  /** A row of the free chapter: open for everyone. */
-  sample?: boolean;
-  /** Built only from public figures: nothing on this row is Premium. */
-  allFree?: boolean;
-  /** Closed, show only the question and the answer word ("word") or a lock. */
-  teaser?: "word" | "lock";
   /** The scroll-margin class for this page's sticky stack. */
   anchorClass?: string;
 }) {
-  const premiumOpen = usePremiumOpen();
-  const { isPremium } = usePremium();
-  const open = (allFree && !teaser) || sample || premiumOpen;
-  const compact = !open && !!teaser;
-
-  // What it means and what to watch, in one labelled box (2026-11-01, user:
-  // "make the premium sections look more organized").
-  const explain =
-    meaning.length > 0 || watch ? (
-      <div className="rq-explain">
-        {meaning.length > 0 && (
-          <div className="rq-explain-part">
-            <p className="rq-explain-k">
-              <T en="What this means" bn="এর মানে কী" />
-            </p>
-            {meaning.map((m, i) => (
-              <p key={i} className="rq-explain-p">{tx(m)}</p>
-            ))}
-          </div>
-        )}
-        {watch && (
-          <div className="rq-explain-part" data-watch="true">
-            <p className="rq-explain-k">
-              <T en="What to watch" bn="যা খেয়াল রাখবেন" />
-            </p>
-            <p className="rq-explain-p">{tx(watch)}</p>
-          </div>
-        )}
-      </div>
-    ) : null;
-
   // ONE fold for why it matters and the figures, behind a tap bar that says
   // what it holds (2026-10-30, user: "Why we say this" was easy to miss;
   // 2026-11-04: the meaning moved in here too, so the open row stays short).
@@ -187,63 +122,21 @@ export default function QuestionRow({
   ) : null;
 
   return (
-    <section id={id} className={`rq ${anchorClass}`} data-compact={compact ? "true" : undefined} aria-labelledby={`${id}-t`}>
+    <section id={id} className={`rq ${anchorClass}`} aria-labelledby={`${id}-t`}>
       {aliases.map((a) => <span key={a} id={a} className={`${anchorClass} block`} aria-hidden="true" />)}
       <div className="rq-head">
         <h3 id={`${id}-t`}>{title}</h3>
-        <span className="rq-chips">
-          {sample && !isPremium && teaser && (
-            <span className="rq-tag"><T en="Free sample" bn="ফ্রি নমুনা" /></span>
-          )}
-          {compact && teaser === "lock" ? (
-            <span className="rq-lockchip">
-              <IconLock size={14} />
-              <T en="Premium" bn="প্রিমিয়াম" />
-            </span>
-          ) : (
-            word && <ToneChip word={word} tone={tone} />
-          )}
-        </span>
+        <span className="rq-chips">{word && <ToneChip word={word} tone={tone} />}</span>
       </div>
-      {compact && (
-        <Locked>
-          {word && teaser === "lock" && <ToneChip word={word} tone={tone} />}
-          {picture && <div className="rq-pic">{picture}</div>}
-          {premiumPicture && <div className="rq-pic">{premiumPicture}</div>}
-          {headline && <p className="rq-answer">{tx(headline)}</p>}
-          {free && <div className="rq-free">{free}</div>}
-          {explain}
-          {details}
-        </Locked>
-      )}
-
-      {compact ? null : open ? (
-        // The answer leads; the pictures, the facts and one watch line follow,
-        // then the fold (why it matters + the figures).
-        <>
-          {headline && <p className="rq-answer">{tx(headline)}</p>}
-          {picture && <div className="rq-pic">{picture}</div>}
-          {premiumPicture && <div className="rq-pic">{premiumPicture}</div>}
-          {free && <div className="rq-free">{free}</div>}
-          {watchLine}
-          {fold}
-          {foot}
-        </>
-      ) : (
-        <>
-          {freeLine && <p className="rq-answer">{tx(freeLine)}</p>}
-          {picture && <div className="rq-pic">{picture}</div>}
-          {free && <div className="rq-free">{free}</div>}
-          {(premiumPicture || headline || explain || details) && (
-            <Locked>
-              {premiumPicture && <div className="rq-pic">{premiumPicture}</div>}
-              {headline && <p className="rq-answer">{tx(headline)}</p>}
-              {explain}
-              {details}
-            </Locked>
-          )}
-        </>
-      )}
+      {/* The answer leads; the pictures, the facts and one watch line follow,
+          then the fold (why it matters + the figures). */}
+      {headline && <p className="rq-answer">{tx(headline)}</p>}
+      {picture && <div className="rq-pic">{picture}</div>}
+      {premiumPicture && <div className="rq-pic">{premiumPicture}</div>}
+      {free && <div className="rq-free">{free}</div>}
+      {watchLine}
+      {fold}
+      {foot}
     </section>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useMyStake } from "@/components/stock/YourPosition";
 import AnswerLock from "@/components/premium/AnswerLock";
-import { SectionFoot } from "@/components/stock/report/ReportSection";
+import { SectionFoot } from "@/components/report/chip";
 import { DateT, money, perShare } from "@/components/stock/report/fmt";
 import { T } from "@/components/i18n/T";
 import type { Bi, StockReport } from "@/lib/stock-report";

@@ -11,17 +11,13 @@ import {
   apiGetPortfolio,
   apiGetWatchlist,
   apiGetAlerts,
-  apiGetSignalEvents,
   apiGetForYou,
-  getDailyTips,
   getWatchlistNews,
   getMarketIndex,
   getDividendsUpcoming,
   getNearExtremes,
   getMarketMovers,
-  getTodaysNews,
   getTop20,
-  getPopularStocks,
   getDividendCalendar,
   getResearchLists,
   type HomeBundle,
@@ -36,13 +32,11 @@ async function settle<T>(p: Promise<T>, fallback: T): Promise<T> {
 }
 
 async function legacyBundle(): Promise<HomeBundle> {
-  const [portfolio, watchlist, alerts, events, forYou, tips, index, dividends, extremes] = await Promise.all([
+  const [portfolio, watchlist, alerts, forYou, index, dividends, extremes] = await Promise.all([
     settle(apiGetPortfolio(), { holdings: [] }),
     settle(apiGetWatchlist(), { codes: [] }),
     settle(apiGetAlerts(), { alerts: [] }),
-    settle(apiGetSignalEvents(), { events: [] }),
     settle(apiGetForYou(), null),
-    settle(getDailyTips(), { date: null, tips: [] }),
     settle(getMarketIndex(), null),
     settle(getDividendsUpcoming(), { upcoming_declarations: [], upcoming_record_dates: [] }),
     settle(getNearExtremes(), null),
@@ -53,12 +47,10 @@ async function legacyBundle(): Promise<HomeBundle> {
       ...(portfolio.holdings ?? []).map((h) => h.trading_code.toUpperCase()),
     ]),
   ).sort();
-  const [news, movers, marketNews, top20, popular, calendar, research] = await Promise.all([
+  const [news, movers, top20, calendar, research] = await Promise.all([
     codes.length ? settle(getWatchlistNews(codes), []) : Promise.resolve([]),
     settle(getMarketMovers(), null),
-    settle(getTodaysNews(), []),
     settle(getTop20(), null),
-    settle(getPopularStocks(), null),
     settle(getDividendCalendar(), null),
     settle(getResearchLists(), { lists: [] }),
   ]);
@@ -67,19 +59,13 @@ async function legacyBundle(): Promise<HomeBundle> {
     holdings: portfolio.holdings ?? [],
     watchlist,
     alerts: alerts.alerts ?? [],
-    signal_events: events.events ?? [],
-    tips,
     news,
     market_index: index,
     dividends,
     near_extremes: extremes,
     dividend_cash: [],
-    report_codes: [],
-    summaries_bn: {},
     movers,
-    market_news: marketNews.slice(0, 12),
     top20: top20?.items?.slice(0, 8) ?? [],
-    popular: popular?.items?.slice(0, 8) ?? [],
     calendar: {
       record_dates: (calendar?.record_dates ?? []).filter(
         (e) => e.record_days_left != null && e.record_days_left >= 0 && e.record_days_left <= 14,

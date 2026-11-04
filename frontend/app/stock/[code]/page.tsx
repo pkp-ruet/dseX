@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
   ApiNotFoundError, getCompanyDetail, getInsightScores, getStockLists, getDividendHistory, getDeepAnalysis,
-  type DividendDeclarationRecord, type DeepAnalysisReport as DeepReport,
+  type DividendDeclarationRecord, type DeepAnalysisResponse,
 } from "@/lib/api";
 import { getTier, TIER_LABELS } from "@/lib/constants";
 import { computeFeaturedIn } from "@/lib/featured-lists";
@@ -131,7 +131,7 @@ export default async function StockDetailPage({ params }: PageProps) {
     getDividendHistory(code.toUpperCase()).catch(() => [] as DividendDeclarationRecord[]),
     // The written analyst note folds into the report (2026-10-28); most codes
     // have none, and the 404 just means "no note".
-    getDeepAnalysis(code.toUpperCase()).then((r) => r.report).catch(() => null as DeepReport | null),
+    getDeepAnalysis(code.toUpperCase()).catch(() => null as DeepAnalysisResponse | null),
   ]);
   let detail: Awaited<ReturnType<typeof getCompanyDetail>>;
   try {
@@ -153,12 +153,12 @@ export default async function StockDetailPage({ params }: PageProps) {
   // ledger. Both sources are cached and each is best-effort.
   let featuredIn: ReturnType<typeof computeFeaturedIn> = [];
   let dividendRows: DividendDeclarationRecord[] = [];
-  let deepReport: DeepReport | null = null;
+  let deep: DeepAnalysisResponse | null = null;
   try {
-    const [stockLists, ledger, deep] = await sideFetches;
+    const [stockLists, ledger, analysis] = await sideFetches;
     featuredIn = computeFeaturedIn(profile.trading_code, stockLists);
     dividendRows = Array.isArray(ledger) ? ledger : [];
-    deepReport = deep;
+    deep = analysis;
   } catch {
     featuredIn = [];
     dividendRows = [];
@@ -297,7 +297,7 @@ export default async function StockDetailPage({ params }: PageProps) {
     ...(report?.answer ? ["answer"] : []),
     ...chapters.map((c) => c.id),
     ...(report?.view ? [VIEW_CHAPTER.id] : []),
-    ...(deepReport ? ["note"] : []),
+    ...(deep ? ["note"] : []),
   ];
 
   // Current stock as the highlighted first row of the peer comparison.
@@ -396,7 +396,7 @@ export default async function StockDetailPage({ params }: PageProps) {
       : []),
     // The written analyst note (where one exists): a tab of the data room
     // since the 2026-10-30 rebuild — the four chapters carry the answers.
-    ...(deepReport
+    ...(deep
       ? [{
           key: "note",
           label: { en: "Written analysis", bn: "লেখা বিশ্লেষণ" },
@@ -404,7 +404,7 @@ export default async function StockDetailPage({ params }: PageProps) {
           premium: true,
           body: (
             <div id="note" className="stock-anchor">
-              <DeepAnalysisReport report={deepReport} fairValue={report ? null : detail.fair_value ?? null} code={profile.trading_code} />
+              <DeepAnalysisReport report={deep.report} writtenBefore={deep.written_before_results ?? null} />
             </div>
           ),
         }]

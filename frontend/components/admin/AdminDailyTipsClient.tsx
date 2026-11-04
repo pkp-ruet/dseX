@@ -127,9 +127,6 @@ export default function AdminDailyTipsClient() {
           >
             ⟳ Reload
           </Button>
-          <Link href="/admin/daily-pick" className="text-xs sm:text-sm text-primary hover:underline whitespace-nowrap">
-            Picks
-          </Link>
           <Link href="/admin/scores" className="text-xs sm:text-sm text-primary hover:underline whitespace-nowrap">
             Scores
           </Link>

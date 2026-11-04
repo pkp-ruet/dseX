@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { BAR_H, NAVBAR_H, STOCK_JUMP_EVENT } from "@/components/stock/StickyStackMeasure";
-import { OPEN_CHAPTER_EVENT } from "@/components/stock/StockChapter";
 import { T } from "@/components/i18n/T";
 
 export { STOCK_JUMP_EVENT };
@@ -72,8 +71,6 @@ export default function StockSectionNav({ sections }: Props) {
     e.preventDefault();
     const el = document.getElementById(id);
     if (!el) return;
-    // A folded chapter (phones) opens first; opening it doesn't move its top.
-    window.dispatchEvent(new CustomEvent(OPEN_CHAPTER_EVENT, { detail: { id } }));
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     // Land the section title just under the sticky stack, whatever it measures

@@ -640,39 +640,6 @@ def test_buy_price_never_above_the_stop_buy_line():
     assert rep["view"]["change"][0]["en"].startswith("If the price climbs past ৳226")
 
 
-def test_next_questions_pair_each_free_answer_with_its_question():
-    inp = square()
-    inp["signal"] = _sig("buy", "quality_cheap")
-    inp["range52"] = {"hi": 260.0, "lo": 180.0}
-    rows = sr.build_report(inp)["next_questions"]
-    _all_bi([{k: r[k] for k in ("word", "ask", "hint", "answer")} for r in rows])
-    assert [r["key"] for r in rows] == ["answer", "price", "red_flags", "owners", "next"]
-    assert rows[0]["word"]["en"] == "Buy" and rows[0]["ask"]["en"] == "Up to what price?"
-    assert rows[0]["answer"]["en"].startswith("We would buy under ৳248.")
-    assert rows[1]["word"]["en"] == "Low" and rows[1]["hint"]["en"] == "Our fair price, worked out 4 ways"
-    assert rows[4]["word"]["en"] == "Results around 12 Nov"
-
-    bad = red_flag_company()
-    bad["signal"] = _sig("none", "red_flag", tier="good")
-    rows = sr.build_report(bad)["next_questions"]
-    assert rows[0]["ask"]["en"] == "What would change it?"
-    assert [r["key"] for r in rows][:3] == ["answer", "price", "red_flags"]
-    assert len(rows) <= 5
-    # The card's words never use a bare market word or ratio-speak, and the
-    # free half (word, ask, hint) carries no figure the free page doesn't show.
-    for f, sig in ((square, _sig("buy", "quality_cheap")), (red_flag_company, _sig("none", "red_flag", tier="good"))):
-        inp = f()
-        inp["signal"] = sig
-        for r in sr.build_report(inp)["next_questions"]:
-            for k in ("ask", "hint", "answer"):
-                b = r[k]
-                if not b:
-                    continue
-                for half in (b["en"], b["bn"]):
-                    assert not _MARKET_WORDS.search(half), half
-                assert not _RATIO_SPEAK.search(b["en"]), b["en"]
-
-
 def test_company_light_names_its_strong_and_weak_checks():
     line = sr.checks_line({"p1_biz": 8.1, "p2_health": 7.4, "p3_moat": 5.0, "p4_val": 3.2, "p5_div": 6.0})
     # The price is not one of the grade's checks since 2026-11-05.
@@ -830,7 +797,27 @@ def test_auditor_reason_sets_the_flag_level():
     inp["audit_opinion"] = {"year": 2025, "severity": "minor", "going_concern": False,
                             "reasons": [], "minor": ["deferred_tax"], "posted": "2025-11-11", "title": "Qualified Opinion"}
     c = {x["key"]: x for x in sr.build_report(inp)["sections"]["red_flags"]["checks"]}["audit"]
-    assert c["level"] == "amber" and "2025 accounts over smaller matters" in c["detail"]["en"]
+    assert c["level"] == "amber" and "2025 accounts, over smaller matters" in c["detail"]["en"]
     inp["audit_opinion"].update({"severity": "serious", "reasons": ["credit_loss"], "minor": []})
     c = {x["key"]: x for x in sr.build_report(inp)["sections"]["red_flags"]["checks"]}["audit"]
     assert c["level"] == "red" and "losses it has not written down" in c["detail"]["en"]
+
+
+def test_auditor_line_counts_every_reason_and_links_the_report():
+    # N3 (round 4): plain words, every serious reason counted, the PDF linked,
+    # and an unread PDF says so instead of guessing what it was about.
+    inp = square()
+    inp["governance"] = [{"key": "qualified_opinion", "tone": "watch", "en": "x.", "bn": "x।"}]
+    url = "https://www.dsebd.org/Auditors_opinion/2025/SQURPHARMA_2025.pdf"
+    inp["audit_opinion"] = {"year": 2025, "severity": "serious", "going_concern": False,
+                            "reasons": ["credit_loss", "recovery", "evidence", "related_party"], "minor": [],
+                            "posted": "2025-11-11", "title": "Qualified Opinion", "url": url}
+    c = {x["key"]: x for x in sr.build_report(inp)["sections"]["red_flags"]["checks"]}["audit"]
+    assert c["detail"]["en"] == ("The auditor did not fully approve its 2025 accounts, because of losses it has not "
+                                 "written down and money owed to it that may never come back, and 2 more matters.")
+    assert "আরও 2টি বিষয়" in c["detail"]["bn"]
+    assert c["evidence"]["url"] == url
+    inp["audit_opinion"].update({"severity": "unknown", "reasons": []})
+    c = {x["key"]: x for x in sr.build_report(inp)["sections"]["red_flags"]["checks"]}["audit"]
+    assert "could not read the reason" in c["detail"]["en"]
+    assert "qualified" not in c["detail"]["en"].lower()

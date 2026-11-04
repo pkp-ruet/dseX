@@ -69,8 +69,11 @@ const writePrompt = (code) =>
   `financials/extended_financials yourself. No price-relative content (today's price, current ` +
   `P/E or P/B, dividend yield, cheap/fair/expensive stance, fair-value figures, recent returns, ` +
   `52-week position), no scorecard or fair_value block, and no quoting of our score / tier / ` +
-  `sector rank. No buy/sell advice, no price predictions. Simple language, no jargon; Western ` +
-  `digits in Bengali.\n` +
+  `sector rank or group words. No buy/sell advice, no price predictions, and never point at a ` +
+  `part of the page (no "value today box", no "Buy/Sell signal"). Simple language, no jargon; ` +
+  `Western digits in Bengali; no em dashes or spaced dashes (use a full stop or a comma); no ` +
+  `idioms ("cushion", "fortress", "blue-chip", "skin in the game", "moat"). save_analysis ` +
+  `rejects all of these.\n` +
   `DO NOT run save_analysis — writing the file is your last step. Return {code, written:true} ` +
   `once the file is written.`
 
@@ -85,7 +88,10 @@ const verifyPrompt = (code) =>
   `(1m/3m/1y), the 52-week position, the scorecard, or our score / tier / sector rank ` +
   `("Nth of M companies") — all served live.\n` +
   `(c) NO ADVICE — no buy/sell instruction and no future-price prediction.\n` +
-  `Be strict: grounded=false if ANY number is wrong/ungrounded OR anything in (b)/(c) leaked. ` +
+  `(d) VOICE — no em dash or spaced dash, no Bengali numerals, no idioms ("cushion", "fortress", ` +
+  `"blue-chip", "skin in the game", "moat"), no bare EPS / P/E / NAV / ROE, and no pointer at a ` +
+  `page part ("value today box", "Buy/Sell signal").\n` +
+  `Be strict: grounded=false if ANY number is wrong/ungrounded OR anything in (b)/(c)/(d) leaked. ` +
   `Return {code, grounded, issues} where issues are specific, fixable notes (empty if clean).`
 
 const repairPrompt = (code, issuesText) =>

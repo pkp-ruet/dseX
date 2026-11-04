@@ -104,7 +104,6 @@ export const cacheKeys = {
   alerts: (userId: string) => `${CACHE_PREFIX}alerts.${userId}`,
   portfolio: (userId: string) => `${CACHE_PREFIX}portfolio.${userId}`,
   portfolioTxns: (userId: string) => `${CACHE_PREFIX}portfolioTxns.${userId}`,
-  dailyPicks: (userId: string) => `${CACHE_PREFIX}dailyPicks.${userId}`,
   /** The one-request `/api/user/home` bundle the dashboard paints from. */
   homeBundle: (userId: string) => `${CACHE_PREFIX}homeBundle.${userId}`,
 };

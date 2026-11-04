@@ -5,7 +5,6 @@ from pydantic import BaseModel, Field
 
 from backend.routers.auth import get_current_admin_user
 from backend.services.db_service import get_db, load_companies
-from backend.services.daily_pick_service import admin_get_state, refresh_slot
 from backend.services import score_adjustments_service
 from backend.services import daily_tips_service
 from backend.services import usage_analytics_service
@@ -22,37 +21,6 @@ def get_analytics(days: int = 30, fresh: bool = False, _: dict = Depends(get_cur
     `days` = the behaviour window (7, 30 or 90 Dhaka days). Admin accounts and
     /admin pages are left out. See `usage_analytics_service`."""
     return usage_analytics_service.build(days, fresh=fresh)
-
-
-# ---------------------------------------------------------------------------
-# Daily Picks — admin controls (3 picks per day; refresh any individually)
-# ---------------------------------------------------------------------------
-
-class RefreshSlotRequest(BaseModel):
-    slot: int = Field(..., ge=1, le=3)
-
-
-@router.get("/daily-pick")
-def admin_get_daily_pick(_: dict = Depends(get_current_admin_user)):
-    """Today's picks (in slot order, NOT randomized) + skip log + yesterday."""
-    return admin_get_state()
-
-
-@router.post("/daily-pick/refresh")
-def admin_refresh_slot(
-    payload: RefreshSlotRequest,
-    user: dict = Depends(get_current_admin_user),
-):
-    """Skip the current stock at `slot` and select a new candidate from the
-    same source pool. Adds the rejected code to today's skip list so it can't
-    come back today."""
-    try:
-        result = refresh_slot(payload.slot, refreshed_by_user_id=user.get("user_id"))
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except RuntimeError as e:
-        raise HTTPException(status_code=409, detail=str(e))
-    return result
 
 
 # ---------------------------------------------------------------------------

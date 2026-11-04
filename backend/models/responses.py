@@ -282,7 +282,6 @@ class CompanyDetailResponse(BaseModel):
     signal: Optional[StockSignal] = None
     valuation: Optional[ValuationContext] = None
     sector_context: Optional[SectorContext] = None
-    bengali_summary: Optional[str] = None  # plain-Bangla "এক নজরে" (cached, generated post-scrape)
     fair_value: Optional[FairValue] = None  # live "value today" box (services/fair_value.py)
     deep_analysis: Optional[DeepAnalysisTeaser] = None  # teaser only; full report on the /analysis sub-page
     # Bilingual ownership read: {"caption": {tone,en,bn}, "change": {tone,key,en,bn} | None}
@@ -301,9 +300,10 @@ class CompanyDetailResponse(BaseModel):
 
 
 class DeepAnalysisResponse(BaseModel):
-    """Sub-page bundle: the durable narrative + the live value box beside it."""
+    """The written analysis + {posted, full_year} when the company posted results
+    after it was written (the tab then says so)."""
     report: DeepAnalysisReport
-    fair_value: Optional[FairValue] = None
+    written_before_results: Optional[dict[str, Any]] = None
 
 
 class UpcomingDividend(BaseModel):

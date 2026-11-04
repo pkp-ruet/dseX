@@ -244,8 +244,12 @@ def ownership_change(sh: Optional[dict], prev: Optional[dict],
 _GOVERNANCE_RULES = [
     ("qualified_opinion",
      re.compile(r"(?<!un)qualified\s+(?:audit\s+)?opinion", re.IGNORECASE),
-     "The auditor gave a qualified opinion on the latest accounts, meaning some figures could not be fully confirmed.",
-     "নিরীক্ষক সর্বশেষ হিসাবে শর্তসাপেক্ষ মতামত দিয়েছেন, অর্থাৎ কিছু হিসাব পুরোপুরি নিশ্চিত করা যায়নি।"),
+     # The notice alone doesn't say why (2026-11-05, audit N3): the reason is
+     # in the auditor's report, which the report names once it is read
+     # (`auditor_opinions`, stock_report.audit_line). No guess here.
+     # One sentence: the notice's date is added at its end.
+     "The auditor did not fully approve its accounts, for a reason given in the auditor's report.",
+     "নিরীক্ষক কোম্পানির হিসাব পুরোপুরি অনুমোদন করেননি, কারণটি নিরীক্ষকের প্রতিবেদনে দেওয়া আছে।"),
     ("going_concern",
      re.compile(r"going\s+concern", re.IGNORECASE),
      "The auditor raised doubts about whether the business can keep running.",

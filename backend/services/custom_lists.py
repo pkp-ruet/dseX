@@ -54,7 +54,7 @@ class CheckDef:
 def _sector_bn(name: str) -> str:
     """A DSE sector name in Bengali, else the DSE name."""
     try:
-        from backend.services.summaries_service import _sector_bn as word
+        from utils.sector import sector_bn as word
         return word(name) or name
     except Exception:  # noqa: BLE001 — a label helper must never break a run
         return name

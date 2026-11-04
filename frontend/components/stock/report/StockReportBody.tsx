@@ -11,7 +11,8 @@ import PortfolioFit from "@/components/stock/report/PortfolioFit";
 import { dayShort } from "@/components/dividend-calendar/dates";
 import { money, tx } from "@/components/stock/report/fmt";
 import {
-  AlternativesDetails, CashPremium, DividendDetails, DividendFree, DividendPremium, MoneyPicture, NextDetails, NextFree,
+  AlternativesDetails, CashPremium, CoreDetails, CorePicture, DepositLine, DividendDetails, DividendFree, DividendPremium,
+  LiquidityDetails, MoneyPicture, NextDetails, NextFree,
   OwnersDetails, OwnersFree, PriceDetails, PricePicture, PricePremium, QualityDetails, RedFlagsDetails, StrengthPicture, strengthAnswer,
   RedFlagsFree, RisksDetails, SafetyDetails, SafetyFree, SafetyPremium, SharesPicture, ThisYearDetails, ThisYearFree,
   ThisYearPremium, sharesAnswer,
@@ -102,7 +103,6 @@ export default function StockReportBody({ detail, report }: { detail: CompanyDet
       free={parts.free}
       premiumPicture={parts.premiumPicture}
       headline={s.headline}
-      freeLine={s.free_line}
       details={parts.details}
       meaning={[...s.meaning, ...(parts.extraMeaning ?? [])]}
       watch={s.watch}
@@ -131,6 +131,19 @@ export default function StockReportBody({ detail, report }: { detail: CompanyDet
       }
       case "cash":
         return sec.cash ? { node: fromSection("cash", q, { premiumPicture: <CashPremium s={sec.cash} /> }, sec.cash) } : null;
+      case "core":
+        return sec.core
+          ? {
+              node: fromSection("core", q, {
+                premiumPicture: <CorePicture s={sec.core} />,
+                details: <CoreDetails s={sec.core} />,
+              }, sec.core),
+            }
+          : null;
+      case "liquidity":
+        return sec.liquidity
+          ? { node: fromSection("liquidity", q, { details: <LiquidityDetails s={sec.liquidity} /> }, sec.liquidity) }
+          : null;
       case "safety":
         return sec.safety
           ? {
@@ -169,7 +182,6 @@ export default function StockReportBody({ detail, report }: { detail: CompanyDet
               tone={ans?.tone ?? base.tone}
               picture={st ? <StrengthPicture sector={st} /> : undefined}
               headline={base.headline}
-              freeLine={base.free_line}
               details={<QualityDetails detail={detail} />}
               meaning={st ? st.meaning : base.meaning}
               watch={ql?.watch ?? null}
@@ -193,7 +205,6 @@ export default function StockReportBody({ detail, report }: { detail: CompanyDet
               tone={a.tone}
               picture={<SharesPicture s={d} />}
               headline={a.line}
-              allFree
             />
           ),
         };
@@ -204,6 +215,7 @@ export default function StockReportBody({ detail, report }: { detail: CompanyDet
               node: fromSection("price", q, {
                 picture: <PricePicture s={sec.price} />,
                 premiumPicture: <PricePremium s={sec.price} />,
+                free: <DepositLine s={sec.price} />,
                 details: (
                   <PriceDetails
                     s={sec.price}

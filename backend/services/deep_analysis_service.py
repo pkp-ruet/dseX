@@ -14,6 +14,7 @@ Two halves, matching the durable-vs-live split the reports were written around:
 The report body itself carries no price, no scorecard and no fair-value number
 (by design), so the two never contradict each other.
 """
+from datetime import date, datetime
 from typing import Optional
 
 from backend.services.db_service import (
@@ -110,6 +111,42 @@ def compute_fair_value(code: str) -> Optional[dict]:
     ltp = (load_latest_prices().get(code) or {}).get("ltp")
     sector_class = normalize_sector(company.get("sector") or "")
     return estimate_fair_value(score_row, financials, company, ltp, sector_class)
+
+
+def written_before_results(as_of_date, latest: Optional[dict]) -> Optional[dict]:
+    """{posted, full_year} when the company posted results after the written
+    analysis was built from its facts, else None (2026-11-05, audit SP2: the
+    80 analyses were written 16–22 Jul 2026, before the FY2026 results, and
+    "Figures as of 16 Jul 2026" was the only sign of their age). Pure."""
+    def _day(v):
+        if v is None:
+            return None
+        if isinstance(v, datetime):
+            return v.date()
+        if isinstance(v, date):
+            return v
+        try:
+            return date.fromisoformat(str(v)[:10])
+        except ValueError:
+            return None
+
+    written = _day(as_of_date)
+    posted = _day((latest or {}).get("post_date"))
+    if not written or not posted or posted <= written:
+        return None
+    return {"posted": posted.isoformat(), "full_year": bool((latest or {}).get("full_year"))}
+
+
+def report_staleness(code: str, as_of_date) -> Optional[dict]:
+    """`written_before_results` for one code, from the newest results post
+    (`results_explainer.load_latest_results`, cached). Best-effort."""
+    try:
+        from backend.services.results_explainer import load_latest_results
+
+        latest = load_latest_results([code.upper()]).get(code.upper())
+    except Exception:  # noqa: BLE001 — the note is a refinement
+        return None
+    return written_before_results(as_of_date, latest)
 
 
 def invalidate_deep_analysis_cache() -> None:

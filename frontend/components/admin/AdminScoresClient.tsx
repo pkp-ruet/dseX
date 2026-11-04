@@ -171,9 +171,6 @@ export default function AdminScoresClient() {
           <Button href="/admin/analytics" variant="quiet" size="sm" className="whitespace-nowrap">
             Users
           </Button>
-          <Button href="/admin/daily-pick" variant="quiet" size="sm" className="whitespace-nowrap">
-            ★ Daily Pick
-          </Button>
           <Button href="/admin/tips" variant="quiet" size="sm" className="whitespace-nowrap">
             💡 Edit Tips
           </Button>

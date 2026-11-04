@@ -331,8 +331,42 @@ def market_lists(tone: Optional[str], value_band: Optional[str], today: Optional
             "lists": lists, "history": hist}
 
 
-def _risk(f: dict) -> Optional[dict]:
-    """The one thing that could go wrong — the stock page's first watch-out."""
+def snapshot_risk(snap: Optional[dict]) -> Optional[dict]:
+    """Pure: the one thing that could go wrong, from the stock report's newest
+    snapshot — its first serious problem, else its first smaller thing, in the
+    report's own plain words ({en, bn, more, level}); None when it found
+    nothing (2026-11-05, audit EL11)."""
+    if not snap:
+        return None
+    lines = []
+    for keys, texts, level in (("red_keys", "red_lines", "red"), ("amber_keys", "amber_lines", "amber")):
+        for k in snap.get(keys) or []:
+            t = (snap.get(texts) or {}).get(k) or {}
+            if t.get("en") and t.get("bn"):
+                lines.append((t, level))
+    if not lines:
+        return None
+    (t, level) = lines[0]
+    return {"en": t["en"], "bn": t["bn"], "more": len(lines) - 1, "level": level}
+
+
+def report_snapshots(codes) -> dict[str, dict]:
+    """{code: newest stock report snapshot} for these codes (one read)."""
+    try:
+        from backend.services.stock_report_service import latest_snapshots
+        return latest_snapshots(codes)
+    except Exception:  # noqa: BLE001 — the card then uses the older wording
+        logger.exception("research lists: report snapshots failed")
+        return {}
+
+
+def _risk(f: dict, snaps: Optional[dict] = None) -> Optional[dict]:
+    """The one thing that could go wrong. From the stock report's snapshot
+    when it carries amber lines (stored since 2026-11-05); else the stock
+    page's first watch-out (the older `build_items` wording)."""
+    snap = (snaps or {}).get(f["code"])
+    if snap is not None and "amber_lines" in snap:
+        return snapshot_risk(snap)
     from backend.services.stock_facts import build_items
     code = f["code"]
     try:
@@ -358,7 +392,7 @@ def _fair_value(code: str) -> Optional[dict]:
 
 
 def _card(lst: rl.ResearchList, f: dict, rank: int, ctx: rl.Ctx, signals: dict,
-          report_codes: set[str]) -> dict:
+          report_codes: set[str], snaps: Optional[dict] = None) -> dict:
     head_en, head_bn = lst.headline(f)
     sig = signals.get(f["code"]) or {}
     q = None
@@ -378,7 +412,7 @@ def _card(lst: rl.ResearchList, f: dict, rank: int, ctx: rl.Ctx, signals: dict,
         "signal": sig.get("signal") or "none", "strength": sig.get("strength"),
         "headline_en": head_en, "headline_bn": head_bn,
         "checks": rl.check_values(lst, f, ctx),
-        "risk": _risk(f),
+        "risk": _risk(f, snaps),
         "fair_value": _fair_value(f["code"]),
         "quarter": q,
         "owners": owners,
@@ -409,6 +443,7 @@ def get_list(slug: str) -> Optional[dict]:
         reports = set()
 
     passed = res["passed"][:rl.LIST_CAP]
+    snaps = report_snapshots([f["code"] for f in passed])
     return {
         "id": lst.id, "slug": lst.slug,
         "title_en": lst.title_en, "title_bn": lst.title_bn,
@@ -419,6 +454,6 @@ def get_list(slug: str) -> Optional[dict]:
         "passed": len(res["passed"]),
         "columns": [{"key": c.key, "label_en": c.label_en, "label_bn": c.label_bn, "fmt": c.fmt}
                     for c in lst.columns],
-        "stocks": [_card(lst, f, i + 1, ctx, signals, reports) for i, f in enumerate(passed)],
+        "stocks": [_card(lst, f, i + 1, ctx, signals, reports, snaps) for i, f in enumerate(passed)],
         "changes": changes_for(lst, res["codes"], facts, ctx),
     }
