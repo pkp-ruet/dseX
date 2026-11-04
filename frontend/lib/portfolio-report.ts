@@ -1506,8 +1506,11 @@ function watchChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone;
         key: h.code,
         code: h.code,
         label: same(nameOf(h)),
-        value: h.signal.signal === "sell" ? B("Sell", "বিক্রি") : B("Buy more", "আরও কেনা যায়"),
-        tone: (h.signal.signal === "sell" ? "bad" : "good") as Tone,
+        value: h.signal.signal === "sell" ? B("Sell", "বিক্রি")
+          : h.signal.signal === "trim" ? B("Trim", "কিছুটা কমান")
+          : h.signal.signal === "review" ? B("Read the warning", "সতর্কতাটি পড়ুন")
+          : B("Buy more", "আরও কেনা যায়"),
+        tone: (h.signal.signal === "sell" ? "bad" : h.signal.signal === "buy_more" ? "good" : "fair") as Tone,
       })),
     // Why each share is marked Sell, shown open (2026-11-04).
     points: f.sells.slice(0, 3).map((h) => {
@@ -1576,6 +1579,10 @@ function watchChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone;
           ? B(`${e.trading_code} is now marked Sell.`, `${e.trading_code}-এ এখন বিক্রির সংকেত।`)
           : e.signal === "buy_more"
             ? B(`${e.trading_code} is now marked Buy more.`, `${e.trading_code}-এ এখন আরও কেনার সংকেত।`)
+            : e.signal === "trim"
+              ? B(`${e.trading_code} is now marked Trim.`, `${e.trading_code}-এ এখন কিছুটা কমানোর সংকেত।`)
+              : e.signal === "review"
+                ? B(`${e.trading_code} now has a warning to read.`, `${e.trading_code}-এ এখন একটি সতর্কতা পড়ার আছে।`)
             : B(`${e.trading_code} no longer has a signal.`, `${e.trading_code}-এ এখন কোনো সংকেত নেই।`),
       ),
       ...closed.map((e) => B(`${e.title_en}. ${e.body_en}`, `${e.title_bn}। ${e.body_bn}`)),

@@ -85,7 +85,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: "/learn", label: "Guides", labelBn: "ইংরেজি গাইড", sub: "Step-by-step guides in English", subBn: "ইংরেজিতে ধাপে ধাপে গাইড", icon: "blog" },
       { href: "/blog", label: "Bangla blog", labelBn: "বাংলা ব্লগ", sub: "Beginner guides in Bengali", subBn: "নতুনদের জন্য সহজ গাইড", icon: "bangla" },
-      { href: "/about", label: "How we score", labelBn: "আমরা কীভাবে স্কোর করি", sub: "The five checks, explained", subBn: "পাঁচটি যাচাই, সহজ করে বলা", icon: "about" },
+      { href: "/about", label: "How we score", labelBn: "আমরা কীভাবে স্কোর করি", sub: "The checks behind the grade, explained", subBn: "গ্রেডের পেছনের যাচাই, সহজ করে বলা", icon: "about" },
     ],
   },
 ];

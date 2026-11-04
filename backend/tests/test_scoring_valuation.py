@@ -25,8 +25,10 @@ def test_p4_loss_on_ttm_has_no_pe():
 def test_own_history_pe_is_a_median():
     # ENVOYTEX P/Es 52.04, 14.79, 22.50, 9.95, 4.76 — the mean was 20.8.
     _, sub = _a2_pillar4(fin_rows("ENVOYTEX"), 58.4, 15.0, 1.0)
-    assert sub["own_avg_pe"] == 14.79
-    assert sub["own_avg_pe_years"] == 5
+    # FY2023's year-end (June 2023) fell in the floor-price period and is left
+    # out (audit GR5); the median of the other four is 12.37.
+    assert sub["own_avg_pe"] == 12.37
+    assert sub["own_avg_pe_years"] == 4
 
 
 def test_own_history_years_for_a_young_listing():
@@ -148,3 +150,48 @@ def test_lender_cushion_falls_back_to_dse_nav():
     ext = [{"year": 2024, "total_equity": 148.9e9, "total_assets": 148.9e9, "operating_cf": 1.9e9}]
     _, sub = _a2_pillar2(ext, is_financial=True, lender_nav=(49.96, 458_307_579))
     assert sub["p2_capital"] is not None
+
+
+
+# --------------------------------------------------------------------------- #
+# Round 3 (2026-11-05): settled grade, bonus restatement, ceilings, loans
+# --------------------------------------------------------------------------- #
+
+def test_settle_holds_a_group_until_one_point_past_the_line():
+    from backend.services.scoring_service import settle_score
+    assert settle_score(74.6, 76.0) == 75.0          # stays strong all round, held on the line
+    assert settle_score(73.9, 76.0) == 73.9          # 1+ point under: drops
+    assert settle_score(75.4, 72.0) == 74.9          # not yet 1 point over: stays mostly strong
+    assert settle_score(76.1, 72.0) == 76.1
+    assert settle_score(58.5, 77.0) == 58.5          # well past two lines
+    assert settle_score(59.5, 77.0) == 60.0          # past 75 by far, inside 60's band: held at good
+    assert settle_score(50.0, None) == 50.0
+
+
+def test_bonus_shares_restate_eps_history():
+    from backend.services.scoring_service import bonus_adjust_rows
+    rows = [{"year": 2023, "eps": 2.0, "nav_per_share": 20.0, "cash_dividend_pct": 10.0, "stock_dividend_pct": 10.0,
+             "profit_mn": 200.0, "pe_ratio_basic": 10.0},
+            {"year": 2024, "eps": 2.0, "nav_per_share": 22.0, "cash_dividend_pct": 10.0, "stock_dividend_pct": 0.0,
+             "profit_mn": 220.0, "pe_ratio_basic": 9.0}]
+    out = bonus_adjust_rows(rows)
+    assert out[0]["eps"] == pytest.approx(2.0 / 1.1)          # 2023 on 2024's share count
+    assert out[0]["pe_ratio_basic"] == 10.0                    # year-end P/E unchanged
+    assert out[1]["eps"] == 2.0
+    # Today's count is 10% above what 2024's profit / EPS implies: a bonus has gone ex.
+    out2 = bonus_adjust_rows(rows, total_shares=121_000_000)  # implied 110m
+    assert out2[1]["eps"] == pytest.approx(2.0 / 1.1, rel=1e-6)
+
+
+def test_absolute_pe_ceiling():
+    rows = [{"year": y, "eps": 1.0, "nav_per_share": 10.0, "pe_ratio_basic": 900.0} for y in (2020, 2021, 2024, 2025)]
+    _, sub = _a2_pillar4(rows, 612.0, 900.0, 60.0)           # P/E 612 against its own 900
+    assert sub["p4_pe"] <= 1.0
+
+
+def test_dse_loan_figure_wins_when_larger():
+    ext = [{"year": 2025, "total_debt": 2.3e6, "total_equity": 1e10, "ebit": 3e9, "interest_expense": 1e6,
+            "operating_cf": 2e9, "net_profit": 1.5e9}]
+    _, low = _a2_pillar2(ext)
+    _, real = _a2_pillar2(ext, dse_loan_mn=42000.0)            # DESCO: ৳42bn on DSE's page
+    assert real["p2_de"] < low["p2_de"]

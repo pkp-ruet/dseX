@@ -157,11 +157,13 @@ export function landingGrade(tier: string, tierEn: string, tierBn: string): Word
   return { en: tierEn, bn: tierBn, tone: TIER_TONE[tier] ?? "neutral" };
 }
 
-/** "Strong: profit, finances · Weak: price" from the five checks (the
- *  ranking's cut-offs: strong ≥ 7, weak < 4). */
+/** "Strong: profit, finances · Weak: dividend" from the grade's four business
+ *  checks (strong ≥ 7, weak < 4). The price is not one of them since
+ *  2026-11-05 — it has its own light. */
 export function landingChecksLine(s: LandingStock): { en: string; bn: string } | null {
-  const strong = PILLARS.filter((_, i) => (s.pillars[i] ?? -1) >= 7);
-  const weak = PILLARS.filter((_, i) => s.pillars[i] != null && (s.pillars[i] as number) < 4);
+  const isGrade = (p: PillarMeta) => p.key !== "p4_val";
+  const strong = PILLARS.filter((p, i) => isGrade(p) && (s.pillars[i] ?? -1) >= 7);
+  const weak = PILLARS.filter((p, i) => isGrade(p) && s.pillars[i] != null && (s.pillars[i] as number) < 4);
   if (!strong.length && !weak.length) return null;
   const en: string[] = [];
   const bn: string[] = [];

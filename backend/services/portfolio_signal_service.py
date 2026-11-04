@@ -116,7 +116,7 @@ def check_and_notify(not_before_dhaka_hour: Optional[int] = None) -> dict:
     if not users:
         return {"users": 0, "holdings": 0, "changed": 0, "pushed": 0, "failed": 0}
 
-    from backend.services.signal_service import build_signals, holding_signal
+    from backend.services.signal_service import build_signals, holding_signal, holding_weights
 
     signals = build_signals()
     prices = load_latest_prices()
@@ -138,6 +138,7 @@ def check_and_notify(not_before_dhaka_hour: Optional[int] = None) -> dict:
             for d in _signals().find({"user_id": uid}, {"_id": 0, "trading_code": 1, "signal": 1})
         }
         sell_flips: list[str] = []
+        weights = holding_weights(holdings, prices)
 
         for h in holdings:
             code = (h.get("trading_code") or "").upper()
@@ -154,7 +155,7 @@ def check_and_notify(not_before_dhaka_hour: Optional[int] = None) -> dict:
                 if ltp and buy_price > 0 else None
             )
             sig = signals.get(code)
-            signal = holding_signal(sig, pnl_pct, (sig or {}).get("p4_val"))["signal"]
+            signal = holding_signal(sig, pnl_pct, (sig or {}).get("p4_val"), weights.get(code))["signal"]
 
             prev = prev_state.get(code)
             if prev is None:

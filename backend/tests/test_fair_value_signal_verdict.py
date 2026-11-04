@@ -141,3 +141,43 @@ def test_excellent_keeps_its_buy_down_to_3_5():
     assert _signal_for_row(_good_row(3.8, 80.0), mom)["reason_key"] == "quality_expensive"
     assert _signal_for_row(_good_row(3.8, 80.0), mom, prev={"signal": "buy"})["signal"] == "buy"
     assert _signal_for_row(_good_row(3.4, 80.0), mom, prev={"signal": "buy"})["signal"] == "none"
+
+
+def test_no_trade_in_the_window_blocks_a_buy():
+    from backend.services.signal_service import _signal_for_row, _NO_TRADE
+    assert _signal_for_row(_good_row(8.0), _NO_TRADE)["reason_key"] == "thin_trading"
+    assert _signal_for_row(_good_row(8.0), None)["signal"] == "buy"     # momentum unavailable: not blocked
+
+
+# --------------------------------------------------------------------------- #
+# Holding advice is weight-aware, never from the buy price (2026-11-05, PR7)
+# --------------------------------------------------------------------------- #
+
+def test_holding_advice_ignores_what_was_paid():
+    from backend.services.signal_service import holding_signal
+    pricey = {"signal": "none", "reason_key": "quality_expensive", "tier": "good"}
+    assert holding_signal(pricey, -12.0, 3.0, 10.0)["signal"] == "none"     # used to be Sell
+    assert holding_signal(pricey, 0.0, 3.0, 10.0)["signal"] == "none"
+
+
+def test_trim_a_big_share_at_a_high_price():
+    from backend.services.signal_service import holding_signal
+    pricey = {"signal": "none", "reason_key": "quality_expensive", "tier": "good"}
+    assert holding_signal(pricey, 5.0, 3.0, 30.0)["signal"] == "trim"
+    fair = {"signal": "none", "reason_key": "good_wait_price", "tier": "good", "pct52": 50.0}
+    assert holding_signal(fair, 5.0, 5.0, 30.0)["signal"] == "none"           # big but fairly priced
+
+
+def test_buy_more_only_under_20_percent():
+    from backend.services.signal_service import holding_signal
+    buy = {"signal": "buy", "reason_key": "quality_cheap", "tier": "good", "pct52": 40.0}
+    assert holding_signal(buy, -3.0, 8.0, 12.0)["signal"] == "buy_more"
+    assert holding_signal(buy, -3.0, 8.0, 22.0)["signal"] == "none"
+
+
+def test_review_for_a_strong_company_held_back_by_a_warning():
+    from backend.services.signal_service import holding_signal
+    sig = {"signal": "none", "reason_key": "red_flag", "tier": "excellent", "reason_en": "We found a serious warning."}
+    out = holding_signal(sig, 0.0, 8.0, 10.0)
+    assert out["signal"] == "review" and out["reason_en"] == "We found a serious warning."
+    assert holding_signal({"signal": "sell", "reason_key": "weak_fundamentals"}, 20.0, 9.0, 5.0)["signal"] == "sell"

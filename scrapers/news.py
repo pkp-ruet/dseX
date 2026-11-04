@@ -294,6 +294,56 @@ def apply_declaration_amendment(db, item: dict) -> bool:
     return True
 
 
+# "(cont.1)", "(Cont. 2)", "(cont)" — DSE splits a long notice into parts
+# posted under the SAME title and date; the unique key (code, date, title)
+# kept only one, so 251 stored notices ended in "(cont.1)" and the rest of
+# the text — a dividend notice's EPS, a quarter's figures — was lost
+# (2026-11-05, audit DT3).
+_CONT_MARK = re.compile(r"\(\s*cont(?:d|inued)?\.?\s*(\d*)\s*\)", re.IGNORECASE)
+
+
+def _cont_order(body: str) -> tuple[int, int]:
+    """Sort key for the parts of one notice: a part ENDING in "(cont.N)" comes
+    before the part that continues it; parts that only START with a marker,
+    or have none, come after their number."""
+    b = (body or "").strip()
+    tail = _CONT_MARK.search(b[-20:]) if b else None
+    if tail:
+        n = int(tail.group(1) or 1)
+        return (n * 2 - 1, 0)          # part n-1 that says "continued in n"
+    head = _CONT_MARK.match(b) if b else None
+    if head:
+        n = int(head.group(1) or 1)
+        return (n * 2, 0)
+    return (10_000, 0)                 # the last part has no marker
+
+
+def merge_continued(items: list[dict]) -> list[dict]:
+    """One item per (trading_code, post_date, title): the parts' bodies joined
+    in order, the "(cont.N)" markers removed. Items that are not split pass
+    through unchanged."""
+    groups: dict[tuple, list[dict]] = {}
+    order: list[tuple] = []
+    for it in items:
+        key = (it.get("trading_code"), it.get("post_date"), it.get("title"))
+        if key not in groups:
+            order.append(key)
+        groups.setdefault(key, []).append(it)
+    out = []
+    for key in order:
+        parts = groups[key]
+        if len(parts) == 1:
+            out.append(parts[0])
+            continue
+        parts = sorted(parts, key=lambda p: _cont_order(p.get("body") or ""))
+        bodies = [_CONT_MARK.sub("", (p.get("body") or "")).strip() for p in parts]
+        merged = dict(parts[0])
+        merged["body"] = "\n".join(b for b in bodies if b)
+        merged["parts"] = len(parts)
+        out.append(merged)
+    return out
+
+
 class NewsScraper(BaseScraper):
 
     def scrape_company(self, trading_code: str, cutoff: datetime) -> list[dict]:
@@ -378,6 +428,7 @@ class NewsScraper(BaseScraper):
         """Upsert news items and remove stale records older than cutoff."""
         if not news_items:
             return 0
+        news_items = merge_continued(news_items)
 
         db = get_db()
         upserted = 0

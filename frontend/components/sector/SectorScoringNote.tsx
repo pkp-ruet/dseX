@@ -39,8 +39,8 @@ export default function SectorScoringNote({
 
         <p className="mt-3 text-xs font-semibold text-text-muted">
           <T
-            en="Every company gets one score out of 100 from five parts: earnings quality, financial health, efficiency, price and dividend. When a company never reported a figure, that part's weight moves to the parts it did report, instead of counting as zero. "
-            bn="প্রতিটি কোম্পানি পাঁচটি অংশ থেকে 100-এর মধ্যে একটি স্কোর পায়: মুনাফার মান, আর্থিক অবস্থা, দক্ষতা, দাম আর ডিভিডেন্ড। কোনো কোম্পানি একটি তথ্য কখনো প্রকাশ না করলে সেটিকে শূন্য ধরা হয় না; তার ভার যায় প্রকাশিত অংশগুলোতে। "
+            en="Every company gets one score out of 100 from four parts of its business: earnings quality, financial health, efficiency and dividend record. The share price is judged on its own. When a company never reported a figure, that part's weight moves to the parts it did report, instead of counting as zero. "
+            bn="প্রতিটি কোম্পানি ব্যবসার চারটি অংশ থেকে 100-এর মধ্যে একটি স্কোর পায়: মুনাফার মান, আর্থিক অবস্থা, দক্ষতা আর ডিভিডেন্ডের ধারা। শেয়ারের দাম আলাদাভাবে বিচার করা হয়। কোনো কোম্পানি একটি তথ্য কখনো প্রকাশ না করলে সেটিকে শূন্য ধরা হয় না; তার ভার যায় প্রকাশিত অংশগুলোতে। "
           />
           <Link href="/about" className="text-primary underline">
             <T en="See the full method" bn="পুরো পদ্ধতি দেখুন" />

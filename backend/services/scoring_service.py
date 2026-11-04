@@ -17,7 +17,7 @@ from backend.services.db_service import (
 )
 from backend.services.interim_service import load_interims, interim_facts
 from utils.sector import normalize_sector
-from utils.dividend_years import group_by_code, ledger_years
+from utils.dividend_years import group_by_code, ledger_years, own_rows, year_end_month
 
 logger = logging.getLogger(__name__)
 
@@ -125,6 +125,179 @@ def lender_equity(eq, ta, nav_ps, shares) -> Optional[float]:
     if _is_nanish(alt) or alt / ta_f * 100 > LENDER_CUSHION_MAX_PCT:
         return None
     return alt
+
+
+# ---------------------------------------------------------------------------
+# Round 3 of the 2026-11-04 audit (user decisions 2026-11-05)
+# ---------------------------------------------------------------------------
+
+# The grade is the business only (GR9): profit 0.30, finances 0.20, business
+# strength 0.20, dividend record 0.15 — rescaled by 0.85. Price (p4_val) and
+# the dividend yield still drive the price light and the Buy rule; they no
+# longer move the grade, so a falling price can't lift a company's group.
+GRADE_WEIGHTS = {"p1": 0.30, "p2": 0.20, "p3": 0.20, "p5": 0.15}
+# What a finances / business-strength part with no figures at all counts as.
+EMPTY_PART_SCORE = 5.0
+# Below this share of the data, the grade is held at Mixed (cap key thin_data).
+THIN_DATA_COMPLETENESS = 0.5
+
+# Serious warnings cap the grade at "Mixed" (GR8, clear-cut cases only).
+GRADE_CAP_SCORE = 59.9
+# Tier lower bounds for settling (tiers.py: 75 / 60 / 45).
+_TIER_LINES = [("excellent", 75.0), ("good", 60.0), ("average", 45.0), ("weak", float("-inf"))]
+SETTLE_BAND = 1.0
+# A share with no trade for this long isn't graded (merged banks, suspended).
+NO_TRADE_DAYS = 60
+
+_EPS_KEYS = ("eps", "eps_basic", "eps_cont_basic", "eps_diluted", "eps_cont_diluted")
+_PER_SHARE_KEYS = _EPS_KEYS + ("nav_per_share", "dps", "cash_dividend_pct")
+
+
+def _tier_of(score: float) -> str:
+    return next(t for t, lo in _TIER_LINES if score >= lo)
+
+
+def settle_score(raw: Optional[float], prev: Optional[float]) -> Optional[float]:
+    """The published score, settled against the previous published one: a
+    company changes group only once its score is SETTLE_BAND past the line
+    (user decision 2026-11-05). Otherwise the score is held just inside the
+    old group, so every page, the signal and pushes read one settled grade
+    from the score alone. Grades flipped 2-5 times a day before."""
+    if raw is None or prev is None or _is_nanish(raw) or _is_nanish(prev):
+        return raw
+    names = [t for t, _ in _TIER_LINES]
+    lows = dict(_TIER_LINES)
+    i_prev, i_raw = names.index(_tier_of(prev)), names.index(_tier_of(raw))
+    if i_raw == i_prev:
+        return raw
+    if i_raw < i_prev:            # moved up (lower index = higher group)
+        i = i_prev
+        while i > 0 and raw >= lows[names[i - 1]] + SETTLE_BAND:
+            i -= 1
+        if i == i_raw:
+            return raw
+        return round(lows[names[i - 1]] - 0.1, 1)   # just under the next line
+    i = i_prev                     # moved down
+    while i < len(names) - 1 and raw < lows[names[i]] - SETTLE_BAND:
+        i += 1
+    if i == i_raw:
+        return raw
+    return lows[names[i]]                            # held on its line
+
+
+def bonus_adjust_rows(rows: list[dict], total_shares: Optional[float] = None) -> list[dict]:
+    """Audited rows restated onto today's share count (GR3). DSE's table isn't
+    restated after a bonus issue, so the growth score read bonus shares as
+    falling profit (EBL's EPS growth 2.6 against 9.7 restated) and, once the
+    bonus went ex, the P/E came out too low (APEXFOOT 19.95, ~28.7 restated).
+
+    1. Bonus shares declared for year k (the row's stock_dividend_pct) enlarge
+       the share count from year k+1: every earlier year's per-share figures
+       are divided by the bonuses since.
+    2. If the company now has more shares than the latest year's profit / EPS
+       implies (a bonus or rights issue already credited), everything is put on
+       today's count — P/E is then exactly market value / profit.
+    P/E history (pe_ratio_basic) and profit in taka are left alone."""
+    if not rows:
+        return rows
+    years = [int(r["year"]) for r in rows if r.get("year") is not None and not _is_nanish(r.get("year"))]
+    if not years:
+        return rows
+    last = max(years)
+    bonus = {}
+    for r in rows:
+        b = r.get("stock_dividend_pct")
+        if r.get("year") is not None and not _is_nanish(b) and float(b) > 0:
+            bonus[int(r["year"])] = float(b)
+
+    def scaled(r: dict, f: float) -> dict:
+        out = dict(r)
+        for k in _PER_SHARE_KEYS:
+            v = out.get(k)
+            if v is not None and not _is_nanish(v):
+                out[k] = float(v) / f
+        out["share_factor"] = round(float(r.get("share_factor") or 1.0) * f, 6)
+        return out
+
+    out = []
+    for r in rows:
+        y = int(r["year"]) if r.get("year") is not None and not _is_nanish(r.get("year")) else last
+        f = 1.0
+        for k, b in bonus.items():
+            if y <= k < last:
+                f *= 1.0 + b / 100.0
+        out.append(scaled(r, f) if f > 1.0001 else dict(r))
+
+    ts = _num(total_shares)
+    if ts and ts > 0:
+        ref = next((r for r in reversed(out)
+                    if _num(r.get("profit_mn")) and _num(r.get("eps")) and _num(r.get("eps")) > 0
+                    and _num(r.get("profit_mn")) > 0), None)
+        if ref:
+            implied = _num(ref["profit_mn"]) * 1e6 / _num(ref["eps"])
+            ratio = ts / implied if implied > 0 else None
+            if ratio and 1.02 < ratio < 2.5:
+                out = [scaled(r, ratio) for r in out]
+    return out
+
+
+def grade_caps(db, codes: set[str]) -> dict[str, list[str]]:
+    """{code: [reason keys]} for serious warnings that cap the grade at Mixed
+    (GR8, user decision 2026-11-05 — clear-cut cases only): going-concern doubt
+    (the auditor's PDF, or a DSE post titled so in a year), a factory DSE found
+    closed (the stock report's newest red flags), and a qualified audit
+    opinion whose PDF shows a serious reason (auditor_opinions). Loans over
+    market value are added per row by the caller."""
+    from datetime import timedelta as _td
+    out: dict[str, list[str]] = {}
+
+    def add(code, key):
+        if code in codes and key not in out.setdefault(code, []):
+            out[code].append(key)
+
+    now = datetime.now(timezone.utc)
+    try:
+        for d in db.auditor_opinions.find(
+                {"posted": {"$gte": now - _td(days=400)}},
+                {"_id": 0, "trading_code": 1, "severity": 1, "going_concern": 1}):
+            if d.get("going_concern"):
+                add(d["trading_code"], "going_concern")
+            elif d.get("severity") == "serious":
+                add(d["trading_code"], "audit_serious")
+    except Exception as e:  # noqa: BLE001
+        logger.warning("auditor opinions unavailable for grade caps: %s", e)
+    try:
+        cut = (now - _td(days=365)).replace(tzinfo=None)
+        for d in db.company_news.find(
+                {"title": {"$regex": "going\\s+concern", "$options": "i"}, "post_date": {"$gte": cut}},
+                {"_id": 0, "trading_code": 1}):
+            add(d["trading_code"], "going_concern")
+    except Exception as e:  # noqa: BLE001
+        logger.warning("going-concern news unavailable for grade caps: %s", e)
+    try:
+        top = db.stock_report_snapshots.find_one({}, {"date": 1}, sort=[("date", -1)])
+        if top:
+            for d in db.stock_report_snapshots.find({"date": top["date"], "red_keys": "factory"},
+                                                    {"_id": 0, "trading_code": 1}):
+                add(d["trading_code"], "factory")
+    except Exception as e:  # noqa: BLE001
+        logger.warning("report snapshots unavailable for grade caps: %s", e)
+    return out
+
+
+# Year-ends set while DSE's floor price held prices up (Jul 2022 - Jan 2024):
+# a P/E from them flatters "cheap against its own past" (GR5: the market's
+# median year-end P/E was 26.8 for FY2023 against 17.2 for FY2025).
+_FLOOR_FROM, _FLOOR_TO = (2022, 7), (2024, 1)
+# Own history needs this many year-end P/Es (2 made the "median" a plain mean).
+MIN_OWN_YEARS = 3
+# Absolute ceiling (GR5): whatever its past, a P/E this high isn't cheap.
+PE_CEILINGS = ((40.0, 1.0), (25.0, 4.0))
+
+
+def _in_floor(year: int, ye_month: Optional[int]) -> bool:
+    m = ye_month or 6
+    return _FLOOR_FROM <= (year, m) <= _FLOOR_TO
 
 
 # Sector-median valuation needs this many OTHER profitable, non-Z companies in
@@ -284,6 +457,12 @@ def _effective_revenue(er: dict, is_financial: bool = False) -> Optional[float]:
     standard 'revenue' line is absent from the income statement.
     """
     rev = er.get("revenue")
+    np_v = er.get("net_profit")
+    # Revenue below the year's net profit is not revenue (insurers' "revenue"
+    # line is a ৳0.1-12m item: margins of 1,000-83,000%; audit DT6). A gap.
+    if (rev is not None and not _is_nanish(rev) and np_v is not None and not _is_nanish(np_v)
+            and float(np_v) > 0 and float(rev) < float(np_v) and not is_financial):
+        return None
     if rev is not None and float(rev) > 0:
         return float(rev)
     if is_financial:
@@ -641,7 +820,8 @@ def _a2_pillar1(fin_last5: list[dict], ext_last5: list[dict],
 def _a2_pillar2(ext_last5: list[dict], is_financial: bool = False,
                 is_insurance: bool = False,
                 interim_nocfps: Optional[float] = None,
-                lender_nav: Optional[tuple] = None) -> tuple[float, dict]:
+                lender_nav: Optional[tuple] = None,
+                dse_loan_mn: Optional[float] = None) -> tuple[float, dict]:
     """`interim_nocfps` is this year's year-to-date operating cash per share from
     the latest quarterly report; when it is negative the company is burning cash
     NOW, so the multi-year cash-from-profit metric is capped (industrials only)."""
@@ -650,6 +830,14 @@ def _a2_pillar2(ext_last5: list[dict], is_financial: bool = False,
     debt = latest.get("total_debt")
     eq   = latest.get("total_equity")
     ta   = latest.get("total_assets")
+    # DSE's own loan figure when it is larger (GR7): for 51 industrials it was
+    # more than twice Amarstock's, which missed short-term loans (DESCO ৳2.3m
+    # against ৳42bn scored 10 on both debt and interest cover).
+    dse_loan = _num(dse_loan_mn)
+    if dse_loan is not None and dse_loan > 0 and not is_financial:
+        dse_debt = dse_loan * 1e6
+        if _is_nanish(debt) or float(debt) < dse_debt:
+            debt = dse_debt
     m1_capital: Optional[float] = None
     if is_financial:
         # Banks / NBFIs: leverage is a capital cushion (equity / assets), not
@@ -682,6 +870,10 @@ def _a2_pillar2(ext_last5: list[dict], is_financial: bool = False,
         m2 = None
     elif _is_nanish(ebit):
         m2 = None  # income-statement detail never scraped — renormalize
+    elif ie is not None and ie > 0 and not debt_known and float(ebit) > 0 and ie < 0.01 * float(ebit):
+        # Debt unknown and a stray tiny interest line: not 100x cover (AMBEEPHA,
+        # ARAMIT, BEACHHATCH scored 10). A gap.
+        m2 = None
     elif ie is not None and ie > 0:
         if has_debt and ie < 0.005 * float(debt):
             # Interest under 0.5% of borrowings is not the real interest line
@@ -783,6 +975,14 @@ def _a2_pillar2(ext_last5: list[dict], is_financial: bool = False,
         metrics = [(m1, 0.3125), (m2, 0.25), (m3, 0.3125), (m4, 0.125)]
 
     score, coverage = _weighted_pillar(metrics)
+    # An insurer's finances resting on one figure (48 of 60: the cash-vs-profit
+    # check alone) is pulled halfway to the middle and its coverage says so —
+    # one number swung the grade 20 points (audit GR6).
+    if is_insurance:
+        present = [m for m, _ in metrics if m is not None]
+        if len(present) == 1:
+            score = 5.0 + (score - 5.0) * 0.5
+            coverage = min(coverage, 0.5)
     # p2_de is None for banks/NBFIs and p2_capital is None for everyone else, so
     # the stock page shows exactly one leverage bar per company.
     return score, {"p2_de": m1, "p2_capital": m1_capital, "p2_ic": m2, "p2_cfo": m3,
@@ -822,8 +1022,8 @@ def _a2_pillar3(code: str, ext_last5: list[dict],
             # Insurers rarely report a gross-profit line — fall back to net margin.
             for er in ext_last5:
                 np_v = er.get("net_profit")
-                rev  = er.get("revenue")
-                if not _is_nanish(np_v) and not _is_nanish(rev) and float(rev) > 0:
+                rev  = _effective_revenue(er)
+                if not _is_nanish(np_v) and rev is not None:
                     margin_vals.append(float(np_v) / float(rev) * 100)
             m1 = _a2_npm_score(sum(margin_vals) / len(margin_vals), _trend(margin_vals)) if margin_vals else None
         else:
@@ -876,7 +1076,8 @@ def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
                 sector_median_pb: Optional[float] = None,
                 vol_damp: float = 1.0,
                 eps_override: Optional[float] = None,
-                nav_override: Optional[float] = None) -> tuple[float, dict]:
+                nav_override: Optional[float] = None,
+                ye_month: Optional[int] = None) -> tuple[float, dict]:
     """Valuation pillar. Sector medians passed in are already self-excluded by the caller.
     When self-historical data is missing, sector-relative is used at full weight (no 0.4 cap).
 
@@ -917,13 +1118,8 @@ def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
         # DSE's audited table carries a year-end P/E per fiscal year (verified
         # 2026-09: implied year-end prices vary across years, so it is NOT the
         # live price / old EPS). Only `pe_ratio_basic` is scraped.
-        hist_pes = [
-            float(pe)
-            for r in fin_last5
-            for pe in [r.get("pe_ratio_basic")]
-            if pe and float(pe) > 0
-        ]
-        has_self_pe = len(hist_pes) >= 2
+        hist_pes = _own_history(fin_last5, ye_month)
+        has_self_pe = len(hist_pes) >= MIN_OWN_YEARS
         if has_self_pe:
             avg_hist_pe = _median(hist_pes)
             own_avg_pe = avg_hist_pe
@@ -943,6 +1139,12 @@ def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
             pe_score = sect_pe
         else:
             pe_score = 0.0
+        # An absolute ceiling (GR5): HAKKANIPUL at P/E 612 scored 6.4 against
+        # its own median of 868; 16 of 64 shares above P/E 30 scored 6+.
+        for line, cap in PE_CEILINGS:
+            if current_pe > line:
+                pe_score = min(pe_score, cap)
+                break
 
     # The LATEST NAV whatever its sign — the same rule as EPS above. A company
     # whose losses have wiped out its equity has no P/B; it used to borrow an
@@ -970,7 +1172,7 @@ def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
             if pe and float(pe) > 0 and eps and float(eps) > 0 and nav and float(nav) > 0:
                 year_end_price = float(pe) * float(eps)
                 hist_pbs.append(year_end_price / float(nav))
-        has_self_pb = len(hist_pbs) >= 2
+        has_self_pb = len(hist_pbs) >= MIN_OWN_YEARS
         if has_self_pb:
             avg_hist_pb = _median(hist_pbs)
             own_avg_pb = avg_hist_pb
@@ -1000,10 +1202,18 @@ def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
         "own_avg_pb": round(own_avg_pb, 2) if own_avg_pb is not None else None,
         # How many years back the own-history P/E median, so the page can say
         # "3-year" rather than a fixed "5-year" for a 2022 listing.
-        "own_avg_pe_years": (sum(1 for r in fin_last5
-                                 if r.get("pe_ratio_basic") and float(r["pe_ratio_basic"]) > 0)
-                             if own_avg_pe is not None else None),
+        "own_avg_pe_years": (len(_own_history(fin_last5, ye_month)) if own_avg_pe is not None else None),
     }
+
+
+def _own_history(fin_last5: list[dict], ye_month: Optional[int]) -> list[float]:
+    """Year-end P/Es for "against its own past": positive ones, the floor-price
+    year-ends left out when enough others remain (GR5)."""
+    pts = [(int(r["year"]), float(pe)) for r in fin_last5
+           for pe in [r.get("pe_ratio_basic")]
+           if pe and not _is_nanish(pe) and float(pe) > 0 and r.get("year") is not None]
+    clean = [pe for y, pe in pts if not _in_floor(y, ye_month)]
+    return clean if len(clean) >= MIN_OWN_YEARS else [pe for _, pe in pts]
 
 
 def _a2_pillar5(fin_last5: list[dict], ltp: Optional[float],
@@ -1105,7 +1315,10 @@ def _a2_pillar5(fin_last5: list[dict], ltp: Optional[float],
         payout_latest_pct = round(years[-1][1] / years[-1][2] * 100.0, 1)
     div_latest_fy = max(newer) if newer else (years[-1][0] if years and years[-1][1] > 0 else None)
 
-    score = m2 * 0.35 + m4 * 0.30 + m3 * 0.20 + m1 * 0.15
+    # The grade's dividend part is the record only (GR9): paying years, payout
+    # and growth. The yield moves with the price, so it stays out (p5_yield is
+    # still reported for the lists and the price read).
+    score = (m2 * 0.35 + m4 * 0.30 + m1 * 0.15) / 0.80
     return score, {"p5_dps_cagr": m1, "p5_consist": m2, "p5_yield": m3, "p5_payout": m4,
                    "div_yield_pct": div_yield_pct,
                    "payout_latest_pct": payout_latest_pct,
@@ -1190,7 +1403,15 @@ def compute_and_store_scores() -> pd.DataFrame:
 
     The ONLY place the heavy pandas computation runs: the daily `compute-scores`
     CLI job and the self-healing fallback below. Returns the computed frame."""
-    df = _compute_scores_df()
+    # The previous published scores, so a company changes group only once its
+    # score is past the line by SETTLE_BAND (settle_score).
+    try:
+        prev_df = _load_snapshot_df()
+        prev = ({r["trading_code"]: r.get("score") for r in prev_df.to_dict("records")}
+                if prev_df is not None and not prev_df.empty else None)
+    except Exception:  # noqa: BLE001 — settling refines, never blocks
+        prev = None
+    df = _compute_scores_df(prev_scores=prev)
     try:
         _store_snapshot(df)
     except Exception as e:  # storing is best-effort; never break the caller
@@ -1281,6 +1502,7 @@ def _reference_year(data_max_year: Optional[int], fin_max_year: Optional[int],
 def _compute_scores_df(
     prices_override: Optional[dict] = None,
     fin_max_year: Optional[int] = None,
+    prev_scores: Optional[dict] = None,
 ) -> pd.DataFrame:
     """Pure scoring compute over the current DB snapshot.
 
@@ -1313,6 +1535,7 @@ def _compute_scores_df(
                 "trading_code": 1, "total_shares": 1, "face_value": 1,
                 "market_category": 1, "sector": 1, "_id": 0,
                 "listing_year": 1, "total_loan_mn": 1, "reserve_surplus_mn": 1,
+                "stock_dividends": 1,
             },
         )
     }
@@ -1361,7 +1584,8 @@ def _compute_scores_df(
     # last 5 years — identical to the old per-company filter+sort, but O(n)
     # total instead of an O(n) boolean scan repeated for each of ~600 companies.
     fin_by_code: dict[str, list[dict]] = {
-        code: g.tail(5).to_dict("records")
+        code: bonus_adjust_rows(g.tail(5).to_dict("records"),
+                                (companies.get(code) or {}).get("total_shares"))
         for code, g in fin_df.groupby("trading_code", sort=False)
     }
 
@@ -1440,6 +1664,10 @@ def _compute_scores_df(
                 sector_rank_score[code] = round(2.0 + 8.0 * (1.0 - rank_idx / (n - 1)), 4)
 
     prices = load_latest_prices() if prices_override is None else prices_override
+    # The market's latest trading day: a share with no trade in NO_TRADE_DAYS
+    # isn't graded (DT5: the five merged Islamic banks kept a 2025 price).
+    market_day = max((str(p.get("date"))[:10] for p in prices.values() if p.get("date")), default=None)
+    caps_by_code = grade_caps(db, set(companies)) if fin_max_year is None else {}
 
     # Admin manual score adjustments (percentage). Loaded once per scoring rebuild;
     # cache is invalidated by score_adjustments_service on every write.
@@ -1460,6 +1688,7 @@ def _compute_scores_df(
     # interim no longer stands in for a whole year's dividend.
     ledger_by_code: dict[str, dict[int, float]] = {}
     ledger_complete_by_code: dict[str, set[int]] = {}
+    ye_month_by_code: dict[str, Optional[int]] = {}
     try:
         rows = list(db.dividend_declarations.find(
             {"cash_pct": {"$ne": None}, "period_end": {"$ne": None}},
@@ -1467,6 +1696,7 @@ def _compute_scores_df(
              "title": 1, "_id": 0},
         ))
         for lcode, lrows in group_by_code(rows).items():
+            ye_month_by_code[lcode] = year_end_month(own_rows(lrows))
             for fy, slot in ledger_years(lrows).items():
                 if fin_max_year is not None and fy > fin_max_year:
                     continue  # backtest: a declaration not yet knowable
@@ -1548,6 +1778,15 @@ def _compute_scores_df(
 
     rows = []
     for code, comp in companies.items():
+        pday = str((prices.get(code) or {}).get("date") or "")[:10]
+        if market_day and pday:
+            try:
+                gap = (datetime.fromisoformat(market_day) - datetime.fromisoformat(pday)).days
+            except ValueError:
+                gap = 0
+            if gap > NO_TRADE_DAYS:
+                logger.info("%s: no trade since %s — not graded", code, pday)
+                continue
         ltp    = (prices.get(code) or {}).get("ltp")
         shares = comp.get("total_shares")
         face   = comp.get("face_value")
@@ -1579,7 +1818,8 @@ def _compute_scores_df(
         if ifacts is None and latest_fin.get("provisional") is True and not _is_nanish(latest_fin.get("nocfps")):
             now_nocfps = float(latest_fin["nocfps"])
         p2, sub2 = _a2_pillar2(ext_last5, is_financial, is_insurance, interim_nocfps=now_nocfps,
-                               lender_nav=(eff_nav, comp.get("total_shares")))
+                               lender_nav=(eff_nav, comp.get("total_shares")),
+                               dse_loan_mn=comp.get("total_loan_mn"))
         # Loan load from DSE's company page caps Financial Health for industrials
         # (see DEBT_OVER_* above) so "Strong money health" can't sit beside loans
         # bigger than the company's savings or its market value.
@@ -1596,12 +1836,22 @@ def _compute_scores_df(
         p4_vol_damp = 1.0 - 0.5 * (1.0 - eps_stability)
         p4, sub4 = _a2_pillar4(fin_rows, ltp, sect_pe_for_self, sect_pb_for_self, vol_damp=p4_vol_damp,
                                eps_override=eff_eps if eps_basis == "ttm" else None,
-                               nav_override=(ifacts or {}).get("nav"))
+                               nav_override=(ifacts or {}).get("nav"),
+                               ye_month=ye_month_by_code.get(code) or (12 if (is_financial or is_insurance) else 6))
         p5, sub5 = _a2_pillar5(fin_rows, ltp, face, is_financial,
                                ledger_cash_pct=ledger_by_code.get(code),
                                ledger_complete=ledger_complete_by_code.get(code))
 
-        final = p1 * 0.30 + p2 * 0.20 + p3 * 0.20 + p4 * 0.15 + p5 * 0.15
+        # A part with no figures at all counts as the middle (EMPTY_PART_SCORE),
+        # neither 0 nor left out: insurers' only "revenue" line is junk (DT6),
+        # so their business strength can't be measured — 0 dropped them 12-20
+        # points, leaving it out lifted them to the top of the market on
+        # profit and dividends alone. Profit and dividend stay as scored:
+        # absence there is the signal.
+        p2_g = p2 if sub2.get("p2_coverage", 0.0) > 0 else EMPTY_PART_SCORE
+        p3_g = p3 if sub3.get("p3_coverage", 0.0) > 0 else EMPTY_PART_SCORE
+        final = (p1 * GRADE_WEIGHTS["p1"] + p2_g * GRADE_WEIGHTS["p2"] + p3_g * GRADE_WEIGHTS["p3"]
+                 + p5 * GRADE_WEIGHTS["p5"]) / sum(GRADE_WEIGHTS.values())
 
         # Staleness — penalize companies that haven't filed financials in 2+ years.
         # Year source: max(financials.year, ext_financials.year). Reference year is
@@ -1644,6 +1894,26 @@ def _compute_scores_df(
         adjusted_score_100 = base_score_100 * (1 + adj_pct / 100.0) * stale_mult * cat_mult
         # Clamp to [0, 100] — UI and tier thresholds assume this range.
         adjusted_score_100 = max(0.0, min(100.0, adjusted_score_100))
+        raw_score_100 = adjusted_score_100
+        # One settled grade (user decision 2026-11-05), then the warning cap.
+        if prev_scores:
+            adjusted_score_100 = settle_score(adjusted_score_100, prev_scores.get(code))
+        cap_keys = list(caps_by_code.get(code) or [])
+        if debt["debt_level"] == "over_mcap":
+            cap_keys.append("loans")
+        # A grade needs figures: under THIN_DATA_COMPLETENESS of the finances
+        # and business data, "strong" can't be said (BNIPLC, ASIATICLAB at 34%).
+        # Insurers have no usable sales line (DT6), so business strength is
+        # not-applicable for them here, not missing — else every insurer was held.
+        if is_insurance:
+            completeness_now = ((0.30 * sub1.get("p1_coverage", 0.0) + 0.20 * sub2.get("p2_coverage", 0.0)) / 0.50)
+        else:
+            completeness_now = ((0.30 * sub1.get("p1_coverage", 0.0) + 0.20 * sub2.get("p2_coverage", 0.0)
+                                 + 0.20 * sub3.get("p3_coverage", 0.0)) / 0.70)
+        if completeness_now < THIN_DATA_COMPLETENESS:
+            cap_keys.append("thin_data")
+        if cap_keys and adjusted_score_100 > GRADE_CAP_SCORE:
+            adjusted_score_100 = GRADE_CAP_SCORE
 
         # Fraction of the renormalizable pillar weight (P1-P3) backed by data —
         # surfaced so downstream views can qualify claims about thin-data names.
@@ -1691,6 +1961,8 @@ def _compute_scores_df(
             "ltp":          ltp,
             "mcap_mn":      mcap_mn,
             "score":          round(adjusted_score_100, 1),
+            "raw_score":      round(raw_score_100, 1),
+            "grade_cap":      cap_keys or None,
             "base_score":     round(base_score_100, 1),
             "adjustment_pct": adj_pct if adj_pct else 0.0,
             "category_mult":  cat_mult,

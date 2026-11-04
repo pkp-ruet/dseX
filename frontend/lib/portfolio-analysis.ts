@@ -79,7 +79,10 @@ export type EntryTag =
   | "no_data"
   | "no_price";
 
-export type HoldingSignal = "buy_more" | "sell" | "none";
+/** The backend's per-share advice (signal_service.holding_signal): weight-aware
+ *  since 2026-11-05 — trim a big share at a high price, "review" a strong
+ *  company kept off Buy by a warning; never from what was paid. */
+export type HoldingSignal = "buy_more" | "sell" | "trim" | "review" | "none";
 
 export interface SignalInfo {
   signal: HoldingSignal;

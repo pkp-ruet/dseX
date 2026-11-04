@@ -23,8 +23,8 @@ export default function TrustStrip({ totalCount }: { totalCount: number }) {
     },
     {
       key: "checks",
-      value: <T en="5 checks" bn="5টি যাচাই" />,
-      line: <T en="on every company: profit, loans, business, price, dividend" bn="প্রতিটি কোম্পানিতে: মুনাফা, ঋণ, ব্যবসা, দাম, ডিভিডেন্ড" />,
+      value: <T en="4 checks" bn="4টি যাচাই" />,
+      line: <T en="behind every grade: profit, loans, business, dividend. Price is judged on its own" bn="প্রতিটি গ্রেডের পেছনে: মুনাফা, ঋণ, ব্যবসা, ডিভিডেন্ড। দাম আলাদাভাবে বিচার করা হয়" />,
     },
     {
       key: "lang",

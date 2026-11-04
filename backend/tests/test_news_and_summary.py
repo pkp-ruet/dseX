@@ -86,3 +86,19 @@ def test_bracketed_code_declaration_is_not_a_follow_up():
     follow_up = {**news("AMCL(PRAN): Dividend Declaration (Additional Information)", "Disclosure ..."),
                  "trading_code": "AMCL(PRAN)"}
     assert not is_declaration_news(follow_up)
+
+
+def test_continued_notice_parts_are_joined_in_order():
+    # Round 3 (DT3): DSE posts a long notice as parts under one title and date.
+    from scrapers.news import merge_continued
+    when = datetime(2026, 1, 26, tzinfo=timezone.utc)
+    part2 = {"trading_code": "JAMUNAOIL", "title": "JAMUNAOIL: Q2 Financials", "post_date": when,
+             "body": "(cont.1): NOCFPS was Tk. 12.10 for July-December 2025."}
+    part1 = {"trading_code": "JAMUNAOIL", "title": "JAMUNAOIL: Q2 Financials", "post_date": when,
+             "body": "EPS was Tk. 34.04. NAV per share was Tk. 291.67. (cont.1)"}
+    other = {"trading_code": "JAMUNAOIL", "title": "JAMUNAOIL: Dividend Declaration", "post_date": when, "body": "x"}
+    out = merge_continued([part2, other, part1])
+    assert len(out) == 2
+    q2 = next(o for o in out if o["title"].endswith("Q2 Financials"))
+    assert q2["body"].startswith("EPS was Tk. 34.04") and "NOCFPS was Tk. 12.10" in q2["body"]
+    assert "(cont" not in q2["body"].lower() and q2["parts"] == 2

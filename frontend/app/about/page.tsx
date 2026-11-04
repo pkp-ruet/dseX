@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/about" },
 };
 
-/** The five checks, with the same plain names the rest of the site uses. */
+/** The four checks behind the grade, then the price (judged on its own since
+ *  2026-11-05: the grade measures the business, not the share price). */
 const PILLARS = [
   {
     label: "Profit",
@@ -33,14 +34,14 @@ const PILLARS = [
   {
     label: "Price",
     labelBn: "দাম",
-    desc: "Is the share fairly priced today? We compare today's P/E and price-to-book with the company's own usual levels over five years, and with similar companies.",
-    descBn: "আজকের দাম কি ন্যায্য? আমরা আজকের পিই আর বুক ভ্যালুর তুলনায় দাম মিলিয়ে দেখি কোম্পানির নিজের পাঁচ বছরের স্বাভাবিক মাত্রা আর একই ধরনের কোম্পানির সঙ্গে।",
+    desc: "Is the share fairly priced today? We compare the years of profit and the assets you pay for with the company's own usual levels and with similar companies. This check is not part of the grade: a falling price doesn't make a company stronger. It decides the price word and whether we'd buy.",
+    descBn: "আজকের দাম কি ন্যায্য? কত বছরের মুনাফা আর কতটা সম্পদের দাম দিচ্ছেন, তা আমরা কোম্পানির নিজের স্বাভাবিক মাত্রা আর একই ধরনের কোম্পানির সঙ্গে মিলিয়ে দেখি। এই যাচাই গ্রেডের অংশ নয়: দাম কমলে কোম্পানি শক্তিশালী হয়ে যায় না। এটি দামের মূল্যায়ন আর কেনার মতো কি না, তা ঠিক করে।",
   },
   {
     label: "Dividend",
     labelBn: "ডিভিডেন্ড",
-    desc: "Does the company share its profit with shareholders, and can it afford to? We track how regularly it pays a cash dividend, how much of its profit that takes, the yield at today's price, and whether the dividend has grown.",
-    descBn: "কোম্পানি কি শেয়ারহোল্ডারদের সঙ্গে মুনাফা ভাগ করে, আর তা দেওয়ার সামর্থ্য আছে কি না? আমরা দেখি কত নিয়মিত নগদ ডিভিডেন্ড দেয়, তাতে মুনাফার কত অংশ যায়, আজকের দামে ডিভিডেন্ড ইল্ড কত, আর ডিভিডেন্ড বেড়েছে কি না।",
+    desc: "Does the company share its profit with shareholders, and can it afford to? We track how regularly it pays a cash dividend, how much of its profit that takes, and whether the dividend has grown.",
+    descBn: "কোম্পানি কি শেয়ারহোল্ডারদের সঙ্গে মুনাফা ভাগ করে, আর তা দেওয়ার সামর্থ্য আছে কি না? আমরা দেখি কত নিয়মিত নগদ ডিভিডেন্ড দেয়, তাতে মুনাফার কত অংশ যায়, আর ডিভিডেন্ড বেড়েছে কি না।",
   },
 ];
 
@@ -129,7 +130,8 @@ export default function AboutPage() {
           <T
             en={
               <>
-                The score shows how strong a company looks across five checks. Higher is better. Companies are
+                The score shows how strong a company looks across four checks of the business: profit, finances,
+                business strength and dividend record. The share price is judged separately. Higher is better. Companies are
                 then grouped into four grades, named by what they are like on those checks:{" "}
                 <strong className="text-text-main">Strong all round, Mostly strong, Mixed</strong> and{" "}
                 <strong className="text-text-main">Mostly weak</strong>, so you can sort them quickly.
@@ -137,7 +139,8 @@ export default function AboutPage() {
             }
             bn={
               <>
-                স্কোর দেখায় পাঁচটি যাচাইয়ে কোম্পানিটি কতটা শক্তিশালী। স্কোর যত বেশি, তত ভালো। এরপর কোম্পানিগুলো
+                স্কোর দেখায় ব্যবসার চারটি যাচাইয়ে কোম্পানিটি কতটা শক্তিশালী: মুনাফা, আর্থিক অবস্থা, ব্যবসার শক্তি আর
+                ডিভিডেন্ডের ধারা। শেয়ারের দাম আলাদাভাবে বিচার করা হয়। স্কোর যত বেশি, তত ভালো। এরপর কোম্পানিগুলো
                 চারটি গ্রেডে ভাগ হয়, যাচাইয়ে তারা কেমন সেই নামে:{" "}
                 <strong className="text-text-main">সব দিকে শক্তিশালী, বেশিরভাগ দিকে শক্তিশালী, মিশ্র</strong> আর{" "}
                 <strong className="text-text-main">বেশিরভাগ দিকে দুর্বল</strong>, যাতে দ্রুত বাছাই করতে পারেন।
@@ -174,12 +177,12 @@ export default function AboutPage() {
       {/* The five checks */}
       <section className="space-y-5">
         <h2 className={H2}>
-          <T en="The five things we check" bn="আমরা যে পাঁচটি বিষয় যাচাই করি" />
+          <T en="The four checks behind the grade, and the price" bn="গ্রেডের পেছনের চারটি যাচাই, আর দাম" />
         </h2>
         <p className={P}>
           <T
-            en="Every company is scored on five checks. Each one answers a question a careful analyst would ask when reading the accounts."
-            bn="প্রতিটি কোম্পানির স্কোর পাঁচটি যাচাইয়ে হয়। প্রতিটি যাচাই এমন একটি প্রশ্নের উত্তর দেয়, যা একজন মনোযোগী বিশ্লেষক হিসাব পড়ার সময় করতেন।"
+            en="Every company's grade comes from four checks of its business. Each one answers a question a careful analyst would ask when reading the accounts. The price is the fifth question, answered on its own, so a cheaper share never reads as a stronger company. A serious warning, such as an auditor's doubt that the business can keep running, holds the grade at Mixed."
+            bn="প্রতিটি কোম্পানির গ্রেড আসে তার ব্যবসার চারটি যাচাই থেকে। প্রতিটি যাচাই এমন একটি প্রশ্নের উত্তর দেয়, যা একজন মনোযোগী বিশ্লেষক হিসাব পড়ার সময় করতেন। দাম পঞ্চম প্রশ্ন, তার উত্তর আলাদা, যাতে দাম কমলে কোম্পানিকে বেশি শক্তিশালী মনে না হয়। গুরুতর কোনো সতর্কতা থাকলে, যেমন ব্যবসা চালিয়ে যেতে পারবে কি না তা নিয়ে নিরীক্ষকের সন্দেহ, গ্রেড মিশ্র-এর ওপরে ওঠে না।"
           />
         </p>
         <div className="space-y-3.5">

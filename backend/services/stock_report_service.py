@@ -142,6 +142,20 @@ def _names() -> dict[str, str]:
         return {}
 
 
+def _audit_opinion(code: str) -> Optional[dict]:
+    """The newest stored auditor opinion (scrapers/auditor_opinion) from the
+    last 400 days, or None."""
+    try:
+        from backend.services.db_service import get_db
+        since = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=400)
+        doc = get_db().auditor_opinions.find_one(
+            {"trading_code": code.upper(), "posted": {"$gte": since}},
+            {"_id": 0, "basis_excerpt": 0}, sort=[("posted", -1)])
+        return doc
+    except Exception:  # noqa: BLE001 — the report reads it if it's there
+        return None
+
+
 def gather(code: str, *, company: Optional[dict] = None, score_row: Optional[dict] = None,
            financials: Optional[list] = None, extended_financials: Optional[list] = None,
            holdings: Optional[list] = None, prices: Optional[list] = None,
@@ -256,6 +270,7 @@ def gather(code: str, *, company: Optional[dict] = None, score_row: Optional[dic
         "notices": notices,
         "notices_ok": notices_ok,
         "governance": governance_items(news or []),
+        "audit_opinion": _audit_opinion(code),
         "watch_items": watch_items,
         "score_history": score_history,
         "sector_rows": sector_rows,

@@ -675,8 +675,9 @@ def test_next_questions_pair_each_free_answer_with_its_question():
 
 def test_company_light_names_its_strong_and_weak_checks():
     line = sr.checks_line({"p1_biz": 8.1, "p2_health": 7.4, "p3_moat": 5.0, "p4_val": 3.2, "p5_div": 6.0})
-    assert line == {"en": "Strong: profit and finances · Weak: price", "bn": "শক্তিশালী: মুনাফা, আর্থিক অবস্থা · দুর্বল: দাম"}
-    assert sr.checks_line({k: 8 for k in ("p1_biz", "p2_health", "p3_moat", "p4_val", "p5_div")})["en"] == "Strong on all five checks"
+    # The price is not one of the grade's checks since 2026-11-05.
+    assert line == {"en": "Strong: profit and finances", "bn": "শক্তিশালী: মুনাফা, আর্থিক অবস্থা"}
+    assert sr.checks_line({k: 8 for k in ("p1_biz", "p2_health", "p3_moat", "p4_val", "p5_div")})["en"] == "Strong on all four business checks"
     assert sr.checks_line({}) is None
     lights = sr.build_report(square())["answer"]["lights"]
     assert lights[0]["note"]["en"].startswith("Strong")
@@ -813,10 +814,23 @@ def test_strong_uses_one_line():
     inp["score_row"].update({"p1_biz": 6.5, "p2_health": 9.0, "p3_moat": 8.0, "p4_val": 8.0, "p5_div": 9.0})
     q = sr.build_report(inp)["sections"]["quality"]
     assert "needs watching" not in q["headline"]["en"]
-    assert q["healthy"] == 4                                 # 6.5 is not "strong" (the checks line's 7)
+    assert q["healthy"] == 3      # 6.5 is not "strong" (the checks line's 7); price isn't counted
 
 
 def test_cash_names_its_year():
     c = sr.build_report(square())["sections"]["cash"]
     assert not c["headline"]["en"].startswith("This year")
     assert c["headline"]["en"].startswith("In its 20")
+
+
+def test_auditor_reason_sets_the_flag_level():
+    # Round 3 (RP8): the PDF's reason decides red or amber, and the year is named.
+    inp = square()
+    inp["governance"] = [{"key": "qualified_opinion", "tone": "watch", "en": "x.", "bn": "x।"}]
+    inp["audit_opinion"] = {"year": 2025, "severity": "minor", "going_concern": False,
+                            "reasons": [], "minor": ["deferred_tax"], "posted": "2025-11-11", "title": "Qualified Opinion"}
+    c = {x["key"]: x for x in sr.build_report(inp)["sections"]["red_flags"]["checks"]}["audit"]
+    assert c["level"] == "amber" and "2025 accounts over smaller matters" in c["detail"]["en"]
+    inp["audit_opinion"].update({"severity": "serious", "reasons": ["credit_loss"], "minor": []})
+    c = {x["key"]: x for x in sr.build_report(inp)["sections"]["red_flags"]["checks"]}["audit"]
+    assert c["level"] == "red" and "losses it has not written down" in c["detail"]["en"]

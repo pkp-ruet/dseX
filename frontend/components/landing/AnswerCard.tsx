@@ -93,7 +93,7 @@ export default function AnswerCard({ stock }: { stock: LandingStock }) {
       <div className="mt-5 border-t border-border pt-4">
         <div className="mb-3 flex items-center justify-between gap-3">
           <p className="text-sm font-semibold text-text-main">
-            <T en="The five checks behind the grade" bn="গ্রেডের পেছনের পাঁচটি যাচাই" />
+            <T en="The checks behind the grade, and the price" bn="গ্রেডের পেছনের যাচাই, আর দাম" />
           </p>
           <ScoreBadge score={stock.score} tier={tier} size="sm" />
         </div>

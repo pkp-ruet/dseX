@@ -22,9 +22,17 @@ import math
 from typing import Optional
 
 # A "fair" dividend yield anchor for the dividend-based method: at this yield the
-# share is considered fairly priced for its payout. ~6% sits in the middle of the
-# range reliable DSE dividend payers trade at.
-FAIR_DIVIDEND_YIELD = 0.06
+# share is considered fairly priced for its payout. 8% gross is ~7.2% after the
+# 10% tax — close to what a fixed deposit pays after its own tax (2026-11-05,
+# audit PR9: at 6% the method sat far from every other one — ACIFORMULA ৳33
+# against a ৳179 centre — and pinned every Buy's range at the ±20% cap).
+FAIR_DIVIDEND_YIELD = 0.08
+# The dividend method only for a company paying out at least this share of
+# profit: a low payout says little about what the company is worth.
+MIN_PAYOUT_FOR_DIVIDEND_METHOD = 30.0
+# Methods further than this from the middle one are dropped; fewer than two
+# left and the estimates "disagree" (no range is shown).
+MAX_METHOD_SPREAD = 2.5
 
 _FINANCIAL_CLASSES = {"BANK", "NBFI", "INSURANCE"}
 
@@ -198,7 +206,9 @@ def estimate_fair_value(
         methods["book_peer"] = peer_pb * nav
     # Dividend method only for companies that actually pay a reasonably reliable
     # dividend (avoids anchoring on a one-off payout).
-    if "dividend_yield" in eligible and _pos(dps) and (p5_consist is None or p5_consist >= 5):
+    payout = score_row.get("payout_pct")
+    if ("dividend_yield" in eligible and _pos(dps) and (p5_consist is None or p5_consist >= 5)
+            and (payout is None or payout >= MIN_PAYOUT_FOR_DIVIDEND_METHOD)):
         methods["dividend_yield"] = dps / FAIR_DIVIDEND_YIELD
 
     if not methods:
@@ -207,9 +217,24 @@ def estimate_fair_value(
     # The peer method is the outlier-maker: a sector median P/E of 20 on a fuel
     # distributor that has always traded at 5 turned JAMUNAOIL into "worth
     # ৳1,158". Keep it within PEER_CAP of the company's own-history figure.
-    if "peer_pe" in methods and "own_history_pe" in methods:
-        own = methods["own_history_pe"]
-        methods["peer_pe"] = max(own / PEER_CAP, min(own * PEER_CAP, methods["peer_pe"]))
+    # Always capped (audit PR9): against its own history, else against the
+    # other methods' middle (ZAHEENSPIN's peer price was 2.7x its price).
+    if "peer_pe" in methods:
+        ref = methods.get("own_history_pe")
+        if ref is None:
+            others = sorted(v for k, v in methods.items() if k != "peer_pe")
+            ref = others[len(others) // 2] if others else None
+        if ref:
+            methods["peer_pe"] = max(ref / PEER_CAP, min(ref * PEER_CAP, methods["peer_pe"]))
+
+    # Two methods that roughly agree, or no range (audit PR9: 16 companies had
+    # one method — ACI's ৳22-28 against a ৳178 price — and 78 had methods more
+    # than 4x apart). Outliers beyond MAX_METHOD_SPREAD of the middle go.
+    mid = sorted(methods.values())[len(methods) // 2]
+    kept = {k: v for k, v in methods.items() if mid / MAX_METHOD_SPREAD <= v <= mid * MAX_METHOD_SPREAD}
+    thin = len(kept) < 2
+    if kept:
+        methods = kept
 
     weights = _WEIGHTS_FINANCIAL if sector_class in _FINANCIAL_CLASSES else _WEIGHTS_GENERAL
     # Weighted MEDIAN, not mean: one wild method can no longer drag the centre.
@@ -242,7 +267,7 @@ def estimate_fair_value(
     stance = valuation_verdict(score_row.get("p4_val")) or estimate_stance
     # Any mismatch counts: "Around fair value" over an estimate 2.6x today's
     # price (WALTONHIL ৳886 vs ৳337) reads as a contradiction just the same.
-    disagree = estimate_stance is not None and stance is not None and estimate_stance != stance
+    disagree = thin or (estimate_stance is not None and stance is not None and estimate_stance != stance)
 
     # Confidence from how many methods agree (and how tightly), softened by data
     # completeness.

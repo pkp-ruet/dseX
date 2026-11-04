@@ -79,18 +79,19 @@ export const TIER_SCORE_LABELS: Record<TierKey, string> = {
   weak:      "Score < 45",
 };
 
-/** What each grade means on our five checks — the line under its name. */
+/** What each grade means on our four business checks (price is judged on its
+ *  own since 2026-11-05) — the line under its name. */
 export const TIER_MEANINGS: Record<TierKey, string> = {
-  excellent: "Strong on 4 or 5 of our 5 checks",
-  good:      "Strong on 2 or 3 checks, weak on none",
-  average:   "Strong on 1 or 2 checks, weak on some",
+  excellent: "Strong on most of our 4 business checks",
+  good:      "Strong on some checks, weak on none",
+  average:   "Strong on one or two checks, weak on some",
   weak:      "Weak on several checks",
 };
 
 /** Bengali meaning line — mirrors TIER_MEANINGS. */
 export const TIER_MEANINGS_BN: Record<TierKey, string> = {
-  excellent: "আমাদের 5টি যাচাইয়ের 4 বা 5টিতে শক্তিশালী",
-  good:      "2 বা 3টি যাচাইয়ে শক্তিশালী, কোনোটিতে দুর্বল নয়",
+  excellent: "ব্যবসার 4টি যাচাইয়ের বেশিরভাগে শক্তিশালী",
+  good:      "কয়েকটি যাচাইয়ে শক্তিশালী, কোনোটিতে দুর্বল নয়",
   average:   "1 বা 2টি যাচাইয়ে শক্তিশালী, কয়েকটিতে দুর্বল",
   weak:      "কয়েকটি যাচাইয়ে দুর্বল",
 };
@@ -113,13 +114,15 @@ export function getTier(score: number | null | undefined): TierKey {
 // ---------------------------------------------------------------------------
 
 export type StockSignalKind   = "buy" | "sell";
-export type HoldingSignalKind = "buy_more" | "sell";
+export type HoldingSignalKind = "buy_more" | "sell" | "trim" | "review";
 export type AnySignalKind     = StockSignalKind | HoldingSignalKind;
 
 export const SIGNAL_LABELS: Record<AnySignalKind, string> = {
   buy:      "Buy",
   buy_more: "Buy more",
   sell:     "Sell",
+  trim:     "Trim",
+  review:   "Review",
 };
 
 /** Bengali signal words — mirrors backend SIGNAL_WORDS_BN. */
@@ -127,12 +130,16 @@ export const SIGNAL_LABELS_BN: Record<AnySignalKind, string> = {
   buy:      "কেনা যায়",
   buy_more: "আরও কেনা যায়",
   sell:     "বিক্রি করুন",
+  trim:     "কিছুটা কমান",
+  review:   "যাচাই করুন",
 };
 
 export const SIGNAL_VAR: Record<AnySignalKind, string> = {
   buy:      "var(--positive)",
   buy_more: "var(--positive)",
   sell:     "var(--negative)",
+  trim:     "var(--watch)",
+  review:   "var(--watch)",
 };
 
 // The price word on a Buy (2026-10-31: "Strong buy" was retired — what made a

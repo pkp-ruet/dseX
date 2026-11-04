@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timezone
 
 from db.connection import get_db
 from scrapers.base_scraper import BaseScraper
@@ -280,6 +281,10 @@ class CashFlowScraper(BaseScraper):
             doc = {
                 "trading_code":           trading_code,
                 "year":                   year,
+                # When we last read this row (2026-11-05, audit DT4: the cash-flow
+                # data ran a year behind DSE's table for 135 companies and nothing
+                # said when a company last updated). scripts/financials_freshness.py
+                "scraped_at":             datetime.now(timezone.utc),
                 # Cash flow
                 "operating_cf":           operating_cf,
                 "investing_cf":           investing_cf,

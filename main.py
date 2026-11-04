@@ -107,6 +107,17 @@ def cmd_scrape_cashflow(args):
     print(f"Done. {total} year-records saved.")
 
 
+def cmd_scrape_auditor_opinions(args):
+    """Read the PDF behind every qualified audit opinion (scrapers/auditor_opinion)."""
+    from scrapers import auditor_opinion
+
+    codes = [args.code] if args.code else None
+    counts = auditor_opinion.run(codes, force=args.force, dry_run=args.dry_run)
+    for v in counts.pop("verdicts", []):
+        print(f"  {v[0]:12s} {v[1]:8s} going_concern={v[2]} serious={v[3]} minor={v[4]}")
+    print(f"Auditor opinions: {counts}")
+
+
 def cmd_scrape_news(args):
     from db.connection import get_db
 
@@ -529,6 +540,15 @@ def cmd_scrape_all(args):
     else:
         print("  Skipped — no companies found.\n")
 
+    # What each new qualified audit opinion was about (its PDF), before the
+    # scores: a serious one caps the grade (scoring_service.grade_caps).
+    try:
+        from scrapers import auditor_opinion
+        ao = auditor_opinion.run()
+        print(f"  Auditor opinions: {ao}\n")
+    except Exception as e:  # noqa: BLE001 — never blocks the scrape
+        print(f"  Auditor opinions skipped: {e}\n")
+
     # Recompute the DSEF scores snapshot now that financials/prices are fresh,
     # so API requests read up-to-date precomputed scores. Runs regardless of the
     # deploy-hook health gate below (scores mostly depend on financials, which
@@ -653,6 +673,14 @@ def main():
         action="store_true",
         help="Scrape all companies (default: only companies with financial data)",
     )
+
+    ao_parser = sub.add_parser(
+        "scrape-auditor-opinions",
+        help="Read the PDF behind each qualified audit opinion and store what it was about",
+    )
+    ao_parser.add_argument("--code", default=None, help="Only this trading code")
+    ao_parser.add_argument("--force", action="store_true", help="Re-read PDFs already stored")
+    ao_parser.add_argument("--dry-run", action="store_true", help="Read and classify, write nothing")
 
     news_parser = sub.add_parser(
         "scrape-news",
@@ -787,6 +815,7 @@ def main():
         "scrape-details":        cmd_scrape_details,
         "scrape-cashflow":       cmd_scrape_cashflow,
         "scrape-news":           cmd_scrape_news,
+        "scrape-auditor-opinions": cmd_scrape_auditor_opinions,
         "scrape-market-summary": cmd_scrape_market_summary,
         "scrape-quick":          cmd_scrape_quick,
         "compute-scores":        cmd_compute_scores,

@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   // segments, so this page has to carry the brand itself.
   title: "DSE Stock Analysis, Rankings & Share Price | TopStockBD",
   description:
-    "Free fundamental analysis for every Dhaka Stock Exchange (DSE) company, in Bengali and English. See the score, the five checks behind it, and today's rankings before you buy. No tips, no rumours.",
+    "Free fundamental analysis for every Dhaka Stock Exchange (DSE) company, in Bengali and English. See the score, the checks behind it, and today's rankings before you buy. No tips, no rumours.",
   keywords: [
     "DSE stock analysis", "DSE share price", "Dhaka Stock Exchange rankings",
     "Bangladesh stock market analysis", "DSE fundamental analysis",

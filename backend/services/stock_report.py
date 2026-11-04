@@ -2225,7 +2225,8 @@ def build_quality(inp: dict) -> Optional[dict]:
     from backend.services.tiers import tier_key
     tier = tier_key(score)
     pillars = [(k, en, bn_, _f(row.get(k))) for k, en, bn_ in PILLARS]
-    present = [p for p in pillars if p[3] is not None]
+    # The grade's four business checks: the price is judged on its own (2026-11-05).
+    present = [p for p in pillars if p[3] is not None and p[0] != "p4_val"]
     healthy = len([p for p in present if p[3] >= STRONG_AT])
     tone = {"excellent": "good", "good": "good", "average": "fair", "weak": "bad"}.get(tier, "neutral")
     word = bi(TIER_WORDS.get(tier, "Not rated"), TIER_WORDS_BN.get(tier, "রেটিং নেই"))
@@ -2285,9 +2286,9 @@ def build_quality(inp: dict) -> Optional[dict]:
         else:
             head_en += f" It is weak on almost everything we check, especially {w_en}."
             head_bn += f" আমরা যা যা যাচাই করি, তার প্রায় সবকিছুতেই কোম্পানিটি দুর্বল। সবচেয়ে দুর্বল দিক {w_bn}।"
-    meaning = [bi("We look at five things: profit, finances, how strong the business is, the price and the dividend. "
+    meaning = [bi("The grade looks at four things: profit, finances, how strong the business is and its dividend record; the price is judged on its own. "
                   + (f"{healthy} of the {len(present)} are strong." if healthy else "None of them is strong."),
-                  f"আমরা পাঁচটি বিষয় দেখি: মুনাফা, আর্থিক অবস্থা, ব্যবসা কতটা শক্তিশালী, দাম আর ডিভিডেন্ড। "
+                  f"গ্রেড চারটি বিষয় দেখে: মুনাফা, আর্থিক অবস্থা, ব্যবসা কতটা শক্তিশালী আর ডিভিডেন্ডের ধারা; দাম আলাদাভাবে বিচার করা হয়। "
                   + (f"{len(present)}টির মধ্যে {healthy}টি শক্তিশালী।" if healthy else "কোনোটিই শক্তিশালী নয়।"))]
     lines = [(75.0, TIER_WORDS["excellent"], TIER_WORDS_BN["excellent"]), (60.0, TIER_WORDS["good"], TIER_WORDS_BN["good"]),
              (45.0, TIER_WORDS["average"], TIER_WORDS_BN["average"])]
@@ -2736,6 +2737,53 @@ def _turnover_mn(inp: dict) -> Optional[float]:
     return None
 
 
+def _z_risk(inp: dict, row: dict) -> Optional[dict]:
+    """z_risk.assess on the report's own inputs (results overdue, losses over
+    paid-up capital); the factory and old accounts have their own checks."""
+    from backend.services.z_risk import assess
+
+    decided = None
+    for a in _annuals(inp.get("notices") or {}):
+        fe = _d(a.get("fy_end"))
+        if fe and (decided is None or fe > decided):
+            decided = fe
+    for d in inp.get("ledger") or []:
+        if str(d.get("dividend_type") or "").lower().startswith("interim"):
+            continue
+        pe = _d(d.get("period_end"))
+        if pe and (decided is None or pe > decided):
+            decided = pe
+    try:
+        return assess(today=inp["today"], category=inp.get("category") or row.get("market_cat"),
+                      last_decided=decided, reserve_mn=_f(inp.get("reserve_mn")),
+                      paid_up_mn=_f((inp.get("company") or {}).get("paid_up_capital_mn")))
+    except Exception:  # noqa: BLE001 — a refinement, never a blocker
+        return None
+
+
+def audit_line(op: dict) -> tuple[str, str]:
+    """The auditor red flag's sentence from a stored opinion: the year and what
+    it was about, in plain words."""
+    from backend.services.audit_opinion import reason_phrase
+
+    y = op.get("year")
+    yr_en = f" its {y} accounts" if y else " its accounts"
+    yr_bn = f"{y} সালের হিসাবে" if y else "হিসাবে"
+    if op.get("going_concern"):
+        return (f"The auditor doubts the business can keep running, in{yr_en}.",
+                f"{yr_bn} নিরীক্ষক সন্দেহ প্রকাশ করেছেন যে ব্যবসা চালিয়ে যেতে পারবে কি না।")
+    keys = op.get("reasons") or []
+    if op.get("severity") == "serious" and keys:
+        return (f"The auditor qualified{yr_en} over {reason_phrase(keys, 'en')}.",
+                f"{yr_bn} নিরীক্ষক শর্তসাপেক্ষ মত দিয়েছেন: {reason_phrase(keys, 'bn')}।")
+    minor = op.get("minor") or []
+    if op.get("severity") == "minor" and minor:
+        return (f"The auditor qualified{yr_en} over smaller matters: {reason_phrase(minor, 'en')}.",
+                f"{yr_bn} নিরীক্ষক ছোট কিছু বিষয়ে শর্তসাপেক্ষ মত দিয়েছেন: {reason_phrase(minor, 'bn')}।")
+    return (f"The auditor gave a qualified opinion on{yr_en}: some figures could not be fully confirmed.",
+            f"{yr_bn} নিরীক্ষক শর্তসাপেক্ষ মত দিয়েছেন: কিছু হিসাব পুরোপুরি নিশ্চিত করা যায়নি।")
+
+
 def build_red_flags(inp: dict, *, cash: Optional[dict] = None, dividend: Optional[dict] = None,
                     owners: Optional[dict] = None, safety: Optional[dict] = None,
                     warning: Optional[dict] = None) -> dict:
@@ -2775,8 +2823,17 @@ def build_red_flags(inp: dict, *, cash: Optional[dict] = None, dividend: Optiona
             add("factory", "Factory", "কারখানা", "pass", "No sign that the factory is closed.",
                 "কারখানা বন্ধের কোনো খবর নেই।")
 
-    # 2 · audit opinion
-    if "going_concern" in gov or "qualified_opinion" in gov:
+    # 2 · audit opinion — what the PDF says it was about (audit_opinion.py,
+    # 2026-11-05): a minor reason is amber, a serious one or going concern red,
+    # with the accounts' year named (it read "on the latest accounts" for a
+    # year, even after newer accounts were out).
+    op = inp.get("audit_opinion") or None
+    if op and ("going_concern" in gov or "qualified_opinion" in gov or op.get("going_concern")
+               or op.get("severity") in ("serious", "minor")):
+        level = "red" if (op.get("going_concern") or op.get("severity") != "minor") else "amber"
+        add("audit", "The auditor's view", "নিরীক্ষকের মত", level,
+            *audit_line(op), ev(op.get("title") or "Auditor's opinion", op.get("posted")))
+    elif "going_concern" in gov or "qualified_opinion" in gov:
         g = gov.get("going_concern") or gov.get("qualified_opinion")
         add("audit", "The auditor's view", "নিরীক্ষকের মত", "red", g.get("en", ""), g.get("bn", ""))
     else:
@@ -2848,6 +2905,31 @@ def build_red_flags(inp: dict, *, cash: Optional[dict] = None, dividend: Optiona
                     else "Its loans are less than the money it has kept from past years.",
                     "আগের বছরগুলোতে জমানো টাকার তুলনায় কোম্পানির ঋণ অনেক কম।" if loan / res < 0.5
                     else "আগের বছরগুলোতে জমানো টাকার চেয়ে কোম্পানির ঋণ কম।")
+            elif res is not None and res <= 0:
+                # Loans while losses have used up everything it saved (audit
+                # RP7: BDSERVICE owed ৳908 crore on a −৳2,734 crore reserve and
+                # read "ok" — the loans check needed a positive reserve).
+                l_en, l_bn = _crore(loan)
+                add("loans", "Loans", "ঋণ", "red",
+                    f"Its losses have used up all the profit it had saved, and it still owes {l_en}.",
+                    f"লোকসানে জমানো সব মুনাফা শেষ হয়ে গেছে, তবু কোম্পানির ঋণ {l_bn}।")
+
+    # 6b · making a loss, results overdue, losses bigger than the shareholders'
+    # money (audit RP7: HEIDELBCEM, a loss-maker, read "Nothing wrong. All 15
+    # things we check look fine"). The last two are z_risk's own rules.
+    eps_now = _f(row.get("eps"))
+    if eps_now is not None and eps_now <= 0:
+        add("loss", "Making a profit", "মুনাফা", "amber", "It made a loss in its latest results.",
+            "সর্বশেষ ফলে কোম্পানির লোকসান হয়েছে।")
+    elif eps_now is not None:
+        add("loss", "Making a profit", "মুনাফা", "pass", "It made a profit in its latest results.",
+            "সর্বশেষ ফলে কোম্পানি মুনাফা করেছে।")
+    zr = _z_risk(inp, row)
+    for r in (zr or {}).get("reasons") or []:
+        if r["key"] == "late_year":
+            add("late", "Results on time", "সময়মতো ফল", r["level"], r["en"], r["bn"])
+        elif r["key"] == "losses":
+            add("losses", "Losses against capital", "মূলধনের তুলনায় লোকসান", "red", r["en"], r["bn"])
 
     # 7 · stale accounts
     age = _f(row.get("data_age_years"))
@@ -3544,9 +3626,10 @@ _RISK_BLOCKS = {
 
 # The five checks in running text, and the cut-offs the company ranking uses
 # for "strong" / "weak" (frontend lib/ranking.ts STRONG_AT / WEAK_BELOW).
+# The grade's four business checks (2026-11-05: price is judged on its own,
+# so the company light never says "Weak: price").
 _CHECK_RUN = {"p1_biz": ("profit", "মুনাফা"), "p2_health": ("finances", "আর্থিক অবস্থা"),
-              "p3_moat": ("business", "ব্যবসার শক্তি"), "p4_val": ("price", "দাম"),
-              "p5_div": ("dividend", "ডিভিডেন্ড")}
+              "p3_moat": ("business", "ব্যবসার শক্তি"), "p5_div": ("dividend", "ডিভিডেন্ড")}
 STRONG_AT, WEAK_BELOW = 7.0, 4.0
 
 
@@ -3561,10 +3644,11 @@ def checks_line(row: dict) -> Optional[dict]:
         return None
     strong = [k for k, v in vals if v >= STRONG_AT]
     weak = [k for k, v in vals if v < WEAK_BELOW]
-    if len(strong) == 5:
-        return bi("Strong on all five checks", "পাঁচটি যাচাইয়েই শক্তিশালী")
-    if len(weak) == 5:
-        return bi("Weak on all five checks", "পাঁচটি যাচাইয়েই দুর্বল")
+    n = len(_CHECK_RUN)
+    if len(strong) == n:
+        return bi("Strong on all four business checks", "ব্যবসার চারটি যাচাইয়েই শক্তিশালী")
+    if len(weak) == n:
+        return bi("Weak on all four business checks", "ব্যবসার চারটি যাচাইয়েই দুর্বল")
 
     def join(keys, i):
         words = [_CHECK_RUN[k][i] for k in keys]

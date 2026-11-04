@@ -20,7 +20,7 @@ export interface ProLine {
   text: string;
 }
 
-export type ProActionKind = "sell" | "trim" | "buy_more" | "hold";
+export type ProActionKind = "sell" | "trim" | "review" | "buy_more" | "hold";
 
 export interface ProAction {
   code: string;
@@ -270,25 +270,24 @@ export function buildProInsights(
   const LABEL: Record<ProActionKind, string> = {
     sell: L("Think about selling", "বিক্রির কথা ভাবুন"),
     trim: L("Trim it", "কিছুটা কমান"),
+    review: L("Read the warning", "সতর্কতাটি পড়ুন"),
     buy_more: L("Good to add", "আরও কেনা যায়"),
     hold: L("Hold steady", "ধরে রাখুন"),
   };
-  const ORDER: Record<ProActionKind, number> = { sell: 0, trim: 1, buy_more: 2, hold: 3 };
+  const ORDER: Record<ProActionKind, number> = { sell: 0, trim: 1, review: 2, buy_more: 3, hold: 4 };
   const actions: ProAction[] = hs
     .map((h): ProAction => {
+      // The backend's advice decides (signal_service.holding_signal, weight-aware
+      // since 2026-11-05) — the list no longer adds its own "Trim" for any big
+      // share, so a big share at a fair price isn't told to sell some.
+      const s = h.signal.signal;
       const kind: ProActionKind =
-        h.signal.signal === "sell"
-          ? "sell"
-          : h.weightPct > TRIM_WEIGHT_PCT && hs.length > 1
-            ? "trim"
-            : h.signal.signal === "buy_more"
-              ? "buy_more"
-              : "hold";
+        s === "sell" ? "sell" : s === "trim" ? "trim" : s === "review" ? "review" : s === "buy_more" ? "buy_more" : "hold";
       const reason =
         kind === "trim"
           ? L(
-              `It is ${pct(h.weightPct)} of your money. Moving some into another sector lowers the risk.`,
-              `এটি আপনার টাকার ${pct(h.weightPct)}। কিছু অংশ অন্য সেক্টরে সরালে ঝুঁকি কমে।`,
+              `It is ${pct(h.weightPct)} of your money and its price is high or near its top this year. Selling some lowers the risk.`,
+              `এটি আপনার টাকার ${pct(h.weightPct)}, আর দাম এখন বেশি বা বছরের সর্বোচ্চের কাছে। কিছুটা বিক্রি করলে ঝুঁকি কমে।`,
             )
           : (kind === "hold" ? h.oneLiner : h.signal.reason) || h.oneLiner;
       return { code: h.code, companyName: h.companyName, kind, label: LABEL[kind], reason };

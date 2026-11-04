@@ -51,6 +51,13 @@ SIGNAL_WORDS_BN = {"buy": "কেনা যায়", "sell": "বিক্র�
 
 # Per-holding overlay states — Buy More / Sell, or none (never Hold).
 HOLDING_BUY_MORE, HOLDING_SELL = "buy_more", "sell"
+# Weight-aware holding advice (user decision 2026-11-05, audit PR7).
+HOLDING_TRIM, HOLDING_REVIEW = "trim", "review"
+TRIM_WEIGHT_PCT = 25.0         # one share over this share of the money …
+BUY_MORE_MAX_WEIGHT_PCT = 20.0  # … and "Buy more" only under this
+# A strong company kept off Buy by one of these gets "review" for its holders.
+REVIEW_REASONS = {"red_flag", "heavy_debt", "thin_trading", "earnings_dropped",
+                  "stale_financials", "z_category"}
 HOLDING_SIGNAL_WORDS = {"buy_more": "Buy more", "sell": "Sell"}
 
 CHEAP_P4 = 7.0        # p4_val >= 7 -> cheap vs own history + sector
@@ -72,6 +79,9 @@ EARNINGS_DROP_PCT = -25.0  # latest EPS fell >=25% YoY -> block buy (value trap)
 CHEAP_LEAVE_P4 = 6.5
 EXPENSIVE_LEAVE_P4 = 3.5
 NEAR_HIGH_RELEASE_PCT = 80.0
+# A scored company missing from a computed momentum map traded nothing in its
+# 30-day window (top20_service keeps a row for any trade in it).
+_NO_TRADE = {"momentum_grade": "no_trade"}
 STRONG_CHEAP_P4 = 8.0
 STRONG_RANGE_PCT = 50.0
 STRENGTH_STRONG, STRENGTH_NORMAL = "strong", "normal"
@@ -88,8 +98,8 @@ REASONS: dict[str, tuple[str, str]] = {
         "কোম্পানির ব্যবসা দুর্বল। আপাতত দূরে থাকাই নিরাপদ।",
     ),
     "average_fundamentals": (
-        "This is an average company. There is no strong reason to buy or sell it now.",
-        "এটি মাঝারি মানের কোম্পানি। এখন কেনা বা বিক্রির জোরালো কোনো কারণ নেই।",
+        "Its results on our checks are mixed. There is no strong reason to buy or sell it now.",
+        "আমাদের যাচাইয়ে এর ফল মিশ্র। এখন কেনা বা বিক্রির জোরালো কোনো কারণ নেই।",
     ),
     "z_category": (
         "The figures are good, but it is a Z-category share. That carries too much risk to buy.",
@@ -147,6 +157,14 @@ REASONS: dict[str, tuple[str, str]] = {
     "hold_steady": (
         "Nothing needs doing right now. Keeping the shares is fine.",
         "এখন কিছু করার দরকার নেই। শেয়ারগুলো ধরে রাখা ঠিক আছে।",
+    ),
+    "trim_big_share": (
+        "It is a large part of your money and its price is high or near its top this year. Selling some lowers the risk.",
+        "এটি আপনার টাকার বড় অংশ, আর এর দাম এখন বেশি বা বছরের সর্বোচ্চের কাছে। কিছুটা বিক্রি করলে ঝুঁকি কমে।",
+    ),
+    "big_share_hold": (
+        "A strong company at a good price, but it is already a large part of your money. Adding more would put too much in one share.",
+        "কোম্পানিটি শক্তিশালী, দামও ভালো, তবে এটি এরই মধ্যে আপনার টাকার বড় অংশ। আরও কিনলে এক শেয়ারে বেশি টাকা চলে যাবে।",
     ),
 }
 
@@ -245,7 +263,10 @@ def _signal_for_row(row: dict, momentum: Optional[dict],
         return mk(NONE, "stale_financials")
     # 6. Illiquidity blocks a buy. Grade "unknown" (data gap) does NOT trigger
     #    this — a good company with a momentum gap still forks on valuation.
-    if grade == "weak_liquidity":
+    #    "no_trade" = no trade inside the 30-day momentum window (audit DT5): a
+    #    good company that went quiet lost its momentum row, which skipped this
+    #    check and the near-top one, so it could turn Buy on a stale price.
+    if grade in ("weak_liquidity", "no_trade"):
         return mk(NONE, "thin_trading")
     # 6b. Earnings collapse blocks a buy — a still-highly-rated company whose
     #     most recent annual profit cratered is "cheap for a reason" (classic
@@ -360,7 +381,9 @@ def build_signals() -> dict[str, dict]:
         if not code:
             continue
         c = str(code).upper()
-        out[c] = _signal_for_row(row, momentum.get(code), red.get(c), prev.get(c))
+        mom = momentum.get(code) or (_NO_TRADE if momentum else None)
+        out[c] = _signal_for_row(row, mom, red.get(c), prev.get(c))
+        out[c]["pct52"] = (mom or {}).get("pct_in_52w_range")
     return out
 
 
@@ -386,30 +409,60 @@ def _mk_holding(signal: str, key: str) -> dict:
 
 def holding_signal(stock_sig: Optional[dict],
                    pnl_pct: Optional[float],
-                   p4: Optional[float]) -> dict:
-    """Buy More / Sell for one owned holding — or none (never Hold).
+                   p4: Optional[float],
+                   weight_pct: Optional[float] = None,
+                   pct52: Optional[float] = None) -> dict:
+    """The advice for one owned share (user decision 2026-11-05, audit PR7).
+    Never from what the reader paid — the same share held at a loss and at
+    break-even gets the same advice:
 
-    Derives from the canonical stock signal so the stock page and the
-    portfolio can never disagree, then layers the owner's entry picture:
-      - stock sell                                  -> sell (same reason)
-      - loss > 5% and still expensive (p4 < 4)      -> sell (unchanged legacy rule)
-      - stock buy and not already up >= 5%          -> buy_more
-      - everything else                             -> none (no chip shown)
+      - the share is marked Sell                     -> sell (its own reason)
+      - over TRIM_WEIGHT_PCT of the money, and the
+        price is high or near its yearly top         -> trim
+      - the share is a Buy and under
+        BUY_MORE_MAX_WEIGHT_PCT of the money         -> buy_more
+      - a strong company kept off Buy by a warning   -> review (its reason)
+      - everything else                              -> none
 
-    The sell set is unchanged: a genuinely unrated stock has no p4, so the
-    loss-cut rule still can't fire on it — only rated names (including the ones
-    that now resolve to a neutral `none` at stock level) reach it.
+    `pnl_pct` is kept for callers but no longer decides anything (it used to
+    mark a holding down 5% at a high price Sell, so a holder at break-even
+    got nothing and the reason named the company, not the rule).
     """
     sig = stock_sig or none_signal()
     base = sig.get("signal", NONE)
+    reason = sig.get("reason_key")
     if base == SELL:
-        return _mk_holding(HOLDING_SELL, sig.get("reason_key") or "weak_fundamentals")
-    if pnl_pct is not None:
-        if p4 is not None and pnl_pct < -5 and p4 < EXPENSIVE_P4:
-            return _mk_holding(HOLDING_SELL, "bought_high_still_expensive")
-        if base == BUY and pnl_pct < 5:
+        return _mk_holding(HOLDING_SELL, reason or "weak_fundamentals")
+    w = _f(weight_pct)
+    pct52 = _f(pct52 if pct52 is not None else sig.get("pct52"))
+    p4 = _f(p4)
+    high_or_top = ((p4 is not None and p4 < EXPENSIVE_P4) or reason in ("near_52w_high", "quality_expensive")
+                   or (pct52 is not None and pct52 >= NEAR_HIGH_PCT))
+    if w is not None and w > TRIM_WEIGHT_PCT and high_or_top:
+        return _mk_holding(HOLDING_TRIM, "trim_big_share")
+    if base == BUY:
+        if w is None or w < BUY_MORE_MAX_WEIGHT_PCT:
             return _mk_holding(HOLDING_BUY_MORE, "still_attractive_add")
+        return _mk_holding(NONE, "big_share_hold")
+    if reason in REVIEW_REASONS and sig.get("tier") in ("good", "excellent"):
+        out = _mk_holding(HOLDING_REVIEW, reason)
+        if sig.get("reason_en"):
+            out["reason_en"], out["reason_bn"] = sig["reason_en"], sig.get("reason_bn") or sig["reason_en"]
+        return out
     return _mk_holding(NONE, "hold_steady")
+
+
+def holding_weights(holdings: list[dict], prices: dict) -> dict[str, float]:
+    """{code: % of the money in it} at today's prices (cost when no price)."""
+    vals: dict[str, float] = {}
+    for h in holdings or []:
+        code = (h.get("trading_code") or "").upper()
+        qty = _f(h.get("qty") or h.get("quantity")) or 0.0
+        px = _f((prices.get(code) or {}).get("ltp")) or _f(h.get("buy_price")) or 0.0
+        if code and qty > 0 and px > 0:
+            vals[code] = vals.get(code, 0.0) + qty * px
+    total = sum(vals.values())
+    return {c: v / total * 100.0 for c, v in vals.items()} if total > 0 else {}
 
 
 # ---------------------------------------------------------------------------
@@ -477,7 +530,7 @@ def snapshot_signals_today(date: Optional[str] = None) -> dict:
         if not code:
             continue
         code = str(code).upper()
-        mom = momentum.get(code)
+        mom = momentum.get(code) or (_NO_TRADE if momentum else None)
         sig = _signal_for_row(row, mom, red.get(code), prev.get(code))
         stale = row.get("stale_data")
         if stale is None:

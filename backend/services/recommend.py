@@ -718,16 +718,27 @@ def gaps(rows: list[dict]) -> dict:
 
 
 def size(price: Optional[float], total_value: float, n_holdings: int,
-         amount_hint: Optional[float] = None) -> Optional[dict]:
+         amount_hint: Optional[float] = None, held_value: float = 0.0) -> Optional[dict]:
     """Example size: about 10% of the money, an equal share up to 20% under
-    5 stocks; a swap uses the replaced holding's money. Whole shares."""
+    5 stocks; a swap uses the replaced holding's money. Whole shares. Adding
+    to a share already held never takes it past ADD_MORE_MAX_PCT of the money
+    (audit PR7: the suggestion pushed a holding past 25%, and the next day
+    the same share read "Trim")."""
     if not price or price <= 0 or total_value <= 0:
         return None
     target = min(20.0, 100 / (n_holdings + 1)) if 0 < n_holdings < 5 else 10.0
     amount = amount_hint if amount_hint is not None else total_value * target / (100 - target)
+    if held_value > 0 and amount_hint is None:
+        room = (ADD_MORE_MAX_PCT / 100.0 * total_value - held_value) / (1 - ADD_MORE_MAX_PCT / 100.0)
+        if room < price:
+            return None
+        amount = min(amount, room)
     shares = max(1, int(amount // price))
     return {"shares": shares, "amount": round(shares * price, 2),
             "target_pct": 0.0 if amount_hint is not None else round(target, 1)}
+
+
+ADD_MORE_MAX_PCT = 20.0
 
 
 def _idea(pick: dict, kind: str, why_en: str, why_bn: str, replaces: Optional[str],
@@ -777,8 +788,9 @@ def portfolio_plan(rows: list[dict], cands: list[dict], levels: dict[str, dict],
                 continue
             base = explained[c["code"]]
             kind = "add_more" if ft["kind"] == "add_more" else "fit"
+            held_val = sum(r["value"] for r in rows if r["code"] == c["code"]) if kind == "add_more" else 0.0
             take(_idea(base, kind, base["why_en"], base["why_bn"], None,
-                       size(_n(c.get("ltp")), total, nh)))
+                       size(_n(c.get("ltp")), total, nh, held_value=held_val)))
         return {"gaps": [], "picks": ideas, "buys": buys, "passed": len(cands), "none_reason": None}
 
     for r in g["swap"]:

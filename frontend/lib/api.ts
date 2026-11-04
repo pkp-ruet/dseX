@@ -46,7 +46,7 @@ export interface StockSignalInfo {
 
 /** Personalized per-holding overlay on GET /api/user/portfolio (else `none`). */
 export interface HoldingSignalInfo {
-  signal: "buy_more" | "sell" | "none";
+  signal: "buy_more" | "sell" | "trim" | "review" | "none";
   reason_key: string;
   reason_en: string;
   reason_bn: string;
@@ -2404,7 +2404,7 @@ export async function apiDeletePortfolio(pid: string): Promise<{ portfolios: Por
 
 export interface PortfolioSignalEvent {
   trading_code: string;
-  signal: "buy_more" | "sell" | "none";
+  signal: "buy_more" | "sell" | "trim" | "review" | "none";
   prev_signal: string | null;
   changed_at: string | null;
 }

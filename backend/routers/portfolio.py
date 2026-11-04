@@ -146,13 +146,14 @@ def _with_signals(holdings: list[dict]) -> list[dict]:
     Signals come from the canonical signal service — the frontend renders them
     and never re-derives buy/sell advice."""
     from backend.services.db_service import load_latest_prices
-    from backend.services.signal_service import build_signals, holding_signal
+    from backend.services.signal_service import build_signals, holding_signal, holding_weights
 
     try:
         prices = load_latest_prices()
         signals = build_signals()
     except Exception:  # noqa: BLE001 — signals are an enrichment, never a blocker
         prices, signals = {}, {}
+    weights = holding_weights(holdings, prices)
     out = []
     for h in holdings:
         code = h["trading_code"]
@@ -163,7 +164,8 @@ def _with_signals(holdings: list[dict]) -> list[dict]:
             if ltp and buy_price > 0 else None
         )
         sig = signals.get(code)
-        out.append({**h, "signal": holding_signal(sig, pnl_pct, (sig or {}).get("p4_val"))})
+        out.append({**h, "signal": holding_signal(sig, pnl_pct, (sig or {}).get("p4_val"),
+                                                  weights.get(code.upper()))})
     return out
 
 

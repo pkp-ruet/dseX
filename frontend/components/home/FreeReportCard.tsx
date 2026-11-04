@@ -10,7 +10,7 @@ import type { ScoreItem } from "@/lib/api";
 const OPEN = [
   { en: "Why it is a Buy, a Sell or neither, with the full reason", bn: "কেন কেনা, বিক্রি বা কোনোটিই নয়, পুরো কারণসহ" },
   { en: "Its fair price, and how we worked it out", bn: "এর ন্যায্য দাম, আর কীভাবে হিসাব করেছি" },
-  { en: "All five checks, explained", bn: "পাঁচটি যাচাইয়ের পুরো ব্যাখ্যা" },
+  { en: "Every check behind the grade, explained", bn: "গ্রেডের পেছনের প্রতিটি যাচাইয়ের ব্যাখ্যা" },
   { en: "Every good sign and thing to watch", bn: "সব ভালো দিক আর সতর্কতার দিক" },
 ];
 
