@@ -42,7 +42,6 @@ import ForYouCard from "@/components/home/personalized/ForYouCard";
 import DividendBoardCard from "@/components/home/personalized/DividendBoardCard";
 import LearnCard from "@/components/home/personalized/LearnCard";
 import ExploreLinks from "@/components/home/personalized/ExploreLinks";
-import ResultsPromoCard from "@/components/home/personalized/ResultsPromoCard";
 import FreeReportCard from "@/components/home/FreeReportCard";
 import { freeReportCode } from "@/lib/free-report";
 import ChapterHead from "@/components/home/personalized/ChapterHead";
@@ -288,10 +287,13 @@ export default function PersonalizedHome() {
     </section>
   ) : null;
 
-  // ── Chapter 2: Market today — mood + index + sparkline, movers, the
-  //    week's quarterly results. Sectors this week, today's market news, the
-  //    Bengali snapshot and "Worth watching" (TurningPointsCard) were removed
-  //    2026-10-27 (user decision). ──
+  // ── Chapter 2: Market today — mood + index + sparkline, movers, then the
+  //    link tiles (DSE today · market analysis · the week's results). The
+  //    week's results were a full card (`ResultsPromoCard`) until 2026-11-04,
+  //    now one tile in `MarketLinks` (user: the card took a lot of room).
+  //    Sectors this week, today's market news, the Bengali snapshot and
+  //    "Worth watching" (TurningPointsCard) were removed 2026-10-27 (user
+  //    decision). ──
   const marketChapter = (
     <section id="market" className={CHAPTER}>
       {head("chMarket", <IconGrid size={16} />)}
@@ -319,21 +321,8 @@ export default function PersonalizedHome() {
           </div>
         )}
       </div>
-      {/* The market's quarterly results — every reader; only free readers
-          get the Premium line under it. */}
-      {bundle?.results_week && (
-        <div data-card="results-promo">
-          <ResultsPromoCard
-            week={bundle.results_week}
-            held={heldSet}
-            watched={watchedSet}
-            lang={lang}
-            premium={planState === "premium"}
-          />
-        </div>
-      )}
       <div data-card="market-links">
-        <MarketLinks lang={lang} />
+        <MarketLinks lang={lang} results={bundle?.results_week ?? null} />
       </div>
     </section>
   );

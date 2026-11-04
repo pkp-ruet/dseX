@@ -23,7 +23,6 @@ import { RESULT_LEVEL, epsTk, quarterLabel, resultMove } from "@/lib/results";
  * readers only (`Locked`).
  * `mark` replaces the page's H / ★ tag (the dashboard passes its `OwnerMark`,
  * which reads the bundle's sets instead of `PersonalCodesProvider`).
- * Also the rows of the dashboard's results card (`ResultsPromoCard`).
  */
 export default function ResultRow({
   r, masked = false, mark,

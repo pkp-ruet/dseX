@@ -87,7 +87,8 @@ const COPY = {
   allQuiet: ["Nothing new on your stocks", "আপনার শেয়ারে নতুন কিছু নেই"],
 
   // News
-  resultsPromoTitle: ["Quarterly results, in plain words", "প্রান্তিকের ফল, সহজ ভাষায়"],
+  resultsLinkWeek: ["Results this week", "এই সপ্তাহের আর্থিক ফল"],
+  resultsLink: ["Quarterly results", "প্রান্তিকের ফল"],
   allMarketNews: ["All market news", "বাজারের সব খবর"],
   marketNewsTitle: ["Today's market news", "আজকের বাজারের খবর"],
   allNews: ["All news", "সব খবর"],

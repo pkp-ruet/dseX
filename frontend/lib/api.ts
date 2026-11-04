@@ -2462,7 +2462,8 @@ export interface HomeBundle {
   rank_moves?: RankingsToday["moves"];
   /** Quarterly results on the reader's own stocks, posted in the last three weeks. */
   new_results?: LatestResultRow[];
-  /** The market's week of quarterly results (the free readers' /results promotion). */
+  /** The market's week of quarterly results — the dashboard's results tile in
+   *  `MarketLinks` (counts only; `latest` is no longer shown since 2026-11-04). */
   results_week?: {
     days: number;
     recent: number;
