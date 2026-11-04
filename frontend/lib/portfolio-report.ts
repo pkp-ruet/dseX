@@ -24,7 +24,7 @@
  */
 import type { GlanceRow, PortfolioSignalEvent, PortfolioWatchEvent, ScoreItem, UpcomingResult } from "@/lib/api";
 import { sectorBn } from "@/lib/bn";
-import { companyShort, takaGroup } from "@/lib/formatters";
+import { companyShort, money, takaGroup } from "@/lib/formatters";
 import { TIER_LABELS, TIER_PILL_BN } from "@/lib/constants";
 import {
   isFinancialSector,
@@ -40,7 +40,8 @@ import type { Bi, Tone } from "@/lib/stock-report";
 // ── Types ──────────────────────────────────────────────────────────────────
 
 export type LightKey = "companies" | "spread" | "prices" | "watch";
-export type ChapterKey = LightKey;
+/** `loss` (2026-11-04): the shares below what you paid — only when there are some. */
+export type ChapterKey = LightKey | "loss";
 
 export interface PfLight {
   key: LightKey;
@@ -113,7 +114,7 @@ export interface PfChapter {
  *  `title` carries the count, `line` what Premium shows about it. Never names
  *  a share or gives the answer. */
 export interface PfFinding {
-  key: "decide" | "warn" | "add" | "weak" | "grade" | "spread" | "moves" | "week" | "paid" | "cash" | "results" | "each" | "strong" | "daily";
+  key: "decide" | "warn" | "add" | "weak" | "grade" | "spread" | "moves" | "week" | "paid" | "cash" | "results" | "each" | "strong" | "daily" | "loss";
   title: Bi;
   line: Bi;
 }
@@ -168,6 +169,8 @@ export interface ReportInput {
   today: string;
   /** The value move since the reader's last visit (an hour or more ago). */
   sinceLast?: { delta: number; since: string } | null;
+  /** The reader's fee estimate, % a side (portfolio settings; 0.4 when unset). */
+  feePct?: number;
 }
 
 // ── Words ──────────────────────────────────────────────────────────────────
@@ -211,7 +214,7 @@ const SECTOR_PLAIN: Record<string, string> = {
   "Travel & Leisure": "travel",
   Miscellaneous: "other businesses",
 };
-const sectorWord = (name: string): Bi => B(SECTOR_PLAIN[name] ?? name.toLowerCase(), sectorBn(name) || name);
+export const sectorWord = (name: string): Bi => B(SECTOR_PLAIN[name] ?? name.toLowerCase(), sectorBn(name) || name);
 
 /** "BRAC Bank" from the company name, else the code. */
 const nameOf = (h: HoldingInsight): string => companyShort(h.companyName) || h.code;
@@ -374,8 +377,10 @@ export function buildPortfolioReport(inp: ReportInput): PortfolioReport {
   const companies = companiesChapter(inp, f, cl);
   const spread = spreadChapter(inp, f, issue, sl);
   const prices = pricesChapter(inp, f, pl);
+  const lf = lossFacts(inp, f);
+  const loss = lf ? lossChapter(inp, f, lf) : null;
   const watch = watchChapter(inp, f, wl);
-  const chapters = [companies, spread, prices, watch];
+  const chapters = [companies, spread, prices, ...(loss ? [loss] : []), watch];
 
   const lights: PfLight[] = [
     { key: "companies", label: B("Your companies", "আপনার কোম্পানি"), ...cl, href: "#ch-companies", why: companies.rows[0]?.headline ?? null },
@@ -386,7 +391,7 @@ export function buildPortfolioReport(inp: ReportInput): PortfolioReport {
 
   const answer = buildAnswer(inp, f, lights, issue);
   const plan = buildPlan(inp);
-  const findings = buildFindings(inp, f, lights, issue, plan);
+  const findings = buildFindings(inp, f, lights, issue, plan, lf);
   const answered = chapters.reduce((acc, c) => acc + c.rows.length, 0) + 4;
 
   return { answer, chapters, plan, findings, answered };
@@ -1024,6 +1029,443 @@ function pricesChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone
   };
 }
 
+// ── Chapter · shares in a loss (2026-11-04) ───────────────────────────────
+//
+// "What about your shares in a loss?" — for every share more than 5% below
+// what the reader paid: how far down, whether the company got weaker or only
+// the price fell, the price that gives their money back after fees, what
+// buying more would do to their average (never on a weaker company), and what
+// the money pays them while they wait. The day one of them closes back at
+// their price after a month under it, the watcher says so (`breakeven`).
+
+/** A share counts as "in a loss" here from this far below the price paid. */
+const LOSS_PCT = -5;
+/** A buy-more example never takes one share past this much of the money. */
+const MORE_MAX_PCT = 25;
+
+type LossKind = "price" | "mixed" | "worse";
+
+interface LossItem {
+  h: HoldingInsight;
+  cost: number;
+  value: number;
+  /** Taka below what was paid. */
+  down: number;
+  downPct: number;
+  kind: LossKind;
+  /** Why it sits in its group, one clause. */
+  why: Bi;
+  /** The price that gives the money back after fees, both sides. */
+  even: number;
+  /** How far it must rise from today to get there, %. */
+  rise: number;
+  hi52: number | null;
+  /** Cash dividends a year at today's price (last year's dividend). */
+  cash: number;
+}
+
+interface LossFacts {
+  items: LossItem[];
+  down: number;
+  cost: number;
+  value: number;
+  fee: number;
+  /** What strong companies that pay steadily yield in cash at today's prices, % (median). */
+  steadyYield: number | null;
+}
+
+const breakEven = (avg: number, fee: number) => (avg * (1 + fee)) / (1 - fee);
+
+function lossFacts(inp: ReportInput, f: Facts): LossFacts | null {
+  const fee = Math.max(0, inp.feePct ?? 0.4) / 100;
+  const items: LossItem[] = [];
+  for (const h of f.hs) {
+    if (h.ltp == null || h.ltp <= 0 || h.pnlPct == null || h.pnlPct > LOSS_PCT || h.buyPrice <= 0) continue;
+    const g = inp.glance.get(h.code.toUpperCase());
+    const cost = h.qty * h.buyPrice;
+    const value = h.qty * h.ltp;
+    const profit = g?.profit_change_pct ?? inp.priceMap.get(h.code)?.eps_yoy_pct ?? null;
+    const serious = f.serious.find((x) => x.h.code === h.code);
+    let kind: LossKind;
+    let why: Bi;
+    if (serious) {
+      kind = "worse";
+      why = B(lowerFirst(serious.lines[0].en).replace(/\.$/, ""), serious.lines[0].bn.replace(/।$/, ""));
+    } else if (h.tierKey === "weak") {
+      kind = "worse";
+      why = B("it is weak on our checks now", "এখন এটি আমাদের যাচাইয়ে দুর্বল");
+    } else if (profit != null && profit <= -25) {
+      kind = "worse";
+      why = B("its profit fell by a quarter or more", "এর মুনাফা এক-চতুর্থাংশ বা তার বেশি কমেছে");
+    } else if (h.signal.signal === "sell") {
+      kind = "worse";
+      why = B("it is marked Sell", "এতে বিক্রির সংকেত");
+    } else if (GOOD_TIERS.has(h.tierKey) && (profit == null || profit > -10)) {
+      kind = "price";
+      why = B("it is still a strong company", "কোম্পানিটি এখনো শক্তিশালী");
+    } else {
+      kind = "mixed";
+      why =
+        profit != null && profit <= -10
+          ? B("its profit is slipping", "এর মুনাফা কিছুটা কমছে")
+          : h.tierKey === "unscored"
+            ? B("we can't grade it yet", "এখনো এর গ্রেড দেওয়া যায়নি")
+            : B("it is an average company", "এটি মাঝারি মানের কোম্পানি");
+    }
+    const even = breakEven(h.buyPrice, fee);
+    const y = inp.priceMap.get(h.code)?.div_yield_pct ?? 0;
+    items.push({
+      h,
+      cost,
+      value,
+      down: cost - value,
+      downPct: -h.pnlPct,
+      kind,
+      why,
+      even,
+      rise: (even / h.ltp - 1) * 100,
+      hi52: g?.hi52 ?? null,
+      cash: y > 0 ? (value * y) / 100 : 0,
+    });
+  }
+  if (!items.length) return null;
+  items.sort((a, b) => b.down - a.down);
+
+  // What strong companies that pay steadily pay at today's prices.
+  const ys = [...inp.priceMap.values()]
+    .filter((s) => (s.score ?? 0) >= 60 && (s.p5_div ?? 0) >= 7 && (s.div_yield_pct ?? 0) > 0 && s.market_category !== "Z")
+    .map((s) => s.div_yield_pct as number)
+    .sort((a, b) => a - b);
+  const steadyYield = ys.length >= 5 ? ys[Math.floor(ys.length / 2)] : null;
+
+  return {
+    items,
+    down: items.reduce((a, x) => a + x.down, 0),
+    cost: items.reduce((a, x) => a + x.cost, 0),
+    value: items.reduce((a, x) => a + x.value, 0),
+    fee,
+    steadyYield,
+  };
+}
+
+const KIND_WORD: Record<LossKind, Bi> = {
+  price: B("Only the price fell", "শুধু দাম কমেছে"),
+  mixed: B("In between", "মাঝামাঝি"),
+  worse: B("Weaker too", "কোম্পানিও দুর্বল হয়েছে"),
+};
+const KIND_TONE: Record<LossKind, Tone> = { price: "good", mixed: "fair", worse: "bad" };
+const KIND_SWATCH: Record<LossKind, Swatch> = { price: "good", mixed: "fair", worse: "bad" };
+const signedPct = (v: number) => `+${Math.max(0, Math.round(v))}%`;
+
+function lossChapter(inp: ReportInput, f: Facts, lf: LossFacts): PfChapter {
+  const { items } = lf;
+  const n = items.length;
+  const one = n === 1 ? items[0] : null;
+  const price = items.filter((x) => x.kind === "price");
+  const mixed = items.filter((x) => x.kind === "mixed");
+  const worse = items.filter((x) => x.kind === "worse");
+  const hsOf = (xs: LossItem[]) => xs.map((x) => x.h);
+  const downPct = lf.cost > 0 ? (lf.down / lf.cost) * 100 : 0;
+  const worsePct = worse.reduce((a, x) => a + x.h.weightPct, 0);
+
+  // How far down are they?
+  const down: PfRow = {
+    key: "down",
+    title: B("How far down are they?", "কতটা লোকসানে আছে?"),
+    word: B(`${pct(downPct)} down`, `${pct(downPct)} কম`),
+    tone: downPct >= 25 ? "bad" : "fair",
+    headline: one
+      ? B(
+          `${nameOf(one.h)} is ${pct(one.downPct)} below what you paid. That is ${takaGroup(one.down)} less than you put in.`,
+          `${nameOf(one.h)} আপনার কেনা দামের চেয়ে ${pct(one.downPct)} কম। আপনি যা রেখেছিলেন, তার চেয়ে ${takaGroup(one.down)} কম।`,
+        )
+      : B(
+          `${n} of your ${f.n} shares are below what you paid. Together they are ${takaGroup(lf.down)} down.`,
+          `আপনার ${f.n}টি শেয়ারের ${n}টি কেনা দামের নিচে। সব মিলিয়ে ${takaGroup(lf.down)} কম।`,
+        ),
+    meaning: [
+      B(
+        "A loss only becomes real when you sell. What matters now is whether the company behind each share is still worth waiting for.",
+        "বিক্রি না করা পর্যন্ত লোকসান কাগজে-কলমেই থাকে। এখন আসল প্রশ্ন, প্রতিটি শেয়ারের পেছনের কোম্পানির জন্য অপেক্ষা করা ঠিক হবে কি না।",
+      ),
+    ],
+    watch: null,
+    picture: {
+      kind: "bars",
+      label: items.slice(0, 4).map((x) => `${x.h.code} ${takaGroup(x.down)} down`).join(", "),
+      rows: items.slice(0, 4).map((x, i) => ({ key: x.h.code, name: same(nameOf(x.h)), value: x.down, text: takaGroup(x.down), me: i === 0 })),
+    },
+    figures: items.map((x) => ({
+      key: x.h.code,
+      code: x.h.code,
+      label: same(nameOf(x.h)),
+      value: B(`${pct(x.downPct)} down · ${takaGroup(x.down)}`, `${pct(x.downPct)} কম · ${takaGroup(x.down)}`),
+      tone: (x.downPct >= 25 ? "bad" : "fair") as Tone,
+    })),
+    freeFacts: [],
+  };
+
+  // Is it the company, or only the price?
+  const priceLine = price.length
+    ? price.length === 1
+      ? B(`For ${nameOf(price[0].h)} only the price fell: it is still a strong company.`, `${nameOf(price[0].h)}-এর শুধু দাম কমেছে: কোম্পানিটি এখনো শক্তিশালী।`)
+      : B(`For ${names(hsOf(price)).en} only the price fell: they are still strong companies.`, `${names(hsOf(price)).bn}-এর শুধু দাম কমেছে: কোম্পানিগুলো এখনো শক্তিশালী।`)
+    : null;
+  const worseLine = worse.length
+    ? B(`${nameOf(worse[0].h)} got weaker too: ${worse[0].why.en}.`, `${nameOf(worse[0].h)} কোম্পানিও দুর্বল হয়েছে: ${worse[0].why.bn}।`)
+    : null;
+  const mixedLine = mixed.length
+    ? B(`${nameOf(mixed[0].h)} is in between: ${mixed[0].why.en}.`, `${nameOf(mixed[0].h)} মাঝামাঝি অবস্থায়: ${mixed[0].why.bn}।`)
+    : null;
+  const whyLines = [priceLine, worseLine, mixedLine].filter(Boolean) as Bi[];
+  const whyTone: Tone = worse.length === 0 ? (mixed.length === 0 ? "good" : "fair") : worse.length === n ? "bad" : "fair";
+  const why: PfRow = {
+    key: "why",
+    title: B("Is it the company, or only the price?", "সমস্যা কোম্পানিতে, নাকি শুধু দামে?"),
+    word:
+      worse.length === 0 && mixed.length === 0
+        ? B("Only the price", "শুধু দাম")
+        : worse.length === n
+          ? B("The company too", "কোম্পানিও")
+          : worse.length
+            ? B(`${worse.length} weaker too`, `${worse.length}টি দুর্বলও হয়েছে`)
+            : B(`${mixed.length} in between`, `${mixed.length}টি মাঝামাঝি`),
+    tone: whyTone,
+    headline: join(whyLines.slice(0, 2)),
+    meaning: [
+      B(
+        "A strong company whose price fell can climb back as its profit grows. A company that got weaker gives its price less reason to come back.",
+        "শক্তিশালী কোম্পানির দাম কমলে মুনাফা বাড়ার সঙ্গে সঙ্গে আবার উঠতে পারে। কোম্পানি নিজেই দুর্বল হলে দাম ফেরার কারণ কমে যায়।",
+      ),
+      ...whyLines.slice(2),
+      ...worse.slice(1, 3).map((x) => B(`${nameOf(x.h)}: ${x.why.en}.`, `${nameOf(x.h)}: ${x.why.bn}।`)),
+    ],
+    watch: worse.length
+      ? B(`Adding more to ${nameOf(worse[0].h)} puts more of your money on a weaker company.`, `${nameOf(worse[0].h)}-এ আরও কিনলে দুর্বল কোম্পানিতে আরও টাকা আটকাবে।`)
+      : null,
+    picture: {
+      kind: "split",
+      label: `${price.length} only the price fell, ${mixed.length} in between, ${worse.length} weaker too`,
+      parts: (["price", "mixed", "worse"] as LossKind[])
+        .map((k) => ({ k, count: items.filter((x) => x.kind === k).length }))
+        .filter((p) => p.count > 0)
+        .map((p) => ({
+          key: p.k,
+          value: (p.count / n) * 100,
+          text: B(`${KIND_WORD[p.k].en} ${p.count}`, `${KIND_WORD[p.k].bn} ${p.count}`),
+          swatch: KIND_SWATCH[p.k],
+        })),
+    },
+    figures: items.map((x) => ({ key: x.h.code, code: x.h.code, label: same(nameOf(x.h)), value: KIND_WORD[x.kind], tone: KIND_TONE[x.kind] })),
+    freeFacts: [],
+  };
+
+  // What price gets your money back?
+  const byRise = [...items].sort((a, b) => a.rise - b.rise);
+  const near = byRise.filter((x) => x.rise <= 10);
+  const reached = items.filter((x) => x.hi52 != null && x.hi52 >= x.even);
+  const closest = byRise[0];
+  const furthest = byRise[byRise.length - 1];
+  const even: PfRow = {
+    key: "even",
+    title: B("What price gets your money back?", "কোন দামে আপনার টাকা ফিরবে?"),
+    word: near.length ? B(`${near.length} within 10%`, `${near.length}টি 10%-এর মধ্যে`) : B("All need 10% or more", "সবগুলোর 10%-এর বেশি দরকার"),
+    tone: near.length ? "fair" : "bad",
+    headline: one
+      ? join([
+          B(
+            `${nameOf(one.h)} needs to rise ${pct(one.rise)}, to ${money(one.even)}, to give your money back after fees.`,
+            `ফি দেওয়ার পর টাকা ফেরাতে ${nameOf(one.h)}-এর দাম ${pct(one.rise)} বাড়তে হবে, ${money(one.even)} পর্যন্ত।`,
+          ),
+          one.hi52 != null
+            ? one.hi52 >= one.even
+              ? B("It was above that price within the past year.", "গত এক বছরের মধ্যে দাম এর ওপরে ছিল।")
+              : B(`Its highest price this past year was ${money(one.hi52)}.`, `গত এক বছরে এর সর্বোচ্চ দাম ছিল ${money(one.hi52)}।`)
+            : B("", ""),
+        ])
+      : join([
+          B(
+            `${nameOf(closest.h)} is closest: it needs to rise ${pct(closest.rise)} to give your money back after fees.`,
+            `${nameOf(closest.h)} সবচেয়ে কাছে: ফি দেওয়ার পর টাকা ফেরাতে এর দাম ${pct(closest.rise)} বাড়তে হবে।`,
+          ),
+          B(`${nameOf(furthest.h)} is furthest: it needs ${pct(furthest.rise)}.`, `${nameOf(furthest.h)} সবচেয়ে দূরে: এর দরকার ${pct(furthest.rise)}।`),
+        ]),
+    meaning: [
+      ...(reached.length && !one
+        ? [
+            B(
+              `${reached.length} of them traded at that price within the past year, so it is not out of reach.`,
+              `এর ${reached.length}টি গত এক বছরের মধ্যে ওই দামে লেনদেন হয়েছে, তাই দামটি নাগালের বাইরে নয়।`,
+            ),
+          ]
+        : []),
+      B(
+        "When a share that has been under your price for a month closes back at it, we tell you that evening.",
+        "এক মাস কেনা দামের নিচে থাকা কোনো শেয়ার আবার আপনার কেনা দামে ফিরলে, সেদিন সন্ধ্যাতেই আপনাকে জানাই।",
+      ),
+    ],
+    watch: null,
+    picture: {
+      kind: "bars",
+      label: byRise.slice(0, 4).map((x) => `${x.h.code} needs ${pct(x.rise)}`).join(", "),
+      rows: byRise.slice(0, 4).map((x, i) => ({ key: x.h.code, name: same(nameOf(x.h)), value: Math.max(1, x.rise), text: signedPct(x.rise), me: i === 0 })),
+    },
+    figures: byRise.map((x) => ({
+      key: x.h.code,
+      code: x.h.code,
+      label: same(nameOf(x.h)),
+      value: B(
+        `${money(x.even)} · ${signedPct(x.rise)} from today${x.hi52 != null ? ` · this year's high ${money(x.hi52)}` : ""}`,
+        `${money(x.even)} · আজ থেকে ${signedPct(x.rise)}${x.hi52 != null ? ` · এ বছরের সর্বোচ্চ ${money(x.hi52)}` : ""}`,
+      ),
+      tone: (x.rise <= 10 ? "fair" : "bad") as Tone,
+    })),
+    freeFacts: [],
+  };
+
+  // What would buying more do? Only on a company that is not weaker; the
+  // example is half of what is in it, capped so the share stays under a quarter.
+  const cap = MORE_MAX_PCT / 100;
+  const examples = items
+    .filter((x) => x.kind !== "worse")
+    .map((x) => {
+      const ltp = x.h.ltp as number;
+      // Spending s keeps the share under the cap when (value + s) ≤ cap × (total + s).
+      const room = (cap * f.total - x.value) / (1 - cap);
+      const q = Math.floor(Math.min(x.cost * 0.5, Math.max(0, room)) / ltp);
+      if (q < 1) return null;
+      const avg = (x.cost + q * ltp) / (x.h.qty + q);
+      return { x, q, spend: q * ltp, avg, rise: Math.max(0, (breakEven(avg, lf.fee) / ltp - 1) * 100) };
+    })
+    .filter(Boolean) as { x: LossItem; q: number; spend: number; avg: number; rise: number }[];
+  const ex = examples[0] ?? null;
+  const more: PfRow = {
+    key: "more",
+    title: B("What would buying more do?", "আরও কিনলে কী হবে?"),
+    word: ex ? B("Lowers your price", "গড় দাম কমে") : worse.length === n ? B("Not on these", "এগুলোতে নয়") : B("No room", "জায়গা নেই"),
+    tone: ex ? "neutral" : worse.length === n ? "bad" : "neutral",
+    headline: ex
+      ? join([
+          B(
+            `Buying ${takaGroup(ex.spend)} more of ${nameOf(ex.x.h)} at today's price lowers your average to ${money(ex.avg)}.`,
+            `আজকের দামে ${nameOf(ex.x.h)}-এর আরও ${takaGroup(ex.spend)}-এর শেয়ার কিনলে আপনার গড় দাম নামবে ${money(ex.avg)}-এ।`,
+          ),
+          B(
+            `It would then need to rise ${pct(ex.rise)} instead of ${pct(ex.x.rise)} to give your money back.`,
+            `তখন টাকা ফেরাতে দাম ${pct(ex.x.rise)}-এর বদলে ${pct(ex.rise)} বাড়লেই হবে।`,
+          ),
+        ])
+      : worse.length === n
+        ? B(
+            "Each of these companies got weaker, so buying more would put more money on a weaker company.",
+            "এই কোম্পানিগুলো সবই দুর্বল হয়েছে, তাই আরও কিনলে দুর্বল কোম্পানিতে আরও টাকা যাবে।",
+          )
+        : B(
+            "These shares already hold a big part of your money, so buying more would lean on them too much.",
+            "এই শেয়ারগুলোতে আগেই আপনার টাকার বড় অংশ আছে, তাই আরও কিনলে এগুলোর ওপর বেশি নির্ভরতা তৈরি হবে।",
+          ),
+    meaning: [
+      B(
+        "Buying more lowers your average price, but it also puts more of your money on one share. Our examples keep each share under a quarter of your money.",
+        "আরও কিনলে গড় দাম কমে, কিন্তু একটি শেয়ারে আরও টাকা জমে। আমাদের উদাহরণে প্রতিটি শেয়ার আপনার টাকার এক-চতুর্থাংশের নিচে থাকে।",
+      ),
+      ...(ex && worse.length
+        ? [B(`We leave ${names(hsOf(worse)).en} out: the company got weaker too.`, `${names(hsOf(worse)).bn} বাদ রাখা হয়েছে: কোম্পানিও দুর্বল হয়েছে।`)]
+        : []),
+    ],
+    watch: null,
+    picture: ex
+      ? {
+          kind: "bars",
+          label: `${ex.x.h.code}: needs ${pct(ex.x.rise)} now, ${pct(ex.rise)} after buying more`,
+          rows: [
+            { key: "now", name: B("Needs to rise now", "এখন যত বাড়তে হবে"), value: Math.max(1, ex.x.rise), text: signedPct(ex.x.rise) },
+            { key: "after", name: B("After buying more", "আরও কেনার পর"), value: Math.max(1, ex.rise), text: signedPct(ex.rise), me: true },
+          ],
+        }
+      : null,
+    figures: examples.map((e) => ({
+      key: e.x.h.code,
+      code: e.x.h.code,
+      label: same(nameOf(e.x.h)),
+      value: B(
+        `${takaGroup(e.spend)} more (${e.q.toLocaleString("en-US")} shares) · average ${money(e.avg)} · needs ${signedPct(e.rise)}`,
+        `আরও ${takaGroup(e.spend)} (${e.q.toLocaleString("en-US")}টি শেয়ার) · গড় ${money(e.avg)} · দরকার ${signedPct(e.rise)}`,
+      ),
+    })),
+    freeFacts: [],
+  };
+
+  // What does the money earn while you wait?
+  const cash = items.reduce((a, x) => a + x.cash, 0);
+  const steadyCash = lf.steadyYield != null ? (lf.value * lf.steadyYield) / 100 : null;
+  const payTone: Tone = cash <= 0 ? "bad" : steadyCash != null && cash < steadyCash * 0.6 ? "fair" : "good";
+  const wait: PfRow = {
+    key: "wait",
+    title: B("What does the money earn while you wait?", "অপেক্ষার সময় টাকাটা কী আয় করছে?"),
+    word: cash <= 0 ? B("Pays nothing", "কিছু দেয় না") : payTone === "good" ? B("Pays you to wait", "অপেক্ষার মধ্যেও দেয়") : B("Pays a little", "অল্প দেয়"),
+    tone: payTone,
+    headline: join([
+      B(`These shares are worth ${takaGroup(lf.value)} today.`, `এই শেয়ারগুলোর আজকের দাম ${takaGroup(lf.value)}।`),
+      cash > 0
+        ? B(`At last year's dividends they pay you about ${takaGroup(cash)} a year in cash.`, `গত বছরের ডিভিডেন্ড ধরলে এগুলো বছরে প্রায় ${takaGroup(cash)} নগদ দেয়।`)
+        : B("They pay you no cash dividend while you wait.", "অপেক্ষার সময় এগুলো কোনো নগদ ডিভিডেন্ড দেয় না।"),
+    ]),
+    meaning: [
+      ...(steadyCash != null && steadyCash > cash * 1.2
+        ? [
+            B(
+              `Strong companies that pay steadily would pay about ${takaGroup(steadyCash)} a year on the same money, at today's prices.`,
+              `নিয়মিত ডিভিডেন্ড দেওয়া শক্তিশালী কোম্পানিতে একই টাকায় আজকের দামে বছরে প্রায় ${takaGroup(steadyCash)} আসত।`,
+            ),
+          ]
+        : []),
+      B(
+        "A share that pays a dividend pays you while you wait for its price. One that pays nothing has only its price to give back.",
+        "যে শেয়ার ডিভিডেন্ড দেয়, দাম ফেরার অপেক্ষার মধ্যেও সেটি কিছু দেয়। যেটি কিছুই দেয় না, তার কাছে ফেরত পাওয়ার একমাত্র পথ দাম।",
+      ),
+    ],
+    watch: null,
+    picture:
+      steadyCash != null
+        ? {
+            kind: "bars",
+            label: `Your shares in a loss pay ${takaGroup(cash)} a year, strong steady payers ${takaGroup(steadyCash)}`,
+            rows: [
+              { key: "mine", name: B("Your shares in a loss", "আপনার লোকসানের শেয়ার"), value: Math.max(cash, 0), text: takaGroup(cash), me: true },
+              { key: "steady", name: B("Strong, steady payers", "নিয়মিত দেওয়া শক্তিশালী কোম্পানি"), value: steadyCash, text: takaGroup(steadyCash) },
+            ],
+          }
+        : null,
+    figures: items.map((x) => ({
+      key: x.h.code,
+      code: x.h.code,
+      label: same(nameOf(x.h)),
+      value: x.cash > 0 ? B(`${takaGroup(x.cash)} a year`, `বছরে ${takaGroup(x.cash)}`) : B("No cash dividend", "নগদ ডিভিডেন্ড নেই"),
+      tone: (x.cash > 0 ? "good" : "neutral") as Tone,
+    })),
+    freeFacts: [],
+  };
+
+  const rows = [down, why, even, more, wait];
+  return {
+    key: "loss",
+    id: "ch-loss",
+    title: B("What about your shares in a loss?", "লোকসানে থাকা শেয়ারগুলোর কী হবে?"),
+    lead: B(
+      "Whether to wait, and what gets your money back, share by share.",
+      "অপেক্ষা করবেন কি না, আর কীভাবে টাকা ফিরবে, প্রতিটি শেয়ার ধরে।",
+    ),
+    head: {
+      word: n === 1 ? B("1 share in a loss", "1টি শেয়ার লোকসানে") : B(`${n} shares in a loss`, `${n}টি শেয়ার লোকসানে`),
+      tone: worsePct > 10 ? "bad" : "fair",
+      line: B(`${takaGroup(lf.down)} below what you paid`, `কেনা দামের চেয়ে ${takaGroup(lf.down)} কম`),
+    },
+    read: readOf(rows),
+    rows,
+  };
+}
+
 // ── Chapter 4 · watch ──────────────────────────────────────────────────────
 
 function watchChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone; count: number }): PfChapter {
@@ -1264,7 +1706,7 @@ function buildPlan(inp: ReportInput): PfPlan {
  *  strong / found 5 risk factor"). Each finding says how many and what
  *  Premium shows about it, never which share or what to do. Most important
  *  first, at most six; a healthy portfolio still gets three. */
-function buildFindings(inp: ReportInput, f: Facts, lights: PfLight[], issue: SpreadIssue, plan: PfPlan): PfFinding[] {
+function buildFindings(inp: ReportInput, f: Facts, lights: PfLight[], issue: SpreadIssue, plan: PfPlan, lf: LossFacts | null): PfFinding[] {
   const out: (PfFinding & { weight: number })[] = [];
   const add = (key: PfFinding["key"], weight: number, title: Bi, line: Bi) => out.push({ key, weight, title, line });
   const s = (n: number) => (n === 1 ? "" : "s");
@@ -1294,6 +1736,22 @@ function buildFindings(inp: ReportInput, f: Facts, lights: PfLight[], issue: Spr
           ? B(`We found ${warnings} warnings on your shares, ${serious} of them serious.`, `আপনার শেয়ারে ${warnings}টি সতর্কসংকেত পেয়েছি, এর ${serious}টি গুরুতর।`)
           : B(`We found ${warnings} smaller warning${s(warnings)} on your shares.`, `আপনার শেয়ারে ${warnings}টি ছোট সতর্কসংকেত পেয়েছি।`),
       B("Which share each one is on, and what it means for your money.", "কোনটি কোন শেয়ারে, আর তাতে আপনার টাকার কী হতে পারে।"),
+    );
+  }
+
+  if (lf) {
+    const n = lf.items.length;
+    const worse = lf.items.filter((x) => x.kind === "worse").length;
+    add(
+      "loss",
+      worse ? 85 : 80,
+      n === 1
+        ? B(`One of your shares is below what you paid, ${takaGroup(lf.down)} in all.`, `আপনার একটি শেয়ার কেনা দামের নিচে, মোট ${takaGroup(lf.down)} কম।`)
+        : B(`${n} of your shares are below what you paid, ${takaGroup(lf.down)} in all.`, `আপনার ${n}টি শেয়ার কেনা দামের নিচে, সব মিলিয়ে ${takaGroup(lf.down)} কম।`),
+      B(
+        "Whether it's the company or only the price, the price that gets your money back, and what buying more would do.",
+        "সমস্যা কোম্পানিতে নাকি শুধু দামে, কোন দামে টাকা ফিরবে, আর আরও কিনলে কী হবে।",
+      ),
     );
   }
 

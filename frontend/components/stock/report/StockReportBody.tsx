@@ -7,6 +7,7 @@ import ReportOffer from "@/components/stock/report/ReportOffer";
 import ReportView from "@/components/stock/report/ReportView";
 import ShareCheck from "@/components/stock/report/ShareCheck";
 import YouAndThisStock from "@/components/stock/report/YouAndThisStock";
+import PortfolioFit from "@/components/stock/report/PortfolioFit";
 import { T } from "@/components/i18n/T";
 import { ToneChip, money, tx } from "@/components/stock/report/fmt";
 import {
@@ -47,13 +48,13 @@ function standingWords(rank: number, total: number): Bi {
 export function reportChapters(report: StockReport): typeof REPORT_CHAPTERS {
   const sec = report.sections;
   const has = (k: QuestionKey) =>
-    k === "you" ? false
+    k === "you" || k === "fit" ? false
     : k === "shares" ? !!(sec.dividend && sec.dividend.history.length >= 2)
     : k === "this_year" ? !!(sec.this_year || sec.story)
     : k === "quality" ? !!(sec.quality || sec.sector)
     : !!sec[k as SectionKey];
-  // "You and this stock" only shows for a signed-in holder, so it never keeps
-  // a chapter on the page by itself.
+  // "You and this stock" and the portfolio check only show for a signed-in
+  // reader, so neither keeps a chapter on the page by itself.
   return REPORT_CHAPTERS.filter((c) => c.rows.some((r) => has(r.key)));
 }
 
@@ -253,6 +254,8 @@ export default function StockReportBody({ detail, report }: { detail: CompanyDet
           : null;
       case "you":
         return { node: <YouAndThisStock key="you" code={code} ltp={ltp} report={report} /> };
+      case "fit":
+        return { node: <PortfolioFit key="fit" code={code} ltp={ltp} /> };
       case "alternatives":
         return sec.alternatives
           ? {
@@ -294,8 +297,11 @@ export default function StockReportBody({ detail, report }: { detail: CompanyDet
     const rows = c.rows.map((r) => row(r.key, r.q)).filter(Boolean) as { node: ReactNode }[];
     return { c, rows };
   });
-  // "You and this stock" only shows for a holder, so it isn't counted.
-  const questions = chapters.reduce((n, ch) => n + ch.rows.filter((r) => !(isValidElement(r.node) && r.node.key === "you")).length, 0);
+  // "You and this stock" and the portfolio check are the reader's own, so they aren't counted.
+  const questions = chapters.reduce(
+    (n, ch) => n + ch.rows.filter((r) => !(isValidElement(r.node) && (r.node.key === "you" || r.node.key === "fit"))).length,
+    0,
+  );
   const view = report.view ?? null;
   const depth = [...chapters.map((ch) => ch.c.id), ...(view ? [VIEW_CHAPTER.id] : [])];
 

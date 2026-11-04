@@ -8,6 +8,7 @@ export const KIND_TAG: Record<PortfolioWatchEvent["kind"], { en: string; bn: str
   category: { en: "Category changed", bn: "ক্যাটাগরি বদলেছে" },
   drop: { en: "Big fall", bn: "বড় পতন" },
   low52: { en: "Yearly low", bn: "বছরের সর্বনিম্ন" },
+  breakeven: { en: "Back to your price", bn: "কেনা দামে ফিরেছে" },
   red_flag: { en: "Red flag", bn: "বড় সতর্কতা" },
   answer: { en: "Answer changed", bn: "উত্তর বদলেছে" },
   buylist: { en: "Buy list", bn: "কেনার তালিকা" },

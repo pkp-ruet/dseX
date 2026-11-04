@@ -4,7 +4,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import Button from "@/components/ui/Button";
 import {
   IconAlert, IconBell, IconBook, IconBriefcase, IconCalendar, IconCheck, IconCoin, IconCrown, IconGrid,
-  IconList, IconNews, IconPlus, IconSun, IconTarget, IconTrendUp,
+  IconList, IconNews, IconPlus, IconSun, IconTarget, IconTrendDown, IconTrendUp,
 } from "@/components/ui/icons";
 import { T } from "@/components/i18n/T";
 import { tx } from "@/components/report/chip";
@@ -33,6 +33,7 @@ const ICON: Record<PfFinding["key"], ReactNode> = {
   each: <IconBook size={18} />,
   strong: <IconCheck size={18} />,
   daily: <IconBell size={18} />,
+  loss: <IconTrendDown size={18} />,
 };
 
 const ALSO: { icon: ReactNode; text: Bi }[] = [

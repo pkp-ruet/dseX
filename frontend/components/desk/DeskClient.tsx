@@ -26,6 +26,7 @@ const KIND: Record<string, [string, string, string]> = {
   category: ["category change", "category changes", "ক্যাটাগরি বদল"],
   drop: ["big one-day fall", "big one-day falls", "একদিনে বড় দরপতন"],
   low52: ["fall to a yearly low", "falls to a yearly low", "বছরের সর্বনিম্ন দাম"],
+  breakeven: ["share back to your price", "shares back to your price", "কেনা দামে ফেরা শেয়ার"],
 };
 
 const things = (n: number) => ({ en: `${n} ${n === 1 ? "thing" : "things"}`, bn: `${n}টি বিষয়` });

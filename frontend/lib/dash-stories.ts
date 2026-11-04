@@ -161,6 +161,7 @@ const WATCH_KIND: Record<PortfolioWatchEvent["kind"], FrameKind> = {
   category: "category",
   drop: "move",
   low52: "low",
+  breakeven: "move",
   red_flag: "category",
   answer: "signal",
   buylist: "signal",
@@ -173,6 +174,7 @@ const WATCH_LABEL: Record<PortfolioWatchEvent["kind"], [string, string]> = {
   category: ["Category change", "ক্যাটাগরি বদল"],
   drop: ["Big fall", "বড় পতন"],
   low52: ["Yearly low", "বছরের সর্বনিম্ন"],
+  breakeven: ["Back to your price", "কেনা দামে ফিরেছে"],
   red_flag: ["Red flag", "বড় সতর্কতা"],
   answer: ["Our answer changed", "আমাদের উত্তর বদলেছে"],
   buylist: ["Buy list", "কেনার তালিকা"],
@@ -186,6 +188,7 @@ const WATCH_ANCHOR: Partial<Record<PortfolioWatchEvent["kind"], string>> = {
   red_flag: "#red-flags",
   answer: "#ch-answer",
   buylist: "#ch-answer",
+  breakeven: "#ch-answer",
 };
 
 const KIND_WORDS: Partial<Record<FrameKind, { en: [string, string]; bn: string }>> = {

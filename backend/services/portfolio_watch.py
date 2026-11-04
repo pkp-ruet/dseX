@@ -10,6 +10,9 @@ Six things, each an *event* with English + Bengali copy:
     category  the stock moved to a different DSE category (to Z is the alarm)
     drop      the price fell 5% or more today
     low52     the price closed at its lowest in a year
+    breakeven a share they hold closed back at or above what they paid, after a
+              month under it and a fall of 10% or more in the past year
+              (2026-11-04, the stuck-shares chapter)
     red_flag  a serious red flag appeared in the stock report (DSE found the
               factory closed, a qualified audit opinion, Z, the 30% rule …),
               from ``stock_report_service.red_flag_changes``
@@ -41,6 +44,13 @@ from typing import Optional
 DROP_PCT = -5.0
 RECORD_DAYS = (1, 3)
 RESULTS_FRESH_DAYS = 3
+# Back to your price: the trading days it must have closed under the reader's
+# price first (so a share hovering at its cost raises one event a month at
+# most), how deep it must have fallen in the year, and the fee a side the
+# break-even line counts (the portfolio's default estimate).
+BACK_PRIOR_DAYS = 20
+BACK_DEPTH = 0.9
+FEE_SIDE = 0.004
 
 
 def _money(v: float) -> str:
@@ -151,6 +161,35 @@ def _low_event(code: str, ltp: float, day: str) -> dict:
         "title_bn": f"{code} এক বছরের সর্বনিম্ন দামে",
         "body_en": f"It closed at ৳{ltp:,.1f}. A low price is a reason to look again, not a reason to buy on its own.",
         "body_bn": f"আজ দাম ৳{ltp:,.1f}-এ শেষ হয়েছে। কম দাম নিজে কেনার কারণ নয়, তবে আবার দেখে নেওয়ার কারণ।",
+    }
+
+
+def _back_event(code: str, qty: int, cost: float, ltp: float, prior: dict,
+                lo52: Optional[float], day: str) -> Optional[dict]:
+    """The share closed at or above the reader's average price today, after
+    closing under it on each of the last `BACK_PRIOR_DAYS` trading days, and it
+    fell `BACK_DEPTH` or further below that price within the year."""
+    if not (cost and cost > 0 and ltp and qty):
+        return None
+    top, n = prior.get("max"), prior.get("n") or 0
+    if top is None or n < BACK_PRIOR_DAYS or float(top) >= cost or float(ltp) < cost:
+        return None
+    if lo52 is None or float(lo52) > cost * BACK_DEPTH:
+        return None
+    even = cost * (1 + FEE_SIDE) / (1 - FEE_SIDE)
+    above = float(ltp) >= even
+    return {
+        "id": f"breakeven-{code}-{day}", "kind": "breakeven", "code": code, "level": "good",
+        "title_en": f"{code} is back to the price you paid",
+        "title_bn": f"{code} আপনার কেনা দামে ফিরেছে",
+        "body_en": (f"It closed at {_money(ltp)}, at or above your {_money(cost)}. It had been under your price "
+                    f"for over a month, and in the past year it fell as low as {_money(lo52)}. "
+                    + (f"Above {_money(even)} you come out even after fees, and today's price is above that."
+                       if above else f"To come out even after fees, it needs to sell above {_money(even)}.")),
+        "body_bn": (f"আজ দাম {_money(ltp)}-এ শেষ হয়েছে, আপনার কেনা দাম {_money(cost)}-এর সমান বা ওপরে। "
+                    f"এক মাসের বেশি এটি আপনার কেনা দামের নিচে ছিল, আর গত এক বছরে নেমেছিল {_money(lo52)} পর্যন্ত। "
+                    + (f"{_money(even)}-এর ওপরে বিক্রি করলে ফি দেওয়ার পরও লোকসান হয় না, আর আজকের দাম তার ওপরে।"
+                       if above else f"ফি দেওয়ার পরও লোকসান এড়াতে হলে {_money(even)}-এর ওপরে বিক্রি করতে হবে।")),
     }
 
 
@@ -266,9 +305,12 @@ def buylist_changes(today: dict, prices: dict, codes) -> dict[str, dict]:
 
 
 def build_events(held: dict[str, int], facts: dict, day: str,
-                 watched: Optional[set[str]] = None) -> list[dict]:
+                 watched: Optional[set[str]] = None,
+                 costs: Optional[dict[str, float]] = None) -> list[dict]:
     """Events for one reader. `held` = {code: qty} across all their portfolios;
-    `watched` = codes they follow without holding (results + grade only).
+    `watched` = codes they follow without holding (results + grade only);
+    `costs` = {code: average price paid} across their portfolios (back to
+    your price; `prior` = {code: {max, n}} over the trading days before today).
     `facts` = {record: {code: calendar row}, results: {code: interim},
     rows: {code: score row}, score_before: {code: score}, sector_class: {code: …},
     grades: {code: score_history.explain()}, category: {code: (old, new)},
@@ -330,6 +372,12 @@ def build_events(held: dict[str, int], facts: dict, day: str,
         fell = isinstance(cp, (int, float)) and cp < 0
         if lo and ltp and fell and float(ltp) <= float(lo) + 1e-9:
             out.append(_low_event(code, float(ltp), day))
+        cost = (costs or {}).get(code)
+        prior = (facts.get("prior") or {}).get(code)
+        if cost and ltp and prior:
+            e = _back_event(code, qty, float(cost), float(ltp), prior, lo, day)
+            if e:
+                out.append(e)
     for e in out:
         e["day"] = day
     return out
@@ -340,7 +388,7 @@ _LEVEL_ORDER = {"bad": 0, "watch": 1, "good": 2}
 
 # Where a single event of each kind opens on the stock page.
 _STOCK_ANCHOR = {"results": "results", "grade": "score-history", "red_flag": "red-flags", "answer": "ch-answer",
-                 "buylist": "ch-answer"}
+                 "buylist": "ch-answer", "breakeven": "ch-answer"}
 
 
 def push_payload(events: list[dict], lang: str = "bn", url: str = "/portfolio?src=watch") -> Optional[dict]:
@@ -461,6 +509,7 @@ KIND_WORDS = {
     "category": ("category change", "category changes", "ক্যাটাগরি বদল"),
     "drop": ("big one-day fall", "big one-day falls", "একদিনে বড় দরপতন"),
     "low52": ("fall to a yearly low", "falls to a yearly low", "বছরের সর্বনিম্ন দাম"),
+    "breakeven": ("share back to your price", "shares back to your price", "কেনা দামে ফেরা শেয়ার"),
 }
 _KIND_ORDER = list(KIND_WORDS)
 DIGEST_ITEMS = 8

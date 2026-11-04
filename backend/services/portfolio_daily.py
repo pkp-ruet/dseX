@@ -255,6 +255,11 @@ def _facts(held_codes: set[str], today, followed_codes: Optional[set[str]] = Non
     except Exception:  # noqa: BLE001
         log.warning("answer change read failed", exc_info=True)
         answers = {}
+    try:
+        prior = _prior_closes(held_codes)
+    except Exception:  # noqa: BLE001
+        log.warning("prior closes read failed", exc_info=True)
+        prior = {}
     # No buy-list events since 2026-11-01 (user decision): the Buy signals page
     # is hidden, and Buy / Sell shows only in the stock report and the
     # portfolio's Premium parts. `watch.buylist_changes` stays for its return.
@@ -262,7 +267,48 @@ def _facts(held_codes: set[str], today, followed_codes: Optional[set[str]] = Non
     return {"prices": prices, "record": record, "results": results, "rows": rows,
             "score_before": before, "sector_class": sector_class, "grades": grades,
             "category": category, "lows": lows, "red_flags": red_flags,
-            "answers": answers, "buylist": buylist}
+            "answers": answers, "buylist": buylist, "prior": prior}
+
+
+def _prior_closes(held_codes: set[str], days: int = watch.BACK_PRIOR_DAYS) -> dict[str, dict]:
+    """{code: {"max", "n"}} — the highest official close over the `days`
+    trading days before the latest one, on today's footing (dividends and bonus
+    shares taken out as on the chart). A code with no trade on the latest day
+    keeps its last close in the window, so a stale price can't read as new."""
+    from backend.services.db_service import adjustment_factor_fn, load_corporate_actions
+
+    if not held_codes:
+        return {}
+    since = (datetime.now(timezone.utc) - timedelta(days=days * 2 + 10)).strftime("%Y-%m-%d")
+    acts = load_corporate_actions()
+    fns: dict[str, tuple] = {}
+    rows: dict[str, list[tuple[str, float]]] = {}
+    latest = ""
+    cursor = get_db().stock_prices.find(
+        {"trading_code": {"$in": sorted(held_codes)}, "date": {"$gte": since}, "ltp": {"$gt": 0}},
+        {"_id": 0, "trading_code": 1, "date": 1, "ltp": 1, "close_price": 1},
+    ).batch_size(1000)
+    for d in cursor:
+        code = d["trading_code"]
+        day = str(d.get("date") or "")[:10]
+        close = d.get("close_price")
+        p = close if close is not None and close > 0 else d.get("ltp")
+        if not p or not day:
+            continue
+        if code not in fns:
+            a = acts.get(code, [])
+            fns[code] = (a, adjustment_factor_fn(a) if a else None)
+        a, f = fns[code]
+        if f and any(day <= x["record_date"] for x in a):
+            p = f(day, p)
+        rows.setdefault(code, []).append((day, float(p)))
+        latest = max(latest, day)
+    out: dict[str, dict] = {}
+    for code, rs in rows.items():
+        before = [p for day, p in sorted(rs) if day < latest][-days:]
+        if before:
+            out[code] = {"max": round(max(before), 2), "n": len(before)}
+    return out
 
 
 def _trade_day(prices: dict) -> Optional[str]:
@@ -352,6 +398,7 @@ def run_portfolio_daily(not_before_dhaka_hour: Optional[int] = None) -> dict:
     followed_all: set[str] = set()
     per_user_held: dict[str, dict[str, int]] = {}
     per_user_watched: dict[str, set[str]] = {}
+    per_user_cost: dict[str, dict[str, float]] = {}
     from backend.services import portfolio_store as store
 
     for u in users:
@@ -359,6 +406,7 @@ def run_portfolio_daily(not_before_dhaka_hour: Optional[int] = None) -> dict:
         if not uid:
             continue
         held: dict[str, int] = {}
+        spent: dict[str, float] = {}
         for pid, holdings, plog in _portfolios_of(u):
             new_h, new_log, applied = ledger.apply_auto(holdings, plog, acts, trade_day)
             if applied:
@@ -376,8 +424,11 @@ def run_portfolio_daily(not_before_dhaka_hour: Optional[int] = None) -> dict:
                 )
                 counts["snapshots"] += 1
             for h in new_h:
-                held[h["trading_code"]] = held.get(h["trading_code"], 0) + int(h.get("qty") or 0)
+                qty = int(h.get("qty") or 0)
+                held[h["trading_code"]] = held.get(h["trading_code"], 0) + qty
+                spent[h["trading_code"]] = spent.get(h["trading_code"], 0.0) + qty * float(h.get("buy_price") or 0)
         per_user_held[uid] = held
+        per_user_cost[uid] = {c: spent[c] / q for c, q in held.items() if q > 0 and spent.get(c)}
         held_all.update(held)
         watched = {str(c).upper() for c in (u.get("watchlist") or []) if c} - set(held)
         per_user_watched[uid] = watched
@@ -394,7 +445,7 @@ def run_portfolio_daily(not_before_dhaka_hour: Optional[int] = None) -> dict:
         if not held and not watched:
             continue
         fresh = []
-        for e in watch.build_events(held, facts, day, watched):
+        for e in watch.build_events(held, facts, day, watched, per_user_cost.get(uid)):
             res = _events().update_one(
                 {"user_id": uid, "id": e["id"]},
                 {"$setOnInsert": {**e, "user_id": uid, "created_at": now}},

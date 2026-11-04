@@ -38,8 +38,23 @@ const t = (k: keyof typeof L) => <T en={L[k].en} bn={L[k].bn} />;
  * comes from endpoints that already compute it (portfolio GET, watchlist meta);
  * the frontend derives no advice of its own.
  */
+// One portfolio read per page (2026-11-04): the hero card, "You and this
+// stock" and the portfolio check all ask for it within a moment of each other.
+let sharedHoldings: { at: number; promise: Promise<PortfolioHolding[]> } | null = null;
+function loadMainHoldings(): Promise<PortfolioHolding[]> {
+  if (!sharedHoldings || Date.now() - sharedHoldings.at > 30_000) {
+    const promise = apiGetPortfolio().then((r) => r.holdings);
+    sharedHoldings = { at: Date.now(), promise };
+    promise.catch(() => {
+      if (sharedHoldings?.promise === promise) sharedHoldings = null;
+    });
+  }
+  return sharedHoldings.promise;
+}
+
 /** The signed-in reader's holdings of this stock + whether they follow it.
- *  Shared by the hero card and the report's "You and this stock" section. */
+ *  Shared by the hero card and the report's "You and this stock" section;
+ *  `holdings` = the whole main portfolio (null until it has loaded). */
 export function useMyStake(code: string) {
   const { isLoggedIn } = useAuth();
   const CODE = code.toUpperCase();
@@ -61,11 +76,11 @@ export function useMyStake(code: string) {
       const cached = readCache<PortfolioHolding[]>(cacheKeys.portfolio(uid));
       if (cached) setHoldings(cached);
     }
-    apiGetPortfolio()
-      .then((r) => {
+    loadMainHoldings()
+      .then((hs) => {
         if (!alive) return;
-        setHoldings(r.holdings);
-        if (uid) writeCache(cacheKeys.portfolio(uid), r.holdings);
+        setHoldings(hs);
+        if (uid) writeCache(cacheKeys.portfolio(uid), hs);
       })
       .catch(() => {});
 
@@ -88,7 +103,7 @@ export function useMyStake(code: string) {
     () => (holdings ?? []).filter((h) => h.trading_code.toUpperCase() === CODE),
     [holdings, CODE],
   );
-  return { isLoggedIn, mine, watched, meta: meta[CODE] ?? null };
+  return { isLoggedIn, mine, watched, meta: meta[CODE] ?? null, holdings };
 }
 
 export default function YourPosition({ code, ltp }: Props) {

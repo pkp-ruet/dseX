@@ -441,7 +441,8 @@ export const SECTION_ORDER: SectionKey[] = [
 /** A question row on the page. Most rows are one backend section; a few
  *  are built on the page from a section's public figures (`shares`, from the
  *  dividend history) or are the reader's own (`you`). */
-export type QuestionKey = SectionKey | "shares" | "you";
+/** `you` and `fit` (2026-11-04) show only for a signed-in reader, built in the browser. */
+export type QuestionKey = SectionKey | "shares" | "you" | "fit";
 
 export interface ReportChapter {
   id: string;
@@ -524,6 +525,7 @@ export const REPORT_CHAPTERS: ReportChapter[] = [
     rows: [
       { key: "next", q: { en: "What's coming up?", bn: "সামনে কী আছে?" } },
       { key: "you", q: { en: "You and this stock", bn: "এই শেয়ারে আপনার অবস্থান" } },
+      { key: "fit", q: { en: "What would it do to your portfolio?", bn: "কিনলে আপনার পোর্টফোলিওর কী হবে?" } },
       { key: "alternatives", q: { en: "Is there a better choice?", bn: "আরও ভালো বিকল্প আছে কি?" } },
     ],
   },

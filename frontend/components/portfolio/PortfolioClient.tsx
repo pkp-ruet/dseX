@@ -817,14 +817,16 @@ export default function PortfolioClient() {
         flips: myFlips,
         today: isoLocal(todayDhaka()),
         sinceLast: valueDelta,
+        feePct: settings.fee_pct,
       }),
-    [analysis, nextBoth, rebalance, lifts, proInsights, priceMap, glance, results, myWatch, myFlips, valueDelta],
+    [analysis, nextBoth, rebalance, lifts, proInsights, priceMap, glance, results, myWatch, myFlips, valueDelta, settings.fee_pct],
   );
 
   const bn = lang === "bn";
   // The analysis is Premium (2026-11-02): a free reader's chips skip its
   // chapters and point at the one Premium card instead.
   const reportOpen = usePremiumOpen();
+  const hasLoss = report.chapters.some((c) => c.key === "loss");
   const navItems = useMemo(
     () =>
       reportOpen
@@ -836,6 +838,8 @@ export default function PortfolioClient() {
             { id: "ch-companies", label: lang === "bn" ? "কোম্পানি" : "Companies" },
             { id: "ch-spread", label: lang === "bn" ? "বণ্টন" : "Spread" },
             { id: "ch-prices", label: lang === "bn" ? "দাম" : "Prices" },
+            // Only when some shares are below what the reader paid (2026-11-04).
+            ...(hasLoss ? [{ id: "ch-loss", label: lang === "bn" ? "লোকসান" : "Losses" }] : []),
             { id: "ch-watch", label: lang === "bn" ? "নজর" : "Watch" },
             { id: "ch-plan", label: lang === "bn" ? "পরিকল্পনা" : "Plan" },
             { id: "ch-money", label: lang === "bn" ? "বিস্তারিত" : "Details" },
@@ -846,7 +850,7 @@ export default function PortfolioClient() {
             { id: "pf-premium", label: lang === "bn" ? "প্রিমিয়াম" : "Premium" },
             { id: "ch-money", label: lang === "bn" ? "বিস্তারিত" : "Details" },
           ],
-    [lang, reportOpen],
+    [lang, reportOpen, hasLoss],
   );
   const statementHref = isMain ? "/portfolio/statement" : `/portfolio/statement?pid=${encodeURIComponent(pid)}`;
 

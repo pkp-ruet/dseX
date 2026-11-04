@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import {
-  IconAlert, IconBell, IconBook, IconBriefcase, IconBulb, IconCheck, IconCoin, IconCrown, IconTarget,
+  IconAlert, IconBell, IconBook, IconBriefcase, IconBulb, IconCheck, IconCoin, IconCrown, IconGrid, IconTarget,
 } from "@/components/ui/icons";
 import ReportKeyButton from "@/components/premium/ReportKeyButton";
 import { T } from "@/components/i18n/T";
@@ -16,6 +16,7 @@ import { FROM_MONTH, LOWEST_PRICE } from "@/lib/premium-plans";
 import { savePremiumContext } from "@/lib/premium-context";
 import { trackEvent } from "@/lib/track";
 import type { Bi } from "@/lib/stock-report";
+import { usePortfolioFit } from "./usePortfolioFit";
 
 type Row = { key: string; icon: ReactNode; q: Bi; line: Bi };
 
@@ -101,6 +102,27 @@ export default function PremiumPromo({ code, name, has }: { code: string; name: 
   useEffect(() => setToday(freeReportCode()), []);
 
   const rows = ROWS.filter((r) => has.includes(r.key));
+  // For a reader with shares (2026-11-04): what buying it would do to their own
+  // portfolio, counted — the count is free, which things and how much is Premium.
+  const { fit } = usePortfolioFit(code, null);
+  const fitRow: Row | null = fit
+    ? {
+        key: "fit",
+        icon: <IconGrid size={18} />,
+        q: { en: "What would it do to your portfolio?", bn: "কিনলে আপনার পোর্টফোলিওর কী হবে?" },
+        line:
+          fit.changed > 1
+            ? {
+                en: `Buying it would change ${fit.changed} things in your portfolio. The full report shows which, worked out on your own ${fit.n} share${fit.n === 1 ? "" : "s"}.`,
+                bn: `কিনলে আপনার পোর্টফোলিওতে ${fit.changed}টি বিষয় বদলাবে। কোনগুলো, তা পূর্ণ রিপোর্টে দেখাবে, আপনার নিজের ${fit.n}টি শেয়ার ধরে হিসাব করে।`,
+              }
+            : {
+                en: `Your grade, your spread and your dividends if you buy it, worked out on your own ${fit.n} share${fit.n === 1 ? "" : "s"}.`,
+                bn: `কিনলে আপনার গ্রেড, টাকার বণ্টন আর ডিভিডেন্ডের কী হবে, আপনার নিজের ${fit.n}টি শেয়ার ধরে হিসাব করে।`,
+              },
+      }
+    : null;
+  const shown = fitRow ? [...rows.slice(0, 1), fitRow, ...rows.slice(1)] : rows;
   const offer = user?.offer ?? null;
   const href = offer ? "/premium?plan=offer&src=stock#pay" : user ? `${PREMIUM_PATH}#pay` : PREMIUM_PATH;
 
@@ -154,7 +176,7 @@ export default function PremiumPromo({ code, name, has }: { code: string; name: 
           <T en={`What the full report tells you about ${code}`} bn={`${code} নিয়ে পূর্ণ রিপোর্টে যা জানবেন`} />
         </p>
         <ul className="sp-rows">
-          {rows.map((r) => (
+          {shown.map((r) => (
             <li key={r.key} className="sp-row">
               <span className="sp-icon" aria-hidden="true">{r.icon}</span>
               <span className="min-w-0">

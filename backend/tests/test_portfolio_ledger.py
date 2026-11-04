@@ -147,6 +147,38 @@ def test_flat_stock_at_its_low_is_not_news():
     assert W.build_events({"GP": 100}, facts, "2026-10-25") == []
 
 
+def _back_facts(ltp=305.0, top=298.0, n=20, lo=260.0):
+    return {
+        "prices": {"GP": {"ltp": ltp, "change": 8.0, "change_pct": 2.7}},
+        "lows": {"GP": lo},
+        "prior": {"GP": {"max": top, "n": n}},
+    }
+
+
+def test_back_to_your_price_after_a_month_under_it():
+    ev = W.build_events({"GP": 100}, _back_facts(), "2026-11-04", costs={"GP": 300.0})
+    assert [e["kind"] for e in ev] == ["breakeven"]
+    e = ev[0]
+    assert e["id"] == "breakeven-GP-2026-11-04" and e["level"] == "good"
+    assert "back to the price you paid" in e["title_en"]
+    assert "৳260" in e["body_en"] and "৳302" in e["body_en"]
+    assert "৳305" in e["body_bn"]
+
+
+@pytest.mark.parametrize("kw", [
+    {"ltp": 299.0},            # still under the price
+    {"top": 301.0},            # it was at the price within the month
+    {"n": 12},                 # too little history to call it a month
+    {"lo": 285.0},             # never fell far: not news
+])
+def test_back_to_your_price_needs_a_real_comeback(kw):
+    assert W.build_events({"GP": 100}, _back_facts(**kw), "2026-11-04", costs={"GP": 300.0}) == []
+
+
+def test_back_to_your_price_needs_the_readers_cost():
+    assert W.build_events({"GP": 100}, _back_facts(), "2026-11-04") == []
+
+
 def test_record_event_only_inside_the_window():
     far = {"record": {"GP": {"record_date": "2026-11-20", "record_days_left": 20, "cash_per_share": 5}}}
     assert W.build_events({"GP": 100}, far, "2026-10-25") == []

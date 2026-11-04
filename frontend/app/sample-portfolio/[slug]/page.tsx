@@ -167,7 +167,7 @@ export default async function SamplePortfolioPage({ params }: Props) {
         />
       </p>
 
-      <SampleNav />
+      <SampleNav loss={report.chapters.some((c) => c.key === "loss")} />
 
       <SampleHoldings rows={rows} analysis={analysis} />
 
