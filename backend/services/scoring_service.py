@@ -418,6 +418,113 @@ def _a2_npm_score(avg_npm: float, trend: float) -> float:
     return _margin_score(avg_npm, trend, _NPM_LEVEL_ANCHORS, 1.0)
 
 
+# ---------------------------------------------------------------------------
+# Lenders' business strength (banks + NBFIs, 2026-11-05)
+# ---------------------------------------------------------------------------
+# A DSE bank's "net interest income" leaves out its investment income — the
+# interest on treasury bills and bonds, booked on a line of its own. Since 2023
+# banks have moved money into government securities while paying 10%+ on
+# deposits, so net interest income fell for many banks while everything they
+# earn rose (CITYBANK 2025: net interest income ৳2.9bn, down from ৳14.9bn;
+# gross interest income ৳54.8bn, up 21%; operating profit ৳27.3bn, up 16%).
+# Across 31 banks net interest income ran from 3% to 150% of operating profit,
+# so it could not size, steady or margin one bank against another (its sales
+# steadiness read 0 for CITYBANK, MIDLANDBNK, MERCANBANK, IFIC). The check now
+# reads a lender on lines that hold the whole business:
+#   * size        — total assets (``_lender_size``);
+#   * steadiness  — gross interest income, what borrowers pay it before it pays
+#                   depositors: its sales (``_lender_top_line``);
+#   * margin      — a bank's operating profit (before bad-loan provisions and
+#                   tax) per ৳100 of assets (``_bank_earning_power``); NIM only
+#                   where there is no operating-profit line (every NBFI today);
+#   * capex       — not applicable: "5-15% of sales" is a factory's reinvestment
+#                   test, a bank's spending on branches and IT is not a strength.
+# Operating profit per ৳100 of assets on 2026-11-05 data: median ৳1.96 over 31
+# banks, the best ৳2.7-2.9, distressed banks under ৳1 or below zero — the same
+# scale the NIM curve was set on, so it keeps that curve.
+_BANK_EARNING_ANCHORS = [(0, 0), (1, 2), (2, 5), (3, 8), (4, 10)]
+
+
+def _lender_size(er: dict) -> Optional[float]:
+    """A lender's size for the sector rank: its total assets."""
+    ta = er.get("total_assets")
+    if _is_nanish(ta) or float(ta) <= 0:
+        return None
+    return float(ta)
+
+
+def _lender_top_line(rows: list[dict]) -> list[tuple[int, float]]:
+    """(year, value) pairs of a lender's sales, year-ascending: gross interest
+    income. Net interest income only for a lender that has no gross line at all
+    — never mixed into one series (the gross line is 2-20x the net, so a
+    switch would read as a jump). A year at or below zero is a gap."""
+    for key in ("interest_income", "net_interest_income"):
+        if not any(not _is_nanish(er.get(key)) for er in rows):
+            continue
+        return [
+            (int(er["year"]), float(er[key]))
+            for er in rows
+            if not _is_nanish(er.get("year")) and not _is_nanish(er.get(key)) and float(er[key]) > 0
+        ]
+    return []
+
+
+def _bank_earning_power(rows: list[dict]) -> list[float]:
+    """Operating profit per ৳100 of total assets, one value per year that has
+    both (Amarstock's "Operating profit" line, stored as ``ebit``: a bank's
+    whole income — interest, investments, fees — less its running costs, before
+    bad-loan provisions and tax). Empty when the line was never scraped."""
+    out = []
+    for er in rows:
+        op, ta = er.get("ebit"), er.get("total_assets")
+        if not _is_nanish(op) and not _is_nanish(ta) and float(ta) > 0:
+            out.append(float(op) / float(ta) * 100)
+    return out
+
+
+def _a2_bank_earning_score(avg_pct: float, trend: float) -> float:
+    """Operating profit per ৳100 of assets -> 0-10, plus a ±1 nudge when it
+    moved more than 0.2 points (last two years against the first two)."""
+    level = _score(avg_pct, _BANK_EARNING_ANCHORS)
+    if trend > 0.2:
+        level += 1.0
+    elif trend < -0.2:
+        level -= 1.0
+    return max(0.0, min(10.0, level))
+
+
+def _sector_rank_scores(size_by_sector: dict[str, list[tuple[str, float, int]]]) -> dict[str, float]:
+    """Sector standing = size percentile within the DSE sector, mapped linearly
+    onto 2..10 (largest = 10, smallest = 2). ``size_by_sector`` = {sector:
+    [(code, size, year of that size)]} — revenue for most companies, total
+    assets for lenders (``_lender_size``).
+      * a company whose latest size is 3+ years older than the sector's
+        freshest is left out (no score -> renormalize): ranking a 2019 figure
+        against 2025 peers is noise, and the staleness multiplier already
+        charges for the age;
+      * a solo company, and every member of DSE's catch-all "Miscellaneous"
+        sector (unrelated businesses), gets the neutral 5.0 — there are no real
+        peers to rank against.
+    The old four-step ladder gave the entire bottom half of every sector a flat
+    2.0 — 124 of 243 industrials were told they had weak "sector standing"."""
+    out: dict[str, float] = {}
+    for sector, items in size_by_sector.items():
+        if sector.lower() == "miscellaneous":
+            for code, _, _ in items:
+                out[code] = 5.0
+            continue
+        freshest = max(y for _, _, y in items)
+        ranked = [it for it in items if it[2] >= freshest - 2]
+        ranked.sort(key=lambda x: x[1], reverse=True)
+        n = len(ranked)
+        for rank_idx, (code, _, _) in enumerate(ranked):
+            if n == 1:
+                out[code] = 5.0
+            else:
+                out[code] = round(2.0 + 8.0 * (1.0 - rank_idx / (n - 1)), 4)
+    return out
+
+
 def _effective_revenue(er: dict, is_financial: bool = False) -> Optional[float]:
     """Return usable revenue for a year-record.
 
@@ -969,14 +1076,20 @@ def _a2_pillar3(code: str, ext_last5: list[dict],
         return 0.0
 
     if is_financial:
-        # For banks/NBFIs: use Net Interest Margin (NII / earning_assets) as the margin metric
-        margin_vals = []
-        for er in ext_last5:
-            nii = er.get("net_interest_income")
-            ea  = er.get("earning_assets")
-            if not _is_nanish(nii) and not _is_nanish(ea) and float(ea) > 0:
-                margin_vals.append(float(nii) / float(ea) * 100)
-        m1 = _a2_nim_score(sum(margin_vals) / len(margin_vals), _trend(margin_vals)) if margin_vals else None
+        # Banks: operating profit per ৳100 of assets — it holds all of a bank's
+        # income, where net interest income leaves out its treasury-bill and
+        # bond income (see "Lenders' business strength" above). NBFIs (no
+        # operating-profit line) keep Net Interest Margin (NII / earning assets).
+        margin_vals = _bank_earning_power(ext_last5)
+        if margin_vals:
+            m1 = _a2_bank_earning_score(sum(margin_vals) / len(margin_vals), _trend(margin_vals))
+        else:
+            for er in ext_last5:
+                nii = er.get("net_interest_income")
+                ea  = er.get("earning_assets")
+                if not _is_nanish(nii) and not _is_nanish(ea) and float(ea) > 0:
+                    margin_vals.append(float(nii) / float(ea) * 100)
+            m1 = _a2_nim_score(sum(margin_vals) / len(margin_vals), _trend(margin_vals)) if margin_vals else None
     else:
         margin_vals = []
         for er in ext_last5:
@@ -1002,13 +1115,17 @@ def _a2_pillar3(code: str, ext_last5: list[dict],
 
     # Year-aware revenue growth rates: each consecutive pair of *reported* years,
     # annualized over the gap between them, so a missing year doesn't show up as
-    # one huge jump. ext_last5 is year-ascending.
-    rev_pairs = [
-        (int(er["year"]), rv)
-        for er in ext_last5
-        for rv in [_effective_revenue(er, is_financial)]
-        if rv is not None and er.get("year") is not None and not _is_nanish(er.get("year"))
-    ]
+    # one huge jump. ext_last5 is year-ascending. A lender's sales = its gross
+    # interest income (``_lender_top_line``).
+    if is_financial:
+        rev_pairs = _lender_top_line(ext_last5)
+    else:
+        rev_pairs = [
+            (int(er["year"]), rv)
+            for er in ext_last5
+            for rv in [_effective_revenue(er, is_financial)]
+            if rv is not None and er.get("year") is not None and not _is_nanish(er.get("year"))
+        ]
     if len(rev_pairs) >= 4:
         growth_rates = []
         for (y0, r0), (y1, r1) in zip(rev_pairs[:-1], rev_pairs[1:]):
@@ -1024,17 +1141,23 @@ def _a2_pillar3(code: str, ext_last5: list[dict],
 
     # CapEx reinvestment intensity (avg CapEx / avg Revenue). Only ~a third of
     # industrials have a capex line scraped — missing renormalizes, not zeroes.
-    capex_vals = []
-    for er in ext_last5:
-        cx = er.get("capex")
-        rv = _effective_revenue(er, is_financial)
-        if not _is_nanish(cx) and rv is not None and rv > 0:
-            capex_vals.append(abs(float(cx)) / rv * 100)
-    m4 = _a2_capex_score(sum(capex_vals) / len(capex_vals)) if capex_vals else None
+    # Not applicable to lenders: the 5-15% sweet spot is a factory's test (it
+    # was read against net interest income, so a bank's capex looked like 91%
+    # of its sales the year that line collapsed). Left out of the pillar, so it
+    # neither counts against them nor toward coverage.
+    m4 = None
+    metrics = [(m1, 0.35), (m2, 0.30), (m3, 0.20)]
+    if not is_financial:
+        capex_vals = []
+        for er in ext_last5:
+            cx = er.get("capex")
+            rv = _effective_revenue(er, is_financial)
+            if not _is_nanish(cx) and rv is not None and rv > 0:
+                capex_vals.append(abs(float(cx)) / rv * 100)
+        m4 = _a2_capex_score(sum(capex_vals) / len(capex_vals)) if capex_vals else None
+        metrics.append((m4, 0.15))
 
-    score, coverage = _weighted_pillar(
-        [(m1, 0.35), (m2, 0.30), (m3, 0.20), (m4, 0.15)]
-    )
+    score, coverage = _weighted_pillar(metrics)
     return score, {"p3_margin": m1, "p3_rev_vol": m2, "p3_sector_rank": m3, "p3_capex": m4,
                    "p3_coverage": round(coverage, 3)}
 
@@ -1590,46 +1713,22 @@ def _compute_scores_df(
     data_max_year: Optional[int] = max(_candidate_years) if _candidate_years else None
     latest_market_year: Optional[int] = _reference_year(data_max_year, fin_max_year)
 
-    # Group latest revenue by sector for within-sector ranking.
-    # For banks/NBFIs, fall back to net_interest_income when revenue is absent.
-    rev_by_sector: dict[str, list[tuple[str, float, int]]] = {}
+    # Group each company's latest size by sector for within-sector ranking:
+    # revenue, and for banks / NBFIs total assets (net interest income, used
+    # until 2026-11-05, leaves out a bank's treasury-bill income — CITYBANK
+    # ranked 22nd of 28 banks on it and 4th of 31 on assets).
+    size_by_sector: dict[str, list[tuple[str, float, int]]] = {}
     for code, rows in ext_by_code.items():
         sector = (companies.get(code, {}).get("sector") or "").strip()
         is_fin = normalize_sector(sector) in ("BANK", "NBFI")
         for row in reversed(rows):
-            rv = _effective_revenue(row, is_fin)
+            rv = _lender_size(row) if is_fin else _effective_revenue(row)
             if rv:
                 yr = row.get("year")
-                rev_by_sector.setdefault(sector, []).append(
+                size_by_sector.setdefault(sector, []).append(
                     (code, rv, int(yr) if yr is not None else 0))
                 break
-
-    # Sector standing = revenue-size percentile within the DSE sector, mapped
-    # linearly onto 2..10 (largest = 10, smallest = 2). The old four-step ladder
-    # gave the entire bottom half of every sector a flat 2.0 — 124 of 243
-    # industrials were told they had weak "sector standing".
-    #   * a company whose latest revenue is 3+ years older than the sector's
-    #     freshest is left out (None -> renormalize): ranking a 2019 figure
-    #     against 2025 peers is noise, and the staleness multiplier already
-    #     charges for the age;
-    #   * a solo company, and every member of DSE's catch-all "Miscellaneous"
-    #     sector (unrelated businesses), gets the neutral 5.0 — there are no
-    #     real peers to rank against.
-    sector_rank_score: dict[str, float] = {}
-    for sector, items in rev_by_sector.items():
-        if sector.lower() == "miscellaneous":
-            for code, _, _ in items:
-                sector_rank_score[code] = 5.0
-            continue
-        freshest = max(y for _, _, y in items)
-        ranked = [it for it in items if it[2] >= freshest - 2]
-        ranked.sort(key=lambda x: x[1], reverse=True)
-        n = len(ranked)
-        for rank_idx, (code, _, _) in enumerate(ranked):
-            if n == 1:
-                sector_rank_score[code] = 5.0
-            else:
-                sector_rank_score[code] = round(2.0 + 8.0 * (1.0 - rank_idx / (n - 1)), 4)
+    sector_rank_score = _sector_rank_scores(size_by_sector)
 
     prices = load_latest_prices() if prices_override is None else prices_override
     # The market's latest trading day: a share with no trade in NO_TRADE_DAYS
