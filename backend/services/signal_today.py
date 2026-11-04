@@ -242,11 +242,21 @@ def almost_row(code: str, sig: dict, row: dict, ltp: Optional[float],
         under = stop
         line = bi(f"Comes back on the list under ৳{_money(stop)}.",
                   f"৳{_money(stop)}-এর নিচে নামলে আবার তালিকায় আসবে।")
-    elif g == "price" and buy_below and price and buy_below < price:
-        under = buy_below
-        gap = round((price - buy_below) / price * 100)
-        line = bi(f"Our buy price is ৳{_money(buy_below)}, {gap}% below today.",
-                  f"আমাদের কেনার দাম ৳{_money(buy_below)}, আজকের চেয়ে {gap}% কম।")
+    elif g == "price":
+        # The price where the Buy rule itself turns (audit PR3): the report's
+        # old buy price came from a second model — AMCL(PRAN) read "৳152, 27%
+        # below" when the real line was ~৳203, 2% below.
+        entry = entry_price(row, sig.get("tier"))
+        if entry is None and buy_below:
+            entry = buy_below
+        if entry and price and entry < price:
+            under = entry
+            gap = round((price - entry) / price * 100)
+            line = bi(f"Comes back on the list at ৳{_money(entry)} or less, {gap}% below today.",
+                      f"দাম ৳{_money(entry)} বা তার নিচে নামলে আবার তালিকায় আসবে, আজকের চেয়ে {gap}% কম।")
+        elif entry is None and price:
+            line = bi("Price alone won't bring it back: its profit swings too much for us to call it cheap at any price.",
+                      "শুধু দাম কমলেই এটি তালিকায় ফিরবে না: মুনাফা এত ওঠানামা করে যে কোনো দামেই আমরা একে সস্তা বলি না।")
     elif g == "red_flag" and red_line:
         line = red_line
     elif g == "earnings_dropped":
@@ -260,6 +270,20 @@ def almost_row(code: str, sig: dict, row: dict, ltp: Optional[float],
     return {"code": code, "reason_key": sig.get("reason_key"), "group": g,
             "reason": bi(*LEFT_OUT[g]), "line": line, "under": under, "gap_pct": gap_pct,
             "score": _n(row.get("score")), "tier": sig.get("tier")}
+
+
+def entry_price(row: dict, tier: Optional[str]) -> Optional[float]:
+    """The highest price at which a mostly strong company's price score reaches
+    the Buy line (7), or a strong-all-round one's the expensive line (4) —
+    signal_service rules 7-9 — or None when no price gets it there."""
+    from backend.services.scoring_service import price_for_p4
+    from backend.services.stock_facts import CHEAP_P4, EXPENSIVE_P4
+
+    line = {"excellent": EXPENSIVE_P4, "good": CHEAP_P4}.get(tier or "")
+    if line is None or not row:
+        return None
+    p = price_for_p4(row, line)
+    return round(p, 2) if p is not None else None
 
 
 def sort_almost(rows: Iterable[dict]) -> list[dict]:

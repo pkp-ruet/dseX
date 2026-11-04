@@ -63,6 +63,15 @@ EARNINGS_DROP_PCT = -25.0  # latest EPS fell >=25% YoY -> block buy (value trap)
 # (2026-07): strong buys returned ~2x the rest at 3 months (+6.3% vs +2.9%
 # size-adjusted) with far fewer >15% drawdowns (1% vs 8%). Structural, not
 # momentum-based, so the label doesn't vanish in a flat market.
+# Leave lines (2026-11-04, audit PR5): a share joins the Buy list at CHEAP_P4
+# but leaves only under CHEAP_LEAVE_P4 (a strong-all-round one at the
+# expensive line, EXPENSIVE_P4 / EXPENSIVE_LEAVE_P4), and the near-the-top
+# block, once on, lifts only under NEAR_HIGH_RELEASE_PCT. Without them
+# PRAGATIINS went in and out of Buy 7 times in 30 days on price scores of
+# 7.02 against 6.98. "Was" = the newest stored day before today.
+CHEAP_LEAVE_P4 = 6.5
+EXPENSIVE_LEAVE_P4 = 3.5
+NEAR_HIGH_RELEASE_PCT = 80.0
 STRONG_CHEAP_P4 = 8.0
 STRONG_RANGE_PCT = 50.0
 STRENGTH_STRONG, STRENGTH_NORMAL = "strong", "normal"
@@ -191,7 +200,7 @@ _COVERED_RED_KEYS = {"category", "stale", "loans"}
 
 
 def _signal_for_row(row: dict, momentum: Optional[dict],
-                    red_keys: Optional[list] = None) -> dict:
+                    red_keys: Optional[list] = None, prev: Optional[dict] = None) -> dict:
     score = _f(row.get("score"))
     tier = tier_key(score)
     grade = (momentum or {}).get("momentum_grade") or "unknown"
@@ -209,6 +218,11 @@ def _signal_for_row(row: dict, momentum: Optional[dict],
 
     def mk(signal, key, strength=STRENGTH_NORMAL):
         return _mk(signal, key, tier, grade, score, p4, strength)
+
+    was_buy = (prev or {}).get("signal") == BUY
+    was_near_top = (prev or {}).get("reason_key") == "near_52w_high"
+    near_top = pct52 is not None and (pct52 >= NEAR_HIGH_PCT
+                                      or (was_near_top and pct52 >= NEAR_HIGH_RELEASE_PCT))
 
     # 1. No rating
     if tier == "unknown":
@@ -251,20 +265,21 @@ def _signal_for_row(row: dict, momentum: Optional[dict],
 
     # 7. Cheap: buy, unless the price already ran to the top of its 52w range.
     #    Deeply cheap + still low in the 52w range -> "strong" conviction.
-    if p4 is not None and p4 >= CHEAP_P4:
-        if pct52 is not None and pct52 >= NEAR_HIGH_PCT:
+    if p4 is not None and (p4 >= CHEAP_P4 or (was_buy and p4 >= CHEAP_LEAVE_P4)):
+        if near_top:
             return mk(NONE, "near_52w_high")
         strong = (p4 >= STRONG_CHEAP_P4
                   and pct52 is not None and pct52 <= STRONG_RANGE_PCT)
         return mk(BUY, "quality_cheap", STRENGTH_STRONG if strong else STRENGTH_NORMAL)
     # 8. Expensive: strong company, wrong price -> no buy.
-    if p4 is not None and p4 < EXPENSIVE_P4:
+    if p4 is not None and p4 < EXPENSIVE_P4 and not (
+            was_buy and tier == "excellent" and p4 >= EXPENSIVE_LEAVE_P4):
         return mk(NONE, "quality_expensive")
 
     # 9. Mid (4 <= p4 < 7) or unknown valuation: quality decides. Excellent is
     #    rare and earns a Buy at a fair price; Good waits for a discount.
     if tier == "excellent":
-        if pct52 is not None and pct52 >= NEAR_HIGH_PCT:
+        if near_top:
             return mk(NONE, "near_52w_high")
         return mk(BUY, "excellent_fair_price")
     return mk(NONE, "good_wait_price")
@@ -289,6 +304,36 @@ def _latest_red_keys() -> dict[str, list]:
         return {}
 
 
+def _previous_signals(before: Optional[str]) -> dict[str, dict]:
+    """{code: {"signal", "reason_key"}} from the newest `signal_snapshots` day
+    before `before` (today's trading day) — what the leave lines compare with.
+    Empty on any failure: the join lines then apply alone, as before."""
+    if not before:
+        return {}
+    try:
+        from backend.services.db_service import get_db
+
+        col = get_db()[_SNAPSHOT_COLLECTION]
+        top = col.find_one({"date": {"$lt": str(before)[:10]}}, {"date": 1}, sort=[("date", -1)])
+        if not top:
+            return {}
+        return {
+            str(d["trading_code"]).upper(): {"signal": d.get("signal"), "reason_key": d.get("reason_key")}
+            for d in col.find({"date": top["date"]}, {"trading_code": 1, "signal": 1, "reason_key": 1})
+            if d.get("trading_code")
+        }
+    except Exception:  # noqa: BLE001 — a modifier, never a blocker
+        return {}
+
+
+def _trading_day() -> Optional[str]:
+    try:
+        from backend.services.top20_service import _market_window_raw
+        return str(_market_window_raw().get("as_of_date") or "")[:10] or None
+    except Exception:  # noqa: BLE001
+        return None
+
+
 @_ttl_cache(300)
 def build_signals() -> dict[str, dict]:
     """{trading_code: signal_obj} for every scored company (bulk, cached).
@@ -309,11 +354,13 @@ def build_signals() -> dict[str, dict]:
     except Exception:  # noqa: BLE001 — momentum is a modifier, never a blocker
         momentum = {}
     red = _latest_red_keys()
+    prev = _previous_signals(_trading_day())
     for row in df.to_dict("records"):
         code = row.get("trading_code")
         if not code:
             continue
-        out[str(code).upper()] = _signal_for_row(row, momentum.get(code), red.get(str(code).upper()))
+        c = str(code).upper()
+        out[c] = _signal_for_row(row, momentum.get(code), red.get(c), prev.get(c))
     return out
 
 
@@ -411,6 +458,7 @@ def snapshot_signals_today(date: Optional[str] = None) -> dict:
         momentum = {}
     prices = load_latest_prices()  # true close on snap_date = the entry price
     red = _latest_red_keys()
+    prev = _previous_signals(snap_date)
 
     db = get_db()
     col = db[_SNAPSHOT_COLLECTION]
@@ -430,7 +478,7 @@ def snapshot_signals_today(date: Optional[str] = None) -> dict:
             continue
         code = str(code).upper()
         mom = momentum.get(code)
-        sig = _signal_for_row(row, mom, red.get(code))
+        sig = _signal_for_row(row, mom, red.get(code), prev.get(code))
         stale = row.get("stale_data")
         if stale is None:
             stale_val = None

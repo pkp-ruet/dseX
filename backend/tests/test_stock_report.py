@@ -100,6 +100,8 @@ def square() -> dict:
                                        [2021, 60.0], [2022, 100.0], [2023, 105.0], [2024, 110.0], [2025, 120.0]]},
         "score_row": {"score": 86.7, "p1_biz": 8.14, "p2_health": 7.92, "p3_moat": 9.4, "p4_val": 8.82, "p5_div": 9.58,
                       "current_pe": 7.5, "own_avg_pe": 9.8, "sector_median_pe": 22.17, "eps": 29.18,
+                      "ltp": 218.8, "current_pb": 1.22, "own_avg_pb": 1.45, "sector_median_pb": 2.3,
+                      "p4_vol_damp": 0.96,
                       "overall_rank": 3, "total_scored": 362, "market_cat": "A", "debt_level": "ok",
                       "data_age_years": 0, "mcap_mn": 193960.0},
         "momentum": {"avg_turnover_7d_mn": 58.68},
@@ -213,12 +215,16 @@ def test_square_owners_and_red_flags():
 def test_price_section_and_scenarios():
     pr = sr.build_report(square())["sections"]["price"]
     assert pr["fair"] == {"low": 229.0, "high": 343.0, "center": 286.0}
-    assert pr["gap_pct"] == -23 and pr["buy_below"] == 229
+    # The buy price is where the Buy rule turns (audit PR1): a company strong
+    # all round stays a Buy until its price score falls to the expensive line.
+    assert pr["gap_pct"] == -23 and pr["buy_below"] == 410
     assert pr["profit_fall"] == {"pct": 20, "center": 251.0}
     assert len(pr["scenarios"]) == 3
     bear, base, bull = (s["price"] for s in pr["scenarios"])
     assert bear < base < bull
-    assert pr["headline"]["en"] == "We think a fair price is between ৳229 and ৳343. At ৳219 today, it is cheaper than that."
+    assert pr["headline"]["en"] == ("At ৳219 today, the price is low for what the company earns and owns. "
+                                    "We think a fair price is between ৳229 and ৳343.")
+    assert pr["word"]["en"] == "Low"
 
 
 def test_offer_never_gives_the_answer():
@@ -237,7 +243,10 @@ def test_estimates_disagree_hides_the_range():
     inp = square()
     inp["fair_value"]["estimates_disagree"] = True
     pr = sr.build_report(inp)["sections"]["price"]
-    assert pr["fair"] is None and pr["buy_below"] is None and pr["methods"] == []
+    assert pr["fair"] is None and pr["methods"] == []
+    # The buy price comes from the Buy rule, not the estimates, so it stays
+    # (13 Buys had none while the estimates disagreed; audit PR1).
+    assert pr["buy_below"] == 410
 
 
 def red_flag_company() -> dict:
@@ -408,7 +417,7 @@ def test_answer_buy_has_no_red_light():
     assert ans["line"]["en"] == "A company strong all round, at a very low price, and nothing serious is wrong."
     # The free line carries no figures; the buy price is a separate (Premium) field.
     assert not any(ch.isdigit() for ch in ans["line"]["en"])
-    assert ans["buy_price"] == 229
+    assert ans["buy_price"] == 410
 
 
 def test_answer_waits_on_the_price():
@@ -560,7 +569,7 @@ def test_view_buy_turns_the_signal_lines_into_prices():
     _all_bi(v)
     # 180 + 85% of the 80-taka range = 248, the signal's near-the-top line.
     assert v["change"][0]["en"].startswith("If the price climbs past ৳248")
-    assert v["buy_price"] == 229
+    assert v["buy_price"] == 248                     # capped at the near-the-top line
     assert v["headline"]["en"].startswith("Our answer: Buy.")
     assert 1 <= len(v["for"]) <= 3 and 1 <= len(v["against"]) <= 3
     assert len(v["inside"]) == 4
@@ -639,7 +648,7 @@ def test_next_questions_pair_each_free_answer_with_its_question():
     _all_bi([{k: r[k] for k in ("word", "ask", "hint", "answer")} for r in rows])
     assert [r["key"] for r in rows] == ["answer", "price", "red_flags", "owners", "next"]
     assert rows[0]["word"]["en"] == "Buy" and rows[0]["ask"]["en"] == "Up to what price?"
-    assert rows[0]["answer"]["en"].startswith("We would buy under ৳229.")
+    assert rows[0]["answer"]["en"].startswith("We would buy under ৳248.")
     assert rows[1]["word"]["en"] == "Low" and rows[1]["hint"]["en"] == "Our fair price, worked out 4 ways"
     assert rows[4]["word"]["en"] == "Results around 12 Nov"
 
@@ -751,3 +760,63 @@ def test_lender_line_skips_a_100_percent_cushion():
     safety = sr.build_safety(inp) or {}
     text = " ".join(p["en"] for p in [safety.get("headline")] + (safety.get("meaning") or []) if p)
     assert "good amount of its own money" not in text
+
+
+# ---------------------------------------------------------------- audit round 2 (2026-11-04)
+
+def test_price_word_and_fair_range_never_disagree():
+    # A "Low" price word beside a price above the fair range: the range hides.
+    inp = square()
+    inp["fair_value"].update({"low": 150.0, "high": 200.0, "center": 175.0})
+    pr = sr.build_report(inp)["sections"]["price"]
+    assert pr["word"]["en"] == "Low" and pr["fair"] is None
+    assert "fair price is between" not in pr["headline"]["en"]
+
+
+def test_loss_maker_price_is_cant_judge():
+    inp = square()
+    inp["score_row"].update({"eps": -1.2, "current_pe": None, "p4_val": 1.5})
+    rep = sr.build_report(inp)
+    assert rep["sections"]["price"]["word"]["en"] == "Can't judge"
+    light = {l["key"]: l for l in rep["answer"]["lights"]}["price"]
+    assert light["word"]["en"] == "Can't judge" and light["tone"] != "bad"
+
+
+def test_report_dividend_safety_is_the_calendars():
+    # TITASGAS: "Steady" + "The dividend looks safe" while the calendar said "At risk".
+    from backend.services.dividend_safety import dividend_safety
+    inp = square()
+    inp["score_row"].update({"eps": -0.5, "payout_latest_pct": None})
+    dv = sr.build_report(inp)["sections"]["dividend"]
+    ds = dividend_safety(inp["score_row"], "GENERAL")
+    assert ds["level"] == "risk"
+    assert dv["safety"]["level"] == "risk"
+    assert "at risk" in dv["headline"]["en"] and "looks safe" not in dv["headline"]["en"]
+    rf = {c["key"]: c for c in sr.build_report(inp)["sections"]["red_flags"]["checks"]}
+    assert rf["payout"]["level"] == "amber"                # a dividend paid out of a loss
+
+
+def test_dividend_year_yield_is_the_whole_year():
+    dv = sr.build_report(square())["sections"]["dividend"]
+    assert dv["year"] == 2026 and dv["year_cash_ps"] == 13.0
+    assert dv["year_yield_pct"] == round(13.0 / 218.8 * 100, 2)
+    assert dv["headline"]["en"].startswith("For 2026 it raised its cash dividend")
+
+
+def test_growth_band_matches_the_results_page():
+    from backend.services.results_explainer import MOVE_PCT
+    assert sr.GROWING_PCT == MOVE_PCT
+
+
+def test_strong_uses_one_line():
+    inp = square()
+    inp["score_row"].update({"p1_biz": 6.5, "p2_health": 9.0, "p3_moat": 8.0, "p4_val": 8.0, "p5_div": 9.0})
+    q = sr.build_report(inp)["sections"]["quality"]
+    assert "needs watching" not in q["headline"]["en"]
+    assert q["healthy"] == 4                                 # 6.5 is not "strong" (the checks line's 7)
+
+
+def test_cash_names_its_year():
+    c = sr.build_report(square())["sections"]["cash"]
+    assert not c["headline"]["en"].startswith("This year")
+    assert c["headline"]["en"].startswith("In its 20")

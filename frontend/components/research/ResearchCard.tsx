@@ -75,7 +75,7 @@ export default function ResearchCard({ s, masked = false }: { s: ResearchStock; 
     stats.push({
       key: "c",
       value: takaGroup(s.cash_per_10k),
-      label: <T en="Cash a year on ৳10,000" bn="৳10,000-এ বছরে নগদ" />,
+      label: <T en="Cash a year on ৳10,000, before tax" bn="৳10,000-এ বছরে নগদ, কর কাটার আগে" />,
     });
   }
 

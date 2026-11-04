@@ -328,7 +328,7 @@ CASH_MACHINES = ResearchList(
     columns=[
         Column("div_yield_pct", "Dividend yield", "ডিভিডেন্ড ইল্ড", "pct"),
         Column("payout_pct", "Share of profit paid", "মুনাফার কত অংশ", "pct"),
-        Column("cash_per_10k", "Cash on ৳10,000 a year", "৳10,000-এ বছরে নগদ", "taka"),
+        Column("cash_per_10k", "Cash on ৳10,000 a year, before tax", "৳10,000-এ বছরে নগদ, কর কাটার আগে", "taka"),
         Column("current_pe", "Price ÷ profit", "দাম ÷ মুনাফা", "x"),
         Column("score", "Score", "স্কোর", "score"),
     ],

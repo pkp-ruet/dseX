@@ -83,8 +83,8 @@ def _record_event(code: str, qty: int, row: dict) -> Optional[dict]:
     when_bn = "আগামীকাল" if days == 1 else f"{days} দিন পর"
     parts_en, parts_bn = [], []
     if cps and qty:
-        parts_en.append(f"{_money(qty * cps)} cash on your {qty:,} shares")
-        parts_bn.append(f"আপনার {qty:,}টি শেয়ারে {_money(qty * cps)} নগদ")
+        parts_en.append(f"{_money(qty * cps)} cash before tax on your {qty:,} shares")
+        parts_bn.append(f"আপনার {qty:,}টি শেয়ারে কর কাটার আগে {_money(qty * cps)} নগদ")
     if stock and qty:
         extra = int(qty * stock / 100)
         if extra > 0:

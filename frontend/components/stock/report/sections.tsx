@@ -315,9 +315,10 @@ export function strengthAnswer(scoreRow: CompanyDetail["score_row"]): { word: Bi
   const v = scoreRow?.p3_moat;
   const n = typeof v === "number" ? v : v == null ? null : Number(v);
   if (n == null || !Number.isFinite(n)) return null;
-  return n >= 8 ? { word: { en: "Very strong", bn: "খুব শক্তিশালী" }, tone: "good" }
-    : n >= 6 ? { word: { en: "Strong", bn: "শক্তিশালী" }, tone: "good" }
-    : n >= 4 ? { word: { en: "Average", bn: "মাঝারি" }, tone: "fair" }
+  // The checks line's 7 / 4 (pillarWord), with "Very strong" at the top.
+  return n >= 8.5 ? { word: { en: "Very strong", bn: "খুব শক্তিশালী" }, tone: "good" }
+    : n >= 7 ? { word: { en: "Strong", bn: "শক্তিশালী" }, tone: "good" }
+    : n >= 4 ? { word: { en: "Fair", bn: "মোটামুটি" }, tone: "fair" }
     : { word: { en: "Weak", bn: "দুর্বল" }, tone: "bad" };
 }
 
@@ -444,17 +445,6 @@ export function SharesPicture({ s }: { s: DividendSection }) {
 
 // ------------------------------------------------------------------ price
 
-/** "What do you pay for its profit?" answered in words (2026-10-30): the
- *  years of profit you pay for today against what it usually costs. Null
- *  without both figures (a loss year), so the row keeps the section's word. */
-export function priceAnswer(s: PriceSection): { word: Bi; tone: Tone } | null {
-  const { now, usual } = s.pe;
-  if (now == null || usual == null || now <= 0 || usual <= 0) return null;
-  if (now < usual * 0.9) return { word: { en: "Less than usual", bn: "স্বাভাবিকের চেয়ে কম" }, tone: "good" };
-  if (now > usual * 1.1) return { word: { en: "More than usual", bn: "স্বাভাবিকের চেয়ে বেশি" }, tone: "bad" };
-  return { word: { en: "About usual", bn: "স্বাভাবিকের মতোই" }, tone: "neutral" };
-}
-
 /** What you pay for ৳1 of yearly profit, now vs its usual vs its sector. */
 export function PricePicture({ s }: { s: PriceSection }) {
   const pe = s.pe;
@@ -579,27 +569,41 @@ export function DividendFree({ s }: { s: DividendSection }) {
     },
     l.agm_date && { key: "agm", name: <T en="AGM" bn="এজিএম" />, when: <DateT iso={l.agm_date} /> },
   ].filter(Boolean) as { key: string; name: React.ReactNode; when: React.ReactNode; strong?: boolean }[];
+  // "A year" is the year's cash (interim + final): one payment read MARICO's
+  // yield as 1.4% while every list said 8.0% (2026-11-04). The latest
+  // declaration is shown under it as "this payment".
+  const yearCash = s.year_cash_ps ?? null;
+  const yearYield = s.year_yield_pct ?? null;
+  const samePayment = yearCash != null && l.cash_ps != null && Math.abs(yearCash - l.cash_ps) < 0.005;
   return (
     <>
       <p className="text-base text-text-main">
-        {l.cash_ps != null && l.cash_ps > 0 ? (
+        {yearCash != null && yearCash > 0 ? (
           <>
-            <b className="text-2xl tabular-nums nums">{perShare(l.cash_ps)}</b>{" "}
-            <T en="cash a share" bn="শেয়ারপ্রতি নগদ" />
-            {l.yield_pct != null && (
+            <b className="text-2xl tabular-nums nums">{perShare(yearCash)}</b>{" "}
+            <T en={`cash a share for FY${s.year}`} bn={`${s.year} অর্থবছরে শেয়ারপ্রতি নগদ`} />
+            {yearYield != null && (
               <span className="text-text-muted">
                 {" · "}
-                <T en={`about ${l.yield_pct.toFixed(1)}% a year on today's price, like interest`} bn={`আজকের দামে বছরে প্রায় ${l.yield_pct.toFixed(1)}%, অনেকটা সুদের মতো`} />
+                <T en={`about ${yearYield.toFixed(1)}% a year on today's price, before tax`} bn={`আজকের দামে বছরে প্রায় ${yearYield.toFixed(1)}%, কর কাটার আগে`} />
               </span>
             )}
+          </>
+        ) : l.cash_ps != null && l.cash_ps > 0 ? (
+          <>
+            <b className="text-2xl tabular-nums nums">{perShare(l.cash_ps)}</b>{" "}
+            <T en="cash a share in this payment" bn="এই দফায় শেয়ারপ্রতি নগদ" />
           </>
         ) : (
           <T en="No cash dividend in its latest declaration" bn="সর্বশেষ ঘোষণায় নগদ ডিভিডেন্ড নেই" />
         )}
       </p>
       <p className="mt-0.5 text-xs text-text-muted">
+        {yearCash != null && yearCash > 0 && l.cash_ps != null && l.cash_ps > 0 && !samePayment ? (
+          <T en={`This payment: ${perShare(l.cash_ps)} a share · `} bn={`এই দফায়: শেয়ারপ্রতি ${perShare(l.cash_ps)} · `} />
+        ) : null}
         {tx(l.kind)}
-        {l.fy ? ` · FY${l.fy}` : ""}
+        {l.fy ? <T en={` · FY${l.fy}`} bn={` · ${l.fy} অর্থবছর`} /> : ""}
         {l.stock_pct != null && l.stock_pct > 0 ? <T en={` · ${l.stock_pct}% bonus shares`} bn={` · ${l.stock_pct}% বোনাস শেয়ার`} /> : null}
       </p>
       {dates.length > 0 && <DateLine label="Dividend dates" items={dates} />}

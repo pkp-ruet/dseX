@@ -1,4 +1,5 @@
 import math
+from typing import Optional
 from fastapi import APIRouter, HTTPException
 from backend.services.db_service import (
     get_company, load_latest_prices, load_price_history,
@@ -17,7 +18,6 @@ from utils.sector import normalize_sector
 from backend.services.scoring_service import get_company_score_row, build_scores_df
 from backend.services.signal_service import get_signal, wire_fields
 from backend.services.top20_service import compute_momentum_for_code
-from backend.services.verdict_service import build_verdict
 from backend.services.summaries_service import load_stock_summary, load_stock_summaries
 from backend.services.deep_analysis_service import (
     load_report, report_teaser, list_report_codes, compute_fair_value,
@@ -25,11 +25,17 @@ from backend.services.deep_analysis_service import (
 from backend.models.responses import (
     CompanyDetailResponse, CompanyProfile, LatestPrice,
     SignalFlags, DividendDeclaration, RelatedStock,
-    MomentumSnapshot, StockVerdict, StockSignal, ValuationContext, SectorContext,
+    MomentumSnapshot, StockSignal, ValuationContext, SectorContext,
     FairValue, DeepAnalysisTeaser, DeepAnalysisReport, DeepAnalysisResponse,
 )
 
 router = APIRouter()
+
+
+def _market_date(prices: dict) -> Optional[str]:
+    """The newest trading day in the latest-price map (ISO)."""
+    days = [str(p.get("date"))[:10] for p in (prices or {}).values() if p.get("date")]
+    return max(days) if days else None
 
 
 def _int_or_none(v):
@@ -233,18 +239,12 @@ def get_company_detail(code: str):
 
     # Momentum snapshot + hybrid verdict
     momentum_dict = None
-    verdict_dict = None
     try:
         momentum_dict = compute_momentum_for_code(trading_code)
     except Exception:
         momentum_dict = None
-    try:
-        verdict_dict = build_verdict(score_row, momentum_dict, flags, latest, financials)
-    except Exception:
-        verdict_dict = None
 
     momentum_model = MomentumSnapshot(**momentum_dict) if momentum_dict else None
-    verdict_model = StockVerdict(**verdict_dict) if verdict_dict else None
 
     # Canonical Buy/Sell signal (else none) — attached by the router (single source;
     # the verdict stays purely descriptive so the two can never disagree).
@@ -355,6 +355,8 @@ def get_company_detail(code: str):
             w52_low=w52_low,
             value_mn=latest.get("value_mn"),
             trade_count=_int_or_none(latest.get("trade_count")),
+            official=(latest.get("close_price") is not None) if latest else None,
+            market_date=_market_date(prices),
         ),
         score_row=score_row,
         signal_flags=SignalFlags(green=flags["green"], red=flags["red"], items=flags.get("items", [])),
@@ -366,7 +368,6 @@ def get_company_detail(code: str):
         news=news,
         related_stocks=related,
         momentum=momentum_model,
-        verdict=verdict_model,
         signal=signal_model,
         valuation=valuation_model,
         sector_context=sector_context_model,

@@ -268,7 +268,8 @@ def dates_part(mine: set[str], held: dict[str, int], meetings: list[dict], recor
         qty = held.get(code) or 0
         if cash and qty:
             tk = cash * qty
-            extra_en, extra_bn = f" Your {qty:,} shares get about ৳{tk:,.0f}.", f" আপনার {qty:,}টি শেয়ারে প্রায় ৳{tk:,.0f}।"
+            extra_en, extra_bn = (f" Your {qty:,} shares get about ৳{tk:,.0f} before tax.",
+                                  f" আপনার {qty:,}টি শেয়ারে কর কাটার আগে প্রায় ৳{tk:,.0f}।")
         elif cash:
             extra_en, extra_bn = f" ৳{cash:,.2f} a share.", f" শেয়ারপ্রতি ৳{cash:,.2f}।"
         else:

@@ -15,7 +15,7 @@ only reads the cached text.
 
 Two backends (chosen by the `SUMMARY_BACKEND` env var):
   * "template" (DEFAULT) — pure-Python Bengali sentence templates, the same
-    matrix idea as `verdict_service.py`. Free, instant, offline, deterministic,
+    matrix idea as the old verdict_service (removed 2026-11-04). Free, instant, offline, deterministic,
     no API key and no `anthropic` dependency.
   * "ai" — render the facts with Claude for more natural prose (needs
     ANTHROPIC_API_KEY + the `anthropic` package). Off by default.

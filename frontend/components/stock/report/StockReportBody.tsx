@@ -12,7 +12,7 @@ import { dayShort } from "@/components/dividend-calendar/dates";
 import { money, tx } from "@/components/stock/report/fmt";
 import {
   AlternativesDetails, CashPremium, DividendDetails, DividendFree, DividendPremium, MoneyPicture, NextDetails, NextFree,
-  OwnersDetails, OwnersFree, PriceDetails, PricePicture, PricePremium, priceAnswer, QualityDetails, RedFlagsDetails, StrengthPicture, strengthAnswer,
+  OwnersDetails, OwnersFree, PriceDetails, PricePicture, PricePremium, QualityDetails, RedFlagsDetails, StrengthPicture, strengthAnswer,
   RedFlagsFree, RisksDetails, SafetyDetails, SafetyFree, SafetyPremium, SharesPicture, ThisYearDetails, ThisYearFree,
   ThisYearPremium, sharesAnswer,
 } from "@/components/stock/report/sections";
@@ -213,7 +213,7 @@ export default function StockReportBody({ detail, report }: { detail: CompanyDet
                     w52Low={latest_price.w52_low}
                   />
                 ),
-              }, { ...sec.price, ...(priceAnswer(sec.price) ?? {}) }),
+              }, sec.price),
             }
           : null;
       case "dividend":

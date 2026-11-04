@@ -93,7 +93,7 @@ def test_almost_says_what_keeps_a_good_company_off():
     assert near["group"] == "near_52w_high" and near["under"] == 23.4
     assert near["line"]["en"] == "Comes back on the list under ৳23.4."
     pricey = st.almost_row("GP", _sig("none", "good_wait_price"), {"score": 66}, 237.0, 204.0, 250.0)
-    assert pricey["line"]["en"] == "Our buy price is ৳204, 14% below today."
+    assert pricey["line"]["en"] == "Comes back on the list at ৳204 or less, 14% below today."
     # A buy price above today's price says nothing useful: no line.
     odd = st.almost_row("X", _sig("none", "quality_expensive"), {"score": 61}, 50.0, 60.0, None)
     assert odd["line"] is None and odd["under"] is None
@@ -145,3 +145,19 @@ def test_buylist_events_cover_joined_left_and_crossing_near_the_limit():
 def test_buylist_is_quiet_on_a_rule_change_day():
     rebuilt = dict(BUNDLE, changes=dict(BUNDLE["changes"], rebuilt=True))
     assert watch.buylist_changes(rebuilt, {}, {"AAA", "FFF"}) == {}
+
+
+def test_almost_price_is_where_the_buy_rule_turns():
+    # Audit PR3: the line is solved from the price score, not the report's old
+    # fair-value buy price (AMCL(PRAN) read ৳152 when the line was ~৳203).
+    row = {"score": 66.0, "ltp": 100.0, "p4_val": 6.0, "p4_vol_damp": 1.0,
+           "current_pe": 12.0, "own_avg_pe": 12.0, "sector_median_pe": 12.0,
+           "current_pb": 2.0, "own_avg_pb": 2.0, "sector_median_pb": 2.0}
+    r = st.almost_row("X", _sig("none", "good_wait_price"), row, 100.0, 50.0, None)
+    assert 80.0 < r["under"] < 100.0                       # 15% under its usual ratios scores 7
+    from backend.services.scoring_service import p4_at_price
+    assert p4_at_price(row, r["under"]) >= 6.99
+    # Earnings so unsteady that no price reaches the line (TAKAFULINS).
+    shaky = dict(row, p4_vol_damp=0.6, p4_val=3.6)   # its stored score at today's price
+    r2 = st.almost_row("Y", _sig("none", "good_wait_price"), shaky, 100.0, None, None)
+    assert r2["under"] is None and r2["line"]["en"].startswith("Price alone won't bring it back")

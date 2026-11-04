@@ -108,6 +108,11 @@ class LatestPrice(BaseModel):
     w52_low: Optional[float] = None
     value_mn: Optional[float] = None      # day's turnover in millions of BDT
     trade_count: Optional[int] = None     # number of trades that day
+    # 2026-11-04 (audit SP4): False while DSE's official close isn't out yet
+    # (the last trade is shown); market_date = the market's latest trading day,
+    # so a share that didn't trade can say "No trade since …".
+    official: Optional[bool] = None
+    market_date: Optional[str] = None
 
 
 class CompanyProfile(BaseModel):
@@ -193,16 +198,6 @@ class MomentumSnapshot(BaseModel):
     corporate_action: Optional[dict[str, Any]] = None
 
 
-class StockVerdict(BaseModel):
-    """Descriptive prose only — action advice lives in StockSignal."""
-    headline: str
-    tagline: str
-    sentences: list[str]
-    headline_bn: Optional[str] = None
-    tagline_bn: Optional[str] = None
-    sentences_bn: Optional[list[str]] = None
-
-
 class FairValueMethod(BaseModel):
     """One yardstick used in the fair-value blend (services/fair_value.py)."""
     name: str
@@ -284,7 +279,6 @@ class CompanyDetailResponse(BaseModel):
     news: list[dict[str, Any]]
     related_stocks: list[RelatedStock] = []
     momentum: Optional[MomentumSnapshot] = None
-    verdict: Optional[StockVerdict] = None
     signal: Optional[StockSignal] = None
     valuation: Optional[ValuationContext] = None
     sector_context: Optional[SectorContext] = None

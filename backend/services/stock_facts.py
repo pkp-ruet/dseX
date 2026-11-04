@@ -547,17 +547,23 @@ def build_items(score_row: Optional[dict], holdings: list[dict], financials: lis
 
     # ---- Valuation (own history) -----------------------------------------
     lbl = own_pe_label(sr.get("own_avg_pe_years"), sr.get("listing_year"), _year(sr.get("fy_eps_year")))
-    hist_en = lbl["en"] if lbl else "its usual level"
+    hist_en = lbl["en"] if lbl else "usual level"
     hist_bn = lbl["bn"] if lbl else "স্বাভাবিক মাত্রা"
-    p4_pe = _f(sr.get("p4_pe"))
-    if p4_pe is not None and p4_pe >= 8:
-        out.append(item("cheap_vs_history", "good",
-                        f"Its price is low compared with its own past. The P/E is below its {hist_en}.",
-                        f"নিজের অতীতের তুলনায় দাম কম। পিই এর {hist_bn}-এর নিচে।"))
-    elif p4_pe is not None and p4_pe <= 1.0 and score_row:
-        out.append(item("pricey_vs_history", "watch",
-                        f"Its price is high compared with its own past. The P/E is well above its {hist_en}.",
-                        f"নিজের অতীতের তুলনায় দাম বেশি। পিই এর {hist_bn}-এর অনেক ওপরে।"))
+    # Today's P/E against its OWN usual one (p4_pe also mixes in the sector, and
+    # read 0 for every loss-maker — "well above its usual level" for a company
+    # with no P/E), and never against the price word (audit PR4: 7 companies
+    # read "low compared with its own past" beside "High").
+    cur_pe, own_pe = _f(sr.get("current_pe")), _f(sr.get("own_avg_pe"))
+    verdict = valuation_verdict(sr.get("p4_val"))
+    if cur_pe and own_pe and cur_pe > 0 and own_pe > 0:
+        if cur_pe < own_pe * 0.9 and verdict != "expensive":
+            out.append(item("cheap_vs_history", "good",
+                            f"Its price is low compared with its own past: you pay about {cur_pe:.0f} years of its profit, against {own_pe:.0f} at its {hist_en}.",
+                            f"নিজের অতীতের তুলনায় দাম কম: এখন প্রায় {cur_pe:.0f} বছরের মুনাফার সমান দাম, যা এর {hist_bn}-এ ছিল {own_pe:.0f} বছর।"))
+        elif cur_pe > own_pe * 1.3 and verdict != "cheap" and score_row:
+            out.append(item("pricey_vs_history", "watch",
+                            f"Its price is high compared with its own past: you pay about {cur_pe:.0f} years of its profit, against {own_pe:.0f} at its {hist_en}.",
+                            f"নিজের অতীতের তুলনায় দাম বেশি: এখন প্রায় {cur_pe:.0f} বছরের মুনাফার সমান দাম, যা এর {hist_bn}-এ ছিল {own_pe:.0f} বছর।"))
 
     # ---- Ownership -------------------------------------------------------
     sh = holdings[0] if holdings else None

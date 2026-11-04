@@ -91,8 +91,13 @@ def facts_from(row: dict, comp: dict, price: dict, rng: dict, mom: dict,
         "turnover_mn": _n(mom.get("avg_turnover_7d_mn")),
         "paid_years": _PAID_YEARS.get(_n(f.get("p5_consist")) or 0.0),
     })
-    y = _n(f.get("div_yield_pct"))
-    f["cash_per_10k"] = round(y * 100) if y else None
+    # Cash a year on ৳10,000: the whole shares ৳10,000 buys × the year's cash a
+    # share, before tax (it used to be yield × 100, i.e. fractional shares).
+    dps, px = _n(f.get("div_latest_dps")), _n(ltp)
+    if dps is None and _n(f.get("div_yield_pct")) and px:
+        dps = _n(f.get("div_yield_pct")) * px / 100.0
+    shares = int(10000 // px) if px and px > 0 else 0
+    f["cash_per_10k"] = round(shares * dps) if (dps and shares) else None
     lmc = _n(f.get("loan_to_mcap"))
     f["loan_pct_mcap"] = round(lmc * 100, 1) if lmc is not None else None
     f["profit_change_pct"] = rl.profit_trend(f)[0]

@@ -370,7 +370,7 @@ def _dividend_point(c: dict) -> Optional[dict]:
     per = c.get("cash_per_10k")
     tail_en = f", about ৳{per:,} on ৳10,000" if per else ""
     tail_bn = f", ৳10,000-এ প্রায় ৳{per:,}" if per else ""
-    return _pt(f"Pays {_r(y)}% a year in cash{tail_en}", f"বছরে {_r(y)}% নগদ লভ্যাংশ{tail_bn}")
+    return _pt(f"Pays {_r(y)}% a year in cash before tax{tail_en}", f"কর কাটার আগে বছরে {_r(y)}% নগদ ডিভিডেন্ড{tail_bn}")
 
 
 def _profit_point(c: dict) -> Optional[dict]:

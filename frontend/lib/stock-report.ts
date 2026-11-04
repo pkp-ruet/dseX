@@ -134,6 +134,13 @@ export interface DividendSection extends SectionBase {
     /** True when the record date is still ahead. */
     upcoming: boolean;
   } | null;
+  /** The latest full year's cash (interim + final), ৳ a share, and its yield
+   *  on today's price, before tax — what "a year" means (2026-11-04). */
+  year?: number | null;
+  year_cash_ps?: number | null;
+  year_yield_pct?: number | null;
+  /** "Is it safe?" — the dividend calendar's own rule (dividend_safety). */
+  safety?: { level: "safe" | "watch" | "risk"; word: Bi; line_en: string; line_bn: string } | null;
   /** Cash dividend ÷ EPS for the latest year, % (Premium). */
   payout_pct: number | null;
   /** Cash from the business ÷ cash dividend, × (Premium). */

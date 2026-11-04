@@ -325,6 +325,73 @@ def _a2_pe_pb_ratio_score(ratio: float) -> float:
     return _score(ratio, [(0.5, 10), (0.70, 10), (0.85, 8), (1.00, 6), (1.20, 4), (1.50, 1)])
 
 
+def _ratio_part(cur: Optional[float], own: Optional[float], sect: Optional[float]) -> float:
+    """One half of the valuation pillar (P/E or P/B) from today's ratio, the
+    company's own usual one and its sector's — the same mix _a2_pillar4 uses."""
+    if cur is None or cur <= 0:
+        return 0.0
+    has_own = own is not None and own > 0
+    has_sect = sect is not None and sect > 0
+    own_s = _a2_pe_pb_ratio_score(cur / own) if has_own else 0.0
+    sect_s = _a2_pe_pb_ratio_score(cur / sect) if has_sect else 0.0
+    if has_own and has_sect:
+        return own_s * 0.6 + sect_s * 0.4
+    return own_s if has_own else sect_s if has_sect else 0.0
+
+
+def _num(v) -> Optional[float]:
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return None
+    return None if math.isnan(f) else f
+
+
+def p4_at_price(row: dict, price: float) -> Optional[float]:
+    """The valuation score (p4_val) the row would have at `price` — every ratio
+    scales with the price, so this is exact up to the stored rounding. Anchored
+    on the stored p4_val at today's price so it never disagrees with it."""
+    ltp, p4 = _num(row.get("ltp")), _num(row.get("p4_val"))
+    if not ltp or ltp <= 0 or p4 is None or not price or price <= 0:
+        return None
+    vd = _num(row.get("p4_vol_damp"))
+    vd = 1.0 if vd is None else vd
+
+    def raw(k: float) -> float:
+        pe = _num(row.get("current_pe"))
+        pb = _num(row.get("current_pb"))
+        pe_s = _ratio_part(pe * k if pe else None, _num(row.get("own_avg_pe")), _num(row.get("sector_median_pe")))
+        pb_s = _ratio_part(pb * k if pb else None, _num(row.get("own_avg_pb")), _num(row.get("sector_median_pb")))
+        return (pe_s * 0.6 + pb_s * 0.4) * vd
+
+    return max(0.0, min(10.0, raw(price / ltp) + (p4 - raw(1.0))))
+
+
+def price_for_p4(row: dict, target: float) -> Optional[float]:
+    """The highest price at which the valuation score is still `target` or more
+    (the score only falls as the price rises), or None when no price gets it
+    there — a loss-maker with no book value, or earnings so unsteady that the
+    damping caps the score below the line (2026-11-04, audit PR1 / PR3). The
+    report's buy price and the buy list's "comes back under" price both come
+    from here, so they are the price where the Buy rule itself turns."""
+    ltp = _num(row.get("ltp"))
+    if not ltp or ltp <= 0:
+        return None
+    lo, hi = ltp * 0.02, ltp * 20.0
+    at_lo = p4_at_price(row, lo)
+    if at_lo is None or at_lo < target:
+        return None
+    if (p4_at_price(row, hi) or 0.0) >= target:
+        return hi
+    for _ in range(60):
+        mid = (lo + hi) / 2
+        if (p4_at_price(row, mid) or 0.0) >= target:
+            lo = mid
+        else:
+            hi = mid
+    return lo
+
+
 def _a2_div_yield_score(yield_pct: float) -> float:
     return _score(yield_pct, [(0, 1), (1, 4), (3, 7), (5, 10)])
 

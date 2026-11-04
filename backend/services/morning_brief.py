@@ -361,8 +361,8 @@ def build_brief(held: dict[str, int], watched: Iterable[str], *, today: date,
             cash = cps * held[code]
             items.append({
                 "kind": "record", "code": code, "level": "good",
-                "title_en": f"{code}: record date today, ৳{cash:,.0f} on your {held[code]:,} shares",
-                "title_bn": f"{code}: আজ রেকর্ড ডেট, আপনার {held[code]:,}টি শেয়ারে ৳{cash:,.0f}",
+                "title_en": f"{code}: record date today, ৳{cash:,.0f} before tax on your {held[code]:,} shares",
+                "title_bn": f"{code}: আজ রেকর্ড ডেট, আপনার {held[code]:,}টি শেয়ারে কর কাটার আগে ৳{cash:,.0f}",
                 "url": f"/stock/{code}#dividends",
             })
 

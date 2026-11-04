@@ -135,7 +135,7 @@ def test_watch_events_cover_each_kind():
     ev = W.build_events({"GP": 100}, facts, "2026-10-25")
     kinds = [e["kind"] for e in ev]
     assert kinds == ["record", "results", "category", "drop", "low52"]
-    assert "৳1,250 cash on your 100 shares" in ev[0]["body_en"]
+    assert "৳1,250 cash before tax on your 100 shares" in ev[0]["body_en"]
     assert ev[1]["level"] == "bad" and "down 25%" in ev[1]["title_en"]
     assert ev[3]["id"] == "drop-GP-2026-10-25"
     # Bengali copy uses Western digits.

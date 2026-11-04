@@ -74,7 +74,7 @@ def test_dates_part_keeps_next_week_on_the_readers_shares():
     part = wl.dates_part({"GP", "ACI", "BATBC"}, {"BATBC": 50}, meetings, record, TODAY)
     en = [ln["en"] for ln in part["lines"]]
     assert en == [
-        "BATBC: record date tomorrow. Your 50 shares get about ৳500.",
+        "BATBC: record date tomorrow. Your 50 shares get about ৳500 before tax.",
         "GP: the board meets on Tue 3 Nov on its Q3 results.",
     ]
 

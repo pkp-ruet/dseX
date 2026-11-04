@@ -93,20 +93,26 @@ export const COPY = {
     fullAnalysisBn: "পুরো পেজ দেখুন →",
     stale: "This is based on older accounts.",
     staleBn: "এটি পুরোনো আর্থিক হিসাবের ওপর ভিত্তি করে।",
-    cheaper: "It costs less than usual for its sector.",
-    cheaperBn: "এর দাম সেক্টরের স্বাভাবিকের চেয়ে কম।",
-    pricier: "It costs a little more than usual for its sector.",
-    pricierBn: "এর দাম সেক্টরের স্বাভাবিকের চেয়ে একটু বেশি।",
-    inLine: "Its price is about in line with its sector.",
-    inLineBn: "এর দাম সেক্টরের সঙ্গে মোটামুটি মিলে যায়।",
+    // Facts only (2026-11-04): whether to buy it, at what price, and its
+    // warnings are the stock report's answer.
+    answerOnPage: "Whether to buy it, the price we would pay and its warnings are in our full report on its page.",
+    answerOnPageBn: "কেনা উচিত কি না, কোন দামে কিনব আর এর সতর্কতাগুলো এর পেজের পুরো রিপোর্টে আছে।",
+    noProfit: "It made a loss in its latest results, so there is no profit to price it against.",
+    noProfitBn: "সর্বশেষ ফলে লোকসান হয়েছে, তাই মুনাফার তুলনায় দাম বিচার করার উপায় নেই।",
+    years: (n: number) => `At today's price you pay for about ${n} years of its profit.`,
+    yearsBn: (n: number) => `আজকের দামে আপনি কোম্পানির প্রায় ${n} বছরের মুনাফার সমান দাম দিচ্ছেন।`,
+    yearsVsUsual: (n: number, u: number) =>
+      `At today's price you pay for about ${n} years of its profit; it usually costs about ${u}.`,
+    yearsVsUsualBn: (n: number, u: number) =>
+      `আজকের দামে আপনি প্রায় ${n} বছরের মুনাফার সমান দাম দিচ্ছেন। সাধারণত এটি থাকে প্রায় ${u} বছরের সমান।`,
   },
   facts: {
-    yield: { text: "Dividend yield", bn: "ডিভিডেন্ড ইল্ড" },
-    lastCash: { text: "Latest cash dividend", bn: "সর্বশেষ নগদ ডিভিডেন্ড" },
+    yield: { text: "Cash a year on today's price, before tax", bn: "আজকের দামে বছরে নগদ, কর কাটার আগে" },
+    yearCash: { text: "Cash a share, latest year", bn: "শেয়ারপ্রতি নগদ, সর্বশেষ বছর" },
     recordDate: { text: "Record date", bn: "রেকর্ড ডেট" },
-    pe: { text: "P/E", bn: "পিই" },
-    sectorPe: { text: "Usual P/E in its sector", bn: "সেক্টরের সাধারণ পিই" },
-    ownPe: { text: "Its own usual P/E", bn: "এর নিজের সাধারণ পিই" },
+    pe: { text: "Years of profit you pay for (P/E)", bn: "কত বছরের মুনাফার সমান দাম (পিই)" },
+    sectorPe: { text: "Similar companies, years", bn: "একই ধরনের কোম্পানি, বছর" },
+    ownPe: { text: "Usually, years", bn: "সাধারণত, বছর" },
   },
 
   // --- Screen result framing (short lead-ins) ---

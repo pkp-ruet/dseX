@@ -63,6 +63,11 @@ export default function CompanyFacts({ detail }: Props) {
   const dayLow = toNum(latest_price.low);
   const dayHigh = toNum(latest_price.high);
   const ycp = toNum(latest_price.ycp);
+  // The latest row may be days old for a share that didn't trade (audit SP4).
+  const priceDay = latest_price.date ? String(latest_price.date).slice(0, 10) : null;
+  const marketDay = latest_price.market_date ? String(latest_price.market_date).slice(0, 10) : null;
+  const tradedToday = !(priceDay && marketDay && priceDay < marketDay);
+  const dayWord = tradedToday ? { en: "today", bn: "আজকের" } : { en: `on ${priceDay}`, bn: `${priceDay}-এর` };
   const turnoverMn = toNum(latest_price.value_mn);
   const trades = toNum(latest_price.trade_count);
   const volume = toNum(latest_price.volume);
@@ -131,13 +136,13 @@ export default function CompanyFacts({ detail }: Props) {
   } : null);
   push(turnoverMn != null && turnoverMn > 0 ? {
     key: "turnover",
-    label: { en: "Traded today", bn: "আজকের লেনদেন" },
+    label: { en: `Traded ${dayWord.en}`, bn: `${dayWord.bn} লেনদেন` },
     value: tk(turnoverMn),
     desc: { en: "Value of shares bought and sold", bn: "কেনাবেচা হওয়া শেয়ারের মূল্য" },
   } : null);
   push(trades != null && trades > 0 ? {
     key: "trades",
-    label: { en: "Trades today", bn: "আজকের লেনদেন সংখ্যা" },
+    label: { en: `Trades ${dayWord.en}`, bn: `${dayWord.bn} লেনদেন সংখ্যা` },
     value: same(trades.toLocaleString("en-US")),
     desc: volume != null
       ? { en: `${croreShares(volume)} shares changed hands`, bn: `${sharesBi(volume).bn} শেয়ার হাতবদল হয়েছে` }

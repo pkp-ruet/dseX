@@ -32,6 +32,7 @@ import { VIEW_CHAPTER } from "@/lib/stock-report";
 import { buildStockPromo } from "@/lib/stock-promo";
 import { StoryTable } from "@/components/stock/report/sections";
 import DataRoom, { type RoomPanel } from "@/components/stock/report/DataRoom";
+import LatestResults from "@/components/stock/report/LatestResults";
 import { formatDate, money } from "@/lib/formatters";
 
 export const revalidate = 86400;
@@ -265,7 +266,8 @@ export default async function StockDetailPage({ params }: PageProps) {
   // and the data room's raw numbers. The whole report — the answer, the four
   // chapters, Our view, the written analysis — sits behind `ReportGate`.
   const hasValuation = financials.length > 0;
-  const hasFinancials = financials.length > 0;
+  const latestResults = detail.results_explained ?? null;
+  const hasFinancials = financials.length > 0 || latestResults != null;
   const hasFacts =
     detail.latest_price.ltp != null || profile.total_shares != null ||
     profile.reserve_surplus_mn != null || profile.paid_up_capital_mn != null || financials.length > 0;
@@ -317,9 +319,10 @@ export default async function StockDetailPage({ params }: PageProps) {
       ? [{
           key: "profit",
           label: { en: "Profit", bn: "মুনাফা" },
-          anchors: ["financials"],
+          anchors: ["financials", "latest-results"],
           body: (
             <div id="financials" className="stock-anchor">
+              {latestResults && <LatestResults r={latestResults} />}
               {report?.sections.story && <StoryTable s={report.sections.story} />}
               <ProfitsAndDividends financials={financials} extFinancials={extended_financials} declaration={dividend_declaration} />
               <FinancialTrends extFinancials={extended_financials} />

@@ -113,7 +113,7 @@ def test_brief_orders_results_then_today():
 def test_record_date_today_counts_the_cash():
     items = _brief(record_rows=[{"trading_code": "ACI", "buy_by": "2026-10-26", "record_date": "2026-10-29",
                                  "cash_per_share": 2.5}])
-    assert items[0]["title_en"] == "ACI: record date today, ৳250 on your 100 shares"
+    assert items[0]["title_en"] == "ACI: record date today, ৳250 before tax on your 100 shares"
 
 
 def test_watched_stock_last_day_to_buy():

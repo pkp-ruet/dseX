@@ -18,6 +18,18 @@ interface Props {
 }
 
 /** Token-tinted chip colours (CategoryChip takes raw CSS colour strings). */
+const WD_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const WD_BN = ["রবি", "সোম", "মঙ্গল", "বুধ", "বৃহস্পতি", "শুক্র", "শনি"];
+const MON_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MON_BN = ["জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"];
+
+/** "Tue 4 Nov" / "মঙ্গল 4 নভেম্বর" from an ISO day (a calendar date, no time zone). */
+function shortDay(iso: string, lang: "en" | "bn"): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  return lang === "en" ? `${WD_EN[wd]} ${d} ${MON_EN[m - 1]}` : `${WD_BN[wd]} ${d} ${MON_BN[m - 1]}`;
+}
+
 const tint = (token: string, pct: number) => `color-mix(in srgb, var(--${token}) ${pct}%, transparent)`;
 
 // DSE market category, in plain words. Tone mirrors how the score treats it.
@@ -58,7 +70,12 @@ export default function HeroSection({ detail }: Props) {
   const score = (score_row?.score as number | null | undefined) ?? null;
 
   const ltp = latest_price.ltp;
-  const chg = latest_price.change_pct;
+  // A share whose latest row is older than the market's latest day didn't
+  // trade since: no "today" on an old change (2026-11-04, audit SP4).
+  const priceDay = latest_price.date ? String(latest_price.date).slice(0, 10) : null;
+  const marketDay = latest_price.market_date ? String(latest_price.market_date).slice(0, 10) : null;
+  const notTraded = priceDay != null && marketDay != null && priceDay < marketDay;
+  const chg = notTraded ? null : latest_price.change_pct;
   const isPositive = chg != null && chg > 0;
   const isNegative = chg != null && chg < 0;
 
@@ -135,7 +152,15 @@ export default function HeroSection({ detail }: Props) {
               </span>
             )}
             <span className="text-xs font-semibold text-text-muted">
-              <T en="Official closing price" bn="দিনশেষের অফিশিয়াল দাম" />
+              {notTraded && priceDay ? (
+                <T en={`No trade since ${shortDay(priceDay, "en")}`} bn={`${shortDay(priceDay, "bn")}-এর পর লেনদেন হয়নি`} />
+              ) : latest_price.official === false ? (
+                <T en="Last trade today · the official close comes after 2:30 PM" bn="আজকের শেষ লেনদেনের দাম · অফিশিয়াল দাম আসবে বেলা 2:30-এর পর" />
+              ) : priceDay ? (
+                <T en={`Official close, ${shortDay(priceDay, "en")}`} bn={`অফিশিয়াল দাম, ${shortDay(priceDay, "bn")}`} />
+              ) : (
+                <T en="Official closing price" bn="দিনশেষের অফিশিয়াল দাম" />
+              )}
             </span>
           </div>
         </div>

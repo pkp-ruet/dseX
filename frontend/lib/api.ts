@@ -132,6 +132,10 @@ export interface LatestPrice {
   value_mn?: number | null;
   /** Number of trades that day. */
   trade_count?: number | null;
+  /** False while DSE's official close isn't out yet (the last trade shows). */
+  official?: boolean | null;
+  /** The market's latest trading day (ISO) — older `date` = no trade since. */
+  market_date?: string | null;
 }
 
 /** One Good sign / Watch-out, already worded in both languages by the backend
@@ -220,17 +224,6 @@ export interface MomentumSnapshot {
     stock_pct: number;
     raw_return_7d_pct: number;
   } | null;
-}
-
-export interface StockVerdict {
-  /** Descriptive prose only — action advice lives in CompanyDetail.signal. */
-  headline: string;
-  tagline: string;
-  sentences: string[];
-  /** Bengali twins (2026-10-27); absent from an older backend. */
-  headline_bn?: string;
-  tagline_bn?: string;
-  sentences_bn?: string[];
 }
 
 /** Live "value today" box — grounded, price-relative (backend/services/fair_value.py).
@@ -323,7 +316,6 @@ export interface CompanyDetail {
   news: { title: string; post_date: string; body: string }[];
   related_stocks: RelatedStock[];
   momentum: MomentumSnapshot | null;
-  verdict: StockVerdict | null;
   signal?: StockSignalInfo | null;
   valuation?: ValuationContext | null;
   sector_context?: SectorContext | null;

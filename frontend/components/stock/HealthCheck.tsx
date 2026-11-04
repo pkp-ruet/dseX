@@ -163,15 +163,17 @@ function pillarNumbers(pillarKey: string, detail: CompanyDetail): Fig[] {
 }
 
 /** One word for a check's score (2026-10-30: the bars say a word, never "8.1"). */
+/** One word per check, on the same lines as the company light's checks line
+ *  (backend stock_report STRONG_AT 7 / WEAK_BELOW 4): a bar at 6.5 used to read
+ *  "Good" here, "Strong" on its row and not strong in the light (2026-11-04). */
 export function pillarWord(v: number): { en: string; bn: string } {
-  return v >= 8 ? { en: "Strong", bn: "শক্তিশালী" }
-    : v >= 6 ? { en: "Good", bn: "ভালো" }
+  return v >= 7 ? { en: "Strong", bn: "শক্তিশালী" }
     : v >= 4 ? { en: "Fair", bn: "মোটামুটি" }
     : { en: "Weak", bn: "দুর্বল" };
 }
 
 /** The five pillar scores as bars — free, the shape of the company at a
- *  glance. Each bar says a word (Strong / Good / Fair / Weak). */
+ *  glance. Each bar says a word (Strong / Fair / Weak). */
 export function PillarBars({ scoreRow }: { scoreRow: ScoreRow }) {
   const bars = HEALTH_PILLAR_ORDER
     .map((key) => ({ key, value: toNum(scoreRow[key] as number | null) }))

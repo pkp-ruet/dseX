@@ -5,7 +5,6 @@ import pytest
 from backend.services.db_service import adjust_price_rows, adjustment_factor_fn
 from backend.services.fair_value import estimate_fair_value
 from backend.services.signal_service import _signal_for_row
-from backend.services.verdict_service import build_verdict
 from backend.tests.fixtures import fin_rows
 
 
@@ -109,31 +108,36 @@ def test_bonus_only_adjustment():
     assert f("2026-05-14", 70.0) == pytest.approx((70 - 1.5) / 1.15, abs=1e-6)
 
 
-# --- #11 price text consistent with the data ------------------------------------------------
+# --------------------------------------------------------------------------- #
+# Join and leave lines (2026-11-04, audit PR5)
+# --------------------------------------------------------------------------- #
 
-def test_bracbank_rising_near_yearly_low():
-    v = build_verdict({"score": 76.5}, {"momentum_grade": "warm", "pct_in_52w_range": 11.9, "return_7d_pct": 2.7},
-                      None, {"change_pct": 0.5}, fin_rows("BRACBANK"))
-    assert "slowly rising" not in v["tagline"]
-    assert "this year's low" in v["tagline"]
-
-
-def test_lhb_rising_week_but_falling_day():
-    v = build_verdict({"score": 66.1}, {"momentum_grade": "hot", "pct_in_52w_range": 93.6},
-                      None, {"change_pct": -3.7}, fin_rows("LHB"))
-    assert "steadily" not in v["tagline"] and "fell today" in v["tagline"]
-    assert "3.7%" in v["sentences"][0]
+def _good_row(p4, score=70.0):
+    return {"score": score, "p4_val": p4, "market_cat": "A", "stale_data": False}
 
 
-def test_record_date_in_window_is_explained():
-    mom = {"momentum_grade": "flat", "pct_in_52w_range": 40.0,
-           "corporate_action": {"record_date": "2026-09-20", "cash_pct": 180.0, "stock_pct": 10.0}}
-    v = build_verdict({"score": 68.0}, mom, None, {"change_pct": 0.2}, fin_rows("WALTONHIL"))
-    assert any("record date" in s and "180% cash" in s for s in v["sentences"])
+def test_buy_joins_at_7_and_leaves_under_6_5():
+    from backend.services.signal_service import _signal_for_row
+    mom = {"momentum_grade": "healthy", "pct_in_52w_range": 50.0}
+    assert _signal_for_row(_good_row(6.98), mom)["signal"] == "none"                         # not yet in
+    assert _signal_for_row(_good_row(6.98), mom, prev={"signal": "buy"})["signal"] == "buy"  # stays
+    assert _signal_for_row(_good_row(6.4), mom, prev={"signal": "buy"})["signal"] == "none"  # leaves
+    assert _signal_for_row(_good_row(7.02), mom)["signal"] == "buy"
 
 
-def test_verdict_mentions_this_year_decline():
-    sr_ = {"score": 83.0, "interim_eps_yoy_pct": -27.5, "eps_yoy_pct": 46.8,
-           "interim_label_en": "9 months to Mar 2026"}
-    v = build_verdict(sr_, {"momentum_grade": "flat"}, None, {"change_pct": 0.0}, fin_rows("JAMUNAOIL"))
-    assert any("Profit rose last year, but so far this year it is down 28%" in s for s in v["sentences"])
+def test_near_top_block_lifts_only_under_80():
+    from backend.services.signal_service import _signal_for_row
+    near = {"reason_key": "near_52w_high", "signal": "none"}
+    at82 = {"momentum_grade": "healthy", "pct_in_52w_range": 82.0}
+    at79 = {"momentum_grade": "healthy", "pct_in_52w_range": 79.0}
+    assert _signal_for_row(_good_row(7.5), at82)["signal"] == "buy"
+    assert _signal_for_row(_good_row(7.5), at82, prev=near)["reason_key"] == "near_52w_high"
+    assert _signal_for_row(_good_row(7.5), at79, prev=near)["signal"] == "buy"
+
+
+def test_excellent_keeps_its_buy_down_to_3_5():
+    from backend.services.signal_service import _signal_for_row
+    mom = {"momentum_grade": "healthy", "pct_in_52w_range": 40.0}
+    assert _signal_for_row(_good_row(3.8, 80.0), mom)["reason_key"] == "quality_expensive"
+    assert _signal_for_row(_good_row(3.8, 80.0), mom, prev={"signal": "buy"})["signal"] == "buy"
+    assert _signal_for_row(_good_row(3.4, 80.0), mom, prev={"signal": "buy"})["signal"] == "none"
