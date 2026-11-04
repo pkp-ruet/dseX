@@ -40,7 +40,8 @@ COLLECTION = "auditor_opinions"
 
 
 def ensure_indexes(db=None) -> None:
-    db = db or get_db()
+    # pymongo databases refuse bool(): compare with None.
+    db = db if db is not None else get_db()
     db[COLLECTION].create_index([("trading_code", 1), ("url", 1)], unique=True, name="code_url")
     db[COLLECTION].create_index([("posted", -1)], name="posted")
 
