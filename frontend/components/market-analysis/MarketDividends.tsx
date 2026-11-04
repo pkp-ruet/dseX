@@ -7,17 +7,24 @@ import { formatDate } from "@/lib/formatters";
 import { bnDate } from "@/lib/bn";
 import { T } from "@/components/i18n/T";
 import type { Pair } from "@/components/premium/LockPanel";
+import AnswerLock from "@/components/premium/AnswerLock";
+import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
+import DividendDays from "@/components/dividend-calendar/DividendDays";
+import { groupDays } from "@/lib/dividend-promo";
 import MarketRow, { type RowTone } from "./MarketRow";
 import MkCard from "./MkCard";
 import ShowMore from "./ShowMore";
 
 /**
  * "Money coming": dividends coming up, market-wide — the cash a share, the
- * yield, the record date and the last day to buy. Free for every reader
- * since 2026-10-29 (the Free vs Premium plan: dates and amounts are DSE's
- * facts); it was behind the row lock 2026-10-25 → 10-29.
+ * yield, the record date and the last day to buy. Premium since 2026-11-04,
+ * with the whole dividend calendar (user: "Lock them too"): a free reader
+ * gets the counts and the dates by day (`DividendDays`, no company), the
+ * rows sit under one Premium line that points at the page's question card
+ * (`#ma-premium`, which has a dividends row). Free 2026-10-29 → 11-04.
  */
 export default function MarketDividends({ items }: { items: MarketDividendEvent[] }) {
+  const premium = usePremiumOpen();
   const today = todayDhaka();
   const row = (d: MarketDividendEvent) => {
     const r = dividendRow(d, today);
@@ -46,6 +53,11 @@ export default function MarketDividends({ items }: { items: MarketDividendEvent[
     );
   };
   const n = items.length;
+  const records = items.filter((d) => d.kind === "record");
+  const announced = n - records.length;
+  const days = groupDays(records.map((d) => ({ date: d.date, cash: d.cash_per_share ?? 0 })));
+  const rs = records.length === 1 ? "" : "s";
+  const as = announced === 1 ? "" : "s";
 
   return (
     <MkCard
@@ -67,7 +79,39 @@ export default function MarketDividends({ items }: { items: MarketDividendEvent[
           <T en="No dividend dates are coming up right now." bn="এই মুহূর্তে সামনে কোনো ডিভিডেন্ডের তারিখ নেই।" />
         </p>
       ) : (
-        <ShowMore initial={4} noun="dividends" nounBn="ডিভিডেন্ড" className="mk-rows" rows={items.map((d) => row(d))} />
+        <>
+          {/* A free reader: how many, and the dates by day — no company. */}
+          {!premium && (
+            <div className="mk-dv-free">
+              <p className="mk-dv-lead">
+                {records.length > 0 ? (
+                  <T
+                    en={`${records.length} record date${rs} coming up${announced ? `, and ${announced} dividend${as} just announced` : ""}.`}
+                    bn={`সামনে ${records.length}টি রেকর্ড ডেট${announced ? `, আর সদ্য ঘোষিত ${announced}টি ডিভিডেন্ড` : ""}।`}
+                  />
+                ) : (
+                  <T en={`${announced} dividend${as} just announced.`} bn={`সদ্য ঘোষিত ${announced}টি ডিভিডেন্ড।`} />
+                )}
+              </p>
+              <DividendDays days={days} shown={5} toned={false} />
+            </div>
+          )}
+          <AnswerLock
+            variant="line"
+            job="find"
+            lock="ma-dividends"
+            href="#ma-premium"
+            what={{ en: "Dividends coming", bn: "সামনের ডিভিডেন্ড" }}
+            lines={[
+              {
+                en: "Which companies, the cash a share, the yield and the last day to buy",
+                bn: "কোন কোম্পানি, শেয়ারপ্রতি নগদ, ইল্ড আর কেনার শেষ দিন",
+              },
+            ]}
+          >
+            <ShowMore initial={4} noun="dividends" nounBn="ডিভিডেন্ড" className="mk-rows" rows={items.map((d) => row(d))} />
+          </AnswerLock>
+        </>
       )}
     </MkCard>
   );

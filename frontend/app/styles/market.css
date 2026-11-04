@@ -208,3 +208,10 @@ a.mk-sector:hover .mk-sector-name, a.mk-sector:active .mk-sector-name { color: v
 .mk-why-line + .mk-why-line, .mk-why-head + .mk-why-line { margin-top: 2px; }
 .mk-why-head.mk-why--red { color: var(--negative); }
 .mk-why-head.mk-why--amber { color: var(--watch); }
+
+/* "Dividends coming" for a free reader (2026-11-04): the counts and the
+   dates by day, then one Premium line. */
+.mk-dv-lead { font-size: var(--fs-sm); font-weight: 600; line-height: 1.5; color: var(--text); }
+.mk-dv-free .spx-days { margin-top: var(--space-3); }
+/* /share-bazar's record dates for a free reader (`BazarDividends`). */
+.bz-dv-free .spx-days { margin: var(--space-3) 0 0 6px; }

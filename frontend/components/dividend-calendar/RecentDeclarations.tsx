@@ -3,9 +3,10 @@ import CalendarFold from "@/components/dividend-calendar/CalendarFold";
 import DividendRow from "@/components/dividend-calendar/DividendRow";
 import PanelHead from "@/components/dividend-calendar/PanelHead";
 import type { CorporateActionEvent } from "@/lib/api";
+import { RECENT_LIMIT } from "@/lib/dividend-promo";
 
 /** How many "Just declared" rows the tab carries (its count says the same). */
-export const RECENT_LIMIT = 12;
+export { RECENT_LIMIT };
 
 /** What DSE companies announced in the last few weeks, newest first — one
  *  card of rows: what was declared on the right, its record date and AGM

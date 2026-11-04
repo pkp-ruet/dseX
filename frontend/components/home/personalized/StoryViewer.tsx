@@ -230,7 +230,7 @@ export default function StoryViewer({
   useEffect(() => {
     if (!frame) return;
     onSeen(frame.id);
-    if (frame.locked) trackEvent("premium_lock_view", { area: "home", lock: frame.kind === "more" ? "stories-more" : "stories", state: plan });
+    if (frame.locked) trackEvent("premium_lock_view", { area: "home", lock: frame.lock?.name ?? (frame.kind === "more" ? "stories-more" : "stories"), state: plan });
   }, [frameId]);
 
   useEffect(() => {
@@ -266,10 +266,10 @@ export default function StoryViewer({
   const onCta = (href: string) => {
     trackHomeTap("stories", href);
     if (frame.locked) {
-      trackEvent("premium_lock_tap", { area: "home", lock: frame.kind === "more" ? "stories-more" : "stories", state: plan });
+      trackEvent("premium_lock_tap", { area: "home", lock: frame.lock?.name ?? (frame.kind === "more" ? "stories-more" : "stories"), state: plan });
       savePremiumContext({
         from: "home",
-        label: L("Every story on your stocks", "আপনার শেয়ারের সব স্টোরি"),
+        label: frame.lock?.label ?? L("Every story on your stocks", "আপনার শেয়ারের সব স্টোরি"),
         stakes: frame.stakes,
       });
     }

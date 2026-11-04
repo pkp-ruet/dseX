@@ -91,8 +91,9 @@ export default async function MarketAnalysisPage() {
         isPartOf: { "@id": BASE_URL },
         primaryImageOfPage: OG_IMAGE,
         ...(data?.date ? { dateModified: data.date } : {}),
-        // The reasons on "Things to watch out for" are Premium (screen-only,
-        // 2026-10-31); the page's one question card (#ma-premium) names them.
+        // The reasons on "Things to watch out for" (2026-10-31) and the
+        // "Dividends coming" companies (2026-11-04) are Premium (screen-only);
+        // the page's one question card (#ma-premium) names them.
         isAccessibleForFree: false,
         hasPart: { "@type": "WebPageElement", isAccessibleForFree: false, cssSelector: ".premium-locked" },
       },
@@ -295,6 +296,19 @@ function marketQuestions(data: MarketStateData): PageQuestion[] {
       tone: "good",
       ask: { en: "Which companies are they, and what could go wrong with each?", bn: "কোন কোম্পানি, আর প্রতিটির কী ঝুঁকি?" },
       hint: { en: "Every company past the free top three, with its main risk.", bn: "ফ্রি শীর্ষ তিনটির পরের সব কোম্পানি, প্রধান ঝুঁকিসহ।" },
+    });
+  }
+  const dividends = data.next?.dividends ?? [];
+  if (dividends.length > 0) {
+    const rec = dividends.filter((d) => d.kind === "record").length;
+    rows.push({
+      key: "dividends",
+      fact: rec > 0
+        ? { en: `${rec} record date${rec === 1 ? "" : "s"} coming up`, bn: `সামনে ${rec}টি রেকর্ড ডেট` }
+        : { en: `${dividends.length} dividend${dividends.length === 1 ? "" : "s"} just announced`, bn: `সদ্য ঘোষিত ${dividends.length}টি ডিভিডেন্ড` },
+      tone: "good",
+      ask: { en: "Which companies pay, and by when must you buy?", bn: "কোন কোম্পানি দিচ্ছে, আর কবের মধ্যে কিনতে হবে?" },
+      hint: { en: "Every company paying soon, its cash a share, the yield at today's price and the last day to buy.", bn: "শিগগির ডিভিডেন্ড দেবে এমন সব কোম্পানি, শেয়ারপ্রতি নগদ, আজকের দামে ইল্ড আর কেনার শেষ দিন।" },
     });
   }
   return rows;

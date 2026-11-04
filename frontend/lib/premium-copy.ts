@@ -290,10 +290,10 @@ export const GROUPS: Group[] = [
         },
       },
       {
-        name: { en: "Dividends worth buying for", bn: "যে ডিভিডেন্ডের জন্য কেনা যায়" },
+        name: { en: "The dividend calendar", bn: "ডিভিডেন্ড ক্যালেন্ডার" },
         line: {
-          en: "Is each dividend safe, did buying for it pay in past years, who we expect to pay next and how much, and your dividend income by month.",
-          bn: "প্রতিটি ডিভিডেন্ড নিরাপদ কি না, আগে এর জন্য কেনা লাভজনক ছিল কি না, এরপর কে কত দিতে পারে, আর মাস অনুযায়ী আপনার ডিভিডেন্ড আয়।",
+          en: "Every record date, AGM and new dividend with the last day to buy, whether each dividend is safe, did buying for it pay in past years, who we expect to pay next, and your dividend income by month.",
+          bn: "প্রতিটি রেকর্ড ডেট, এজিএম আর নতুন ডিভিডেন্ড, কেনার শেষ দিনসহ; প্রতিটি ডিভিডেন্ড নিরাপদ কি না, আগে এর জন্য কেনা লাভজনক ছিল কি না, এরপর কে দিতে পারে, আর মাস অনুযায়ী আপনার ডিভিডেন্ড আয়।",
         },
       },
       {
@@ -313,8 +313,8 @@ export const GROUPS: Group[] = [
       },
     },
     free: {
-      en: "The top 3 on each research list, every screener filter on public figures, and every dividend date.",
-      bn: "প্রতিটি গবেষণা তালিকার প্রথম 3টি, সাধারণ তথ্যের সব স্ক্রিনার ফিল্টার, আর ডিভিডেন্ডের সব তারিখ।",
+      en: "The top 3 on each research list, every screener filter on public figures, and each share's own dividends on its page.",
+      bn: "প্রতিটি গবেষণা তালিকার প্রথম 3টি, সাধারণ তথ্যের সব স্ক্রিনার ফিল্টার, আর প্রতিটি শেয়ারের নিজের ডিভিডেন্ড তার পেজে।",
     },
     link: { href: "/stock-insights", label: { en: "See the research lists", bn: "গবেষণা তালিকা দেখুন" } },
   },
@@ -419,8 +419,8 @@ export const TABLE: { group: GroupKey; rows: { what: Bi; free: Cell; premium: Ce
       },
       {
         what: { en: "Dividend calendar", bn: "ডিভিডেন্ড ক্যালেন্ডার" },
-        free: { en: "Every date and amount", bn: "সব তারিখ আর পরিমাণ" },
-        premium: { en: "Is it safe, who pays next", bn: "নিরাপদ কি না, এরপর কে দেবে" },
+        free: { en: "Each share's own, on its page", bn: "প্রতিটি শেয়ারেরটা, তার পেজে" },
+        premium: { en: "Every date, is it safe, who pays next", bn: "সব তারিখ, নিরাপদ কি না, এরপর কে দেবে" },
       },
     ],
   },
@@ -563,8 +563,8 @@ export const FAQS: { q: Bi; a: Bi }[] = [
   {
     q: { en: "What stays free?", bn: "কী কী ফ্রি থাকবে?" },
     a: {
-      en: "The price, chart, figures and news of every share, the company ranking, the dividend calendar, results, the market pages, your portfolio's money and grade, and every update on your own shares. Premium adds our answers and the reasons, the full lists, and brings the news on your shares to you the same day.",
-      bn: "প্রতিটি শেয়ারের দাম, চার্ট, হিসাব আর খবর, কোম্পানির র‍্যাঙ্কিং, ডিভিডেন্ড ক্যালেন্ডার, আর্থিক ফল, বাজারের পেজগুলো, আপনার পোর্টফোলিওর টাকা আর গ্রেড, আর আপনার শেয়ারের প্রতিটি খবর। প্রিমিয়াম এর ওপর আমাদের উত্তর আর কারণ, পুরো তালিকা যোগ করে, আর আপনার শেয়ারের খবর সেদিনই আপনার কাছে পৌঁছে দেয়।",
+      en: "The price, chart, figures, dividends and news of every share, the company ranking, results, the market pages, your portfolio's money and grade, and every update on your own shares. Premium adds our answers and the reasons, the full lists, and brings the news on your shares to you the same day.",
+      bn: "প্রতিটি শেয়ারের দাম, চার্ট, হিসাব, ডিভিডেন্ড আর খবর, কোম্পানির র‍্যাঙ্কিং, আর্থিক ফল, বাজারের পেজগুলো, আপনার পোর্টফোলিওর টাকা আর গ্রেড, আর আপনার শেয়ারের প্রতিটি খবর। প্রিমিয়াম এর ওপর আমাদের উত্তর আর কারণ, পুরো তালিকা যোগ করে, আর আপনার শেয়ারের খবর সেদিনই আপনার কাছে পৌঁছে দেয়।",
     },
   },
   {

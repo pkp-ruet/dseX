@@ -9,11 +9,11 @@ import {
   type MarketStateData,
   type MoodTone,
 } from "@/lib/api";
-import { money } from "@/lib/formatters";
 import { bnCroreTaka, bnDate, bnInt, bnSignedPct, sectorBn } from "@/lib/bn";
 import ArticleLangNote from "@/components/i18n/ArticleLangNote";
 import { T } from "@/components/i18n/T";
 import MarketRow from "@/components/market-analysis/MarketRow";
+import BazarDividends from "@/components/share-bazar/BazarDividends";
 import PageHeader from "@/components/ui/PageHeader";
 
 export const revalidate = 900;
@@ -188,7 +188,7 @@ export default async function ShareBazarPage() {
   const sectors = [...(state.now?.sectors ?? [])].sort((a, b) => b.ret_1w - a.ret_1w);
   const upSectors = sectors.filter((r) => r.ret_1w > 0.05);
   const downSectors = sectors.filter((r) => r.ret_1w < -0.05).reverse();
-  const dividends = (state.next?.dividends ?? []).filter((d) => d.kind === "record").slice(0, 4);
+  const dividends = (state.next?.dividends ?? []).filter((d) => d.kind === "record");
   const traded = s.up + s.down + s.neutral;
 
   const headline =
@@ -208,6 +208,10 @@ export default async function ShareBazarPage() {
         inLanguage: "bn",
         isPartOf: { "@id": BASE_URL },
         ...(state.date ? { dateModified: state.date } : {}),
+        // Paywall markup: the dividend record dates' companies are Premium
+        // (2026-11-04, screen-only, under .premium-locked).
+        isAccessibleForFree: false,
+        hasPart: { "@type": "WebPageElement", isAccessibleForFree: false, cssSelector: ".premium-locked" },
       },
       {
         "@type": "BreadcrumbList",
@@ -350,36 +354,9 @@ export default async function ShareBazarPage() {
         </section>
       )}
 
-      {/* Upcoming dividends */}
-      {dividends.length > 0 && (
-        <section className="ms-card" style={{ marginTop: 16 }}>
-          <h2 className="ms-section-title" style={{ marginBottom: 12 }}>সামনে যাদের ডিভিডেন্ড রেকর্ড ডেট</h2>
-          <div className="ms-srow-list">
-            {dividends.map((d) => (
-              <MarketRow
-                key={`${d.trading_code}-${d.date}`}
-                code={d.trading_code}
-                name={d.company_name}
-                sector={d.sector}
-                price={d.last_price}
-                meta={d.dividend_pct != null ? `নগদ ${d.dividend_pct}%` : d.stock_pct != null ? `বোনাস ${d.stock_pct}%` : "ডিভিডেন্ড"}
-                tone="accent"
-                sub={
-                  <>
-                    রেকর্ড ডেট {bnDate(d.date)}
-                    {d.buy_by ? <> · শেষ কেনার দিন {bnDate(d.buy_by)}</> : null}
-                    {d.cash_per_share != null ? <> · শেয়ারপ্রতি {money(d.cash_per_share)}</> : null}
-                  </>
-                }
-              />
-            ))}
-          </div>
-          <p className="ms-bn-note" style={{ marginTop: 12 }}>
-            রেকর্ড ডেটে যার কাছে শেয়ার থাকবে, ডিভিডেন্ড সে-ই পাবে। সাধারণ বাজারে কেনা শেয়ার বিও অ্যাকাউন্টে আসতে দুই কর্মদিবস লাগে — তাই &ldquo;শেষ কেনার দিন&rdquo; রেকর্ড ডেটের আগে।{" "}
-            <Link href="/dividend-calendar" className="ms-sector--link">পুরো ডিভিডেন্ড ক্যালেন্ডার</Link>
-          </p>
-        </section>
-      )}
+      {/* Upcoming dividends: the companies are Premium since 2026-11-04 (with
+          the whole dividend calendar); a free reader gets the counts by day. */}
+      <BazarDividends items={dividends} />
 
       {/* Where next */}
       <section className="ms-card ms-card--tint" style={{ marginTop: 16, "--card-accent": "var(--primary)" } as CSSProperties}>

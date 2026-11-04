@@ -232,6 +232,7 @@ export default function PersonalizedHome() {
         marketIndex,
         movers,
         recordDates: calendarRows,
+        premium,
       })
     : ownStories;
   const quietStories = !isBrandNew && (hasPortfolio || hasWatchlist) && ownStories.every((st) => st.kind === "today");

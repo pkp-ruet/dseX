@@ -95,6 +95,8 @@ export interface StoryFrame {
   stakes?: string[];
   /** Locked frames: the kinds of update behind the lock (for the "more" ring). */
   lockedKinds?: FrameKind[];
+  /** Locked frames: the analytics lock name and what /premium says they came for. */
+  lock?: { name: string; label: string };
 }
 
 export type StoryIcon = "sun" | "chart" | "flame" | "coin" | "plus" | "list" | "crown";
@@ -990,6 +992,8 @@ function buildTodayStory(
  * For a reader with no stocks yet: two or three stories about the market
  * (the mood, the day's movers, record dates coming up), then one that asks
  * them to add a watchlist or a portfolio to get stories on their own stocks.
+ * The record dates name companies for a Premium reader only (2026-11-04, with
+ * the whole dividend calendar); a free reader gets one locked frame of counts.
  */
 export function buildStarterStories(i: {
   lang: Lang;
@@ -999,6 +1003,7 @@ export function buildStarterStories(i: {
   marketIndex: MarketIndexData | null;
   movers: MarketMoversData | null;
   recordDates: CorporateActionEvent[];
+  premium: boolean;
 }): Story[] {
   const { lang, todayIso } = i;
   const L = lFor(lang);
@@ -1109,12 +1114,62 @@ export function buildStarterStories(i: {
   }
 
   // 3 — Cash dividends with a record date coming up.
-  const cash = i.recordDates
+  const cashAll = i.recordDates
     .filter((e) => e.record_date && (e.cash_per_share ?? 0) > 0)
     .filter((e) => (recordDateInfo(e.record_date)?.recordDaysLeft ?? e.record_days_left ?? 0) >= 0)
-    .sort((a, b) => (a.record_days_left ?? 99) - (b.record_days_left ?? 99))
-    .slice(0, 2);
-  if (cash.length) {
+    .sort((a, b) => (a.record_days_left ?? 99) - (b.record_days_left ?? 99));
+  const cash = cashAll.slice(0, 2);
+  if (cashAll.length && !i.premium) {
+    // A free reader: how many, the best yield, the next date — no company.
+    const n = new Set(cashAll.map((e) => e.trading_code)).size;
+    const first = cashAll[0];
+    const onFirst = cashAll.filter((e) => e.record_date === first.record_date).length;
+    const yields = cashAll.map((e) => e.yield_pct).filter((y): y is number => y != null && y > 0);
+    const best = yields.length ? Math.max(...yields) : null;
+    const top = Math.max(...cashAll.map((e) => e.cash_per_share ?? 0));
+    const headline = L(
+      `${n} ${plural(n, "company pays", "companies pay")} a cash dividend in the next 2 weeks`,
+      `আগামী 2 সপ্তাহে ${n}টি কোম্পানি নগদ ডিভিডেন্ড দেবে`,
+    );
+    out.push({
+      id: "m:money",
+      kind: "market",
+      name: L("Money coming", "ডিভিডেন্ড আসছে"),
+      sub: L("Record dates soon", "সামনের রেকর্ড ডেট"),
+      icon: "coin",
+      label: L("Dividends", "ডিভিডেন্ড"),
+      tone: "neutral",
+      rank: 2,
+      frames: [
+        {
+          id: `m:div:counts:${todayIso}`,
+          kind: "money",
+          label: L("Record dates soon", "রেকর্ড ডেট সামনে"),
+          headline,
+          big:
+            best != null
+              ? { text: `${best.toFixed(1)}%`, tone: "positive", caption: L("the best yield among them, at today's price", "এর মধ্যে সর্বোচ্চ ইল্ড, আজকের দামে") }
+              : undefined,
+          sentence: L(
+            "Premium names each company, its cash a share, the last day to buy and whether the dividend looks safe.",
+            "প্রতিটি কোম্পানির নাম, শেয়ারপ্রতি নগদ, কেনার শেষ দিন আর ডিভিডেন্ডটি নিরাপদ কি না, তা দেখায় প্রিমিয়াম।",
+          ),
+          rows: [
+            {
+              label: L("Next record date", "পরের রেকর্ড ডেট"),
+              value: lang === "bn" ? `${day(first.record_date)} · ${onFirst}টি কোম্পানি` : `${day(first.record_date)} · ${onFirst} ${plural(onFirst, "company", "companies")}`,
+            },
+            { label: L("Most cash a share", "শেয়ারপ্রতি সর্বোচ্চ নগদ"), value: money(top) },
+          ],
+          cta: { label: L("See with Premium", "প্রিমিয়ামে দেখুন"), href: "/dividend-calendar#dc-premium" },
+          tone: "positive",
+          locked: true,
+          stakes: [headline],
+          lock: { name: "stories-dividends", label: L("The dividend calendar", "ডিভিডেন্ড ক্যালেন্ডার") },
+        },
+      ],
+    });
+  } else if (cash.length) {
     out.push({
       id: "m:money",
       kind: "market",

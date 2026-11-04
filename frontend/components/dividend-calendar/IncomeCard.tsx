@@ -3,14 +3,14 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { T } from "@/components/i18n/T";
-import { Locked } from "@/components/premium/AnswerLock";
 import { useAuth } from "@/context/AuthContext";
-import { apiGetPortfolio, type CorporateActionEvent, type DividendForecast } from "@/lib/api";
+import type { CorporateActionEvent, DividendForecast } from "@/lib/api";
+import { heldQty, loadMainHoldings } from "@/lib/main-holdings";
 import { money } from "@/lib/formatters";
-import { usePremium } from "@/lib/premium";
 
 /** Tax taken at source with a TIN (15% without one). */
-const TAX = 0.1;
+export const DIVIDEND_TAX = 0.1;
+const TAX = DIVIDEND_TAX;
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const MONTHS_BN = ["জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"];
@@ -22,8 +22,8 @@ type Month = { key: string; lines: Line[]; declared: number; expected: number };
  *  declared record dates, then "Coming next" estimates (marked expected). */
 export function incomeByMonth(
   qty: Map<string, number>,
-  records: CorporateActionEvent[],
-  forecast: DividendForecast[],
+  records: Pick<CorporateActionEvent, "trading_code" | "record_date" | "cash_per_share">[],
+  forecast: Pick<DividendForecast, "trading_code" | "expected_record" | "expected_cash_per_share">[],
   today: string,
 ): Month[] {
   const months = new Map<string, Month>();
@@ -61,7 +61,8 @@ function monthName(key: string, bn: boolean): string {
  * cash coming to the reader's own shares (main portfolio), month by month,
  * after 10% tax — declared record dates, then our estimates for companies that
  * haven't declared yet, marked "expected". Signed-in readers with shares only.
- * The months and companies are free; the taka is Premium (screen-only).
+ * Since 2026-11-04 the whole calendar is Premium (the page's one gate), so
+ * nothing in here locks on its own.
  */
 export default function IncomeCard({
   records,
@@ -73,21 +74,14 @@ export default function IncomeCard({
   today: string;
 }) {
   const { isLoggedIn } = useAuth();
-  const { isPremium } = usePremium();
   const [qty, setQty] = useState<Map<string, number> | null>(null);
 
   useEffect(() => {
     if (!isLoggedIn) return;
     let live = true;
-    apiGetPortfolio()
-      .then((p) => {
-        if (!live) return;
-        const m = new Map<string, number>();
-        for (const h of p.holdings ?? []) {
-          const c = h.trading_code.toUpperCase();
-          m.set(c, (m.get(c) ?? 0) + (h.qty || 0));
-        }
-        setQty(m);
+    loadMainHoldings()
+      .then((hs) => {
+        if (live) setQty(heldQty(hs));
       })
       .catch(() => {});
     return () => {
@@ -138,27 +132,20 @@ export default function IncomeCard({
                     ))}
                   </span>
                 </span>
-                <Locked as="span" className="dc-income-amt">
+                <span className="dc-income-amt">
                   {m.declared > 0 && <span>{money(m.declared)}</span>}
                   {m.expected > 0 && (
                     <span className="dc-income-exp">
                       <T en={`about ${money(m.expected)} expected`} bn={`প্রায় ${money(m.expected)} আনুমানিক`} />
                     </span>
                   )}
-                </Locked>
+                </span>
               </li>
             ))}
           </ul>
-          <Locked className="dc-income-total">
+          <p className="dc-income-total">
             <T en={`In all, about ${money(total)} after tax.`} bn={`সব মিলিয়ে কর কাটার পর প্রায় ${money(total)}।`} />
-          </Locked>
-          {!isPremium && (
-            <p className="dc-income-total">
-              <a href="#dc-premium" className="font-semibold text-primary-ink hover:underline active:opacity-70">
-                <T en="Premium shows the taka for each month" bn="প্রতি মাসে কত টাকা, তা প্রিমিয়ামে দেখবেন" />
-              </a>
-            </p>
-          )}
+          </p>
         </>
       )}
     </section>
