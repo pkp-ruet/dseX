@@ -42,7 +42,7 @@ export default function PfReportChapter({ chapter }: { chapter: PfChapter }) {
  * quiet bar, why it matters and the figures. The general text lives in the
  * fold so the open card stays short.
  */
-function PfQuestion({ row }: { row: PfRow }) {
+export function PfQuestion({ row }: { row: PfRow }) {
   const hasMore = row.meaning.length > 0 || row.figures.length > 0;
   return (
     <section id={`pf-q-${row.key}`} className="pfq dash-section" aria-labelledby={`pf-q-${row.key}-t`}>

@@ -1389,6 +1389,9 @@ export default function PortfolioClient() {
             <PortfolioPromo
               grade={analysis.grade}
               findings={report.findings}
+              promo={report.promo}
+              feePct={settings.fee_pct ?? null}
+              totalValue={summary.totalValue}
               sampleHref={`/sample-portfolio/${SAMPLE_PORTFOLIOS.diversified.slug}`}
             />
           )}

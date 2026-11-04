@@ -135,12 +135,47 @@ export interface PfPlan {
   buyNone: Bi | null;
 }
 
+/** A row the free reader may open once a month (`PortfolioPromo`): the
+ *  answer behind one finding, on their own shares. */
+export interface PfTaste {
+  finding: PfFinding["key"];
+  title: Bi;
+  row: PfRow;
+}
+
+/** One day of what the watcher flagged, in words without share names. */
+export interface PfMissedDay {
+  day: string;
+  text: Bi;
+  tone: Tone;
+}
+
+/** What the Premium card leads with (2026-11-04, user: "how can we enrich
+ *  portfolio premium promo card so more free user feel urge to buy"): money,
+ *  counts, dates and kinds — never which share, never what to do. */
+export interface PfPromo {
+  /** Money in shares marked Sell, with a serious warning or in weak
+   *  companies, each share counted once. */
+  atStake: { amount: number; shares: number } | null;
+  /** The four areas' tones, worst first — a count, never which area. */
+  areas: Tone[];
+  /** One dated line when results or a record date on their shares fall in
+   *  the next 7 days. */
+  soon: Bi | null;
+  /** What the watcher flagged in the last 30 days, newest day first. */
+  missed: { total: number; days: PfMissedDay[] };
+  /** The answers the free reader may open (one a month), most important first. */
+  tastes: PfTaste[];
+}
+
 export interface PortfolioReport {
   answer: PfAnswer;
   chapters: PfChapter[];
   plan: PfPlan;
   /** What the full check found, counted (the Premium card). */
   findings: PfFinding[];
+  /** What the Premium card leads with. */
+  promo: PfPromo;
   /** How many questions the full check answers (the band). */
   answered: number;
 }
@@ -385,9 +420,10 @@ export function buildPortfolioReport(inp: ReportInput): PortfolioReport {
   const answer = buildAnswer(inp, f, lights, issue);
   const plan = buildPlan(inp);
   const findings = buildFindings(inp, f, lights, issue, plan, lf);
+  const promo = buildPromo(inp, f, issue, chapters, findings, lights);
   const answered = chapters.reduce((acc, c) => acc + c.rows.length, 0) + 4;
 
-  return { answer, chapters, plan, findings, answered };
+  return { answer, chapters, plan, findings, promo, answered };
 }
 
 function buildAnswer(inp: ReportInput, f: Facts, lights: PfLight[], issue: SpreadIssue): PfAnswer {
@@ -1871,4 +1907,179 @@ function buildFindings(inp: ReportInput, f: Facts, lights: PfLight[], issue: Spr
     .sort((a, b) => b.weight - a.weight)
     .slice(0, 6)
     .map(({ weight: _w, ...x }) => x);
+}
+
+// ── The Premium card's lead (2026-11-04) ───────────────────────────────────
+
+/** A record-date event's taka on the reader's shares ("৳1,240 cash on your …"). */
+const recordCash = (e: PortfolioWatchEvent): number => {
+  const m = e.body_en.match(/৳([\d,]+(?:\.\d+)?) cash on your/);
+  return m ? Number(m[1].replace(/,/g, "")) || 0 : 0;
+};
+
+/** The kinds of one day, in words: counts and taka, never a share's name. */
+function kindPhrase(kind: PortfolioWatchEvent["kind"] | "flip", n: number, cash: number): Bi {
+  const one = n === 1;
+  switch (kind) {
+    case "results":
+      return B(`results on ${n} of your shares`, `আপনার ${n}টি শেয়ারের আর্থিক ফল`);
+    case "record":
+      return cash >= 1
+        ? one
+          ? B(`a record date, ${takaGroup(cash)} coming to you`, `রেকর্ড ডেট, আপনার কাছে আসছে ${takaGroup(cash)}`)
+          : B(`${n} record dates, ${takaGroup(cash)} coming to you`, `${n}টি রেকর্ড ডেট, আপনার কাছে আসছে ${takaGroup(cash)}`)
+        : one
+          ? B("a record date", "রেকর্ড ডেট")
+          : B(`${n} record dates`, `${n}টি রেকর্ড ডেট`);
+    case "red_flag":
+      return one ? B("a serious warning", "একটি গুরুতর সতর্কতা") : B(`${n} serious warnings`, `${n}টি গুরুতর সতর্কতা`);
+    case "grade":
+      return one ? B("a grade change", "একটি গ্রেড বদল") : B(`${n} grade changes`, `${n}টি গ্রেড বদল`);
+    case "category":
+      return one ? B("a DSE category change", "একটি ক্যাটাগরি বদল") : B(`${n} DSE category changes`, `${n}টি ক্যাটাগরি বদল`);
+    case "drop":
+      return one ? B("a big one-day fall", "একদিনে বড় দরপতন") : B(`big one-day falls on ${n} shares`, `${n}টি শেয়ারে একদিনে বড় দরপতন`);
+    case "low52":
+      return one ? B("a fall to the yearly low", "বছরের সর্বনিম্ন দামে নামা") : B(`${n} shares at their yearly low`, `${n}টি শেয়ার বছরের সর্বনিম্ন দামে`);
+    case "answer":
+      return one ? B("a change in our answer", "আমাদের উত্তরে একটি বদল") : B(`${n} changes in our answer`, `আমাদের উত্তরে ${n}টি বদল`);
+    case "buylist":
+      return one ? B("a change on the buy list", "কেনার তালিকায় একটি বদল") : B(`${n} changes on the buy list`, `কেনার তালিকায় ${n}টি বদল`);
+    case "breakeven":
+      return one ? B("a share back to your price", "একটি শেয়ার কেনা দামে ফিরেছে") : B(`${n} shares back to your price`, `${n}টি শেয়ার কেনা দামে ফিরেছে`);
+    default:
+      return one ? B("a new call on one of your shares", "আপনার একটি শেয়ারে নতুন সিদ্ধান্ত") : B(`new calls on ${n} of your shares`, `আপনার ${n}টি শেয়ারে নতুন সিদ্ধান্ত`);
+  }
+}
+
+const upperFirst = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : s);
+const LEVEL_TONE: Record<PortfolioWatchEvent["level"], Tone> = { good: "good", watch: "fair", bad: "bad" };
+const TONE_RANK: Record<Tone, number> = { bad: 0, fair: 1, neutral: 2, good: 3 };
+
+/** Which answer opens for each finding (the free answer, once a month). */
+function tasteRow(key: PfFinding["key"], f: Facts, issue: SpreadIssue, rowOf: (c: ChapterKey, r: string) => PfRow | null): PfRow | null {
+  switch (key) {
+    case "decide":
+      return f.sells.length ? rowOf("watch", "sell") : rowOf("watch", "warn");
+    case "warn":
+      return rowOf("watch", "warn");
+    case "loss":
+      return rowOf("loss", "why");
+    case "weak":
+    case "strong":
+    case "each":
+    case "daily":
+      return rowOf("companies", "strength");
+    case "spread":
+      return issue.kind === "stock" ? rowOf("spread", "one") : issue.kind === "few" ? rowOf("spread", "carry") : rowOf("spread", "sector");
+    case "week":
+      return rowOf("watch", "changed");
+    case "paid":
+      return rowOf("prices", "paid");
+    case "cash":
+      return rowOf("companies", "pay");
+    case "results":
+      return rowOf("watch", "coming");
+    default:
+      // "add", "grade", "moves" live in the plan, not in a question row.
+      return null;
+  }
+}
+
+function buildPromo(
+  inp: ReportInput,
+  f: Facts,
+  issue: SpreadIssue,
+  chapters: PfChapter[],
+  findings: PfFinding[],
+  lights: PfLight[],
+): PfPromo {
+  // Money that needs a look: Sell marks, serious warnings, weak companies.
+  const stake = new Map<string, HoldingInsight>();
+  for (const h of [...f.sells, ...f.serious.map((s) => s.h), ...f.weak]) stake.set(h.code, h);
+  const stakeAmount = [...stake.values()].reduce((a, h) => a + valueOf(h), 0);
+  const atStake = stakeAmount >= 1 ? { amount: stakeAmount, shares: stake.size } : null;
+
+  const areas = lights.map((l) => l.tone).sort((x, y) => TONE_RANK[x] - TONE_RANK[y]);
+
+  // The nearest real deadline in the next 7 days: results, or a record date.
+  const held = new Set(f.hs.map((h) => h.code.toUpperCase()));
+  const results = inp.results.filter((m) => held.has(m.code.toUpperCase()) && m.days >= 0 && m.days <= 7);
+  const records = f.hs
+    .map((h) => {
+      const ev = inp.glance.get(h.code.toUpperCase())?.event;
+      return ev?.kind === "record" && ev.days_left != null && ev.days_left >= 0 && ev.days_left <= 7
+        ? { date: ev.date, cash: (ev.cash_per_share ?? 0) * h.qty }
+        : null;
+    })
+    .filter(Boolean) as { date: string; cash: number }[];
+  const firstResult = results.map((m) => m.date).sort()[0] ?? null;
+  const firstRecord = records.map((r) => r.date).sort()[0] ?? null;
+  let soon: Bi | null = null;
+  if (firstResult && (!firstRecord || firstResult <= firstRecord)) {
+    const last = dayWords(results.map((m) => m.date).sort().slice(-1)[0]);
+    soon =
+      results.length === 1
+        ? B(`One of your shares posts results on ${last.en}. What it needs to show is in Premium.`, `${last.bn} আপনার একটি শেয়ারের আর্থিক ফল আসছে। কত মুনাফা হলে ফল ভালো, তা প্রিমিয়ামে।`)
+        : B(`${results.length} of your shares post results by ${last.en}. What they need to show is in Premium.`, `${last.bn}-এর মধ্যে আপনার ${results.length}টি শেয়ারের আর্থিক ফল আসছে। কত মুনাফা হলে ফল ভালো, তা প্রিমিয়ামে।`);
+  } else if (firstRecord) {
+    const cash = records.reduce((a, r) => a + r.cash, 0);
+    const when = dayWords(firstRecord);
+    const money = cash >= 1 ? B(`, ${takaGroup(cash)} coming to you`, `, আপনার কাছে আসছে ${takaGroup(cash)}`) : B("", "");
+    soon =
+      records.length === 1
+        ? B(
+            `A record date on one of your shares falls on ${when.en}${money.en}. Whether the company can keep paying is in Premium.`,
+            `${when.bn} আপনার একটি শেয়ারের রেকর্ড ডেট${money.bn}। কোম্পানিটি এভাবে দিয়ে যেতে পারবে কি না, তা প্রিমিয়ামে।`,
+          )
+        : B(
+            `${records.length} of your shares have a record date from ${when.en}${money.en}. Whether each company can keep paying is in Premium.`,
+            `${when.bn} থেকে আপনার ${records.length}টি শেয়ারের রেকর্ড ডেট${money.bn}। প্রতিটি কোম্পানি এভাবে দিয়ে যেতে পারবে কি না, তা প্রিমিয়ামে।`,
+          );
+  }
+
+  // What the watcher flagged in the last 30 days, by day.
+  const since = new Date(Date.parse(`${inp.today}T00:00:00Z`) - 30 * 86_400_000).toISOString().slice(0, 10);
+  type Item = { kind: PortfolioWatchEvent["kind"] | "flip"; tone: Tone; cash: number };
+  const byDay = new Map<string, Item[]>();
+  const push = (day: string, it: Item) => byDay.set(day, [...(byDay.get(day) ?? []), it]);
+  for (const e of inp.watch) {
+    if (e.day < since) continue;
+    push(e.day, { kind: e.kind, tone: LEVEL_TONE[e.level] ?? "neutral", cash: e.kind === "record" ? recordCash(e) : 0 });
+  }
+  for (const e of inp.flips) {
+    const day = (e.changed_at ?? "").slice(0, 10);
+    if (!day || day < since) continue;
+    push(day, { kind: "flip", tone: e.signal === "sell" ? "bad" : "fair", cash: 0 });
+  }
+  const days: PfMissedDay[] = [...byDay.entries()]
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .map(([day, items]) => {
+      const kinds = new Map<Item["kind"], { n: number; cash: number }>();
+      for (const it of items) {
+        const k = kinds.get(it.kind) ?? { n: 0, cash: 0 };
+        kinds.set(it.kind, { n: k.n + 1, cash: k.cash + it.cash });
+      }
+      const parts = [...kinds.entries()].map(([k, v]) => kindPhrase(k, v.n, v.cash));
+      const text = join(parts, ", ", ", ");
+      return {
+        day,
+        text: { en: upperFirst(text.en), bn: text.bn },
+        tone: items.map((i) => i.tone).sort((x, y) => TONE_RANK[x] - TONE_RANK[y])[0] ?? "neutral",
+      };
+    });
+  const total = [...byDay.values()].reduce((a, xs) => a + xs.length, 0);
+
+  // The answers a free reader may open, one a month, in the findings' order.
+  const rowOf = (c: ChapterKey, r: string) => chapters.find((ch) => ch.key === c)?.rows.find((x) => x.key === r) ?? null;
+  const seen = new Set<string>();
+  const tastes: PfTaste[] = [];
+  for (const fi of findings) {
+    const row = tasteRow(fi.key, f, issue, rowOf);
+    if (!row || seen.has(row.key) || (!row.headline && !row.points.length)) continue;
+    seen.add(row.key);
+    tastes.push({ finding: fi.key, title: fi.title, row });
+  }
+
+  return { atStake, areas, soon, missed: { total, days }, tastes };
 }
