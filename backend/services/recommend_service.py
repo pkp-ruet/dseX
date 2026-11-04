@@ -7,7 +7,8 @@ ranking of ~30 passers against their own stocks, so it is cheap to build on
 every dashboard load.
 
 Callers:
-- ``for_user``   — the dashboard's "Picked for you" (home bundle + ``/api/user/for-you``),
+- ``for_user``   — "Picked for you": the page ``/picked-for-you`` (``/api/user/for-you``,
+                   all 15) and the dashboard's tile row (home bundle, ``top=3``);
                    the empty watchlist's "Suggested to follow".
 - ``for_portfolio`` — the portfolio's "What to buy next" (``/api/user/portfolio/buy-next``).
 - ``from_answers``  — TopStock AI's "suggest stocks" (``POST /api/recommendations``).
@@ -74,14 +75,22 @@ def pool() -> dict:
     with ThreadPoolExecutor(_WORKERS) as ex:
         extras = list(ex.map(lambda f: (_risk(f, snaps), _fair_value(f["code"])), run["passed"]))
 
+    gate = rc.gate_list()
     cands = []
     for f, (risk, fair) in zip(run["passed"], extras):
         sig = sigs.get(f["code"]) or {}
-        c = {**f, "strength": sig.get("strength"),
+        c = {**f, "strength": sig.get("strength"), "reason_key": sig.get("reason_key"),
              "reason_en": sig.get("reason_en"), "reason_bn": sig.get("reason_bn"),
              "sector_bn": _sector_bn(f.get("sector")) or f.get("sector")}
         c["conviction"] = rc.conviction(c, levels.get(f["code"]))
         c["risk"], c["fair_value"] = risk, fair
+        # Each check it passed, with its own figure (the page's "Passed all 5
+        # checks" fold). The governance news is already cached from the gate.
+        try:
+            c["gate_checks"] = rc.check_lines(c, rl.check_values(gate, f, ctx))
+        except Exception:  # noqa: BLE001 — the card just shows no figures
+            logger.warning("recommend: check figures failed for %s", f["code"], exc_info=True)
+            c["gate_checks"] = []
         cands.append(c)
     cands.sort(key=lambda c: (-(c["conviction"] or 0.0), -(_n(c.get("score")) or 0.0), c["code"]))
     try:
@@ -170,14 +179,17 @@ def _envelope(p: dict, prof: dict, items: list[dict], new: int) -> dict:
         "funnel": p["funnel"],
         "items": items,
         "new": new,
+        "counts": rc.counts(items),
         "note": rc.note(p["funnel"]["passed"]),
     }
 
 
 def for_user(user: dict, holdings: Optional[list[dict]] = None, watchlist: Optional[list[str]] = None,
-             n: int = rc.N_PICKS, track: bool = True) -> dict:
+             n: int = rc.N_PICKS, track: bool = True, top: Optional[int] = None) -> dict:
     """The reader's picks. ``holdings`` / ``watchlist`` are passed in by the
-    home bundle (already loaded there); other callers leave them None."""
+    home bundle (already loaded there); other callers leave them None.
+    ``top`` keeps only the first few items (the dashboard's tile row) —
+    ``counts`` still describes the whole list."""
     p = pool()
     if holdings is None:
         holdings = _load_holdings(user)
@@ -186,7 +198,10 @@ def for_user(user: dict, holdings: Optional[list[dict]] = None, watchlist: Optio
     prof = _profile(p, user, holdings, watchlist)
     items = rc.recommend(p["cands"], p["levels"], prof, p["facts"], n)
     new = _track(user, items) if track else 0
-    return _envelope(p, prof, items, new)
+    env = _envelope(p, prof, items, new)
+    if top is not None:
+        env["items"] = env["items"][:top]
+    return env
 
 
 def generic(n: int = rc.N_PICKS) -> dict:

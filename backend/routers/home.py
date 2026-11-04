@@ -92,7 +92,7 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
 
     # "Picked for you" — the recommendation engine, ranked against the
     # holdings + watchlist already loaded above (no second read).
-    for_you = _safe("for_you", lambda: for_user(current_user, holdings=holdings, watchlist=codes), None)
+    for_you = _safe("for_you", lambda: for_user(current_user, holdings=holdings, watchlist=codes, top=3), None)
 
     mine_t = tuple(sorted(mine))
 

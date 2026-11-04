@@ -116,7 +116,10 @@ def test_a_stronger_company_in_the_same_business_as_a_weak_one_names_it():
     [it] = _one(c, profile(watched=["ACI"], facts={"ACI": weak, "SQUR": c}), {"ACI": weak, "SQUR": c})
     assert it["kind"] == "upgrade" and it["anchor"] == "ACI"
     assert it["tag_en"] == "Stronger than ACI"
-    assert "87 against 29" in it["why_en"] and "ACI" in it["why_bn"]
+    # Said in group words, not bare scores: theirs, then this one.
+    assert it["why_en"] == ("It is in the same business as ACI, which we grade mostly weak. "
+                            "This one we grade strong all round.")
+    assert "ACI" in it["why_bn"] and "সব দিকে শক্তিশালী" in it["why_bn"]
 
 
 def test_same_business_as_a_good_stock_reads_like_it():
@@ -156,7 +159,8 @@ def test_a_shared_strength_counts_only_when_todays_picks_dont_all_have_it():
 
     c = F("X", sector=TELECOM)
     [it] = _one(c, rare, {"A": a, "B": b, "X": c}, levels={"X": {"dividends": 2}})
-    assert it["kind"] == "style" and it["why_en"] == "Pays 4%+ a year, like 2 of your 2 stocks."
+    assert it["kind"] == "style" and it["why_en"] == (
+        "Pays 4%+ a year, like 2 of your 2 stocks. We grade it strong all round, and its price is low.")
 
 
 def test_quiz_answers_are_strengths_the_reader_asked_for():
@@ -185,6 +189,93 @@ def test_a_reader_with_no_stocks_gets_reasons_from_what_stands_out():
     # The fact the reason already says is not repeated in the number lines.
     pay = next(i for i in items if i["code"] == "PAY")
     assert not any("a year in cash" in p["en"] for p in pay["points"])
+
+
+def test_add_more_says_how_much_of_their_money_it_is():
+    c, other = F("SQUR"), F("ROBI", sector=TELECOM)
+    facts = {"SQUR": c, "ROBI": other, "CEM": F("CEM", sector=CEMENT)}
+    prof = profile(held=[("SQUR", 1000.0), ("ROBI", 3000.0), ("CEM", 6000.0)], facts=facts)
+    [it] = _one(c, prof, facts)
+    assert it["why_en"].startswith("You already own it, and it is only 10% of your money.")
+    assert "5 of our checks" in it["why_en"] and "10%" in it["why_bn"]
+
+
+def test_a_new_sector_names_where_their_money_sits_now():
+    mine = F("SQUR")
+    prof = profile(held=[("SQUR", 5000.0)], facts={"SQUR": mine}, sig="none")
+    [it] = _one(F("CEM", sector=CEMENT), prof, {"SQUR": mine})
+    assert it["why_en"] == f"100% of your money is in {PHARMA}. This one adds Cement, a business none of your stocks are in."
+
+
+# ---------------------------------------------------------------------------
+# The case — the same parts for every pick (the "Picked for you" page)
+# ---------------------------------------------------------------------------
+
+def _pick(c, levels=None):
+    [it] = rc.recommend(with_conviction([c]), {c["code"]: levels or LV}, rc.empty_profile(), {})
+    return it
+
+
+def test_every_pick_carries_the_same_four_facts():
+    it = _pick(F("A", p1_biz=8.0, p2_health=7.5, p3_moat=5.0, p5_div=3.0, current_pe=9.0, own_avg_pe=13.0,
+                 sector_median_pe=15.0, interim_eps_yoy_pct=18.0, interim_label_en="6 months to Jun 2026",
+                 interim_label_bn="জুন 2026 পর্যন্ত 6 মাসে", div_yield_pct=5.9, cash_per_10k=590, paid_years=5))
+    rows = {r["key"]: r for r in it["facts"]}
+    assert list(rows) == ["company", "price", "profit", "cash"]
+    assert rows["company"]["value"]["en"] == "Strong all round"
+    assert rows["company"]["note"]["en"] == "Strong on profit and finances; fair on business strength; weaker on dividends."
+    assert rows["price"]["value"]["en"] == "Low price"
+    assert rows["price"]["note"]["en"] == "You pay 9 years of its profit. It usually costs 13; similar companies cost 15."
+    assert rows["profit"]["value"]["en"] == "Up 18%"
+    assert rows["profit"]["note"]["en"] == "In the 6 months to Jun 2026, against the same months a year before."
+    assert rows["cash"]["value"]["en"] == "5.9% a year"
+    assert rows["cash"]["note"]["en"] == "About ৳590 a year on every ৳10,000, before tax. Paid cash in each of the last 5 years."
+    for r in it["facts"]:
+        assert r["label"]["bn"] and r["value"]["bn"]
+        assert not any(d in (r["value"]["bn"] + ((r["note"] or {}).get("bn") or "")) for d in "০১২৩৪৫৬৭৮৯")
+
+
+def test_a_pick_with_no_new_profit_figure_or_dividend_still_shows_the_row():
+    it = _pick(F("A", eps_yoy_pct=None, div_yield_pct=None))
+    rows = {r["key"]: r for r in it["facts"]}
+    assert rows["profit"]["value"]["en"] == "No new figure" and rows["profit"]["tone"] == "neutral"
+    assert rows["cash"]["value"]["en"] == "None lately"
+
+
+def test_keywords_say_group_price_and_what_stands_out():
+    it = _pick(F("A", div_yield_pct=6.0, strength="strong"))
+    assert [k["en"] for k in it["keywords"]] == ["Strong all round", "Very low price", "Pays 6% a year"]
+    grower = _pick(F("B", score=65.0, div_yield_pct=1.0, interim_eps_yoy_pct=30.0))
+    assert [k["en"] for k in grower["keywords"]] == ["Mostly strong", "Low price", "Profit up 30%"]
+    fair = _pick(F("C", reason_key="excellent_fair_price", div_yield_pct=1.0, eps_yoy_pct=2.0))
+    assert fair["keywords"][1]["en"] == "Fair price" and fair["price_word"] == "fair"
+
+
+def test_fair_range_only_when_it_agrees_with_the_pick():
+    ok = _pick(F("A", fair_value={"low": 90.0, "high": 140.0, "estimates_disagree": False}))
+    assert ok["fair"] == {"low": 90.0, "high": 140.0}
+    assert _pick(F("B", fair_value={"low": 60.0, "high": 80.0}))["fair"] is None  # price 100 is over it
+    assert _pick(F("C", fair_value={"low": 90.0, "high": 140.0, "estimates_disagree": True}))["fair"] is None
+
+
+def test_check_lines_give_each_passed_check_its_own_figure():
+    c = F("A", turnover_mn=24.0, pct_below_high=35.0)
+    vals = rl.check_values(rc.gate_list(), c, rl.Ctx(governance=lambda code: []))
+    lines = rc.check_lines(c, vals)
+    assert [l["key"] for l in lines] == ["buy", "profitable", "no_governance", "debt_ok", "enough_data"]
+    assert len(lines) == rc.N_CHECKS
+    assert lines[0]["value"]["en"] == ("Strong all round, and its price is low. "
+                                       "৳2.4 crore traded a day, 35% under its 1-year high.")
+    assert lines[1]["value"]["en"] == "Earns ৳5 a share"
+    # A failed check is never listed.
+    loss = F("L", eps=-1.0)
+    assert "profitable" not in [l["key"] for l in rc.check_lines(loss, rl.check_values(rc.gate_list(), loss, rl.Ctx(governance=lambda code: [])))]
+
+
+def test_counts_describe_the_whole_list():
+    items = [{"kind": "add_more", "strong": True, "new": True}, {"kind": "top", "strong": False, "new": False},
+             {"kind": "watched", "strong": False, "new": True}]
+    assert rc.counts(items) == {"total": 3, "new": 2, "own": 2, "strong": 1}
 
 
 # ---------------------------------------------------------------------------

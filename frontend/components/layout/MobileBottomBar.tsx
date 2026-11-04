@@ -24,6 +24,7 @@ const EXPLORE_PATHS = [
   "/sectors",
   "/sector",
   "/share-bazar",
+  "/picked-for-you",
   "/dsestockranking",
   "/stocks",
   "/stock-insights",

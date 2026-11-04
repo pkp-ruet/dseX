@@ -60,6 +60,15 @@ const PAGES: PageShortcut[] = [
     keys: ["dividend", "record date", "agm", "cash", "calendar", "ডিভিডেন্ড", "রেকর্ড ডেট"],
   },
   {
+    href: "/picked-for-you",
+    label: "Picked for you",
+    labelBn: "আপনার জন্য বাছাই",
+    sub: "Stocks matched to your shares, and why",
+    subBn: "আপনার শেয়ারের সাথে মিলিয়ে বাছাই, আর কেন",
+    keys: ["picked", "picks", "for you", "recommend", "recommendation", "suggest", "what to buy", "ideas",
+      "বাছাই", "পরামর্শ", "কী কিনব"],
+  },
+  {
     href: "/dsestockranking",
     label: "Company ranking",
     labelBn: "কোম্পানির র‍্যাঙ্কিং",

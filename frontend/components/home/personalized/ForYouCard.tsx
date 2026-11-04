@@ -1,34 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
-import type { ForYou, ForYouItem } from "@/lib/api";
+import { forYouCounts, type ForYou, type ForYouItem } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
 import { t } from "@/lib/home-copy";
-import { formatDate } from "@/lib/formatters";
+import { changePct, changeTone, money } from "@/lib/formatters";
+import { trackEvent } from "@/lib/track";
 import OwnerMark from "@/components/home/personalized/OwnerMark";
-import ForYouFunnel from "@/components/home/personalized/ForYouFunnel";
-import ForYouPromo from "@/components/home/personalized/ForYouPromo";
-import RecoRow from "@/components/reco/RecoRow";
-import { StockRowSkeleton } from "@/components/ui/StockRow";
-import { IconCheck, IconChevronDown, IconSparkle } from "@/components/ui/icons";
+import Skeleton from "@/components/ui/Skeleton";
+import { StockRank } from "@/components/ui/StockRow";
+import { IconArrowRight, IconCrown, IconLock, IconSparkle } from "@/components/ui/icons";
 
-/** The picks shown in full; the rest are compact rows behind "See all". */
-const TOP = 3;
+/** The page that holds the whole list and every pick's reasons. */
+export const PICKS_PATH = "/picked-for-you";
+const TILES = 3;
+
+/** Kinds tied to the reader's own shares: their fit word reads clay. */
+const OWN_KINDS = new Set(["add_more", "watched", "upgrade", "similar", "style", "asked", "new_area"]);
 
 /**
- * "Picked for you" — the recommendation engine's list, the first block of the
- * dashboard's Find stocks chapter.
+ * "Picked for you" on the dashboard (2026-11-05, user: "dashboard only show
+ * top 3 in a single row with only some keyword and a link to full page"):
+ * three tiles in one row from 768px, three compact rows on phones (user,
+ * same day: "mobile view needs scrolling … if 3 row looks better do it"),
+ * each = rank, company, price, the fit word and two or three keywords; every tile and the footer
+ * open `/picked-for-you`, where each pick is argued in full. The home bundle
+ * carries only these three items (`counts` describes the whole list).
  *
- * Premium since 2026-11-01 (user: "everything of Picked for you will be a
- * premium feature"): a free reader gets `ForYouPromo` — what the engine did
- * for them in counts, what the list shows, one button — and never a company.
- *
- * The Premium view reads like a short personal note: who it is for, the
- * three numbers behind it (analysed → passed → chosen), what it was matched
- * to, then the top three in full (reason, number lines, one watch-out) and
- * the rest as compact rows behind "See all". "How we pick" closes the card.
- * No link out to another page: the card is the feature.
+ * Premium since 2026-11-01: a free reader gets the same row with the
+ * companies locked (never a name or a reason), the counts, and one button
+ * to the page, which holds the Premium card.
  */
 export default function ForYouCard({
   data,
@@ -49,149 +51,205 @@ export default function ForYouCard({
   lang?: Lang;
 }) {
   const bn = lang === "bn";
-  const tx = (en: string, b: string) => (bn ? b : en);
-  const [more, setMore] = useState(false);
+  const ref = useRef<HTMLElement>(null);
+  const seen = useRef(false);
+  const counts = data ? forYouCounts(data) : null;
+  const n = counts?.total ?? 0;
+
+  // A free reader's locked row counts as a Premium lock seen (once).
+  useEffect(() => {
+    const el = ref.current;
+    if (premium || !el || !n || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (seen.current || !entries.some((e) => e.isIntersecting)) return;
+        seen.current = true;
+        trackEvent("premium_lock_view", { area: "home", lock: "for-you", stakes: n });
+        io.disconnect();
+      },
+      { threshold: 0.3 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [premium, n]);
 
   const eyebrow = (
     <p className="fy-eyebrow">
       <IconSparkle size={14} />
       {t(lang, "forYouEyebrow")}
+      {!premium && (
+        <span className="fy-pro">
+          <IconCrown size={12} />
+          {t(lang, "forYouProTag")}
+        </span>
+      )}
     </p>
   );
 
-  if (!data) {
+  if (!data || !counts) {
     if (!loading) return null;
     return (
-      <section className="soft-card overflow-hidden" aria-busy="true">
-        <div className="px-4 pb-3 pt-4 sm:px-5 sm:pt-5">{eyebrow}</div>
-        <ul className="divide-y divide-cell-rule border-t border-cell-rule">
-          <StockRowSkeleton rows={3} />
+      <section className="soft-card fy" aria-busy="true">
+        <div className="fy-top">{eyebrow}</div>
+        <ul className="fy-tiles">
+          {[0, 1, 2].map((k) => (
+            <li key={k} className="fy-tile-li">
+              <div className="fy-skel">
+                <Skeleton width="70%" height={16} />
+                <Skeleton width="45%" height={12} />
+                <Skeleton width="80%" height={22} />
+              </div>
+            </li>
+          ))}
         </ul>
       </section>
     );
   }
+  if (n === 0) return null;
 
-  if (!premium) return data.items.length > 0 ? <ForYouPromo data={data} name={name} lang={lang} /> : null;
-
-  const personal = data.mode === "personal";
-  const n = data.items.length;
   const first = (name ?? "").trim().split(/\s+/)[0] || "";
-  const { held: nHeld, watched: nWatched } = data.based_on;
-  const stocks = nHeld + nWatched;
+  const personal = data.mode === "personal";
+  const top = data.items.slice(0, TILES);
+  const k = Math.min(TILES, n);
 
-  const headline = personal
-    ? t(lang, first ? "forYouHeadPersonalName" : "forYouHeadPersonal", { name: first, n })
-    : t(lang, first ? "forYouHeadGenericName" : "forYouHeadGeneric", { name: first, n });
-  const basis = nHeld && nWatched
-    ? t(lang, "forYouBasisBoth", { held: nHeld, watched: nWatched })
-    : nHeld
-      ? t(lang, "forYouBasisHeld", { n: nHeld })
-      : t(lang, "forYouBasisWatched", { n: nWatched });
-  const lead = personal ? t(lang, "forYouLeadPersonal", { basis }) : t(lang, "forYouLeadGeneric");
+  const title = premium
+    ? t(lang, first ? "forYouTilesHeadName" : "forYouTilesHead", { name: first, k })
+    : t(lang, first ? "forYouFreeHeadName" : "forYouFreeHead", { name: first, n });
+  const lead = premium
+    ? t(lang, personal ? "forYouTilesLeadPersonal" : "forYouTilesLeadGeneric", { passed: data.funnel.passed })
+    : t(lang, "forYouFreeLead");
 
-  const top = data.items.slice(0, TOP);
-  const rest = data.items.slice(TOP);
-  const mark = (it: ForYouItem) => <OwnerMark code={it.code} held={held} watched={watched} lang={lang} />;
+  const href = (code?: string) => (code ? `${PICKS_PATH}#pick-${code}` : PICKS_PATH);
+  const onTap = (code?: string) => {
+    if (!premium) {
+      trackEvent("premium_lock_tap", { area: "home", lock: "for-you", stakes: n });
+    }
+    trackEvent("picks_tile_tap", { code: code ?? "all", plan: premium ? "premium" : "free" });
+  };
 
   return (
-    <section className={`soft-card fy ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
-      <div className="fy-head">
+    <section ref={ref} className={`soft-card fy ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined} aria-labelledby="fy-title">
+      <div className="fy-top">
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
           {eyebrow}
-          <p className="text-xs text-text-muted">
-            {data.new > 0 && <span className="font-semibold text-positive">{t(lang, "forYouNewToday", { n: data.new })}</span>}
-            {data.new > 0 && data.as_of && " · "}
-            {data.as_of && t(lang, "forYouUpdated", { d: formatDate(data.as_of) })}
-          </p>
+          {counts.new > 0 && (
+            <span className="text-xs font-semibold text-positive">{t(lang, "forYouNewToday", { n: counts.new })}</span>
+          )}
         </div>
-        <h3 className="fy-title">{headline}</h3>
-        <p className="fy-lead">{lead}</p>
-
-        {data.funnel.rated > 0 && <ForYouFunnel data={data} lang={lang} />}
-
-        {personal && data.traits.length > 0 && (
-          <p className="fy-traits">
-            <span>{t(lang, "forYouTraits")}</span> {data.traits.map((x) => tx(x.en, x.bn)).join(" · ")}
-          </p>
-        )}
-
-        {/* Make it theirs: no stocks yet → two doors; one or two → follow a few more. */}
-        {stocks === 0 ? (
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Link prefetch={false} href="/watchlist" className="btn-primary btn-sm">
-              {t(lang, "forYouAddWatchlist")}
-            </Link>
-            <Link prefetch={false} href="/portfolio" className="btn-quiet btn-sm">
-              {t(lang, "forYouAddPortfolio")}
-            </Link>
+        <div className="fy-headline">
+          <div className="min-w-0">
+            <h3 id="fy-title" className="fy-title">
+              {title}
+            </h3>
+            <p className="fy-lead">{lead}</p>
           </div>
-        ) : stocks < 3 ? (
-          <p className="mt-3 text-sm">
-            <Link prefetch={false} href="/watchlist" className="font-semibold text-primary-ink hover:underline">
-              {t(lang, "forYouNudgeFew")} →
-            </Link>
-          </p>
-        ) : null}
-
-        {data.note && <p className="mt-3 text-sm text-text-main">{tx(data.note.en, data.note.bn)}</p>}
+          <Link prefetch={false} href={href()} onClick={() => onTap()} className="fy-all">
+            {t(lang, "forYouSeeAllShort", { n })}
+            <IconArrowRight size={14} />
+          </Link>
+        </div>
       </div>
 
-      {top.length > 0 && (
-        <>
-          <p className="fy-label">{t(lang, "forYouTop")}</p>
-          <ol className="divide-y divide-cell-rule">
-            {top.map((it, i) => (
-              <RecoRow key={it.code} item={it} rich rank={i + 1} mark={mark(it)} lang={lang} />
-            ))}
-          </ol>
-        </>
-      )}
+      <ol className="fy-tiles">
+        {premium
+          ? top.map((it, i) => (
+              <Tile key={it.code} it={it} rank={i + 1} href={href(it.code)} onTap={() => onTap(it.code)} held={held} watched={watched} lang={lang} />
+            ))
+          : Array.from({ length: k }, (_, i) => <LockedTile key={i} rank={i + 1} href={href()} onTap={() => onTap()} lang={lang} />)}
+      </ol>
 
-      {rest.length > 0 && more && (
-        <>
-          <p className="fy-label">{t(lang, "forYouAlso")}</p>
-          <ol className="divide-y divide-cell-rule">
-            {rest.map((it, i) => (
-              <RecoRow key={it.code} item={it} rank={TOP + i + 1} mark={mark(it)} lang={lang} />
-            ))}
-          </ol>
-        </>
-      )}
-
-      {rest.length > 0 && (
-        <button type="button" aria-expanded={more} onClick={() => setMore((v) => !v)} className="fy-more">
-          {more ? t(lang, "forYouSeeFewer") : t(lang, "forYouSeeMore", { n })}
-          <span className={`transition-transform ${more ? "rotate-180" : ""}`} aria-hidden="true">
-            <IconChevronDown size={16} />
-          </span>
-        </button>
-      )}
-
-      <details className="group border-t border-border px-4 sm:px-5">
-        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-text-main">
-          {t(lang, "forYouHow")}
-          <span className="transition-transform group-open:rotate-180" aria-hidden="true">
-            <IconChevronDown size={16} />
-          </span>
-        </summary>
-        <div className="space-y-2 pb-4 text-sm text-text-main">
-          <p>{t(lang, "forYouHowChecks")}</p>
-          <ul className="space-y-1.5">
-            {data.funnel.checks.map((c) => (
-              <li key={c.key} className="flex items-start gap-2">
-                <span className="mt-0.5 shrink-0 text-positive" aria-hidden="true">
-                  <IconCheck size={14} />
-                </span>
-                <span className="min-w-0 flex-1">{tx(c.en, c.bn)}</span>
-                <span className="shrink-0 tabular-nums">{c.left}</span>
-              </li>
-            ))}
-          </ul>
-          <p>{t(lang, "forYouHowRank")}</p>
-          <p>{t(lang, "forYouHowNever")}</p>
-          <p className="text-xs">{t(lang, "forYouNotAdvice")}</p>
-        </div>
-      </details>
+      <Link prefetch={false} href={href()} onClick={() => onTap()} className="fy-foot">
+        {premium ? t(lang, "forYouSeeAll", { n }) : t(lang, "forYouFreeCta", { n })}
+        <IconArrowRight size={16} />
+      </Link>
     </section>
+  );
+}
+
+function Tile({
+  it,
+  rank,
+  href,
+  onTap,
+  held,
+  watched,
+  lang,
+}: {
+  it: ForYouItem;
+  rank: number;
+  href: string;
+  onTap: () => void;
+  held: Set<string>;
+  watched: Set<string>;
+  lang: Lang;
+}) {
+  const bn = lang === "bn";
+  const own = OWN_KINDS.has(it.kind);
+  // The group and price words, then the one figure that stands out. A
+  // backend from before the keywords sends none: fall back to the old points.
+  const words = it.keywords?.length
+    ? it.keywords.map((w) => ({ text: bn ? w.bn : w.en, tone: w.tone }))
+    : (it.points ?? []).slice(0, 2).map((p) => ({ text: bn ? p.bn : p.en, tone: "neutral" as const }));
+  // One set of parts, placed by CSS: a compact row on phones (rank · name ·
+  // price, then ticker · fit word, then the keywords), a tile from 768px.
+  return (
+    <li className="fy-tile-li">
+      <Link prefetch={false} href={href} onClick={onTap} className="fy-tile">
+        <span className="fy-tile-rank">
+          <StockRank n={rank} solid />
+        </span>
+        <span className="fy-tile-name">{it.name || it.code}</span>
+        <span className="fy-tile-meta">
+          <span className="fy-tile-code">
+            {it.code}
+            <OwnerMark code={it.code} held={held} watched={watched} lang={lang} />
+          </span>
+          <span className="fy-dot" aria-hidden="true">·</span>
+          <span className={`fy-fit ${own ? "fy-fit--own" : ""}`}>{bn ? it.tag_bn : it.tag_en}</span>
+          {it.new && <span className="fy-new">{t(lang, "forYouNew")}</span>}
+        </span>
+        <span className="fy-tile-price">
+          <span className="nums font-semibold text-text-main">{money(it.price)}</span>
+          {it.change_pct != null && <span className={`nums ${changeTone(it.change_pct)}`}>{changePct(it.change_pct)}</span>}
+        </span>
+        {words.length > 0 && (
+          <span className="fy-words">
+            {words.map((w) => (
+              <span key={w.text} className={`fy-word ${w.tone === "good" ? "fy-word--good" : ""}`}>
+                {w.text}
+              </span>
+            ))}
+          </span>
+        )}
+      </Link>
+    </li>
+  );
+}
+
+function LockedTile({ rank, href, onTap, lang }: { rank: number; href: string; onTap: () => void; lang: Lang }) {
+  return (
+    <li className="fy-tile-li">
+      <Link prefetch={false} href={href} onClick={onTap} className="fy-tile fy-tile--locked" aria-label={t(lang, "forYouLockedTile")}>
+        <span className="fy-tile-rank">
+          <StockRank n={rank} solid />
+        </span>
+        <span className="fy-tile-name" aria-hidden="true">
+          <span className="fy-mask fy-mask--name" />
+        </span>
+        <span className="fy-tile-meta" aria-hidden="true">
+          <span className="fy-mask fy-mask--code" />
+        </span>
+        <span className="fy-tile-price">
+          <span className="fy-lock">
+            <IconLock size={12} />
+            {t(lang, "forYouProTag")}
+          </span>
+        </span>
+        <span className="fy-words" aria-hidden="true">
+          <span className="fy-mask fy-mask--chip" />
+          <span className="fy-mask fy-mask--chip" />
+        </span>
+      </Link>
+    </li>
   );
 }

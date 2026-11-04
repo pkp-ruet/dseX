@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import type { ForYou } from "@/lib/api";
+import { forYouCounts, type ForYou } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
 import { t } from "@/lib/home-copy";
 import { IconChevronRight } from "@/components/ui/icons";
@@ -13,7 +13,7 @@ export default function ForYouFunnel({ data, lang = "en", gold = false }: { data
   const steps = [
     { v: data.funnel.rated, l: t(lang, "forYouStatChecked") },
     { v: data.funnel.passed, l: t(lang, "forYouStatPassed") },
-    { v: data.items.length, l: t(lang, "forYouStatPicked") },
+    { v: forYouCounts(data).total, l: t(lang, "forYouStatPicked") },
   ];
   return (
     <div className={`fy-funnel ${gold ? "fy-funnel--gold" : ""}`}>

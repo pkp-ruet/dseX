@@ -1,0 +1,353 @@
+/* ===================================================================
+   Picked for you (2026-11-05) — the recommendation engine's two homes.
+
+   `.fy-*`  the dashboard's card (components/home/personalized/ForYouCard):
+            the top three as three compact rows on phones and as tiles in
+            one row from 768px, a few keywords each, one link to the page. A free reader's
+            tiles are locked (gold = Premium).
+   `.pk-*`  the page /picked-for-you (components/picks/*): a short note,
+            a jump row, every pick as the same card, "How we pick".
+   The funnel (`.fy-funnel`) serves both, and the free reader's Premium
+   card (`.fyp`, ForYouPromo) on the page.
+   =================================================================== */
+
+/* ---------- Dashboard card ---------- */
+.fy { overflow: hidden; }
+.fy-top { padding: var(--space-4) var(--space-4) var(--space-3); }
+.fy-eyebrow {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: var(--fs-xs); font-weight: 700; color: var(--primary-ink);
+}
+.fy-pro {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-left: 4px; padding: 1px 8px; border-radius: 999px;
+  background: rgb(var(--gold-rgb) / 0.14); color: var(--gold-ink);
+}
+.fy-headline { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-2); }
+.fy-title { font-size: var(--fs-lg); font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; color: var(--text); text-wrap: balance; }
+.fy-lead { margin-top: 4px; max-width: 60ch; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+.fy-all {
+  flex: none; display: inline-flex; align-items: center; gap: 4px; min-height: 40px;
+  font-size: var(--fs-sm); font-weight: 600; color: var(--primary-ink);
+}
+.fy-all:hover { text-decoration: underline; }
+@media (max-width: 479px) { .fy-all { display: none; } }
+
+/* The top three. Phones: three compact rows split by hairlines, nothing to
+   swipe (user: "mobile view needs scrolling … if 3 row looks better do it"):
+     rank │ name              │ price
+     rank │ ticker · fit word │ today
+          │ keywords
+   From 768px: three bordered tiles side by side. One set of parts, placed
+   by grid areas. */
+.fy-tiles {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: minmax(0, 1fr);
+  border-top: 1px solid var(--cell-rule);
+}
+.fy-tile-li { display: flex; min-width: 0; }
+.fy-tile-li + .fy-tile-li { border-top: 1px solid var(--cell-rule); }
+.fy-tile {
+  display: grid; width: 100%; min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "rank name  price"
+    "rank meta  price"
+    ".    words words";
+  column-gap: var(--space-3); row-gap: 2px;
+  padding: var(--space-3) var(--space-4);
+}
+.fy-tile:active { background: var(--surface-2); }
+.fy-tile-rank { grid-area: rank; align-self: start; padding-top: 1px; }
+.fy-tile-name {
+  grid-area: name; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: var(--fs-base); font-weight: 700; line-height: 1.35; color: var(--text);
+}
+.fy-tile-meta {
+  grid-area: meta; display: flex; align-items: center; gap: 6px; min-width: 0;
+  font-size: var(--fs-xs); line-height: 1.5; color: var(--text);
+}
+.fy-tile-code { flex: none; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; }
+.fy-tile-code .ms-own { margin-left: 2px; vertical-align: 0; }
+.fy-dot { flex: none; color: var(--border); }
+.fy-fit {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-weight: 700; color: var(--text);
+}
+.fy-fit--own { color: var(--primary-ink); }
+.fy-new {
+  flex: none; padding: 0 8px; border-radius: 999px;
+  background: rgb(var(--positive-rgb) / 0.12); color: var(--positive);
+  font-size: var(--fs-xs); font-weight: 700; line-height: 1.6;
+}
+.fy-tile-price {
+  grid-area: price; display: flex; flex-direction: column; align-items: flex-end; gap: 1px;
+  font-size: var(--fs-sm); line-height: 1.35; text-align: right;
+}
+.fy-tile-price > span + span { font-size: var(--fs-xs); }
+.fy-words { grid-area: words; display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--space-2); }
+.fy-word {
+  padding: 1px 9px; border-radius: 999px;
+  background: var(--surface-2);
+  font-size: var(--fs-xs); font-weight: 600; line-height: 1.6; color: var(--text);
+}
+.fy-word--good { background: rgb(var(--positive-rgb) / 0.1); color: var(--positive); }
+
+/* A free reader's pick: the shape of a row, the company hidden. */
+.fy-lock {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 1px 8px; border-radius: 999px;
+  background: rgb(var(--gold-rgb) / 0.14);
+  font-size: var(--fs-xs); font-weight: 700; color: var(--gold-ink);
+}
+.fy-mask { display: block; border-radius: var(--radius-sm); background: rgb(var(--text-rgb) / 0.1); }
+.fy-mask--name { width: 70%; height: 16px; margin-top: 3px; }
+.fy-mask--code { width: 40%; height: 12px; margin-top: 4px; }
+.fy-mask--chip { width: 72px; height: 20px; border-radius: 999px; }
+
+/* Loading rows. */
+.fy-skel { display: grid; gap: var(--space-2); width: 100%; padding: var(--space-3) var(--space-4); }
+
+@media (min-width: 640px) {
+  .fy-tile, .fy-skel { padding-inline: calc(var(--space-4) + var(--space-1)); }
+}
+
+/* Tablets and up: three tiles in one row. */
+@media (min-width: 768px) {
+  .fy-tiles {
+    grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3);
+    padding: 2px calc(var(--space-4) + var(--space-1)) calc(var(--space-4) + var(--space-1));
+    border-top: 0;
+  }
+  .fy-tile-li + .fy-tile-li { border-top: 0; }
+  .fy-tile, .fy-skel {
+    padding: var(--space-3);
+    border: 1px solid var(--border); border-radius: var(--radius-md);
+    background: var(--surface);
+  }
+  .fy-tile {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto auto 1fr;
+    grid-template-areas:
+      "rank  meta"
+      "name  name"
+      "price price"
+      "words words";
+    column-gap: var(--space-2); row-gap: 6px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .fy-tile:hover { border-color: rgb(var(--primary-rgb) / 0.45); box-shadow: var(--shadow-soft); }
+  .fy-tile-rank { align-self: center; padding-top: 0; }
+  .fy-tile-name {
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    white-space: normal; min-height: 2.7em; line-height: 1.35;
+  }
+  .fy-tile-price { flex-direction: row; align-items: baseline; justify-content: flex-start; gap: 6px; text-align: left; }
+  .fy-words { align-self: end; margin-top: 0; padding-top: var(--space-2); border-top: 1px dashed var(--border); }
+  .fy-tile--locked { border-color: rgb(var(--gold-rgb) / 0.4); background: rgb(var(--gold-rgb) / 0.05); }
+  .fy-tile--locked:hover { border-color: var(--gold); }
+  .fy-tile--locked .fy-tile-price { justify-content: flex-start; }
+  .fy-mask--name { width: 85%; height: 18px; }
+}
+
+.fy-foot {
+  display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px;
+  padding: 0 var(--space-4);
+  border-top: 1px solid var(--border);
+  font-size: var(--fs-sm); font-weight: 600; color: var(--primary-ink);
+}
+.fy-foot:hover, .fy-foot:active { background: var(--surface-2); }
+
+@media (min-width: 640px) {
+  .fy-top { padding: var(--space-6) calc(var(--space-4) + var(--space-1)) var(--space-4); }
+  .fy-title { font-size: var(--fs-xl); }
+}
+
+/* ---------- The funnel: analysed → passed → chosen ---------- */
+.fy-funnel { display: flex; align-items: stretch; gap: var(--space-1); margin-top: var(--space-4); }
+.fy-step {
+  flex: 1 1 0; min-width: 0;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.fy-step > b { font-size: var(--fs-lg); font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; color: var(--text); }
+.fy-step > span { margin-top: 2px; font-size: var(--fs-xs); line-height: 1.3; color: var(--text); }
+.fy-step--end { border-color: rgb(var(--primary-rgb) / 0.45); background: rgb(var(--primary-rgb) / 0.07); }
+.fy-step--end > b { color: var(--primary-ink); }
+.fy-funnel-arrow { flex: none; display: grid; place-items: center; color: var(--text); }
+.fy-funnel--gold .fy-step { border-color: rgb(var(--gold-rgb) / 0.45); }
+.fy-funnel--gold .fy-step--end { border-color: var(--gold); background: var(--surface); }
+.fy-funnel--gold .fy-step--end > b { color: var(--gold-ink); }
+
+/* The free reader's Premium card sits in the page's spacing. */
+.sp.fyp { margin: 0; }
+
+/* ---------- The page ---------- */
+.pk-intro { padding: calc(var(--space-4) + var(--space-1)) var(--space-4); }
+.pk-eyebrow {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  font-size: var(--fs-xs); font-weight: 700; color: var(--primary-ink);
+}
+.pk-title { margin-top: var(--space-2); font-size: var(--fs-xl); font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; text-wrap: balance; color: var(--text); }
+.pk-lead { margin-top: var(--space-2); max-width: 68ch; font-size: var(--fs-sm); line-height: 1.6; color: var(--text); }
+.pk-traits { margin-top: var(--space-3); font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+.pk-note {
+  margin-top: var(--space-3); padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md); background: var(--surface-2);
+  font-size: var(--fs-sm); line-height: 1.5; color: var(--text);
+}
+.pk-intro-foot {
+  margin-top: var(--space-4); padding-top: var(--space-3);
+  border-top: 1px solid var(--cell-rule);
+  font-size: var(--fs-sm); line-height: 1.5; color: var(--text);
+}
+
+/* Jump row: one chip per pick, wrapping. From 640px only: on a phone the
+   list itself is the index, and nothing on this page scrolls sideways. */
+.pk-jump { display: none; }
+.pk-jump-chip {
+  flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 40px;
+  padding: 0 14px; border: 1px solid var(--border); border-radius: 999px;
+  background: var(--surface);
+  font-size: var(--fs-xs); font-weight: 700; color: var(--text);
+}
+.pk-jump-chip > span { color: var(--primary-ink); }
+.pk-jump-chip:hover { border-color: rgb(var(--primary-rgb) / 0.45); }
+.pk-jump-chip:active { background: var(--surface-2); }
+@media (min-width: 640px) { .pk-jump { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--space-4); } }
+
+.pk-list { list-style: none; margin: var(--space-4) 0 0; padding: 0; display: grid; gap: var(--space-4); }
+
+/* One pick. */
+.pk-card {
+  display: flex; flex-direction: column; gap: var(--space-4);
+  padding: var(--space-4);
+  scroll-margin-top: 96px;
+}
+.pk-card:target { border-color: rgb(var(--primary-rgb) / 0.55); box-shadow: var(--shadow-lift); }
+.pk-head { display: flex; align-items: flex-start; gap: var(--space-3); }
+.pk-ident { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; }
+.pk-name { font-size: var(--fs-md); font-weight: 700; line-height: 1.3; color: var(--text); }
+.pk-name:hover { color: var(--primary-ink); text-decoration: underline; }
+.pk-code { font-size: var(--fs-xs); line-height: 1.4; color: var(--text); }
+.pk-code .ms-own { vertical-align: -2px; }
+.pk-price { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex: none; text-align: right; }
+
+/* Why it fits you: the kind word, then the sentence with their own figures. */
+.pk-fit {
+  padding: var(--space-3) var(--space-3) var(--space-3) calc(var(--space-3) + 2px);
+  border-left: 3px solid var(--primary);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  background: rgb(var(--primary-rgb) / 0.06);
+}
+.pk-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.pk-tag {
+  display: inline-flex; align-items: center; padding: 1px 10px; border-radius: 999px;
+  background: var(--surface); border: 1px solid var(--border);
+  font-size: var(--fs-xs); font-weight: 700; line-height: 1.6; color: var(--text);
+}
+.pk-tag--own { border-color: rgb(var(--primary-rgb) / 0.4); color: var(--primary-ink); }
+.pk-tag--strong { border-color: rgb(var(--positive-rgb) / 0.4); color: var(--positive); }
+.pk-tag--new { border-color: transparent; background: rgb(var(--positive-rgb) / 0.12); color: var(--positive); }
+.pk-why { margin-top: var(--space-2); font-size: var(--fs-base); font-weight: 600; line-height: 1.5; color: var(--text); }
+
+/* The same four facts for every pick: a 2 × 2 grid from 560px. */
+.pk-facts {
+  display: grid; grid-template-columns: minmax(0, 1fr);
+  margin: 0; border: 1px solid var(--cell-rule); border-radius: var(--radius-md); overflow: hidden;
+}
+.pk-fact { display: grid; gap: 2px; align-content: start; padding: var(--space-3); background: var(--surface); }
+.pk-fact + .pk-fact { border-top: 1px solid var(--cell-rule); }
+.pk-fact dt { font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
+.pk-fact dd { margin: 0; }
+.pk-fact-value { font-size: var(--fs-md); font-weight: 700; line-height: 1.3; }
+.pk-fact-note { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+@media (min-width: 560px) {
+  .pk-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pk-fact + .pk-fact { border-top: 0; }
+  .pk-fact:nth-child(n + 3) { border-top: 1px solid var(--cell-rule); }
+  .pk-fact:nth-child(2n) { border-left: 1px solid var(--cell-rule); }
+}
+
+/* Our fair price: the range as a band, today's price as a dot. */
+.pk-fair-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
+.pk-fair-bar { position: relative; height: 8px; margin: 10px 0 8px; border-radius: 999px; background: rgb(var(--border-rgb) / 0.7); }
+.pk-fair-zone { position: absolute; top: 0; bottom: 0; border-radius: 999px; background: rgb(var(--positive-rgb) / 0.35); }
+.pk-fair-dot {
+  position: absolute; top: 50%; width: 14px; height: 14px;
+  border: 2px solid var(--surface); border-radius: 999px;
+  background: var(--text); transform: translate(-50%, -50%);
+}
+.pk-fair-scale { font-size: var(--fs-xs); line-height: 1.45; color: var(--text); }
+
+/* One honest thing to watch — or that there is nothing on its page. */
+.pk-watch, .pk-clear {
+  display: flex; align-items: flex-start; gap: var(--space-2);
+  padding: var(--space-2) var(--space-3); border-radius: var(--radius-md);
+  font-size: var(--fs-sm); line-height: 1.5;
+}
+.pk-watch { background: rgb(var(--watch-rgb) / 0.08); color: var(--watch); }
+.pk-clear { background: rgb(var(--positive-rgb) / 0.07); color: var(--positive); }
+
+/* The checks it passed, folded; each with its own figure. */
+.pk-checks { border-top: 1px solid var(--cell-rule); }
+.pk-checks summary {
+  display: flex; align-items: center; gap: var(--space-2); min-height: 44px;
+  padding-top: var(--space-2);
+  list-style: none; cursor: pointer;
+  font-size: var(--fs-sm); font-weight: 600; color: var(--text);
+}
+.pk-checks summary::-webkit-details-marker { display: none; }
+.pk-checks-tick {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 999px;
+  background: var(--positive); color: var(--surface);
+}
+.pk-checks-hint { flex: none; font-size: var(--fs-xs); font-weight: 600; color: var(--primary-ink); }
+.pk-checks-chev { flex: none; color: var(--primary-ink); }
+.pk-checks ul { list-style: none; margin: var(--space-2) 0 0; padding: 0; display: grid; gap: var(--space-3); }
+.pk-checks li { display: flex; align-items: flex-start; gap: var(--space-2); }
+.pk-check-mark { flex: none; margin-top: 2px; color: var(--positive); }
+.pk-check-label { display: block; font-size: var(--fs-xs); font-weight: 600; line-height: 1.4; color: var(--text); }
+.pk-check-value { display: block; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+
+.pk-foot { margin-top: calc(-1 * var(--space-2)); }
+.pk-more {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 40px;
+  font-size: var(--fs-sm); font-weight: 600; color: var(--primary-ink);
+}
+.pk-more:hover { text-decoration: underline; }
+
+@media (min-width: 640px) {
+  .pk-intro { padding: var(--space-6); }
+  .pk-title { font-size: var(--fs-2xl); }
+  .pk-card { padding: calc(var(--space-4) + var(--space-1)) var(--space-6) var(--space-4); }
+}
+
+/* ---------- How we pick ---------- */
+.pk-how { margin-top: var(--space-8); scroll-margin-top: 80px; }
+.pk-section-title { font-size: var(--fs-xl); font-weight: 700; line-height: 1.3; color: var(--text); }
+.pk-section-lead { margin-top: var(--space-1); max-width: 68ch; font-size: var(--fs-sm); line-height: 1.6; color: var(--text); }
+.pk-steps {
+  list-style: none; margin: var(--space-4) 0 0; padding: 0;
+  border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+.pk-step { display: flex; gap: var(--space-3); padding: var(--space-4); }
+.pk-step + .pk-step { border-top: 1px solid var(--cell-rule); }
+.pk-step-n {
+  flex: none; display: grid; place-items: center; width: 28px; height: 28px;
+  border: 1.5px solid var(--primary); border-radius: 999px;
+  font-size: var(--fs-sm); font-weight: 700; color: var(--primary-ink);
+}
+.pk-step-title { font-size: var(--fs-base); font-weight: 700; line-height: 1.4; color: var(--text); }
+.pk-step-text { margin-top: 4px; font-size: var(--fs-sm); line-height: 1.6; color: var(--text); }
+.pk-gate { list-style: none; margin: var(--space-3) 0 0; padding: 0; display: grid; gap: var(--space-2); }
+.pk-gate li { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
+.pk-gate-tick { flex: none; margin-top: 2px; color: var(--positive); }
+.pk-rules { margin: var(--space-2) 0 0; padding-left: 1.1rem; list-style: disc; display: grid; gap: 6px; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
+.pk-advice { margin-top: var(--space-4); font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
+@media (min-width: 640px) { .pk-step { padding: var(--space-4) var(--space-6); } }

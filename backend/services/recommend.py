@@ -32,8 +32,11 @@ from __future__ import annotations
 from typing import Optional
 
 from backend.services import custom_lists as cl
+from backend.services import grade_rules as gr
 from backend.services import research_lists as rl
-from backend.services.tiers import tier_key
+from backend.services.signal_today import PRICE_WORDS, price_word as _signal_price_word
+from backend.services.tiers import TIER_WORDS, TIER_WORDS_BN, tier_key
+from utils.sector import sector_bn as _sector_name_bn
 
 _n = rl._n
 _r = rl._r
@@ -99,6 +102,7 @@ GATE: list[rl.Check] = [
     rl.Check("enough_data", "We have enough of its figures to trust the grade",
              "গ্রেডে ভরসা করার মতো যথেষ্ট তথ্য আছে", _enough_data),
 ]
+N_CHECKS = len(GATE)
 
 
 def _size_part(mcap_mn: Optional[float]) -> float:
@@ -421,27 +425,55 @@ def _sector_bn(c: dict) -> str:
     return c.get("sector_bn") or c.get("sector") or ""
 
 
+def _sector_bn_name(sector: Optional[str]) -> str:
+    return _sector_name_bn(sector) or sector or ""
+
+
+def group_words(c: dict) -> tuple[str, str]:
+    """The company's group, in the ranking's words ("Mostly strong")."""
+    key = tier_key(_n(c.get("score")))
+    return TIER_WORDS.get(key, "Unrated"), TIER_WORDS_BN.get(key, "রেটিং নেই")
+
+
+def pick_price_word(c: dict) -> str:
+    """very_low | low | fair — the Buy list's price word (every pick is a Buy)."""
+    return _signal_price_word({"signal": "buy", "strength": c.get("strength"),
+                               "reason_key": c.get("reason_key")}) or "low"
+
+
+# "its price is low" — the price word inside a sentence.
+_PRICE_IS = {"very_low": ("its price is very low", "দামও খুব কম"),
+             "low": ("its price is low", "দামও কম"),
+             "fair": ("its price is fair", "দামও ন্যায্য")}
+_PRICE_AT = {"very_low": ("at a very low price", "খুব কম দামে"),
+             "low": ("at a low price", "কম দামে"),
+             "fair": ("at a fair price", "ন্যায্য দামে")}
+
+
+def _graded(c: dict) -> tuple[str, str]:
+    """ "We grade it mostly strong, and its price is low." """
+    g_en, g_bn = group_words(c)
+    p_en, p_bn = _PRICE_IS[pick_price_word(c)]
+    return (f"We grade it {g_en.lower()}, and {p_en}.",
+            f"আমাদের গ্রেডে এটি {g_bn}, {p_bn}।")
+
+
 def _top_why(c: dict, lv: Optional[dict]) -> tuple[str, str, Optional[str]]:
     """A no-strings pick's reason, built from what stands out about it, so
     fifteen picks don't all read the same. Returns (en, bn, the fact kind it
     already says — skipped in the number lines)."""
     lv = lv or {}
     s = _n(c.get("score")) or 0.0
-    p4 = _n(c.get("p4_val"))
     lead = (("A company strong all round,", "সব দিকে শক্তিশালী কোম্পানি") if s >= 75
             else ("A mostly strong company", "বেশিরভাগ দিকে শক্তিশালী কোম্পানি"))
-    if p4 is not None and p4 >= 8:
-        price = ("at a low price", "দামও কম")
-    elif p4 is not None and p4 >= 7:
-        price = ("at a good price", "দামও ভালো")
-    else:
-        price = ("at a fair price", "দামও ঠিকঠাক")
+    pw = pick_price_word(c)
+    price = (_PRICE_AT[pw][0], _PRICE_IS[pw][1])
     y = _n(c.get("div_yield_pct"))
     trend, t_en, t_bn = rl.profit_trend(c)
     below = _n(c.get("pct_below_high"))
     extra, said = None, None
     if (lv.get("dividends") or 0) >= 2 and y:
-        extra, said = (f"and it pays {_r(y)}% a year in cash", f"বছরে {_r(y)}% নগদ লভ্যাংশ দেয়"), "dividends"
+        extra, said = (f"and it pays {_r(y)}% a year in cash", f"বছরে {_r(y)}% নগদ ডিভিডেন্ড দেয়"), "dividends"
     elif trend is not None and trend >= 15:
         extra, said = (f"with profit up {_r(trend, 0)}% ({t_en})", f"মুনাফা {_r(trend, 0)}% বেশি ({t_bn})"), "growth"
     elif below is not None and below >= 20:
@@ -457,48 +489,73 @@ def _top_why(c: dict, lv: Optional[dict]) -> tuple[str, str, Optional[str]]:
 
 def words(c: dict, kind: str, anchor: Optional[str], shared: list[dict], prof: dict,
           anchor_score: Optional[float] = None, lv: Optional[dict] = None) -> dict:
-    """The kind word, the one-sentence reason and the number lines."""
+    """The kind word, the reason and the number lines.
+
+    The reason says, with the reader's own figures, why this pick fits them,
+    then (for a pick tied to their stocks) what we think of the company and
+    its price — so every pick is argued the same way (2026-11-05, user: make
+    the reasoning "more trustworthy and attractive")."""
     sec, sec_bn = c.get("sector") or "", _sector_bn(c)
     lead, skip = None, ()
+    g_en, g_bn = _graded(c)
     if kind == "add_more":
         tag = ("Add more", "আরও কিনুন")
-        why = ("You own it, and at today's price it is still a good buy.",
-               "এটি আপনার কাছে আছে, আর আজকের দামেও কেনার মতো।")
+        w = _n(prof["weight"].get(c["code"]))
+        if w:
+            why = (f"You already own it, and it is only {_r(w, 0)}% of your money. "
+                   f"At today's price it still passes all {N_CHECKS} of our checks.",
+                   f"শেয়ারটি আপনার কাছে আছে, আর এটি আপনার টাকার মাত্র {_r(w, 0)}%। "
+                   f"আজকের দামেও এটি আমাদের {N_CHECKS}টি যাচাইয়ের সবগুলো পার করে।")
+        else:
+            why = (f"You already own it, and at today's price it still passes all {N_CHECKS} of our checks.",
+                   f"শেয়ারটি আপনার কাছে আছে, আর আজকের দামেও এটি আমাদের {N_CHECKS}টি যাচাইয়ের সবগুলো পার করে।")
     elif kind == "watched":
         tag = ("On your watchlist", "আপনার ওয়াচলিস্টে")
-        why = ("You follow it, and today the price is right.",
-               "আপনি এটি ফলো করছেন, আর আজ দামটা ঠিক জায়গায়।")
+        why = (f"You follow it, and today it passes all {N_CHECKS} of our checks. {g_en}",
+               f"আপনি শেয়ারটি ফলো করছেন, আর আজ এটি আমাদের {N_CHECKS}টি যাচাইয়ের সবগুলো পার করেছে। {g_bn}")
     elif kind == "upgrade":
-        s = _r(_n(c.get("score")) or 0, 0)
-        a = _r(anchor_score or 0, 0)
+        a_key = tier_key(anchor_score)
         tag = (f"Stronger than {anchor}", f"{anchor}-এর চেয়ে শক্তিশালী")
-        why = (f"Same business as {anchor}, but a stronger company: a score of {s} against {a}.",
-               f"{anchor}-এর মতো একই ব্যবসা, কিন্তু আরও শক্তিশালী কোম্পানি: স্কোর {s}, {anchor}-এর {a}।")
+        if a_key == "unknown":
+            a_en, a_bn = "which we have not graded", "যার গ্রেড আমাদের কাছে নেই"
+        else:
+            a_en = f"which we grade {TIER_WORDS[a_key].lower()}"
+            a_bn = f"আমাদের গ্রেডে যা {TIER_WORDS_BN[a_key]}"
+        mine_en, mine_bn = group_words(c)
+        why = (f"It is in the same business as {anchor}, {a_en}. This one we grade {mine_en.lower()}.",
+               f"এটি {anchor}-এর মতো একই ব্যবসায়, {a_bn}। এটি আমাদের গ্রেডে {mine_bn}।")
         skip = ("grade",)
     elif kind == "similar":
         own = anchor in prof["held"]
         tag = (f"Like {anchor}", f"{anchor}-এর মতো")
-        why = (f"Same business as {anchor} you {'own' if own else 'follow'}, and the price is good now.",
-               f"আপনার {'কেনা' if own else 'ফলো করা'} {anchor}-এর মতো একই ব্যবসা, আর এখন দামও ভালো।")
+        why = (f"It is in the same business as {anchor}, which you {'own' if own else 'follow'}. {g_en}",
+               f"আপনার {'কেনা' if own else 'ফলো করা'} {anchor}-এর মতো একই ব্যবসা। {g_bn}")
     elif kind == "asked":
         # The tag already says "your sector"; the reason says what stands out.
         tag = ("Your sector", "আপনার সেক্টর")
         en, bn, said = _top_why(c, lv)
-        why = (en, bn)
+        why = (f"You asked about {sec}. {en}", f"আপনি {sec_bn} সেক্টরের কথা জানতে চেয়েছিলেন। {bn}")
         skip = (said,) if said else ()
     elif kind == "style":
         t = shared[0]
         lead = t["key"]
         tag = ("Fits your style", "আপনার ধরনের")
         if t.get("asked"):
-            why = (f"{t['en']}, as you asked.", f"{t['bn']}, যেমনটা আপনি চেয়েছেন।")
+            why = (f"{t['en']}, as you asked. {g_en}", f"{t['bn']}, যেমনটা আপনি চেয়েছেন। {g_bn}")
         else:
-            why = (f"{t['en']}, like {t['n']} of your {t['of']} stocks.",
-                   f"{t['bn']}, আপনার {t['of']}টি শেয়ারের {t['n']}টির মতোই।")
+            why = (f"{t['en']}, like {t['n']} of your {t['of']} stocks. {g_en}",
+                   f"{t['bn']}, আপনার {t['of']}টি শেয়ারের {t['n']}টির মতোই। {g_bn}")
     elif kind == "new_area":
         tag = ("New sector for you", "আপনার জন্য নতুন সেক্টর")
-        why = (f"Adds {sec}, a business none of your stocks are in.",
-               f"{sec_bn} সেক্টর যোগ হয়, আপনার কোনো শেয়ার এই ব্যবসায় নেই।")
+        top = max(prof["sectors"].items(), key=lambda kv: kv[1]["pct"], default=(None, {"pct": 0.0}))
+        if top[0] and top[1]["pct"] > 0:
+            pct = _r(top[1]["pct"], 0)
+            why = (f"{pct}% of your money is in {top[0]}. This one adds {sec}, a business none of your stocks are in.",
+                   f"আপনার টাকার {pct}% আছে {_sector_bn_name(top[0])} সেক্টরে। এটি যোগ করে {sec_bn}, "
+                   f"যে ব্যবসায় আপনার কোনো শেয়ার নেই।")
+        else:
+            why = (f"Adds {sec}, a business none of your stocks are in.",
+                   f"{sec_bn} সেক্টর যোগ হয়, আপনার কোনো শেয়ার এই ব্যবসায় নেই।")
     else:
         tag = ("Strong pick" if c.get("strength") == "strong" else "Top pick",
                "জোরালো বাছাই" if c.get("strength") == "strong" else "সেরা বাছাই")
@@ -509,12 +566,229 @@ def words(c: dict, kind: str, anchor: Optional[str], shared: list[dict], prof: d
             "points": points(c, lead, skip)}
 
 
+# ---------------------------------------------------------------------------
+# 4b. The case for each pick (2026-11-05, the "Picked for you" page)
+# ---------------------------------------------------------------------------
+# Every pick carries the same four facts (the company, the price, profit,
+# cash to you), two or three keywords for the dashboard's tiles, our
+# fair-price range and each safety check with the company's own figure — so
+# every pick on the page is argued the same way, with figures a reader can
+# check on the stock page.
+
+# The four business checks, named as the stock report names them.
+_CHECK_NAMES = {"p1_biz": ("profit", "মুনাফা"), "p2_health": ("finances", "আর্থিক অবস্থা"),
+                "p3_moat": ("business strength", "ব্যবসার শক্তি"), "p5_div": ("dividends", "ডিভিডেন্ড")}
+# Shorter Bengali group words for a keyword chip (frontend TIER_PILL_BN).
+_GROUP_CHIP_BN = {"excellent": "সব দিকে শক্তিশালী", "good": "বেশ শক্তিশালী"}
+# How far profit has to move before it reads up or down (the report's "about the same").
+STEADY_PCT = 3.0
+
+
+def _join(words: list[str], bn: bool = False) -> str:
+    if len(words) <= 1:
+        return "".join(words)
+    return ", ".join(words[:-1]) + (" আর " if bn else " and ") + words[-1]
+
+
+def _row(key: str, label: tuple[str, str], value: tuple[str, str],
+         note: Optional[tuple[str, str]], tone: str) -> dict:
+    return {"key": key, "label": _pt(*label), "value": _pt(*value),
+            "note": _pt(*note) if note else None, "tone": tone}
+
+
+def _company_row(c: dict) -> dict:
+    vals = gr.check_values(c)
+    strong = [k for k, v in vals.items() if v >= gr.STRONG_AT]
+    weak = [k for k, v in vals.items() if v < gr.WEAK_BELOW]
+    note = None
+    if vals and len(strong) == len(vals):
+        note = (("Strong on all four of our business checks.", "ব্যবসার চারটি যাচাইয়েই শক্তিশালী।") if len(vals) == 4
+                else ("Strong on every check we can measure.", "যেসব যাচাই করা যায়, তার সবগুলোতেই শক্তিশালী।"))
+    elif strong:
+        # Name every check, so a group never reads as more (or less) than its
+        # checks: "Strong on finances and dividends; fair on profit".
+        fair = [k for k in vals if k not in strong and k not in weak]
+        en = "Strong on " + _join([_CHECK_NAMES[k][0] for k in strong])
+        bn = "শক্তিশালী: " + _join([_CHECK_NAMES[k][1] for k in strong], True)
+        if fair:
+            en += "; fair on " + _join([_CHECK_NAMES[k][0] for k in fair])
+            bn += "; মাঝারি: " + _join([_CHECK_NAMES[k][1] for k in fair], True)
+        if weak:
+            en += "; weaker on " + _join([_CHECK_NAMES[k][0] for k in weak])
+            bn += "; দুর্বল: " + _join([_CHECK_NAMES[k][1] for k in weak], True)
+        note = (en + ".", bn + "।")
+    return _row("company", ("The company", "কোম্পানি"), group_words(c), note, "good")
+
+
+def _price_row(c: dict) -> dict:
+    """The price word, then what it rests on, said as the stock report says
+    P/E: years of its profit you pay for — against its own usual and similar
+    companies, whichever way they point."""
+    pw = pick_price_word(c)
+    pe, own, sect = _n(c.get("current_pe")), _n(c.get("own_avg_pe")), _n(c.get("sector_median_pe"))
+    note = None
+    if pe is not None and pe > 0:
+        yrs = max(1, round(pe))
+        en = [f"You pay {yrs} years of its profit."]
+        bn = [f"দাম এখন এর {yrs} বছরের মুনাফার সমান।"]
+        cmp_en, cmp_bn = [], []
+        if own and own > 0:
+            cmp_en.append(f"it usually costs {round(own)}")
+            cmp_bn.append(f"সাধারণত থাকে {round(own)} বছরের")
+        if sect and sect > 0:
+            cmp_en.append(f"similar companies cost {round(sect)}")
+            cmp_bn.append(f"একই সেক্টরের কোম্পানিতে {round(sect)} বছরের")
+        if cmp_en:
+            s = "; ".join(cmp_en)
+            en.append(s[0].upper() + s[1:] + ".")
+            bn.append("; ".join(cmp_bn) + "।")
+        note = (" ".join(en), " ".join(bn))
+    return _row("price", ("The price", "দাম"), PRICE_WORDS[pw], note, "neutral" if pw == "fair" else "good")
+
+
+def _profit_row(c: dict) -> dict:
+    v, _en, _bn = rl.profit_trend(c)
+    if v is None:
+        return _row("profit", ("Profit", "মুনাফা"), ("No new figure", "নতুন হিসাব নেই"),
+                    ("No recent report to compare with a year before.", "আগের বছরের সাথে তুলনার মতো নতুন হিসাব নেই।"),
+                    "neutral")
+    if _n(c.get("interim_eps_yoy_pct")) is not None and c.get("interim_label_en"):
+        note = (f"In the {c['interim_label_en']}, against the same months a year before.",
+                f"{c.get('interim_label_bn') or 'এ বছর এ পর্যন্ত'}, আগের বছরের একই সময়ের তুলনায়।")
+    elif _n(c.get("interim_eps_yoy_pct")) is not None:
+        note = ("So far this year, against the same months a year before.",
+                "এ বছর এ পর্যন্ত, আগের বছরের একই সময়ের তুলনায়।")
+    else:
+        note = ("In its last full year, against the year before.", "গত পুরো বছরে, তার আগের বছরের তুলনায়।")
+    if v >= STEADY_PCT:
+        value, tone = (f"Up {_r(v, 0)}%", f"{_r(v, 0)}% বেশি"), "good"
+    elif v <= -STEADY_PCT:
+        value, tone = (f"Down {_r(abs(v), 0)}%", f"{_r(abs(v), 0)}% কম"), "watch"
+    else:
+        value, tone = ("About the same", "প্রায় একই"), "neutral"
+    return _row("profit", ("Profit", "মুনাফা"), value, note, tone)
+
+
+def _cash_row(c: dict) -> dict:
+    y = _n(c.get("div_yield_pct"))
+    paid = c.get("paid_years")
+    if not y or y <= 0:
+        return _row("cash", ("Cash dividend", "নগদ ডিভিডেন্ড"), ("None lately", "সম্প্রতি নেই"),
+                    ("It paid no cash dividend in its latest year.", "সর্বশেষ বছরে নগদ ডিভিডেন্ড দেয়নি।"), "neutral")
+    per = c.get("cash_per_10k")
+    en = [f"About ৳{per:,} a year on every ৳10,000, before tax." if per
+          else "A year, on today's price, before tax."]
+    bn = [f"প্রতি ৳10,000-এ বছরে প্রায় ৳{per:,}, কর কাটার আগে।" if per
+          else "বছরে, আজকের দামে, কর কাটার আগে।"]
+    if paid == 5:
+        en.append("Paid cash in each of the last 5 years.")
+        bn.append("গত 5 বছরের প্রতি বছরই নগদ দিয়েছে।")
+    elif paid:
+        en.append(f"Paid cash in {paid} of the last 5 years.")
+        bn.append(f"গত 5 বছরের {paid} বছরে নগদ দিয়েছে।")
+    return _row("cash", ("Cash dividend", "নগদ ডিভিডেন্ড"), (f"{_r(y)}% a year", f"বছরে {_r(y)}%"),
+                (" ".join(en), " ".join(bn)), "good" if y >= 4 else "neutral")
+
+
+def case_rows(c: dict) -> list[dict]:
+    """The same four facts for every pick: the company, the price, profit,
+    cash to you. Each = a short value + one sentence it rests on."""
+    return [_company_row(c), _price_row(c), _profit_row(c), _cash_row(c)]
+
+
+def keywords(c: dict, lv: Optional[dict] = None) -> list[dict]:
+    """Two or three words for the dashboard's tile: the group, the price
+    word, and the one figure that stands out most."""
+    lv = lv or {}
+    key = tier_key(_n(c.get("score")))
+    out = [{"en": TIER_WORDS.get(key, "Unrated"), "bn": _GROUP_CHIP_BN.get(key, TIER_WORDS_BN.get(key, "")),
+            "tone": "good"}]
+    pw = pick_price_word(c)
+    out.append({"en": PRICE_WORDS[pw][0], "bn": PRICE_WORDS[pw][1], "tone": "neutral" if pw == "fair" else "good"})
+    y = _n(c.get("div_yield_pct"))
+    trend = rl.profit_trend(c)[0]
+    below = _n(c.get("pct_below_high"))
+    if y is not None and y >= 4:
+        out.append({"en": f"Pays {_r(y)}% a year", "bn": f"বছরে {_r(y)}% নগদ", "tone": "good"})
+    elif trend is not None and trend >= 15:
+        out.append({"en": f"Profit up {_r(trend, 0)}%", "bn": f"মুনাফা {_r(trend, 0)}% বেশি", "tone": "good"})
+    elif below is not None and below >= 20:
+        out.append({"en": f"{_r(below, 0)}% under its high", "bn": f"সর্বোচ্চের চেয়ে {_r(below, 0)}% কম", "tone": "neutral"})
+    elif (lv.get("safety") or 0) >= 2:
+        out.append({"en": "Almost no loans", "bn": "প্রায় ঋণমুক্ত", "tone": "good"})
+    elif c.get("paid_years") == 5:
+        out.append({"en": "Pays every year", "bn": "প্রতি বছর নগদ দেয়", "tone": "good"})
+    return out
+
+
+def fair_range(c: dict) -> Optional[dict]:
+    """Our fair-price range, only when the estimates agree and today's price
+    is inside or under it — a pick never shows a range that says the price
+    is high (the stock page's ``range_agrees`` rule)."""
+    fv = c.get("fair_value") or {}
+    lo, hi, px = _n(fv.get("low")), _n(fv.get("high")), _n(c.get("ltp"))
+    if lo is None or hi is None or lo <= 0 or hi < lo or fv.get("estimates_disagree"):
+        return None
+    if px is not None and px > hi:
+        return None
+    return {"low": round(lo, 1), "high": round(hi, 1)}
+
+
+# Short names for the gate's checks on a pick's card; the value under each is
+# the company's own figure.
+_CHECK_SHORT = {
+    "buy": ("A good company at the right price", "ভালো কোম্পানি, ঠিক দাম"),
+    "profitable": ("Makes a profit", "মুনাফায় আছে"),
+    "no_governance": ("No warnings in a year", "এক বছরে কোনো সতর্কতা নেই"),
+    "debt_ok": ("Loans in check", "ঋণ নিয়ন্ত্রণে"),
+    "enough_data": ("Enough figures to trust", "ভরসা করার মতো যথেষ্ট তথ্য"),
+}
+
+
+def _buy_line(c: dict) -> tuple[str, str]:
+    g_en, g_bn = group_words(c)
+    p_en, p_bn = _PRICE_IS[pick_price_word(c)]
+    en, bn = [f"{g_en}, and {p_en}."], [f"{g_bn}, {p_bn}।"]
+    t = _n(c.get("turnover_mn"))
+    below = _n(c.get("pct_below_high"))
+    if t is not None:
+        t_en, t_bn = rl._taka_turnover(t)
+        if below is not None:
+            en.append(f"{t_en} traded a day, {_r(below, 0)}% under its 1-year high.")
+            bn.append(f"দিনে {t_bn} লেনদেন হয়; এক বছরের সর্বোচ্চ দামের চেয়ে {_r(below, 0)}% কম।")
+        else:
+            en.append(f"{t_en} traded a day.")
+            bn.append(f"দিনে {t_bn} লেনদেন হয়।")
+    return " ".join(en), " ".join(bn)
+
+
+def check_lines(c: dict, values: list[dict]) -> list[dict]:
+    """``research_lists.check_values`` for the gate -> the passed checks, each
+    with a short name and this company's own figure."""
+    out = []
+    for v in values:
+        if not v.get("ok"):
+            continue
+        key = v["key"]
+        if key == "buy":
+            en, bn = _buy_line(c)
+        elif key == "no_governance":
+            en, bn = ("No auditor, regulator or meeting warnings in the last year.",
+                      "গত এক বছরে নিরীক্ষক, নিয়ন্ত্রক বা সভা নিয়ে কোনো সতর্কতা নেই।")
+        else:
+            en, bn = v["value_en"], v["value_bn"]
+        label = _CHECK_SHORT.get(key, (v["label_en"], v["label_bn"]))
+        out.append({"key": key, "label": _pt(*label), "value": _pt(en, bn)})
+    return out
+
+
 def item(c: dict, kind: str, anchor: Optional[str], shared: list[dict], prof: dict,
          facts: dict[str, dict], total: float, lv: Optional[dict]) -> dict:
     anchor_score = _n((facts.get(anchor) or {}).get("score")) if anchor else None
     risk = c.get("risk") or None
     return {
         "code": c["code"], "name": c.get("name"), "sector": c.get("sector"),
+        "sector_bn": c.get("sector_bn") or _sector_name_bn(c.get("sector")),
         "price": _n(c.get("ltp")), "change_pct": _n(c.get("change_pct")),
         "score": _n(c.get("score")), "tier": tier_key(_n(c.get("score"))),
         "strong": c.get("strength") == "strong",
@@ -526,7 +800,23 @@ def item(c: dict, kind: str, anchor: Optional[str], shared: list[dict], prof: di
         "div_yield_pct": _n(c.get("div_yield_pct")),
         "conviction": _n(c.get("conviction")), "rank_score": round(total, 1),
         "new": False,
+        # The case (the "Picked for you" page): the same parts for every pick.
+        "group": _pt(*group_words(c)),
+        "price_word": pick_price_word(c),
+        "keywords": keywords(c, lv),
+        "facts": case_rows(c),
+        "fair": fair_range(c),
+        "checks": c.get("gate_checks") or [],
     }
+
+
+def counts(items: list[dict]) -> dict:
+    """What the dashboard's tile row and the free reader's card count, so the
+    home bundle can carry only the top three picks."""
+    return {"total": len(items),
+            "new": sum(1 for i in items if i.get("new")),
+            "own": sum(1 for i in items if i.get("kind") in ("add_more", "watched")),
+            "strong": sum(1 for i in items if i.get("strong"))}
 
 
 # ---------------------------------------------------------------------------

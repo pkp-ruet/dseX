@@ -2143,6 +2143,28 @@ export interface ForYouItem {
   rank_score: number;
   /** Not in the reader's list on the previous day. */
   new: boolean;
+  // The case (2026-11-05, the /picked-for-you page): the same parts for every
+  // pick. Optional while a backend from before it is still deployed.
+  sector_bn?: string | null;
+  /** The company's group in the ranking's words ("Mostly strong"). */
+  group?: BiText;
+  price_word?: "very_low" | "low" | "fair";
+  /** Two or three words for the dashboard's tile. */
+  keywords?: (BiText & { tone: "good" | "neutral" })[];
+  /** The same four facts for every pick: company · price · profit · cash. */
+  facts?: ForYouFact[];
+  /** Our fair-price range, only when it agrees with the pick. */
+  fair?: { low: number; high: number } | null;
+  /** Each safety check it passed, with its own figure. */
+  checks?: { key: string; label: BiText; value: BiText }[];
+}
+
+export interface ForYouFact {
+  key: "company" | "price" | "profit" | "cash";
+  label: BiText;
+  value: BiText;
+  note: BiText | null;
+  tone: "good" | "neutral" | "watch";
 }
 
 export interface ForYouFunnel {
@@ -2164,8 +2186,21 @@ export interface ForYou {
   items: ForYouItem[];
   /** How many picks are new since the previous day. */
   new: number;
+  /** The whole list counted — the home bundle carries only the top three items. */
+  counts?: { total: number; new: number; own: number; strong: number };
   /** Set when few (or no) stocks pass every check — the bar is never lowered. */
   note: BiText | null;
+}
+
+/** The whole list counted, from `counts` when the backend sends it. */
+export function forYouCounts(d: ForYou): { total: number; new: number; own: number; strong: number } {
+  if (d.counts) return d.counts;
+  return {
+    total: d.items.length,
+    new: d.items.filter((i) => i.new).length,
+    own: d.items.filter((i) => i.kind === "add_more" || i.kind === "watched").length,
+    strong: d.items.filter((i) => i.strong).length,
+  };
 }
 
 export async function apiGetForYou(): Promise<ForYou> {

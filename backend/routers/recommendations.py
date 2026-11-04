@@ -2,8 +2,8 @@
 The recommendation engine's endpoints. Rules live in services/recommend.py,
 data in services/recommend_service.py — this router stays thin.
 
-- ``GET  /api/user/for-you``            the reader's picks ("Picked for you"); the
-                                        home bundle carries the same thing as ``for_you``
+- ``GET  /api/user/for-you``            the reader's picks (the page ``/picked-for-you``);
+                                        the home bundle carries the top three as ``for_you``
 - ``GET  /api/user/portfolio/buy-next`` the portfolio's "What to buy next" (``?pid=``)
 - ``GET  /api/portfolio/sample-plan``   the same for a sample portfolio's holdings
                                         (``/sample-portfolio/[slug]``, public)
@@ -82,7 +82,8 @@ def post_recommendations(
 @router.get("/user/for-you")
 def get_for_you(current_user: dict = Depends(get_current_user)):
     """The reader's picks: up to 15, built from their own stocks (or the
-    strongest Buys when they have none). Free readers see three on screen."""
+    strongest Buys when they have none). The page ``/picked-for-you`` shows
+    them all to Premium readers; the home bundle carries the top three."""
     return recommend_service.for_user(current_user)
 
 

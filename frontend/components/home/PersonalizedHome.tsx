@@ -329,10 +329,11 @@ export default function PersonalizedHome() {
   );
 
   // ── Chapter 3: Find stocks — "Picked for you" first (the recommendation
-  //    engine: up to 15 picks built from the reader's own stocks, Premium
-  //    only since 2026-11-01 — a free reader gets the Premium card;
-  //    user decision 2026-10-27, replacing the old random "picked for you"
-  //    opener removed 2026-10-26), then the screener card (ready-made screens + top
+  //    engine's top three as one row of tiles, the whole list and every
+  //    pick's reasons on /picked-for-you since 2026-11-05; Premium only since
+  //    2026-11-01 — a free reader's tiles are locked; user decision
+  //    2026-10-27, replacing the old random "picked for you" opener removed
+  //    2026-10-26), then the screener card (ready-made screens + top
   //    three), ONE swipe rail for top ranked / trending, and
   //    the research lists. Different kinds of block, so they get more air
   //    between them than the other chapters' card pairs. ──
