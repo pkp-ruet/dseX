@@ -9,9 +9,9 @@ import type { CorporateActionEvent } from "@/lib/api";
  * dividend is worth at today's price — one card, numbered rows, the yield
  * leading on the right with the cash a share under it. The top ten are open.
  *
- * Deliberately shows the grade next to the name: a high yield on a Weak
- * company is usually a falling price, not generosity. No advice is drawn
- * here — the ranking is arithmetic, and the grade is context.
+ * A high yield on a weak company is usually a falling price, not
+ * generosity, so each row carries its "Is it safe?" word. No advice is drawn
+ * here — the ranking is arithmetic.
  */
 export default function TopCashDividends({ events }: { events: CorporateActionEvent[] }) {
   if (events.length === 0) return null;
@@ -27,8 +27,8 @@ export default function TopCashDividends({ events }: { events: CorporateActionEv
         title={<T en="Biggest cash dividends of the last 12 months" bn="গত 12 মাসের সবচেয়ে বড় নগদ ডিভিডেন্ড" />}
         lead={
           <T
-            en="Declared cash against today's price. A very high yield often means the price has fallen, so read the grade first."
-            bn="ঘোষিত নগদ ডিভিডেন্ড, আজকের দামের তুলনায়। অনেক বেশি ইল্ড মানে প্রায়ই দাম কমে গেছে, তাই আগে গ্রেড দেখে নিন।"
+            en="Cash declared in the last 12 months, against today's price. A very high yield often means the price has fallen, so check whether it looks safe."
+            bn="গত 12 মাসে ঘোষিত নগদ, আজকের দামের তুলনায়। অনেক বেশি ইল্ড মানে প্রায়ই দাম কমে গেছে, তাই নিরাপদ কি না দেখে নিন।"
           />
         }
       />

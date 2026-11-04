@@ -16,8 +16,8 @@ export default function AgmBoard({ events }: { events: CorporateActionEvent[] })
         title={<T en="Upcoming AGMs" bn="আসন্ন এজিএম" />}
         lead={
           <T
-            en="A final dividend is only a recommendation until shareholders approve it at the AGM. The money usually follows within 30 days."
-            bn="এজিএমে শেয়ারহোল্ডাররা অনুমোদন না দেওয়া পর্যন্ত চূড়ান্ত ডিভিডেন্ড শুধু একটি সুপারিশ। এরপর সাধারণত 30 দিনের মধ্যে টাকা আসে।"
+            en="Where shareholders approve a final dividend. The money usually follows within 30 days."
+            bn="যেখানে শেয়ারহোল্ডাররা চূড়ান্ত ডিভিডেন্ড অনুমোদন করেন। এরপর সাধারণত 30 দিনের মধ্যে টাকা আসে।"
           />
         }
       />

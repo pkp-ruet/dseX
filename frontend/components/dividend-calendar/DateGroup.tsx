@@ -6,7 +6,7 @@ import { dayParts, dayShort, daysWords, type Pair } from "@/components/dividend-
 import type { CorporateActionEvent } from "@/lib/api";
 
 type Kind = "record" | "agm";
-type Tone = "positive" | "watch" | "negative";
+type Tone = "neutral" | "watch" | "negative";
 
 /** Events that share a date, in the order they came (the backend sorts by date). */
 export function groupByDate(
@@ -36,13 +36,14 @@ export function countByDate(events: CorporateActionEvent[], key: "record_date" |
 }
 
 /** The eligibility answer for a record date, from the last normal-market buy
- *  day (the same for every company on that date). */
+ *  day (the same for every company on that date). Colour only when it is
+ *  close (2026-11-04): amber in the last 3 days, red once it has passed. */
 export function buyByLine(e: CorporateActionEvent): { tone: Tone; text: Pair } | null {
   if (e.buy_days_left == null || !e.buy_by) return null;
   const d = dayShort(e.buy_by);
   if (e.buy_days_left > 1) {
     return {
-      tone: "positive",
+      tone: e.buy_days_left <= 3 ? "watch" : "neutral",
       text: {
         en: `Last day to buy: ${d.en} · ${e.buy_days_left} days left`,
         bn: `কেনার শেষ দিন: ${d.bn} · আর ${e.buy_days_left} দিন`,

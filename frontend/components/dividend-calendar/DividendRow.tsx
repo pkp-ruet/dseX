@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 import { T } from "@/components/i18n/T";
 import { Locked } from "@/components/premium/AnswerLock";
@@ -6,6 +5,8 @@ import { pct } from "@/lib/formatters";
 import type { CorporateActionEvent } from "@/lib/api";
 import { dayShort, daysWords } from "@/components/dividend-calendar/dates";
 import RemindButton from "@/components/dividend-calendar/RemindButton";
+import ExpandRow from "@/components/dividend-calendar/ExpandRow";
+import Button from "@/components/ui/Button";
 
 type Mode = "record" | "agm" | "top" | "declared" | "dated";
 
@@ -67,15 +68,9 @@ function MoneyFigure({ e }: { e: CorporateActionEvent }) {
   return <span className="dc-amt dc-amt--muted">—</span>;
 }
 
-/** Third-line facts, each only when this row has it. */
+/** Facts for the opened row, each only when this row has it. */
 function extras(e: CorporateActionEvent, mode: Mode): ReactNode[] {
   const out: ReactNode[] = [];
-  const cash = e.cash_per_share != null && e.cash_per_share > 0;
-  if ((mode === "record" || mode === "agm" || mode === "declared") && cash && e.stock_pct) {
-    out.push(
-      <T key="bonus" en={`Also ${pctWord(e.stock_pct)} bonus shares`} bn={`সঙ্গে ${pctWord(e.stock_pct)} বোনাস শেয়ার`} />,
-    );
-  }
   if ((mode === "agm" || mode === "declared") && e.record_date) {
     const d = dayShort(e.record_date);
     out.push(<T key="rec" en={`Record date ${d.en}`} bn={`রেকর্ড ডেট ${d.bn}`} />);
@@ -84,7 +79,7 @@ function extras(e: CorporateActionEvent, mode: Mode): ReactNode[] {
     const d = dayShort(e.agm_date);
     out.push(<T key="agm" en={`AGM ${d.en}`} bn={`এজিএম ${d.bn}`} />);
   }
-  if (mode === "top" && e.declaration_date) {
+  if ((mode === "top" || mode === "record" || mode === "agm") && e.declaration_date) {
     const d = dayShort(e.declaration_date, true);
     out.push(<T key="decl" en={`Declared ${d.en}`} bn={`ঘোষণা ${d.bn}`} />);
   }
@@ -98,22 +93,26 @@ function extras(e: CorporateActionEvent, mode: Mode): ReactNode[] {
   return out;
 }
 
+function Sep() {
+  return (
+    <span className="dc-sep" aria-hidden="true">
+      ·
+    </span>
+  );
+}
+
 /**
- * One company on the dividend calendar (and the dashboard's "Dividends
- * coming" card): company name first, then ticker · Final/Interim (no grade
- * pill since 2026-11-01 — the ranking's group words stay off this page), then
- * one muted line of extra facts; on the right the money leads — cash a share
- * with the yield at today's price under it (`top` ranks by the yield, so it
- * leads there; `dated` shows a date instead). Taps through to the stock
- * page's dividend history. Yields are gross; no advice is drawn here.
- * `mark` = the H / ★ owner tag on the dashboard.
- * Under a cash dividend, "Is it safe?" (`e.safety`, one word and one plain
- * sentence) — Premium since 2026-10-29, always in the HTML, shown to Premium
- * readers only (`Locked`). The rows themselves are free.
- * Since 2026-10-31 a second Premium line sits beside it on a record date:
- * "Worth buying for it?" (`e.capture` — how far the price moved across its last
- * record dates, against the cash). `remind` adds the "Remind me" bell beside
- * the row (outside the link) for a cash record date still ahead.
+ * One company on the dividend calendar (and the dashboard's record-dates
+ * card). Clean pass 2026-11-04 (user: the page "look messy and hard to
+ * understand"): the row is two lines — the company name, then ticker ·
+ * Final/Interim · bonus · the "Is it safe?" word — with the money on the
+ * right (cash a share over the yield; `top` leads with the yield, `dated`
+ * shows a date). A tap opens it in place (`ExpandRow`): "Is it safe?" and
+ * "Worth buying for it?" with their sentences, the other dates, then "Open
+ * the page" and "Remind me" (`remind`, a cash record date still ahead). The
+ * explanations are Premium (`Locked`; the whole calendar is Premium too).
+ * `mark` = the H / ★ owner tag on the dashboard. Yields are before tax; no
+ * advice is drawn here.
  */
 export default function DividendRow({
   e,
@@ -128,8 +127,9 @@ export default function DividendRow({
   mark?: ReactNode;
   remind?: boolean;
 }) {
-  const more = extras(e, mode);
   const name = e.company_name || e.trading_code;
+  const href = `/stock/${encodeURIComponent(e.trading_code)}#dividends`;
+  const cash = e.cash_per_share != null && e.cash_per_share > 0;
 
   let fig: ReactNode;
   if (mode === "top") {
@@ -137,8 +137,8 @@ export default function DividendRow({
       <>
         <span className="dc-amt">{e.yield_pct != null ? pct(e.yield_pct, 1) : "—"}</span>
         <span className="dc-amt-x">
-          {e.cash_per_share != null && e.cash_per_share > 0 ? (
-            <T en={`yield · ${perShareTk(e.cash_per_share)} a share`} bn={`ইল্ড · শেয়ারপ্রতি ${perShareTk(e.cash_per_share)}`} />
+          {cash ? (
+            <T en={`yield · ${perShareTk(e.cash_per_share as number)} a share`} bn={`ইল্ড · শেয়ারপ্রতি ${perShareTk(e.cash_per_share as number)}`} />
           ) : (
             <T en="yield" bn="ইল্ড" />
           )}
@@ -164,67 +164,96 @@ export default function DividendRow({
     fig = <MoneyFigure e={e} />;
   }
 
-  const extraLine =
-    more.length > 0 ? (
-      <span className="dc-extra">
-        {more.map((m, i) => (
-          <span key={i}>
-            {i > 0 && <span className="dc-sep" aria-hidden="true"> · </span>}
-            {m}
-          </span>
-        ))}
+  const safety = mode !== "dated" ? e.safety ?? null : null;
+  const head = (
+    <>
+      <span className="dc-name">{name}</span>
+      <span className="dc-meta">
+        <span className="dc-code">{e.trading_code}</span>
+        {mark}
+        {e.dividend_type && mode !== "dated" && (
+          <>
+            <Sep />
+            <T en={e.dividend_type} bn={TYPE_BN[e.dividend_type] ?? e.dividend_type} />
+          </>
+        )}
+        {cash && e.stock_pct && mode !== "dated" ? (
+          <>
+            <Sep />
+            <T en={`+ ${pctWord(e.stock_pct)} bonus`} bn={`+ ${pctWord(e.stock_pct)} বোনাস`} />
+          </>
+        ) : null}
+        {safety && (
+          <Locked as="span" className="dc-word">
+            <Sep />{" "}
+            <b className={`dc-safety-w dc-safety--${safety.level}`}>
+              <T en={safety.word_en} bn={safety.word_bn} />
+            </b>
+          </Locked>
+        )}
       </span>
+    </>
+  );
+
+  if (mode === "dated") return <ExpandRow head={head} fig={fig} body={null} href={href} rank={rank} />;
+
+  const capture = mode === "record" ? e.capture ?? null : null;
+  const facts = extras(e, mode);
+  const canRemind = remind && mode === "record" && cash && (e.buy_days_left == null || e.buy_days_left >= 0);
+  const hasWhy = !!safety || !!capture;
+  const body =
+    hasWhy || facts.length > 0 || canRemind ? (
+      <>
+        {hasWhy && (
+          <Locked>
+            <dl className="dc-why">
+              {safety && (
+                <div>
+                  <dt>
+                    <T en="Is it safe?" bn="নিরাপদ কি?" />
+                  </dt>
+                  <dd>
+                    <b className={`dc-safety-w dc-safety--${safety.level}`}>
+                      <T en={`${safety.word_en}.`} bn={`${safety.word_bn}।`} />
+                    </b>{" "}
+                    <T en={safety.line_en} bn={safety.line_bn} />
+                  </dd>
+                </div>
+              )}
+              {capture && (
+                <div>
+                  <dt>
+                    <T en="Worth buying for it?" bn="এর জন্য কেনা কি লাভের?" />
+                  </dt>
+                  <dd>
+                    <b className={`dc-safety-w dc-capture--${capture.level}`}>
+                      <T en={`${capture.word_en}.`} bn={`${capture.word_bn}।`} />
+                    </b>{" "}
+                    <T en={capture.line_en} bn={capture.line_bn} />
+                  </dd>
+                </div>
+              )}
+            </dl>
+          </Locked>
+        )}
+        {facts.length > 0 && (
+          <p className="dc-x-facts">
+            {facts.map((m, i) => (
+              <span key={i}>
+                {i > 0 && <span className="dc-sep" aria-hidden="true"> · </span>}
+                {m}
+              </span>
+            ))}
+          </p>
+        )}
+        <div className="dc-x-act">
+          <Button href={href} variant="quiet" size="sm">
+            <T en={`Open the ${e.trading_code} page`} bn={`${e.trading_code}-এর পেজ খুলুন`} />
+          </Button>
+          {canRemind && <RemindButton code={e.trading_code} labeled />}
+        </div>
+      </>
     ) : null;
 
-  const row = (
-    <Link
-      href={`/stock/${encodeURIComponent(e.trading_code)}#dividends`}
-      prefetch={false}
-      className={`dc-row ${rank != null ? "dc-row--rank" : ""}`.trim()}
-    >
-      {rank != null && <span className="dc-rank">{rank}</span>}
-      <span className="min-w-0">
-        <span className="dc-name">{name}</span>
-        <span className="dc-meta">
-          <span className="dc-code">{e.trading_code}</span>
-          {mark}
-          {e.dividend_type && mode !== "dated" && (
-            <>
-              <span className="dc-sep" aria-hidden="true">·</span>
-              <T en={e.dividend_type} bn={TYPE_BN[e.dividend_type] ?? e.dividend_type} />
-            </>
-          )}
-        </span>
-        {extraLine}
-        {e.safety && mode !== "dated" && (
-          <Locked as="span" className="dc-safety">
-            <b className={`dc-safety-w dc-safety--${e.safety.level}`}>
-              <T en={e.safety.word_en} bn={e.safety.word_bn} />
-            </b>
-            <span className="dc-sep" aria-hidden="true"> · </span>
-            <T en={e.safety.line_en} bn={e.safety.line_bn} />
-          </Locked>
-        )}
-        {e.capture && mode === "record" && (
-          <Locked as="span" className="dc-safety">
-            <b className={`dc-safety-w dc-capture--${e.capture.level}`}>
-              <T en={e.capture.word_en} bn={e.capture.word_bn} />
-            </b>
-            <span className="dc-sep" aria-hidden="true"> · </span>
-            <T en={e.capture.line_en} bn={e.capture.line_bn} />
-          </Locked>
-        )}
-      </span>
-      <span className="dc-fig">{fig}</span>
-    </Link>
-  );
-  const canRemind =
-    remind && mode === "record" && (e.cash_per_share ?? 0) > 0 && (e.buy_days_left == null || e.buy_days_left >= 0);
-  if (!canRemind) return row;
-  return (
-    <div className="dc-row-shell">
-      {row}
-      <RemindButton code={e.trading_code} />
-    </div>
-  );
+  return <ExpandRow head={head} fig={fig} body={body} href={href} rank={rank} />;
 }

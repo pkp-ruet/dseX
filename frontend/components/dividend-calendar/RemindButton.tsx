@@ -42,7 +42,7 @@ function goToPremium() {
  * ৳N dividend" — on any share, not only the ones you hold or follow. Premium;
  * a free reader's tap says so in a toast and points at the page's card.
  */
-export default function RemindButton({ code }: { code: string }) {
+export default function RemindButton({ code, labeled = false }: { code: string; labeled?: boolean }) {
   const { isPremium, state } = usePremium();
   const { bn } = useLang();
   const [, force] = useState(0);
@@ -109,6 +109,26 @@ export default function RemindButton({ code }: { code: string }) {
   const label = on
     ? bn ? `${up}: রিমাইন্ডার চালু, বন্ধ করুন` : `${up}: reminder on, tap to remove`
     : bn ? `${up} কেনার শেষ দিনে মনে করিয়ে দিন` : `Remind me on the last day to buy ${up}`;
+  if (labeled) {
+    // Inside an opened calendar row (2026-11-04): a quiet button with words.
+    return (
+      <button
+        type="button"
+        className="btn-quiet btn-sm dc-remind-l"
+        data-on={on ? "true" : "false"}
+        aria-pressed={on}
+        onClick={tap}
+        disabled={busy}
+      >
+        {on ? <IconCheck size={16} /> : <IconBell size={16} />}
+        {on ? (
+          <T en="Reminder on" bn="রিমাইন্ডার চালু" />
+        ) : (
+          <T en="Remind me on the last day to buy" bn="কেনার শেষ দিনে মনে করিয়ে দিন" />
+        )}
+      </button>
+    );
+  }
   return (
     <button
       type="button"

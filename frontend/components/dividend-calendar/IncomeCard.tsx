@@ -93,10 +93,12 @@ export default function IncomeCard({
   if (!isLoggedIn || !qty || qty.size === 0) return null;
 
   const total = months.reduce((s, m) => s + m.declared + m.expected, 0);
+  const expected = months.reduce((s, m) => s + m.expected, 0);
+  const shares = new Set(months.flatMap((m) => m.lines.map((l) => l.code.toUpperCase()))).size;
   return (
     <section className="soft-card dc-income" aria-labelledby="dc-income-title">
       <h2 id="dc-income-title" className="dc-income-title">
-        <T en="Your dividend income by month" bn="মাস অনুযায়ী আপনার ডিভিডেন্ড আয়" />
+        <T en="Your dividends" bn="আপনার ডিভিডেন্ড" />
       </h2>
       {months.length === 0 ? (
         <p className="dc-income-lead">
@@ -107,10 +109,11 @@ export default function IncomeCard({
         </p>
       ) : (
         <>
+          <p className="dc-income-big pv">{money(total)}</p>
           <p className="dc-income-lead">
             <T
-              en={`Cash comes to your shares in ${months.length} ${months.length === 1 ? "month" : "months"} ahead, by the month of each record date, after 10% tax.`}
-              bn={`সামনের ${months.length}টি মাসে আপনার শেয়ারে নগদ আসবে, রেকর্ড ডেটের মাস অনুযায়ী, 10% কর কাটার পর।`}
+              en={`Coming to ${shares} of your shares over the next ${months.length} ${months.length === 1 ? "month" : "months"}, after 10% tax.${expected > 0 ? ` About ${money(expected)} of it is our estimate for dividends not declared yet.` : ""}`}
+              bn={`সামনের ${months.length} মাসে আপনার ${shares}টি শেয়ারে আসছে, 10% কর কাটার পর।${expected > 0 ? ` এর মধ্যে প্রায় ${money(expected)} এখনো ঘোষণা না হওয়া ডিভিডেন্ডের অনুমান।` : ""}`}
             />
           </p>
           <ul className="dc-income-list">
@@ -133,9 +136,9 @@ export default function IncomeCard({
                   </span>
                 </span>
                 <span className="dc-income-amt">
-                  {m.declared > 0 && <span>{money(m.declared)}</span>}
+                  {m.declared > 0 && <span className="pv">{money(m.declared)}</span>}
                   {m.expected > 0 && (
-                    <span className="dc-income-exp">
+                    <span className="dc-income-exp pv">
                       <T en={`about ${money(m.expected)} expected`} bn={`প্রায় ${money(m.expected)} আনুমানিক`} />
                     </span>
                   )}
@@ -143,9 +146,6 @@ export default function IncomeCard({
               </li>
             ))}
           </ul>
-          <p className="dc-income-total">
-            <T en={`In all, about ${money(total)} after tax.`} bn={`সব মিলিয়ে কর কাটার পর প্রায় ${money(total)}।`} />
-          </p>
         </>
       )}
     </section>

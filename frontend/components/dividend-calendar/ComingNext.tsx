@@ -1,4 +1,5 @@
-import Link from "next/link";
+import ExpandRow from "@/components/dividend-calendar/ExpandRow";
+import Button from "@/components/ui/Button";
 import { T } from "@/components/i18n/T";
 import { Locked } from "@/components/premium/AnswerLock";
 import CalendarFold from "@/components/dividend-calendar/CalendarFold";
@@ -31,8 +32,8 @@ export default function ComingNext({ rows }: { rows: DividendForecast[] }) {
       title={<T en="Dividends coming next" bn="সামনে যেসব ডিভিডেন্ড আসতে পারে" />}
       lead={
         <T
-          en="Companies that paid cash last year and haven't declared for this year yet. Premium shows when we expect each one, and how much."
-          bn="যে কোম্পানিগুলো গত বছর নগদ ডিভিডেন্ড দিয়েছে কিন্তু এ বছরের জন্য এখনো ঘোষণা করেনি। প্রিমিয়ামে দেখবেন প্রতিটি কবে আসতে পারে, আর কত।"
+          en="Companies that paid cash last year and haven't declared for this year yet. Tap one to see when we expect it, and why."
+          bn="যে কোম্পানিগুলো গত বছর নগদ ডিভিডেন্ড দিয়েছে কিন্তু এ বছরের জন্য এখনো ঘোষণা করেনি। কবে আসতে পারে আর কেন, দেখতে কোম্পানিতে ট্যাপ করুন।"
         />
       }
     />
@@ -55,49 +56,81 @@ export default function ComingNext({ rows }: { rows: DividendForecast[] }) {
   const items = rows.map((r) => {
     const decl = dayShort(r.last_declared, true);
     const meeting = r.meeting ? dayShort(r.meeting) : null;
+    const href = `/stock/${encodeURIComponent(r.trading_code)}#dividends`;
+    const head = (
+      <>
+        <span className="dc-name">{r.company_name || r.trading_code}</span>
+        <span className="dc-meta">
+          <span className="dc-code">{r.trading_code}</span>
+          {meeting && (
+            <>
+              <span className="dc-sep" aria-hidden="true">·</span>
+              <span className="dc-tone--watch">
+                <T en={`Board meets ${meeting.en}`} bn={`পর্ষদ সভা ${meeting.bn}`} />
+              </span>
+            </>
+          )}
+          <Locked as="span" className="dc-word">
+            <span className="dc-sep" aria-hidden="true">·</span>{" "}
+            <b className={`dc-safety-w ${TONE[r.tone]}`.trim()}>
+              <T en={r.word_en} bn={r.word_bn} />
+            </b>
+          </Locked>
+        </span>
+      </>
+    );
+    const fig = (
+      <>
+        <span className="dc-amt">{perShareTk(r.last_cash_per_share)}</span>
+        <span className="dc-amt-x">
+          <T en="a share last year" bn="গত বছর শেয়ারপ্রতি" />
+        </span>
+      </>
+    );
+    const body = (
+      <>
+        <Locked>
+          <dl className="dc-why">
+            <div>
+              <dt>
+                <T en="What we expect" bn="আমাদের অনুমান" />
+              </dt>
+              <dd>
+                <b className={`dc-safety-w ${TONE[r.tone]}`.trim()}>
+                  <T en={`${r.word_en}.`} bn={`${r.word_bn}।`} />
+                </b>{" "}
+                <T en={r.when_en} bn={r.when_bn} />
+              </dd>
+            </div>
+            <div>
+              <dt>
+                <T en="Why" bn="কেন" />
+              </dt>
+              <dd>
+                <T en={r.why_en} bn={r.why_bn} />
+              </dd>
+            </div>
+          </dl>
+        </Locked>
+        <p className="dc-x-facts">
+          <T
+            en={`Last year ${pctWord(r.last_cash_pct)} cash, declared ${decl.en}`}
+            bn={`গত বছর ${pctWord(r.last_cash_pct)} নগদ, ঘোষণা ${decl.bn}`}
+          />
+          {r.last_stock_pct ? (
+            <T en={` · also ${pctWord(r.last_stock_pct)} bonus`} bn={` · সঙ্গে ${pctWord(r.last_stock_pct)} বোনাস`} />
+          ) : null}
+        </p>
+        <div className="dc-x-act">
+          <Button href={href} variant="quiet" size="sm">
+            <T en={`Open the ${r.trading_code} page`} bn={`${r.trading_code}-এর পেজ খুলুন`} />
+          </Button>
+        </div>
+      </>
+    );
     return (
       <li key={r.trading_code}>
-        <Link href={`/stock/${encodeURIComponent(r.trading_code)}#dividends`} prefetch={false} className="dc-row">
-          <span className="min-w-0">
-            <span className="dc-name">{r.company_name || r.trading_code}</span>
-            <span className="dc-meta">
-              <span className="dc-code">{r.trading_code}</span>
-              {meeting && (
-                <>
-                  <span className="dc-sep" aria-hidden="true">·</span>
-                  <span className="dc-tone--watch">
-                    <T en={`Board meets ${meeting.en}`} bn={`পর্ষদ সভা ${meeting.bn}`} />
-                  </span>
-                </>
-              )}
-            </span>
-            <span className="dc-extra">
-              <T
-                en={`Last year ${pctWord(r.last_cash_pct)} cash, declared ${decl.en}`}
-                bn={`গত বছর ${pctWord(r.last_cash_pct)} নগদ, ঘোষণা ${decl.bn}`}
-              />
-              {r.last_stock_pct ? (
-                <T en={` · also ${pctWord(r.last_stock_pct)} bonus`} bn={` · সঙ্গে ${pctWord(r.last_stock_pct)} বোনাস`} />
-              ) : null}
-            </span>
-            <Locked as="span" className="dc-safety">
-              <b className={`dc-safety-w ${TONE[r.tone]}`.trim()}>
-                <T en={r.word_en} bn={r.word_bn} />
-              </b>
-              <span className="dc-sep" aria-hidden="true"> · </span>
-              <T en={r.when_en} bn={r.when_bn} />
-              <span className="dc-forecast-why">
-                <T en={r.why_en} bn={r.why_bn} />
-              </span>
-            </Locked>
-          </span>
-          <span className="dc-fig">
-            <span className="dc-amt">{perShareTk(r.last_cash_per_share)}</span>
-            <span className="dc-amt-x">
-              <T en="a share last year" bn="গত বছর শেয়ারপ্রতি" />
-            </span>
-          </span>
-        </Link>
+        <ExpandRow head={head} fig={fig} body={body} href={href} />
       </li>
     );
   });

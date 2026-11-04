@@ -76,15 +76,32 @@ export default async function DividendCalendarPage() {
   const lead = data.settlement.normal_buy_lead_trading_days;
   const forecast = data.forecast ?? [];
 
-  // The four lists as tabs (2026-10-29 compact redesign) — they were four
-  // sections one under another, and everything under the record dates sat
-  // past a very long scroll. Ids keep the old section anchors working.
+  const promo = buildCalendarPromo(data);
+
+  // The five lists as tabs, in the order a reader needs them (2026-11-04
+  // clean pass): what can I still get, what's new, what's next, then the AGMs
+  // and the year's biggest payers. Ids keep the old section anchors working.
   const panels: CalendarPanel[] = [
     {
       key: "record-dates",
       label: { en: "Record dates", bn: "রেকর্ড ডেট" },
       count: data.record_dates.length,
       body: <RecordDateBoard events={data.record_dates} />,
+    },
+    {
+      key: "recent",
+      label: { en: "Just declared", bn: "সদ্য ঘোষিত" },
+      short: { en: "Declared", bn: "নতুন" },
+      count: Math.min(data.recent_declarations.length, RECENT_LIMIT),
+      body: <RecentDeclarations events={data.recent_declarations} />,
+    },
+    {
+      // Who hasn't declared for this year yet (2026-10-31).
+      key: "coming-next",
+      label: { en: "Coming next", bn: "সামনে আসছে" },
+      short: { en: "Next", bn: "আসছে" },
+      count: forecast.length,
+      body: <ComingNext rows={forecast} />,
     },
     {
       key: "agms",
@@ -98,22 +115,6 @@ export default async function DividendCalendarPage() {
       short: { en: "Top payers", bn: "বড় ডিভিডেন্ড" },
       count: data.top_cash_dividends.length,
       body: <TopCashDividends events={data.top_cash_dividends} />,
-    },
-    {
-      key: "recent",
-      label: { en: "Just declared", bn: "সদ্য ঘোষিত" },
-      short: { en: "Declared", bn: "নতুন ঘোষণা" },
-      count: Math.min(data.recent_declarations.length, RECENT_LIMIT),
-      body: <RecentDeclarations events={data.recent_declarations} />,
-    },
-    {
-      // Who hasn't declared for this year yet (2026-10-31): last year's facts
-      // free, when and how much we expect Premium.
-      key: "coming-next",
-      label: { en: "Coming next", bn: "সামনে আসছে" },
-      short: { en: "Next", bn: "আসছে" },
-      count: forecast.length,
-      body: <ComingNext rows={forecast} />,
     },
   ].filter((p) => p.key === "record-dates" || p.count > 0);
 
@@ -215,15 +216,15 @@ export default async function DividendCalendarPage() {
         title={<T en="Dividend calendar" bn="ডিভিডেন্ড ক্যালেন্ডার" />}
         lead={
           <T
-            en="Which company pays a dividend and when: record dates, AGMs and the last day to buy."
-            bn="কোন কোম্পানি কবে ডিভিডেন্ড দিচ্ছে: রেকর্ড ডেট, এজিএম আর কেনার শেষ দিন।"
+            en="Which DSE companies pay a dividend, the last day to buy to get it, and whether each one looks safe."
+            bn="ডিএসইর কোন কোম্পানি ডিভিডেন্ড দিচ্ছে, পেতে হলে কবের মধ্যে কিনতে হবে, আর প্রতিটি নিরাপদ কি না।"
           />
         }
         actions={
           <span className="ms-page-date">
             <T
-              en={`Updated ${formatDate(data.today)} · ${data.stats.declarations_tracked} declarations tracked`}
-              bn={`হালনাগাদ ${bnDate(data.today)} · ${data.stats.declarations_tracked}টি ঘোষণা দেখা হচ্ছে`}
+              en={`Updated ${formatDate(data.today)}`}
+              bn={`হালনাগাদ ${bnDate(data.today)}`}
             />
           </span>
         }
@@ -236,14 +237,15 @@ export default async function DividendCalendarPage() {
           is in the HTML, open, under one lock. */}
       <PageGate
         anchor={CALENDAR_PREMIUM_ANCHOR}
-        promo={<DividendPromo promo={buildCalendarPromo(data)} />}
+        promo={<DividendPromo promo={promo} />}
       >
-        <CalendarSummary data={data} />
+        {/* What's ahead, in one card. */}
+        <CalendarSummary data={data} promo={promo} />
 
         {/* The reader's own cash by month (signed in, with shares). */}
         <IncomeCard records={data.record_dates} forecast={forecast} today={data.today} />
 
-        {/* The five lists as tabs. */}
+        {/* The five lists as tabs; tap a company to open it. */}
         <CalendarTabs panels={panels} />
       </PageGate>
 
