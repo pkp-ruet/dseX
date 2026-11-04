@@ -1,22 +1,26 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import {
   apiGetAdminAnalytics,
   getScores,
   type AdminAnalyticsResponse,
+  type AdminWindow,
   type ScoreItem,
   type ScoresResponse,
 } from "@/lib/api";
 import PageHeader from "@/components/ui/PageHeader";
 import Button from "@/components/ui/Button";
+import Chip from "@/components/ui/Chip";
 import ErrorState from "@/components/ui/ErrorState";
 import Skeleton from "@/components/ui/Skeleton";
-import GrowthChart from "./analytics/GrowthChart";
-import { BarList, FunnelBars, HoursHeatmap, MetricRow, Panel, StockBarList } from "./analytics/widgets";
-import { COLORS, SEGMENT_META, SEGMENT_ORDER } from "./analytics/shared";
+import Tabs from "@/components/ui/Tabs";
+import OverallTab from "./analytics/OverallTab";
+import PremiumTab from "./analytics/PremiumTab";
+import FreeTab from "./analytics/FreeTab";
+import { n } from "./analytics/shared";
 
 const ADMIN_LINKS = [
   { href: "/admin/payments", label: "Payments" },
@@ -27,64 +31,20 @@ const ADMIN_LINKS = [
   { href: "/admin/campaigns", label: "Email Campaigns" },
 ];
 
+type TabKey = "overall" | "premium" | "free";
+const TAB_KEYS: TabKey[] = ["overall", "premium", "free"];
+const WINDOWS: AdminWindow[] = [7, 30, 90];
+
 function flatten(scores: ScoresResponse | null): Map<string, ScoreItem> {
   if (!scores) return new Map();
   const all = Object.values(scores.tiers).flat();
   return new Map(all.map((s) => [s.trading_code.toUpperCase(), s]));
 }
 
-const n = (v: number) => v.toLocaleString();
-const pctOf = (part: number, whole: number) => (whole ? Math.round((part / whole) * 100) : 0);
-
-function Section({ title, note, children }: { title: string; note?: string; children: ReactNode }) {
-  return (
-    <section className="flex flex-col gap-3">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-base font-bold text-text-main">{title}</h2>
-        {note && <span className="text-xs text-text-muted">{note}</span>}
-      </div>
-      {children}
-    </section>
-  );
-}
-
-/** One stacked bar of where every account sits today + a legend with counts. */
-function SegmentBar({ segments, total }: { segments: AdminAnalyticsResponse["segments"]; total: number }) {
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex h-4 rounded-full overflow-hidden bg-surface-2">
-        {SEGMENT_ORDER.map((k) =>
-          segments[k] ? (
-            <div
-              key={k}
-              title={`${SEGMENT_META[k].label}: ${n(segments[k])}`}
-              style={{ width: `${(segments[k] / (total || 1)) * 100}%`, background: SEGMENT_META[k].color }}
-            />
-          ) : null,
-        )}
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        {SEGMENT_ORDER.map((k) => (
-          <div key={k} className="flex items-start gap-2">
-            <span className="mt-1 h-3 w-3 shrink-0 rounded-sm" style={{ background: SEGMENT_META[k].color }} />
-            <div className="min-w-0">
-              <p className="text-sm text-text-main">
-                <span className="font-bold tabular-nums">{n(segments[k])}</span> {SEGMENT_META[k].label}
-                <span className="ml-1 text-xs text-text-muted">{pctOf(segments[k], total)}%</span>
-              </p>
-              <p className="text-xs text-text-muted">{SEGMENT_META[k].blurb}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function Loading() {
   return (
     <div className="flex flex-col gap-3">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} height={96} rounded="var(--radius-md)" />)}
       </div>
       <Skeleton height={288} rounded="var(--radius-md)" />
@@ -100,7 +60,9 @@ export default function AdminAnalyticsClient() {
   const [data, setData] = useState<AdminAnalyticsResponse | null>(null);
   const [priceMap, setPriceMap] = useState<Map<string, ScoreItem>>(new Map());
   const [failed, setFailed] = useState(false);
-  const [attempt, setAttempt] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [days, setDays] = useState<AdminWindow>(30);
+  const [tab, setTab] = useState<TabKey>("overall");
 
   useEffect(() => {
     if (isLoading) return;
@@ -108,11 +70,29 @@ export default function AdminAnalyticsClient() {
     if (!isAdmin) { router.replace("/"); return; }
   }, [isLoading, isLoggedIn, isAdmin, router]);
 
+  // The tab lives in the hash, so a reload or a shared link opens the same one.
+  useEffect(() => {
+    const h = window.location.hash.slice(1) as TabKey;
+    if (TAB_KEYS.includes(h)) setTab(h);
+  }, []);
+  const pickTab = (k: TabKey) => {
+    setTab(k);
+    try { window.history.replaceState(null, "", `#${k}`); } catch { /* ignore */ }
+  };
+
+  const load = useCallback((w: AdminWindow, fresh = false) => {
+    setBusy(true);
+    setFailed(false);
+    apiGetAdminAnalytics(w, fresh)
+      .then(setData)
+      .catch(() => setFailed(true))
+      .finally(() => setBusy(false));
+  }, []);
+
   useEffect(() => {
     if (!isAdmin) return;
-    setFailed(false);
-    apiGetAdminAnalytics().then(setData).catch(() => setFailed(true));
-  }, [isAdmin, attempt]);
+    load(days);
+  }, [isAdmin, days, load]);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -128,233 +108,69 @@ export default function AdminAnalyticsClient() {
         timeZone: "Asia/Dhaka", hour: "2-digit", minute: "2-digit", hour12: false,
       })
     : null;
+  const windowDays = data?.window_days ?? days;
+  const plans = data?.plans;
 
   return (
     <>
       <PageHeader
         eyebrow="Admin"
         title="User analytics"
-
-        lead={updated ? `Updated ${updated} Dhaka time. Behaviour panels cover the last 30 days.` : undefined}
+        lead={
+          updated
+            ? `Updated ${updated} Dhaka time. Behaviour covers signed-in readers only${
+                data?.admins_left_out ? `; ${data.admins_left_out} admin account${data.admins_left_out > 1 ? "s" : ""} left out` : "; admins left out"
+              }.`
+            : undefined
+        }
       />
 
-      <nav aria-label="Admin pages" className="flex flex-wrap gap-2 mb-6">
+      <nav aria-label="Admin pages" className="mb-6 flex flex-wrap gap-2">
         {ADMIN_LINKS.map((l) => (
           <Button key={l.href} href={l.href} variant="quiet" size="sm">{l.label}</Button>
         ))}
       </nav>
 
+      <div className="z-20 -mx-4 mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-border bg-bg px-4 py-3 sm:-mx-6 sm:px-6 md:sticky md:top-14">
+        <Tabs
+          ariaLabel="Who to look at"
+          idBase="an-tab"
+          value={tab}
+          onChange={pickTab}
+          tabs={[
+            { key: "overall", label: "Overall" },
+            { key: "premium", label: plans ? `Premium · ${n(plans.paid + plans.gifted)}` : "Premium" },
+            { key: "free", label: plans ? `Free · ${n(plans.free)}` : "Free" },
+          ]}
+        />
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold text-text-muted">Last</span>
+          {WINDOWS.map((w) => (
+            <Chip key={w} active={days === w} onClick={() => setDays(w)}>{w} days</Chip>
+          ))}
+          <Button variant="quiet" size="sm" onClick={() => load(days, true)} disabled={busy}>
+            {busy ? "Loading…" : "Refresh"}
+          </Button>
+        </div>
+      </div>
+
       {failed && !data && (
-        <ErrorState title="Couldn't load analytics" size="inline" onRetry={() => setAttempt((a) => a + 1)} />
+        <ErrorState title="Couldn't load analytics" size="inline" onRetry={() => load(days)} />
       )}
       {!data && !failed && <Loading />}
 
-      {data && <Dashboard data={data} priceMap={priceMap} />}
-    </>
-  );
-}
-
-function Dashboard({ data, priceMap }: { data: AdminAnalyticsResponse; priceMap: Map<string, ScoreItem> }) {
-  const h = data.headline;
-  const total = h.total_users;
-  const { d1, d7, d30 } = data.retention;
-  const a = data.activation;
-  const f = data.features;
-  const p = data.premium;
-
-  return (
-    <div className="flex flex-col gap-8">
-      {p && (
-        <Section title="Premium" note="admins not counted">
-          <MetricRow
-            cols="grid-cols-2 md:grid-cols-3"
-            metrics={[
-              {
-                label: "Premium now",
-                value: n(p.active),
-                accent: COLORS.primary,
-                sub: `${n(p.paid ?? 0)} paid · ${n(p.on_trial)} on the free month · ${n(p.granted)} given by admin`,
-                hint: "Accounts whose premium end date is still in the future.",
-              },
-              {
-                label: "Payments to check",
-                value: n(p.payments_pending ?? 0),
-                sub: "bKash / Nagad / bank — open Payments to accept or revoke",
-                hint: "Premium already started for these; check each against the bKash / Nagad or bank statement.",
-              },
-              {
-                label: "Started the free month",
-                value: n(p.trials_started),
-                sub: `+${n(p.trials_7d)} this week · ${pctOf(p.trials_started, total)}% of all users`,
-                hint: "Everyone who took the free month before it was removed (2026-10-25).",
-              },
-              {
-                label: "Free month ended",
-                value: n(p.trials_ended),
-                sub: `${pctOf(p.trials_ended, p.trials_started)}% of those who started`,
-                hint: "Used the free month and are not premium today.",
-              },
-            ]}
-          />
-        </Section>
+      {data && (
+        <div
+          role="tabpanel"
+          aria-labelledby={`an-tab-${tab}`}
+          aria-busy={busy}
+          className={busy ? "opacity-60 transition-opacity" : "transition-opacity"}
+        >
+          {tab === "overall" && <OverallTab data={data} priceMap={priceMap} windowDays={windowDays} />}
+          {tab === "premium" && <PremiumTab data={data} priceMap={priceMap} windowDays={windowDays} />}
+          {tab === "free" && <FreeTab data={data} priceMap={priceMap} windowDays={windowDays} />}
+        </div>
       )}
-
-      <Section title="The numbers">
-        <MetricRow
-          metrics={[
-            {
-              label: "Total users",
-              value: n(total),
-              sub: `+${n(h.new_today)} today · +${n(h.new_7d)} this week · +${n(h.new_30d)} in 30 days`,
-            },
-            {
-              label: "Active today",
-              value: n(h.dau),
-              accent: COLORS.positive,
-              sub: `${h.stickiness}% of monthly users come daily`,
-              hint: "Distinct signed-in users with a page view today (Dhaka day). DAU / MAU = stickiness.",
-            },
-            {
-              label: "Active this week",
-              value: n(h.wau),
-              sub: `${pctOf(h.wau, total)}% of all users`,
-            },
-            {
-              label: "Active this month",
-              value: n(h.mau),
-              sub: `${pctOf(h.mau, total)}% of all users`,
-            },
-          ]}
-        />
-        <GrowthChart growth={data.growth} />
-      </Section>
-
-      <Section title="Do they come back?">
-        <MetricRow
-          cols="grid-cols-3"
-          metrics={[
-            { key: "d1", label: "Next day", s: d1 },
-            { key: "d7", label: "After a week", s: d7 },
-            { key: "d30", label: "After a month", s: d30 },
-          ].map(({ label, s }) => ({
-            label,
-            value: `${s.pct}%`,
-            accent: s.pct >= 40 ? COLORS.positive : s.pct >= 20 ? COLORS.watch : COLORS.negative,
-            sub: `${n(s.retained)} of ${n(s.eligible)} came back`,
-            hint: "Share of users whose latest visit is at least this many days after the day they signed up.",
-          }))}
-        />
-        <Panel title="Where every account is today">
-          <SegmentBar segments={data.segments} total={total} />
-        </Panel>
-      </Section>
-
-      <Section title="How far they get">
-        <div className="grid gap-3 md:grid-cols-2">
-          <Panel title="From sign-up to real use" note="% of all users">
-            <FunnelBars
-              steps={[
-                { label: "Signed up", count: a.signed_up, color: COLORS.muted },
-                { label: "Came back another day", count: a.returned, color: COLORS.indigo },
-                { label: "Followed a stock", count: a.built_watchlist, color: COLORS.primary },
-                { label: "Added a holding", count: a.added_portfolio, color: COLORS.orange },
-                {
-                  label: "Uses a power feature",
-                  count: a.power_feature,
-                  color: COLORS.positive,
-                  hint: "Push on, app installed, price alert set, or asked TopStock AI.",
-                },
-              ]}
-            />
-          </Panel>
-          <Panel title="Power features" note="users">
-            <BarList
-              color={COLORS.indigo}
-              items={[
-                { key: "installed", label: "Installed the app", value: f.installed },
-                { key: "ai", label: "Asked TopStock AI", value: f.ai },
-                { key: "push", label: "Push notifications on", value: f.push },
-                { key: "alerts", label: "Set a price alert", value: f.alerts },
-              ]
-                .sort((x, y) => y.value - x.value)
-                .map((it) => ({ ...it, secondary: `${pctOf(it.value, total)}% of users` }))}
-            />
-          </Panel>
-        </div>
-      </Section>
-
-      <Section title="What they do" note="last 30 days">
-        <div className="grid gap-3 md:grid-cols-2">
-          <Panel title="Pages they open" note="views">
-            <BarList
-              items={data.sections.map((s) => ({
-                key: s.category,
-                label: s.category,
-                value: s.views,
-                secondary: `${n(s.users)} users`,
-              }))}
-            />
-          </Panel>
-          <Panel title="When they're online" note="Dhaka time">
-            <HoursHeatmap matrix={data.active_hours.matrix} max={data.active_hours.max} />
-          </Panel>
-        </div>
-      </Section>
-
-      <Section title="Stocks they care about">
-        <div className="grid gap-3 md:grid-cols-3">
-          <Panel title="Most opened" note="30 days, views">
-            <StockBarList
-              priceMap={priceMap}
-              items={data.stocks.viewed.map((s) => ({
-                code: s.code,
-                value: s.views ?? 0,
-                secondary: `${n(s.users)} users`,
-              }))}
-            />
-          </Panel>
-          <Panel title="Most followed" note="users">
-            <StockBarList
-              priceMap={priceMap}
-              color={COLORS.pink}
-              items={data.stocks.watched.map((s) => ({ code: s.code, value: s.users }))}
-            />
-          </Panel>
-          <Panel title="Most owned" note="users">
-            <StockBarList
-              priceMap={priceMap}
-              color={COLORS.orange}
-              items={data.stocks.held.map((s) => ({ code: s.code, value: s.users }))}
-            />
-          </Panel>
-        </div>
-      </Section>
-
-      <Section title="Where they come from">
-        <div className="grid gap-3 md:grid-cols-2">
-          <Panel title="Taps from push & email" note="30 days, views">
-            <BarList
-              color={COLORS.indigo}
-              emptyText="No tagged notification taps yet."
-              items={data.notifications.map((s) => ({
-                key: s.src,
-                label: s.src,
-                value: s.views,
-                secondary: `${n(s.users)} users`,
-              }))}
-            />
-          </Panel>
-          <Panel title="How they signed up" note="users">
-            <BarList
-              color={COLORS.orange}
-              items={[
-                { key: "google", label: "Google", value: data.signup_source.google },
-                { key: "password", label: "Email / phone", value: data.signup_source.password },
-              ].map((it) => ({ ...it, secondary: `${pctOf(it.value, total)}% of users` }))}
-            />
-          </Panel>
-        </div>
-      </Section>
-    </div>
+    </>
   );
 }

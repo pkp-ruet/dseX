@@ -50,7 +50,7 @@ export function MetricRow({ metrics, cols }: { metrics: Metric[]; cols?: string 
       {metrics.map((m) => (
         <Card key={m.label} padding="none" className="min-w-0 rounded-xl p-4">
           <div className="flex items-center gap-1.5">
-            <p className="text-xs font-semibold   text-text-muted">
+            <p className="text-xs font-semibold text-text-muted">
               {m.label}
             </p>
             {m.hint && (
@@ -85,26 +85,31 @@ export function BarList({
   color = COLORS.primary,
   emptyText = "No data yet.",
   valueSuffix,
+  max: fixedMax,
+  format,
 }: {
   items: BarItem[];
   color?: string;
   emptyText?: string;
   valueSuffix?: string;
+  /** Scale the bars to this instead of the largest item (100 for shares). */
+  max?: number;
+  format?: (v: number) => ReactNode;
 }) {
-  const max = items.reduce((a, i) => Math.max(a, i.value), 0) || 1;
+  const max = fixedMax || items.reduce((a, i) => Math.max(a, i.value), 0) || 1;
   if (items.length === 0) {
     return <p className="py-6 text-center text-xs text-text-muted">{emptyText}</p>;
   }
   return (
     <div className="flex flex-col gap-2.5">
       {items.map((it) => {
-        const w = (it.value / max) * 100;
+        const w = Math.min(100, (it.value / max) * 100);
         const inner = (
           <>
             <div className="flex items-baseline justify-between gap-3 mb-1">
               <span className="min-w-0 text-sm text-text-main truncate">{it.label}</span>
               <span className="shrink-0 text-sm font-bold tabular-nums nums" style={{ color }}>
-                {it.value.toLocaleString()}
+                {format ? format(it.value) : it.value.toLocaleString("en-US")}
                 {valueSuffix && <span className="text-xs font-normal text-text-muted ml-0.5">{valueSuffix}</span>}
               </span>
             </div>
@@ -193,7 +198,7 @@ export function FunnelBars({
                 {s.hint && <span className="text-text-muted cursor-help" title={s.hint}>ⓘ</span>}
               </span>
               <span className="text-xs text-text-muted tabular-nums">
-                <span className="font-bold text-text-main text-sm">{s.count.toLocaleString()}</span>
+                <span className="font-bold text-text-main text-sm">{s.count.toLocaleString("en-US")}</span>
                 <span className="ml-1.5">{Math.round(pctOfTop)}%</span>
                 {showConversion && i > 0 && <span className="ml-1.5 text-xs">({conv}% of prev)</span>}
               </span>
@@ -216,14 +221,14 @@ export function FunnelBars({
  * ------------------------------------------------------------------ */
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-export function HoursHeatmap({ matrix, max }: { matrix: number[][]; max: number }) {
+export function HoursHeatmap({ matrix, max, color = COLORS.primary }: { matrix: number[][]; max: number; color?: string }) {
   if (!max) {
     return <p className="py-6 text-center text-xs text-text-muted">No tracked activity yet.</p>;
   }
   const shade = (v: number) => {
     if (!v) return "var(--surface-2)";
     const a = Math.max(0.1, (v / max) * 0.92);
-    return `color-mix(in srgb, ${COLORS.primary} ${Math.round(a * 100)}%, transparent)`;
+    return `color-mix(in srgb, ${color} ${Math.round(a * 100)}%, transparent)`;
   };
   const fmtHour = (h: number) => (h === 0 ? "12a" : h === 12 ? "12p" : h < 12 ? `${h}a` : `${h - 12}p`);
   return (
@@ -252,7 +257,7 @@ export function HoursHeatmap({ matrix, max }: { matrix: number[][]; max: number 
                   key={h}
                   className="h-5 rounded"
                   style={{ background: shade(v) }}
-                  title={`${WEEKDAYS[d]} ${fmtHour(h)} — ${v.toLocaleString()} views`}
+                  title={`${WEEKDAYS[d]} ${fmtHour(h)} — ${v.toLocaleString("en-US")} views`}
                 />
               ))}
             </tr>
