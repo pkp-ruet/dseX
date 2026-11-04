@@ -63,6 +63,15 @@ def _iso(v) -> Optional[str]:
     return str(v)
 
 
+def stored_signals(user_id: str) -> dict[str, str]:
+    """{code: the advice the daily recorder last stored} — the `prev` the
+    release lines read (signal_service.holding_signals_for)."""
+    return {
+        (d.get("trading_code") or "").upper(): d.get("signal") or "none"
+        for d in _signals().find({"user_id": user_id}, {"_id": 0, "trading_code": 1, "signal": 1})
+    }
+
+
 def list_recent_events(user_id: str) -> list[dict]:
     """Signal flips within the retention window, newest first."""
     cutoff = datetime.now(timezone.utc) - timedelta(days=_EVENT_RETENTION_DAYS)
@@ -116,7 +125,7 @@ def check_and_notify(not_before_dhaka_hour: Optional[int] = None) -> dict:
     if not users:
         return {"users": 0, "holdings": 0, "changed": 0, "pushed": 0, "failed": 0}
 
-    from backend.services.signal_service import build_signals, holding_signal, holding_weights
+    from backend.services.signal_service import build_signals, holding_signals_for
 
     signals = build_signals()
     prices = load_latest_prices()
@@ -138,7 +147,10 @@ def check_and_notify(not_before_dhaka_hour: Optional[int] = None) -> dict:
             for d in _signals().find({"user_id": uid}, {"_id": 0, "trading_code": 1, "signal": 1})
         }
         sell_flips: list[str] = []
-        weights = holding_weights(holdings, prices)
+        advice = holding_signals_for(
+            holdings, prices, signals,
+            {c: d.get("signal") for c, d in prev_state.items()},
+        )
 
         for h in holdings:
             code = (h.get("trading_code") or "").upper()
@@ -147,15 +159,7 @@ def check_and_notify(not_before_dhaka_hour: Optional[int] = None) -> dict:
             held_codes.append(code)
             holdings_seen += 1
 
-            buy_price = float(h.get("buy_price") or 0)
-            ltp_row = prices.get(code) or {}
-            ltp = ltp_row.get("ltp")
-            pnl_pct = (
-                (float(ltp) - buy_price) / buy_price * 100
-                if ltp and buy_price > 0 else None
-            )
-            sig = signals.get(code)
-            signal = holding_signal(sig, pnl_pct, (sig or {}).get("p4_val"), weights.get(code))["signal"]
+            signal = (advice.get(code) or {}).get("signal") or "none"
 
             prev = prev_state.get(code)
             if prev is None:

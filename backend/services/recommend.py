@@ -482,7 +482,7 @@ def words(c: dict, kind: str, anchor: Optional[str], shared: list[dict], prof: d
                f"আপনার {'কেনা' if own else 'ফলো করা'} {anchor}-এর মতো একই ব্যবসা, আর এখন দামও ভালো।")
     elif kind == "asked":
         # The tag already says "your sector"; the reason says what stands out.
-        tag = ("Your sector", "আপনার খাত")
+        tag = ("Your sector", "আপনার সেক্টর")
         en, bn, said = _top_why(c, lv)
         why = (en, bn)
         skip = (said,) if said else ()
@@ -496,9 +496,9 @@ def words(c: dict, kind: str, anchor: Optional[str], shared: list[dict], prof: d
             why = (f"{t['en']}, like {t['n']} of your {t['of']} stocks.",
                    f"{t['bn']}, আপনার {t['of']}টি শেয়ারের {t['n']}টির মতোই।")
     elif kind == "new_area":
-        tag = ("New sector for you", "আপনার জন্য নতুন খাত")
+        tag = ("New sector for you", "আপনার জন্য নতুন সেক্টর")
         why = (f"Adds {sec}, a business none of your stocks are in.",
-               f"{sec_bn} খাত যোগ হয়, আপনার কোনো শেয়ার এই ব্যবসায় নেই।")
+               f"{sec_bn} সেক্টর যোগ হয়, আপনার কোনো শেয়ার এই ব্যবসায় নেই।")
     else:
         tag = ("Strong pick" if c.get("strength") == "strong" else "Top pick",
                "জোরালো বাছাই" if c.get("strength") == "strong" else "সেরা বাছাই")
@@ -697,7 +697,7 @@ def gaps(rows: list[dict]) -> dict:
         pct = _r(top[1], 0)
         out.append({"key": "heavy_sector",
                     "en": f"{pct}% of your money is in {heavy}, so your next buy is best made in a different sector.",
-                    "bn": f"আপনার টাকার {pct}% আছে {heavy} খাতে, তাই পরের কেনাটি অন্য কোনো খাতে হলে ভালো।"})
+                    "bn": f"আপনার টাকার {pct}% আছে {heavy} সেক্টরে, তাই পরের কেনাটি অন্য কোনো সেক্টরে হলে ভালো।"})
     heavy_is_fin = heavy is not None and any(r["sector"] == heavy and r["sector_class"] in _FINANCIAL for r in rows)
     if fin_heavy and fin_pct - (top[1] if heavy_is_fin else 0.0) > 5:
         pct = _r(fin_pct, 0)
@@ -824,8 +824,8 @@ def portfolio_plan(rows: list[dict], cands: list[dict], levels: dict[str, dict],
             sec, sec_bn = c.get("sector") or "", _sector_bn(c)
             take(_idea(explained[c["code"]], "new_sector",
                        f"Adds a sector you don't own yet: {sec}.",
-                       f"এমন একটি খাত যোগ করে যা আপনার এখনো নেই: {sec_bn}।",
-                       None, size(_n(c.get("ltp")), total, nh), ("New sector", "নতুন খাত")))
+                       f"এমন একটি সেক্টর যোগ করে যা আপনার এখনো নেই: {sec_bn}।",
+                       None, size(_n(c.get("ltp")), total, nh), ("New sector", "নতুন সেক্টর")))
         for c in pool:
             if len(ideas) >= n:
                 break

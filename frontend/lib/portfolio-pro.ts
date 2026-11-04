@@ -12,6 +12,7 @@
 import type { AnalysisLang, HoldingInsight, PortfolioAnalysis } from "@/lib/portfolio-analysis";
 import type { ScoreItem } from "@/lib/api";
 import { money } from "@/lib/formatters";
+import { ONE_SHARE_FAIR_PCT } from "@/lib/portfolio-limits";
 
 export type ProLevel = "good" | "watch" | "bad";
 
@@ -38,8 +39,8 @@ export interface ProInsights {
   actions: ProAction[];
 }
 
-/** A single holding above this share of the money gets a "trim" suggestion. */
-const TRIM_WEIGHT_PCT = 25;
+/** A single holding above this share of the money leans on it (the shared line). */
+const TRIM_WEIGHT_PCT = ONE_SHARE_FAIR_PCT;
 
 const pct = (v: number) => `${Math.round(v)}%`;
 const fix1 = (v: number) => v.toFixed(1);
@@ -272,7 +273,8 @@ export function buildProInsights(
     trim: L("Trim it", "কিছুটা কমান"),
     review: L("Read the warning", "সতর্কতাটি পড়ুন"),
     buy_more: L("Good to add", "আরও কেনা যায়"),
-    hold: L("Hold steady", "ধরে রাখুন"),
+    // No Hold advice exists (signal_service): a share with no signal says so.
+    hold: L("No signal today", "আজ কোনো সংকেত নেই"),
   };
   const ORDER: Record<ProActionKind, number> = { sell: 0, trim: 1, review: 2, buy_more: 3, hold: 4 };
   const actions: ProAction[] = hs
@@ -289,7 +291,9 @@ export function buildProInsights(
               `It is ${pct(h.weightPct)} of your money and its price is high or near its top this year. Selling some lowers the risk.`,
               `এটি আপনার টাকার ${pct(h.weightPct)}, আর দাম এখন বেশি বা বছরের সর্বোচ্চের কাছে। কিছুটা বিক্রি করলে ঝুঁকি কমে।`,
             )
-          : (kind === "hold" ? h.oneLiner : h.signal.reason) || h.oneLiner;
+          : kind === "hold"
+            ? [h.descriptor, h.signal.reason].filter(Boolean).join(" ")
+            : h.signal.reason || h.oneLiner;
       return { code: h.code, companyName: h.companyName, kind, label: LABEL[kind], reason };
     })
     .sort((a, b) => ORDER[a.kind] - ORDER[b.kind]);

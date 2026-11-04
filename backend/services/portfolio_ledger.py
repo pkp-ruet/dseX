@@ -21,24 +21,35 @@ Log entry shapes (all carry ``id``, ``kind``, ``code``, ``date``):
 An undone or dismissed row stays in the log so the daily job never applies the
 same record date twice.
 
-Who gets a corporate action: a holding recorded **before** the record date.
-``added_at`` is when the user put the stock in the app, not when they bought
-it, so a record date after it is the only one we can be sure about. Record
-dates on or after ``AUTO_SINCE`` (the day this shipped) are applied by the
-daily job; older ones since ``added_at`` are offered as *suggestions* the user
-confirms — someone who already fixed their share count by hand must not get
-the bonus twice.
+Who gets a corporate action: a holding recorded by the last normal-market buy
+day before the record date (``buy_by``: DSE settles on T+2). ``added_at`` is
+when the user put the stock in the app, not when they bought it, so it stands
+in as the buy date of any shares no logged buy explains. The share count is
+the one at the end of that day, rebuilt from the log (``eligible_qty``), not
+the count when the action happens to be applied. Record dates on or after
+``AUTO_SINCE`` (the day this shipped) are applied by the daily job; older ones
+since ``added_at`` are offered as *suggestions* the user confirms — someone
+who already fixed their share count by hand must not get the bonus twice.
+
+An action waits until the share has traded after its record date: DSE halts
+trading on the record date, so until the first ex-trade the latest price still
+carries the dividend and the bonus, and the old share count is the right value.
 """
 from __future__ import annotations
 
 import math
 import uuid
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
+from functools import lru_cache
 from typing import Optional
 
 # Record dates from this day on are applied automatically; older ones are
 # suggestions (see module docstring).
 AUTO_SINCE = "2026-10-25"
+
+# How far back corporate actions are read (`db_service.load_corporate_actions`):
+# the trades inside it are needed to rebuild a record date's share count.
+ACTION_WINDOW_DAYS = 400
 
 # Defaults for the reader's own cost settings (editable on the portfolio page).
 # DSE brokerage commission + CDBL/BSEC levies land around 0.3–0.5% a side;
@@ -47,7 +58,10 @@ DEFAULT_SETTINGS = {"fee_pct": 0.4, "div_tax_pct": 10.0}
 _FEE_RANGE = (0.0, 2.0)
 _TAX_RANGE = (0.0, 30.0)
 
-LOG_MAX = 2000  # hard cap so a runaway client can't grow the user doc forever
+LOG_MAX = 2000  # cap on the log; only old buy/sell rows are ever trimmed (trim_log)
+# Backstop past LOG_MAX: a runaway client can't grow the user doc forever, even
+# with trades inside the action window (no real investor logs this many a year).
+LOG_HARD_MAX = 10000
 
 MAIN_PID = "main"
 
@@ -137,9 +151,39 @@ def realized(entry: dict) -> float:
     return round(float(entry.get("qty") or 0) * (float(entry.get("price") or 0) - float(entry.get("avg_cost") or 0)), 2)
 
 
+def trim_log(log: list[dict], today: Optional[str] = None) -> list[dict]:
+    """The log cut back to LOG_MAX by dropping the oldest buy/sell rows from
+    before the action window. Bonus / dividend rows are never dropped (a lost
+    row would be applied again) and nor are trades inside the window (they
+    rebuild a record date's share count). Past LOG_HARD_MAX the oldest trades
+    go whatever their date."""
+    log = list(log or [])
+    if len(log) <= LOG_MAX:
+        return log
+    cutoff = (date.fromisoformat(today or _today_iso()) - timedelta(days=ACTION_WINDOW_DAYS)).isoformat()
+
+    def trade(e: dict) -> bool:
+        return e.get("kind") in ("buy", "sell")
+
+    def old_trade(e: dict) -> bool:
+        return trade(e) and (_iso(e.get("date")) or "") < cutoff
+
+    for droppable, cap in ((old_trade, LOG_MAX), (trade, LOG_HARD_MAX)):
+        extra = len(log) - cap
+        if extra <= 0:
+            continue
+        out = []
+        for e in log:
+            if extra > 0 and droppable(e):
+                extra -= 1
+                continue
+            out.append(e)
+        log = out
+    return log
+
+
 def append(log: list[dict], *entries: dict) -> list[dict]:
-    out = list(log or []) + [e for e in entries if e]
-    return out[-LOG_MAX:]
+    return trim_log(list(log or []) + [e for e in entries if e])
 
 
 def remove_trade(log: list[dict], entry_id: str) -> list[dict]:
@@ -170,24 +214,55 @@ def _holding_for(holdings: list[dict], code: str) -> Optional[dict]:
     return next((h for h in holdings if (h.get("trading_code") or "").upper() == code), None)
 
 
+@lru_cache(maxsize=4096)
+def buy_by(record_date: str) -> str:
+    """The last normal-market buy day for a record date (the calendar's rule)."""
+    from backend.services.corporate_actions_service import NORMAL_BUY_LEAD_DAYS, _minus_trading_days
+
+    return _minus_trading_days(date.fromisoformat(record_date[:10]), NORMAL_BUY_LEAD_DAYS).isoformat()
+
+
 def _eligible(holding: dict, record_date: str) -> bool:
     added = _iso(holding.get("added_at"))
-    return bool(added) and added < record_date
+    return bool(added) and added <= buy_by(record_date)
+
+
+def eligible_qty(holding: dict, log: list[dict], record_date: str) -> int:
+    """Shares on the register for `record_date`: the holding's count at the end
+    of the buy-by day. Today's count, less buys logged after that day, plus
+    sales logged after it (they settle after the record date), less bonus
+    shares from this record date on. Shares no logged buy explains were bought
+    on ``added_at``, which `_eligible` already put on or before the buy-by day."""
+    code = (holding.get("trading_code") or "").upper()
+    by = buy_by(record_date)
+    qty = int(holding.get("qty") or 0)
+    for e in log or []:
+        if (e.get("code") or "").upper() != code:
+            continue
+        kind = e.get("kind")
+        if kind in ("buy", "sell") and (_iso(e.get("date")) or "") > by:
+            qty += int(e.get("qty") or 0) * (-1 if kind == "buy" else 1)
+        elif kind == "bonus" and e.get("status") == "applied" and (_iso(e.get("record_date")) or "") >= record_date:
+            qty -= int(e.get("shares_added") or 0)
+    return max(0, qty)
 
 
 def pending_actions(holdings: list[dict], log: list[dict],
-                    actions_by_code: dict[str, list[dict]]) -> list[dict]:
+                    actions_by_code: dict[str, list[dict]],
+                    last_trade: dict[str, str]) -> list[dict]:
     """Every bonus / cash action the holdings are owed that the log has never
     seen, oldest first. Each item: {id, kind, code, record_date, pct | cash_ps,
     auto: bool}. Cash comes before bonus on the same record date (the cash is
-    paid on the pre-bonus count)."""
+    paid on the pre-bonus count). `last_trade` = {code: date of its latest
+    trade}: an action waits until the share has traded after its record date."""
     seen = {e.get("id") for e in log or []}
     out: list[dict] = []
     for h in holdings:
         code = (h.get("trading_code") or "").upper()
+        traded = _iso((last_trade or {}).get(code)) or ""
         for a in actions_by_code.get(code) or []:
             rd = _iso(a.get("record_date"))
-            if not rd or not _eligible(h, rd):
+            if not rd or traded <= rd or not _eligible(h, rd):
                 continue
             auto = rd >= AUTO_SINCE
             cash_ps = float(a.get("cash_ps") or 0)
@@ -208,32 +283,34 @@ def pending_actions(holdings: list[dict], log: list[dict],
 
 def apply_action(holdings: list[dict], log: list[dict], action: dict,
                  when: Optional[str] = None) -> tuple[list[dict], list[dict], Optional[dict]]:
-    """Apply one pending action. Returns (holdings, log, entry); entry is None
-    when the holding is gone or the bonus rounds to no new share (a dividend
-    on zero cash is never pending)."""
+    """Apply one pending action on the share count of its record date
+    (`eligible_qty`). Returns (holdings, log, entry); entry is None when the
+    holding is gone, or nothing was owed (no eligible share, or too few for
+    one bonus share) — that is still logged so it isn't offered again."""
     code = action["code"]
     h = _holding_for(holdings, code)
     if h is None:
         return holdings, log, None
     qty = int(h.get("qty") or 0)
+    owed = eligible_qty(h, log, action["record_date"])
     avg = float(h.get("buy_price") or 0)
     today = when or _today_iso()
     if action["kind"] == "dividend":
-        amount = round(qty * float(action["cash_ps"]), 2)
+        amount = round(owed * float(action["cash_ps"]), 2)
         entry = {
             "id": action["id"], "kind": "dividend", "code": code, "date": today,
             "record_date": action["record_date"], "cash_ps": action["cash_ps"],
-            "qty": qty, "amount": amount, "status": "applied", "auto": bool(action.get("auto")),
+            "qty": owed, "amount": amount, "status": "applied", "auto": bool(action.get("auto")),
         }
-        return holdings, append(log, entry), entry
+        return holdings, append(log, entry), (entry if owed > 0 else None)
 
-    added = int(math.floor(qty * float(action["pct"]) / 100.0 + 1e-9))
+    added = int(math.floor(owed * float(action["pct"]) / 100.0 + 1e-9))
     if added <= 0:
         # Too few shares for even one bonus share — record it so it isn't re-offered.
         entry = {
             "id": action["id"], "kind": "bonus", "code": code, "date": today,
             "record_date": action["record_date"], "pct": action["pct"],
-            "qty_before": qty, "shares_added": 0, "avg_before": round(avg, 4),
+            "qty_before": qty, "qty_eligible": owed, "shares_added": 0, "avg_before": round(avg, 4),
             "status": "applied", "auto": bool(action.get("auto")),
         }
         return holdings, append(log, entry), None
@@ -242,7 +319,7 @@ def apply_action(holdings: list[dict], log: list[dict], action: dict,
     entry = {
         "id": action["id"], "kind": "bonus", "code": code, "date": today,
         "record_date": action["record_date"], "pct": action["pct"],
-        "qty_before": qty, "shares_added": added, "avg_before": round(avg, 4),
+        "qty_before": qty, "qty_eligible": owed, "shares_added": added, "avg_before": round(avg, 4),
         "status": "applied", "auto": bool(action.get("auto")),
     }
     new_holdings = [{**x, "qty": new_qty, "buy_price": new_avg} if x is h else x for x in holdings]
@@ -251,10 +328,11 @@ def apply_action(holdings: list[dict], log: list[dict], action: dict,
 
 def apply_auto(holdings: list[dict], log: list[dict],
                actions_by_code: dict[str, list[dict]],
+               last_trade: dict[str, str],
                when: Optional[str] = None) -> tuple[list[dict], list[dict], list[dict]]:
     """Apply every pending action marked auto. Returns (holdings, log, applied)."""
     applied: list[dict] = []
-    for a in pending_actions(holdings, log, actions_by_code):
+    for a in pending_actions(holdings, log, actions_by_code, last_trade):
         if not a["auto"]:
             continue
         holdings, log, entry = apply_action(holdings, log, a, when)
@@ -276,22 +354,36 @@ def dismiss_action(log: list[dict], action: dict, when: Optional[str] = None) ->
     return append(log, entry)
 
 
+UNDO_AFTER_TRADE = ("You bought or sold {code} after this bonus was added, so it can't be undone "
+                    "here. Edit the holding's share count and price instead.")
+UNDO_TOO_FEW = ("You now hold fewer {code} shares than this bonus added, so it can't be undone "
+                "here. Edit the holding's share count and price instead.")
+
+
 def undo_action(holdings: list[dict], log: list[dict], entry_id: str) -> tuple[list[dict], list[dict]]:
     """Reverse an applied bonus / dividend row. A bonus takes the added shares
-    back off at the same total cost (so it is right even after later buys);
-    the row stays, marked ``undone``, so the daily job leaves it alone."""
-    entry = next((e for e in log or [] if e.get("id") == entry_id), None)
+    back off at the same total cost; the row stays, marked ``undone``, so the
+    daily job leaves it alone. Raises ValueError (a sentence for the reader)
+    when a later trade or a smaller holding means it can't be undone exactly."""
+    idx = next((i for i, e in enumerate(log or []) if e.get("id") == entry_id), None)
+    entry = log[idx] if idx is not None else None
     if entry is None or entry.get("kind") not in ("bonus", "dividend"):
         raise KeyError(entry_id)
     if entry.get("status") != "applied":
         return holdings, log
     if entry["kind"] == "bonus" and int(entry.get("shares_added") or 0) > 0:
         code = entry["code"]
+        added = int(entry["shares_added"])
+        if any(e.get("kind") in ("buy", "sell") and (e.get("code") or "").upper() == code
+               for e in log[idx + 1:]):
+            raise ValueError(UNDO_AFTER_TRADE.format(code=code))
         h = _holding_for(holdings, code)
         if h is not None:
             qty = int(h.get("qty") or 0)
+            if qty < added + 1:
+                raise ValueError(UNDO_TOO_FEW.format(code=code))
             cost = qty * float(h.get("buy_price") or 0)
-            back = max(1, qty - int(entry["shares_added"]))
+            back = qty - added
             holdings = [{**x, "qty": back, "buy_price": round(cost / back, 4)} if x is h else x
                         for x in holdings]
     log = [{**e, "status": "undone"} if e.get("id") == entry_id else e for e in log]

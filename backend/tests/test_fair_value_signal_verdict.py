@@ -181,3 +181,38 @@ def test_review_for_a_strong_company_held_back_by_a_warning():
     out = holding_signal(sig, 0.0, 8.0, 10.0)
     assert out["signal"] == "review" and out["reason_en"] == "We found a serious warning."
     assert holding_signal({"signal": "sell", "reason_key": "weak_fundamentals"}, 20.0, 9.0, 5.0)["signal"] == "sell"
+
+
+# --------------------------------------------------------------------------- #
+# Holding advice: the business's weight and release lines (2026-11-05)
+# --------------------------------------------------------------------------- #
+
+def test_no_buy_more_when_its_business_already_holds_too_much():
+    from backend.services.signal_service import holding_signal
+    buy = {"signal": "buy", "reason_key": "quality_cheap", "tier": "good", "pct52": 40.0}
+    assert holding_signal(buy, 0.0, 8.0, 12.0, sector_pct=45.0)["reason_key"] == "heavy_sector_hold"
+    assert holding_signal(buy, 0.0, 8.0, 12.0, sector_pct=35.0)["signal"] == "buy_more"
+    # Banks + finance + insurers over half: a bank isn't "Buy more" either.
+    assert holding_signal(buy, 0.0, 8.0, 12.0, sector_pct=30.0, fin_pct=55.0)["signal"] == "none"
+
+
+def test_release_lines_stop_daily_flips():
+    from backend.services.signal_service import holding_signal
+    buy = {"signal": "buy", "reason_key": "quality_cheap", "tier": "good", "pct52": 40.0}
+    assert holding_signal(buy, 0.0, 8.0, 21.0)["signal"] == "none"                     # new: over 20%
+    assert holding_signal(buy, 0.0, 8.0, 21.0, prev="buy_more")["signal"] == "buy_more"  # kept to 23%
+    assert holding_signal(buy, 0.0, 8.0, 23.5, prev="buy_more")["signal"] == "none"
+    assert holding_signal(buy, 0.0, 8.0, 12.0, sector_pct=42.0, prev="buy_more")["signal"] == "buy_more"
+    pricey = {"signal": "none", "reason_key": "quality_expensive", "tier": "good"}
+    assert holding_signal(pricey, 0.0, 3.0, 24.0)["signal"] == "none"                  # new trim needs 25%
+    assert holding_signal(pricey, 0.0, 3.0, 24.0, prev="trim")["signal"] == "trim"     # kept to 22%
+    assert holding_signal(pricey, 0.0, 3.0, 21.0, prev="trim")["signal"] == "none"
+
+
+def test_holding_mix_counts_sectors_and_financials():
+    from backend.services.signal_service import holding_mix
+    mix = holding_mix({"A": 30.0, "B": 25.0, "C": 45.0},
+                      {"A": ("Bank", "BANK"), "B": ("Insurance", "INSURANCE"), "C": ("Cement", "GENERAL")})
+    assert mix["A"] == {"sector_pct": 30.0, "fin_pct": 55.0}
+    assert mix["C"] == {"sector_pct": 45.0, "fin_pct": None}
+    assert holding_mix({"A": 100.0}, {"A": ("Bank", "BANK")}) == {}

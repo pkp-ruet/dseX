@@ -61,6 +61,9 @@ export interface ScoreItem {
   ltp: number | null;
   change_pct: number | null;
   eps_yoy_pct: number | null;
+  /** Profit so far this year against the same months last year, when a
+   *  quarter newer than the audited year is out (read before eps_yoy_pct). */
+  interim_eps_yoy_pct?: number | null;
   eps: number | null;
   div_yield_pct: number | null;
   p1_biz?: number | null;
@@ -3520,6 +3523,15 @@ export interface GlanceRow {
   } | null;
   /** The stock report's warning signs: counts, and the serious ones in words. */
   warnings?: { red: number; amber: number; items: GlanceRisk[] } | null;
+  /** Where the stock page's price word turns, on today's figures: "low" at or
+   *  under `low_below`, "high" over `high_above` (null = no price reaches that
+   *  word). Null for a loss-maker. (2026-11-05) */
+  price_lines?: PriceLines | null;
+}
+
+export interface PriceLines {
+  low_below: number | null;
+  high_above: number | null;
 }
 
 export async function getWatchlistGlance(codes: string[]): Promise<GlanceRow[]> {

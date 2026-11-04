@@ -136,18 +136,53 @@ def load_settings(user_id: str) -> dict:
 # --------------------------------------------------------------------------- #
 
 
+def _stored_holdings(holdings: list[dict]) -> list[dict]:
+    return sorted((normalize_holding(h) for h in holdings),
+                  key=lambda h: (h.get("added_at") or "", h["trading_code"]))
+
+
+def save_if_unchanged(user_id: str, read: dict, changes: dict[str, tuple[list[dict], list[dict]]]) -> bool:
+    """Compare-and-set for the daily job: write `changes` = {pid: (holdings,
+    log)} only if the arrays it read are still what is stored. `read` = the
+    user doc as the job read it (``portfolio``, ``portfolio_log``,
+    ``extra_portfolios``). False on a conflict (the reader edited their
+    portfolio meanwhile); nothing is written and the next run catches up."""
+    flt: dict = {"user_id": user_id}
+    fields: dict = {"updated_at": datetime.now(timezone.utc)}
+    if MAIN_PID in changes:
+        holdings, log = changes[MAIN_PID]
+        # A missing field matches None, so a never-written log still compares.
+        flt["portfolio"] = read.get("portfolio")
+        flt["portfolio_log"] = read.get("portfolio_log")
+        fields["portfolio"] = _stored_holdings(holdings)
+        fields["portfolio_log"] = ledger.trim_log(log)
+    extra = [p for p in changes if p != MAIN_PID]
+    if extra:
+        flt["extra_portfolios"] = read.get("extra_portfolios")
+        out = []
+        for p in read.get("extra_portfolios") or []:
+            if p.get("id") in changes:
+                holdings, log = changes[p["id"]]
+                p = {**p, "holdings": _stored_holdings(holdings), "log": ledger.trim_log(log)}
+            out.append(p)
+        fields["extra_portfolios"] = out
+    res = _users().update_one(flt, {"$set": fields})
+    if res.matched_count == 0:
+        return False
+    for pid in changes:
+        user_cache.invalidate(user_cache.NS_PORTFOLIO, _cache_key(user_id, pid))
+    return True
+
+
 def save(user_id: str, pid: str, holdings: Optional[list[dict]] = None,
          log: Optional[list[dict]] = None) -> dict:
     """Persist holdings and/or log for one portfolio; returns the fresh state."""
     pid = pid or MAIN_PID
     now = datetime.now(timezone.utc)
     if holdings is not None:
-        holdings = sorted(
-            (normalize_holding(h) for h in holdings),
-            key=lambda h: (h.get("added_at") or "", h["trading_code"]),
-        )
+        holdings = _stored_holdings(holdings)
     if log is not None:
-        log = log[-ledger.LOG_MAX:]
+        log = ledger.trim_log(log)
 
     if pid == MAIN_PID:
         fields: dict = {"updated_at": now}

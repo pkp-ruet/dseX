@@ -140,44 +140,50 @@ def _actions() -> dict:
         return {}
 
 
-def _with_signals(holdings: list[dict]) -> list[dict]:
-    """Holdings enriched with the personalized Buy More / Sell signal (else none).
+def _last_trade() -> dict:
+    """{code: date of its latest trade}. A bonus / dividend waits for the first
+    trade after its record date; with no prices nothing is applied."""
+    from backend.services.db_service import load_latest_prices
+
+    try:
+        return {c: str(p.get("date") or "")[:10] for c, p in load_latest_prices().items()}
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def _with_signals(holdings: list[dict], user_id: Optional[str] = None) -> list[dict]:
+    """Holdings enriched with the personalized advice (signal_service.
+    holding_signals_for: weight-, sector- and release-line aware).
 
     Signals come from the canonical signal service — the frontend renders them
-    and never re-derives buy/sell advice."""
+    and never re-derives buy/sell advice. `user_id` reads the advice stored by
+    the daily flip recorder, so the release lines hold here too."""
     from backend.services.db_service import load_latest_prices
-    from backend.services.signal_service import build_signals, holding_signal, holding_weights
+    from backend.services.portfolio_signal_service import stored_signals
+    from backend.services.signal_service import build_signals, holding_signals_for
 
     try:
         prices = load_latest_prices()
         signals = build_signals()
     except Exception:  # noqa: BLE001 — signals are an enrichment, never a blocker
         prices, signals = {}, {}
-    weights = holding_weights(holdings, prices)
-    out = []
-    for h in holdings:
-        code = h["trading_code"]
-        ltp = (prices.get(code) or {}).get("ltp")
-        buy_price = h.get("buy_price") or 0
-        pnl_pct = (
-            (float(ltp) - buy_price) / buy_price * 100
-            if ltp and buy_price > 0 else None
-        )
-        sig = signals.get(code)
-        out.append({**h, "signal": holding_signal(sig, pnl_pct, (sig or {}).get("p4_val"),
-                                                  weights.get(code.upper()))})
-    return out
+    try:
+        prev = stored_signals(user_id) if user_id else {}
+    except Exception:  # noqa: BLE001
+        prev = {}
+    advice = holding_signals_for(holdings, prices, signals, prev)
+    return [{**h, "signal": advice.get((h.get("trading_code") or "").upper())} for h in holdings]
 
 
 def _state(user: dict, pid: str) -> dict:
     """The holdings + log for one portfolio, after applying any corporate action
     the daily job hasn't reached yet (same rule, so the page is never a day behind)."""
     state = _load(user, pid)
-    acts = _actions()
-    holdings, log, applied = ledger.apply_auto(state["holdings"], state["log"], acts)
+    acts, traded = _actions(), _last_trade()
+    holdings, log, applied = ledger.apply_auto(state["holdings"], state["log"], acts, traded)
     if applied:
         state = _save(user, pid, holdings=holdings, log=log)
-    suggestions = [a for a in ledger.pending_actions(state["holdings"], state["log"], acts)
+    suggestions = [a for a in ledger.pending_actions(state["holdings"], state["log"], acts, traded)
                    if not a["auto"]]
     return {**state, "suggestions": suggestions}
 
@@ -186,13 +192,13 @@ def _response(user: dict, pid: str, state: Optional[dict] = None) -> dict:
     state = state or _state(user, pid)
     if "suggestions" not in state:
         state = {**state, "suggestions": [
-            a for a in ledger.pending_actions(state["holdings"], state["log"], _actions())
+            a for a in ledger.pending_actions(state["holdings"], state["log"], _actions(), _last_trade())
             if not a["auto"]
         ]}
     return {
         "pid": state["pid"],
         "name": state["name"],
-        "holdings": _with_signals(state["holdings"]),
+        "holdings": _with_signals(state["holdings"], user["user_id"]),
         "log": state["log"],
         "suggestions": state["suggestions"],
         "settings": store.load_settings(user["user_id"]),
@@ -252,7 +258,8 @@ def add_holding(body: AddHoldingBody, current_user: dict = Depends(get_current_u
                 pid: Optional[str] = None):
     p = _pid(pid)
     _writable(current_user, p)
-    state = _load(current_user, p)
+    # After any bonus / dividend that is due, so a new buy never joins its count.
+    state = _state(current_user, p)
     holdings = [dict(h) for h in state["holdings"]]
     code = body.trading_code
     existing = next((h for h in holdings if h["trading_code"] == code), None)
@@ -330,7 +337,8 @@ def sell_holding(holding_id: str, body: SellBody, current_user: dict = Depends(g
     in the log; selling everything removes the holding."""
     p = _pid(pid)
     _writable(current_user, p)
-    state = _load(current_user, p)
+    # After any bonus / dividend that is due, so the sale is on today's count.
+    state = _state(current_user, p)
     held = next((h for h in state["holdings"] if _matches(h, holding_id)), None)
     if held is None:
         raise HTTPException(status_code=404, detail="Holding not found")
@@ -362,7 +370,8 @@ def delete_log_entry(entry_id: str, current_user: dict = Depends(get_current_use
 
 
 def _find_pending(state: dict, action_id: str) -> dict:
-    action = next((a for a in ledger.pending_actions(state["holdings"], state["log"], _actions())
+    action = next((a for a in ledger.pending_actions(state["holdings"], state["log"], _actions(),
+                                                     _last_trade())
                    if a["id"] == action_id), None)
     if action is None:
         raise HTTPException(status_code=404, detail="Nothing to apply")
@@ -402,6 +411,8 @@ def undo_action(entry_id: str, current_user: dict = Depends(get_current_user),
         holdings, log = ledger.undo_action(state["holdings"], state["log"], entry_id)
     except KeyError:
         raise HTTPException(status_code=404, detail="Entry not found")
+    except ValueError as e:  # a later trade or a smaller holding: not exactly undoable
+        raise HTTPException(status_code=400, detail=str(e))
     return _response(current_user, p, _save(current_user, p, holdings=holdings, log=log))
 
 

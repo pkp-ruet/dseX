@@ -275,7 +275,7 @@ export default function WhatIfCard({
             <ul className="pf-rows mt-3 border-t border-border">
               <Delta label={L("Spread", "বণ্টন")} before={before.subScores.spread} after={after.subScores.spread} />
               <Delta label={L("Company quality", "কোম্পানির মান")} before={before.subScores.quality} after={after.subScores.quality} />
-              <Delta label={L("Price paid", "কেনার দাম")} before={before.subScores.entry} after={after.subScores.entry} />
+              <Delta label={L("Price today", "আজকের দাম")} before={before.subScores.price} after={after.subScores.price} />
               <Delta
                 label={L("Behaves like this many stocks", "যত শেয়ারের মতো আচরণ")}
                 before={before.effectiveStocks}

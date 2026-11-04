@@ -74,3 +74,16 @@ def test_row_carries_profit_trend_safety_and_warnings():
     assert row["warnings"] == {"red": 0, "amber": 1, "items": []}
     bare = glance_row("Y", None, {"company_name": "Y"}, {}, {}, None, [], [], [])
     assert bare["safety"] is None and bare["warnings"] is None and bare["profit_change_pct"] is None
+
+
+def test_price_lines_match_the_stock_pages_price_word():
+    from backend.services.scoring_service import p4_at_price
+    from backend.services.watchlist_glance import price_lines
+    row = {"ltp": 100.0, "eps": 8.0, "p4_val": 6.0, "current_pe": 12.5, "own_avg_pe": 14.0,
+           "sector_median_pe": 15.0, "current_pb": 1.5, "own_avg_pb": 1.6, "sector_median_pb": 1.7}
+    lines = price_lines(row)
+    low, high = lines["low_below"], lines["high_above"]
+    assert low < 100.0 < high
+    assert p4_at_price(row, low - 0.05) >= 7.0 > p4_at_price(row, low + 0.5)
+    assert p4_at_price(row, high - 0.05) >= 4.0 > p4_at_price(row, high + 0.5)
+    assert price_lines({**row, "eps": -1.0}) is None      # a loss-maker: can't judge

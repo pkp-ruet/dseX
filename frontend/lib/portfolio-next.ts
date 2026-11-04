@@ -16,6 +16,7 @@
  */
 import type { ScoreItem } from "@/lib/api";
 import { takaGroup } from "@/lib/formatters";
+import { MIN_SHARES, ONE_SHARE_FAIR_PCT, SECTOR_FAIR_PCT } from "@/lib/portfolio-limits";
 import {
   analyzePortfolio,
   type AnalysisLang,
@@ -26,11 +27,13 @@ import {
   type RebalancePlan,
 } from "@/lib/portfolio-analysis";
 
-/** A stock larger than this share of the money is "carrying too much". */
-export const MAX_STOCK_PCT = 25;
-/** A sector above this share is too heavy; the fix brings it back to 40%. */
-const MAX_SECTOR_PCT = 50;
-const SECTOR_TARGET_PCT = 40;
+/** A stock larger than this share of the money is "carrying too much" (the
+ *  shared line, lib/portfolio-limits — the backend's Trim line). */
+export const MAX_STOCK_PCT = ONE_SHARE_FAIR_PCT;
+/** A sector above this share is too heavy; the fix brings it back to it. */
+const MAX_SECTOR_PCT = SECTOR_FAIR_PCT;
+const SECTOR_TARGET_PCT = SECTOR_FAIR_PCT;
+const GRADE_RANK: Record<Grade, number> = { A: 4, B: 3, C: 2, D: 1, F: 0 };
 
 export type NextMoveKind = "sell" | "weak" | "stock" | "sector" | "few" | "dividend" | "none";
 
@@ -96,22 +99,31 @@ export function buildNextMove(
         `${takaGroup(amt)} আছে ${weak.length}টি দুর্বল রেটিং বা Z ক্যাটাগরির শেয়ারে।`,
       ),
       amount: amt,
-      href: "#portfolio-analysis",
+      href: "#ch-companies",
       cta: L("See what we found", "কী পেয়েছি দেখুন"),
       weight: amt * 1.2,
     });
   }
 
   const biggest = [...hs].sort((a, b) => b.weightPct - a.weightPct)[0];
-  if (biggest && hs.length > 1 && biggest.weightPct > MAX_STOCK_PCT + 5) {
+  if (biggest && hs.length > 1 && biggest.weightPct > MAX_STOCK_PCT) {
     const excess = valueOf(biggest) - (total * MAX_STOCK_PCT) / 100;
+    // "Sell some" only when the share's own advice is Trim (its price is high
+    // or near its top): a big share at a fair price grows smaller through the
+    // next buys instead (signal_service.holding_signal).
+    const trim = biggest.signal.signal === "trim";
     moves.push({
       kind: "stock",
       title: L(`${biggest.code} carries too much of your money`, `${biggest.code}-এ আপনার টাকা বেশি জমেছে`),
-      line: L(
-        `It is ${biggest.weightPct.toFixed(0)}% of your money. About ${takaGroup(excess)} elsewhere would bring it to ${MAX_STOCK_PCT}%. You can sell some, or put your next buys into other shares.`,
-        `এটি আপনার টাকার ${biggest.weightPct.toFixed(0)}%। প্রায় ${takaGroup(excess)} অন্য জায়গায় গেলে এটি ${MAX_STOCK_PCT}%-এ নামবে। কিছু বিক্রি করতে পারেন, বা পরের কেনাগুলো অন্য শেয়ারে করতে পারেন।`,
-      ),
+      line: trim
+        ? L(
+            `It is ${biggest.weightPct.toFixed(0)}% of your money and its price is high now. Selling about ${takaGroup(excess)} would bring it to ${MAX_STOCK_PCT}%.`,
+            `এটি আপনার টাকার ${biggest.weightPct.toFixed(0)}%, আর এর দাম এখন বেশি। প্রায় ${takaGroup(excess)} বিক্রি করলে এটি ${MAX_STOCK_PCT}%-এ নামবে।`,
+          )
+        : L(
+            `It is ${biggest.weightPct.toFixed(0)}% of your money. Putting your next ${takaGroup(excess)} or so into other shares would bring it to about ${MAX_STOCK_PCT}%.`,
+            `এটি আপনার টাকার ${biggest.weightPct.toFixed(0)}%। পরের প্রায় ${takaGroup(excess)} অন্য শেয়ারে রাখলে এটি প্রায় ${MAX_STOCK_PCT}%-এ নামবে।`,
+          ),
       amount: excess,
       href: "#pf-whatif",
       cta: L("Try it in the what-if check", "যদি-এমন-করি যাচাইয়ে দেখুন"),
@@ -137,7 +149,7 @@ export function buildNextMove(
   }
 
   const firstPick = plan?.picks.find((p) => p.kind === "new_sector" || p.kind === "spread");
-  if (hs.length > 0 && hs.length < 5) {
+  if (hs.length > 0 && hs.length < MIN_SHARES) {
     const amt = firstPick?.suggest?.amount ?? total / hs.length;
     moves.push({
       kind: "few",
@@ -198,7 +210,7 @@ export interface GradeLift {
   toGrade: Grade;
   fromOverall: number;
   toOverall: number;
-  changes: { key: "spread" | "quality" | "entry"; label: string; from: number; to: number }[];
+  changes: { key: "spread" | "quality" | "price"; label: string; from: number; to: number }[];
 }
 
 function rowFor(code: string, qty: number, price: number, ltp: number | null, name: string | null): ComputedRow {
@@ -227,7 +239,7 @@ export function gradeLifts(
   if (rows.length === 0) return [];
   const bn = lang === "bn";
   const L = (en: string, b: string) => (bn ? b : en);
-  const labels = { spread: L("Spread", "বণ্টন"), quality: L("Quality", "মান"), entry: L("Price paid", "কেনার দাম") };
+  const labels = { spread: L("Spread", "বণ্টন"), quality: L("Quality", "মান"), price: L("Price today", "আজকের দাম") };
   const scenarios: { label: string; rows: ComputedRow[] }[] = [];
   const addRow = (rs: ComputedRow[], code: string, shares: number) => {
     const item = priceMap.get(code);
@@ -257,9 +269,11 @@ export function gradeLifts(
     });
   }
 
-  // 3. Trim the biggest stock to 25% of what is left.
+  // 3. Trim the biggest stock to 25% of what is left — only when its own
+  //    advice is Trim (a high price): a lift never tells a reader to sell part
+  //    of a strong share at a fair price.
   const big = [...analysis.holdings].sort((a, b) => b.weightPct - a.weightPct)[0];
-  if (big && rows.length > 1 && big.weightPct > MAX_STOCK_PCT + 5 && big.ltp) {
+  if (big && rows.length > 1 && big.weightPct > MAX_STOCK_PCT && big.signal.signal === "trim" && big.ltp) {
     const total = analysis.holdings.reduce((acc, h) => acc + valueOf(h), 0);
     const t = MAX_STOCK_PCT / 100;
     const keep = Math.max(1, Math.floor((t * (total - big.qty * big.ltp)) / ((1 - t) * big.ltp)));
@@ -289,7 +303,7 @@ export function gradeLifts(
   return scenarios
     .map((s) => {
       const after = analyzePortfolio(s.rows, priceMap, lang);
-      const changes = (["spread", "quality", "entry"] as const)
+      const changes = (["spread", "quality", "price"] as const)
         .filter((k) => Math.abs(after.subScores[k] - before[k]) >= 0.1)
         .map((k) => ({ key: k, label: labels[k], from: before[k], to: after.subScores[k] }));
       return {
@@ -301,7 +315,8 @@ export function gradeLifts(
         changes,
       };
     })
-    .filter((l) => l.toOverall - l.fromOverall >= 0.1)
+    // A lift is a better letter ("C → B"), never "B → B" (2026-11-05).
+    .filter((l) => GRADE_RANK[l.toGrade] > GRADE_RANK[l.fromGrade])
     .sort((a, b) => b.toOverall - b.fromOverall - (a.toOverall - a.fromOverall))
     .slice(0, 3);
 }

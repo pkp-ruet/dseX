@@ -169,9 +169,10 @@ def warnings_block(snap: Optional[dict]) -> Optional[dict]:
 def glance_row(code: str, f: Optional[dict], comp: dict, price: dict, sig: dict,
                fv: Optional[dict], governance: list[dict],
                record_dates: list[dict], agms: list[dict],
-               snap: Optional[dict] = None) -> dict:
+               snap: Optional[dict] = None, lines: Optional[dict] = None) -> dict:
     """One board row. ``f`` is the research-list facts dict (None = unscored);
-    ``snap`` the company's newest stock-report snapshot."""
+    ``snap`` the company's newest stock-report snapshot; ``lines`` the prices
+    where the stock page's price word turns (``price_lines``)."""
     from backend.services.dividend_safety import dividend_safety
 
     f = f or {}
@@ -200,7 +201,28 @@ def glance_row(code: str, f: Optional[dict], comp: dict, price: dict, sig: dict,
         "profit_change_pct": _n(f.get("profit_change_pct")),
         "safety": dividend_safety(f, f.get("sector_class") or "GENERAL") if f else None,
         "warnings": warnings_block(snap),
+        "price_lines": lines,
     }
+
+
+def price_lines(row: Optional[dict]) -> Optional[dict]:
+    """The prices where the stock page's price word turns, on today's figures:
+    "low" at or under ``low_below`` (p4 >= CHEAP_P4), "high" over
+    ``high_above`` (p4 < EXPENSIVE_P4), "fair" between. The portfolio's "Did
+    you buy at fair prices?" runs the price paid through these, so it always
+    says what the stock page would say at that price (2026-11-05). None for a
+    loss-maker (the stock page can't judge its price either)."""
+    from backend.services.scoring_service import price_for_p4
+    from backend.services.signal_service import CHEAP_P4, EXPENSIVE_P4
+
+    if not row or _n(row.get("p4_val")) is None:
+        return None
+    eps = _n(row.get("eps"))
+    if eps is None or eps <= 0:
+        return None
+    low, high = price_for_p4(row, CHEAP_P4), price_for_p4(row, EXPENSIVE_P4)
+    return {"low_below": round(low, 2) if low else None,
+            "high_above": round(high, 2) if high else None}
 
 
 # ---------------------------------------------------------------------------
@@ -245,6 +267,14 @@ def _build(codes: tuple[str, ...]) -> list[dict]:
         logger.exception("watchlist glance: report snapshots failed")
         snaps = {}
 
+    try:
+        from backend.services.scoring_service import build_scores_df
+        df = build_scores_df()
+        score_rows = {str(r["trading_code"]).upper(): r for r in df.to_dict("records")} if not df.empty else {}
+    except Exception:  # noqa: BLE001 — the price lines are extra, never a blocker
+        logger.exception("watchlist glance: score rows failed")
+        score_rows = {}
+
     rows = []
     for code in codes:
         comp = companies.get(code)
@@ -255,7 +285,7 @@ def _build(codes: tuple[str, ...]) -> list[dict]:
         fv = _fair(f, comp, f.get("ltp")) if f else None
         rows.append(glance_row(code, f, comp, price, get_signal(code), fv,
                                _governance(code) if f else [], record_dates, agms,
-                               snaps.get(code)))
+                               snaps.get(code), price_lines(score_rows.get(code))))
     return rows
 
 

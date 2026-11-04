@@ -1,5 +1,14 @@
-import type { ScoreItem, PortfolioHolding, HoldingSignalInfo, BuyNext, BuyNextKind } from "@/lib/api";
-import { getTier, SIGNAL_LABELS, SIGNAL_LABELS_BN, type TierKey } from "@/lib/constants";
+import type { ScoreItem, PortfolioHolding, HoldingSignalInfo, BuyNext, BuyNextKind, PriceLines } from "@/lib/api";
+import { getTier, SIGNAL_LABELS, SIGNAL_LABELS_BN, TIER_LABELS, TIER_LABELS_BN, type TierKey } from "@/lib/constants";
+import {
+  BUY_MORE_MAX_PCT,
+  FIN_HEAVY_PCT,
+  MIN_SHARES,
+  ONE_SHARE_BAD_PCT,
+  ONE_SHARE_FAIR_PCT,
+  SECTOR_BAD_PCT,
+  SECTOR_FAIR_PCT,
+} from "@/lib/portfolio-limits";
 
 export interface ComputedRow {
   holding: PortfolioHolding;
@@ -117,7 +126,9 @@ export interface HoldingInsight {
   sectorPe: number | null;
   /** Did you overpay? Judged on the buy price — see the Entry block. */
   entryValuation: EntryValuation;
-  /** 0–10 entry quality feeding the weighted Entry sub-score; null = can't judge. */
+  /** 0–10 entry quality on the sector-median method (information only since
+   *  2026-11-05 — the grade reads today's price); null = can't judge or
+   *  judged on the stock page's price lines. */
   entryScore: number | null;
   /** Today's valuation from the scoring pillar (cheap ≥ 7, expensive < 4). */
   valuationNow: EntryValuation;
@@ -172,7 +183,9 @@ export interface PortfolioAnalysis {
   consider: string[];
   holdings: HoldingInsight[];
   sectorSpread: { name: string; weightPct: number; count: number }[];
-  subScores: { spread: number; quality: number; entry: number; overall: number };
+  /** Spread, company quality and today's price (the stock page's valuation
+   *  score, 0–10) — what the grade averages. */
+  subScores: { spread: number; quality: number; price: number; overall: number };
   /** Herfindahl-based "effective number of stocks" — concentration-honest count. */
   effectiveStocks: number;
   /** The inputs behind the three sub-scores, for the page's "How we decide". */
@@ -183,7 +196,7 @@ export interface PortfolioAnalysis {
     strugglingPenalty: number;
     categoryPenalty: number;
     stalePenalty: number;
-    /** Share of the money whose price paid could be judged (has a positive EPS). */
+    /** Share of the money whose price today can be judged (a profit and a valuation score). */
     judgeablePct: number;
   };
   /** Biggest single concentration risk: a large position in a below-good company. */
@@ -225,6 +238,11 @@ const QUALITY_WORD: Record<TierBucket, QualityWord> = {
 };
 
 // ── Entry (what you paid) ──────────────────────────────────────────────────
+//
+// Since 2026-11-05 this is information only: the grade's third part is the
+// price TODAY (the stock page's valuation score), and with the glance's price
+// lines the price paid runs through the stock page's own rule (judgeEntry).
+// The sector-median method below is the fallback for pages without them.
 //
 // "Entry" answers one question: did you overpay when you bought? It is judged
 // on the price you PAID, never on today's price — a stock bought cheap that
@@ -280,33 +298,34 @@ function median(values: number[]): number | null {
 }
 
 /**
- * Median trailing P/E per sector from the whole-market scores payload, plus a
- * market-wide median as the fallback for thin sectors. Only profitable
- * companies (EPS > 0) count — a loss-maker has no P/E.
+ * Median trailing P/E of a company's similar companies, from the whole-market
+ * scores payload — the backend's rule (scoring_service.peer_median, audit round
+ * 1): Z shares and DSE's "Miscellaneous" grab-bag are left out, so is the
+ * company itself, and a sector needs SECTOR_PE_MIN_SAMPLES others, else the
+ * market median. Only profitable companies count — a loss-maker has no P/E.
  */
-function sectorMedianPeMap(priceMap: Map<string, ScoreItem>): {
-  bySector: Map<string, number>;
-  market: number | null;
-} {
-  const perSector = new Map<string, number[]>();
+type PeerPes = { bySector: Map<string, { code: string; pe: number }[]>; market: number | null };
+
+function peerPes(priceMap: Map<string, ScoreItem>): PeerPes {
+  const bySector = new Map<string, { code: string; pe: number }[]>();
   const all: number[] = [];
   for (const s of priceMap.values()) {
     if (s.eps == null || s.eps <= 0 || s.ltp == null || s.ltp <= 0) continue;
+    if ((s.market_category ?? "").trim().toUpperCase() === "Z") continue;
+    if (!s.sector || /^miscellaneous$/i.test(s.sector.trim())) continue;
     const pe = s.ltp / s.eps;
     all.push(pe);
-    if (s.sector) {
-      const arr = perSector.get(s.sector) ?? [];
-      arr.push(pe);
-      perSector.set(s.sector, arr);
-    }
-  }
-  const bySector = new Map<string, number>();
-  for (const [sector, pes] of perSector) {
-    if (pes.length < SECTOR_PE_MIN_SAMPLES) continue;
-    const m = median(pes);
-    if (m != null) bySector.set(sector, m);
+    const arr = bySector.get(s.sector) ?? [];
+    arr.push({ code: s.trading_code, pe });
+    bySector.set(s.sector, arr);
   }
   return { bySector, market: all.length >= SECTOR_PE_MIN_SAMPLES ? median(all) : null };
+}
+
+function similarPe(peers: PeerPes, code: string, sector: string | null | undefined): number | null {
+  const list = sector ? peers.bySector.get(sector) : undefined;
+  const others = (list ?? []).filter((x) => x.code !== code).map((x) => x.pe);
+  return others.length >= SECTOR_PE_MIN_SAMPLES ? median(others) : peers.market;
 }
 
 interface EntryJudgement {
@@ -323,6 +342,7 @@ function judgeEntry(
   buyPrice: number,
   eps: number | null | undefined,
   sectorPe: number | null,
+  lines?: PriceLines | null,
 ): EntryJudgement {
   const none: EntryJudgement = {
     entryPe: null, sectorPe, valuation: "unknown", score: null, lossMaking: false,
@@ -330,6 +350,17 @@ function judgeEntry(
   if (eps == null || !Number.isFinite(eps) || buyPrice <= 0) return none;
   if (eps <= 0) return { ...none, lossMaking: true };
   const entryPe = buyPrice / eps;
+  // The stock page's own price rule run on the price paid (2026-11-05): the
+  // glance's `price_lines` are where its price word turns, so "bought cheap"
+  // here is what the stock page would say at that price. The sector-median
+  // method below stays for pages without them (the dashboard, TopStock AI).
+  if (lines !== undefined) {
+    if (lines === null) return { ...none, entryPe };
+    const { low_below: low, high_above: high } = lines;
+    const valuation: EntryValuation =
+      low != null && buyPrice <= low ? "cheap" : high == null || buyPrice > high ? "expensive" : "fair";
+    return { entryPe, sectorPe, valuation, score: null, lossMaking: false };
+  }
   if (sectorPe == null || sectorPe <= 0) return { ...none, entryPe };
   const ratio = Math.max(entryPe / sectorPe, entryPe / ENTRY_ABS_PE_DIVISOR);
   const valuation: EntryValuation =
@@ -530,6 +561,12 @@ function nameList(names: string[], cap = 2, lang: AnalysisLang = "en"): string {
     : `${names.slice(0, cap).join(", ")} and ${rest} more`;
 }
 
+/** Profit against a year earlier: the latest quarter's year-so-far first (what
+ *  the signal's earnings-drop guard reads), else the audited year. */
+export function profitChange(item: ScoreItem | null | undefined): number | null {
+  return item?.interim_eps_yoy_pct ?? item?.eps_yoy_pct ?? null;
+}
+
 function isLow(v: number | null | undefined, threshold: number): boolean {
   return v != null && v < threshold;
 }
@@ -546,27 +583,24 @@ function gradeFromAvg(avg: number): { grade: Grade; label: GradeLabel } {
   return { grade: "F", label: "Very Risky" };
 }
 
-/** Bengali equivalents of the canonical QualityWord keys, for prose. */
-const QUALITY_WORD_BN: Record<QualityWord, string> = {
-  Strong: "শক্তিশালী",
-  Solid: "ভালো",
-  Average: "মাঝারি",
-  Weak: "দুর্বল",
-  Unrated: "রেটিং নেই",
-};
+/** The company's group in running text: "mostly strong" / "বেশিরভাগ দিকে শক্তিশালী"
+ *  (the ranking's group names; "Solid / Average company" were retired). */
+function groupWords(tk: TierBucket, lang: AnalysisLang): string {
+  if (tk === "unscored") return lang === "bn" ? "গ্রেড নেই" : "not graded";
+  return lang === "bn" ? TIER_LABELS_BN[tk] : TIER_LABELS[tk].toLowerCase();
+}
 
 function buildDescriptor(insight: HoldingInsight, lang: AnalysisLang = "en"): string {
+  const g = groupWords(insight.tierKey, lang);
   if (lang === "bn") {
     if (insight.tierKey === "unscored") return "এখনো যথেষ্ট তথ্য নেই।";
-    const qualityBn = QUALITY_WORD_BN[insight.qualityWord];
-    if (insight.entryTag === "no_price") return `${qualityBn} কোম্পানি, লাইভ দাম এখনো নেই।`;
-    return `${qualityBn} কোম্পানি, ${ENTRY_SHORT.bn[insight.entryTag]}, ${shortPnl(insight.pnlPct, "bn")}।`;
+    if (insight.entryTag === "no_price") return `আমাদের যাচাইয়ে ${g}, লাইভ দাম এখনো নেই।`;
+    return `আমাদের যাচাইয়ে ${g}, ${ENTRY_SHORT.bn[insight.entryTag]}, ${shortPnl(insight.pnlPct, "bn")}।`;
   }
   if (insight.tierKey === "unscored") return "Not enough data yet.";
-  if (insight.entryTag === "no_price") return `${insight.qualityWord} company, no live price yet.`;
-  const entryShort = ENTRY_SHORT.en[insight.entryTag];
-  const pnl = shortPnl(insight.pnlPct);
-  return `${insight.qualityWord} company, ${entryShort}, ${pnl}.`;
+  const lead = g[0].toUpperCase() + g.slice(1);
+  if (insight.entryTag === "no_price") return `${lead} on our checks, no live price yet.`;
+  return `${lead} on our checks, ${ENTRY_SHORT.en[insight.entryTag]}, ${shortPnl(insight.pnlPct)}.`;
 }
 
 function buildOneLiner(insight: HoldingInsight, lang: AnalysisLang = "en"): string {
@@ -595,7 +629,7 @@ function composeHeadline(
   } else if (args.holdingCount === 2) {
     issues.push(bnMode ? "মাত্র দুটি শেয়ার" : "only two stocks");
   }
-  if (args.maxSectorPct > 50 && args.holdingCount > 1) {
+  if (args.maxSectorPct > SECTOR_FAIR_PCT && args.holdingCount > 1) {
     const pct = args.maxSectorPct.toFixed(0);
     issues.push(
       bnMode
@@ -635,7 +669,7 @@ function composeHeadline(
 
   if (bnMode) {
     if (args.grade === "A") {
-      return "আপনার পোর্টফোলিও ভালোভাবে সাজানো। টাকা শক্তিশালী কোম্পানিগুলোতে ছড়ানো, আর কিনেছেনও ন্যায্য দামে। এভাবেই চালিয়ে যান, আর কয়েক মাস পর পর একবার দেখে নিন।";
+      return "আপনার পোর্টফোলিও ভালোভাবে সাজানো। টাকা শক্তিশালী কোম্পানিগুলোতে ছড়ানো, আর আজকের দামও ন্যায্য। এভাবেই চালিয়ে যান, আর কয়েক মাস পর পর একবার দেখে নিন।";
     }
     if (args.grade === "B") {
       if (!issueStr)
@@ -654,7 +688,7 @@ function composeHeadline(
   }
 
   if (args.grade === "A") {
-    return "Your portfolio is well built. Your money is spread across strong companies, bought at fair prices. Carry on as you are and review it every few months.";
+    return "Your portfolio is well built. Your money is spread across strong companies, at fair prices today. Carry on as you are and review it every few months.";
   }
   if (args.grade === "B") {
     if (!issueStr)
@@ -675,7 +709,7 @@ function composeHeadline(
 const GRADE_EXPLANATION: Record<AnalysisLang, { intro: string; byGrade: Record<Grade, string> }> = {
   en: {
     intro:
-      "We grade your portfolio on three things: how well your money is spread, so one bad share cannot sink everything; how strong the companies you own are; and whether you bought at a fair price. ",
+      "We grade your portfolio on three things: how well your money is spread, so one bad share cannot sink everything; how strong the companies you own are; and whether today's prices are fair for what they earn. ",
     byGrade: {
       A: "An A means all three are in good shape. This is what a healthy long-term portfolio looks like.",
       B: "A B means most things are working well, with a few small points to watch. Nothing is urgent.",
@@ -686,7 +720,7 @@ const GRADE_EXPLANATION: Record<AnalysisLang, { intro: string; byGrade: Record<G
   },
   bn: {
     intro:
-      "আমরা তিনটি বিষয় দেখে আপনার পোর্টফোলিওর গ্রেড দিই: টাকা কতটা ছড়িয়ে আছে, যাতে একটি খারাপ শেয়ার সব ডুবিয়ে দিতে না পারে; কোম্পানিগুলো কতটা শক্তিশালী; আর আপনি ন্যায্য দামে কিনেছেন কি না। ",
+      "আমরা তিনটি বিষয় দেখে আপনার পোর্টফোলিওর গ্রেড দিই: টাকা কতটা ছড়িয়ে আছে, যাতে একটি খারাপ শেয়ার সব ডুবিয়ে দিতে না পারে; কোম্পানিগুলো কতটা শক্তিশালী; আর তাদের আয়ের তুলনায় আজকের দাম ন্যায্য কি না। ",
     byGrade: {
       A: "'A' মানে তিনটিই ভালো অবস্থায় আছে। দীর্ঘমেয়াদের জন্য একটি ভালো পোর্টফোলিও এমনই হয়।",
       B: "'B' মানে বেশিরভাগ জিনিস ঠিক চলছে, শুধু ছোট কিছু বিষয় নজরে রাখতে হবে। জরুরি কিছু নেই।",
@@ -704,26 +738,33 @@ function composeGradeExplanation(grade: Grade, lang: AnalysisLang = "en"): strin
 
 // ── main ───────────────────────────────────────────────────────────────────
 
+export interface AnalysisOptions {
+  /** {CODE: the glance's price lines} — when given, "did you pay a fair
+   *  price?" runs the price paid through the stock page's own rule. */
+  lines?: Map<string, PriceLines | null>;
+}
+
 export function analyzePortfolio(
   rows: ComputedRow[],
   priceMap: Map<string, ScoreItem>,
   lang: AnalysisLang = "en",
+  opts: AnalysisOptions = {},
 ): PortfolioAnalysis {
   const bnMode = lang === "bn";
   const weightBasisOf = (r: ComputedRow): number => r.current_value ?? r.cost_basis;
   const totalBasis = rows.reduce((acc, r) => acc + weightBasisOf(r), 0) || 1;
 
-  // Sector P/E medians come from the whole-market payload the page already holds.
-  const peMap = sectorMedianPeMap(priceMap);
+  // Similar companies' P/E comes from the whole-market payload the page already holds.
+  const peers = peerPes(priceMap);
 
   const insights: HoldingInsight[] = rows.map((row) => {
     const code = row.holding.trading_code;
     const item = priceMap.get(code);
     const score = item?.score ?? null;
     const tk = tierBucket(score);
-    const sectorPe =
-      (item?.sector ? peMap.bySector.get(item.sector) : undefined) ?? peMap.market;
-    const judgement = judgeEntry(row.holding.buy_price, item?.eps, sectorPe);
+    const sectorPe = similarPe(peers, code, item?.sector);
+    const lines = opts.lines ? (opts.lines.has(code.toUpperCase()) ? opts.lines.get(code.toUpperCase()) ?? null : undefined) : undefined;
+    const judgement = judgeEntry(row.holding.buy_price, item?.eps, sectorPe, lines);
     const entry = classifyEntry(row.pnl_pct, judgement, lang);
     const valuationNow = valuationNowOf(item?.p4_val);
     const marketCategory = item?.market_category?.trim().toUpperCase() || null;
@@ -740,7 +781,7 @@ export function analyzePortfolio(
     const flags = {
       weakFinances: isLow(item?.p2_health, 4),
       weakEarnings: isLow(item?.p1_biz, 4),
-      earningsShrinking: isLow(item?.eps_yoy_pct, -10),
+      earningsShrinking: isLow(profitChange(item), -10),
       expensiveEntry: judgement.valuation === "expensive",
       // Mirrors the signal service's ≥85%-of-range dampening.
       nearHigh: rangePos != null && rangePos >= 0.85,
@@ -819,7 +860,7 @@ export function analyzePortfolio(
   const strugglingNames = insights.filter((i) => i.flags.weakFinances).map((i) => i.code);
   const shrinkingItems = insights
     .filter((i) => i.flags.earningsShrinking)
-    .map((i) => ({ code: i.code, epsYoy: priceMap.get(i.code)?.eps_yoy_pct ?? null }));
+    .map((i) => ({ code: i.code, epsYoy: profitChange(priceMap.get(i.code)) }));
   const reliableDividend = insights.filter((i) => (priceMap.get(i.code)?.p5_div ?? 0) >= 7);
 
   // Entry (what you paid) and today's valuation (what to do next) are separate
@@ -884,7 +925,7 @@ export function analyzePortfolio(
   const financialsWeight = financialInsights.reduce((acc, i) => acc + i.weightPct, 0);
   const financialSectorCount = new Set(financialInsights.map((i) => i.sector)).size;
   const financialsOverweight =
-    financialsWeight > 55 && financialSectorCount >= 2;
+    financialsWeight > FIN_HEAVY_PCT && financialSectorCount >= 2;
 
   const nearHighItems = insights.filter((i) => i.flags.nearHigh);
 
@@ -922,8 +963,8 @@ export function analyzePortfolio(
   if (judgeableEntryCount > 0 && goodEntryCount / judgeableEntryCount >= 0.6) {
     good.push(
       bnMode
-        ? `আজকের মুনাফার হিসাবে আপনার ${judgeableEntryCount}টির মধ্যে ${goodEntryCount}টি শেয়ার ন্যায্য দামে কেনা। একই সেক্টরের অন্য কোম্পানির চেয়ে বেশি দাম দেননি।`
-        : `Measured on today's profits, you paid a fair price for ${goodEntryCount} of your ${judgeableEntryCount} shares, no more than similar companies cost.`,
+        ? `কোম্পানিগুলোর সর্বশেষ মুনাফার হিসাবে আপনার ${judgeableEntryCount}টির মধ্যে ${goodEntryCount}টি শেয়ার ন্যায্য বা কম দামে কেনা।`
+        : `Measured on the companies' latest profit, you paid a fair price or less for ${goodEntryCount} of your ${judgeableEntryCount} shares.`,
     );
   }
   if (reliableDividend.length >= 2) {
@@ -966,11 +1007,11 @@ export function analyzePortfolio(
   }
   if (topRiskInsight) {
     const w = topRiskInsight.weightPct.toFixed(0);
-    const qBn = QUALITY_WORD_BN[topRiskInsight.qualityWord];
+    const g = groupWords(topRiskInsight.tierKey, lang);
     bad.push(
       bnMode
-        ? `${topRiskInsight.code} আপনার পোর্টফোলিওর ${w}%, অথচ এর মান ${qBn}। এটিই আপনার সবচেয়ে বড় ঝুঁকি। দুর্বল কোম্পানিতে বেশি টাকা রাখলে বাকি শেয়ারের লাভ একবারেই মুছে যেতে পারে। এটি কমিয়ে 10%-এর কাছাকাছি আনা, বা কিছু টাকা আরও শক্তিশালী কোনো শেয়ারে সরানোর কথা ভাবুন।`
-        : `${topRiskInsight.code} is ${w}% of your portfolio but is rated only ${topRiskInsight.qualityWord.toLowerCase()}. That is your biggest single risk: a large amount in a weaker company can wipe out the gains from everything else you own. Consider bringing it down toward 10%, or moving some of that money into a stronger company.`,
+        ? `${topRiskInsight.code} আপনার পোর্টফোলিওর ${w}%, অথচ আমাদের যাচাইয়ে এটি ${g}। এটিই আপনার সবচেয়ে বড় ঝুঁকি। কম শক্তিশালী কোম্পানিতে বেশি টাকা রাখলে বাকি শেয়ারের লাভ একবারেই মুছে যেতে পারে। পরের কেনাগুলো আরও শক্তিশালী কোম্পানিতে করলে এর ভাগ ধীরে ধীরে কমে।`
+        : `${topRiskInsight.code} is ${w}% of your portfolio, but it is only ${g} on our checks. That is your biggest single risk: a large amount in a less strong company can wipe out the gains from everything else you own. Putting your next buys into stronger companies brings its share down over time.`,
     );
   }
   if (zItems.length > 0) {
@@ -990,7 +1031,7 @@ export function analyzePortfolio(
       );
     }
   }
-  if (maxSectorPct > 50 && distinctSectors > 1) {
+  if (maxSectorPct > SECTOR_FAIR_PCT && distinctSectors > 1) {
     const pct = maxSectorPct.toFixed(0);
     bad.push(
       bnMode
@@ -1004,7 +1045,7 @@ export function analyzePortfolio(
         : `All your stocks are in one sector (${maxSectorName}), so your portfolio rises and falls with that single industry. When that sector is in trouble, you have nothing else to balance the loss. Add stocks from at least 2 other sectors to fix this.`,
     );
   }
-  if (financialsOverweight && maxSectorPct <= 50) {
+  if (financialsOverweight && maxSectorPct <= SECTOR_FAIR_PCT) {
     const pct = financialsWeight.toFixed(0);
     bad.push(
       bnMode
@@ -1013,10 +1054,10 @@ export function analyzePortfolio(
     );
   }
   const largestIsTheSector =
-    !!largestPos && maxSectorPct > 50 && largestPos.sector === maxSectorName && largestPos.weightPct >= maxSectorPct - 1;
+    !!largestPos && maxSectorPct > SECTOR_FAIR_PCT && largestPos.sector === maxSectorName && largestPos.weightPct >= maxSectorPct - 1;
   if (
     largestPos &&
-    largestPos.weightPct > 40 &&
+    largestPos.weightPct > ONE_SHARE_BAD_PCT &&
     holdingCount > 1 &&
     largestPos.code !== topRiskCode &&
     !largestIsTheSector
@@ -1025,15 +1066,15 @@ export function analyzePortfolio(
     const hit = (largestPos.weightPct * 0.2).toFixed(0);
     bad.push(
       bnMode
-        ? `শুধু ${largestPos.code}-ই আপনার পোর্টফোলিওর ${w}%। এই একটি শেয়ারের দাম 20% কমলে পুরো পোর্টফোলিও প্রায় ${hit}% কমবে, যা একটি কোম্পানির জন্য বড় ধাক্কা। এটি কিছুটা কমানো বা অন্য শেয়ারগুলো বাড়ানোর কথা ভাবুন, যাতে একটি শেয়ার একাই বেশি প্রভাব না ফেলে।`
-        : `${largestPos.code} alone is ${w}% of your portfolio. If that one share drops 20%, your whole portfolio drops nearly ${hit}%. That is a big hit from a single company. Consider trimming it, or growing your other shares, so that no one share dominates.`,
+        ? `শুধু ${largestPos.code}-ই আপনার পোর্টফোলিওর ${w}%। এই একটি শেয়ারের দাম 20% কমলে পুরো পোর্টফোলিও প্রায় ${hit}% কমবে, যা একটি কোম্পানির জন্য বড় ধাক্কা। পরের কেনাগুলো অন্য শেয়ারে করলে এর ভাগ কমে আসে, যাতে একটি শেয়ার একাই বেশি প্রভাব না ফেলে।`
+        : `${largestPos.code} alone is ${w}% of your portfolio. If that one share drops 20%, your whole portfolio drops nearly ${hit}%. That is a big hit from a single company. Putting your next buys into other shares brings it down, so that no one share dominates.`,
     );
   }
   if (strugglingNames.length === 1) {
     bad.push(
       bnMode
-        ? `${strugglingNames[0]}-এর আর্থিক অবস্থা দুর্বল, সম্ভবত বেশি ঋণ বা কম নগদ প্রবাহের কারণে। এমন কোম্পানির ডিভিডেন্ড দিতে, এমনকি খারাপ সময়ে টিকে থাকতেও কষ্ট হয়। পরের প্রান্তিকের ফলাফল ভালো করে দেখুন, আর উন্নতি না হলে বিক্রির কথা ভাবতে পারেন।`
-        : `${strugglingNames[0]}'s finances look weak, most likely from heavy loans or little cash coming in. Companies like this can struggle to pay dividends, or even to get through a downturn. Watch the next quarterly result closely, and consider selling if things do not improve.`,
+        ? `${strugglingNames[0]}-এর আর্থিক অবস্থা দুর্বল, সম্ভবত বেশি ঋণ বা কম নগদ প্রবাহের কারণে। এমন কোম্পানির ডিভিডেন্ড দিতে, এমনকি খারাপ সময়ে টিকে থাকতেও কষ্ট হয়। পরের প্রান্তিকের ফলাফল ভালো করে দেখুন।`
+        : `${strugglingNames[0]}'s finances look weak, most likely from heavy loans or little cash coming in. Companies like this can struggle to pay dividends, or even to get through a downturn. Watch the next quarterly result closely.`,
     );
   } else if (strugglingNames.length > 1) {
     bad.push(
@@ -1082,8 +1123,8 @@ export function analyzePortfolio(
         : null;
     bad.push(
       bnMode
-        ? `${shrinkingItems[0].code}-এর মুনাফা গত বছরের চেয়ে ${dropPct ? dropPct : "অনেকটা"} কমেছে, অর্থাৎ ব্যবসাটি ছোট হচ্ছে। মুনাফা কমলে শেয়ারের দামও সাধারণত কমে। পরের প্রান্তিকের ফলাফল দেখুন; মুনাফা কমতেই থাকলে বিক্রির কথা ভাবার সময় হতে পারে।`
-        : `${shrinkingItems[0].code}'s profit has dropped ${dropPct ?? "sharply"} from last year, which means the business is shrinking. When profit shrinks, the share price usually follows. Watch the next quarterly result; if profit keeps falling, it may be time to sell.`,
+        ? `${shrinkingItems[0].code}-এর মুনাফা এক বছর আগের চেয়ে ${dropPct ? dropPct : "অনেকটা"} কমেছে। মুনাফা কমলে শেয়ারের দামও সাধারণত কমে। পরের প্রান্তিকের ফলাফল মন দিয়ে দেখুন।`
+        : `${shrinkingItems[0].code}'s profit is down ${dropPct ?? "sharply"} on a year earlier. When profit shrinks, the share price usually follows. Watch the next quarterly result closely.`,
     );
   } else if (shrinkingItems.length > 1) {
     bad.push(
@@ -1101,26 +1142,26 @@ export function analyzePortfolio(
     if (bnMode) {
       const more = extra > 0 ? ` এবং আরও ${extra}টি` : "";
       bad.push(
-        `কোম্পানিগুলোর সর্বশেষ বার্ষিক মুনাফার হিসাবে ${head}${more}-এর কেনার দাম বেশি, একই সেক্টরের কোম্পানির চেয়ে অনেক বেশি। বেশি দামে কেনা শেয়ারের সেই দামের যোগ্য হতে সময় লাগে। ধরে রাখবেন, আরও কিনবেন, নাকি বিক্রি করবেন, তা ঠিক করার আগে শেয়ারের পেজে আজকের দামের মূল্যায়ন দেখে নিন।`,
+        `কোম্পানিগুলোর সর্বশেষ মুনাফার হিসাবে ${head}${more}-এর কেনার দাম বেশি ছিল। বেশি দামে কেনা শেয়ারের সেই দামের যোগ্য হতে সময় লাগে। ধরে রাখবেন, আরও কিনবেন, নাকি বিক্রি করবেন, তা ঠিক করার আগে শেয়ারের পেজে আজকের দামের মূল্যায়ন দেখে নিন।`,
       );
     } else {
       const more = extra > 0 ? ` and ${extra} more` : "";
       bad.push(
-        `Measured against the companies' latest yearly profit, the price you paid for ${head}${more} looks high, well above what similar companies cost. A share bought at a high price needs time to grow into it. Before you decide to hold, buy more or sell, check today's price verdict on the share's page.`,
+        `Measured on the companies' latest profit, the price you paid for ${head}${more} was high. A share bought at a high price needs time to grow into it. Before you decide to hold, buy more or sell, check today's price verdict on the share's page.`,
       );
     }
   }
 
   // Consider
-  if (holdingCount < 5) {
-    const need = Math.max(5 - holdingCount, 1);
+  if (holdingCount < MIN_SHARES) {
+    const need = Math.max(MIN_SHARES - holdingCount, 1);
     consider.push(
       bnMode
         ? `আলাদা সেক্টর থেকে আরও ${need}টি শেয়ার যোগ করার কথা ভাবুন। মাত্র কয়েকটি শেয়ার রাখা মানে সব সঞ্চয় একটি দোকানে রাখা; দোকানটির বছর খারাপ গেলে আর কোনো ভরসা থাকে না। অন্তত 3টি সেক্টরে 5–8টি শেয়ার রাখুন, যাতে কোনো একটি কোম্পানি বা সেক্টর বেশি ক্ষতি করতে না পারে।`
         : `Consider adding ${need} more share${need === 1 ? "" : "s"} from different sectors. Owning only a few shares is like putting all your savings into one shop: if that shop has a bad year, there is nothing else to fall back on. Aim for 5–8 shares across at least 3 sectors, so no single company or sector can hurt you too much.`,
     );
   }
-  if (maxSectorPct > 50 && holdingCount > 1) {
+  if (maxSectorPct > SECTOR_FAIR_PCT && holdingCount > 1) {
     const pct = maxSectorPct.toFixed(0);
     consider.push(
       bnMode
@@ -1133,16 +1174,16 @@ export function analyzePortfolio(
     const others = buyMoreItems.length - 1;
     consider.push(
       bnMode
-        ? `${c.code}-এ এখন "আরও কেনা যায়" সংকেত আছে${others > 0 ? ` (আরও ${others}টিও)` : ""}। কারণ: ${c.signal.reason} হাতে বাড়তি টাকা থাকলে এখানে আরেকটু কেনা যায়, তবে কোনো একটি শেয়ার যেন আপনার টাকার 25%-এর বেশি না হয়।`
-        : `${c.code} is marked Buy more${others > 0 ? ` (and ${others} more)` : ""}. Why: ${c.signal.reason} If you have spare money, adding a little here makes sense. Just keep any one share under about 25% of your money.`,
+        ? `${c.code}-এ এখন "আরও কেনা যায়" সংকেত আছে${others > 0 ? ` (আরও ${others}টিও)` : ""}। কারণ: ${c.signal.reason} হাতে বাড়তি টাকা থাকলে এখানে আরেকটু কেনা যায়, তবে কোনো একটি শেয়ার যেন আপনার টাকার ${BUY_MORE_MAX_PCT}%-এর বেশি না হয়।`
+        : `${c.code} is marked Buy more${others > 0 ? ` (and ${others} more)` : ""}. Why: ${c.signal.reason} If you have spare money, adding a little here makes sense. Just keep any one share under ${BUY_MORE_MAX_PCT}% of your money.`,
     );
   }
   if (upExpensiveItems.length > 0) {
     const c = upExpensiveItems[0];
     consider.push(
       bnMode
-        ? `${c.code}-এর দাম অনেকটা বেড়েছে, আর কোম্পানির আসল মুনাফার তুলনায় এখন বেশি মনে হচ্ছে। কিছু শেয়ার বিক্রি করে লাভ তুলে নিলে সেই লাভ নিরাপদ হয়, আর বাকিগুলো রাখলে দাম আরও বাড়ার সুযোগও থাকে। পুরোটা বিক্রি করতে হবে না।`
-        : `${c.code} has risen sharply, and the price now looks high next to what the company earns. Selling part of it locks in some of the gain, while the shares you keep can still rise further. You do not have to sell all of it.`,
+        ? `কেনার পর ${c.code}-এর দাম বেড়েছে, আর কোম্পানির মুনাফার তুলনায় দামটি এখন বেশি। এই দামে আরও কেনার আগে ভালো করে ভেবে নিন।`
+        : `${c.code} has risen since you bought it, and its price is now high next to what the company earns. Think carefully before buying more at this price.`,
     );
   }
   if (nearHighItems.length > 0) {
@@ -1185,16 +1226,27 @@ export function analyzePortfolio(
   }
 
   // ── Grade ──────────────────────────────────────────────────────────────
+  // Spread (2026-11-05, portfolio review): diminishing returns on the
+  // concentration-honest share count AND on the number of businesses, then the
+  // shared lines (lib/portfolio-limits). It used to be min(effective shares, 10)
+  // minus a flat sector penalty, so ten banks (6) beat five shares in five
+  // businesses (5), and a sound 5–8 share portfolio could barely reach an A.
+  // Equal money: 1 share 0 · 2 in 2 businesses ~3 · 3 in 3 ~6.5 · 5 in 5 ~8.6 ·
+  // 8 in 8 ~9.5 · 10 banks ~4.5.
+  const sectorHhi = sectorSpread.reduce((acc, s) => acc + (s.weightPct / 100) ** 2, 0);
+  const effectiveSectors = sectorHhi > 0 ? 1 / sectorHhi : 0;
+  const stockPart = 10 * (1 - Math.exp(-effectiveStocks / 3));
+  const sectorPart = 10 * (1 - Math.exp(-effectiveSectors / 1.8));
+  const topShare = largestPos?.weightPct ?? 0;
   let sectorPenalty = 0;
-  if (distinctSectors === 1 && holdingCount >= 1) sectorPenalty = Math.max(sectorPenalty, 2);
-  if (maxSectorPct > 50) sectorPenalty = Math.max(sectorPenalty, 4);
+  if (topShare > ONE_SHARE_BAD_PCT) sectorPenalty += 1.5;
+  else if (topShare > ONE_SHARE_FAIR_PCT) sectorPenalty += 0.5;
+  if (maxSectorPct > SECTOR_BAD_PCT) sectorPenalty += 2;
+  else if (maxSectorPct > SECTOR_FAIR_PCT) sectorPenalty += 1;
   // Financials move together — a heavy combined weight is a concentration even
   // when it's split across banks / NBFIs / insurers.
-  if (financialsOverweight) sectorPenalty = Math.max(sectorPenalty, 3);
-  // Effective (concentration-honest) count, not a raw holding count: 8 names
-  // with one at 60% behaves like far fewer than 8. Equal-weight portfolios are
-  // unaffected (effectiveStocks === holdingCount there).
-  const spreadScore = clamp(Math.min(effectiveStocks, 10) - sectorPenalty, 0, 10);
+  if (financialsOverweight) sectorPenalty += 1;
+  const spreadScore = holdingCount === 0 ? 0 : clamp(0.6 * stockPart + 0.4 * sectorPart - sectorPenalty, 0, 10);
 
   const baseQuality = weightedAvgScore != null ? weightedAvgScore / 10 : 5;
   // Z-category and stale-accounts exposure dent Quality by portfolio weight,
@@ -1215,23 +1267,22 @@ export function analyzePortfolio(
     10,
   );
 
-  // Entry = weight-averaged "did you overpay?" across the holdings we can judge
-  // (see judgeEntry). A 40% position bought dear costs far more than a 2% one;
-  // holdings with no EPS to judge against are left out; nothing judgeable → a
-  // neutral 5, the same fallback Quality uses.
-  const judgeable = insights.filter((i) => i.entryScore != null);
-  const judgeableWeight = judgeable.reduce((acc, i) => acc + i.weightPct, 0);
-  const entryScore =
-    judgeableWeight > 0
-      ? clamp(
-          judgeable.reduce((acc, i) => acc + (i.entryScore as number) * i.weightPct, 0) /
-            judgeableWeight,
-          0,
-          10,
-        )
+  // Price today (2026-11-05, replaces "price paid"): the stock page's own
+  // valuation score (p4_val, 0–10) weighted by the money in each share today.
+  // The grade says what shape the portfolio is in now, so two readers holding
+  // the same shares get the same grade whatever they paid — the per-share
+  // advice's rule. A loss-maker has no price to judge (the stock page says
+  // "Can't judge") and is left out; nothing judgeable → a neutral 5.
+  const priced = insights.filter(
+    (i) => i.pillars.p4_val != null && (priceMap.get(i.code)?.eps ?? 0) > 0,
+  );
+  const pricedWeight = priced.reduce((acc, i) => acc + i.weightPct, 0);
+  const priceScore =
+    pricedWeight > 0
+      ? clamp(priced.reduce((acc, i) => acc + (i.pillars.p4_val as number) * i.weightPct, 0) / pricedWeight, 0, 10)
       : 5;
 
-  const overall = (spreadScore + qualityScore + entryScore) / 3;
+  const overall = (spreadScore + qualityScore + priceScore) / 3;
   const { grade, label: gradeLabel } = gradeFromAvg(overall);
 
   const headline = composeHeadline(
@@ -1260,7 +1311,7 @@ export function analyzePortfolio(
     consider: consider.slice(0, 5),
     holdings: insights,
     sectorSpread,
-    subScores: { spread: spreadScore, quality: qualityScore, entry: entryScore, overall },
+    subScores: { spread: spreadScore, quality: qualityScore, price: priceScore, overall },
     effectiveStocks,
     breakdown: {
       sectorPenalty,
@@ -1269,7 +1320,7 @@ export function analyzePortfolio(
       strugglingPenalty,
       categoryPenalty,
       stalePenalty,
-      judgeablePct: judgeableWeight,
+      judgeablePct: pricedWeight,
     },
     topRisk: topRiskInsight
       ? {

@@ -55,6 +55,19 @@ HOLDING_BUY_MORE, HOLDING_SELL = "buy_more", "sell"
 HOLDING_TRIM, HOLDING_REVIEW = "trim", "review"
 TRIM_WEIGHT_PCT = 25.0         # one share over this share of the money …
 BUY_MORE_MAX_WEIGHT_PCT = 20.0  # … and "Buy more" only under this
+# Release lines (2026-11-05, portfolio review): a share already marked Buy
+# more keeps it until it passes 23%, one marked Trim keeps it until it is back
+# under 22%, so a share sitting on a line doesn't flip every other day.
+BUY_MORE_RELEASE_PCT = 23.0
+TRIM_RELEASE_PCT = 22.0
+# "Buy more" never on a share whose business already holds this much of the
+# money (banks + finance + insurers count as one at FIN_HEAVY_PCT) — the same
+# lines the recommendation engine leaves out (recommend.HEAVY_PCT /
+# FIN_HEAVY_PCT, frontend lib/portfolio-limits.ts). +3 to release.
+HEAVY_SECTOR_PCT = 40.0
+FIN_HEAVY_PCT = 50.0
+HEAVY_RELEASE_PTS = 3.0
+_FINANCIAL_CLASSES = {"BANK", "NBFI", "INSURANCE"}
 # A strong company kept off Buy by one of these gets "review" for its holders.
 REVIEW_REASONS = {"red_flag", "heavy_debt", "thin_trading", "earnings_dropped",
                   "stale_financials", "z_category"}
@@ -155,8 +168,12 @@ REASONS: dict[str, tuple[str, str]] = {
         "আজকের দামেও কোম্পানিটি ভালো মূল্যে পাওয়া যাচ্ছে। অল্প কিছু শেয়ার আরও কেনা যুক্তিসঙ্গত।",
     ),
     "hold_steady": (
-        "Nothing needs doing right now. Keeping the shares is fine.",
-        "এখন কিছু করার দরকার নেই। শেয়ারগুলো ধরে রাখা ঠিক আছে।",
+        "Nothing on this share needs you right now.",
+        "এই শেয়ার নিয়ে এখন আপনার কিছু করার নেই।",
+    ),
+    "heavy_sector_hold": (
+        "On its own it is worth buying, but this business already holds a large part of your money. Your next buy is best made in a different business.",
+        "নিজে কেনার মতো, তবে এই ব্যবসায় আপনার টাকার বড় অংশ এরই মধ্যে আছে। পরের কেনাটি অন্য কোনো ব্যবসায় করাই ভালো।",
     ),
     "trim_big_share": (
         "It is a large part of your money and its price is high or near its top this year. Selling some lowers the risk.",
@@ -411,7 +428,10 @@ def holding_signal(stock_sig: Optional[dict],
                    pnl_pct: Optional[float],
                    p4: Optional[float],
                    weight_pct: Optional[float] = None,
-                   pct52: Optional[float] = None) -> dict:
+                   pct52: Optional[float] = None,
+                   sector_pct: Optional[float] = None,
+                   fin_pct: Optional[float] = None,
+                   prev: Optional[str] = None) -> dict:
     """The advice for one owned share (user decision 2026-11-05, audit PR7).
     Never from what the reader paid — the same share held at a loss and at
     break-even gets the same advice:
@@ -427,6 +447,12 @@ def holding_signal(stock_sig: Optional[dict],
     `pnl_pct` is kept for callers but no longer decides anything (it used to
     mark a holding down 5% at a high price Sell, so a holder at break-even
     got nothing and the reason named the company, not the rule).
+
+    `sector_pct` = the share of the money in this share's business, `fin_pct`
+    = banks + finance + insurers together (pass it only for a financial
+    share): over HEAVY_SECTOR_PCT / FIN_HEAVY_PCT there is no Buy more, the
+    same lines the recommendation engine uses (2026-11-05). `prev` = the
+    holding's stored advice, for the release lines.
     """
     sig = stock_sig or none_signal()
     base = sig.get("signal", NONE)
@@ -438,12 +464,18 @@ def holding_signal(stock_sig: Optional[dict],
     p4 = _f(p4)
     high_or_top = ((p4 is not None and p4 < EXPENSIVE_P4) or reason in ("near_52w_high", "quality_expensive")
                    or (pct52 is not None and pct52 >= NEAR_HIGH_PCT))
-    if w is not None and w > TRIM_WEIGHT_PCT and high_or_top:
+    trim_line = TRIM_RELEASE_PCT if prev == HOLDING_TRIM else TRIM_WEIGHT_PCT
+    if w is not None and w > trim_line and high_or_top:
         return _mk_holding(HOLDING_TRIM, "trim_big_share")
     if base == BUY:
-        if w is None or w < BUY_MORE_MAX_WEIGHT_PCT:
-            return _mk_holding(HOLDING_BUY_MORE, "still_attractive_add")
-        return _mk_holding(NONE, "big_share_hold")
+        cap = BUY_MORE_RELEASE_PCT if prev == HOLDING_BUY_MORE else BUY_MORE_MAX_WEIGHT_PCT
+        if w is not None and w >= cap:
+            return _mk_holding(NONE, "big_share_hold")
+        slack = HEAVY_RELEASE_PTS if prev == HOLDING_BUY_MORE else 0.0
+        sec, fin = _f(sector_pct), _f(fin_pct)
+        if (sec is not None and sec > HEAVY_SECTOR_PCT + slack) or (fin is not None and fin > FIN_HEAVY_PCT + slack):
+            return _mk_holding(NONE, "heavy_sector_hold")
+        return _mk_holding(HOLDING_BUY_MORE, "still_attractive_add")
     if reason in REVIEW_REASONS and sig.get("tier") in ("good", "excellent"):
         out = _mk_holding(HOLDING_REVIEW, reason)
         if sig.get("reason_en"):
@@ -463,6 +495,72 @@ def holding_weights(holdings: list[dict], prices: dict) -> dict[str, float]:
             vals[code] = vals.get(code, 0.0) + qty * px
     total = sum(vals.values())
     return {c: v / total * 100.0 for c, v in vals.items()} if total > 0 else {}
+
+
+def holding_mix(weights: dict[str, float], sectors: dict[str, tuple]) -> dict[str, dict]:
+    """{code: {sector_pct, fin_pct}} from the weights and {code: (sector,
+    sector_class)}. Only for a portfolio of 2+ shares (one share is already
+    "too big" on its own). `fin_pct` is set only for a financial share."""
+    if len(weights) < 2:
+        return {}
+    by_sector: dict[str, float] = {}
+    fin = 0.0
+    for code, w in weights.items():
+        sec, cls = sectors.get(code) or (None, None)
+        if sec:
+            by_sector[sec] = by_sector.get(sec, 0.0) + w
+        if (cls or "").upper() in _FINANCIAL_CLASSES:
+            fin += w
+    out = {}
+    for code in weights:
+        sec, cls = sectors.get(code) or (None, None)
+        out[code] = {
+            "sector_pct": by_sector.get(sec) if sec else None,
+            "fin_pct": fin if (cls or "").upper() in _FINANCIAL_CLASSES else None,
+        }
+    return out
+
+
+@_ttl_cache(300)
+def _sector_map() -> dict[str, tuple]:
+    from backend.services.scoring_service import build_scores_df
+    from utils.sector import normalize_sector
+
+    df = build_scores_df()
+    if df.empty or "sector" not in df.columns:
+        return {}
+    out = {}
+    for row in df[["trading_code", "sector"]].to_dict("records"):
+        code = str(row.get("trading_code") or "").upper()
+        sec = row.get("sector") if isinstance(row.get("sector"), str) else None
+        if code:
+            out[code] = (sec, normalize_sector(sec) if sec else None)
+    return out
+
+
+def holding_signals_for(holdings: list[dict], prices: dict, signals: dict,
+                        prev: Optional[dict[str, str]] = None) -> dict[str, dict]:
+    """{code: holding advice} for one portfolio — THE one way to compute it
+    (GET portfolio, buy-next, the daily flip recorder). Weight-, sector- and
+    release-line aware; `prev` = {code: stored advice}."""
+    weights = holding_weights(holdings, prices)
+    try:
+        sectors = _sector_map()
+    except Exception:  # noqa: BLE001 — sector lines are a refinement, never a blocker
+        sectors = {}
+    mix = holding_mix(weights, sectors)
+    out: dict[str, dict] = {}
+    for h in holdings or []:
+        code = (h.get("trading_code") or "").upper()
+        if not code or code in out:
+            continue
+        ltp = _f((prices.get(code) or {}).get("ltp"))
+        buy = _f(h.get("buy_price"))
+        pnl = (ltp - buy) / buy * 100.0 if ltp and buy else None
+        sig = signals.get(code)
+        out[code] = holding_signal(sig, pnl, (sig or {}).get("p4_val"), weights.get(code),
+                                   **(mix.get(code) or {}), prev=(prev or {}).get(code))
+    return out
 
 
 # ---------------------------------------------------------------------------

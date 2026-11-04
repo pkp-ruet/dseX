@@ -4,7 +4,8 @@
  * "sign in" nudge, empty users get a "set this up" nudge, and any data failure
  * falls through to the dispatcher's error handling.
  */
-import { isLoggedIn } from "@/lib/auth";
+import { getStoredUser, isLoggedIn } from "@/lib/auth";
+import { userIsPremium } from "@/lib/premium";
 import {
   apiGetPortfolio,
   getWatchlistNews,
@@ -105,6 +106,9 @@ export async function myPortfolioResponder(): Promise<MessageBlock[]> {
   }
 
   const priceMap = await priceMapOrEmpty();
+  // Buy more / Sell is Premium-only (2026-11-01): a free reader's answer is
+  // built without the marks, so its one action point never names them.
+  const premium = userIsPremium(getStoredUser());
   const rows: ComputedRow[] = holdings.map((h) => {
     const item = priceMap.get(h.trading_code.toUpperCase());
     const ltp = item?.ltp ?? null;
@@ -112,7 +116,7 @@ export async function myPortfolioResponder(): Promise<MessageBlock[]> {
     const current = ltp != null ? ltp * h.qty : null;
     const pnl = current != null ? current - cost : null;
     return {
-      holding: h,
+      holding: premium ? h : { ...h, signal: null },
       ltp,
       company_name: item?.company_name ?? null,
       cost_basis: cost,

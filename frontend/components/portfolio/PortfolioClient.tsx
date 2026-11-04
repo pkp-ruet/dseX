@@ -620,7 +620,31 @@ export default function PortfolioClient() {
     return { totalInvested, totalValue: hasPrice ? totalValue : null, pnl, pnl_pct };
   }, [rows]);
 
-  const analysis = useMemo(() => analyzePortfolio(rows, priceMap, lang), [rows, priceMap, lang]);
+  // The stock page's price lines per held code (glance), so "did you pay a
+  // fair price?" uses the stock page's own rule once they have loaded.
+  const priceLines = useMemo(
+    // A backend without the field yet leaves the code out (the fallback method).
+    () => new Map([...glance].filter(([, g]) => g.price_lines !== undefined).map(([code, g]) => [code, g.price_lines ?? null] as const)),
+    [glance],
+  );
+  const analysis = useMemo(
+    () => analyzePortfolio(rows, priceMap, lang, { lines: priceLines }),
+    [rows, priceMap, lang, priceLines],
+  );
+  // Cash dividends logged on each holding since it was added (the loss
+  // chapter takes them off the price that gives the money back).
+  const divReceived = useMemo(() => {
+    const added = new Map(holdings.map((h) => [h.trading_code.toUpperCase(), (h.added_at ?? "").slice(0, 10)]));
+    const out = new Map<string, number>();
+    for (const e of log) {
+      if (e.kind !== "dividend" || e.status !== "applied") continue;
+      const code = e.code.toUpperCase();
+      const since = added.get(code);
+      if (since == null || (e.record_date ?? e.date) < since) continue;
+      out.set(code, (out.get(code) ?? 0) + (e.amount ?? 0));
+    }
+    return out;
+  }, [holdings, log]);
   const rebalance = useMemo(() => planFromEngine(buyNext, lang), [buyNext, lang]);
   // The report writes both languages, so the first move is built in each.
   const nextBoth = useMemo(
@@ -768,6 +792,20 @@ export default function PortfolioClient() {
       });
     } catch (err) {
       if (isLimitError(err, "portfolios")) return showLimitNotice("portfolios");
+      // The backend refuses an undo it can't make exact (a trade logged after
+      // the bonus, or fewer shares now than it added) with a 400.
+      if (verb === "undo" && (err as { status?: number })?.status === 400) {
+        toast({
+          message: (
+            <T
+              en="This bonus can't be undone here, because the share count has changed since. Edit the holding's share count and price instead."
+              bn="এই বোনাস এখানে ফেরানো যাবে না, কারণ এরপর শেয়ারের সংখ্যা বদলেছে। এর বদলে শেয়ারের সংখ্যা আর দাম সম্পাদনা করুন।"
+            />
+          ),
+          tone: "error",
+        });
+        return;
+      }
       toast({ message: <T en="We couldn't save that. Please try again." bn="সেভ করা যায়নি। আবার চেষ্টা করুন।" />, tone: "error" });
     }
   }
@@ -818,8 +856,9 @@ export default function PortfolioClient() {
         today: isoLocal(todayDhaka()),
         sinceLast: valueDelta,
         feePct: settings.fee_pct,
+        divReceived,
       }),
-    [analysis, nextBoth, rebalance, lifts, proInsights, priceMap, glance, results, myWatch, myFlips, valueDelta, settings.fee_pct],
+    [analysis, nextBoth, rebalance, lifts, proInsights, priceMap, glance, results, myWatch, myFlips, valueDelta, settings.fee_pct, divReceived],
   );
 
   const bn = lang === "bn";

@@ -28,7 +28,7 @@ export interface SampleView {
   gradeLabel: string;
   gradeLabelBn: string;
   headline: Line;
-  sub: { spread: number; quality: number; entry: number };
+  sub: { spread: number; quality: number; price: number };
   sectors: { name: string; weightPct: number }[];
   companies: number;
   good: Line | null;
@@ -71,7 +71,7 @@ export function buildLandingPortfolios(scores: ScoresResponse): SampleView[] {
       gradeLabel: GRADE_WORDS[a.gradeLabel].en,
       gradeLabelBn: GRADE_WORDS[a.gradeLabel].bn,
       headline: { en: firstSentence(a.headline), bn: firstSentence(bn.headline) },
-      sub: { spread: a.subScores.spread, quality: a.subScores.quality, entry: a.subScores.entry },
+      sub: { spread: a.subScores.spread, quality: a.subScores.quality, price: a.subScores.price },
       sectors: a.sectorSpread.map((s) => ({ name: s.name, weightPct: s.weightPct })),
       companies: en.rows.length,
       good: line(a.good, bn.good),

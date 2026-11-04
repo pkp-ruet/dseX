@@ -91,7 +91,7 @@ def get_buy_next(current_user: dict = Depends(get_current_user), pid: Optional[s
     """"What to buy next" for one portfolio (main when ``pid`` is absent)."""
     from backend.routers.portfolio import _pid, _state, _with_signals
 
-    holdings = _with_signals(_state(current_user, _pid(pid))["holdings"])
+    holdings = _with_signals(_state(current_user, _pid(pid))["holdings"], current_user.get("user_id"))
     return recommend_service.for_portfolio(current_user, holdings)
 
 

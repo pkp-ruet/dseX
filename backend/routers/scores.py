@@ -105,6 +105,7 @@ def _build_scores_response(df, companies_list, signals, prices) -> ScoresRespons
                 ltp=_json_float(row.get("ltp")),
                 change_pct=None,
                 eps_yoy_pct=_json_float(row.get("eps_yoy_pct")),
+                interim_eps_yoy_pct=_json_float(row.get("interim_eps_yoy_pct")),
                 eps=_json_float(row.get("eps")),
                 div_yield_pct=_json_float(row.get("div_yield_pct")),
                 p1_biz=_json_float(row.get("p1_biz")),

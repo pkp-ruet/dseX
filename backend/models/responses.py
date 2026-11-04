@@ -30,6 +30,10 @@ class ScoreItem(BaseModel):
     ltp: Optional[float] = None
     change_pct: Optional[float] = None
     eps_yoy_pct: Optional[float] = None
+    # Profit so far this year against the same months last year, when a
+    # quarter newer than the audited year is out — what the signal's
+    # earnings-drop guard reads first (2026-11-05).
+    interim_eps_yoy_pct: Optional[float] = None
     eps: Optional[float] = None
     div_yield_pct: Optional[float] = None
     p1_biz: Optional[float] = None

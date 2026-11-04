@@ -41,7 +41,8 @@ export function buildSampleReport(
   const glanceMap = new Map(glance.map((g) => [g.code.toUpperCase(), g]));
   const today = isoLocal(todayDhaka());
   const run = (lang: AnalysisLang) => {
-    const { rows, analysis } = analyzeSample(portfolio, priceMap, lang);
+    const lines = new Map([...glanceMap].filter(([, g]) => g.price_lines !== undefined).map(([code, g]) => [code, g.price_lines ?? null] as const));
+    const { rows, analysis } = analyzeSample(portfolio, priceMap, lang, { lines });
     const plan = planFromEngine(buyNext, lang);
     const planEn = planFromEngine(buyNext, "en");
     const planBn = planFromEngine(buyNext, "bn");

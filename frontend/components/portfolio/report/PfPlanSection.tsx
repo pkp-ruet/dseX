@@ -20,7 +20,7 @@ import type { Bi, Tone } from "@/lib/stock-report";
  *
  * Clean pass 2026-11-04 (user: "too much text"): one card like the chapters,
  * four short blocks with plain headings; a grade lift is just "C → B" and the
- * change; the shares to simply hold sit on one line, their reasons folded.
+ * change; the shares with nothing to act on sit on one line, their reasons folded.
  */
 export default function PfPlanSection({ plan, grade, children }: { plan: PfPlan; grade: Grade; children?: ReactNode }) {
   const lift = plan.lifts[0]?.tag ?? null;
@@ -141,7 +141,7 @@ export default function PfPlanSection({ plan, grade, children }: { plan: PfPlan;
             word={
               act.length
                 ? { en: `${act.length} to act on`, bn: `${act.length}টিতে কিছু করার আছে` }
-                : { en: "Hold them all", bn: "সবগুলো রাখুন" }
+                : { en: "Nothing to act on", bn: "কিছু করার নেই" }
             }
             tone={act.some((m) => m.tone === "bad") ? "bad" : act.length ? "fair" : "good"}
           >
@@ -172,9 +172,9 @@ export default function PfPlanSection({ plan, grade, children }: { plan: PfPlan;
                     <summary>
                       <span>
                         {hold.length === 1 ? (
-                          <T en="Why hold it" bn="কেন রাখবেন" />
+                          <T en="What we see on it" bn="এটি নিয়ে আমরা যা দেখছি" />
                         ) : (
-                          <T en={`Why hold these ${hold.length}`} bn={`এই ${hold.length}টি কেন রাখবেন`} />
+                          <T en={`What we see on these ${hold.length}`} bn={`এই ${hold.length}টি নিয়ে আমরা যা দেখছি`} />
                         )}
                       </span>
                       <span className="pfq-more-icon" aria-hidden="true">

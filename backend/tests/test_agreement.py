@@ -212,3 +212,17 @@ def test_frontend_limits_and_plans_match_the_backend():
         m = re.search(r'key: "' + key + r'",.*?amount: (\d+),.*?days: (\d+),', plans, re.S)
         assert m, key
         assert (int(m.group(1)), int(m.group(2))) == (p["amount"], p["days"]), key
+
+
+def test_frontend_portfolio_lines_match_the_backend():
+    """One set of portfolio lines (2026-11-05): the frontend's grade, lights and
+    next move draw them where the per-share advice and the recommendation
+    engine do."""
+    from backend.services import recommend, signal_service as ss
+
+    src = _front("lib/portfolio-limits.ts")
+    num = lambda name: float(re.search(r"export const " + name + r" = (\d+(?:\.\d+)?);", src).group(1))
+    assert num("ONE_SHARE_FAIR_PCT") == ss.TRIM_WEIGHT_PCT
+    assert num("BUY_MORE_MAX_PCT") == ss.BUY_MORE_MAX_WEIGHT_PCT
+    assert num("SECTOR_FAIR_PCT") == ss.HEAVY_SECTOR_PCT == recommend.HEAVY_PCT
+    assert num("FIN_HEAVY_PCT") == ss.FIN_HEAVY_PCT == recommend.FIN_HEAVY_PCT

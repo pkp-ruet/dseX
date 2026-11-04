@@ -11,8 +11,8 @@ Six things, each an *event* with English + Bengali copy:
     drop      the price fell 5% or more today
     low52     the price closed at its lowest in a year
     breakeven a share they hold closed back at or above what they paid, after a
-              month under it and a fall of 10% or more in the past year
-              (2026-11-04, the stuck-shares chapter)
+              month under it (held all that time) and a fall of 10% or more in
+              the past year (2026-11-04, the stuck-shares chapter)
     red_flag  a serious red flag appeared in the stock report (DSE found the
               factory closed, a qualified audit opinion, Z, the 30% rule …),
               from ``stock_report_service.red_flag_changes``
@@ -46,8 +46,9 @@ RECORD_DAYS = (1, 3)
 RESULTS_FRESH_DAYS = 3
 # Back to your price: the trading days it must have closed under the reader's
 # price first (so a share hovering at its cost raises one event a month at
-# most), how deep it must have fallen in the year, and the fee a side the
-# break-even line counts (the portfolio's default estimate).
+# most) and how deep it must have fallen in the year. The break-even line
+# counts the reader's own fee a side (`portfolio_settings.fee_pct`), else the
+# portfolio's default estimate.
 BACK_PRIOR_DAYS = 20
 BACK_DEPTH = 0.9
 FEE_SIDE = 0.004
@@ -141,8 +142,14 @@ def _category_event(code: str, old: str, new: str, day: str) -> Optional[dict]:
     }
 
 
-def _drop_event(code: str, qty: int, change_pct: float, change: Optional[float], day: str) -> dict:
-    lost = abs(change or 0) * qty if change is not None else None
+def _drop_event(code: str, qty: int, change_pct: float, ltp: Optional[float], day: str) -> dict:
+    # The taka off their shares from the move the event fires on (ex-day
+    # adjusted when present), not DSE's raw change: a dividend leaving the
+    # price is not money lost.
+    lost = None
+    if ltp and change_pct > -100:
+        prev = float(ltp) / (1 + change_pct / 100.0)
+        lost = qty * (prev - float(ltp))
     lost_en = f", about {_money(lost)} off the value of your shares" if lost else ""
     lost_bn = f", আপনার শেয়ারের মূল্য প্রায় {_money(lost)} কমেছে" if lost else ""
     return {
@@ -165,29 +172,39 @@ def _low_event(code: str, ltp: float, day: str) -> dict:
 
 
 def _back_event(code: str, qty: int, cost: float, ltp: float, prior: dict,
-                lo52: Optional[float], day: str) -> Optional[dict]:
+                held_since: Optional[str], fee_pct: Optional[float], day: str) -> Optional[dict]:
     """The share closed at or above the reader's average price today, after
-    closing under it on each of the last `BACK_PRIOR_DAYS` trading days, and it
-    fell `BACK_DEPTH` or further below that price within the year."""
+    closing under it on each of the last `BACK_PRIOR_DAYS` trading days while
+    they held it (`held_since` on or before the window's first day), and it
+    fell `BACK_DEPTH` or further below that price within the year. `prior`
+    closes are on a bonus-only footing, like the average price; the year's low
+    is named only when it came while they held the share."""
     if not (cost and cost > 0 and ltp and qty):
         return None
-    top, n = prior.get("max"), prior.get("n") or 0
+    top, n, start = prior.get("max"), prior.get("n") or 0, prior.get("start")
     if top is None or n < BACK_PRIOR_DAYS or float(top) >= cost or float(ltp) < cost:
         return None
+    if not held_since or not start or str(held_since)[:10] > str(start)[:10]:
+        return None
+    lo52, lo_day = prior.get("lo"), str(prior.get("lo_date") or "")[:10]
     if lo52 is None or float(lo52) > cost * BACK_DEPTH:
         return None
-    even = cost * (1 + FEE_SIDE) / (1 - FEE_SIDE)
+    f = FEE_SIDE if fee_pct is None else float(fee_pct) / 100.0
+    even = cost * (1 + f) / (1 - f)
     above = float(ltp) >= even
+    held_at_low = bool(lo_day) and lo_day >= str(held_since)[:10]
+    low_en = f", and in the past year it fell as low as {_money(lo52)}" if held_at_low else ""
+    low_bn = f", আর গত এক বছরে নেমেছিল {_money(lo52)} পর্যন্ত" if held_at_low else ""
     return {
         "id": f"breakeven-{code}-{day}", "kind": "breakeven", "code": code, "level": "good",
         "title_en": f"{code} is back to the price you paid",
         "title_bn": f"{code} আপনার কেনা দামে ফিরেছে",
         "body_en": (f"It closed at {_money(ltp)}, at or above your {_money(cost)}. It had been under your price "
-                    f"for over a month, and in the past year it fell as low as {_money(lo52)}. "
+                    f"for over a month{low_en}. "
                     + (f"Above {_money(even)} you come out even after fees, and today's price is above that."
                        if above else f"To come out even after fees, it needs to sell above {_money(even)}.")),
         "body_bn": (f"আজ দাম {_money(ltp)}-এ শেষ হয়েছে, আপনার কেনা দাম {_money(cost)}-এর সমান বা ওপরে। "
-                    f"এক মাসের বেশি এটি আপনার কেনা দামের নিচে ছিল, আর গত এক বছরে নেমেছিল {_money(lo52)} পর্যন্ত। "
+                    f"এক মাসের বেশি এটি আপনার কেনা দামের নিচে ছিল{low_bn}। "
                     + (f"{_money(even)}-এর ওপরে বিক্রি করলে ফি দেওয়ার পরও লোকসান হয় না, আর আজকের দাম তার ওপরে।"
                        if above else f"ফি দেওয়ার পরও লোকসান এড়াতে হলে {_money(even)}-এর ওপরে বিক্রি করতে হবে।")),
     }
@@ -290,11 +307,16 @@ def buylist_changes(today: dict, prices: dict, codes) -> dict[str, dict]:
         for l in ch.get("left") or []:
             if l.get("code") in codes:
                 out[l["code"]] = {"kind": "left", "reason": l.get("reason")}
+    days = [str(p.get("date"))[:10] for p in prices.values() if p.get("date")]
+    newest = max(days) if days else None
     for c, b in (today.get("buys") or {}).items():
         if c not in codes or c in out:
             continue
         stop = b.get("stop_above")
         p = prices.get(c) or {}
+        # A share with no trade today still shows its last day's move.
+        if newest and str(p.get("date") or "")[:10] != newest:
+            continue
         ltp, chg = p.get("ltp"), p.get("change")
         if not stop or not isinstance(ltp, (int, float)) or not isinstance(chg, (int, float)):
             continue
@@ -306,11 +328,18 @@ def buylist_changes(today: dict, prices: dict, codes) -> dict[str, dict]:
 
 def build_events(held: dict[str, int], facts: dict, day: str,
                  watched: Optional[set[str]] = None,
-                 costs: Optional[dict[str, float]] = None) -> list[dict]:
+                 costs: Optional[dict[str, float]] = None,
+                 since: Optional[dict[str, str]] = None,
+                 fee_pct: Optional[float] = None) -> list[dict]:
     """Events for one reader. `held` = {code: qty} across all their portfolios;
     `watched` = codes they follow without holding (results + grade only);
-    `costs` = {code: average price paid} across their portfolios (back to
-    your price; `prior` = {code: {max, n}} over the trading days before today).
+    `costs` = {code: the highest average price paid} across their portfolios,
+    `since` = {code: the day every holding of it was in the app by} and
+    `fee_pct` = their fee a side (back to your price; `prior` = {code: {max,
+    n, start, lo, lo_date}} over the trading days before today).
+    Events on today's move (drop, low52, breakeven) need the share's price row
+    to be from `facts["trade_day"]` (else `day`): a share with no trade today
+    still shows its last day's move.
     `facts` = {record: {code: calendar row}, results: {code: interim},
     rows: {code: score row}, score_before: {code: score}, sector_class: {code: …},
     grades: {code: score_history.explain()}, category: {code: (old, new)},
@@ -322,6 +351,7 @@ def build_events(held: dict[str, int], facts: dict, day: str,
 
     out: list[dict] = []
     prices = facts.get("prices") or {}
+    trade_day = str(facts.get("trade_day") or day)[:10]
     for code in sorted(set(held) | set(watched or ())):
         qty = held.get(code) or 0
         row = (facts.get("record") or {}).get(code)
@@ -362,6 +392,10 @@ def build_events(held: dict[str, int], facts: dict, day: str,
             if e:
                 out.append(e)
         p = prices.get(code) or {}
+        # No trade today (record date, suspension): its row is an older day's
+        # move, which would be told again as "today" every day.
+        if str(p.get("date") or "")[:10] != trade_day:
+            continue
         cp = p.get("change_pct")
         # The first trade after a record date: the dividend / bonus leaving the
         # price is not a fall (audit EL3).
@@ -369,7 +403,7 @@ def build_events(held: dict[str, int], facts: dict, day: str,
         if ex and isinstance(ex.get("change_pct"), (int, float)):
             cp = ex["change_pct"]
         if isinstance(cp, (int, float)) and cp <= DROP_PCT:
-            out.append(_drop_event(code, qty, float(cp), p.get("change"), day))
+            out.append(_drop_event(code, qty, float(cp), p.get("ltp"), day))
         lo = (facts.get("lows") or {}).get(code)
         ltp = p.get("ltp")
         # Only a fall *to* the low: a flat stock (suspended, or stuck at a floor
@@ -380,7 +414,8 @@ def build_events(held: dict[str, int], facts: dict, day: str,
         cost = (costs or {}).get(code)
         prior = (facts.get("prior") or {}).get(code)
         if cost and ltp and prior:
-            e = _back_event(code, qty, float(cost), float(ltp), prior, lo, day)
+            e = _back_event(code, qty, float(cost), float(ltp), prior,
+                            (since or {}).get(code), fee_pct, day)
             if e:
                 out.append(e)
     for e in out:

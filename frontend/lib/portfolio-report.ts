@@ -27,6 +27,15 @@ import { sectorBn } from "@/lib/bn";
 import { companyShort, money, takaGroup } from "@/lib/formatters";
 import { TIER_LABELS, TIER_PILL_BN } from "@/lib/constants";
 import {
+  BUY_MORE_MAX_PCT,
+  FIN_HEAVY_PCT,
+  MIN_SHARES,
+  ONE_SHARE_BAD_PCT,
+  ONE_SHARE_FAIR_PCT,
+  SECTOR_BAD_PCT,
+  SECTOR_FAIR_PCT,
+} from "@/lib/portfolio-limits";
+import {
   isFinancialSector,
   type Grade,
   type HoldingInsight,
@@ -203,6 +212,9 @@ export interface ReportInput {
   sinceLast?: { delta: number; since: string } | null;
   /** The reader's fee estimate, % a side (portfolio settings; 0.4 when unset). */
   feePct?: number;
+  /** {CODE: cash dividends logged on the holding since it was added} — taken
+   *  off the price that gives the money back (the loss chapter). */
+  divReceived?: Map<string, number>;
 }
 
 // ── Words ──────────────────────────────────────────────────────────────────
@@ -277,6 +289,8 @@ interface Facts {
   n: number;
   goodPct: number;
   weakPct: number;
+  /** Money in companies we grade (everything but "not graded"), %. */
+  gradedPct: number;
   weak: HoldingInsight[];
   top: HoldingInsight | null;
   topSector: { name: string; pct: number } | null;
@@ -316,6 +330,7 @@ function facts(inp: ReportInput): Facts {
     n: hs.length,
     goodPct: sum((h) => GOOD_TIERS.has(h.tierKey)),
     weakPct: sum((h) => h.tierKey === "weak"),
+    gradedPct: sum((h) => h.tierKey !== "unscored"),
     weak,
     top,
     topSector: sec && inp.analysis.sectorSpread.length > 1 ? { name: sec.name, pct: sec.weightPct } : sec ? { name: sec.name, pct: 100 } : null,
@@ -335,24 +350,29 @@ function spreadIssue(f: Facts): SpreadIssue {
   const issues: SpreadIssue[] = [];
   if (f.n < 3) issues.push({ kind: "few", tone: "bad" });
   if (f.top && f.n > 1) {
-    if (f.top.weightPct > 40) issues.push({ kind: "stock", tone: "bad" });
-    else if (f.top.weightPct > 25) issues.push({ kind: "stock", tone: "fair" });
+    if (f.top.weightPct > ONE_SHARE_BAD_PCT) issues.push({ kind: "stock", tone: "bad" });
+    else if (f.top.weightPct > ONE_SHARE_FAIR_PCT) issues.push({ kind: "stock", tone: "fair" });
   }
   if (f.topSector && f.n > 1) {
-    if (f.topSector.pct > 60) issues.push({ kind: "sector", tone: "bad" });
-    else if (f.topSector.pct > 40) issues.push({ kind: "sector", tone: "fair" });
+    if (f.topSector.pct > SECTOR_BAD_PCT) issues.push({ kind: "sector", tone: "bad" });
+    else if (f.topSector.pct > SECTOR_FAIR_PCT) issues.push({ kind: "sector", tone: "fair" });
   }
-  if (f.finPct > 50 && f.finSectors >= 2 && !(f.topSector && f.topSector.pct > 40)) issues.push({ kind: "finance", tone: "fair" });
-  if (f.n >= 3 && f.n < 5) issues.push({ kind: "few", tone: "fair" });
+  if (f.finPct > FIN_HEAVY_PCT && f.finSectors >= 2 && !(f.topSector && f.topSector.pct > SECTOR_FAIR_PCT)) issues.push({ kind: "finance", tone: "fair" });
+  if (f.n >= 3 && f.n < MIN_SHARES) issues.push({ kind: "few", tone: "fair" });
   const rank = { bad: 0, fair: 1, good: 2, neutral: 3 } as const;
   issues.sort((a, b) => rank[a.tone] - rank[b.tone]);
   return issues[0] ?? { kind: "none", tone: "good" };
 }
 
 function companiesLight(f: Facts): { word: Bi; tone: Tone } {
-  if (f.weakPct > 30 || f.goodPct < 40) return { word: B("Weak", "দুর্বল"), tone: "bad" };
-  if (f.goodPct >= 80 && f.weakPct === 0) return { word: B("Strong", "শক্তিশালী"), tone: "good" };
-  if (f.goodPct >= 60 && f.weakPct <= 10) return { word: B("Mostly strong", "বেশিরভাগ শক্তিশালী"), tone: "good" };
+  // Judged on the money in companies we grade: an ungraded share is not a weak
+  // one (2026-11-05 — it used to pull "strong" down and read as "weak").
+  if (f.gradedPct < 50) return { word: B("Can't tell yet", "এখনো বলা যায় না"), tone: "neutral" };
+  const good = (f.goodPct / f.gradedPct) * 100;
+  const weak = (f.weakPct / f.gradedPct) * 100;
+  if (weak > 30 || good < 40) return { word: B("Weak", "দুর্বল"), tone: "bad" };
+  if (good >= 80 && weak === 0) return { word: B("Strong", "শক্তিশালী"), tone: "good" };
+  if (good >= 60 && weak <= 10) return { word: B("Mostly strong", "বেশিরভাগ শক্তিশালী"), tone: "good" };
   return { word: B("Mixed", "মিশ্র"), tone: "fair" };
 }
 
@@ -373,12 +393,14 @@ function spreadLight(f: Facts, s: SpreadIssue): { word: Bi; tone: Tone } {
   }
 }
 
+/** Today's prices (2026-11-05, was "prices you paid"): the stock page's
+ *  valuation score weighted by money, read on its own bands (7 low, 4 fair). */
 function pricesLight(a: PortfolioAnalysis): { word: Bi; tone: Tone } {
   if (a.breakdown.judgeablePct < 30) return { word: B("Can't tell yet", "এখনো বলা যায় না"), tone: "neutral" };
-  const e = a.subScores.entry;
-  if (e >= 7) return { word: B("Low", "কম"), tone: "good" };
-  if (e >= 5) return { word: B("Fair", "ন্যায্য"), tone: "good" };
-  if (e >= 3.5) return { word: B("A bit high", "একটু বেশি"), tone: "fair" };
+  const p = a.subScores.price;
+  if (p >= 7) return { word: B("Low", "কম"), tone: "good" };
+  if (p >= 4) return { word: B("Fair", "ন্যায্য"), tone: "good" };
+  if (p >= 3) return { word: B("A bit high", "একটু বেশি"), tone: "fair" };
   return { word: B("High", "বেশি"), tone: "bad" };
 }
 
@@ -413,7 +435,7 @@ export function buildPortfolioReport(inp: ReportInput): PortfolioReport {
   const lights: PfLight[] = [
     { key: "companies", label: B("Your companies", "আপনার কোম্পানি"), ...cl, href: "#ch-companies" },
     { key: "spread", label: B("Your spread", "টাকার বণ্টন"), ...sl, href: "#ch-spread" },
-    { key: "prices", label: B("Prices you paid", "কেনার দাম"), ...pl, href: "#ch-prices" },
+    { key: "prices", label: B("Prices today", "আজকের দাম"), ...pl, href: "#ch-prices" },
     { key: "watch", label: B("To watch", "নজর রাখুন"), word: wl.word, tone: wl.tone, href: "#ch-watch" },
   ];
 
@@ -453,6 +475,8 @@ function buildAnswer(inp: ReportInput, f: Facts, lights: PfLight[], issue: Sprea
     companies:
       lights[0].tone === "good"
         ? B("Your money is mostly in strong companies.", "আপনার টাকার বেশিরভাগ শক্তিশালী কোম্পানিতে।")
+        : lights[0].tone === "neutral"
+          ? B("We can't grade most of your companies yet.", "আপনার বেশিরভাগ কোম্পানির গ্রেড এখনো দেওয়া যায়নি।")
         : lights[0].tone === "fair"
           ? B("Your companies are a mix of strong and weak.", "আপনার কোম্পানিগুলো শক্তিশালী আর দুর্বলের মিশেল।")
           : B("Too much of your money is in weak companies.", "আপনার টাকার অনেকটা দুর্বল কোম্পানিতে।"),
@@ -468,12 +492,12 @@ function buildAnswer(inp: ReportInput, f: Facts, lights: PfLight[], issue: Sprea
               : B("It is spread well.", "টাকা ভালোভাবে ছড়ানো।"),
     prices:
       lights[2].tone === "good"
-        ? B("You paid fair prices.", "ন্যায্য দামে কিনেছেন।")
+        ? B("Today's prices are fair for what they earn.", "তাদের আয়ের তুলনায় আজকের দাম ন্যায্য।")
         : lights[2].tone === "neutral"
           ? null
           : lights[2].tone === "fair"
-            ? B("You paid a bit much for some shares.", "কিছু শেয়ারে একটু বেশি দাম দিয়েছেন।")
-            : B("You paid high prices for most of it.", "বেশিরভাগ শেয়ারে বেশি দাম দিয়েছেন।"),
+            ? B("Some of your shares cost a lot today for what they earn.", "আপনার কিছু শেয়ারের দাম আজ তাদের আয়ের তুলনায় বেশি।")
+            : B("Most of your money is in shares that cost a lot today.", "আপনার বেশিরভাগ টাকা এমন শেয়ারে, যাদের দাম আজ বেশি।"),
     watch:
       lights[3].tone === "good"
         ? null
@@ -484,8 +508,8 @@ function buildAnswer(inp: ReportInput, f: Facts, lights: PfLight[], issue: Sprea
   let line: Bi;
   if (tone === "good") {
     line = B(
-      "Strong companies, spread well and bought at fair prices. Nothing needs you today.",
-      "শক্তিশালী কোম্পানি, ভালোভাবে ছড়ানো, ন্যায্য দামে কেনা। আজ আপনার কিছু করার নেই।",
+      "Strong companies, spread well and at fair prices today. Nothing needs you today.",
+      "শক্তিশালী কোম্পানি, ভালোভাবে ছড়ানো, আজকের দামও ন্যায্য। আজ আপনার কিছু করার নেই।",
     );
   } else {
     const order = [...lights].sort((x, y) => ({ bad: 0, fair: 1, neutral: 2, good: 3 })[x.tone] - ({ bad: 0, fair: 1, neutral: 2, good: 3 })[y.tone]);
@@ -743,7 +767,7 @@ const lowerFirst = (s: string) => (s ? s[0].toLowerCase() + s.slice(1) : s);
 function spreadChapter(inp: ReportInput, f: Facts, issue: SpreadIssue, light: { word: Bi; tone: Tone }): PfChapter {
   const byWeight = [...f.hs].sort((a, b) => b.weightPct - a.weightPct);
   const top = f.top;
-  const oneTone: Tone = !top || f.n < 2 ? "neutral" : top.weightPct > 40 ? "bad" : top.weightPct > 25 ? "fair" : "good";
+  const oneTone: Tone = !top || f.n < 2 ? "neutral" : top.weightPct > ONE_SHARE_BAD_PCT ? "bad" : top.weightPct > ONE_SHARE_FAIR_PCT ? "fair" : "good";
   const one: PfRow = {
     key: "one",
     title: B("How much rides on one share?", "একটি শেয়ারের ওপর কতটা নির্ভর?"),
@@ -762,11 +786,16 @@ function spreadChapter(inp: ReportInput, f: Facts, issue: SpreadIssue, light: { 
       : null,
     meaning: [B("Keeping each share under a quarter of your money means no single company can sink you.", "প্রতিটি শেয়ার টাকার এক-চতুর্থাংশের নিচে রাখলে কোনো এক কোম্পানি একা বড় ক্ষতি করতে পারে না।")],
     watch:
-      top && top.weightPct > 25
-        ? B(
-            `Bringing ${top.code} down to a quarter frees about ${takaGroup(((top.weightPct - 25) / 100) * f.total)}.`,
-            `${top.code} এক-চতুর্থাংশে নামালে প্রায় ${takaGroup(((top.weightPct - 25) / 100) * f.total)} খালি হয়।`,
-          )
+      top && top.weightPct > ONE_SHARE_FAIR_PCT
+        ? top.signal.signal === "trim"
+          ? B(
+              `Its price is high now: bringing ${top.code} down to a quarter frees about ${takaGroup(((top.weightPct - ONE_SHARE_FAIR_PCT) / 100) * f.total)}.`,
+              `এর দাম এখন বেশি: ${top.code} এক-চতুর্থাংশে নামালে প্রায় ${takaGroup(((top.weightPct - ONE_SHARE_FAIR_PCT) / 100) * f.total)} খালি হয়।`,
+            )
+          : B(
+              `Putting your next buys into other shares brings ${top.code} down toward a quarter.`,
+              `পরের কেনাগুলো অন্য শেয়ারে করলে ${top.code}-এর ভাগ এক-চতুর্থাংশের দিকে নামে।`,
+            )
         : null,
     picture: {
       kind: "bars",
@@ -779,8 +808,8 @@ function spreadChapter(inp: ReportInput, f: Facts, issue: SpreadIssue, light: { 
 
   const secs = inp.analysis.sectorSpread;
   const ts = secs[0];
-  const secTone: Tone = !ts || secs.length < 2 ? (f.n > 1 ? "bad" : "neutral") : ts.weightPct > 60 ? "bad" : ts.weightPct > 40 || issue.kind === "finance" ? "fair" : "good";
-  const move = ts && ts.weightPct > 40 ? ((ts.weightPct - 40) / 100) * f.total : f.finPct > 50 ? ((f.finPct - 50) / 100) * f.total : null;
+  const secTone: Tone = !ts || secs.length < 2 ? (f.n > 1 ? "bad" : "neutral") : ts.weightPct > SECTOR_BAD_PCT ? "bad" : ts.weightPct > SECTOR_FAIR_PCT || issue.kind === "finance" ? "fair" : "good";
+  const move = ts && ts.weightPct > SECTOR_FAIR_PCT ? ((ts.weightPct - SECTOR_FAIR_PCT) / 100) * f.total : f.finPct > FIN_HEAVY_PCT ? ((f.finPct - FIN_HEAVY_PCT) / 100) * f.total : null;
   const sector: PfRow = {
     key: "sector",
     title: B("Is one business too big?", "একটি ব্যবসায় কি বেশি টাকা?"),
@@ -801,7 +830,7 @@ function spreadChapter(inp: ReportInput, f: Facts, issue: SpreadIssue, light: { 
               `Banks and finance hold ${takaGroup((f.finPct / 100) * f.total)}, more than half your money.${move ? ` Moving about ${takaGroup(move)} brings them under half.` : ""}`,
               `ব্যাংক ও আর্থিক প্রতিষ্ঠানে আছে ${takaGroup((f.finPct / 100) * f.total)}, আপনার অর্ধেকের বেশি টাকা।${move ? ` প্রায় ${takaGroup(move)} সরালে অর্ধেকের নিচে আসে।` : ""}`,
             )
-          : ts.weightPct > 40
+          : ts.weightPct > SECTOR_FAIR_PCT
             ? B(
                 `Your ${sectorWord(ts.name).en} shares hold ${takaGroup((ts.weightPct / 100) * f.total)}, ${pct(ts.weightPct)} of your money.${move ? ` Moving about ${takaGroup(move)} brings it under 40%.` : ""}`,
                 `${sectorWord(ts.name).bn} সেক্টরে আছে ${takaGroup((ts.weightPct / 100) * f.total)}, আপনার টাকার ${pct(ts.weightPct)}।${move ? ` প্রায় ${takaGroup(move)} সরালে 40%-এর নিচে আসে।` : ""}`,
@@ -829,7 +858,7 @@ function spreadChapter(inp: ReportInput, f: Facts, issue: SpreadIssue, light: { 
   };
 
   const eff = Math.max(1, Math.round(inp.analysis.effectiveStocks));
-  const effTone: Tone = f.n < 2 ? "neutral" : eff >= 5 ? "good" : eff >= 3 ? "fair" : "bad";
+  const effTone: Tone = f.n < 2 ? "neutral" : eff >= MIN_SHARES ? "good" : eff >= 3 ? "fair" : "bad";
   const carry: PfRow = {
     key: "carry",
     title: B("How many shares really carry your money?", "আসলে কয়টি শেয়ার আপনার টাকা বহন করছে?"),
@@ -881,32 +910,136 @@ function spreadChapter(inp: ReportInput, f: Facts, issue: SpreadIssue, light: { 
 // ── Chapter 3 · prices ─────────────────────────────────────────────────────
 
 function pricesChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone }): PfChapter {
-  const judged = f.hs.filter((h) => h.entryPe != null && h.sectorPe != null && h.entryPe > 0 && h.entryValuation !== "unknown");
-  const jw = judged.reduce((a, h) => a + h.weightPct, 0);
-  const youPaid = jw > 0 ? judged.reduce((a, h) => a + (h.entryPe as number) * h.weightPct, 0) / jw : null;
-  const similar = jw > 0 ? judged.reduce((a, h) => a + (h.sectorPe as number) * h.weightPct, 0) / jw : null;
+  // What does each share cost today? The stock page's own price word on each
+  // share (its valuation score, 7 low / 4 fair) — the grade's third part since
+  // 2026-11-05, so the grade is the same whatever the reader paid.
+  type NowWord = "low" | "fair" | "high" | "none";
+  const nowWord = (h: HoldingInsight): NowWord => {
+    const eps = inp.priceMap.get(h.code)?.eps ?? null;
+    if (eps == null || eps <= 0 || h.valuationNow === "unknown") return "none";
+    return h.valuationNow === "cheap" ? "low" : h.valuationNow === "expensive" ? "high" : "fair";
+  };
+  const NOW_WORD: Record<NowWord, Bi> = {
+    low: B("Low price", "কম দাম"),
+    fair: B("Fair price", "ন্যায্য দাম"),
+    high: B("High price", "বেশি দাম"),
+    none: B("Can't judge", "বিচার করা যায় না"),
+  };
+  const NOW_TONE: Record<NowWord, Tone> = { low: "good", fair: "neutral", high: "fair", none: "neutral" };
+  const now = f.hs.map((h) => ({ h, w: nowWord(h) })).sort((a, b) => b.h.weightPct - a.h.weightPct);
+  const nowOf = (w: NowWord) => now.filter((x) => x.w === w);
+  const nowPct = (w: NowWord) => nowOf(w).reduce((a, x) => a + x.h.weightPct, 0);
+  const judgedNow = now.filter((x) => x.w !== "none");
+  const dear = nowOf("high");
+  const lowOrFair = nowOf("low").length + nowOf("fair").length;
+  const todayRow: PfRow = {
+    key: "today",
+    title: B("What does each share cost today?", "প্রতিটি শেয়ারের দাম আজ কেমন?"),
+    word: light.word,
+    tone: light.tone,
+    headline: !judgedNow.length
+      ? null
+      : join([
+          B(
+            `${lowOrFair} of your ${judgedNow.length} shares ${judgedNow.length === 1 ? "is" : "are"} at a low or fair price today, for what ${judgedNow.length === 1 ? "it earns" : "they earn"}.`,
+            `আপনার ${judgedNow.length}টি শেয়ারের ${lowOrFair}টির দাম আজ আয়ের তুলনায় কম বা ন্যায্য।`,
+          ),
+          dear.length
+            ? B(
+                `${names(dear.map((x) => x.h)).en} ${dear.length === 1 ? "costs" : "cost"} a lot.`,
+                `${names(dear.map((x) => x.h)).bn}-এর দাম বেশি।`,
+              )
+            : B("", ""),
+        ]),
+    meaning: [
+      B(
+        "This is the same price check as on each stock page: the price against the company's profit and what it owns, next to its own usual price and similar companies.",
+        "প্রতিটি শেয়ারের পেজের মতো একই যাচাই: কোম্পানির মুনাফা আর সম্পদের তুলনায় দাম, এর নিজের স্বাভাবিক দাম আর একই ধরনের কোম্পানির পাশে।",
+      ),
+      B(
+        "It is the third part of your grade, so two people holding the same shares get the same grade, whatever each of them paid.",
+        "এটি আপনার গ্রেডের তৃতীয় অংশ, তাই একই শেয়ার যার কাছেই থাকুক, কে কত দামে কিনেছেন তাতে গ্রেড বদলায় না।",
+      ),
+    ],
+    watch: dear.length
+      ? B(
+          `Buying more of ${nameOf(dear[0].h)} today would add to a share that already costs a lot.`,
+          `আজ ${nameOf(dear[0].h)} আরও কিনলে এমন শেয়ারে টাকা বাড়বে, যার দাম এরই মধ্যে বেশি।`,
+        )
+      : null,
+    picture: judgedNow.length
+      ? {
+          kind: "split",
+          label: `Money by today's price: low ${pct(nowPct("low"))}, fair ${pct(nowPct("fair"))}, high ${pct(nowPct("high"))}, can't judge ${pct(nowPct("none"))}`,
+          parts: [
+            { key: "low", value: nowPct("low"), text: B(`Low ${pct(nowPct("low"))}`, `কম ${pct(nowPct("low"))}`), swatch: "good" as Swatch },
+            { key: "fair", value: nowPct("fair"), text: B(`Fair ${pct(nowPct("fair"))}`, `ন্যায্য ${pct(nowPct("fair"))}`), swatch: "quiet" as Swatch },
+            { key: "high", value: nowPct("high"), text: B(`High ${pct(nowPct("high"))}`, `বেশি ${pct(nowPct("high"))}`), swatch: "fair" as Swatch },
+            { key: "none", value: nowPct("none"), text: B(`Can't judge ${pct(nowPct("none"))}`, `বিচার করা যায় না ${pct(nowPct("none"))}`), swatch: "navy" as Swatch },
+          ].filter((x) => x.value > 0.5),
+        }
+      : null,
+    figures: now.map((x) => ({
+      key: x.h.code,
+      code: x.h.code,
+      label: same(nameOf(x.h)),
+      value: NOW_WORD[x.w],
+      tone: NOW_TONE[x.w],
+    })),
+    points: [],
+  };
+
+  // Did you buy at fair prices? Information, not part of the grade. With the
+  // glance's price lines the price paid runs through the stock page's rule.
+  // "Years of profit you paid" is total cost / total yearly profit, weighted by
+  // the money put in — an average of P/Es put equal money in a P/E 3 and a
+  // P/E 126 share at 65 years when it is 7 (2026-11-05).
+  const judged = f.hs.filter((h) => h.entryPe != null && h.entryPe > 0 && h.entryValuation !== "unknown");
+  const costOf = (h: HoldingInsight) => h.qty * h.buyPrice;
+  const paidOn = (hs: HoldingInsight[], pe: (h: HoldingInsight) => number | null) => {
+    const use = hs.filter((h) => (pe(h) ?? 0) > 0);
+    const cost = use.reduce((a, h) => a + costOf(h), 0);
+    const earn = use.reduce((a, h) => a + costOf(h) / (pe(h) as number), 0);
+    return cost > 0 && earn > 0 ? cost / earn : null;
+  };
+  const youPaid = paidOn(judged, (h) => h.entryPe);
+  const similar = paidOn(judged, (h) => h.sectorPe);
   const over = judged.filter((h) => h.entryValuation === "expensive").sort((a, b) => b.weightPct - a.weightPct);
-  const cheap = judged.filter((h) => h.entryValuation === "cheap");
-  const paidTone: Tone = youPaid == null ? "neutral" : light.tone;
+  const judgedCost = judged.reduce((a, h) => a + costOf(h), 0);
+  const overShare = judgedCost > 0 ? (over.reduce((a, h) => a + costOf(h), 0) / judgedCost) * 100 : 0;
+  const paidTone: Tone = !judged.length ? "neutral" : over.length === 0 ? "good" : "fair";
   const paid: PfRow = {
     key: "paid",
     title: B("Did you buy at fair prices?", "কি ন্যায্য দামে কিনেছেন?"),
-    word: youPaid == null ? B("Can't tell yet", "এখনো বলা যায় না") : light.tone === "good" ? B("Yes", "হ্যাঁ") : light.word,
+    word: !judged.length
+      ? B("Can't tell yet", "এখনো বলা যায় না")
+      : over.length === 0
+        ? B("Yes", "হ্যাঁ")
+        : overShare < 30
+          ? B("Mostly", "বেশিরভাগ")
+          : B("Some paid high", "কিছু বেশি দামে"),
     tone: paidTone,
-    headline:
-      youPaid == null || similar == null
-        ? null
-        : join([
-            B(
-              `You paid about ${Math.round(youPaid)} years of their profit. Similar companies cost about ${Math.round(similar)}.`,
-              `আপনি তাদের প্রায় ${Math.round(youPaid)} বছরের মুনাফার সমান দাম দিয়েছেন। একই ধরনের কোম্পানির দাম প্রায় ${Math.round(similar)} বছরের।`,
-            ),
-            over.length ? B(`You paid more than usual for ${names(over).en}.`, `${names(over).bn}-এ স্বাভাবিকের চেয়ে বেশি দিয়েছেন।`) : B("", ""),
-          ]),
+    headline: !judged.length
+      ? null
+      : join([
+          youPaid != null && similar != null
+            ? B(
+                `You paid about ${Math.round(youPaid)} years of their profit. Similar companies cost about ${Math.round(similar)} today.`,
+                `আপনি তাদের প্রায় ${Math.round(youPaid)} বছরের মুনাফার সমান দাম দিয়েছেন। একই ধরনের কোম্পানির দাম আজ প্রায় ${Math.round(similar)} বছরের।`,
+              )
+            : B("", ""),
+          over.length
+            ? B(`You paid a high price for ${names(over).en}.`, `${names(over).bn}-এ বেশি দাম দিয়েছেন।`)
+            : B("None was bought at a high price.", "কোনোটিই বেশি দামে কেনা নয়।"),
+        ]),
     meaning: [
       B(
         "The fewer years of profit you pay for, the more room the price has to grow, and the less a bad year hurts.",
         "যত কম বছরের মুনাফার সমান দাম দেবেন, দাম বাড়ার জায়গা তত বেশি, আর খারাপ বছরে ক্ষতি তত কম।",
+      ),
+      B(
+        "We measure it on each company's latest profit. It does not change your grade: the grade looks at today's price.",
+        "এটি প্রতিটি কোম্পানির সর্বশেষ মুনাফা ধরে মাপা। এতে আপনার গ্রেড বদলায় না: গ্রেড দেখে আজকের দাম।",
       ),
     ],
     watch: null,
@@ -927,10 +1060,10 @@ function pricesChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone
       label: same(nameOf(h)),
       value:
         h.entryValuation === "cheap"
-          ? B("Bought cheap", "কম দামে কেনা")
+          ? B("Bought at a low price", "কম দামে কেনা")
           : h.entryValuation === "expensive"
-            ? B("Paid more than usual", "স্বাভাবিকের চেয়ে বেশি দাম")
-            : B("Fair price", "ন্যায্য দাম"),
+            ? B("Bought at a high price", "বেশি দামে কেনা")
+            : B("Bought at a fair price", "ন্যায্য দামে কেনা"),
       tone: (h.entryValuation === "cheap" ? "good" : h.entryValuation === "expensive" ? "fair" : "neutral") as Tone,
     })),
     points: [],
@@ -1023,20 +1156,18 @@ function pricesChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone
     points: [],
   };
 
-  const rows = [paid, worth, topRow];
+  const rows = [todayRow, worth, topRow, paid];
   return {
     key: "prices",
     id: "ch-prices",
-    title: B("Did you pay fair prices?", "কি ন্যায্য দাম দিয়েছেন?"),
+    title: B("Is the price right today?", "আজকের দাম কি ঠিক আছে?"),
     head: {
       word: light.word,
       tone: light.tone,
       line:
-        judged.length === 0
+        judgedNow.length === 0
           ? B("Not enough profit figures to judge", "বিচার করার মতো মুনাফার হিসাব নেই")
-          : over.length === 0
-            ? B(`None of ${judged.length} was bought above its usual price`, `${judged.length}টির কোনোটিই স্বাভাবিকের চেয়ে বেশি দামে কেনা নয়`)
-            : B(`${cheap.length + (judged.length - cheap.length - over.length)} of ${judged.length} bought at a fair price or less`, `${judged.length}টির ${cheap.length + (judged.length - cheap.length - over.length)}টি ন্যায্য বা কম দামে কেনা`),
+          : B(`${lowOrFair} of ${judgedNow.length} at a low or fair price today`, `${judgedNow.length}টির ${lowOrFair}টির দাম আজ কম বা ন্যায্য`),
     },
     rows,
   };
@@ -1053,8 +1184,9 @@ function pricesChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone
 
 /** A share counts as "in a loss" here from this far below the price paid. */
 const LOSS_PCT = -5;
-/** A buy-more example never takes one share past this much of the money. */
-const MORE_MAX_PCT = 25;
+/** A buy-more example never takes one share past this much of the money (the
+ *  backend's Buy more line, lib/portfolio-limits). */
+const MORE_MAX_PCT = BUY_MORE_MAX_PCT;
 
 type LossKind = "price" | "mixed" | "worse";
 
@@ -1068,8 +1200,11 @@ interface LossItem {
   kind: LossKind;
   /** Why it sits in its group, one clause. */
   why: Bi;
-  /** The price that gives the money back after fees, both sides. */
+  /** The price that gives the money back after fees, both sides, net of the
+   *  cash dividends it has already paid. */
   even: number;
+  /** Cash dividends logged on it since it was added. */
+  div: number;
   /** How far it must rise from today to get there, %. */
   rise: number;
   hi52: number | null;
@@ -1088,6 +1223,10 @@ interface LossFacts {
 }
 
 const breakEven = (avg: number, fee: number) => (avg * (1 + fee)) / (1 - fee);
+/** The price that gives back what was put in, after fees both sides and the
+ *  cash dividends already received on these shares. */
+const breakEvenNet = (cost: number, qty: number, div: number, fee: number) =>
+  qty > 0 ? breakEven(Math.max(0, cost - div) / qty, fee) : 0;
 
 function lossFacts(inp: ReportInput, f: Facts): LossFacts | null {
   const fee = Math.max(0, inp.feePct ?? 0.4) / 100;
@@ -1125,7 +1264,8 @@ function lossFacts(inp: ReportInput, f: Facts): LossFacts | null {
             ? B("we can't grade it yet", "এখনো এর গ্রেড দেওয়া যায়নি")
             : B("it is an average company", "এটি মাঝারি মানের কোম্পানি");
     }
-    const even = breakEven(h.buyPrice, fee);
+    const div = Math.max(0, inp.divReceived?.get(h.code.toUpperCase()) ?? 0);
+    const even = breakEvenNet(cost, h.qty, div, fee);
     const y = inp.priceMap.get(h.code)?.div_yield_pct ?? 0;
     items.push({
       h,
@@ -1136,6 +1276,7 @@ function lossFacts(inp: ReportInput, f: Facts): LossFacts | null {
       kind,
       why,
       even,
+      div,
       rise: (even / h.ltp - 1) * 100,
       hi52: g?.hi52 ?? null,
       cash: y > 0 ? (value * y) / 100 : 0,
@@ -1286,8 +1427,8 @@ function lossChapter(inp: ReportInput, f: Facts, lf: LossFacts): PfChapter {
     headline: one
       ? join([
           B(
-            `${nameOf(one.h)} needs to rise ${pct(one.rise)}, to ${money(one.even)}, to give your money back after fees.`,
-            `ফি দেওয়ার পর টাকা ফেরাতে ${nameOf(one.h)}-এর দাম ${pct(one.rise)} বাড়তে হবে, ${money(one.even)} পর্যন্ত।`,
+            `${nameOf(one.h)} needs to rise ${pct(one.rise)}, to ${money(one.even)}, to give your money back after fees${one.div >= 1 ? ` and the ${takaGroup(one.div)} in dividends it has paid you` : ""}.`,
+            `ফি${one.div >= 1 ? ` আর এ পর্যন্ত পাওয়া ${takaGroup(one.div)} ডিভিডেন্ড` : ""} ধরে টাকা ফেরাতে ${nameOf(one.h)}-এর দাম ${pct(one.rise)} বাড়তে হবে, ${money(one.even)} পর্যন্ত।`,
           ),
           one.hi52 != null
             ? one.hi52 >= one.even
@@ -1338,8 +1479,11 @@ function lossChapter(inp: ReportInput, f: Facts, lf: LossFacts): PfChapter {
   // What would buying more do? Only on a company that is not weaker; the
   // example is half of what is in it, capped so the share stays under a quarter.
   const cap = MORE_MAX_PCT / 100;
-  const examples = items
-    .filter((x) => x.kind !== "worse")
+  // Only a share whose own advice is Buy more (signal_service.holding_signal):
+  // an average or ungraded company the signal wouldn't buy gets no
+  // "lower your average" example (2026-11-05).
+  const buyable = items.filter((x) => x.kind !== "worse" && x.h.signal.signal === "buy_more");
+  const examples = buyable
     .map((x) => {
       const ltp = x.h.ltp as number;
       // Spending s keeps the share under the cap when (value + s) ≤ cap × (total + s).
@@ -1347,14 +1491,21 @@ function lossChapter(inp: ReportInput, f: Facts, lf: LossFacts): PfChapter {
       const q = Math.floor(Math.min(x.cost * 0.5, Math.max(0, room)) / ltp);
       if (q < 1) return null;
       const avg = (x.cost + q * ltp) / (x.h.qty + q);
-      return { x, q, spend: q * ltp, avg, rise: Math.max(0, (breakEven(avg, lf.fee) / ltp - 1) * 100) };
+      const even = breakEvenNet(x.cost + q * ltp, x.h.qty + q, x.div, lf.fee);
+      return { x, q, spend: q * ltp, avg, rise: Math.max(0, (even / ltp - 1) * 100) };
     })
     .filter(Boolean) as { x: LossItem; q: number; spend: number; avg: number; rise: number }[];
   const ex = examples[0] ?? null;
   const more: PfRow = {
     key: "more",
     title: B("What would buying more do?", "আরও কিনলে কী হবে?"),
-    word: ex ? B("Lowers your price", "গড় দাম কমে") : worse.length === n ? B("Not on these", "এগুলোতে নয়") : B("No room", "জায়গা নেই"),
+    word: ex
+      ? B("Lowers your price", "গড় দাম কমে")
+      : worse.length === n
+        ? B("Not on these", "এগুলোতে নয়")
+        : buyable.length
+          ? B("No room", "জায়গা নেই")
+          : B("None marked Buy more", "আরও কেনার সংকেত নেই"),
     tone: ex ? "neutral" : worse.length === n ? "bad" : "neutral",
     headline: ex
       ? join([
@@ -1372,14 +1523,19 @@ function lossChapter(inp: ReportInput, f: Facts, lf: LossFacts): PfChapter {
             "Each of these companies got weaker, so buying more would put more money on a weaker company.",
             "এই কোম্পানিগুলো সবই দুর্বল হয়েছে, তাই আরও কিনলে দুর্বল কোম্পানিতে আরও টাকা যাবে।",
           )
-        : B(
-            "These shares already hold a big part of your money, so buying more would lean on them too much.",
-            "এই শেয়ারগুলোতে আগেই আপনার টাকার বড় অংশ আছে, তাই আরও কিনলে এগুলোর ওপর বেশি নির্ভরতা তৈরি হবে।",
-          ),
+        : buyable.length
+          ? B(
+              "These shares already hold a big part of your money, so buying more would lean on them too much.",
+              "এই শেয়ারগুলোতে আগেই আপনার টাকার বড় অংশ আছে, তাই আরও কিনলে এগুলোর ওপর বেশি নির্ভরতা তৈরি হবে।",
+            )
+          : B(
+              "We only show what buying more would do for a share marked Buy more, and none of these is today.",
+              "আরও কিনলে কী হবে, তা শুধু আরও কেনার সংকেত থাকা শেয়ারের জন্য দেখাই, আর আজ এগুলোর কোনোটিতে তা নেই।",
+            ),
     meaning: [
       B(
-        "Buying more lowers your average price, but it also puts more of your money on one share. Our examples keep each share under a quarter of your money.",
-        "আরও কিনলে গড় দাম কমে, কিন্তু একটি শেয়ারে আরও টাকা জমে। আমাদের উদাহরণে প্রতিটি শেয়ার আপনার টাকার এক-চতুর্থাংশের নিচে থাকে।",
+        `Buying more lowers your average price, but it also puts more of your money on one share. Our examples are only for shares marked Buy more, and keep each under ${MORE_MAX_PCT}% of your money.`,
+        `আরও কিনলে গড় দাম কমে, কিন্তু একটি শেয়ারে আরও টাকা জমে। আমাদের উদাহরণ শুধু আরও কেনার সংকেত থাকা শেয়ারের জন্য, আর প্রতিটি শেয়ার আপনার টাকার ${MORE_MAX_PCT}%-এর নিচে থাকে।`,
       ),
       ...(ex && worse.length
         ? [B(`We leave ${names(hsOf(worse)).en} out: the company got weaker too.`, `${names(hsOf(worse)).bn} বাদ রাখা হয়েছে: কোম্পানিও দুর্বল হয়েছে।`)]
@@ -1603,7 +1759,7 @@ function watchChapter(inp: ReportInput, f: Facts, light: { word: Bi; tone: Tone;
         date: ev.date,
         name: B(`${h.code} record date`, `${h.code} রেকর্ড ডেট`),
         line: cash
-          ? B(`${takaGroup(cash)} is coming on your ${h.qty} shares.`, `আপনার ${h.qty}টি শেয়ারে আসছে ${takaGroup(cash)}।`)
+          ? B(`${takaGroup(cash)} before tax is coming on your ${h.qty} shares.`, `আপনার ${h.qty}টি শেয়ারে কর কাটার আগে আসছে ${takaGroup(cash)}।`)
           : ev.stock_pct
             ? B(`${ev.stock_pct}% bonus shares.`, `${ev.stock_pct}% বোনাস শেয়ার।`)
             : B("Dividend record date.", "ডিভিডেন্ডের রেকর্ড ডেট।"),
@@ -1853,8 +2009,8 @@ function buildFindings(inp: ReportInput, f: Facts, lights: PfLight[], issue: Spr
     add(
       "paid",
       58,
-      B(`You paid more than usual for ${over} of your shares.`, `আপনার ${over}টি শেয়ার স্বাভাবিকের চেয়ে বেশি দামে কেনা।`),
-      B("Which ones, against what similar companies cost, and what they are worth today.", "কোনগুলো, একই ধরনের কোম্পানির দামের পাশে, আর আজ সেগুলোর ন্যায্য দাম কত।"),
+      B(`You paid a high price for ${over} of your shares.`, `আপনার ${over}টি শেয়ার বেশি দামে কেনা।`),
+      B("Which ones, what each costs today, and what they are worth.", "কোনগুলো, আজ প্রতিটির দাম কেমন, আর সেগুলোর ন্যায্য দাম কত।"),
     );
   }
 
@@ -1867,7 +2023,7 @@ function buildFindings(inp: ReportInput, f: Facts, lights: PfLight[], issue: Spr
     add(
       "cash",
       52,
-      B(`${takaGroup(cash)} in dividends is coming to you in the next 30 days.`, `আগামী 30 দিনে আপনার কাছে ${takaGroup(cash)} ডিভিডেন্ড আসছে।`),
+      B(`${takaGroup(cash)} in dividends, before tax, is coming to you in the next 30 days.`, `আগামী 30 দিনে কর কাটার আগে আপনার কাছে ${takaGroup(cash)} ডিভিডেন্ড আসছে।`),
       B("Whether each company can keep paying it.", "প্রতিটি কোম্পানি এভাবে দিয়ে যেতে পারবে কি না।"),
     );
   }
