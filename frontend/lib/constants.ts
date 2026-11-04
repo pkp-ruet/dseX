@@ -11,8 +11,9 @@ export const TIER_THRESHOLDS = {
   AVERAGE:   45,
 };
 
-/** The four grades, named by what the company is like on our five checks
- *  (2026-10-31, after the company ranking redesign): THE label for a grade
+/** The four grades, named by what the company is like on our four business
+ *  checks (2026-10-31; decided by those checks' rules since 2026-11-05 —
+ *  see TIER_MEANINGS): THE label for a grade
  *  everywhere a reader sees one. The old words (Excellent / Good / Average /
  *  Weak) are retired from the screen; the keys stay. Mirrors backend
  *  tiers.TIER_WORDS. */
@@ -79,21 +80,23 @@ export const TIER_SCORE_LABELS: Record<TierKey, string> = {
   weak:      "Score < 45",
 };
 
-/** What each grade means on our four business checks (price is judged on its
- *  own since 2026-11-05) — the line under its name. */
+/** What each group means: the rule that puts a company in it (2026-11-05,
+ *  backend/services/grade_rules.py — the four business checks, each Strong at
+ *  7+ / Weak under 4, plus serious problems; the score no longer decides the
+ *  group). Mirrors grade_rules.GROUP_RULES (test_agreement). */
 export const TIER_MEANINGS: Record<TierKey, string> = {
-  excellent: "Strong on most of our 4 business checks",
-  good:      "Strong on some checks, weak on none",
-  average:   "Strong on one or two checks, weak on some",
-  weak:      "Weak on several checks",
+  excellent: "Strong on profit and on at least 2 more checks, weak on none",
+  good:      "Strong on 2 checks with none weak, or on 3 with one weak (never profit)",
+  average:   "In between, or held here by one serious problem",
+  weak:      "Weak on more checks than it is strong on, weak on profit with nothing strong, or two serious problems",
 };
 
 /** Bengali meaning line — mirrors TIER_MEANINGS. */
 export const TIER_MEANINGS_BN: Record<TierKey, string> = {
-  excellent: "ব্যবসার 4টি যাচাইয়ের বেশিরভাগে শক্তিশালী",
-  good:      "কয়েকটি যাচাইয়ে শক্তিশালী, কোনোটিতে দুর্বল নয়",
-  average:   "1 বা 2টি যাচাইয়ে শক্তিশালী, কয়েকটিতে দুর্বল",
-  weak:      "কয়েকটি যাচাইয়ে দুর্বল",
+  excellent: "মুনাফায় শক্তিশালী, আরও অন্তত 2টি যাচাইয়ে শক্তিশালী, কোনোটিতে দুর্বল নয়",
+  good:      "2টি যাচাইয়ে শক্তিশালী আর কোনোটিতে দুর্বল নয়, বা 3টিতে শক্তিশালী আর 1টিতে দুর্বল (মুনাফা নয়)",
+  average:   "মাঝামাঝি, বা একটি গুরুতর সমস্যার কারণে এখানে আটকে আছে",
+  weak:      "যতগুলোতে শক্তিশালী তার চেয়ে বেশি যাচাইয়ে দুর্বল, বা মুনাফায় দুর্বল আর কিছুতেই শক্তিশালী নয়, বা দুটি গুরুতর সমস্যা",
 };
 
 export function getTier(score: number | null | undefined): TierKey {

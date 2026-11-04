@@ -166,6 +166,17 @@ def test_frontend_tier_cut_offs_and_words_match_the_backend():
         assert words.get(k) == tiers.TIER_WORDS[k], k
 
 
+def test_frontend_group_meanings_are_the_rules():
+    from backend.services.grade_rules import GROUP_RULES
+
+    src = _front("lib/constants.ts")
+    for name, i in (("TIER_MEANINGS", 0), ("TIER_MEANINGS_BN", 1)):
+        body = re.search(rf"export const {name}[^=]*=\s*\{{(.*?)\}};", src, re.S).group(1)
+        lines = dict(re.findall(r"(\w+):\s*\"([^\"]+)\"", body))
+        for k in ("excellent", "good", "average", "weak"):
+            assert lines.get(k) == GROUP_RULES[k][i], (name, k)
+
+
 def test_frontend_strong_and_weak_words_use_the_reports_lines():
     src = _front("components/stock/HealthCheck.tsx")
     m = re.search(r"v >= ([\d.]+) \? \{ en: \"Strong\".*?v >= ([\d.]+) \? \{ en: \"Fair\"", src, re.S)

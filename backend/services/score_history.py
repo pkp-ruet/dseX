@@ -15,6 +15,9 @@ Two things are deliberately NOT read as news about a company:
   companies. Those changes are labelled as such and never pushed.
 * **A score parked on a grade line.** A grade only moves once the score is a
   point past the line (``settle``), so 59.9 / 60.1 isn't a change every day.
+  Rows marked ``settled`` (since 2026-11-05) carry a group the rules already
+  settled (``grade_rules``): their score sits inside its group's band and is
+  read as it is.
 * **Rows without pillars** (before 2026-10-25): the change is shown, but with
   no "why" — we don't guess.
 
@@ -211,10 +214,16 @@ _ORDER = ["weak", "average", "good", "excellent"]
 SETTLE_POINTS = 1.0
 
 
-def settle(prev_tier: Optional[str], score: Optional[float]) -> str:
+def settle(prev_tier: Optional[str], score: Optional[float], settled: bool = False) -> str:
     """The grade to show after ``score``, given the grade it had: it moves only
-    once the score is ``SETTLE_POINTS`` past the line it crossed."""
+    once the score is ``SETTLE_POINTS`` past the line it crossed.
+
+    ``settled``: the score already carries a settled group (grade_rules since
+    2026-11-05 — held inside its band, so a move to 59.9 IS a move to Mixed).
+    Settling it again would miss changes, so it is read as it is."""
     raw = tier_key(score)
+    if settled:
+        return raw
     if not prev_tier or prev_tier not in _ORDER or raw not in _ORDER:
         return raw
     if _ORDER.index(raw) > _ORDER.index(prev_tier):
@@ -246,7 +255,7 @@ def timeline(rows: list[dict], method_days: Optional[set[str]] = None) -> dict:
     tier, anchor = None, None  # the grade, and the row on which it began
     for r in rows:
         s = _n(r.get("score"))
-        new_tier = settle(tier, s)
+        new_tier = settle(tier, s, bool(r.get("settled")))
         day = str(r["date"])[:10]
         if tier and new_tier != tier and tier != "unknown" and new_tier != "unknown":
             # Measured from the day the old grade began: a grade usually moves
@@ -276,7 +285,9 @@ def timeline(rows: list[dict], method_days: Optional[set[str]] = None) -> dict:
 def state_row(row: dict) -> dict:
     """What the daily job remembers per company to explain tomorrow's change."""
     out = {"score": _n(row.get("score")), "tier": tier_key(_n(row.get("score"))),
-           "market_cat": row.get("market_cat"), "stale_data": row.get("stale_data")}
+           "market_cat": row.get("market_cat"), "stale_data": row.get("stale_data"),
+           # Scored by the group rules (grade_rules): the group is already settled.
+           "settled": isinstance(row.get("grade_checks"), dict)}
     for k in PILLAR_KEYS:
         out[k] = _n(row.get(k))
     sd = out["stale_data"]
@@ -304,7 +315,7 @@ def grade_changes(prev_state: dict[str, dict], cur_state: dict[str, dict]) -> di
     for code, cur in cur_state.items():
         prev = prev_state.get(code)
         if prev:
-            cur["tier"] = settle(prev.get("tier"), cur.get("score"))
+            cur["tier"] = settle(prev.get("tier"), cur.get("score"), bool(cur.get("settled")))
     if is_method_change(prev_state, cur_state):
         for cur in cur_state.values():
             cur["anchor"] = _bare(cur)

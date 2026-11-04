@@ -16,6 +16,8 @@ from backend.services.db_service import (
     get_db, load_latest_prices, load_all_company_codes,
 )
 from backend.services.interim_service import load_interims, interim_facts
+from backend.services import grade_rules
+from backend.services.tiers import tier_key
 from utils.sector import normalize_sector
 from utils.dividend_years import group_by_code, ledger_years, own_rows, year_end_month
 
@@ -138,51 +140,17 @@ def lender_equity(eq, ta, nav_ps, shares) -> Optional[float]:
 GRADE_WEIGHTS = {"p1": 0.30, "p2": 0.20, "p3": 0.20, "p5": 0.15}
 # What a finances / business-strength part with no figures at all counts as.
 EMPTY_PART_SCORE = 5.0
-# Below this share of the data, the grade is held at Mixed (cap key thin_data).
+# Below this share of the data, "strong" can't be said: a serious problem
+# (thin_data) in grade_rules, so the group is Mixed at best.
 THIN_DATA_COMPLETENESS = 0.5
 
-# Serious warnings cap the grade at "Mixed" (GR8, clear-cut cases only).
-GRADE_CAP_SCORE = 59.9
-# Tier lower bounds for settling (tiers.py: 75 / 60 / 45).
-_TIER_LINES = [("excellent", 75.0), ("good", 60.0), ("average", 45.0), ("weak", float("-inf"))]
-SETTLE_BAND = 1.0
+# The group itself (checks, serious problems, settling, the score held in its
+# band) is decided by backend/services/grade_rules.py since 2026-11-05.
 # A share with no trade for this long isn't graded (merged banks, suspended).
 NO_TRADE_DAYS = 60
 
 _EPS_KEYS = ("eps", "eps_basic", "eps_cont_basic", "eps_diluted", "eps_cont_diluted")
 _PER_SHARE_KEYS = _EPS_KEYS + ("nav_per_share", "dps", "cash_dividend_pct")
-
-
-def _tier_of(score: float) -> str:
-    return next(t for t, lo in _TIER_LINES if score >= lo)
-
-
-def settle_score(raw: Optional[float], prev: Optional[float]) -> Optional[float]:
-    """The published score, settled against the previous published one: a
-    company changes group only once its score is SETTLE_BAND past the line
-    (user decision 2026-11-05). Otherwise the score is held just inside the
-    old group, so every page, the signal and pushes read one settled grade
-    from the score alone. Grades flipped 2-5 times a day before."""
-    if raw is None or prev is None or _is_nanish(raw) or _is_nanish(prev):
-        return raw
-    names = [t for t, _ in _TIER_LINES]
-    lows = dict(_TIER_LINES)
-    i_prev, i_raw = names.index(_tier_of(prev)), names.index(_tier_of(raw))
-    if i_raw == i_prev:
-        return raw
-    if i_raw < i_prev:            # moved up (lower index = higher group)
-        i = i_prev
-        while i > 0 and raw >= lows[names[i - 1]] + SETTLE_BAND:
-            i -= 1
-        if i == i_raw:
-            return raw
-        return round(lows[names[i - 1]] - 0.1, 1)   # just under the next line
-    i = i_prev                     # moved down
-    while i < len(names) - 1 and raw < lows[names[i]] - SETTLE_BAND:
-        i += 1
-    if i == i_raw:
-        return raw
-    return lows[names[i]]                            # held on its line
 
 
 def bonus_adjust_rows(rows: list[dict], total_shares: Optional[float] = None) -> list[dict]:
@@ -1403,8 +1371,8 @@ def compute_and_store_scores() -> pd.DataFrame:
 
     The ONLY place the heavy pandas computation runs: the daily `compute-scores`
     CLI job and the self-healing fallback below. Returns the computed frame."""
-    # The previous published scores, so a company changes group only once its
-    # score is past the line by SETTLE_BAND (settle_score).
+    # The previous published scores: their band is yesterday's group, which
+    # grade_rules.group_for settles today's against.
     try:
         prev_df = _load_snapshot_df()
         prev = ({r["trading_code"]: r.get("score") for r in prev_df.to_dict("records")}
@@ -1895,9 +1863,13 @@ def _compute_scores_df(
         # Clamp to [0, 100] — UI and tier thresholds assume this range.
         adjusted_score_100 = max(0.0, min(100.0, adjusted_score_100))
         raw_score_100 = adjusted_score_100
-        # One settled grade (user decision 2026-11-05), then the warning cap.
-        if prev_scores:
-            adjusted_score_100 = settle_score(adjusted_score_100, prev_scores.get(code))
+        # The group by rule (grade_rules, user decision 2026-11-05): the four
+        # checks decide it, serious problems override (one → Mixed at best,
+        # two → Mostly weak), settled against yesterday's group. The 75/60/45
+        # lines no longer decide anything: the score is held inside its
+        # group's band and only orders companies within a group (the
+        # category / staleness multipliers above still order them — a Z
+        # company sits below a clean one in the same group).
         cap_keys = list(caps_by_code.get(code) or [])
         if debt["debt_level"] == "over_mcap":
             cap_keys.append("loans")
@@ -1910,10 +1882,18 @@ def _compute_scores_df(
         else:
             completeness_now = ((0.30 * sub1.get("p1_coverage", 0.0) + 0.20 * sub2.get("p2_coverage", 0.0)
                                  + 0.20 * sub3.get("p3_coverage", 0.0)) / 0.70)
-        if completeness_now < THIN_DATA_COMPLETENESS:
-            cap_keys.append("thin_data")
-        if cap_keys and adjusted_score_100 > GRADE_CAP_SCORE:
-            adjusted_score_100 = GRADE_CAP_SCORE
+        loss_now = eff_eps is not None and not _is_nanish(eff_eps) and float(eff_eps) <= 0
+        problems = grade_rules.problem_keys(
+            cap_keys, loss_now=loss_now, old_accounts=stale_data,
+            z_category=(cat == "Z"), thin_data=completeness_now < THIN_DATA_COMPLETENESS)
+        check_vals = grade_rules.check_values({
+            "p1_biz": p1, "p2_health": p2, "p3_moat": p3, "p5_div": p5,
+            "p2_coverage": sub2.get("p2_coverage"), "p3_coverage": sub3.get("p3_coverage")})
+        prev_group = None
+        if prev_scores and prev_scores.get(code) is not None and not _is_nanish(prev_scores.get(code)):
+            prev_group = tier_key(float(prev_scores[code]))
+        group = grade_rules.group_for(check_vals, problems, prev_group)
+        adjusted_score_100 = grade_rules.held_score(adjusted_score_100, group)
 
         # Fraction of the renormalizable pillar weight (P1-P3) backed by data —
         # surfaced so downstream views can qualify claims about thin-data names.
@@ -1960,9 +1940,16 @@ def _compute_scores_df(
             "market_cat":   cat,
             "ltp":          ltp,
             "mcap_mn":      mcap_mn,
-            "score":          round(adjusted_score_100, 1),
+            "score":          adjusted_score_100,   # held_score: 1 decimal, 2 when held at an edge
             "raw_score":      round(raw_score_100, 1),
-            "grade_cap":      cap_keys or None,
+            # Serious problems that held the group below what its checks say
+            # (kept under the old name for readers of the cap).
+            "grade_cap":      grade_rules.held_back_by(check_vals, problems, group) or None,
+            # The rules behind the group: each check's word, every serious
+            # problem, and the group the checks alone give.
+            "grade_checks":   grade_rules.check_words(check_vals),
+            "grade_problems": problems or None,
+            "checks_group":   grade_rules.checks_group(check_vals),
             "base_score":     round(base_score_100, 1),
             "adjustment_pct": adj_pct if adj_pct else 0.0,
             "category_mult":  cat_mult,

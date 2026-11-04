@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 _COLLECTION = "signal_snapshots"
 HISTORY_DAYS = 366
-_MOVER_FIELDS = {"_id": 0, "trading_code": 1, "score": 1, "tier": 1,
+_MOVER_FIELDS = {"_id": 0, "trading_code": 1, "score": 1, "tier": 1, "settled": 1,
                  "market_cat": 1, "stale_data": 1, **{k: 1 for k in sh.PILLAR_KEYS}}
 
 

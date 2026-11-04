@@ -83,9 +83,19 @@ def test_below_good_uses_the_settled_grade():
     now = datetime(2026, 10, 31, tzinfo=timezone.utc)
     a = ra.new_alert("X", "below_good", rank=50, score=62.0, now=now)
     assert a["tier"] == "good" and a["was"] is False
-    alerts, fired = ra.check([a], {"X": 60}, {"X": 59.5})  # parked on the line
+    # Scores from before the group rules: one parked on the line is settled here.
+    alerts, fired = ra.check([a], {"X": 60}, {"X": 59.5}, settled=False)
     assert fired == []
-    alerts, fired = ra.check(alerts, {"X": 70}, {"X": 57.0})
+    alerts, fired = ra.check(alerts, {"X": 70}, {"X": 57.0}, settled=False)
+    assert len(fired) == 1 and fired[0]["tier_now"] == "average"
+
+
+def test_below_good_reads_a_rule_settled_score_as_it_is():
+    # Since 2026-11-05 the score sits in its group's band (grade_rules): 59.9
+    # means the rules moved it to Mixed, so the alert fires.
+    now = datetime(2026, 10, 31, tzinfo=timezone.utc)
+    a = ra.new_alert("X", "below_good", rank=50, score=60.0, now=now)
+    alerts, fired = ra.check([a], {"X": 60}, {"X": 59.9})
     assert len(fired) == 1 and fired[0]["tier_now"] == "average"
 
 

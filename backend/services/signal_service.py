@@ -555,6 +555,9 @@ def snapshot_signals_today(date: Optional[str] = None) -> dict:
             "p2_health": _f(row.get("p2_health")),
             "p3_moat": _f(row.get("p3_moat")),
             "p5_div": _f(row.get("p5_div")),
+            # The group was settled by the rules (grade_rules) — readers take
+            # the score's band as it is (score_history.settle).
+            "settled": isinstance(row.get("grade_checks"), dict),
             "pct_in_52w_range": (mom or {}).get("pct_in_52w_range"),
             "market_cat": (str(row.get("market_cat")).strip().upper()
                            if row.get("market_cat") is not None else None),

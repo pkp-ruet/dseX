@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import { T } from "@/components/i18n/T";
+import { TIER_LABELS, TIER_LABELS_BN, TIER_MEANINGS, TIER_MEANINGS_BN, type TierKey } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "About",
@@ -63,6 +64,25 @@ const NOT_LIST = [
     bn: "বেশি স্কোর মানেই দাম বাড়বে, এমন নয়। কেনার আগে সব সময় নিজে যাচাই করে নিন।",
   },
 ];
+
+/** The serious problems that outweigh the checks (backend grade_rules.PROBLEMS). */
+const PROBLEMS = [
+  {
+    en: "Its auditor doubts the business can keep running, or objects to its accounts for a serious reason",
+    bn: "নিরীক্ষক সন্দেহ করছেন ব্যবসাটি চালু রাখা যাবে কি না, বা গুরুতর কারণে হিসাবে আপত্তি জানিয়েছেন",
+  },
+  { en: "DSE found its factory closed", bn: "ডিএসই এর কারখানা বন্ধ পেয়েছে" },
+  {
+    en: "Its loans are bigger than the whole company's market value",
+    bn: "এর ঋণ কোম্পানির পুরো বাজারমূল্যের চেয়েও বেশি",
+  },
+  { en: "It made a loss in its latest results", bn: "সর্বশেষ ফলে এর লোকসান হয়েছে" },
+  { en: "Its latest accounts are 2 or more years old", bn: "এর সর্বশেষ হিসাব 2 বছর বা তার বেশি পুরোনো" },
+  { en: "DSE has put it in the Z category", bn: "ডিএসই একে জেড ক্যাটাগরিতে রেখেছে" },
+  { en: "We have too few of its figures to judge it", bn: "বিচার করার মতো যথেষ্ট তথ্য আমাদের হাতে নেই" },
+];
+
+const GROUP_ORDER: TierKey[] = ["excellent", "good", "average", "weak"];
 
 const P = "text-lg leading-[1.78] text-text-muted";
 const H2 = "text-xl sm:text-2xl font-bold tracking-tight text-text-main";
@@ -131,8 +151,9 @@ export default function AboutPage() {
             en={
               <>
                 The score shows how strong a company looks across four checks of the business: profit, finances,
-                business strength and dividend record. The share price is judged separately. Higher is better. Companies are
-                then grouped into four grades, named by what they are like on those checks:{" "}
+                business strength and dividend record. The share price is judged separately. Higher is better. Each company
+                also gets one of four grades, decided by rules on those checks rather than by cutting the score, so the
+                name always says what the company is like:{" "}
                 <strong className="text-text-main">Strong all round, Mostly strong, Mixed</strong> and{" "}
                 <strong className="text-text-main">Mostly weak</strong>, so you can sort them quickly.
               </>
@@ -140,8 +161,9 @@ export default function AboutPage() {
             bn={
               <>
                 স্কোর দেখায় ব্যবসার চারটি যাচাইয়ে কোম্পানিটি কতটা শক্তিশালী: মুনাফা, আর্থিক অবস্থা, ব্যবসার শক্তি আর
-                ডিভিডেন্ডের ধারা। শেয়ারের দাম আলাদাভাবে বিচার করা হয়। স্কোর যত বেশি, তত ভালো। এরপর কোম্পানিগুলো
-                চারটি গ্রেডে ভাগ হয়, যাচাইয়ে তারা কেমন সেই নামে:{" "}
+                ডিভিডেন্ডের ধারা। শেয়ারের দাম আলাদাভাবে বিচার করা হয়। স্কোর যত বেশি, তত ভালো। প্রতিটি কোম্পানি চারটি
+                গ্রেডের একটিও পায়। গ্রেড স্কোর কেটে ঠিক হয় না, ঠিক হয় ওই যাচাইগুলোর নিয়মে, তাই নামটি সবসময় বলে
+                কোম্পানিটি আসলে কেমন:{" "}
                 <strong className="text-text-main">সব দিকে শক্তিশালী, বেশিরভাগ দিকে শক্তিশালী, মিশ্র</strong> আর{" "}
                 <strong className="text-text-main">বেশিরভাগ দিকে দুর্বল</strong>, যাতে দ্রুত বাছাই করতে পারেন।
               </>
@@ -181,8 +203,8 @@ export default function AboutPage() {
         </h2>
         <p className={P}>
           <T
-            en="Every company's grade comes from four checks of its business. Each one answers a question a careful analyst would ask when reading the accounts. The price is the fifth question, answered on its own, so a cheaper share never reads as a stronger company. A serious warning, such as an auditor's doubt that the business can keep running, holds the grade at Mixed."
-            bn="প্রতিটি কোম্পানির গ্রেড আসে তার ব্যবসার চারটি যাচাই থেকে। প্রতিটি যাচাই এমন একটি প্রশ্নের উত্তর দেয়, যা একজন মনোযোগী বিশ্লেষক হিসাব পড়ার সময় করতেন। দাম পঞ্চম প্রশ্ন, তার উত্তর আলাদা, যাতে দাম কমলে কোম্পানিকে বেশি শক্তিশালী মনে না হয়। গুরুতর কোনো সতর্কতা থাকলে, যেমন ব্যবসা চালিয়ে যেতে পারবে কি না তা নিয়ে নিরীক্ষকের সন্দেহ, গ্রেড মিশ্র-এর ওপরে ওঠে না।"
+            en="Every company's grade comes from four checks of its business. Each one answers a question a careful analyst would ask when reading the accounts. The price is the fifth question, answered on its own, so a cheaper share never reads as a stronger company. How the four checks turn into a grade is explained below."
+            bn="প্রতিটি কোম্পানির গ্রেড আসে তার ব্যবসার চারটি যাচাই থেকে। প্রতিটি যাচাই এমন একটি প্রশ্নের উত্তর দেয়, যা একজন মনোযোগী বিশ্লেষক হিসাব পড়ার সময় করতেন। দাম পঞ্চম প্রশ্ন, তার উত্তর আলাদা, যাতে দাম কমলে কোম্পানিকে বেশি শক্তিশালী মনে না হয়। চারটি যাচাই থেকে গ্রেড কীভাবে ঠিক হয়, তা নিচে বলা আছে।"
           />
         </p>
         <div className="space-y-3.5">
@@ -205,6 +227,53 @@ export default function AboutPage() {
             </div>
           ))}
         </div>
+      </section>
+
+      {/* How a company gets its group (grade_rules, 2026-11-05) */}
+      <section id="grades" className="space-y-5">
+        <h2 className={H2}>
+          <T en="How a company gets its grade" bn="কোম্পানির গ্রেড কীভাবে ঠিক হয়" />
+        </h2>
+        <p className={P}>
+          <T
+            en="Each of the four checks gets a word: strong, fair or weak. The grade comes from those words, so its name is always true. A check we can't measure, such as an insurer's business strength, is left out. The score only sets the order inside a grade."
+            bn="চারটি যাচাইয়ের প্রতিটিকে আমরা একটি শব্দ দিই: শক্তিশালী, মোটামুটি বা দুর্বল। গ্রেড আসে ওই শব্দগুলো থেকে, তাই গ্রেডের নাম সবসময় সত্যি। যে যাচাই মাপা যায় না, যেমন বিমা কোম্পানির ব্যবসার শক্তি, তা বাদ থাকে। স্কোর শুধু একই গ্রেডের ভেতরে ক্রম ঠিক করে।"
+          />
+        </p>
+        <div className="soft-card divide-y divide-border">
+          {GROUP_ORDER.map((k) => (
+            <div key={k} className="p-5">
+              <div className="font-bold text-text-main text-base mb-1">
+                <T en={TIER_LABELS[k]} bn={TIER_LABELS_BN[k]} />
+              </div>
+              <div className="text-base text-text-muted leading-[1.7]">
+                <T en={TIER_MEANINGS[k]} bn={TIER_MEANINGS_BN[k]} />
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className={P}>
+          <T
+            en="Some facts outweigh the checks. One of these holds a company at Mixed at best; two or more make it Mostly weak:"
+            bn="কিছু তথ্য যাচাইয়ের চেয়েও বেশি গুরুত্বপূর্ণ। এর একটি থাকলে কোম্পানি বড়জোর মিশ্র হয়; দুটি বা তার বেশি থাকলে বেশিরভাগ দিকে দুর্বল:"
+          />
+        </p>
+        <ul className="soft-card p-5 space-y-3">
+          {PROBLEMS.map((item) => (
+            <li key={item.en} className="flex gap-3 text-base leading-[1.65] text-text-muted">
+              <span aria-hidden="true" className="mt-[0.62em] h-[7px] w-[7px] shrink-0 rounded-full bg-primary" />
+              <span>
+                <T en={item.en} bn={item.bn} />
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p className={P}>
+          <T
+            en="A grade changes only when a check moves clearly past its line, so a company sitting right on a line doesn't flip back and forth from one day to the next."
+            bn="কোনো যাচাই তার সীমা স্পষ্টভাবে পার হলে তবেই গ্রেড বদলায়। তাই ঠিক সীমার ওপর থাকা কোম্পানির গ্রেড দিনে দিনে ওঠানামা করে না।"
+          />
+        </p>
       </section>
 
       {/* Our goal */}

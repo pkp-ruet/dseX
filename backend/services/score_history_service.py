@@ -15,7 +15,7 @@ from backend.services.db_service import _ttl_cache, get_db
 logger = logging.getLogger(__name__)
 
 _COLLECTION = "signal_snapshots"
-_ROW_FIELDS = {"_id": 0, "date": 1, "score": 1, "tier": 1, "signal": 1,
+_ROW_FIELDS = {"_id": 0, "date": 1, "score": 1, "tier": 1, "signal": 1, "settled": 1,
                "market_cat": 1, "stale_data": 1, **{k: 1 for k in sh.PILLAR_KEYS}}
 
 

@@ -112,6 +112,10 @@ _MON_BN = ["", "জানুয়ারি", "ফেব্রুয়ারি
 # The grade names (2026-10-31: the company ranking's groups — Strong all
 # round / Mostly strong / Mixed / Mostly weak — are the label everywhere).
 from backend.services.tiers import TIER_WORDS as _TW, TIER_WORDS_BN as _TWB
+from backend.services import grade_rules as _gr
+
+# "Strong" / "weak" on a check: the group rules' own lines (grade_rules).
+STRONG_AT, WEAK_BELOW = _gr.STRONG_AT, _gr.WEAK_BELOW
 
 TIER_WORDS = {k: _TW[k] for k in ("excellent", "good", "average", "weak")}
 TIER_WORDS_BN = {k: _TWB[k] for k in ("excellent", "good", "average", "weak")}
@@ -2461,6 +2465,11 @@ _PILLAR_NOUN = {
 }
 
 
+def _is(noun: str) -> str:
+    """'its finances are' / 'its profit is'."""
+    return "are" if noun.endswith("finances") else "is"
+
+
 def build_quality(inp: dict) -> Optional[dict]:
     row = inp.get("score_row") or {}
     score = _f(row.get("score"))
@@ -2468,9 +2477,10 @@ def build_quality(inp: dict) -> Optional[dict]:
         return None
     from backend.services.tiers import tier_key
     tier = tier_key(score)
-    pillars = [(k, en, bn_, _f(row.get(k))) for k, en, bn_ in PILLARS]
-    # The grade's four business checks: the price is judged on its own (2026-11-05).
-    present = [p for p in pillars if p[3] is not None and p[0] != "p4_val"]
+    # The grade's four business checks: the price is judged on its own; a check
+    # with no figures (insurers' business strength) is left out (grade_rules).
+    measured = _gr.check_values(row)
+    present = [(k, en, bn_, measured[k]) for k, en, bn_ in PILLARS if k in measured]
     healthy = len([p for p in present if p[3] >= STRONG_AT])
     tone = {"excellent": "good", "good": "good", "average": "fair", "weak": "bad"}.get(tier, "neutral")
     word = bi(TIER_WORDS.get(tier, "Not rated"), TIER_WORDS_BN.get(tier, "রেটিং নেই"))
@@ -2522,31 +2532,63 @@ def build_quality(inp: dict) -> Optional[dict]:
             head_en += f" It is best at {b_en}, and even its weakest area, {w_en}, is strong."
             head_bn += f" এর সবচেয়ে বড় শক্তি {b_bn}। সবচেয়ে দুর্বল দিক {w_bn}, তবে সেটিও শক্তিশালী।"
         elif best[3] >= STRONG_AT and worst[3] < WEAK_BELOW:
-            head_en += f" It is best at {b_en}, but {w_en} is weak."
+            head_en += f" It is best at {b_en}, but {w_en} {_is(w_en)} weak."
             head_bn += f" এর সবচেয়ে বড় শক্তি {b_bn}। তবে {w_bn} দুর্বল।"
         elif best[3] >= STRONG_AT:
-            head_en += f" It is best at {b_en}; {w_en} is its weakest area."
+            head_en += f" It is best at {b_en}; {w_en} {_is(w_en)} its weakest area."
             head_bn += f" এর সবচেয়ে বড় শক্তি {b_bn}। সবচেয়ে কম শক্তিশালী দিক {w_bn}।"
+        elif worst[3] >= WEAK_BELOW:
+            head_en += f" It is fair on everything we look at; nothing stands out as strong. Its weakest area is {w_en}."
+            head_bn += f" আমরা যা যাচাই করি তার সবকিছুতেই এটি মোটামুটি; কোনোটিতেই আলাদা করে শক্তিশালী নয়। সবচেয়ে দুর্বল দিক {w_bn}।"
         else:
-            head_en += f" It is weak on almost everything we check, especially {w_en}."
-            head_bn += f" আমরা যা যা যাচাই করি, তার প্রায় সবকিছুতেই কোম্পানিটি দুর্বল। সবচেয়ে দুর্বল দিক {w_bn}।"
+            head_en += f" Nothing we look at is strong, and {w_en} {_is(w_en)} weak."
+            head_bn += f" আমরা যা যাচাই করি তার কোনোটিতেই এটি শক্তিশালী নয়, আর {w_bn} দুর্বল।"
     meaning = [bi("The grade looks at four things: profit, finances, how strong the business is and its dividend record; the price is judged on its own. "
                   + (f"{healthy} of the {len(present)} are strong." if healthy else "None of them is strong."),
                   f"গ্রেড চারটি বিষয় দেখে: মুনাফা, আর্থিক অবস্থা, ব্যবসা কতটা শক্তিশালী আর ডিভিডেন্ডের ধারা; দাম আলাদাভাবে বিচার করা হয়। "
                   + (f"{len(present)}টির মধ্যে {healthy}টি শক্তিশালী।" if healthy else "কোনোটিই শক্তিশালী নয়।"))]
-    lines = [(75.0, TIER_WORDS["excellent"], TIER_WORDS_BN["excellent"]), (60.0, TIER_WORDS["good"], TIER_WORDS_BN["good"]),
-             (45.0, TIER_WORDS["average"], TIER_WORDS_BN["average"])]
-    above = next((l for l in lines if score < l[0]), None)
-    below = next((l for l in lines if score >= l[0]), None)
+    # How the group is decided (grade_rules), then what held it back, if anything.
+    rule = _gr.GROUP_RULES.get(tier)
+    if rule:
+        meaning.append(bi(f"“{word['en']}” means: {rule[0][0].lower()}{rule[0][1:]}.",
+                          f"“{word['bn']}” মানে: {rule[1]}।"))
+    held = _gr.problem_note(measured, _row_problems(row), tier,
+                            {k: (TIER_WORDS[k], TIER_WORDS_BN[k]) for k in _gr.ORDER})
+    if held:
+        meaning.append(bi(held[0], held[1]))
+    # Held by settling: a check sits right on its line, so the group waits
+    # until it is clearly past it (grade_rules.CHECK_SETTLE).
+    settling = _gr.strict_group(measured, _row_problems(row)) != tier
+    if settling:
+        near = _gr.near_line(measured)
+        if near:
+            n_en, n_bn = _PILLAR_NOUN[near[0]]
+            meaning.append(bi(f"It stays “{word['en']}” for now: {n_en} {_is(n_en)} right on the line, and a grade "
+                              "changes only when a check moves clearly past its line.",
+                              f"আপাতত এটি “{word['bn']}”-এ আছে: এর {n_bn} ঠিক সীমার ওপর, আর কোনো যাচাই স্পষ্টভাবে "
+                              "সীমা পার না হলে গ্রেড বদলায় না।"))
+    # Watch: the one check that could move its group soon (within a point of
+    # its line) — a fall first, else a rise. Not while settling holds it.
     watch = None
-    if above and above[0] - score < 3:
-        watch = bi(f"It is close to moving up to “{above[1]}”. Good results could move it up.",
-                   f"কোম্পানিটি “{above[2]}” গ্রেডে ওঠার খুব কাছে আছে। ভালো ফল এলে উঠে যেতে পারে।")
-    if below:
-        gap = score - below[0]
-        if gap < 3:
-            watch = bi(f"It only just makes “{below[1]}”, so weak results could move it down.",
-                       f"কোম্পানিটি কোনোমতে “{below[2]}” গ্রেডে টিকে আছে। তাই ফল দুর্বল হলে নেমে যেতে পারে।")
+    gw = {} if settling else _gr.group_watch(measured, _row_problems(row))
+    mv = gw.get("down") or gw.get("up")
+    if mv:
+        n_en, n_bn = _PILLAR_NOUN[mv["check"]]
+        n_en = n_en[0].upper() + n_en[1:]
+        g_en, g_bn = TIER_WORDS.get(mv["group"], ""), TIER_WORDS_BN.get(mv["group"], "")
+        v = _is(n_en.lower())
+        if mv is gw.get("down") and mv["from"] == "strong":
+            watch = bi(f"{n_en} {v} only just strong. A small slip would move the company down to “{g_en}”.",
+                       f"এর {n_bn} কোনোমতে শক্তিশালী। একটু দুর্বল হলেই কোম্পানিটি “{g_bn}”-এ নেমে যাবে।")
+        elif mv is gw.get("down"):
+            watch = bi(f"{n_en} {v} close to weak. A small slip would move the company down to “{g_en}”.",
+                       f"এর {n_bn} দুর্বল হওয়ার কাছাকাছি। একটু খারাপ হলেই কোম্পানিটি “{g_bn}”-এ নেমে যাবে।")
+        elif mv["to"] == "strong":
+            watch = bi(f"{n_en} {v} close to strong. Getting there would move the company up to “{g_en}”.",
+                       f"এর {n_bn} শক্তিশালী হওয়ার কাছাকাছি। সেটা হলে কোম্পানিটি “{g_bn}”-এ উঠবে।")
+        else:
+            watch = bi(f"{n_en} {v} close to no longer being weak. Getting there would move the company up to “{g_en}”.",
+                       f"এর {n_bn} দুর্বলতা কাটিয়ে ওঠার কাছাকাছি। সেটা হলে কোম্পানিটি “{g_bn}”-এ উঠবে।")
     hist = inp.get("score_history") or {}
     ch = (hist.get("changes") or [])[:1]
     if ch:
@@ -2561,10 +2603,10 @@ def build_quality(inp: dict) -> Optional[dict]:
         "quality",
         bi("How strong is the company?", "কোম্পানিটি কতটা শক্তিশালী?"),
         word, tone, bi(head_en, head_bn),
-        bi("Our score, from the audited accounts and today's price", "নিরীক্ষিত হিসাব আর আজকের দাম থেকে আমাদের স্কোর"),
-        free_line=bi("We look at five things: profit, finances, how strong the business is, the price and the dividend.",
-                     "আমরা পাঁচটি বিষয় দেখি: মুনাফা, আর্থিক অবস্থা, ব্যবসা কতটা শক্তিশালী, দাম আর ডিভিডেন্ড।"),
-        inside=[bi("What we found on each of the five, in plain words", "পাঁচটি বিষয়ের প্রতিটিতে আমরা কী পেয়েছি, সহজ ভাষায়"),
+        bi("Our grade, from the audited accounts and the company's notices", "নিরীক্ষিত হিসাব আর কোম্পানির নোটিশ থেকে আমাদের গ্রেড"),
+        free_line=bi("We grade four things: profit, finances, how strong the business is and the dividend record. The price is judged on its own.",
+                     "আমরা চারটি বিষয়ে গ্রেড দিই: মুনাফা, আর্থিক অবস্থা, ব্যবসা কতটা শক্তিশালী আর ডিভিডেন্ডের ধারা। দাম আলাদাভাবে বিচার করা হয়।"),
+        inside=[bi("What we found on each of the four, in plain words", "চারটি বিষয়ের প্রতিটিতে আমরা কী পেয়েছি, সহজ ভাষায়"),
                 bi("Its best and weakest side", "এর সবচেয়ে ভালো আর সবচেয়ে দুর্বল দিক"),
                 bi("Whether its grade could change soon", "শিগগির এর গ্রেড বদলাতে পারে কি না")],
         meaning=meaning, watch=watch,
@@ -3893,47 +3935,79 @@ _RISK_BLOCKS = {
 }
 
 
-# The five checks in running text, and the cut-offs the company ranking uses
-# for "strong" / "weak" (frontend lib/ranking.ts STRONG_AT / WEAK_BELOW).
-# The grade's four business checks (2026-11-05: price is judged on its own,
-# so the company light never says "Weak: price").
+# The four business checks in running text. The strong / weak lines are the
+# group rules' own (grade_rules, 2026-11-05): the words here are what the
+# group is made of.
 _CHECK_RUN = {"p1_biz": ("profit", "মুনাফা"), "p2_health": ("finances", "আর্থিক অবস্থা"),
               "p3_moat": ("business", "ব্যবসার শক্তি"), "p5_div": ("dividend", "ডিভিডেন্ড")}
-STRONG_AT, WEAK_BELOW = 7.0, 4.0
+# Serious problems, in two or three words, for the checks line.
+_PROBLEM_SHORT = {
+    "going_concern": ("auditor's doubt", "নিরীক্ষকের সন্দেহ"),
+    "audit_serious": ("auditor's objection", "নিরীক্ষকের আপত্তি"),
+    "factory": ("factory closed", "কারখানা বন্ধ"),
+    "loans": ("loans over its value", "মূল্যের চেয়ে বেশি ঋণ"),
+    "loss": ("a loss now", "এখন লোকসান"),
+    "old_accounts": ("old accounts", "পুরোনো হিসাব"),
+    "z_category": ("Z category", "জেড ক্যাটাগরি"),
+    "thin_data": ("too few figures", "তথ্য কম"),
+}
+
+
+def _row_problems(row: dict) -> list[str]:
+    p = row.get("grade_problems")
+    return [k for k in p if k in _PROBLEM_SHORT] if isinstance(p, (list, tuple)) else []
+
+
+def _held_back(row: dict) -> list[str]:
+    """The serious problems that put the company below what its checks say
+    (one holds it at Mixed, two make it Mostly weak)."""
+    probs = _row_problems(row)
+    if not probs:
+        return []
+    from backend.services.tiers import tier_key
+    return _gr.held_back_by(_gr.check_values(row), probs, tier_key(_f(row.get("score"))))
 
 
 def checks_line(row: dict) -> Optional[dict]:
-    """Which of the five checks it is strong and weak on, in words — the
-    ranking's checks line ("Strong: profit, finances · Weak: price"), so the
-    company light says what its grade name is made of. Free (it is free on
-    the ranking page too)."""
-    vals = [(k, _f(row.get(k))) for k in _CHECK_RUN]
-    vals = [(k, v) for k, v in vals if v is not None]
+    """Which of the four business checks it is strong and weak on, in words
+    ("Strong: profit and finances · Weak: business"), plus what held it back
+    when a serious problem decided its group — the company light says what
+    its group is made of. A check with no figures (insurers' business
+    strength) is left out. Free."""
+    vals = list(_gr.check_values(row).items())
     if not vals:
         return None
     strong = [k for k, v in vals if v >= STRONG_AT]
     weak = [k for k, v in vals if v < WEAK_BELOW]
-    n = len(_CHECK_RUN)
-    if len(strong) == n:
-        return bi("Strong on all four business checks", "ব্যবসার চারটি যাচাইয়েই শক্তিশালী")
-    if len(weak) == n:
-        return bi("Weak on all four business checks", "ব্যবসার চারটি যাচাইয়েই দুর্বল")
+    held = _held_back(row)
 
-    def join(keys, i):
-        words = [_CHECK_RUN[k][i] for k in keys]
+    def join(keys, i, table=_CHECK_RUN):
+        words = [table[k][i] for k in keys]
         if i == 1:
             return ", ".join(words)
         return words[0] if len(words) == 1 else ", ".join(words[:-1]) + " and " + words[-1]
 
     en, bn_ = [], []
-    if strong:
-        en.append(f"Strong: {join(strong, 0)}")
-        bn_.append(f"শক্তিশালী: {join(strong, 1)}")
-    if weak:
-        en.append(f"Weak: {join(weak, 0)}")
-        bn_.append(f"দুর্বল: {join(weak, 1)}")
-    if not strong and not weak:
-        return bi("Fair on every check", "সব যাচাইয়েই মোটামুটি")
+    n = len(vals)
+    if len(strong) == n:
+        en.append("Strong on all four business checks" if n == 4 else "Strong on every check we can measure")
+        bn_.append("ব্যবসার চারটি যাচাইয়েই শক্তিশালী" if n == 4 else "যেসব যাচাই করা যায়, তার সবগুলোতেই শক্তিশালী")
+    elif len(weak) == n:
+        en.append("Weak on all four business checks" if n == 4 else "Weak on every check we can measure")
+        bn_.append("ব্যবসার চারটি যাচাইয়েই দুর্বল" if n == 4 else "যেসব যাচাই করা যায়, তার সবগুলোতেই দুর্বল")
+    else:
+        if strong:
+            en.append(f"Strong: {join(strong, 0)}")
+            bn_.append(f"শক্তিশালী: {join(strong, 1)}")
+        if weak:
+            en.append(f"Weak: {join(weak, 0)}")
+            bn_.append(f"দুর্বল: {join(weak, 1)}")
+        if not strong and not weak:
+            en.append("Fair on every check")
+            bn_.append("সব যাচাইয়েই মোটামুটি")
+    if held:
+        en.append(f"Held back: {join(held, 0, _PROBLEM_SHORT)}")
+        bn_.append(f"আটকে রেখেছে: {join(held, 1, _PROBLEM_SHORT)}")
     return bi(" · ".join(en), " · ".join(bn_))
 
 

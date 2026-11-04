@@ -92,7 +92,7 @@ def grade_changes(prev: dict[str, dict], cur: dict[str, dict]) -> list[str]:
         a = tier_key(sh._n(p.get("score")))
         if a == "unknown":
             continue
-        b = sh.settle(a, sh._n(c.get("score")))
+        b = sh.settle(a, sh._n(c.get("score")), bool(c.get("settled")))
         if b != "unknown" and b != a:
             out.append(code)
     return sorted(out)

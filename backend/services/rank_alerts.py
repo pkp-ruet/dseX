@@ -6,8 +6,9 @@ Stored on ``users.rank_alerts`` ([{id, code, kind, created_at, was, tier}],
 at most ``MAX_ALERTS``). Checked once a day from ``portfolio_daily``: an alert
 fires when its condition turns true (``was`` False → True), so a share that
 sits in the top 20 doesn't ping every day; it fires again only after leaving
-and coming back. The grade uses ``score_history.settle`` so a score parked on
-the Good line can't flicker an alert.
+and coming back. Since 2026-11-05 the score carries a group the rules already
+settled (``grade_rules``), so it is read as it is (``settled``); before that
+``score_history.settle`` kept a score parked on the Good line from flickering.
 
 Pure rules first, then the reads / the push.
 """
@@ -52,7 +53,8 @@ def new_alert(code: str, kind: str, rank: Optional[int], score: Optional[float],
     }
 
 
-def check(alerts: list[dict], ranks: dict[str, int], scores: dict[str, Optional[float]]) -> tuple[list[dict], list[dict]]:
+def check(alerts: list[dict], ranks: dict[str, int], scores: dict[str, Optional[float]],
+          settled: bool = True) -> tuple[list[dict], list[dict]]:
     """(alerts with today's state, the ones that fired today). A code with no
     score today (suspended, unrated) keeps its state and never fires."""
     updated, fired = [], []
@@ -62,7 +64,8 @@ def check(alerts: list[dict], ranks: dict[str, int], scores: dict[str, Optional[
         if code not in scores or sh._n(scores.get(code)) is None:
             updated.append(a)
             continue
-        tier = sh.settle(a.get("tier"), sh._n(scores[code]))
+        # Today's scores carry the rules' settled group (grade_rules).
+        tier = sh.settle(a.get("tier"), sh._n(scores[code]), settled)
         now_true = condition(a.get("kind"), ranks.get(code), tier)
         if now_true and not a.get("was"):
             fired.append({**a, "rank": ranks.get(code), "tier_now": tier, "score": sh._n(scores[code])})

@@ -154,19 +154,9 @@ def test_lender_cushion_falls_back_to_dse_nav():
 
 
 # --------------------------------------------------------------------------- #
-# Round 3 (2026-11-05): settled grade, bonus restatement, ceilings, loans
+# Round 3 (2026-11-05): bonus restatement, ceilings, loans (the settled
+# grade moved to grade_rules, tests in test_grade_rules.py)
 # --------------------------------------------------------------------------- #
-
-def test_settle_holds_a_group_until_one_point_past_the_line():
-    from backend.services.scoring_service import settle_score
-    assert settle_score(74.6, 76.0) == 75.0          # stays strong all round, held on the line
-    assert settle_score(73.9, 76.0) == 73.9          # 1+ point under: drops
-    assert settle_score(75.4, 72.0) == 74.9          # not yet 1 point over: stays mostly strong
-    assert settle_score(76.1, 72.0) == 76.1
-    assert settle_score(58.5, 77.0) == 58.5          # well past two lines
-    assert settle_score(59.5, 77.0) == 60.0          # past 75 by far, inside 60's band: held at good
-    assert settle_score(50.0, None) == 50.0
-
 
 def test_bonus_shares_restate_eps_history():
     from backend.services.scoring_service import bonus_adjust_rows
