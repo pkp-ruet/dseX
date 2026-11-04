@@ -9,8 +9,8 @@ import { usePremium } from "@/lib/premium";
 import type { StockReport } from "@/lib/stock-report";
 
 /**
- * The full report's one mark (2026-10-30, the full report plan): a band above
- * the first chapter for a reader who sees every part — "Your full report on
+ * The full report's one mark (2026-10-30, the full report plan; a heading
+ * since 2026-11-04): above the first chapter for a reader who sees every part — "Your full report on
  * SQURPHARMA · updated 27 Oct 2026, after the FY2026 results · 14 questions
  * answered". The sections themselves carry no Premium labels (rule of
  * 2026-10-29). Nothing for a free reader: the answer card says what the free
@@ -28,27 +28,34 @@ export default function FullReportBand({ code, report, questions }: { code: stri
   ) : (
     <T en={`Today's free full report: ${code}`} bn={`আজকের ফ্রি পূর্ণ রিপোর্ট: ${code}`} />
   );
+  const badge = isPremium ? (
+    <T en="Premium" bn="প্রিমিয়াম" />
+  ) : scope?.reason === "key" ? (
+    <T en="Your free report" bn="আপনার ফ্রি রিপোর্ট" />
+  ) : (
+    <T en="Free today" bn="আজ ফ্রি" />
+  );
   const u = report.updated;
+  // A heading, not a gold box (2026-11-04, the clean pass): badge, title, one line.
   return (
-    <div className="rp-band" role="note">
-      <span className="rp-band-icon" aria-hidden="true">
-        <IconCrown size={20} />
+    <header className="rpb">
+      <span className="rpb-badge">
+        <IconCrown size={14} />
+        {badge}
       </span>
-      <div className="min-w-0">
-        <b>{title}</b>
-        <span>
-          {u && (
-            <>
-              <T en="Updated " bn="হালনাগাদ " />
-              <DateT iso={u.date} />
-              {", "}
-              {tx(u.reason)}
-              {" · "}
-            </>
-          )}
-          <T en={`${questions} questions answered, each chapter read for you`} bn={`${questions}টি প্রশ্নের উত্তর, আর প্রতিটি অধ্যায়ের সারকথা আপনার জন্য লেখা`} />
-        </span>
-      </div>
-    </div>
+      <h2 className="rpb-title">{title}</h2>
+      <p className="rpb-sub">
+        {u && (
+          <>
+            <T en="Updated " bn="হালনাগাদ " />
+            <DateT iso={u.date} />
+            {", "}
+            {tx(u.reason)}
+            {" · "}
+          </>
+        )}
+        <T en={`${questions} questions answered`} bn={`${questions}টি প্রশ্নের উত্তর`} />
+      </p>
+    </header>
   );
 }

@@ -193,10 +193,6 @@
 .ac-label { margin-top: 4px; font-size: var(--fs-2xs); color: var(--text-muted); line-height: 1.2; }
 .ac-lword { font-size: var(--fs-sm); font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
 .ac-lnote { font-size: var(--fs-2xs); line-height: 1.35; color: var(--text); overflow-wrap: anywhere; }
-.ac-why { list-style: none; margin: var(--space-4) 0 0; padding: var(--space-3) 0 0; border-top: 1px solid var(--border); display: grid; gap: var(--space-2); }
-.ac-why > li { font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
-.ac-why b { display: block; font-size: var(--fs-2xs); color: var(--text-muted); }
-.ac-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-4); margin-top: var(--space-3); font-size: var(--fs-xs); }
 .ac-buyprice { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); margin-top: var(--space-3); padding: var(--space-3); border-radius: var(--radius); background: var(--surface-2); font-size: var(--fs-sm); }
 @media (max-width: 380px) {
   .ac-lights { grid-template-columns: minmax(0, 1fr); }
@@ -210,8 +206,6 @@
 /* ===================================================================
    Chapters and question rows
    =================================================================== */
-.rq-chead { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); margin-bottom: var(--space-4); }
-.rq-chead-note { font-size: var(--fs-sm); color: var(--text-muted); }
 .rq { padding: var(--space-6) 0; }
 .rp-sheet > .rq + .rq, .rp-sheet > * + .rq { border-top: 1px solid var(--border); }
 .rq-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
@@ -270,6 +264,16 @@
 .rq-why-icon svg { transition: transform 0.15s ease; }
 .rq-why[open] .rq-why-icon svg { transform: rotate(180deg); }
 .rq-why-body { margin-top: var(--space-3); padding-left: var(--space-4); border-left: 3px solid rgb(var(--primary-rgb) / 0.45); }
+/* What it means sits first in the fold, above the figures (2026-11-04) */
+.rq-why-meaning { display: grid; gap: var(--space-2); }
+.rq-why-meaning + * { margin-top: var(--space-4); }
+/* What to watch: one amber line, open */
+.rq-watch {
+  display: flex; align-items: flex-start; gap: var(--space-2); margin-top: var(--space-4); max-width: 65ch;
+  padding: var(--space-3); border-radius: var(--radius); background: rgb(var(--watch-rgb) / 0.08);
+  font-size: var(--fs-sm); line-height: 1.5; color: var(--text);
+}
+.rq-watch-icon { flex: none; display: inline-flex; margin-top: 1px; color: var(--watch); }
 @media (prefers-reduced-motion: reduce) { .rq-why-icon svg { transition: none; } }
 
 /* ===================================================================
@@ -295,15 +299,27 @@
   .rq-explain-p { font-size: var(--fs-base); }
 }
 
-/* A chapter is ONE card (2026-10-30, plan https://claude.ai/artifact/KCBooTX7PK7a4PoKkcmoMP):
-   its answer, its read as the opening paragraph, the rows, a gold footer. */
-.rc-top { padding-top: var(--space-6); padding-bottom: var(--space-2); }
-.rc-top .rq-chead { margin-bottom: 0; }
-/* The chapter's read, under "In short": a clay rule marks it as the summary. */
-.rc-sum { margin-top: var(--space-4); padding-left: var(--space-4); border-left: 3px solid rgb(var(--primary-rgb) / 0.55); }
-.rc-sum-k { font-size: var(--fs-xs); font-weight: 700; color: var(--primary-ink); }
-.rc-read { margin-top: var(--space-1); max-width: 65ch; font-size: var(--fs-md); line-height: 1.6; color: var(--text); }
-@media (min-width: 640px) { .rc-top { padding-top: var(--space-8); } }
+/* A chapter is ONE card (2026-10-30), clean pass 2026-11-04: the chapter's
+   question as the card's title, its answer chip and one line under it, then
+   the rows split by hairlines — no lead line, no "In short" read (it only
+   repeated the rows' answers). */
+.rpc { margin-top: var(--space-8); }
+.rc-head { display: grid; gap: var(--space-3); padding: var(--space-6) 0 var(--space-4); }
+.rc-title { margin: 0; font-size: var(--fs-lg); font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; color: var(--text); }
+@media (min-width: 640px) { .rc-title { font-size: var(--fs-xl); } }
+.rc-answer { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
+.rc-sub { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+/* The head over the report (open readers): a gold badge, the title, one line. */
+.rpb { display: grid; justify-items: start; gap: 6px; margin-top: var(--space-12); }
+.rpb-badge {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 2px 10px;
+  border-radius: 999px; background: rgb(var(--gold-rgb) / 0.14); color: var(--gold-ink);
+  font-size: var(--fs-xs); font-weight: 700;
+}
+.rpb-title { margin: 0; font-size: var(--fs-xl); font-weight: 700; line-height: 1.15; letter-spacing: -0.015em; color: var(--text); }
+@media (min-width: 640px) { .rpb-title { font-size: var(--fs-2xl); } }
+.rpb-sub { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+.rpb + .rpc { margin-top: var(--space-4); }
 
 /* A closed fundamentals row: its question and a lock (or its answer word). */
 .rq[data-compact="true"] { padding: var(--space-4) 0; }
@@ -324,20 +340,6 @@
   white-space: nowrap;
 }
 
-/* The one "full report" band above the first chapter (Premium, or an open report). */
-.rp-band {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
-  margin: var(--space-8) 0 var(--space-2);
-  padding: var(--space-4);
-  border-radius: var(--radius-md);
-  border: 1px solid rgb(var(--gold-rgb) / 0.45);
-  background: rgb(var(--gold-rgb) / 0.08);
-}
-.rp-band-icon { flex: none; color: var(--gold-ink); margin-top: 2px; }
-.rp-band b { display: block; font-size: var(--fs-md); color: var(--text); line-height: 1.3; }
-.rp-band span { font-size: var(--fs-sm); color: var(--text); }
 
 /* ---- The Premium cards, enriched (2026-11-04) ----
    Shared by the portfolio's `PortfolioPromo` and the stock page's
@@ -420,6 +422,7 @@
 .sp-price .spx-against { margin-top: var(--space-2); font-weight: 600; }
 
 /* Our view: the case for and against, what would change our answer. */
+.vw-top { display: grid; gap: var(--space-2); }
 .vw-head { font-size: var(--fs-md); font-weight: 700; line-height: 1.45; color: var(--text); }
 .vw-cases { display: grid; gap: var(--space-4); margin-top: var(--space-6); }
 @media (min-width: 640px) { .vw-cases { grid-template-columns: 1fr 1fr; } }

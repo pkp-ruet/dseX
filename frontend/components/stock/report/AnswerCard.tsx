@@ -35,19 +35,10 @@ export default function AnswerCard({
   w52High?: number | null;
   w52Low?: number | null;
 }) {
-  const whys = answer.lights.filter((l) => l.why);
+  // The buy price stays; the list of why each light is what it is went
+  // (2026-11-04, the clean pass): each chapter opens with the same answer.
   const why = (
     <>
-      {whys.length > 0 && (
-        <ul className="ac-why">
-          {whys.map((l) => (
-            <li key={l.key}>
-              <b>{tx(l.label)}</b>
-              {tx(l.why)}
-            </li>
-          ))}
-        </ul>
-      )}
       {answer.buy_price != null && (
         <div className="ac-buyprice">
           <span className="font-bold text-text-main">
@@ -76,12 +67,6 @@ export default function AnswerCard({
       </div>
 
       {why}
-
-      <div className="ac-foot">
-        <span className="text-text-muted">
-          <T en="Tap a light to read that part of the report." bn="যে আলোয় চাপবেন, রিপোর্টের সেই অংশটি খুলবে।" />
-        </span>
-      </div>
     </section>
   );
 }

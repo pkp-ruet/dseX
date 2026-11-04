@@ -1,6 +1,5 @@
 "use client";
 
-import StockChapter from "@/components/stock/StockChapter";
 import WatchlistButton from "@/components/stock/WatchlistButton";
 import BuyBelowAlert from "@/components/stock/report/BuyBelowAlert";
 import { money, tx } from "@/components/stock/report/fmt";
@@ -43,9 +42,17 @@ export default function ReportView({
   w52High?: number | null;
   w52Low?: number | null;
 }) {
-  const body = (
-    <div className="soft-card p-5 sm:p-6">
-      <p className="vw-head">{tx(view.headline)}</p>
+  // One card like the chapters (2026-11-04, the clean pass): "Our view" and
+  // its headline on top, no lead line, a short line for following it.
+  return (
+    <section id={VIEW_CHAPTER.id} className="stock-anchor rpc" aria-labelledby={`${VIEW_CHAPTER.id}-h`}>
+    <div className="soft-card p-5 sm:p-8">
+      <header className="vw-top">
+        <h2 id={`${VIEW_CHAPTER.id}-h`} className="rc-title">
+          <T en="Our view" bn="আমাদের মত" />
+        </h2>
+        <p className="vw-head">{tx(view.headline)}</p>
+      </header>
       <div className="vw-cases">
         <div className="vw-case">
           <h3><T en="The case for" bn="পক্ষে যুক্তি" /></h3>
@@ -76,28 +83,13 @@ export default function ReportView({
       <div className="vw-block vw-row" onClickCapture={() => trackEvent("report_view_alert", { code, kind: "follow" })}>
         <p>
           <T
-            en="Watch this report: follow the share and we send one notification when our answer changes, a red flag appears or new results land."
-            bn="এই রিপোর্টের ওপর নজর রাখুন। শেয়ারটি ফলো করলে আমাদের উত্তর বদলালে, নতুন কোনো বড় সতর্কতা দেখা দিলে বা নতুন ফল প্রকাশ হলে আমরা আপনাকে একটি নোটিফিকেশন পাঠাব।"
+            en="Follow it: we tell you when our answer changes, a red flag appears or new results land."
+            bn="ফলো করুন: আমাদের উত্তর বদলালে, বড় সতর্কতা দেখা দিলে বা নতুন ফল এলে জানাব।"
           />
         </p>
         <WatchlistButton code={code} />
       </div>
     </div>
-  );
-
-  return (
-    <StockChapter
-      id={VIEW_CHAPTER.id}
-      fold={false}
-      title={<T en="Our view" bn="আমাদের মত" />}
-      lead={
-        <T
-          en="Everything above, put together: the case for, the case against, and what would change our answer."
-          bn="ওপরের সব কথা এক জায়গায়: পক্ষে যুক্তি, বিপক্ষে যুক্তি, আর কী হলে আমাদের উত্তর বদলাবে।"
-        />
-      }
-    >
-      {body}
-    </StockChapter>
+    </section>
   );
 }

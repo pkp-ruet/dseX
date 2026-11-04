@@ -1,6 +1,6 @@
 import { isValidElement, type ReactNode } from "react";
 import QuestionRow from "@/components/report/QuestionRow";
-import ReportChapter from "@/components/stock/report/ReportChapter";
+import ReportChapter, { type ChapterAnswer } from "@/components/stock/report/ReportChapter";
 import FullReportBand from "@/components/stock/report/FullReportBand";
 import ReportDepth from "@/components/stock/report/ReportDepth";
 import ReportOffer from "@/components/stock/report/ReportOffer";
@@ -8,8 +8,8 @@ import ReportView from "@/components/stock/report/ReportView";
 import ShareCheck from "@/components/stock/report/ShareCheck";
 import YouAndThisStock from "@/components/stock/report/YouAndThisStock";
 import PortfolioFit from "@/components/stock/report/PortfolioFit";
-import { T } from "@/components/i18n/T";
-import { ToneChip, money, tx } from "@/components/stock/report/fmt";
+import { dayShort } from "@/components/dividend-calendar/dates";
+import { money, tx } from "@/components/stock/report/fmt";
 import {
   AlternativesDetails, CashPremium, DividendDetails, DividendFree, DividendPremium, MoneyPicture, NextDetails, NextFree,
   OwnersDetails, OwnersFree, PriceDetails, PricePicture, PricePremium, priceAnswer, QualityDetails, RedFlagsDetails, StrengthPicture, strengthAnswer,
@@ -62,9 +62,11 @@ export function reportChapters(report: StockReport): typeof REPORT_CHAPTERS {
  * The stock report (2026-10-30 rebuild, plan
  * https://claude.ai/artifact/9AjhtrCYGSjS2Lx9Kajjg7): four chapters, one per
  * question behind the answer card's three lights (`REPORT_CHAPTERS`) plus
- * what comes next. Each chapter opens with its written read and is a list of
- * plain questions (`QuestionRow`: question, word, picture, one line, what it
- * means, the figures folded). Then Our view, then a short closing offer.
+ * what comes next. Each chapter is one card: its question and answer on top,
+ * then a list of plain questions (`QuestionRow`: question, word, the answer,
+ * picture, one watch line, why it matters + the figures folded). Then Our
+ * view, then a short closing offer. The chapters' written reads
+ * (`report.reads`) are no longer shown (2026-11-04: they repeated the rows).
  *
  * All of it is Premium (2026-11-01): the page renders it inside `ReportGate`,
  * open, and hides it from a reader without the full report, who gets the one
@@ -267,31 +269,50 @@ export default function StockReportBody({ detail, report }: { detail: CompanyDet
     }
   };
 
+  // Each chapter's answer in its header (2026-11-04): the grade, the price
+  // light, the "anything wrong" light with the safety checks counted, and the
+  // next date. Words that are already on the answer card; nothing new.
   const q = sec.quality;
   const standing = q?.rank && q.total ? standingWords(q.rank, q.total) : null;
-  const companyHead = q ? (
-    <div className="rq-chead">
-      <ToneChip word={q.word} tone={q.tone} size="lg" />
-      {standing && (
-        <span className="rq-chead-note">
-          <T en={standing.en} bn={standing.bn} />
-        </span>
-      )}
-    </div>
-  ) : undefined;
-
-  // The price light's word heads the price chapter, as the grade heads the company one.
-  const priceLight = report.answer?.lights.find((l) => l.key === "price");
-  const priceHead = priceLight ? (
-    <div className="rq-chead">
-      <ToneChip word={priceLight.word} tone={priceLight.tone} size="lg" />
-      {ltp != null && (
-        <span className="rq-chead-note">
-          <T en={`At ${money(ltp)} today.`} bn={`আজকের দাম ${money(ltp)}।`} />
-        </span>
-      )}
-    </div>
-  ) : undefined;
+  const light = (k: "company" | "price" | "risks") => report.answer?.lights.find((l) => l.key === k) ?? null;
+  const priceLight = light("price");
+  const risksLight = light("risks");
+  const rf = sec.red_flags?.counts ?? null;
+  const nx = sec.next?.items.find((it) => it.date) ?? null;
+  const heads: Record<string, ChapterAnswer | null> = {
+    "ch-company": q ? { word: q.word, tone: q.tone, note: standing } : null,
+    "ch-price": priceLight
+      ? { word: priceLight.word, tone: priceLight.tone, note: ltp != null ? { en: `At ${money(ltp)} today.`, bn: `আজকের দাম ${money(ltp)}।` } : null }
+      : null,
+    "ch-risks": risksLight
+      ? {
+          word: risksLight.word,
+          tone: risksLight.tone,
+          note: rf
+            ? rf.red
+              ? { en: `${rf.checks} safety checks: ${rf.red} serious, ${rf.amber} smaller.`, bn: `${rf.checks}টি নিরাপত্তা যাচাই: ${rf.red}টি গুরুতর, ${rf.amber}টি ছোট।` }
+              : rf.amber
+                ? { en: `${rf.checks} safety checks: nothing serious, ${rf.amber} smaller.`, bn: `${rf.checks}টি নিরাপত্তা যাচাই: গুরুতর কিছু নেই, ${rf.amber}টি ছোট।` }
+                : { en: `${rf.checks} safety checks, nothing found.`, bn: `${rf.checks}টি নিরাপত্তা যাচাই, কিছু পাওয়া যায়নি।` }
+            : null,
+        }
+      : null,
+    "ch-next": sec.next
+      ? {
+          word: sec.next.word,
+          tone: sec.next.tone,
+          note: nx?.date
+            ? (() => {
+                const d = dayShort(nx.date);
+                return {
+                  en: `${nx.label.en}: ${nx.approx ? "around " : ""}${d.en}.`,
+                  bn: `${nx.label.bn}: ${d.bn}${nx.approx ? "-এর কাছাকাছি" : ""}।`,
+                };
+              })()
+            : null,
+        }
+      : null,
+  };
 
   const chapters = reportChapters(report).map((c) => {
     const rows = c.rows.map((r) => row(r.key, r.q)).filter(Boolean) as { node: ReactNode }[];
@@ -312,14 +333,7 @@ export default function StockReportBody({ detail, report }: { detail: CompanyDet
       <span id="ch-report" className="stock-anchor block" aria-hidden="true" />
       <FullReportBand code={code} report={report} questions={questions} />
       {chapters.map(({ c, rows }) => (
-        <ReportChapter
-          key={c.id}
-          id={c.id}
-          title={tx(c.title)}
-          lead={tx(c.lead)}
-          head={c.id === "ch-company" ? companyHead : c.id === "ch-price" ? priceHead : undefined}
-          read={report.reads?.[c.id as keyof NonNullable<StockReport["reads"]>] ?? null}
-        >
+        <ReportChapter key={c.id} id={c.id} title={tx(c.title)} answer={heads[c.id] ?? null}>
           {rows.map((r) => r.node)}
         </ReportChapter>
       ))}

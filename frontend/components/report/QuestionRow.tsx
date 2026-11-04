@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { Locked } from "@/components/premium/AnswerLock";
 import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
-import { IconChevronDown, IconLock } from "@/components/ui/icons";
+import { IconAlert, IconChevronDown, IconLock } from "@/components/ui/icons";
 import { T } from "@/components/i18n/T";
 import { SectionFoot, ToneChip, tx } from "@/components/report/chip";
 import { usePremium } from "@/lib/premium";
@@ -34,6 +34,13 @@ import type { Bi, Tone } from "@/lib/stock-report";
  * https://claude.ai/artifact/1TuJ9dvifeXTLzs5wVwk2Q): an open row shows its
  * explanation in the open — a Premium reader paid for it — and folds only
  * the figures and the source.
+ *
+ * Clean pass 2026-11-04 (user: the Premium report is "full of text and
+ * unorganized", after the portfolio check's same pass): an open row reads
+ * question + word, the answer, the picture(s), the facts, ONE amber line on
+ * what to watch, then ONE clay tap bar — "Why it matters, and the figures" —
+ * that folds what it means (the general paragraphs) with the figures and
+ * their source. A row with no figures keeps its source line outside.
  */
 export default function QuestionRow({
   id,
@@ -120,16 +127,33 @@ export default function QuestionRow({
       </div>
     ) : null;
 
-  // The figures, folded behind a tap bar that says what it holds (2026-10-30,
-  // user: "Why we say this" was easy to miss).
-  const figures = details ? (
+  // ONE fold for why it matters and the figures, behind a tap bar that says
+  // what it holds (2026-10-30, user: "Why we say this" was easy to miss;
+  // 2026-11-04: the meaning moved in here too, so the open row stays short).
+  const hasMeaning = meaning.length > 0;
+  const hasFold = hasMeaning || !!details;
+  const fold = hasFold ? (
     <details className="rq-why">
       <summary>
         <span className="rq-why-text">
-          <b className="rq-why-closed"><T en="See the figures" bn="সংখ্যাগুলো দেখুন" /></b>
-          <b className="rq-why-opened"><T en="Hide the figures" bn="সংখ্যাগুলো লুকান" /></b>
+          <b className="rq-why-closed">
+            {hasMeaning && details ? (
+              <T en="Why it matters, and the figures" bn="কেন জরুরি, আর সংখ্যাগুলো" />
+            ) : hasMeaning ? (
+              <T en="Why it matters" bn="কেন জরুরি" />
+            ) : (
+              <T en="See the figures" bn="সংখ্যাগুলো দেখুন" />
+            )}
+          </b>
+          <b className="rq-why-opened"><T en="Hide the details" bn="বিস্তারিত লুকান" /></b>
           <span className="rq-why-hint">
-            <T en="The figures behind this answer, and where they come from" bn="যে হিসাব থেকে এই উত্তর, আর তথ্য কোথা থেকে নেওয়া" />
+            {hasMeaning && details ? (
+              <T en="What it means for you, and the figures behind it" bn="আপনার জন্য এর মানে, আর এর পেছনের হিসাব" />
+            ) : hasMeaning ? (
+              <T en="What it means for you" bn="আপনার জন্য এর মানে" />
+            ) : (
+              <T en="The figures behind this answer, and where they come from" bn="যে হিসাব থেকে এই উত্তর, আর তথ্য কোথা থেকে নেওয়া" />
+            )}
           </span>
         </span>
         <span className="rq-why-icon" aria-hidden="true">
@@ -137,12 +161,29 @@ export default function QuestionRow({
         </span>
       </summary>
       <div className="rq-why-body">
+        {hasMeaning && (
+          <div className="rq-why-meaning">
+            {meaning.map((m, i) => (
+              <p key={i} className="rq-explain-p">{tx(m)}</p>
+            ))}
+          </div>
+        )}
         {details}
-        <SectionFoot source={tx(source)} action={action} />
+        {details && <SectionFoot source={tx(source)} action={action} />}
       </div>
     </details>
-  ) : source || action ? (
-    <SectionFoot source={tx(source)} action={action} />
+  ) : null;
+  // The source sits under the fold's figures; with no figures it stays outside.
+  const foot = !details && (source || action) ? <SectionFoot source={tx(source)} action={action} /> : null;
+
+  // What to watch: one amber line, open (2026-11-04).
+  const watchLine = watch ? (
+    <p className="rq-watch">
+      <span className="rq-watch-icon" aria-hidden="true">
+        <IconAlert size={16} />
+      </span>
+      <span>{tx(watch)}</span>
+    </p>
   ) : null;
 
   return (
@@ -177,14 +218,16 @@ export default function QuestionRow({
       )}
 
       {compact ? null : open ? (
-        // The answer leads; the pictures, what it means and the figures follow.
+        // The answer leads; the pictures, the facts and one watch line follow,
+        // then the fold (why it matters + the figures).
         <>
           {headline && <p className="rq-answer">{tx(headline)}</p>}
           {picture && <div className="rq-pic">{picture}</div>}
           {premiumPicture && <div className="rq-pic">{premiumPicture}</div>}
           {free && <div className="rq-free">{free}</div>}
-          {explain}
-          {figures}
+          {watchLine}
+          {fold}
+          {foot}
         </>
       ) : (
         <>
