@@ -146,45 +146,159 @@
   background: rgb(var(--positive-rgb) / 0.1);
 }
 
-/* Benefits: ONE card, four cells split by hairlines */
-.pm-benefits {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
+/* What you get (2026-11-04): an index card (five rows, each a link to its
+   group), then one card per group built the same way — head (icon tile, the
+   job, the name), the question + lead, what you get (ticked, two columns from
+   640px), a gold-tinted example, and a footer with what stays free. */
+.pm-index {
   overflow: hidden;
+  margin-top: var(--space-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--shadow-soft);
 }
-.pm-benefit { padding: var(--space-6); }
-.pm-benefit + .pm-benefit { border-top: 1px solid var(--border); }
-@media (min-width: 640px) {
-  .pm-benefits { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  .pm-benefit { padding: var(--space-8) var(--space-6); }
-  .pm-benefit + .pm-benefit { border-top: 0; }
-  .pm-benefit:nth-child(n + 3) { border-top: 1px solid var(--border); }
-  .pm-benefit:nth-child(2n) { border-left: 1px solid var(--border); }
+.pm-index li + li { border-top: 1px solid var(--border); }
+.pm-index-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 56px;
+  padding: var(--space-3) var(--space-4);
+  transition: background-color 0.15s ease;
 }
-.pm-benefit-icon {
+.pm-index-row:hover { background: var(--surface-2); }
+.pm-index-row:active { background: var(--surface-2); }
+.pm-index-row:focus-visible { outline: none; box-shadow: inset var(--ring); }
+@media (min-width: 640px) { .pm-index-row { padding: var(--space-3) var(--space-6); } }
+.pm-index-icon,
+.pm-group-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex: none;
   width: 40px;
   height: 40px;
   border-radius: var(--radius);
   color: var(--text);
   background: var(--surface-2);
 }
-.pm-points { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-4); }
-.pm-points li {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-2);
-  font-size: var(--fs-sm);
-  line-height: 1.45;
-  color: var(--text);
+.pm-index-chev { flex: none; color: var(--text-muted); }
+
+.pm-groups { display: flex; flex-direction: column; gap: var(--space-6); margin-top: var(--space-4); }
+.pm-group {
+  padding: var(--space-6) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
 }
-.pm-points-tick { flex: none; margin-top: 2px; color: var(--primary); }
+@media (min-width: 640px) { .pm-group { padding: var(--space-8) var(--space-6) var(--space-6); } }
+.pm-group-head { display: flex; align-items: flex-start; gap: var(--space-3); }
+.pm-group-head .ans-job { display: flex; width: fit-content; }
+.pm-group-lead { margin-top: var(--space-3); font-size: var(--fs-md); line-height: 1.55; color: var(--text); }
+
+.pm-items {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--border);
+}
+@media (min-width: 640px) { .pm-items { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-6); } }
+.pm-items li { display: flex; align-items: flex-start; gap: var(--space-3); }
+.pm-items-tick {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  border-radius: 999px;
+  color: var(--primary-ink);
+  background: rgb(var(--primary-rgb) / 0.12);
+}
+
+/* No limits: four tiles, what you have free and what Premium gives. */
+.pm-limits {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+@media (min-width: 640px) { .pm-limits { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.pm-limit {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.pm-limit-pm {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: auto;
+  padding-top: var(--space-1);
+  font-weight: 700;
+  color: var(--gold-ink);
+}
+
+/* A made-up example of what a Premium reader sees: gold = Premium. */
+.pm-example {
+  margin: var(--space-6) 0 0;
+  padding: var(--space-4);
+  border: 1px solid rgb(var(--gold-rgb) / 0.45);
+  border-radius: var(--radius-md);
+  background: var(--gold-light);
+}
+.pm-example-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: var(--space-2);
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  color: var(--gold-ink);
+}
+
+/* What stays free, and one link to see it for yourself. */
+.pm-group-free {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+@media (min-width: 640px) {
+  .pm-group-free { flex-direction: row; align-items: center; justify-content: space-between; gap: var(--space-6); }
+}
+.pm-free-chip {
+  display: inline-flex;
+  align-items: center;
+  margin-right: var(--space-1);
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  color: var(--text);
+  background: var(--surface-2);
+}
+.pm-group-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 40px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--primary-ink);
+}
+@media (min-width: 640px) { .pm-group-link { flex: none; } }
+.pm-group-link:hover { text-decoration: underline; }
+.pm-group-link:active { opacity: 0.7; }
 .pm-note { margin-top: var(--space-4); font-size: var(--fs-sm); color: var(--text-muted); }
 
 /* The three pay steps — a slim guide row above the plan cards */
@@ -386,7 +500,7 @@
 details[open] > .pm-fold-summary .pm-fold-chev { transform: rotate(180deg); }
 @media (min-width: 640px) { .pm-fold-summary { padding: var(--space-4) var(--space-6); } }
 
-.pm-compare,
+.pm-table-card,
 .pm-faq,
 .pm-help {
   overflow: hidden;
@@ -396,41 +510,39 @@ details[open] > .pm-fold-summary .pm-fold-chev { transform: rotate(180deg); }
   box-shadow: var(--shadow-soft);
 }
 
-/* Free | Premium grid, always open: three columns from 640px, stacked below with labels */
-.pm-compare-head { display: none; }
-.pm-compare-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-2);
-  padding: var(--space-4);
-  border-top: 1px solid var(--border);
-}
-/* Phones: no header row, so the first row is the card's top edge. */
-.pm-compare li:first-child { border-top: 0; }
-.pm-compare-label { font-size: var(--fs-2xs); font-weight: 700; color: var(--text-muted); }
-.pm-compare-label-pm { color: var(--primary-ink); }
-.pm-compare-pm {
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-sm);
-  background: rgb(var(--primary-rgb) / 0.05);
-}
+/* Free | Premium: one short table, always open (user decision 2026-10-27),
+   rows grouped like the cards above. Three columns at every width — every
+   cell is a few words. The Premium column wears the gold tint. */
+.pm-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: var(--fs-sm); color: var(--text); }
+.pm-table th,
+.pm-table td { padding: var(--space-3); text-align: left; vertical-align: top; overflow-wrap: anywhere; }
 @media (min-width: 640px) {
-  .pm-compare-head,
-  .pm-compare-row { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr) minmax(0, 1.2fr); gap: var(--space-4); }
-  .pm-compare-head {
-    display: grid;
-    padding: var(--space-3) var(--space-6);
-    font-size: var(--fs-2xs);
-    font-weight: 700;
-    color: var(--text-muted);
-    background: var(--surface-2);
-  }
-  .pm-compare-head-pm { display: inline-flex; align-items: center; gap: 4px; color: var(--gold-ink); }
-  .pm-compare-row { padding: var(--space-4) var(--space-6); }
-  .pm-compare li:first-child { border-top: 1px solid var(--border); }
-  .pm-compare-label { display: none; }
-  .pm-compare-pm { margin: calc(-1 * var(--space-2)) 0; }
+  .pm-table th,
+  .pm-table td { padding: var(--space-3) var(--space-4); }
+  .pm-table th:first-child { padding-left: var(--space-6); }
 }
+.pm-table thead th {
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  background: var(--surface-2);
+}
+.pm-table thead th:nth-child(1) { width: 42%; }
+.pm-table thead th:nth-child(2) { width: 27%; }
+.pm-table thead th:nth-child(3) { width: 31%; }
+.pm-table thead .pm-table-pm { color: var(--gold-ink); }
+.pm-table tbody tr { border-top: 1px solid var(--border); }
+.pm-table tbody th { font-weight: 400; }
+.pm-table td.pm-table-pm { font-weight: 600; background: rgb(var(--gold-rgb) / 0.1); }
+.pm-table-group th {
+  padding-top: var(--space-4);
+  padding-bottom: var(--space-2);
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+}
+.pm-table-group a:hover { text-decoration: underline; }
+.pm-table tbody .pm-table-group + tr { border-top: 0; }
+.pm-yes { display: inline-flex; color: var(--positive); }
+.pm-no { color: var(--text-muted); }
 
 .pm-faq-item + .pm-faq-item { border-top: 1px solid var(--border); }
 .pm-faq-body { padding: 0 var(--space-4) var(--space-4); }
@@ -646,17 +758,6 @@ details[open] > .pm-fold-summary .pm-fold-chev { transform: rotate(180deg); }
 }
 .ans-job--inline { margin-right: 8px; vertical-align: 1px; }
 .lk-line--answer { margin-top: var(--space-3); border-radius: var(--radius); border-top: 0; }
-
-/* /premium "The same question, free and Premium" (2026-10-29): two columns
-   from 640px, the Premium one with a gold rule. */
-.pm-diff { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); margin-top: var(--space-4); }
-@media (min-width: 640px) { .pm-diff { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.pm-diff-col { padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); }
-.pm-diff-col--pm { border-color: rgb(var(--gold-rgb) / 0.55); }
-.pm-diff-head { display: flex; align-items: center; gap: 6px; margin: 0 0 var(--space-2); font-size: var(--fs-xs); font-weight: 700; color: var(--text-muted); }
-.pm-diff-head--pm { color: var(--gold-ink); }
-/* Comparison rows grouped by Premium's three jobs. */
-.pm-compare-group { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 0; padding: 14px 16px 6px; font-size: var(--fs-xs); border-top: 1px solid var(--border); }
 
 /* The profile's plan card: what the plan allows and what you use. */
 .plan-usage { list-style: none; margin: var(--space-4) 0 0; padding: var(--space-3) 0 0; display: grid; gap: var(--space-3); border-top: 1px solid var(--border); }

@@ -3,6 +3,12 @@
  * the server page can build its FAQ JSON-LD from the same English the body
  * shows. One language per page (2026-10-28): the body renders each pair with
  * `<T>`, so the reader sees only their language. Western digits in Bengali.
+ *
+ * 2026-11-04 (user: "make the premium page more organized, explain clearly
+ * what user gets"): the page says what you get as FIVE groups (`GROUPS`), each
+ * built the same way — the question it answers, what you get, a made-up
+ * example of what you see, and what stays free there — then one short
+ * side-by-side table (`TABLE`, every cell a few words). Only live features.
  */
 import { LOWEST_PRICE, PAID_PLANS } from "@/lib/premium-plans";
 import type { Job } from "@/lib/premium-jobs";
@@ -14,11 +20,13 @@ export const PER_MONTH = YEARLY ? Math.round(YEARLY.amount / 12) : LOWEST_PRICE;
 
 export const HERO = {
   eyebrow: { en: "Premium", bn: "প্রিমিয়াম" },
-  // The rule (lib/premium-jobs.ts PREMIUM_RULE) as the headline, 2026-10-29.
-  title: { en: "Facts are free. Our judgement is Premium.", bn: "সব তথ্য ফ্রি। আমাদের মতামত ও বিশ্লেষণ প্রিমিয়ামে।" },
+  title: {
+    en: "Our answers on every share, and on your portfolio",
+    bn: "প্রতিটি শেয়ার আর আপনার পোর্টফোলিও নিয়ে আমাদের উত্তর",
+  },
   lead: {
-    en: "Every price, grade and DSE fact stays free for everyone. Premium does three jobs on top: it explains why, finds the shares worth a look, and watches your own shares every day.",
-    bn: "প্রতিটি দাম, গ্রেড আর ডিএসইর সব তথ্য সবার জন্য ফ্রি থাকবে। প্রিমিয়াম এর ওপর তিনটি কাজ করে: কারণ বুঝিয়ে বলে, দেখার মতো শেয়ার খুঁজে দেয়, আর প্রতিদিন আপনার নিজের শেয়ারে নজর রাখে।",
+    en: "Prices and figures are free for everyone. Premium reads them for you: should you buy a share, is your portfolio in good shape, and what changed on your shares today. Always with the reason, in plain words.",
+    bn: "দাম আর সব হিসাব সবার জন্য ফ্রি। প্রিমিয়াম সেগুলো আপনার হয়ে পড়ে দেয়: শেয়ারটি কেনা যায় কি না, আপনার পোর্টফোলিও ঠিক আছে কি না, আর আজ আপনার শেয়ারে কী বদলাল। সব সময় কারণসহ, সহজ ভাষায়।",
   },
   from: { en: "From", bn: "মাত্র" },
   perMonth: { en: "a month on the yearly plan", bn: "মাসে, বছরের প্ল্যানে" },
@@ -31,76 +39,417 @@ export const PROMISES: Bi[] = [
   { en: "Full refund within 7 days", bn: "7 দিনের মধ্যে পুরো টাকা ফেরত" },
 ];
 
-// The four things Premium does, in plain words. Every point is a live feature.
-// Each of the first three is one of Premium's jobs (lib/premium-jobs.ts), in that order.
-export const BENEFITS: { key: "why" | "portfolio" | "research" | "limits"; job?: Job; title: Bi; points: Bi[] }[] = [
+export type GroupKey = "share" | "portfolio" | "daily" | "find" | "limits";
+export type Tone = "good" | "watch" | "bad";
+
+export interface Group {
+  key: GroupKey;
+  /** The Premium job it belongs to (lib/premium-jobs.ts); none for the limits. */
+  job?: Job;
+  /** What you get, as a name. */
+  name: Bi;
+  /** The question it answers for you. */
+  question: Bi;
+  lead: Bi;
+  items: { name: Bi; line: Bi }[];
+  /** A made-up example of what a Premium reader sees — never a real share. */
+  example?: { label: Bi; title: Bi; word?: Bi; tone?: Tone; line: Bi };
+  /** What a free reader has in the same place. */
+  free: Bi;
+  /** "free-report" = today's free full report, worked out in the browser. */
+  link?: { href: string; label: Bi };
+}
+
+export const GROUPS: Group[] = [
   {
-    key: "why",
+    key: "share",
     job: "understand",
-    title: { en: "Know why, not just what", bn: "শুধু স্কোর নয়, তার কারণও জানুন" },
-    points: [
-      { en: "The full report on every share, each chapter read for you", bn: "প্রতিটি শেয়ারের পূর্ণ রিপোর্ট, প্রতিটি অধ্যায় আপনার জন্য লেখা" },
-      { en: "A fair price and our buy price for every share", bn: "প্রতিটি শেয়ারের ন্যায্য দাম আর আমাদের কেনার দাম" },
-      { en: "All five checks and every warning, explained", bn: "পাঁচটি যাচাই আর প্রতিটি সতর্কতার ব্যাখ্যা" },
-      { en: "The whole in-depth report", bn: "পুরো বিস্তারিত রিপোর্ট" },
+    name: { en: "The full report on any share", bn: "যেকোনো শেয়ারের পূর্ণ রিপোর্ট" },
+    question: { en: "Should you buy it, and why?", bn: "শেয়ারটি কেনা যায় কি না, আর কেন?" },
+    lead: {
+      en: "On every DSE share, we read the company's results, notices and price for you, and answer in plain words.",
+      bn: "ডিএসইর প্রতিটি শেয়ারে কোম্পানির আর্থিক ফল, নোটিশ আর দাম আমরা আপনার হয়ে পড়ি, তারপর সহজ ভাষায় উত্তর দিই।",
+    },
+    items: [
+      {
+        name: { en: "Our answer for today", bn: "আজকের জন্য আমাদের উত্তর" },
+        line: {
+          en: "Buy, Not yet or Avoid, and the three things it rests on: the company, the price and anything wrong.",
+          bn: "কেনা যায়, এখন নয়, নাকি এড়িয়ে চলুন, আর যে তিনটি জিনিস দেখে এই উত্তর: কোম্পানি, দাম আর কোনো সমস্যা।",
+        },
+      },
+      {
+        name: { en: "Four plain questions, answered", bn: "চারটি সহজ প্রশ্নের উত্তর" },
+        line: {
+          en: "Is it a good company? Is the price right? Could anything go wrong? What's next?",
+          bn: "কোম্পানিটি কি ভালো? দাম কি ন্যায্য? কোনো সমস্যা হতে পারে কি? এরপর কী?",
+        },
+      },
+      {
+        name: { en: "A fair price and our buy price", bn: "ন্যায্য দাম আর আমাদের কেনার দাম" },
+        line: {
+          en: "What the share should be worth, the price we would buy under, and an alert when it gets there.",
+          bn: "শেয়ারটির দাম কত হওয়া উচিত, কোন দামের নিচে আমরা কিনতাম, আর দাম সেখানে এলে অ্যালার্ট।",
+        },
+      },
+      {
+        name: { en: "Every warning, by name", bn: "প্রতিটি সতর্কতা, নাম ধরে" },
+        line: {
+          en: "Up to 16 safety checks, from the auditor's opinion to loans, owners selling and old accounts.",
+          bn: "16টি পর্যন্ত নিরাপত্তা যাচাই: নিরীক্ষকের মত থেকে ঋণ, উদ্যোক্তাদের শেয়ার বিক্রি আর পুরনো হিসাব পর্যন্ত।",
+        },
+      },
+      {
+        name: { en: "Our view", bn: "আমাদের মত" },
+        line: {
+          en: "The case for and against, what would change our answer, and our written analysis where we have one.",
+          bn: "পক্ষে আর বিপক্ষের যুক্তি, কী হলে আমাদের উত্তর বদলাবে, আর যেখানে আছে, আমাদের লেখা বিশ্লেষণ।",
+        },
+      },
+      {
+        name: { en: "What it would do to your portfolio", bn: "কিনলে আপনার পোর্টফোলিওর কী হবে" },
+        line: {
+          en: "Before you buy, see how one buy changes your grade, your spread and your dividends.",
+          bn: "কেনার আগেই দেখুন, একবার কিনলে আপনার গ্রেড, টাকার বণ্টন আর ডিভিডেন্ড কেমন বদলায়।",
+        },
+      },
     ],
-  },
-  {
-    key: "research",
-    job: "find",
-    title: { en: "Research, done for you", bn: "গবেষণা আমরা করে দিই" },
-    points: [
-      { en: "Your 10 to 15 picks for the day, chosen for your own shares", bn: "দিনের 10 থেকে 15টি বাছাই, আপনার নিজের শেয়ার মিলিয়ে" },
-      { en: "All six research lists in full", bn: "ছয়টি গবেষণা তালিকা পুরোটা" },
-      { en: "Our own view as screener filters, and your screens checked every day", bn: "স্ক্রিনারের ফিল্টারে আমাদের মত, আর আপনার স্ক্রিন প্রতিদিন যাচাই" },
-      { en: "Which dividends are safe, which are worth buying for, and who will pay next", bn: "কোন ডিভিডেন্ড নিরাপদ, কোনটির জন্য কেনা লাভজনক, আর এরপর কে দেবে" },
-    ],
+    example: {
+      label: { en: "On a share page", bn: "শেয়ারের পেজে" },
+      title: { en: "Should you buy it today?", bn: "আজ কি কেনা যায়?" },
+      word: { en: "Not yet", bn: "এখন নয়" },
+      tone: "watch",
+      line: {
+        en: "A mostly strong company, but the price is near its highest this year. Our buy price: under ৳225.",
+        bn: "বেশিরভাগ দিকে শক্তিশালী কোম্পানি, তবে দাম এ বছরের সর্বোচ্চের কাছে। আমাদের কেনার দাম: ৳225-এর নিচে।",
+      },
+    },
+    free: {
+      en: "The price, the chart and every figure on every share, and 3 full reports a month on shares you choose.",
+      bn: "প্রতিটি শেয়ারের দাম, চার্ট আর সব হিসাব, আর আপনার বাছাই করা শেয়ারে মাসে 3টি পূর্ণ রিপোর্ট।",
+    },
+    link: { href: "free-report", label: { en: "See today's free full report", bn: "আজকের ফ্রি পূর্ণ রিপোর্ট দেখুন" } },
   },
   {
     key: "portfolio",
     job: "watch",
-    title: { en: "Your portfolio, checked every day", bn: "আপনার পোর্টফোলিও, প্রতিদিন যাচাই করা" },
-    points: [
-      { en: "Your Desk: a 9 AM brief, a note after the close and a Friday letter", bn: "আপনার ডেস্ক: সকাল 9টার খবর, বাজার বন্ধের পরের নোট আর শুক্রবারের চিঠি" },
-      { en: "An alert the same day when one of your shares needs attention", bn: "কোনো শেয়ারে নজর দেওয়া দরকার হলে সেদিনই অ্যালার্ট" },
-      { en: "New results and grade changes, explained", bn: "নতুন ফল আর গ্রেড বদলের সহজ ব্যাখ্যা" },
-      { en: "Your full history and a yearly statement", bn: "পুরো ইতিহাস আর বার্ষিক হিসাব" },
+    name: { en: "A full check of your portfolio", bn: "আপনার পোর্টফোলিওর পূর্ণ যাচাই" },
+    question: { en: "Is your portfolio in good shape, and what should you do?", bn: "আপনার পোর্টফোলিও কি ঠিক আছে, আর কী করবেন?" },
+    lead: {
+      en: "We check the shares you own after every close and show you what needs your attention first.",
+      bn: "প্রতিদিন বাজার বন্ধের পর আপনার শেয়ারগুলো আমরা যাচাই করি, আর দেখাই কোনটিতে আগে নজর দেওয়া দরকার।",
+    },
+    items: [
+      {
+        name: { en: "Our answer, with the reasons", bn: "কারণসহ আমাদের উত্তর" },
+        line: {
+          en: "In good shape, Mostly fine, Needs work or At risk, from your companies, your spread, the prices you paid and what to watch.",
+          bn: "ভালো অবস্থায়, মোটামুটি ঠিক আছে, কাজ দরকার, নাকি ঝুঁকিতে। দেখি আপনার কোম্পানি, টাকার বণ্টন, কেনার দাম আর যা নজরে রাখতে হবে।",
+        },
+      },
+      {
+        name: { en: "Which shares to decide on", bn: "কোন শেয়ার নিয়ে সিদ্ধান্ত নেবেন" },
+        line: {
+          en: "The shares marked Buy more or Sell, and the warnings on each of your shares.",
+          bn: "কোন শেয়ারে আরও কেনার বা বিক্রির সংকেত, আর আপনার প্রতিটি শেয়ারের সতর্কতা।",
+        },
+      },
+      {
+        name: { en: "Your shares in a loss", bn: "লোকসানে থাকা শেয়ার" },
+        line: {
+          en: "Is it the company or only the price, what price gets your money back, and what buying more would do.",
+          bn: "সমস্যা কোম্পানিতে নাকি শুধু দামে, কোন দামে আপনার টাকা ফেরত আসবে, আর আরও কিনলে কী হবে।",
+        },
+      },
+      {
+        name: { en: "Your plan", bn: "আপনার পরিকল্পনা" },
+        line: {
+          en: "What to do first, what would lift your grade, what to buy next and what to do with each share.",
+          bn: "প্রথমে কী করবেন, কীসে গ্রেড বাড়বে, এরপর কী কিনবেন, আর প্রতিটি শেয়ার নিয়ে কী করবেন।",
+        },
+      },
+      {
+        name: { en: "Try it before you act", bn: "করার আগে দেখে নিন" },
+        line: {
+          en: "Test a buy or a sale and see your new grade first.",
+          bn: "কেনা বা বেচা আগে পরীক্ষা করুন, নতুন গ্রেড কী হবে দেখে নিন।",
+        },
+      },
+      {
+        name: { en: "Up to 6 portfolios and a yearly statement", bn: "6টি পর্যন্ত পোর্টফোলিও আর বার্ষিক হিসাব" },
+        line: {
+          en: "Keep a parent's or spouse's BO account apart, and get the year's buys, sales and dividends ready to print.",
+          bn: "মা-বাবা বা স্বামী/স্ত্রীর বিও অ্যাকাউন্ট আলাদা রাখুন, আর বছরের সব কেনা, বেচা ও ডিভিডেন্ড প্রিন্টের জন্য তৈরি পান।",
+        },
+      },
     ],
+    example: {
+      label: { en: "On your portfolio", bn: "আপনার পোর্টফোলিওতে" },
+      title: { en: "Is your portfolio in good shape?", bn: "আপনার পোর্টফোলিও কি ঠিক আছে?" },
+      word: { en: "Mostly fine · Grade B", bn: "মোটামুটি ঠিক আছে · গ্রেড B" },
+      tone: "watch",
+      line: {
+        en: "Do this first: one share holds 38% of your money. Bringing it down to a quarter would lift your grade to A.",
+        bn: "প্রথমে এটি করুন: আপনার টাকার 38% একটি শেয়ারে। এটি এক-চতুর্থাংশে নামালে গ্রেড হবে A।",
+      },
+    },
+    free: {
+      en: "Your money, your shares, your grade, the money you made and your dividends, and how many things our check found.",
+      bn: "আপনার টাকা, শেয়ার, গ্রেড, আয় আর ডিভিডেন্ড, আর আমাদের যাচাইয়ে কতগুলো বিষয় পাওয়া গেল।",
+    },
+    link: { href: "/sample-portfolio/diversified", label: { en: "See the full check on a sample portfolio", bn: "একটি নমুনা পোর্টফোলিওতে পূর্ণ যাচাই দেখুন" } },
+  },
+  {
+    key: "daily",
+    job: "watch",
+    name: { en: "News on your shares, the same day", bn: "আপনার শেয়ারের খবর, সেদিনই" },
+    question: { en: "What changed on your shares today?", bn: "আজ আপনার শেয়ারে কী বদলাল?" },
+    lead: {
+      en: "You don't have to look. When something happens on a share you own or follow, we tell you that day, and what it means for you.",
+      bn: "আপনাকে খুঁজতে হবে না। আপনার কেনা বা অনুসরণ করা শেয়ারে কিছু ঘটলে সেদিনই জানাই, আর আপনার জন্য এর মানে কী।",
+    },
+    items: [
+      {
+        name: { en: "A phone notification the same day", bn: "সেদিনই ফোনে নোটিফিকেশন" },
+        line: {
+          en: "New results, a grade change, a new warning, our answer changing, a record date coming, a big fall, or a share back to the price you paid.",
+          bn: "নতুন আর্থিক ফল, গ্রেড বদল, নতুন সতর্কতা, আমাদের উত্তর বদল, রেকর্ড ডেট আসছে, বড় দরপতন, বা শেয়ারের দাম আপনার কেনা দামে ফিরে এলে।",
+        },
+      },
+      {
+        name: { en: "A 9 AM brief before the market opens", bn: "বাজার খোলার আগে সকাল 9টার খবর" },
+        line: {
+          en: "Results posted overnight, results meetings today, and the last day to buy before a dividend.",
+          bn: "রাতে প্রকাশিত ফল, আজকের ফল-সভা, আর ডিভিডেন্ডের আগে কেনার শেষ দিন।",
+        },
+      },
+      {
+        name: { en: "The whole Friday letter", bn: "পুরো শুক্রবারের চিঠি" },
+        line: {
+          en: "Your shares this week, the market in five lines, new names on our lists and next week's dates.",
+          bn: "এ সপ্তাহে আপনার শেয়ার, পাঁচ লাইনে বাজার, আমাদের তালিকায় নতুন নাম, আর আগামী সপ্তাহের তারিখ।",
+        },
+      },
+      {
+        name: { en: "What each result means", bn: "প্রতিটি আর্থিক ফলের মানে" },
+        line: {
+          en: "On results day, one plain sentence on what it means. Before it, what the report must show.",
+          bn: "ফল প্রকাশের দিন এক লাইনে এর মানে। তার আগে, প্রতিবেদনে কী দেখাতে হবে।",
+        },
+      },
+      {
+        name: { en: "Reminders you choose", bn: "আপনার বাছাই করা রিমাইন্ডার" },
+        line: {
+          en: "The last day to buy before a dividend, on any share you pick.",
+          bn: "আপনার বেছে নেওয়া যেকোনো শেয়ারে ডিভিডেন্ডের আগে কেনার শেষ দিন।",
+        },
+      },
+    ],
+    example: {
+      label: { en: "On your phone, after the close", bn: "বাজার বন্ধের পর, আপনার ফোনে" },
+      title: { en: "2 things on your shares today", bn: "আজ আপনার শেয়ারে 2টি খবর" },
+      line: {
+        en: "One posted its results: profit up 17% this year. Another has a record date in 2 days, worth ৳1,250 on your shares.",
+        bn: "একটির আর্থিক ফল এসেছে: এ বছর মুনাফা 17% বেশি। আরেকটির রেকর্ড ডেট 2 দিন পর, আপনার শেয়ারে ৳1,250।",
+      },
+    },
+    free: {
+      en: "Every update on your dashboard, watchlist and Desk, and up to 3 phone notifications a week.",
+      bn: "ড্যাশবোর্ড, ওয়াচলিস্ট আর ডেস্কে প্রতিটি খবর, আর সপ্তাহে সর্বোচ্চ 3টি ফোন নোটিফিকেশন।",
+    },
+  },
+  {
+    key: "find",
+    job: "find",
+    name: { en: "Shares worth a look", bn: "দেখার মতো শেয়ার" },
+    question: { en: "Which shares should you look at?", bn: "কোন শেয়ারগুলো দেখবেন?" },
+    lead: {
+      en: "We check every company on the DSE each day and give you the full lists, with the reason each share is there.",
+      bn: "প্রতিদিন ডিএসইর সব কোম্পানি আমরা যাচাই করি, আর পুরো তালিকা দিই, প্রতিটি শেয়ার কেন আছে তা সহ।",
+    },
+    items: [
+      {
+        name: { en: "Picked for you", bn: "আপনার জন্য বাছাই" },
+        line: {
+          en: "10 to 15 shares a day that passed every safety check, matched to the shares you own and follow, each with one honest risk.",
+          bn: "দিনে 10 থেকে 15টি শেয়ার, যেগুলো সব নিরাপত্তা যাচাই পার হয়েছে, আপনার কেনা ও অনুসরণ করা শেয়ারের সঙ্গে মিলিয়ে, প্রতিটির একটি খোলামেলা ঝুঁকিসহ।",
+        },
+      },
+      {
+        name: { en: "All six research lists", bn: "ছয়টি গবেষণা তালিকা পুরোটা" },
+        line: {
+          en: "Every share on each list with its fair price range and main risk, side by side, and who joined or left this month.",
+          bn: "প্রতিটি তালিকার সব শেয়ার, ন্যায্য দামের সীমা আর মূল ঝুঁকিসহ, পাশাপাশি, আর এই মাসে কে যোগ হলো বা বাদ পড়ল।",
+        },
+      },
+      {
+        name: { en: "The screener, with our view", bn: "আমাদের মতসহ স্ক্রিনার" },
+        line: {
+          en: "Filter by our grade, our price check and serious warnings. Save up to 5 screens and hear when a new share matches.",
+          bn: "আমাদের গ্রেড, দামের যাচাই আর গুরুতর সতর্কতা দিয়ে ফিল্টার করুন। 5টি পর্যন্ত স্ক্রিন সেভ করুন, নতুন শেয়ার মিললে জানবেন।",
+        },
+      },
+      {
+        name: { en: "Dividends worth buying for", bn: "যে ডিভিডেন্ডের জন্য কেনা যায়" },
+        line: {
+          en: "Is each dividend safe, did buying for it pay in past years, who we expect to pay next and how much, and your dividend income by month.",
+          bn: "প্রতিটি ডিভিডেন্ড নিরাপদ কি না, আগে এর জন্য কেনা লাভজনক ছিল কি না, এরপর কে কত দিতে পারে, আর মাস অনুযায়ী আপনার ডিভিডেন্ড আয়।",
+        },
+      },
+      {
+        name: { en: "Market and sector reads", bn: "বাজার আর সেক্টরের মূল্যায়ন" },
+        line: {
+          en: "Why a share rising with no news is a worry, what puts a company close to Z, and the best value in each sector.",
+          bn: "খবর ছাড়া বাড়তে থাকা শেয়ার কেন চিন্তার, কোন কোম্পানি কেন Z-এর কাছাকাছি, আর প্রতিটি সেক্টরে সবচেয়ে ভালো দামে কোনটি।",
+        },
+      },
+    ],
+    example: {
+      label: { en: "Picked for you", bn: "আপনার জন্য বাছাই" },
+      title: { en: "Stronger than a share you own", bn: "আপনার একটি শেয়ারের চেয়ে শক্তিশালী" },
+      line: {
+        en: "The same business as one of your shares, a stronger company at a lower price, and it pays about 5% a year in cash. Watch out: its profit grew slowly this year.",
+        bn: "আপনার একটি শেয়ারের মতোই ব্যবসা, তবে কোম্পানিটি বেশি শক্তিশালী, দামও কম, আর বছরে নগদে প্রায় 5% দেয়। খেয়াল রাখুন: এ বছর মুনাফা ধীরে বেড়েছে।",
+      },
+    },
+    free: {
+      en: "The top 3 on each research list, every screener filter on public figures, and every dividend date.",
+      bn: "প্রতিটি গবেষণা তালিকার প্রথম 3টি, সাধারণ তথ্যের সব স্ক্রিনার ফিল্টার, আর ডিভিডেন্ডের সব তারিখ।",
+    },
+    link: { href: "/stock-insights", label: { en: "See the research lists", bn: "গবেষণা তালিকা দেখুন" } },
   },
   {
     key: "limits",
-    title: { en: "No limits", bn: "কোনো সীমা নেই" },
-    points: [
-      { en: "Follow as many shares as you like", bn: "যত খুশি শেয়ার অনুসরণ করুন" },
-      { en: "Set as many price alerts as you like", bn: "যত খুশি প্রাইস অ্যালার্ট দিন" },
-      { en: "Ask TopStock AI anything, at any time", bn: "TopStock AI-কে যেকোনো সময় যেকোনো প্রশ্ন করুন" },
-    ],
+    name: { en: "No limits", bn: "কোনো সীমা নেই" },
+    question: { en: "Follow everything you care about", bn: "যা দরকার, সব অনুসরণ করুন" },
+    lead: {
+      en: "A free account has a few caps. Premium lifts them.",
+      bn: "ফ্রি অ্যাকাউন্টে কিছু সীমা আছে। প্রিমিয়ামে সেগুলো থাকে না।",
+    },
+    items: [],
+    free: {
+      en: "Every share you own fits in a free portfolio. There is no cap on that.",
+      bn: "আপনার সব শেয়ার ফ্রি পোর্টফোলিওতেই রাখা যায়। তাতে কোনো সীমা নেই।",
+    },
   },
 ];
 
-// "See the difference" (2026-10-29): one question as a free reader and a
-// Premium reader see it. An illustration with made-up round figures, labelled
-// as an example on the page — never presented as a real share.
-export const DIFF = {
-  title: { en: "The same question, free and Premium", bn: "একই প্রশ্ন, ফ্রি আর প্রিমিয়ামে" },
-  note: { en: "An example to show the difference, not a real share.", bn: "পার্থক্য বোঝানোর উদাহরণ, কোনো আসল শেয়ার নয়।" },
-  question: { en: "Is the price low?", bn: "দাম কি কম?" },
-  freeHead: { en: "Free: what we found", bn: "ফ্রি: আমরা যা পেয়েছি" },
-  freeLine: { en: "Price word: Good price. P/E 9, against 14 for the sector.", bn: "দামের কথা: ভালো দাম। পি/ই 9, সেক্টরে 14।" },
-  lockLines: [
-    { en: "What the share should be worth, as a low–high range", bn: "শেয়ারটির ন্যায্য দাম কত, কম–বেশি সীমায়" },
-    { en: "The price to buy below, and how sure we are", bn: "কোন দামের নিচে কেনা ভালো, আর আমরা কতটা নিশ্চিত" },
-  ] as Bi[],
-  premiumHead: { en: "Premium: why, and what to do", bn: "প্রিমিয়াম: কেন, আর কী করবেন" },
-  premiumLine: {
-    en: "Fair value ৳210 to ৳250. Today's ৳198 is under the range, so the price looks low. A Buy below ৳225, with medium confidence.",
-    bn: "ন্যায্য দাম ৳210 থেকে ৳250। আজকের ৳198 এই সীমার নিচে, তাই দাম কম মনে হচ্ছে। ৳225-এর নিচে কেনা যায়, আস্থা মাঝারি।",
+/** The "No limits" group as tiles: what you have free, what Premium gives. */
+export const LIMITS: { what: Bi; free: Bi; premium: Bi }[] = [
+  { what: { en: "Shares on your watchlist", bn: "ওয়াচলিস্টে শেয়ার" }, free: { en: "5", bn: "5টি" }, premium: { en: "No limit", bn: "সীমা নেই" } },
+  { what: { en: "Price alerts", bn: "প্রাইস অ্যালার্ট" }, free: { en: "3 at a time", bn: "একসঙ্গে 3টি" }, premium: { en: "No limit", bn: "সীমা নেই" } },
+  { what: { en: "TopStock AI questions", bn: "TopStock AI-তে প্রশ্ন" }, free: { en: "10 a day", bn: "দিনে 10টি" }, premium: { en: "No limit", bn: "সীমা নেই" } },
+  { what: { en: "Portfolios", bn: "পোর্টফোলিও" }, free: { en: "1", bn: "1টি" }, premium: { en: "Up to 6", bn: "6টি পর্যন্ত" } },
+];
+
+/** A table cell: words, or `true` = included, `false` = not included. */
+export type Cell = Bi | boolean;
+
+/**
+ * Free and Premium, side by side — one short line per thing, grouped like
+ * `GROUPS` (always open, user decision 2026-10-27). Keep every cell to a few
+ * words; the groups above carry the detail.
+ */
+export const TABLE: { group: GroupKey; rows: { what: Bi; free: Cell; premium: Cell }[] }[] = [
+  {
+    group: "share",
+    rows: [
+      { what: { en: "Price, chart and every figure", bn: "দাম, চার্ট আর সব হিসাব" }, free: true, premium: true },
+      {
+        what: { en: "Full report with our answer", bn: "আমাদের উত্তরসহ পূর্ণ রিপোর্ট" },
+        free: { en: "3 a month", bn: "মাসে 3টি" },
+        premium: { en: "Every share", bn: "প্রতিটি শেয়ারে" },
+      },
+      { what: { en: "Fair price and our buy price", bn: "ন্যায্য দাম আর কেনার দাম" }, free: false, premium: true },
+      { what: { en: "Written analysis", bn: "লেখা বিশ্লেষণ" }, free: false, premium: true },
+    ],
   },
-  keys: {
-    en: "Not sure yet? A free account opens 3 full reports a month, on any shares you choose.",
-    bn: "এখনো ঠিক করেননি? ফ্রি অ্যাকাউন্টে মাসে 3টি পূর্ণ রিপোর্ট খোলা যায়, আপনার পছন্দের যেকোনো শেয়ারে।",
+  {
+    group: "portfolio",
+    rows: [
+      { what: { en: "Your money, shares and grade", bn: "আপনার টাকা, শেয়ার আর গ্রেড" }, free: true, premium: true },
+      {
+        what: { en: "The full check and your plan", bn: "পূর্ণ যাচাই আর পরিকল্পনা" },
+        free: { en: "How many things we found", bn: "কতগুলো বিষয় পাওয়া গেল" },
+        premium: { en: "Every answer and the plan", bn: "প্রতিটি উত্তর আর পরিকল্পনা" },
+      },
+      { what: { en: "Test a buy or a sale", bn: "কেনা-বেচা আগে পরীক্ষা" }, free: false, premium: true },
+      { what: { en: "Yearly statement", bn: "বার্ষিক হিসাব" }, free: false, premium: true },
+    ],
   },
-} as const;
+  {
+    group: "daily",
+    rows: [
+      { what: { en: "Updates on your dashboard and Desk", bn: "ড্যাশবোর্ড আর ডেস্কে খবর" }, free: true, premium: true },
+      {
+        what: { en: "Phone notifications", bn: "ফোনে নোটিফিকেশন" },
+        free: { en: "Up to 3 a week", bn: "সপ্তাহে সর্বোচ্চ 3টি" },
+        premium: { en: "Every one, the same day", bn: "প্রতিটি, সেদিনই" },
+      },
+      { what: { en: "9 AM brief", bn: "সকাল 9টার খবর" }, free: false, premium: true },
+      {
+        what: { en: "Friday letter", bn: "শুক্রবারের চিঠি" },
+        free: { en: "Your shares only", bn: "শুধু আপনার শেয়ার" },
+        premium: { en: "The whole letter", bn: "পুরো চিঠি" },
+      },
+      {
+        what: { en: "Quarterly results", bn: "প্রান্তিকের ফল" },
+        free: { en: "Every result and date", bn: "সব ফল আর তারিখ" },
+        premium: { en: "What each one means", bn: "প্রতিটির মানে" },
+      },
+    ],
+  },
+  {
+    group: "find",
+    rows: [
+      {
+        what: { en: "Picked for you", bn: "আপনার জন্য বাছাই" },
+        free: { en: "How many we chose", bn: "কতগুলো বাছাই হলো" },
+        premium: { en: "All 10 to 15, with reasons", bn: "10 থেকে 15টিই, কারণসহ" },
+      },
+      {
+        what: { en: "Research lists", bn: "গবেষণা তালিকা" },
+        free: { en: "Top 3 on each", bn: "প্রতিটির প্রথম 3টি" },
+        premium: { en: "Every share", bn: "সব শেয়ার" },
+      },
+      {
+        what: { en: "Stock screener", bn: "স্টক স্ক্রিনার" },
+        free: { en: "Every public figure", bn: "সাধারণ সব তথ্য" },
+        premium: { en: "Plus our view, 5 saved screens", bn: "সঙ্গে আমাদের মত, 5টি সেভ করা স্ক্রিন" },
+      },
+      {
+        what: { en: "Dividend calendar", bn: "ডিভিডেন্ড ক্যালেন্ডার" },
+        free: { en: "Every date and amount", bn: "সব তারিখ আর পরিমাণ" },
+        premium: { en: "Is it safe, who pays next", bn: "নিরাপদ কি না, এরপর কে দেবে" },
+      },
+    ],
+  },
+  {
+    group: "limits",
+    rows: [
+      {
+        what: { en: "Watchlist", bn: "ওয়াচলিস্ট" },
+        free: { en: "5 shares", bn: "5টি শেয়ার" },
+        premium: { en: "No limit", bn: "সীমা নেই" },
+      },
+      {
+        what: { en: "Price alerts", bn: "প্রাইস অ্যালার্ট" },
+        free: { en: "3 at a time", bn: "একসঙ্গে 3টি" },
+        premium: { en: "No limit", bn: "সীমা নেই" },
+      },
+      {
+        what: { en: "TopStock AI", bn: "TopStock AI" },
+        free: { en: "10 a day", bn: "দিনে 10টি" },
+        premium: { en: "No limit", bn: "সীমা নেই" },
+      },
+      {
+        what: { en: "Portfolios", bn: "পোর্টফোলিও" },
+        free: { en: "1", bn: "1টি" },
+        premium: { en: "Up to 6", bn: "6টি পর্যন্ত" },
+      },
+    ],
+  },
+];
 
 export const STEPS: { title: Bi; sub: Bi }[] = [
   { title: { en: "Choose a plan", bn: "প্ল্যান বেছে নিন" }, sub: { en: "1 month, 6 months or 1 year", bn: "1 মাস, 6 মাস বা 1 বছর" } },
@@ -109,11 +458,18 @@ export const STEPS: { title: Bi; sub: Bi }[] = [
 ];
 
 export const SECTIONS = {
-  what: { en: "What Premium does for you", bn: "প্রিমিয়াম আপনার জন্য যা করে" },
-  stayFree: {
-    en: "Prices, charts, news and scores stay free for everyone.",
-    bn: "দাম, চার্ট, খবর আর স্কোর সবার জন্য ফ্রি থাকবে।",
+  what: { en: "What you get with Premium", bn: "প্রিমিয়ামে যা পাবেন" },
+  whatLead: {
+    en: "Five things. Prices, charts and every figure stay free for everyone.",
+    bn: "পাঁচটি জিনিস। দাম, চার্ট আর সব হিসাব সবার জন্য ফ্রি থাকে।",
   },
+  examples: {
+    en: "The examples below are made up to show what you see. They are not real shares.",
+    bn: "নিচের উদাহরণগুলো বোঝানোর জন্য বানানো, কোনো আসল শেয়ার নয়।",
+  },
+  youGet: { en: "What you get", bn: "যা পাবেন" },
+  example: { en: "Example", bn: "উদাহরণ" },
+  freePlan: { en: "Free plan", bn: "ফ্রি প্ল্যান" },
   how: { en: "Start in three steps", bn: "তিন ধাপে শুরু করুন" },
   plan: { en: "Choose your plan", bn: "আপনার প্ল্যান বেছে নিন" },
   planLead: { en: "The longer the plan, the less you pay each month.", bn: "প্ল্যান যত লম্বা, প্রতি মাসের খরচ তত কম।" },
@@ -124,247 +480,37 @@ export const SECTIONS = {
     bn: "টাকা পাঠিয়েছেন কিন্তু প্রিমিয়াম চালু হয়নি, বা ভুল পরিমাণ পাঠিয়েছেন? এখানে জানান, বা ইমেইল করুন।",
   },
   compare: { en: "Free and Premium, side by side", bn: "ফ্রি আর প্রিমিয়াম, পাশাপাশি" },
+  compareLead: { en: "Everything above, in one table.", bn: "ওপরের সবকিছু, এক টেবিলে।" },
   free: { en: "Free", bn: "ফ্রি" },
   premium: { en: "Premium", bn: "প্রিমিয়াম" },
+  included: { en: "Included", bn: "আছে" },
+  notIncluded: { en: "Not included", bn: "নেই" },
   faq: { en: "Common questions", bn: "সাধারণ প্রশ্ন" },
-  closing: { en: "See the reasons on every share", bn: "প্রতিটি শেয়ারের কারণ দেখুন" },
+  closing: { en: "Get our answers on every share", bn: "প্রতিটি শেয়ারে আমাদের উত্তর পান" },
   closingLead: {
     en: "Choose a plan and pay by bKash, Nagad or bank transfer. Premium starts straight away.",
     bn: "প্ল্যান বেছে নিন আর বিকাশ, নগদ বা ব্যাংক ট্রান্সফারে পেমেন্ট করুন। প্রিমিয়াম সঙ্গে সঙ্গে চালু হবে।",
   },
   feature: { en: "What you get", bn: "যা পাবেন" },
   promises: { en: "Our promises", bn: "আমাদের প্রতিশ্রুতি" },
+  keys: {
+    en: "Not sure yet? A free account opens 3 full reports a month, on any shares you choose.",
+    bn: "এখনো ঠিক করেননি? ফ্রি অ্যাকাউন্টে মাসে 3টি পূর্ণ রিপোর্ট খোলা যায়, আপনার পছন্দের যেকোনো শেয়ারে।",
+  },
   howWeScore: {
     en: ["Would you like to see how the score works first? Read ", "how we score", "."],
     bn: ["আগে দেখতে চান স্কোর কীভাবে হয়? পড়ুন ", "আমরা কীভাবে স্কোর করি", "।"],
   },
 } as const;
 
-// Line by line, for readers who want every detail. Only features that are live.
-// Grouped on the page by `job` (Understand · Find · Watch), in this order within each.
-export const ROWS: { what: Bi; job: Job; free: Bi; premium: Bi }[] = [
-  {
-    job: "understand",
-    what: { en: "Share page analysis", bn: "শেয়ারের পেজের বিশ্লেষণ" },
-    free: {
-      en: "Prices, charts, financials, dividends, owners and news, the grade, and 3 full reports a month on shares you choose.",
-      bn: "দাম, চার্ট, আর্থিক হিসাব, ডিভিডেন্ড, মালিকানা আর খবর, গ্রেড, আর আপনার বাছাই করা শেয়ারে মাসে 3টি পূর্ণ রিপোর্ট।",
-    },
-    premium: {
-      en: "The full report: whether to buy it today and why, the company's fundamentals and its price, every answer explained, a written read of every chapter, every picture filled in and explained, the fair price and our buy price, every warning, and Our view: the case for and against, and what would change our answer.",
-      bn: "পূর্ণ রিপোর্ট: আজ কেনা উচিত কি না আর কেন, কোম্পানির মৌলিক বিশ্লেষণ আর দাম, প্রতিটি উত্তরের ব্যাখ্যা, প্রতিটি অধ্যায়ের লেখা মত, প্রতিটি ছবি পূর্ণ আর ব্যাখ্যাসহ, ন্যায্য দাম আর আমাদের কেনার দাম, প্রতিটি সতর্কতা, আর আমাদের মত: পক্ষে-বিপক্ষে যুক্তি, আর কী হলে উত্তর বদলাবে।",
-    },
-  },
-  {
-    job: "understand",
-    what: { en: "In-depth reports", bn: "বিস্তারিত রিপোর্ট" },
-    free: { en: "The headline, the main point and the first section.", bn: "শিরোনাম, মূল কথা আর প্রথম অংশ।" },
-    premium: { en: "The whole report.", bn: "পুরো রিপোর্ট।" },
-  },
-  {
-    job: "understand",
-    what: { en: "Quarterly results, explained", bn: "প্রান্তিকের ফল, সহজ ব্যাখ্যায়" },
-    free: {
-      en: "Every company's latest results in one list, with the headline and profit figures of each, the Better, Mixed, Weaker filters, a filter for your own stocks, and the dates of the results meetings ahead.",
-      bn: "সব কোম্পানির সর্বশেষ ফল এক তালিকায়, প্রতিটির শিরোনাম ও মুনাফার হিসাবসহ, ভালো, মিশ্র, দুর্বল বাছাই, শুধু আপনার শেয়ারের বাছাই, আর সামনের ফল-সভার তারিখ।",
-    },
-    premium: {
-      en: "What each report means, in one sentence under every company, whether the latest 3 months beat the year's own pace, and what each coming report must show. On each share: the latest quarter on its own, cash from the business, the price against the last 12 months' profit and how our score moved. You also get a phone alert on the day results come out for a share you own or follow.",
-      bn: "প্রতিটি কোম্পানির নিচে এক লাইনে প্রতিবেদনের মানে, সর্বশেষ 3 মাস বছরের নিজের গতিকে ছাড়িয়েছে কি না, আর সামনের প্রতিটি প্রতিবেদনে কী দেখাতে হবে। প্রতিটি শেয়ারে: শুধু শেষ প্রান্তিক, ব্যবসা থেকে আসা নগদ, গত 12 মাসের মুনাফার তুলনায় দাম, আর আমাদের স্কোর কতটা বদলেছে। আপনার কেনা বা অনুসরণ করা শেয়ারের ফল বের হলে সেদিনই ফোনে নোটিফিকেশনও পাবেন।",
-    },
-  },
-  {
-    job: "understand",
-    what: { en: "Score history", bn: "স্কোরের ইতিহাস" },
-    free: { en: "Today's score, and how many times the grade has changed.", bn: "আজকের স্কোর, আর গ্রেড কতবার বদলেছে।" },
-    premium: {
-      en: "The score on every trading day, each grade change with its reason, and a phone alert when the grade of a share you own or follow changes.",
-      bn: "প্রতিটি লেনদেনের দিনের স্কোর, প্রতিটি গ্রেড বদল ও তার কারণ, আর আপনার কেনা বা অনুসরণ করা শেয়ারের গ্রেড বদলালে ফোনে নোটিফিকেশন।",
-    },
-  },
-  {
-    job: "watch",
-    what: { en: "Portfolio check", bn: "পোর্টফোলিও যাচাই" },
-    free: {
-      en: "Your money, your shares and every money figure, your grade, and how many things the check found (\"we found 4 shares you can add\").",
-      bn: "আপনার টাকা, শেয়ার আর টাকার সব হিসাব, আপনার গ্রেড, আর যাচাইয়ে কতগুলো বিষয় পাওয়া গেল (\"যোগ করার মতো 4টি শেয়ার পেয়েছি\")।",
-    },
-    premium: {
-      en: "The full check: is your portfolio in good shape and why, which shares are marked Buy more or Sell, warning signs, every answer on your companies, your spread and the prices you paid, and your plan: what to do first, what lifts your grade, what to buy next and what to do with each share.",
-      bn: "পূর্ণ যাচাই: আপনার পোর্টফোলিও ভালো অবস্থায় আছে কি না আর কেন, কোন শেয়ারে আরও কেনা বা বিক্রির সংকেত, সতর্কসংকেত, আপনার কোম্পানি, টাকার বণ্টন আর কেনার দাম নিয়ে প্রতিটি উত্তর, আর আপনার পরিকল্পনা: প্রথমে কী করবেন, কীসে গ্রেড বাড়বে, এরপর কী কিনবেন আর প্রতিটি শেয়ার নিয়ে কী করবেন।",
-    },
-  },
-  {
-    job: "watch",
-    what: { en: "Daily check on your shares", bn: "আপনার শেয়ারের প্রতিদিনের যাচাই" },
-    free: {
-      en: "Every update on your shares, on your dashboard and watchlist: a record date coming, new results, a category change, a big fall, a fall to the yearly low. Up to 3 phone notifications a week.",
-      bn: "আপনার শেয়ারের প্রতিটি খবর, ড্যাশবোর্ড আর ওয়াচলিস্টে: রেকর্ড ডেট আসছে, নতুন ফল, ক্যাটাগরি বদল, বড় দরপতন, বছরের সর্বনিম্ন দামে নেমে আসা। সপ্তাহে সর্বোচ্চ 3টি ফোন নোটিফিকেশন।",
-    },
-    premium: {
-      en: "Every one sent to your phone the same day, with what it means for you.",
-      bn: "প্রতিটি একই দিনে ফোনে, আর আপনার জন্য এর মানে কী।",
-    },
-  },
-  {
-    job: "watch",
-    what: { en: "Your Desk", bn: "আপনার ডেস্ক" },
-    free: {
-      en: "Your Desk page: what happened on your shares after each close, and what you have set us to watch.",
-      bn: "আপনার ডেস্ক পেজ: প্রতিদিন বাজার বন্ধের পর আপনার শেয়ারে কী ঘটেছে, আর কী কী নজরে রাখতে বলেছেন।",
-    },
-    premium: {
-      en: "Every item sent to your phone the same day, and a short brief at 9 AM on the mornings something is about your shares.",
-      bn: "প্রতিটি বিষয় সেদিনই ফোনে নোটিফিকেশন হিসেবে, আর আপনার শেয়ারে কিছু থাকলে সকাল 9টায় একটি ছোট খবর।",
-    },
-  },
-  {
-    job: "watch",
-    what: { en: "Friday letter", bn: "শুক্রবারের চিঠি" },
-    free: {
-      en: "Every Friday: how your shares did this week and what we spotted on them.",
-      bn: "প্রতি শুক্রবার: এ সপ্তাহে আপনার শেয়ার কেমন গেল, আর সেগুলোতে আমরা কী পেয়েছি।",
-    },
-    premium: {
-      en: "The whole letter: also the market in five lines, new names on our research lists, and next week's dates on your shares.",
-      bn: "পুরো চিঠি: সঙ্গে পাঁচ লাইনে বাজার, গবেষণা তালিকায় নতুন নাম, আর আগামী সপ্তাহে আপনার শেয়ারের তারিখ।",
-    },
-  },
-  {
-    job: "watch",
-    what: { en: "Portfolio history", bn: "পোর্টফোলিওর ইতিহাস" },
-    free: {
-      en: "Your portfolio's value over time beside DSEX, and the money made from sales and dividends, before and after fees and tax.",
-      bn: "সময়ের সঙ্গে আপনার পোর্টফোলিওর মূল্য, DSEX-এর পাশে, আর বিক্রি ও ডিভিডেন্ড থেকে আয়, খরচ ও করের আগে ও পরে।",
-    },
-    premium: { en: "The same, plus a yearly statement (see below).", bn: "একই, সঙ্গে বার্ষিক হিসাব (নিচে দেখুন)।" },
-  },
-  {
-    job: "watch",
-    what: { en: "What-if check", bn: "\"যদি এমন করি\" যাচাই" },
-    free: { en: "—", bn: "—" },
-    premium: {
-      en: "Try a sale or a buy and see your portfolio grade before you act.",
-      bn: "কেনা বা বেচার আগে দেখে নিন পোর্টফোলিওর গ্রেড কী হবে।",
-    },
-  },
-  {
-    job: "watch",
-    what: { en: "Yearly statement", bn: "বার্ষিক হিসাব" },
-    free: { en: "—", bn: "—" },
-    premium: {
-      en: "Every buy, sale, cash dividend and bonus share in the year, ready to print or download.",
-      bn: "বছরের প্রতিটি কেনা, বেচা, নগদ ডিভিডেন্ড আর বোনাস শেয়ার, প্রিন্ট বা ডাউনলোডের জন্য তৈরি।",
-    },
-  },
-  {
-    job: "watch",
-    what: { en: "Portfolios", bn: "পোর্টফোলিও" },
-    free: { en: "One, with every share you own in it.", bn: "একটি, তাতে আপনার সব শেয়ার।" },
-    premium: {
-      en: "Up to six portfolios, so you can keep a parent's or spouse's BO account apart from yours.",
-      bn: "ছয়টি পর্যন্ত পোর্টফোলিও, যাতে মা-বাবা বা স্বামী/স্ত্রীর বিও অ্যাকাউন্ট আপনার থেকে আলাদা রাখতে পারেন।",
-    },
-  },
-  {
-    job: "find",
-    what: { en: "Picked for you", bn: "আপনার জন্য বাছাই" },
-    free: {
-      en: "How many companies we analysed, how many passed every check and how many we chose for you.",
-      bn: "কতগুলো কোম্পানি আমরা বিশ্লেষণ করেছি, কতগুলো সব যাচাই পার হয়েছে, আর আপনার জন্য কতগুলো বেছে নিয়েছি।",
-    },
-    premium: {
-      en: "Your 10 to 15 picks for the day, in order: why each one suits your own shares, the numbers that matter, one honest risk, and new picks marked after every close.",
-      bn: "দিনের 10 থেকে 15টি বাছাই, ক্রম অনুযায়ী: প্রতিটি কেন আপনার নিজের শেয়ারের সাথে মানানসই, জরুরি সংখ্যাগুলো, একটি খোলামেলা ঝুঁকি, আর প্রতিদিন বাজার বন্ধের পর নতুনগুলো চিহ্নিত।",
-    },
-  },
-  {
-    job: "find",
-    what: { en: "Research lists", bn: "গবেষণা তালিকা" },
-    free: {
-      en: "What each of the six lists looks for, how many companies pass its checks, and the top 3 on each.",
-      bn: "ছয়টি তালিকার প্রতিটি কী খোঁজে, কতগুলো কোম্পানি তার যাচাইয়ে পাস করে, আর প্রতিটির শীর্ষ 3টি।",
-    },
-    premium: {
-      en: "Every other share on all six lists: a research card with its fair price range and main risk, all of them side by side, and who joined or left this month.",
-      bn: "ছয়টি তালিকার বাকি প্রতিটি শেয়ার: ন্যায্য দামের সীমা আর মূল ঝুঁকিসহ গবেষণা কার্ড, সবগুলো পাশাপাশি, আর এই মাসে কে যোগ হলো বা বাদ পড়ল।",
-    },
-  },
-  {
-    job: "find",
-    what: { en: "Stock screener", bn: "স্টক স্ক্রিনার" },
-    free: {
-      en: "Every filter on public figures (price, P/E, P/B, dividend, profit, size, trading, loans, sector, category), the ready-made screens, every share that matches and every order.",
-      bn: "সাধারণ তথ্যের সব ফিল্টার (দাম, পিই, পিবি, ডিভিডেন্ড, মুনাফা, আকার, লেনদেন, ঋণ, সেক্টর, ক্যাটাগরি), তৈরি স্ক্রিন, মিলে যাওয়া প্রতিটি শেয়ার আর যেকোনো ক্রম।",
-    },
-    premium: {
-      en: "Our own view as filters: our grade of the company, our check of the price and serious warnings, with the shares that pass them. Save up to 5 screens that are checked after every close, with a phone alert when a new share matches.",
-      bn: "ফিল্টার হিসেবে আমাদের মত: কোম্পানির ওপর আমাদের গ্রেড, দামের যাচাই আর গুরুতর সতর্কতা, আর সেগুলোতে মেলা শেয়ার। 5টি পর্যন্ত স্ক্রিন সেভ করুন, যা প্রতিদিন বাজার বন্ধের পর যাচাই হয়। নতুন শেয়ার মিললে ফোনে নোটিফিকেশন পাবেন।",
-    },
-  },
-  {
-    job: "understand",
-    what: { en: "Dividend calendar", bn: "ডিভিডেন্ড ক্যালেন্ডার" },
-    free: {
-      en: "Every list in full: record dates, AGMs, the biggest cash dividends, the newest announcements, and who hasn't declared yet with last year's dividend.",
-      bn: "প্রতিটি তালিকা পুরোটা: রেকর্ড ডেট, এজিএম, সবচেয়ে বড় নগদ ডিভিডেন্ড, নতুন ঘোষণা, আর কারা এখনো ঘোষণা করেনি, গত বছরের ডিভিডেন্ডসহ।",
-    },
-    premium: {
-      en: "Is each dividend safe, and is it worth buying for it (how far the price fell after past record dates, what you keep after tax). When we expect the next dividends and how much. Your dividend income by month. A reminder on the last day to buy any share you pick.",
-      bn: "প্রতিটি ডিভিডেন্ড কতটা নিরাপদ, আর এর জন্য কেনা লাভজনক কিনা (আগের রেকর্ড ডেটের পর দাম কতটা কমেছে, কর কাটার পর কত থাকে)। পরের ডিভিডেন্ড কবে আর কত আসতে পারে। মাস অনুযায়ী আপনার ডিভিডেন্ড আয়। আপনার বেছে নেওয়া যেকোনো শেয়ার কেনার শেষ দিনে রিমাইন্ডার।",
-    },
-  },
-  {
-    job: "understand",
-    what: { en: "Market analysis", bn: "বাজার বিশ্লেষণ" },
-    free: {
-      en: "The mood, the four answers, sectors, history, every list and the top 3 of each research list, and which shares are running with no news or close to Z.",
-      bn: "বাজারের মেজাজ, চারটি উত্তর, সেক্টর, ইতিহাস, সব তালিকা ও প্রতিটি গবেষণা তালিকার শীর্ষ 3টি, আর কোন শেয়ার খবর ছাড়াই বাড়ছে বা Z-এর কাছাকাছি।",
-    },
-    premium: {
-      en: "Why each share running with no news is a worry, and what puts each company close to Z.",
-      bn: "খবর ছাড়া বাড়তে থাকা প্রতিটি শেয়ার কেন চিন্তার, আর প্রতিটি কোম্পানি কেন Z-এর কাছাকাছি।",
-    },
-  },
-  {
-    job: "understand",
-    what: { en: "Sectors", bn: "সেক্টর" },
-    free: {
-      en: "Every company in the sector, its figures against the market, and the day's and week's movers.",
-      bn: "সেক্টরের সব কোম্পানি, বাজারের সঙ্গে তুলনা, আর দিনের ও সপ্তাহের ওঠানামা।",
-    },
-    premium: {
-      en: "Our read: is the sector cheap, is profit rising, is money moving in, and the best value in it today.",
-      bn: "আমাদের মূল্যায়ন: সেক্টরটি সস্তা কি না, মুনাফা বাড়ছে কি না, টাকা ঢুকছে কি না, আর আজ সবচেয়ে ভালো দামে কোনটি।",
-    },
-  },
-  {
-    job: "watch",
-    what: { en: "Watchlist", bn: "ওয়াচলিস্ট" },
-    free: {
-      en: "The whole page for up to 5 shares: prices, grades, results, dividends, grade changes, your alerts, the dates ahead and the news.",
-      bn: "5টি পর্যন্ত শেয়ারের জন্য পুরো পেজ: দাম, গ্রেড, আর্থিক ফল, ডিভিডেন্ড, গ্রেড বদল, আপনার অ্যালার্ট, সামনের তারিখ আর খবর।",
-    },
-    premium: {
-      en: "The same page for as many shares as you want.",
-      bn: "একই পেজ, যত খুশি শেয়ারের জন্য।",
-    },
-  },
-  {
-    job: "watch",
-    what: { en: "Price alerts", bn: "প্রাইস অ্যালার্ট" },
-    free: { en: "3 at a time.", bn: "একসঙ্গে 3টি।" },
-    premium: { en: "No limit.", bn: "কোনো সীমা নেই।" },
-  },
-  {
-    job: "understand",
-    what: { en: "TopStock AI", bn: "TopStock AI" },
-    free: { en: "10 questions a day.", bn: "দিনে 10টি প্রশ্ন।" },
-    premium: { en: "No limit.", bn: "কোনো সীমা নেই।" },
-  },
-];
-
 export const FAQS: { q: Bi; a: Bi }[] = [
+  {
+    q: { en: "What do I get with Premium?", bn: "প্রিমিয়ামে কী পাব?" },
+    a: {
+      en: "Five things. The full report on every DSE share, with our answer on whether to buy it and why. A full check of your portfolio with a plan. News on your shares sent to your phone the same day, a 9 AM brief and the whole Friday letter. Full lists of shares worth a look, picked for you. And no limits on your watchlist, price alerts, TopStock AI or portfolios.",
+      bn: "পাঁচটি জিনিস। ডিএসইর প্রতিটি শেয়ারের পূর্ণ রিপোর্ট, কেনা যায় কি না আর কেন, তা নিয়ে আমাদের উত্তরসহ। পরিকল্পনাসহ আপনার পোর্টফোলিওর পূর্ণ যাচাই। আপনার শেয়ারের খবর সেদিনই ফোনে, সকাল 9টার খবর আর পুরো শুক্রবারের চিঠি। আপনার জন্য বাছাই করা, দেখার মতো শেয়ারের পুরো তালিকা। আর ওয়াচলিস্ট, প্রাইস অ্যালার্ট, TopStock AI ও পোর্টফোলিওতে কোনো সীমা নেই।",
+    },
+  },
   {
     q: { en: "How much does Premium cost?", bn: "প্রিমিয়ামের দাম কত?" },
     a: {
@@ -396,8 +542,8 @@ export const FAQS: { q: Bi; a: Bi }[] = [
   {
     q: { en: "Can I see it before I pay?", bn: "পেমেন্টের আগে কি দেখে নিতে পারি?" },
     a: {
-      en: "Yes. Every day, one well-known company's share page is fully open for everyone, with the fair price, every check and all the reasons. Look for \"Today's free full report\" on the homepage.",
-      bn: "হ্যাঁ। প্রতিদিন একটি পরিচিত কোম্পানির শেয়ারের পেজ সবার জন্য পুরো খোলা থাকে, ন্যায্য দাম, প্রতিটি যাচাই আর সব কারণসহ। হোমপেজে \"আজকের ফ্রি পূর্ণ রিপোর্ট\" দেখুন।",
+      en: "Yes, in three ways. Every day one well-known company's full report is open for everyone: look for \"Today's free full report\" on the homepage. A free account opens 3 full reports a month on shares you choose. And our two sample portfolios show the whole portfolio check, free.",
+      bn: "হ্যাঁ, তিনভাবে। প্রতিদিন একটি পরিচিত কোম্পানির পূর্ণ রিপোর্ট সবার জন্য খোলা থাকে: হোমপেজে \"আজকের ফ্রি পূর্ণ রিপোর্ট\" দেখুন। ফ্রি অ্যাকাউন্টে আপনার বাছাই করা শেয়ারে মাসে 3টি পূর্ণ রিপোর্ট খোলা যায়। আর আমাদের দুটি নমুনা পোর্টফোলিওতে পুরো পোর্টফোলিও যাচাই ফ্রিতে দেখা যায়।",
     },
   },
   {
@@ -417,8 +563,8 @@ export const FAQS: { q: Bi; a: Bi }[] = [
   {
     q: { en: "What stays free?", bn: "কী কী ফ্রি থাকবে?" },
     a: {
-      en: "Prices, charts, financials, dividends, news, the score and grade of every share, the rankings, the dividend calendar, results, the market pages and every update on your own shares. Premium adds the reasons, the full picked lists, and brings it all to you before you think to ask.",
-      bn: "দাম, চার্ট, আর্থিক হিসাব, ডিভিডেন্ড, খবর, প্রতিটি শেয়ারের স্কোর ও গ্রেড, র‍্যাঙ্কিং, ডিভিডেন্ড ক্যালেন্ডার, আর্থিক ফল, বাজারের পেজগুলো আর আপনার শেয়ারের প্রতিটি খবর। প্রিমিয়াম এর ওপর কারণ, বাছাই করা পুরো তালিকা যোগ করে, আর জিজ্ঞেস করার আগেই সব আপনার কাছে পৌঁছে দেয়।",
+      en: "The price, chart, figures and news of every share, the company ranking, the dividend calendar, results, the market pages, your portfolio's money and grade, and every update on your own shares. Premium adds our answers and the reasons, the full lists, and brings the news on your shares to you the same day.",
+      bn: "প্রতিটি শেয়ারের দাম, চার্ট, হিসাব আর খবর, কোম্পানির র‍্যাঙ্কিং, ডিভিডেন্ড ক্যালেন্ডার, আর্থিক ফল, বাজারের পেজগুলো, আপনার পোর্টফোলিওর টাকা আর গ্রেড, আর আপনার শেয়ারের প্রতিটি খবর। প্রিমিয়াম এর ওপর আমাদের উত্তর আর কারণ, পুরো তালিকা যোগ করে, আর আপনার শেয়ারের খবর সেদিনই আপনার কাছে পৌঁছে দেয়।",
     },
   },
   {
