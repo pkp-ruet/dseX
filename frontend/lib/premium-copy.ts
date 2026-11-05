@@ -25,8 +25,8 @@ export const HERO = {
     bn: "প্রতিটি শেয়ার আর আপনার পোর্টফোলিও নিয়ে আমাদের উত্তর",
   },
   lead: {
-    en: "Prices and figures are free for everyone. Premium reads them for you: should you buy a share, is your portfolio in good shape, and what changed on your shares today. Always with the reason, in plain words.",
-    bn: "দাম আর সব হিসাব সবার জন্য ফ্রি। প্রিমিয়াম সেগুলো আপনার হয়ে পড়ে দেয়: শেয়ারটি কেনা যায় কি না, আপনার পোর্টফোলিও ঠিক আছে কি না, আর আজ আপনার শেয়ারে কী বদলাল। সব সময় কারণসহ, সহজ ভাষায়।",
+    en: "Prices and figures are free for everyone. Premium reads them for you: how strong a company really is and why, whether your portfolio is in good shape, and what changed on your shares today. Always with the reason, in plain words.",
+    bn: "দাম আর সব হিসাব সবার জন্য ফ্রি। প্রিমিয়াম সেগুলো আপনার হয়ে পড়ে দেয়: কোম্পানিটি আসলে কতটা শক্তিশালী আর কেন, আপনার পোর্টফোলিও ঠিক আছে কি না, আর আজ আপনার শেয়ারে কী বদলাল। সব সময় কারণসহ, সহজ ভাষায়।",
   },
   from: { en: "From", bn: "মাত্র" },
   perMonth: { en: "a month on the yearly plan", bn: "মাসে, বছরের প্ল্যানে" },
@@ -64,25 +64,25 @@ export const GROUPS: Group[] = [
   {
     key: "share",
     job: "understand",
-    name: { en: "The full report on any share", bn: "যেকোনো শেয়ারের পূর্ণ রিপোর্ট" },
-    question: { en: "Should you buy it, and why?", bn: "শেয়ারটি কেনা যায় কি না, আর কেন?" },
+    name: { en: "Our analysis of any share", bn: "যেকোনো শেয়ারের পূর্ণ বিশ্লেষণ" },
+    question: { en: "How strong is the company, and why?", bn: "কোম্পানিটি কতটা শক্তিশালী, আর কেন?" },
     lead: {
-      en: "On every DSE share, we read the company's results, notices and price for you, and answer in plain words.",
-      bn: "ডিএসইর প্রতিটি শেয়ারে কোম্পানির আর্থিক ফল, নোটিশ আর দাম আমরা আপনার হয়ে পড়ি, তারপর সহজ ভাষায় উত্তর দিই।",
+      en: "On every DSE share, we read five years of its accounts, this year's results, its notices and its price, and explain them in plain words.",
+      bn: "ডিএসইর প্রতিটি শেয়ারে কোম্পানির পাঁচ বছরের হিসাব, এ বছরের ফল, নোটিশ আর দাম আমরা আপনার হয়ে পড়ি, তারপর সহজ ভাষায় বুঝিয়ে বলি।",
     },
     items: [
       {
-        name: { en: "Our answer for today", bn: "আজকের জন্য আমাদের উত্তর" },
+        name: { en: "Our grade, explained", bn: "আমাদের গ্রেড, ব্যাখ্যাসহ" },
         line: {
-          en: "Buy, Not yet or Avoid, and the three things it rests on: the company, the price and anything wrong.",
-          bn: "কেনা যায়, এখন নয়, নাকি এড়িয়ে চলুন, আর যে তিনটি জিনিস দেখে এই উত্তর: কোম্পানি, দাম আর কোনো সমস্যা।",
+          en: "From strong all round to mostly weak, and the four things it rests on: profit, finances, business and dividend.",
+          bn: "সব দিকে শক্তিশালী থেকে বেশিরভাগ দিকে দুর্বল, আর যে চারটি জিনিস দেখে এই গ্রেড: মুনাফা, আর্থিক অবস্থা, ব্যবসা আর ডিভিডেন্ড।",
         },
       },
       {
-        name: { en: "Four plain questions, answered", bn: "চারটি সহজ প্রশ্নের উত্তর" },
+        name: { en: "Six parts, every figure shown", bn: "ছয়টি অংশ, সব সংখ্যা চোখের সামনে" },
         line: {
-          en: "Is it a good company? Is the price right? Could anything go wrong? What's next?",
-          bn: "কোম্পানিটি কি ভালো? দাম কি ন্যায্য? কোনো সমস্যা হতে পারে কি? এরপর কী?",
+          en: "Profit, finances, business, dividend, price and safety: each with its numbers, a picture and what they mean.",
+          bn: "মুনাফা, আর্থিক অবস্থা, ব্যবসা, ডিভিডেন্ড, দাম আর নিরাপত্তা: প্রতিটির সংখ্যা, ছবি আর তার মানে।",
         },
       },
       {
@@ -100,10 +100,10 @@ export const GROUPS: Group[] = [
         },
       },
       {
-        name: { en: "Our view", bn: "আমাদের মত" },
+        name: { en: "Our conclusion", bn: "আমাদের সিদ্ধান্ত" },
         line: {
-          en: "The case for and against, what would change our answer, and our written analysis where we have one.",
-          bn: "পক্ষে আর বিপক্ষের যুক্তি, কী হলে আমাদের উত্তর বদলাবে, আর যেখানে আছে, আমাদের লেখা বিশ্লেষণ।",
+          en: "Whether to buy it today, the case for and against, and what would change our answer.",
+          bn: "আজ কেনা যায় কি না, পক্ষে আর বিপক্ষের যুক্তি, আর কী হলে আমাদের উত্তর বদলাবে।",
         },
       },
       {
@@ -116,12 +116,12 @@ export const GROUPS: Group[] = [
     ],
     example: {
       label: { en: "On a share page", bn: "শেয়ারের পেজে" },
-      title: { en: "Should you buy it today?", bn: "আজ কি কেনা যায়?" },
-      word: { en: "Not yet", bn: "এখন নয়" },
-      tone: "watch",
+      title: { en: "Profit · Is it making more money?", bn: "মুনাফা · মুনাফা কি বাড়ছে?" },
+      word: { en: "Weak", bn: "দুর্বল" },
+      tone: "bad",
       line: {
-        en: "A mostly strong company, but the price is near its highest this year. Our buy price: under ৳225.",
-        bn: "বেশিরভাগ দিকে শক্তিশালী কোম্পানি, তবে দাম এ বছরের সর্বোচ্চের কাছে। আমাদের কেনার দাম: ৳225-এর নিচে।",
+        en: "Profit has fallen since 2022. This year so far it is up 28%, so it may be recovering.",
+        bn: "2022 সালের পর থেকে মুনাফা কমেছে। এ বছর এখন পর্যন্ত তা 28% বেড়েছে, তাই হয়তো ঘুরে দাঁড়াচ্ছে।",
       },
     },
     free: {
@@ -507,8 +507,8 @@ export const FAQS: { q: Bi; a: Bi }[] = [
   {
     q: { en: "What do I get with Premium?", bn: "প্রিমিয়ামে কী পাব?" },
     a: {
-      en: "Five things. The full report on every DSE share, with our answer on whether to buy it and why. A full check of your portfolio with a plan. News on your shares sent to your phone the same day, a 9 AM brief and the whole Friday letter. Full lists of shares worth a look, picked for you. And no limits on your watchlist, price alerts, TopStock AI or portfolios.",
-      bn: "পাঁচটি জিনিস। ডিএসইর প্রতিটি শেয়ারের পূর্ণ রিপোর্ট, কেনা যায় কি না আর কেন, তা নিয়ে আমাদের উত্তরসহ। পরিকল্পনাসহ আপনার পোর্টফোলিওর পূর্ণ যাচাই। আপনার শেয়ারের খবর সেদিনই ফোনে, সকাল 9টার খবর আর পুরো শুক্রবারের চিঠি। আপনার জন্য বাছাই করা, দেখার মতো শেয়ারের পুরো তালিকা। আর ওয়াচলিস্ট, প্রাইস অ্যালার্ট, TopStock AI ও পোর্টফোলিওতে কোনো সীমা নেই।",
+      en: "Five things. Our full analysis of every DSE share: how strong the company is, why, and whether to buy it today. A full check of your portfolio with a plan. News on your shares sent to your phone the same day, a 9 AM brief and the whole Friday letter. Full lists of shares worth a look, picked for you. And no limits on your watchlist, price alerts, TopStock AI or portfolios.",
+      bn: "পাঁচটি জিনিস। ডিএসইর প্রতিটি শেয়ারের পূর্ণ বিশ্লেষণ: কোম্পানিটি কতটা শক্তিশালী, কেন, আর আজ কেনা যায় কি না। পরিকল্পনাসহ আপনার পোর্টফোলিওর পূর্ণ যাচাই। আপনার শেয়ারের খবর সেদিনই ফোনে, সকাল 9টার খবর আর পুরো শুক্রবারের চিঠি। আপনার জন্য বাছাই করা, দেখার মতো শেয়ারের পুরো তালিকা। আর ওয়াচলিস্ট, প্রাইস অ্যালার্ট, TopStock AI ও পোর্টফোলিওতে কোনো সীমা নেই।",
     },
   },
   {

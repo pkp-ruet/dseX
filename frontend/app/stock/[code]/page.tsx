@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
-  ApiNotFoundError, getCompanyDetail, getInsightScores, getStockLists, getDividendHistory, getDeepAnalysis,
-  type DividendDeclarationRecord, type DeepAnalysisResponse,
+  ApiNotFoundError, getCompanyDetail, getInsightScores, getStockLists, getDividendHistory,
+  type DividendDeclarationRecord,
 } from "@/lib/api";
 import { getTier, TIER_LABELS } from "@/lib/constants";
 import { computeFeaturedIn } from "@/lib/featured-lists";
@@ -21,15 +21,13 @@ import NewsSection from "@/components/stock/NewsSection";
 import StickySummaryBar from "@/components/stock/StickySummaryBar";
 import { type NavSection } from "@/components/stock/StockSectionNav";
 import StockVisitTracker from "@/components/analytics/StockVisitTracker";
-import DeepAnalysisReport from "@/components/stock/DeepAnalysisReport";
 import StockLockScope from "@/components/premium/LockScope";
-import AnswerCard from "@/components/stock/report/AnswerCard";
 import ReportGate from "@/components/stock/report/ReportGate";
 import PremiumPromo from "@/components/stock/report/PremiumPromo";
 import RallyBanner from "@/components/stock/report/RallyBanner";
-import StockReportBody, { reportChapters } from "@/components/stock/report/StockReportBody";
-import { VIEW_CHAPTER } from "@/lib/stock-report";
-import { buildStockPromo } from "@/lib/stock-promo";
+import AnalysisSummary from "@/components/stock/analysis/AnalysisSummary";
+import AnalysisBody from "@/components/stock/analysis/AnalysisBody";
+import { ANALYSIS_ID, CONCLUSION_ID, PART_ID } from "@/lib/stock-report";
 import { StoryTable } from "@/components/stock/report/sections";
 import DataRoom, { type RoomPanel } from "@/components/stock/report/DataRoom";
 import LatestResults from "@/components/stock/report/LatestResults";
@@ -129,9 +127,6 @@ export default async function StockDetailPage({ params }: PageProps) {
   const sideFetches = Promise.all([
     getStockLists().catch(() => null),
     getDividendHistory(code.toUpperCase()).catch(() => [] as DividendDeclarationRecord[]),
-    // The written analyst note folds into the report (2026-10-28); most codes
-    // have none, and the 404 just means "no note".
-    getDeepAnalysis(code.toUpperCase()).catch(() => null as DeepAnalysisResponse | null),
   ]);
   let detail: Awaited<ReturnType<typeof getCompanyDetail>>;
   try {
@@ -153,12 +148,10 @@ export default async function StockDetailPage({ params }: PageProps) {
   // ledger. Both sources are cached and each is best-effort.
   let featuredIn: ReturnType<typeof computeFeaturedIn> = [];
   let dividendRows: DividendDeclarationRecord[] = [];
-  let deep: DeepAnalysisResponse | null = null;
   try {
-    const [stockLists, ledger, analysis] = await sideFetches;
+    const [stockLists, ledger] = await sideFetches;
     featuredIn = computeFeaturedIn(profile.trading_code, stockLists);
     dividendRows = Array.isArray(ledger) ? ledger : [];
-    deep = analysis;
   } catch {
     featuredIn = [];
     dividendRows = [];
@@ -280,24 +273,25 @@ export default async function StockDetailPage({ params }: PageProps) {
   // reader gets the price, the one Premium card and the data room. Without a
   // report (it failed to build — every company had one on 2026-10-29) the
   // page is the cover and the data room.
-  const chapters = report ? reportChapters(report) : [];
+  // 2026-11-05: the report is our analysis (summary, six parts, dates, our
+  // conclusion). Without one (an ungraded share, or the report failed to
+  // build) the page is the cover, the chart and the data room.
+  const analysis = report?.analysis ?? null;
   const openSections: NavSection[] = [
-    { id: "ch-overview", label: report?.answer ? "Answer" : "Overview", labelBn: report?.answer ? "উত্তর" : "এক নজরে" },
-    ...chapters.map((c) => ({ id: c.id, label: c.chip.en, labelBn: c.chip.bn })),
-    ...(report?.view ? [{ id: VIEW_CHAPTER.id, label: VIEW_CHAPTER.chip.en, labelBn: VIEW_CHAPTER.chip.bn }] : []),
+    { id: "ch-overview", label: "Overview", labelBn: "এক নজরে" },
+    ...(analysis
+      ? [
+          { id: ANALYSIS_ID, label: "Our analysis", labelBn: "বিশ্লেষণ" },
+          ...analysis.parts.map((p) => ({ id: PART_ID(p.key), label: p.name.en, labelBn: p.name.bn })),
+          ...(report?.answer ? [{ id: CONCLUSION_ID, label: "Conclusion", labelBn: "সিদ্ধান্ত" }] : []),
+        ]
+      : []),
     { id: "ch-data", label: "Data", labelBn: "তথ্য" },
   ];
   const sections: NavSection[] = [
-    { id: "ch-overview", label: "Price", labelBn: "দাম" },
-    ...(report ? [{ id: "ch-premium", label: "Premium", labelBn: "প্রিমিয়াম" }] : []),
+    { id: "ch-overview", label: "Overview", labelBn: "এক নজরে" },
+    ...(analysis ? [{ id: "ch-premium", label: "Premium", labelBn: "প্রিমিয়াম" }] : []),
     { id: "ch-data", label: "Data", labelBn: "তথ্য" },
-  ];
-  // What the Premium card lists: the parts this share's report fills.
-  const promoHas = [
-    ...(report?.answer ? ["answer"] : []),
-    ...chapters.map((c) => c.id),
-    ...(report?.view ? [VIEW_CHAPTER.id] : []),
-    ...(deep ? ["note"] : []),
   ];
 
   // Current stock as the highlighted first row of the peer comparison.
@@ -394,21 +388,6 @@ export default async function StockDetailPage({ params }: PageProps) {
           ),
         }]
       : []),
-    // The written analyst note (where one exists): a tab of the data room
-    // since the 2026-10-30 rebuild — the four chapters carry the answers.
-    ...(deep
-      ? [{
-          key: "note",
-          label: { en: "Written analysis", bn: "লেখা বিশ্লেষণ" },
-          anchors: ["note"],
-          premium: true,
-          body: (
-            <div id="note" className="stock-anchor">
-              <DeepAnalysisReport report={deep.report} writtenBefore={deep.written_before_results ?? null} />
-            </div>
-          ),
-        }]
-      : []),
     {
       key: "news",
       label: { en: "News", bn: "খবর" },
@@ -446,21 +425,24 @@ export default async function StockDetailPage({ params }: PageProps) {
 
       {/* The free report of the day and a report key open the whole report. */}
       <StockLockScope code={profile.trading_code} anchor="ch-premium">
-      {/* Cover: name and price (free). For a reader with the full report,
-          THE answer — should you buy it today? — follows, then the chart. */}
+      {/* The cover (free): name, price, our grade, quick facts. Then OUR
+          ANALYSIS in one card for a reader with the report, or the one
+          Premium card for a reader without it (2026-11-05: above the chart). */}
       <HeroSection detail={detail} />
-      {report && (report.warning || report.answer) && (
-        <ReportGate>
-          {report.warning && <RallyBanner w={report.warning} />}
-          {report.answer && (
-            <AnswerCard
-              answer={report.answer}
+      {report && analysis && (
+        <ReportGate
+          promo={
+            <PremiumPromo
               code={profile.trading_code}
+              name={name}
+              analysis={analysis}
+              redFlags={report.sections.red_flags?.counts ?? null}
               ltp={num(detail.latest_price.ltp)}
-              w52High={detail.latest_price.w52_high}
-              w52Low={detail.latest_price.w52_low}
             />
-          )}
+          }
+        >
+          {report.warning && <RallyBanner w={report.warning} />}
+          <AnalysisSummary analysis={analysis} answer={report.answer ?? null} updated={report.updated} name={name} />
         </ReportGate>
       )}
       <PriceChart code={profile.trading_code} events={report?.events} />
@@ -476,11 +458,12 @@ export default async function StockDetailPage({ params }: PageProps) {
         openSections={openSections}
       />
 
-      {/* The report: four chapters of plain questions, Our view, then a short
-          close. A free reader gets the one Premium card here instead. */}
-      {report && (
-        <ReportGate promo={<PremiumPromo code={profile.trading_code} name={name} has={promoHas} lead={buildStockPromo(report)} ltp={num(detail.latest_price.ltp)} />}>
-          <StockReportBody detail={detail} report={report} />
+      {/* The analysis: six parts, the dates, our conclusion, a short close.
+          Hidden from a reader without the report (the Premium card above
+          stands in for it). */}
+      {report && analysis && (
+        <ReportGate>
+          <AnalysisBody detail={detail} report={report} analysis={analysis} />
         </ReportGate>
       )}
 

@@ -205,11 +205,6 @@ export default function ResearchCard({ s, masked = false }: { s: ResearchStock; 
         <Link prefetch={false} href={`/stock/${s.code}`} className="btn-link">
           <T en="Share page" bn="শেয়ারের পেজ" /> <IconArrowRight size={14} />
         </Link>
-        {s.has_report && (
-          <Link prefetch={false} href={`/stock/${s.code}#note`} className="btn-link">
-            <T en="In-depth report" bn="বিস্তারিত বিশ্লেষণ" /> <IconArrowRight size={14} />
-          </Link>
-        )}
       </footer>
       )}
     </article>

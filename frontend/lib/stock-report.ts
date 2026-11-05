@@ -437,10 +437,97 @@ export interface ReportView {
 /** The chapter ids a written read can belong to. */
 export type ReadChapter = "ch-company" | "ch-price" | "ch-risks" | "ch-next";
 
+// ---------------------------------------------------------------- the analysis (2026-11-05)
+
+/** The six parts of our analysis, in page order (backend `stock_analysis.PART_ORDER`). */
+export type PartKey = "profit" | "finances" | "business" | "dividend" | "price" | "safety";
+
+/** One line of a part's list: ✓ good · ! fair · ✕ bad · i info. */
+export interface AnalysisLine {
+  tone: Tone | "info";
+  text: Bi;
+}
+
+/**
+ * One part of the analysis (backend `services/stock_analysis.py`), ONE shape
+ * for all six: its word (for profit, finances, business and dividend the
+ * grade's own check word, so a part never disagrees with the grade), one
+ * answer, up to three numbers shown in the open, a short ✓ / ! / ✕ list, an
+ * optional watch line, dated callout or note, and its source. The picture is
+ * drawn from `series` / `bars` / `ranks` here or from the report's sections.
+ */
+export interface AnalysisPart {
+  key: PartKey;
+  name: Bi;
+  question: Bi;
+  word: Bi;
+  tone: Tone;
+  /** False when the check had no figures (insurers' business strength). */
+  measured: boolean;
+  /** Two to five words for the summary's tile. */
+  tile: Bi;
+  answer: Bi;
+  stats: { value: Bi; label: Bi }[];
+  checks: AnalysisLine[];
+  watch: Bi | null;
+  callout: Bi | null;
+  note: Bi | null;
+  source: Bi | null;
+  /** Profit (৳ crore, or ৳ a share when `unit` is "share") or cash dividend
+   *  (৳ a share) by year, oldest first. */
+  series?: { year: number; value: number }[];
+  /** The profit series' unit: "crore" from the accounts, "share" from DSE's table. */
+  unit?: "crore" | "share";
+  /** Finances: loans against savings, ৳ crore. */
+  bars?: { label: Bi; value: number; text: Bi; tone: Tone }[] | null;
+  /** Business: its place in its sector. */
+  ranks?: { label: Bi; rank: number; of: number; value: Bi }[] | null;
+  sector?: string | null;
+  peers?: number | null;
+}
+
+export interface StockAnalysis {
+  grade: {
+    word: Bi;
+    tone: Tone;
+    score: number | null;
+    rank: number | null;
+    total: number | null;
+    /** "One of the 10 strongest companies on the DSE". */
+    line: Bi | null;
+    /** "Strong: profit, finances · Weak: price". */
+    checks: Bi | null;
+  };
+  /** Three or four short sentences that sum the company up. */
+  summary: Bi | null;
+  parts: AnalysisPart[];
+}
+
+/** The analysis's anchors (and the old ones that land there — pushes, the
+ *  results feed, stories and old bookmarks link to them). */
+export const ANALYSIS_ID = "ch-analysis";
+export const CONCLUSION_ID = "ch-conclusion";
+export const DATES_ID = "an-dates";
+export const PART_ID = (k: PartKey) => `an-${k}`;
+export const PART_ALIASES: Record<PartKey, string[]> = {
+  profit: ["results", "rp-this_year", "rp-story", "rp-cash", "rp-core"],
+  finances: ["rp-safety"],
+  business: ["rp-quality", "rp-sector"],
+  dividend: ["rp-dividend", "rp-shares"],
+  price: ["ch-price", "rp-price", "v-price", "v-fair"],
+  safety: ["ch-risks", "rp-red_flags", "red-flags", "signals", "rp-owners", "rp-liquidity", "rp-risks"],
+};
+export const ANALYSIS_ALIASES = ["ch-company", "ch-report", "ch-verdict", "health", "score-history"];
+export const DATES_ALIASES = ["ch-next", "rp-next"];
+export const CONCLUSION_ALIASES = ["ch-answer", "ch-view", "rp-alternatives", "rp-you", "rp-fit"];
+
 export interface StockReport {
   version: 1;
   /** The answer card. Older backends send none; the page then skips the card. */
   answer?: StockAnswer;
+  /** Our analysis (2026-11-05): the grade, a few sentences, six parts. The
+   *  page's report is built from it; older backends send none. */
+  analysis?: StockAnalysis | null;
   /** One written read per chapter: its answers put together, 2–3 plain
    *  sentences (Premium). */
   reads?: Partial<Record<ReadChapter, Bi>>;
@@ -484,97 +571,6 @@ export const SECTION_ORDER: SectionKey[] = [
   "owners", "liquidity", "cash", "core", "safety", "quality", "story", "sector", "risks", "alternatives",
 ];
 
-/** A question row on the page. Most rows are one backend section; a few
- *  are built on the page from a section's public figures (`shares`, from the
- *  dividend history) or are the reader's own (`you`). */
-/** `you` and `fit` (2026-11-04) show only for a signed-in reader, built in the browser. */
+/** A question row's key (the reader's own rows: `you`, `fit`). */
 export type QuestionKey = SectionKey | "shares" | "you" | "fit";
 
-export interface ReportChapter {
-  id: string;
-  /** The chapter's question (h2). */
-  title: Bi;
-  /** The sticky chip's label. */
-  chip: Bi;
-  lead: Bi;
-  /** The rows, in order; each with its plain question. */
-  rows: { key: QuestionKey; q: Bi }[];
-}
-
-/** The whole report is Premium (2026-11-01, user: "everything we say about
- *  the stock will be part of premium"): a free reader sees the price, the
- *  chart, one Premium card and the data room (`ReportGate`). The free sample
- *  row, answer words and chapter signposts of 2026-10-30 are gone. */
-
-/** Our view's sticky chip and anchor (it is not one of the question chapters). */
-export const VIEW_CHAPTER = { id: "ch-view", chip: { en: "Our view", bn: "আমাদের মত" } as Bi };
-
-/**
- * The report's four chapters (2026-10-30 rebuild, plan
- * https://claude.ai/artifact/9AjhtrCYGSjS2Lx9Kajjg7): the three questions
- * behind the answer card's three lights, then what comes next. The ten-year
- * story rides on "Does it make money?" and the sector ranks on "Is it strong
- * in its business?" (their old anchors are aliases there).
- */
-export const REPORT_CHAPTERS: ReportChapter[] = [
-  {
-    id: "ch-company",
-    title: { en: "Is it a good company?", bn: "কোম্পানিটি কি ভালো?" },
-    chip: { en: "Company", bn: "কোম্পানি" },
-    lead: {
-      en: "Questions about the business itself: profit, cash, where the profit comes from, loans, strength and dividends.",
-      bn: "ব্যবসাটি নিয়ে কয়েকটি প্রশ্ন: মুনাফা, নগদ টাকা, মুনাফা কোথা থেকে আসে, ঋণ, ব্যবসার শক্তি আর ডিভিডেন্ড।",
-    },
-    rows: [
-      { key: "this_year", q: { en: "Does it make money?", bn: "কোম্পানিটি কি মুনাফা করছে?" } },
-      { key: "cash", q: { en: "Is the profit real cash?", bn: "মুনাফার টাকা কি সত্যিই হাতে আসে?" } },
-      { key: "core", q: { en: "Does the profit come from its business?", bn: "মুনাফা কি ব্যবসা থেকেই আসে?" } },
-      { key: "safety", q: { en: "Can it handle its loans?", bn: "ঋণ কি সামলাতে পারবে?" } },
-      { key: "quality", q: { en: "Is it strong in its business?", bn: "নিজের ব্যবসায় কোম্পানিটি কতটা শক্তিশালী?" } },
-      { key: "shares", q: { en: "Does it share its profit?", bn: "মুনাফার ভাগ শেয়ারহোল্ডারদের দেয় কি?" } },
-    ],
-  },
-  {
-    id: "ch-price",
-    title: { en: "Is the price right?", bn: "দাম কি ন্যায্য?" },
-    chip: { en: "Price", bn: "দাম" },
-    lead: {
-      en: "What you pay for its profit, what we think it is worth, and the cash it pays you.",
-      bn: "মুনাফার তুলনায় কত দাম দিচ্ছেন, আমাদের হিসাবে শেয়ারটির ন্যায্য দাম কত, আর নগদ ডিভিডেন্ড কত পাবেন।",
-    },
-    rows: [
-      { key: "price", q: { en: "What do you pay for its profit?", bn: "মুনাফার তুলনায় কত দাম দিচ্ছেন?" } },
-      { key: "dividend", q: { en: "What does it pay you in cash?", bn: "নগদ ডিভিডেন্ড কত পাবেন?" } },
-    ],
-  },
-  {
-    id: "ch-risks",
-    title: { en: "Could anything go wrong?", bn: "কোনো সমস্যা হতে পারে কি?" },
-    chip: { en: "Risks", bn: "ঝুঁকি" },
-    lead: {
-      en: "Serious warnings in its notices, what the owners are doing, whether you can sell it, and the main risks.",
-      bn: "নোটিশে কোনো গুরুতর সতর্কতা আছে কি না, উদ্যোক্তা-পরিচালকেরা কী করছেন, দরকারে বিক্রি করা যাবে কি না, আর মূল ঝুঁকিগুলো কী।",
-    },
-    rows: [
-      { key: "red_flags", q: { en: "Any red flags?", bn: "বড় কোনো সতর্কসংকেত আছে কি?" } },
-      { key: "owners", q: { en: "Are the owners staying?", bn: "উদ্যোক্তা-পরিচালকেরা কি শেয়ার ধরে রাখছেন?" } },
-      { key: "liquidity", q: { en: "Can you sell it when you want to?", bn: "দরকারের সময় বিক্রি করতে পারবেন কি?" } },
-      { key: "risks", q: { en: "What could go wrong?", bn: "কী কী ঝুঁকি আছে?" } },
-    ],
-  },
-  {
-    id: "ch-next",
-    title: { en: "What's next", bn: "এরপর কী" },
-    chip: { en: "Next", bn: "এরপর" },
-    lead: {
-      en: "The dates coming up, your own shares, and better choices in its sector.",
-      bn: "সামনের তারিখগুলো, আপনার নিজের শেয়ার, আর একই সেক্টরে আরও ভালো বিকল্প।",
-    },
-    rows: [
-      { key: "next", q: { en: "What's coming up?", bn: "সামনে কী আছে?" } },
-      { key: "you", q: { en: "You and this stock", bn: "এই শেয়ারে আপনার অবস্থান" } },
-      { key: "fit", q: { en: "What would it do to your portfolio?", bn: "কিনলে আপনার পোর্টফোলিওর কী হবে?" } },
-      { key: "alternatives", q: { en: "Is there a better choice?", bn: "আরও ভালো বিকল্প আছে কি?" } },
-    ],
-  },
-];

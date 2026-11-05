@@ -1,7 +1,7 @@
 "use client";
 
 import Button from "@/components/ui/Button";
-import { IconBell, IconCrown } from "@/components/ui/icons";
+import { IconCrown } from "@/components/ui/icons";
 import { useLockScope } from "@/components/premium/LockScope";
 import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
@@ -33,23 +33,14 @@ export default function ReportOffer({
   // Opened with one of the reader's report keys rather than today's free report.
   const keyed = useLockScope()?.reason === "key";
 
-  if (isPremium) {
-    return (
-      <p className="my-8 flex items-start gap-2 text-sm leading-snug text-text-muted">
-        <span className="mt-0.5 shrink-0 text-gold-ink"><IconBell size={14} /></span>
-        <T
-          en="Follow this share to get one push when our answer changes, its results land, a red flag appears or its grade changes."
-          bn="শেয়ারটি ফলো করলে আমাদের উত্তর বদলালে, ফল প্রকাশ হলে, নতুন বড় সতর্কতা এলে বা গ্রেড বদলালে আপনি একটি নোটিফিকেশন পাবেন।"
-        />
-      </p>
-    );
-  }
+  // A member already gets "follow it" in our conclusion (2026-11-05).
+  if (isPremium) return null;
 
   const onTap = () => {
     trackEvent("premium_lock_tap", { area: "stock", lock: "stock-report", state, stakes: lines.length });
     savePremiumContext({
       from: "stock",
-      label: bn ? `${code}-এর পূর্ণ রিপোর্ট` : `The full report on ${code}`,
+      label: bn ? `${code}: আমাদের বিশ্লেষণ` : `Our analysis of ${code}`,
       stakes: lines.slice(0, 3).map((l) => (bn ? l.bn || l.en : l.en)),
     });
   };
@@ -58,17 +49,17 @@ export default function ReportOffer({
     <div id="ch-premium-end" className="rp-offer stock-anchor my-8">
       <p className="flex items-center gap-2 text-sm font-semibold text-gold-ink">
         <IconCrown size={16} />
-        {keyed ? <T en="Your free full report" bn="আপনার ফ্রি পূর্ণ রিপোর্ট" /> : <T en="Today's free full report" bn="আজকের ফ্রি পূর্ণ রিপোর্ট" />}
+        {keyed ? <T en="Your free analysis" bn="আপনার ফ্রি বিশ্লেষণ" /> : <T en="Today's free analysis" bn="আজকের ফ্রি বিশ্লেষণ" />}
       </p>
       <h3 className="mt-1 text-xl font-bold leading-tight text-text-main sm:text-2xl">
         {keyed ? (
-          <T en={`The report on ${name} is open for you this week`} bn={`${name}-এর রিপোর্টটি এ সপ্তাহে আপনার জন্য খোলা আছে`} />
+          <T en={`Our analysis of ${name} is open for you this week`} bn={`${name}-এর বিশ্লেষণটি এ সপ্তাহে আপনার জন্য খোলা আছে`} />
         ) : (
-          <T en={`The report on ${name} is open for everyone today`} bn={`আজ ${name}-এর রিপোর্টটি সবার জন্য খোলা আছে`} />
+          <T en={`Our analysis of ${name} is open for everyone today`} bn={`আজ ${name}-এর বিশ্লেষণটি সবার জন্য খোলা আছে`} />
         )}
       </h3>
       <p className="mt-2 text-sm text-text-main">
-        <T en="With Premium, the same report is open on every DSE share, every day." bn="প্রিমিয়াম নিলে ডিএসইর প্রতিটি শেয়ারের এমন রিপোর্ট প্রতিদিন পড়তে পারবেন।" />
+        <T en="With Premium, the same analysis is open on every DSE share, every day." bn="প্রিমিয়াম নিলে ডিএসইর প্রতিটি শেয়ারের এমন বিশ্লেষণ প্রতিদিন পড়তে পারবেন।" />
       </p>
       <p className="mt-5 text-base text-text-main">
         <T
@@ -81,7 +72,7 @@ export default function ReportOffer({
       </p>
       <div className="mt-3">
         <Button href={PREMIUM_PATH} onClick={onTap} size="lg" block>
-          <T en="Get this on every share" bn="সব শেয়ারের রিপোর্ট পান" />
+          <T en="Get this on every share" bn="সব শেয়ারের বিশ্লেষণ পান" />
         </Button>
       </div>
       <p className="mt-3 text-sm text-text-muted">

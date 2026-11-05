@@ -947,12 +947,12 @@ def build_cash(inp: dict, this_year: Optional[dict] = None) -> Optional[dict]:
                   f"{acc['bn']} মুনাফা দেখানো হলেও ব্যবসায় যত নগদ টাকা এসেছে, তার চেয়ে বেশি বেরিয়ে গেছে।")
     else:
         part_en, part_bn = (
-            ("all of the profit it showed came in as real money", "হিসাবে যে মুনাফা দেখানো হয়েছে, তার পুরোটাই নগদে হাতে এসেছে") if lat >= 100
-            else ("almost all of the profit it showed came in as real money", "হিসাবে যে মুনাফা দেখানো হয়েছে, তার প্রায় পুরোটাই নগদে হাতে এসেছে") if lat >= 80
-            else ("most of the profit it showed came in as real money", "হিসাবে যে মুনাফা দেখানো হয়েছে, তার বেশির ভাগই নগদে হাতে এসেছে") if lat >= 60
-            else ("about half of the profit it showed came in as real money", "হিসাবে যে মুনাফা দেখানো হয়েছে, তার প্রায় অর্ধেক নগদে হাতে এসেছে") if lat >= 45
-            else ("less than half of the profit it showed came in as real money", "হিসাবে যে মুনাফা দেখানো হয়েছে, তার অর্ধেকেরও কম নগদে হাতে এসেছে") if lat >= 25
-            else ("only a small part of the profit it showed came in as real money", "হিসাবে যে মুনাফা দেখানো হয়েছে, তার সামান্য অংশই নগদে হাতে এসেছে")
+            ("all of the profit it showed came in as real money", "যে মুনাফা দেখানো হয়েছে, তার পুরোটাই নগদে হাতে এসেছে") if lat >= 100
+            else ("almost all of the profit it showed came in as real money", "যে মুনাফা দেখানো হয়েছে, তার প্রায় পুরোটাই নগদে হাতে এসেছে") if lat >= 80
+            else ("most of the profit it showed came in as real money", "যে মুনাফা দেখানো হয়েছে, তার বেশির ভাগই নগদে হাতে এসেছে") if lat >= 60
+            else ("about half of the profit it showed came in as real money", "যে মুনাফা দেখানো হয়েছে, তার প্রায় অর্ধেক নগদে হাতে এসেছে") if lat >= 45
+            else ("less than half of the profit it showed came in as real money", "যে মুনাফা দেখানো হয়েছে, তার অর্ধেকেরও কম নগদে হাতে এসেছে") if lat >= 25
+            else ("only a small part of the profit it showed came in as real money", "যে মুনাফা দেখানো হয়েছে, তার সামান্য অংশই নগদে হাতে এসেছে")
         )
         cmp_en = cmp_bn = ""
         if usual is not None and lat < usual - 10:
@@ -4633,6 +4633,10 @@ def build_report(inp: dict) -> dict:
             price["watch"] = None
     reads = build_reads(inp, work)
     view = build_view(inp, work, answer)
+    # The page's analysis (2026-11-05): grade, summary and six plain parts,
+    # built from the sections while they still carry their working fields.
+    from backend.services.stock_analysis import build_analysis
+    analysis = build_analysis(inp, work, answer)
     summary = build_summary(work, inp)
     offer = build_offer(work)
     events = build_events(inp)
@@ -4647,6 +4651,7 @@ def build_report(inp: dict) -> dict:
         "summary_kinds": bi("A strength, a price read and a watch-out, written for this share.",
                             "একটি শক্তির দিক, দাম নিয়ে একটি মত আর একটি সতর্কতা, এই শেয়ারের জন্য লেখা।"),
         "answer": answer,
+        "analysis": analysis,
         "reads": reads,
         "view": view,
         "scorecard": scorecard,

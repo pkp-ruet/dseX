@@ -709,7 +709,7 @@ export function DividendDetails({ s }: { s: DividendSection }) {
 
 // ------------------------------------------------------------------ red flags
 
-function FlagList({ checks }: { checks: RedFlagsSection["checks"] }) {
+export function FlagList({ checks }: { checks: RedFlagsSection["checks"] }) {
   return (
     <ul className="rp-checks mt-3">
       {checks.map((c) => (
