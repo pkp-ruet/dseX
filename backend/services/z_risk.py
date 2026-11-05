@@ -15,7 +15,7 @@ line says "close to", never "will":
   beside one of the reasons above: stale accounts alone are as often our own
   data lagging as the company stopping, so they never list a company.
 
-`/market-analysis` shows how many and which companies (free); the reasons and
+`/dse-today` used to show how many and which companies (free); the reasons and
 what a move to Z means are Premium (screen-only).
 """
 from __future__ import annotations

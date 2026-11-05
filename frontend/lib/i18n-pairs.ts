@@ -63,6 +63,5 @@ export function pairedPath(pathname: string, to: "en" | "bn"): string | null {
     }
     return null;
   }
-  if (to === "en" && pathname === "/share-bazar") return "/market-analysis";
   return null;
 }

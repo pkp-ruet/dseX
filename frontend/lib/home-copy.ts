@@ -47,10 +47,8 @@ const COPY = {
   // Chapters
   chMoney: ["Your money", "আপনার টাকা"],
   chMarket: ["Market today", "আজকের বাজার"],
-  dseTodayLink: ["DSE today", "আজকের DSE"],
-  dseTodayLinkSub: ["Every share's price and today's news", "সব শেয়ারের দাম আর আজকের খবর"],
-  marketAnalysisLink: ["Market analysis", "বাজার বিশ্লেষণ"],
-  marketAnalysisLinkSub: ["The whole market in plain words", "সহজ ভাষায় পুরো বাজার"],
+  dseTodayLink: ["Market today", "আজকের শেয়ার বাজার"],
+  dseTodayLinkSub: ["How the market did today, in plain words", "আজ বাজার কেমন গেল, সহজ ভাষায়"],
   chIdeas: ["Find stocks", "শেয়ার খুঁজুন"],
   chIdeasSub: [
     "Ready-made ways to find shares today. Pick one to see the names, then open the full list.",

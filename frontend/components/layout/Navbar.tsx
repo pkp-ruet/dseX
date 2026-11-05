@@ -58,12 +58,10 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Markets",
     labelBn: "বাজার",
     items: [
-      { href: "/dse-today", label: "DSE today", labelBn: "আজকের DSE", sub: "Today's prices and biggest moves", subBn: "আজকের দাম আর বড় ওঠানামা", icon: "today" },
-      { href: "/market-analysis", label: "Market analysis", labelBn: "বাজার বিশ্লেষণ", sub: "Is the market up or down, cheap or expensive?", subBn: "বাজার উঠছে না নামছে, দাম কম না বেশি", icon: "analysis" },
+      { href: "/dse-today", label: "Market today", labelBn: "আজকের শেয়ার বাজার", sub: "How the market did today, in plain words", subBn: "আজ বাজার কেমন গেল, সহজ ভাষায়", icon: "today" },
       { href: "/dividend-calendar", label: "Dividend calendar", labelBn: "ডিভিডেন্ড ক্যালেন্ডার", sub: "Record dates and AGMs", subBn: "রেকর্ড ডেট আর এজিএম", icon: "dividend", premium: true },
       { href: "/results", label: "Quarterly results", labelBn: "প্রান্তিকের ফল", sub: "Each company's latest profit", subBn: "প্রতিটি কোম্পানির সর্বশেষ মুনাফা", icon: "results" },
       { href: "/sectors", label: "Sectors", labelBn: "সেক্টর", sub: "Compare whole industries", subBn: "পুরো সেক্টর মিলিয়ে দেখুন", icon: "sectors" },
-      { href: "/share-bazar", label: "Today's market in Bangla", labelBn: "আজকের শেয়ার বাজার", sub: "A short daily report in Bengali", subBn: "প্রতিদিনের সংক্ষিপ্ত বাজার প্রতিবেদন", icon: "bangla" },
     ],
   },
   {

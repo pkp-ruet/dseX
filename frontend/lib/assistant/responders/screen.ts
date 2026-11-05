@@ -204,7 +204,7 @@ export async function screenResponder(intent: IntentId, ent: Entities): Promise<
         }));
       return result(intent, ent, items,
         { title: "Near the year's low", titleBn: "বছরের সর্বনিম্নের কাছে", metric: "Above low", metricBn: "সর্বনিম্নের ওপরে" },
-        "/market-analysis");
+        "/screener?ready=near_low");
     }
 
     case "screen_sector": {

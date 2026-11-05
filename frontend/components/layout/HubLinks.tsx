@@ -9,7 +9,7 @@ import { T } from "@/components/i18n/T";
  * stays narrow while nothing becomes an orphan:
  *
  *   find  → rendered on /dsestockranking
- *   today → rendered on /dse-today and /market-analysis
+ *   today → rendered on /results (the market page itself ends with its own links since 2026-11-05)
  */
 export type HubGroup = "find" | "today";
 
@@ -31,9 +31,7 @@ const GROUPS: Record<HubGroup, { title: Pair; links: HubLink[] }> = {
   today: {
     title: { en: "More about today's market", bn: "আজকের বাজার নিয়ে আরও" },
     links: [
-      { href: "/dse-today", label: { en: "DSE today", bn: "আজকের DSE" }, sub: { en: "Prices, biggest moves and news", bn: "দাম, বড় ওঠানামা আর খবর" } },
-      { href: "/market-analysis", label: { en: "Market analysis", bn: "বাজার বিশ্লেষণ" }, sub: { en: "Is the market up or down?", bn: "বাজার উঠছে না নামছে" } },
-      { href: "/share-bazar", label: { en: "Today's market in Bangla", bn: "আজকের শেয়ার বাজার" }, sub: { en: "A short daily report in Bengali", bn: "প্রতিদিনের সংক্ষিপ্ত বাজার প্রতিবেদন" } },
+      { href: "/dse-today", label: { en: "Market today", bn: "আজকের শেয়ার বাজার" }, sub: { en: "How the market did today, in plain words", bn: "আজ বাজার কেমন গেল, সহজ ভাষায়" } },
       { href: "/todays-news", label: { en: "Today's news", bn: "আজকের খবর" }, sub: { en: "Every company's news from the last day", bn: "গত এক দিনে সব কোম্পানির খবর" } },
       { href: "/results", label: { en: "Quarterly results", bn: "প্রান্তিকের ফল" }, sub: { en: "Each company's latest profit", bn: "প্রতিটি কোম্পানির সর্বশেষ মুনাফা" } },
       { href: "/dividend-calendar", label: { en: "Dividend calendar", bn: "ডিভিডেন্ড ক্যালেন্ডার" }, sub: { en: "Record dates and AGMs", bn: "রেকর্ড ডেট আর এজিএম" } },

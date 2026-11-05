@@ -1062,7 +1062,7 @@ export function buildStarterStories(i: {
               ? L(`${up} companies rose and ${down} fell.`, `${up}টি কোম্পানির দাম বেড়েছে, ${down}টির কমেছে।`)
               : undefined,
           rows: rows.length ? rows : undefined,
-          cta: { label: L("Read the market", "বাজার বিশ্লেষণ দেখুন"), href: "/market-analysis" },
+          cta: { label: L("Read the market", "আজকের শেয়ার বাজার দেখুন"), href: "/dse-today" },
           when: dayWord,
           tone: toneOf(mi?.dsex_change_pct),
         },

@@ -131,7 +131,7 @@ def shares_part(held: dict[str, int], watched: set[str], moves: dict[str, float]
 
 
 def market_part(state: Optional[dict]) -> dict:
-    """Part 2: the market in five lines, from the /market-analysis bundle.
+    """Part 2: the market in five lines, from the market-state bundle (/dse-today).
     Built once for every reader."""
     s = state or {}
     mood = s.get("mood") or {}
@@ -140,7 +140,7 @@ def market_part(state: Optional[dict]) -> dict:
     if mood.get("label"):
         lines.append(line(f"The market's mood at the last close: {mood['label']}.",
                           f"শেষ লেনদেনের দিনে বাজারের অবস্থা: {mood.get('label_bn') or mood['label']}।",
-                          "/market-analysis"))
+                          "/dse-today"))
     wk, dsex = st.get("week_change_pct"), st.get("dsex")
     if wk is not None and dsex:
         lvl = f"{dsex:,.0f}"
@@ -150,7 +150,7 @@ def market_part(state: Optional[dict]) -> dict:
             en, bn = f"DSEX rose {_pct(wk)} this week, to {lvl}.", f"এ সপ্তাহে ডিএসইএক্স {_pct(wk)} বেড়ে {lvl}-এ।"
         else:
             en, bn = f"DSEX fell {_pct(wk)} this week, to {lvl}.", f"এ সপ্তাহে ডিএসইএক্স {_pct(wk)} কমে {lvl}-এ।"
-        lines.append(line(en, bn, "/market-analysis", "good" if wk > 0.1 else "bad" if wk < -0.1 else "neutral"))
+        lines.append(line(en, bn, "/dse-today", "good" if wk > 0.1 else "bad" if wk < -0.1 else "neutral"))
     sectors = [r for r in ((s.get("now") or {}).get("sectors") or []) if r.get("ret_1w") is not None]
     if len(sectors) >= 2:
         best = max(sectors, key=lambda r: r["ret_1w"])

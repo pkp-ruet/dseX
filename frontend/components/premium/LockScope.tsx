@@ -26,7 +26,7 @@ export function useLockScope(): Scope | null {
   return useContext(Ctx);
 }
 
-/** Any other page with one Premium section (`/market-analysis` → `#ma-premium`). */
+/** Any other page with one Premium section (e.g. `/results` → `#rs-premium`). */
 export function PageLockScope({ anchor, children }: { anchor: string; children: ReactNode }) {
   return <Ctx.Provider value={{ anchor }}>{children}</Ctx.Provider>;
 }

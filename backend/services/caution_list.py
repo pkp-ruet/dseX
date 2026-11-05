@@ -9,7 +9,7 @@ or few shares are with the public. Prices are put on today's footing for
 dividends and bonus shares first, so a record date inside the window neither
 hides a run nor makes one up.
 
-`/market-analysis` shows how many and which companies (free); the reason for
+`/dse-today` used to show how many and which companies (free); the reason for
 each and what it means is Premium (screen-only).
 """
 from __future__ import annotations

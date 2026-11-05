@@ -750,7 +750,7 @@ def diff_codes(then: list[str], now: list[str]) -> tuple[list[str], list[str]]:
 
 
 # ---------------------------------------------------------------------------
-# The lists on /market-analysis — which one fits today's market
+# The lists in the market-state bundle (shown on the old /market-analysis page until 2026-11-05) — which one fits today's market
 # ---------------------------------------------------------------------------
 
 # The market page's mood (market_state_service) decides which list leads.

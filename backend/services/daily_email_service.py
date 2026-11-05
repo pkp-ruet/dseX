@@ -478,7 +478,7 @@ def _rot_sectors(state: dict, campaign_id: str) -> Optional[dict]:
         "bn": "গত এক সপ্তাহে কোন ধরনের ব্যবসা ভালো করছে।",
         "items": items,
         "more_text": "See the full market picture",
-        "more_url": _tag_url(f"{PUBLIC_SITE_URL}/market-analysis", campaign_id),
+        "more_url": _tag_url(f"{PUBLIC_SITE_URL}/dse-today", campaign_id),
     }
 
 
@@ -506,7 +506,7 @@ def _rot_dividends(state: dict, campaign_id: str) -> Optional[dict]:
         "bn": "রেকর্ড ডেটের আগে শেয়ার হাতে থাকলে তবেই ডিভিডেন্ড পাবেন।",
         "items": items,
         "more_text": "See every upcoming dividend",
-        "more_url": _tag_url(f"{PUBLIC_SITE_URL}/market-analysis", campaign_id),
+        "more_url": _tag_url(f"{PUBLIC_SITE_URL}/dse-today", campaign_id),
     }
 
 
@@ -536,7 +536,7 @@ def _rot_near_low(state: dict, campaign_id: str) -> Optional[dict]:
         "bn": "এক বছরের মধ্যে সবচেয়ে কম দামের কাছে আছে — দেখে রাখুন, তাড়াহুড়ো নয়।",
         "items": items,
         "more_text": "See what else has fallen",
-        "more_url": _tag_url(f"{PUBLIC_SITE_URL}/market-analysis", campaign_id),
+        "more_url": _tag_url(f"{PUBLIC_SITE_URL}/dse-today", campaign_id),
     }
 
 

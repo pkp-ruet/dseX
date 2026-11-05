@@ -12,12 +12,10 @@ import { PREMIUM_RULE } from "@/lib/premium-jobs";
 type FootLink = { href: string; en: string; bn: string };
 
 const marketsLinks: FootLink[] = [
-  { href: "/dse-today", en: "DSE today", bn: "আজকের DSE" },
-  { href: "/market-analysis", en: "Market analysis", bn: "বাজার বিশ্লেষণ" },
+  { href: "/dse-today", en: "Market today", bn: "আজকের শেয়ার বাজার" },
   { href: "/dividend-calendar", en: "Dividend calendar", bn: "ডিভিডেন্ড ক্যালেন্ডার" },
   { href: "/results", en: "Quarterly results", bn: "প্রান্তিকের ফল" },
   { href: "/sectors", en: "Sectors", bn: "সেক্টর" },
-  { href: "/share-bazar", en: "Today's market in Bangla", bn: "আজকের শেয়ার বাজার" },
 ];
 
 const findLinks: FootLink[] = [

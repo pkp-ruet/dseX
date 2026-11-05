@@ -28,28 +28,16 @@ interface PageShortcut {
 
 const PAGES: PageShortcut[] = [
   {
-    href: "/market-analysis",
-    label: "Market analysis",
-    labelBn: "বাজার বিশ্লেষণ",
-    sub: "Is the market up or down, cheap or expensive?",
-    subBn: "বাজার উঠছে না নামছে, দাম কম না বেশি",
-    keys: ["market", "analysis", "mood", "up or down", "cheap", "expensive", "bazar", "বাজার", "বিশ্লেষণ"],
-  },
-  {
     href: "/dse-today",
-    label: "DSE today",
-    labelBn: "আজকের DSE",
-    sub: "Today's prices, biggest moves and news",
-    subBn: "আজকের দাম, বড় ওঠানামা আর খবর",
-    keys: ["today", "dsex", "index", "movers", "gainers", "losers", "আজ", "আজকের"],
-  },
-  {
-    href: "/share-bazar",
-    label: "Today's market in Bangla",
+    label: "Market today",
     labelBn: "আজকের শেয়ার বাজার",
-    sub: "A short daily report in Bengali",
-    subBn: "প্রতিদিনের সংক্ষিপ্ত বাজার প্রতিবেদন",
-    keys: ["bangla", "bengali", "share bazar", "bazar", "শেয়ার বাজার", "আজকের", "বাংলা"],
+    sub: "How the market did today, in plain words",
+    subBn: "আজ বাজার কেমন গেল, সহজ ভাষায়",
+    keys: [
+      "market", "today", "dse today", "analysis", "mood", "up or down", "cheap", "expensive", "dsex", "index",
+      "movers", "gainers", "losers", "news", "share bazar", "bazar",
+      "বাজার", "বিশ্লেষণ", "আজ", "আজকের", "শেয়ার বাজার",
+    ],
   },
   {
     href: "/dividend-calendar",

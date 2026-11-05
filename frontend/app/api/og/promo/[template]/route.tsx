@@ -2516,7 +2516,7 @@ async function RenderShowcase() {
 }
 
 // ---- Route handler ----
-// ---- Template: mood (landscape — the /market-analysis link preview) ----
+// ---- Template: mood (landscape — the /dse-today market page's link preview) ----
 // English only: the OG font has no Bengali glyphs and no ৳ (see CLAUDE.md).
 const MOOD_TONE_COLOR: Record<string, string> = {
   up: COLORS.positive,

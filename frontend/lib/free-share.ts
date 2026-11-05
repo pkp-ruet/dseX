@@ -22,7 +22,7 @@ export const FREE_LIST_ROWS = 3;
 /* The stock report has no free taste since 2026-11-01: the whole report is
    Premium (today's free report and report keys still open it). */
 
-/** Research list pages and the research rows on /market-analysis and the
+/** Research list pages and the research rows on the hub and the
  *  dashboard: the top three companies are free (was fully locked until
  *  2026-10-29). */
 export const FREE_RESEARCH_ROWS = FREE_LIST_ROWS;

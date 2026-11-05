@@ -20,7 +20,7 @@ export default function TodaysNewsError({
     <ErrorState
       title={<T en="We couldn't load today's news" bn="আজকের খবর এখন লোড করা যাচ্ছে না" />}
       onRetry={reset}
-      links={[{ href: "/dse-today", label: <T en="DSE today" bn="আজকের DSE" /> }]}
+      links={[{ href: "/dse-today", label: <T en="Market today" bn="আজকের শেয়ার বাজার" /> }]}
     />
   );
 }

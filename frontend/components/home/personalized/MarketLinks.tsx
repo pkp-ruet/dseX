@@ -4,20 +4,21 @@ import type { Lang } from "@/context/LangContext";
 import type { HomeBundle } from "@/lib/api";
 import { t } from "@/lib/home-copy";
 import { RESULT_LEVEL_ORDER } from "@/lib/results";
-import { IconArrowRight, IconChartBars, IconNews, IconTrendUp } from "@/components/ui/icons";
+import { IconArrowRight, IconChartBars, IconNews } from "@/components/ui/icons";
 
 type Week = NonNullable<HomeBundle["results_week"]>;
 
 interface Item {
   href: string;
   icon: ReactNode;
-  title: "dseTodayLink" | "marketAnalysisLink";
-  sub: "dseTodayLinkSub" | "marketAnalysisLinkSub";
+  title: "dseTodayLink";
+  sub: "dseTodayLinkSub";
 }
 
+// One market page since 2026-11-05 (DSE today, Market analysis and the Bengali
+// daily page merged into /dse-today), so one tile.
 const ITEMS: Item[] = [
   { href: "/dse-today", icon: <IconChartBars size={18} />, title: "dseTodayLink", sub: "dseTodayLinkSub" },
-  { href: "/market-analysis", icon: <IconTrendUp size={18} />, title: "marketAnalysisLink", sub: "marketAnalysisLinkSub" },
 ];
 
 const TILE =
@@ -53,17 +54,16 @@ function weekLine(week: Week, lang: Lang): string {
 }
 
 /**
- * The Market today chapter's way out: quiet link tiles to the full DSE day
- * (`/dse-today`), the whole market in plain words (`/market-analysis`) and,
- * since 2026-11-04, the week's results (`/results`). Neutral icon tile, title,
+ * The Market today chapter's way out: quiet link tiles to the market page
+ * (`/dse-today`, "Market today") and, since 2026-11-04, the week's results
+ * (`/results`). Neutral icon tile, title,
  * one line, arrow — no colour except the results tile's split bar.
  *
  * The results tile replaced the full `ResultsPromoCard` (user: it took a lot
  * of room on the homepage): "Results this week" + "12 companies · 5 better ·
  * 4 weaker" + the week's split as one thin bar (the /results page's four
  * level colours). A quiet week says how many companies have results instead.
- * Three in a row from 1024px; between 640 and 1024 the two links share a row
- * and the results tile takes the row under them.
+ * Side by side from 640px.
  */
 export default function MarketLinks({ lang, results = null }: { lang: Lang; results?: Week | null }) {
   const bn = lang === "bn";
@@ -73,7 +73,7 @@ export default function MarketLinks({ lang, results = null }: { lang: Lang; resu
   return (
     <nav
       aria-label={t(lang, "chMarket")}
-      className={`grid grid-cols-1 gap-3 sm:grid-cols-2 ${week ? "lg:grid-cols-3" : ""}`}
+      className={`grid grid-cols-1 gap-3 ${week ? "sm:grid-cols-2" : ""}`}
     >
       {ITEMS.map((it) => (
         <Link key={it.href} href={it.href} className={TILE}>
@@ -86,7 +86,7 @@ export default function MarketLinks({ lang, results = null }: { lang: Lang; resu
         </Link>
       ))}
       {week && (
-        <Link href="/results" className={`${TILE} sm:col-span-2 lg:col-span-1`} data-card="results-promo">
+        <Link href="/results" className={TILE} data-card="results-promo">
           <TileIcon>
             <IconNews size={18} />
           </TileIcon>

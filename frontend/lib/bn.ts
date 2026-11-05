@@ -1,5 +1,5 @@
 /**
- * Small Bengali copy helpers for server-rendered Bengali pages (`/share-bazar`).
+ * Small Bengali copy helpers for server-rendered Bengali copy (dates, sector names, crore).
  *
  * Numbers stay in Western digits on purpose — see `components/i18n/Bn.tsx`:
  * Bengali numeral glyphs do not render reliably on every phone the audience

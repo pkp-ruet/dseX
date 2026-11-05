@@ -75,7 +75,11 @@ const nextConfig: NextConfig = {
       // inside the stock report and the portfolio's Premium sections. The page
       // code stays; a temporary redirect keeps it out of reach until it returns.
       { source: "/buy-sell-signals", destination: "/dsestockranking", permanent: false },
-      { source: "/market-intelligence", destination: "/market-analysis", permanent: true },
+      // One market page (2026-11-05): DSE today, Market analysis and the
+      // Bengali daily page (/share-bazar) merged into /dse-today, "Market today".
+      { source: "/market-analysis", destination: "/dse-today", permanent: true },
+      { source: "/share-bazar", destination: "/dse-today", permanent: true },
+      { source: "/market-intelligence", destination: "/dse-today", permanent: true },
       // The in-depth analysis sub-page folded into the stock report as its
       // analyst note (2026-10-28); since 2026-11-05 (the note's data-room tab
       // was removed) it lands on our analysis.

@@ -1416,6 +1416,9 @@ export interface MarketSectorRow {
   tone: CellTone;
   ret_1w: number;
   ret_1m: number | null;
+  /** Today's average move over the sector's companies that traded today
+   *  (2026-11-05, the market page's Today tab); absent from an older backend. */
+  ret_1d?: number | null;
   count: number;
 }
 
@@ -1461,7 +1464,7 @@ export interface MarketHistory {
   bargains?: { date: string; n: number }[];
 }
 
-/** One research list on /market-analysis: the hub row plus today's top-20 codes
+/** One research list in the market-state bundle: the hub row plus today's top-20 codes
  *  (to count the reader's own stocks) and the pass count about a month ago. */
 export interface MarketResearchList extends ResearchListSummary {
   codes: string[];

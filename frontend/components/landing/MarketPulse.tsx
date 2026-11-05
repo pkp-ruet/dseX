@@ -100,10 +100,7 @@ export default function MarketPulse({
         />
         <div className="flex flex-wrap gap-x-5">
           <Link href="/dse-today" className="inline-flex min-h-10 items-center text-sm font-semibold text-primary-ink hover:underline">
-            <T en="Every price today →" bn="আজকের সব দাম →" />
-          </Link>
-          <Link href="/market-analysis" className="inline-flex min-h-10 items-center text-sm font-semibold text-primary-ink hover:underline">
-            <T en="Market analysis →" bn="বাজার বিশ্লেষণ →" />
+            <T en="See today's market →" bn="আজকের শেয়ার বাজার দেখুন →" />
           </Link>
         </div>
       </div>

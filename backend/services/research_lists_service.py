@@ -304,7 +304,7 @@ def list_index() -> list[dict]:
 
 
 def market_lists(tone: Optional[str], value_band: Optional[str], today: Optional[str]) -> dict:
-    """The six lists for /market-analysis, the one that fits today's market
+    """The six lists for the market-state bundle, the one that fits today's market
     first. Each row is a `list_index()` row plus `codes` (today's top
     LIST_CAP, so the page can count the reader's own stocks) and `then` (the
     pass count about a month ago). Names are screen-locked by the page."""

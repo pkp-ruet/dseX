@@ -115,8 +115,7 @@ export default async function StocksPage() {
           <>
             Each company code opens its own page with the price chart, five-pillar health check, dividend
             history and news. For the market as a whole, see{" "}
-            <Link href="/dse-today">DSE Today</Link> (index, top gainers and losers) or the{" "}
-            <Link href="/market-analysis">market analysis</Link> in plain words.
+            <Link href="/dse-today">Market today</Link>: the index, the mood, top gainers and losers, in plain words.
           </>,
         ]}
         introBn={[
@@ -135,8 +134,8 @@ export default async function StocksPage() {
           </>,
           <>
             প্রতিটি কোম্পানির কোডে চাপ দিলে খুলবে তার নিজের পেজ, সেখানে দামের চার্ট, পাঁচটি যাচাই, ডিভিডেন্ডের ইতিহাস
-            আর খবর। পুরো বাজারের জন্য দেখুন <Link href="/dse-today">আজকের ডিএসই</Link> (সূচক, সবচেয়ে বেড়েছে আর
-            কমেছে যেগুলো) অথবা সহজ ভাষায় <Link href="/market-analysis">বাজার বিশ্লেষণ</Link>।
+            আর খবর। পুরো বাজারের জন্য দেখুন <Link href="/dse-today">আজকের শেয়ার বাজার</Link>: সূচক, বাজারের অবস্থা,
+            আর কোন শেয়ারের দাম সবচেয়ে বেড়েছে বা কমেছে, সহজ ভাষায়।
           </>,
         ]}
         faq={[

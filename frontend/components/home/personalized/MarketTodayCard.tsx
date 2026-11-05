@@ -16,9 +16,9 @@ import { ACC } from "@/components/home/personalized/accents";
 import DashHeader from "@/components/home/personalized/DashHeader";
 import { IconChevron, IconGrid } from "@/components/home/personalized/DashIcons";
 
-const MARKET_HREF = "/market-analysis";
-/** The Bengali daily article — the front door in বাংলা mode. */
-const MARKET_HREF_BN = "/share-bazar";
+/** THE market page, both languages (2026-11-05: /market-analysis and the
+ *  Bengali /share-bazar merged into it). */
+const MARKET_HREF = "/dse-today";
 
 function num(v: number | null | undefined, d = 2): string {
   if (v == null) return "--";
@@ -181,15 +181,13 @@ function Sparkline({ history, label }: { history: MarketHistory | null | undefin
 }
 
 /**
- * One "Market today" card for the logged-in home — the front door to
- * `/market-analysis` (or, in বাংলা mode, to the Bengali daily article at
- * `/share-bazar`):
+ * One "Market today" card for the logged-in home — the front door to the
+ * market page (`/dse-today`):
  *
  *  • the headline is the backend mood (the page's own verdict), not a local
  *    breadth guess — the two can no longer disagree;
  *  • a DSEX sparkline over the stored history under the headline;
- *  • the ONE header link goes to the full picture; the index row is the link
- *    to DSE Today, where those numbers live;
+ *  • the ONE header link goes to the full picture, and so does the index row;
  *  • a "Since yesterday" line under the tiles changes daily and links through.
  */
 export default function MarketTodayCard({
@@ -219,7 +217,7 @@ export default function MarketTodayCard({
   lang?: Lang;
 }) {
   const bn = lang === "bn";
-  const marketHref = bn ? MARKET_HREF_BN : MARKET_HREF;
+  const marketHref = MARKET_HREF;
   const head = headline(mood, index, lang);
   const line = sinceLine(since, stats, lang);
 
@@ -272,7 +270,7 @@ export default function MarketTodayCard({
           <Link
             href="/dse-today"
             prefetch={false}
-            aria-label="Today's index levels on DSE Today"
+            aria-label="Today's index levels on Market today"
             className="mt-3.5 -mx-2 grid grid-cols-3 gap-2 rounded-xl px-2 py-1.5 transition-colors hover:bg-surface-2 active:bg-surface-2 sm:gap-4"
           >
             <IndexStat label="DSEX" value={index.dsex} change={index.dsex_change} />

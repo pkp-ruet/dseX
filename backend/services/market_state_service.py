@@ -333,9 +333,11 @@ def _unusual_buying(db, companies: dict, prices: dict) -> list[dict]:
     return out[:6]
 
 
-def _sector_rows(companies: dict, ret_1w: dict, ret_1m: dict) -> list[dict]:
+def _sector_rows(companies: dict, ret_1w: dict, ret_1m: dict,
+                 ret_1d: Optional[dict] = None) -> list[dict]:
     """Average 1-week / 1-month move per DSE sector (≥3 priced companies),
-    best first. `slug` is set only when `/sector/[slug]` exists for it —
+    best first. `ret_1d` is today's average move over the sector's companies
+    that traded today (≥3 of them, else None) — the market page's Today tab. `slug` is set only when `/sector/[slug]` exists for it —
     the sector hub needs MIN_COMPANIES scored names before it gets a page,
     which is a stricter bar than "3 priced", so the frontend must not build
     the link itself."""
@@ -350,6 +352,11 @@ def _sector_rows(companies: dict, ret_1w: dict, ret_1m: dict) -> list[dict]:
         sec = code_to_sector.get(code)
         if sec:
             sec_1m.setdefault(sec, []).append(r)
+    sec_1d: dict = {}
+    for code, r in (ret_1d or {}).items():
+        sec = code_to_sector.get(code)
+        if sec:
+            sec_1d.setdefault(sec, []).append(r)
 
     try:
         pages = set(sector_slugs())
@@ -363,6 +370,8 @@ def _sector_rows(companies: dict, ret_1w: dict, ret_1m: dict) -> list[dict]:
         avg_1w = round(sum(vals) / len(vals), 1)
         m_vals = sec_1m.get(sec, [])
         avg_1m = round(sum(m_vals) / len(m_vals), 1) if m_vals else None
+        d_vals = sec_1d.get(sec, [])
+        avg_1d = round(sum(d_vals) / len(d_vals), 2) if len(d_vals) >= 3 else None
         # `status` is also the stored snapshot value the sector-flip check
         # compares, so "Doing well" / "Struggling" keep their spelling.
         if avg_1w > 0.5:
@@ -380,6 +389,7 @@ def _sector_rows(companies: dict, ret_1w: dict, ret_1m: dict) -> list[dict]:
             "tone": tone,
             "ret_1w": avg_1w,
             "ret_1m": avg_1m,
+            "ret_1d": avg_1d,
             "count": len(vals),
         })
     sectors.sort(key=lambda x: x["ret_1w"], reverse=True)
@@ -503,9 +513,12 @@ _SECTOR_BN = {
 
 
 def _build_summary_bn(up, down, advancing_pct, price_pos_pct, cheap_pct,
-                      sectors, quality) -> Optional[str]:
-    """3–5 short sentences in everyday Bangla. Each sentence is guarded by its
-    own inputs, so missing data just drops a sentence instead of breaking."""
+                      sectors) -> Optional[str]:
+    """2–4 short sentences in everyday Bangla about what the market did. Each
+    sentence is guarded by its own inputs, so missing data just drops a
+    sentence instead of breaking. The healthy-company count left the paragraph
+    2026-11-05: the market page says what the market did, and our grades
+    summed over the market live on the ranking."""
     parts: list[str] = []
 
     # 1) Today's breadth (same 45/55 bands as the Q&A rows)
@@ -546,16 +559,11 @@ def _build_summary_bn(up, down, advancing_pct, price_pos_pct, cheap_pct,
             elif top["ret_1w"] < -0.5:
                 parts.append("এ সপ্তাহে প্রায় সব সেক্টরই চাপে আছে।")
 
-    # 5) How many companies look healthy
-    if quality.get("total"):
-        healthy = (quality.get("strong") or 0) + (quality.get("good") or 0)
-        parts.append(f"আমরা যে {quality['total']}টি কোম্পানি যাচাই করি, তার মধ্যে {healthy}টি এখন ভালো অবস্থায় আছে।")
-
     return " ".join(parts[:5]) if parts else None
 
 
 def _build_summary_en(up, down, advancing_pct, price_pos_pct, cheap_pct,
-                      sectors, quality) -> Optional[str]:
+                      sectors) -> Optional[str]:
     """The English twin of `_build_summary_bn` — same inputs, same bands, same
     order, so the two paragraphs always say the same thing."""
     parts: list[str] = []
@@ -592,10 +600,6 @@ def _build_summary_en(up, down, advancing_pct, price_pos_pct, cheap_pct,
                 parts.append(f"The {top['name']} sector is doing best this week.")
             elif top["ret_1w"] < -0.5:
                 parts.append("Almost every sector is under pressure this week.")
-
-    if quality.get("total"):
-        healthy = (quality.get("strong") or 0) + (quality.get("good") or 0)
-        parts.append(f"Of the {quality['total']} companies we check, {healthy} look healthy right now.")
 
     return " ".join(parts[:5]) if parts else None
 
@@ -865,7 +869,7 @@ def _quality_trend(snaps_desc: list[dict], today: Optional[str], healthy_now: in
 
 def _guard(name: str, fn, default):
     """One section failing degrades that section, not the whole page — an
-    unguarded query error here used to 500 all of /market-analysis."""
+    unguarded query error here used to 500 the whole market page."""
     try:
         return fn()
     except Exception:  # noqa: BLE001
@@ -1005,7 +1009,13 @@ def _compute(df=None) -> tuple[dict, dict]:
     # --- Which businesses are doing well? (sector returns) ---
     code_to_sector = {c: (companies.get(c) or {}).get("sector") for c in companies}
     ret_1w, ret_1m = _guard("window_returns", lambda: _window_returns(db, set(companies.keys())), ({}, {}))
-    sectors = _sector_rows(companies, ret_1w, ret_1m)
+    # Today's move per company, only for shares that traded on the index day.
+    ret_1d = {
+        code: float(p["change_pct"])
+        for code, p in prices.items()
+        if p.get("change_pct") is not None and str(p.get("date") or "")[:10] == (today or "")[:10]
+    }
+    sectors = _sector_rows(companies, ret_1w, ret_1m, ret_1d)
     sector_status_now = {s["name"]: s["status"] for s in sectors}
 
     # --- How many companies are strong vs risky? ---
@@ -1093,12 +1103,8 @@ def _compute(df=None) -> tuple[dict, dict]:
     )
     quality["trend"] = _quality_trend(snaps_desc, today, healthy_now, quality["total"], median_score_raw)
 
-    summary_bn = _build_summary_bn(
-        up, down, advancing_pct, price_pos_pct, cheap_pct, sectors, quality
-    )
-    summary_en = _build_summary_en(
-        up, down, advancing_pct, price_pos_pct, cheap_pct, sectors, quality
-    )
+    summary_bn = _build_summary_bn(up, down, advancing_pct, price_pos_pct, cheap_pct, sectors)
+    summary_en = _build_summary_en(up, down, advancing_pct, price_pos_pct, cheap_pct, sectors)
 
     bundle = {
         "date": idx.get("date"),

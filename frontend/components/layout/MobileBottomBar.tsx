@@ -19,11 +19,9 @@ import { useLang } from "@/context/LangContext";
 // The Explore tab stays highlighted on any destination the drawer lists.
 const EXPLORE_PATHS = [
   "/dse-today",
-  "/market-analysis",
   "/dividend-calendar",
   "/sectors",
   "/sector",
-  "/share-bazar",
   "/picked-for-you",
   "/dsestockranking",
   "/stocks",

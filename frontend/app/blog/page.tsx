@@ -88,7 +88,7 @@ export default function BlogPage() {
           lead={
             <>
               বাংলাদেশে বিনিয়োগে একদম নতুন? কঠিন শব্দ ছাড়া, গল্পের মতো করে লেখা। এখান থেকেই শুরু করুন।{" "}
-              <Link href="/share-bazar" className="font-semibold text-primary underline">
+              <Link href="/dse-today" className="font-semibold text-primary underline">
                 আজকের শেয়ার বাজার কেমন গেল, সহজ বাংলায় দেখুন
               </Link>
             </>

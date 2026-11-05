@@ -14,7 +14,6 @@ import {
   IconNews,
   IconRocket,
   IconSparkle,
-  IconTrendUp,
   IconTrophy,
 } from "@/components/home/personalized/DashIcons";
 import { ACC, accVars } from "@/components/home/personalized/accents";
@@ -40,10 +39,10 @@ const ROWS: Row[] = [
     acc: ACC.gold,
   },
   {
-    href: "/share-bazar",
+    href: "/dse-today",
     icon: <IconNews size={18} />,
-    label: ["Today's market in Bangla", "আজকের শেয়ার বাজার"],
-    sub: ["The whole day as a short report in Bengali", "পুরো দিনের বাজার, ছোট একটি প্রতিবেদনে"],
+    label: ["Market today", "আজকের শেয়ার বাজার"],
+    sub: ["How the market did today, in plain words", "আজ বাজার কেমন গেল, সহজ ভাষায়"],
     acc: ACC.navy,
   },
   {
@@ -65,13 +64,6 @@ const ROWS: Row[] = [
     icon: <IconHeart size={18} />,
     label: ["What other readers are looking at", "অন্য পাঠকেরা যা দেখছেন"],
     sub: ["The most viewed shares this week", "এ সপ্তাহে সবচেয়ে বেশি দেখা শেয়ার"],
-    acc: ACC.steel,
-  },
-  {
-    href: "/market-analysis",
-    icon: <IconTrendUp size={18} />,
-    label: ["Market analysis", "বাজার বিশ্লেষণ"],
-    sub: ["Is the market up or down, cheap or expensive?", "বাজার বাড়ছে না কমছে, দাম কম না বেশি"],
     acc: ACC.steel,
   },
   {
