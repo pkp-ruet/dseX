@@ -33,8 +33,6 @@ import DeskCard from "@/components/home/personalized/DeskCard";
 import PullToRefresh from "@/components/home/personalized/PullToRefresh";
 import StoriesRow from "@/components/home/personalized/StoriesRow";
 import MarketTodayCard from "@/components/home/personalized/MarketTodayCard";
-import MoversCard from "@/components/home/personalized/MoversCard";
-import MarketLinks from "@/components/home/personalized/MarketLinks";
 import ResearchRail from "@/components/home/personalized/ResearchRail";
 import DiscoverRail from "@/components/home/personalized/DiscoverRail";
 import ScreenerCard from "@/components/home/personalized/ScreenerCard";
@@ -238,7 +236,6 @@ export default function PersonalizedHome() {
   const quietStories = !isBrandNew && (hasPortfolio || hasWatchlist) && ownStories.every((st) => st.kind === "today");
 
 
-  const hasMovers = !!movers && ((movers.gainers?.length ?? 0) + (movers.losers?.length ?? 0) + (movers.most_traded?.length ?? 0) > 0);
   const hasDividends = calendarRows.length > 0 || declared.length > 0;
 
   const navItems = useMemo<DashNavItem[]>(() => {
@@ -288,42 +285,20 @@ export default function PersonalizedHome() {
     </section>
   ) : null;
 
-  // ── Chapter 2: Market today — mood + index + sparkline, movers, then the
-  //    link tiles (DSE today · market analysis · the week's results). The
-  //    week's results were a full card (`ResultsPromoCard`) until 2026-11-04,
-  //    now one tile in `MarketLinks` (user: the card took a lot of room).
-  //    Sectors this week, today's market news, the Bengali snapshot and
-  //    "Worth watching" (TurningPointsCard) were removed 2026-10-27 (user
-  //    decision). ──
+  // ── Chapter 2: Market today — ONE card since 2026-11-05 (user: "keep only
+  //    1 card"): the mood, the index, value + shares traded and a link to
+  //    /dse-today. The movers card and the link tiles (market page · the
+  //    week's results) left with that change. ──
   const marketChapter = (
     <section id="market" className={CHAPTER}>
       {head("chMarket", <IconGrid size={16} />)}
-      <div className={PAIR}>
-        <div data-card="market">
-          <MarketTodayCard
-            index={marketIndex}
-            dividends={dividends}
-            mood={marketState?.mood ?? null}
-            since={marketState?.since_yesterday ?? null}
-            stats={marketState?.stats ?? null}
-            quality={marketState?.now?.quality ?? null}
-            cheap={
-              marketState?.now?.questions?.find((q) =>
-                q.key === "value" || q.q.toLowerCase().startsWith("are shares cheap"),
-              ) ?? null
-            }
-            history={marketState?.history ?? null}
-            lang={lang}
-          />
-        </div>
-        {hasMovers && (
-          <div data-card="movers">
-            <MoversCard movers={movers} held={heldSet} watched={watchedSet} lang={lang} />
-          </div>
-        )}
-      </div>
-      <div data-card="market-links">
-        <MarketLinks lang={lang} results={bundle?.results_week ?? null} />
+      <div data-card="market">
+        <MarketTodayCard
+          index={marketIndex}
+          mood={marketState?.mood ?? null}
+          history={marketState?.history ?? null}
+          lang={lang}
+        />
       </div>
     </section>
   );

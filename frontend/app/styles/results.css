@@ -77,9 +77,6 @@ a.rs-row:active { background: var(--surface-2); opacity: 0.85; }
 
 .rs-more { display: flex; justify-content: center; margin-top: var(--space-6); }
 
-/* ---- The dashboard's results tile (MarketLinks, 2026-11-04): a thinner split bar ---- */
-.rs-split--thin { height: 6px; max-width: 220px; }
-
 /* ---- Locked-filter preview (free readers) ---- */
 .rs-preview-count { display: flex; align-items: baseline; gap: 8px; }
 .rs-preview-n { font-size: var(--fs-2xl); font-weight: 700; line-height: 1; color: var(--text); font-variant-numeric: tabular-nums; }
