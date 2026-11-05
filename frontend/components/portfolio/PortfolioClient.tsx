@@ -1426,11 +1426,8 @@ export default function PortfolioClient() {
             <span id="pf-premium" className="dash-section block" aria-hidden="true" />
           ) : (
             <PortfolioPromo
-              grade={analysis.grade}
               findings={report.findings}
               promo={report.promo}
-              feePct={settings.fee_pct ?? null}
-              totalValue={summary.totalValue}
               sampleHref={`/sample-portfolio/${SAMPLE_PORTFOLIOS.diversified.slug}`}
             />
           )}

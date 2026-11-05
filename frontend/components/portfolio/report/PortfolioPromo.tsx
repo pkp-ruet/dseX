@@ -2,28 +2,27 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Button from "@/components/ui/Button";
-import PriceAgainst from "@/components/premium/PriceAgainst";
 import {
   IconAlert, IconBell, IconBook, IconBriefcase, IconCalendar, IconCheck, IconCoin, IconCrown, IconGrid,
-  IconList, IconLock, IconNews, IconPlus, IconSun, IconTarget, IconTrendDown, IconTrendUp,
+  IconList, IconNews, IconPlus, IconTarget, IconTrendDown, IconTrendUp,
 } from "@/components/ui/icons";
 import { T } from "@/components/i18n/T";
 import { tx } from "@/components/report/chip";
 import { useAuth } from "@/context/AuthContext";
 import { useLang } from "@/context/LangContext";
 import { isoLocal, todayDhaka } from "@/lib/dividend-dates";
-import { takaGroup } from "@/lib/formatters";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
 import { FROM_MONTH, LOWEST_PRICE } from "@/lib/premium-plans";
 import { savePremiumContext } from "@/lib/premium-context";
 import { trackEvent } from "@/lib/track";
-import type { Grade } from "@/lib/portfolio-analysis";
 import type { PfFinding, PfPromo, PfTaste } from "@/lib/portfolio-report";
-import type { Bi } from "@/lib/stock-report";
 import { PfQuestion } from "./PfReportChapter";
 
 /** Which version of the card a GA event came from (old card = no variant). */
-const VARIANT = "v2";
+const VARIANT = "v3";
+
+/** Findings shown; the rest are counted in one line. */
+const SHOWN = 4;
 
 const ICON: Record<PfFinding["key"], ReactNode> = {
   decide: <IconTarget size={18} />,
@@ -43,40 +42,6 @@ const ICON: Record<PfFinding["key"], ReactNode> = {
   loss: <IconTrendDown size={18} />,
 };
 
-/** A finding in two or three words, for the "+N more" chips. */
-const SHORT: Record<PfFinding["key"], Bi> = {
-  decide: { en: "Shares to decide on", bn: "সিদ্ধান্তের শেয়ার" },
-  warn: { en: "Warnings", bn: "সতর্কসংকেত" },
-  add: { en: "Shares to add", bn: "কেনার মতো শেয়ার" },
-  weak: { en: "Weak companies", bn: "দুর্বল কোম্পানি" },
-  grade: { en: "A higher grade", bn: "গ্রেড বাড়ানো" },
-  spread: { en: "Your spread", bn: "টাকার বণ্টন" },
-  moves: { en: "Your next steps", bn: "পরের পদক্ষেপ" },
-  week: { en: "This week", bn: "এ সপ্তাহে" },
-  paid: { en: "Prices you paid", bn: "কেনার দাম" },
-  cash: { en: "Dividends coming", bn: "আসছে ডিভিডেন্ড" },
-  results: { en: "Results this week", bn: "এ সপ্তাহের ফল" },
-  each: { en: "Each share", bn: "প্রতিটি শেয়ার" },
-  strong: { en: "Strong companies", bn: "শক্তিশালী কোম্পানি" },
-  daily: { en: "Daily check", bn: "প্রতিদিনের যাচাই" },
-  loss: { en: "Shares in a loss", bn: "লোকসানের শেয়ার" },
-};
-
-const ALSO: { icon: ReactNode; text: Bi }[] = [
-  { icon: <IconCheck size={14} />, text: { en: "Checked after every close", bn: "প্রতিদিন বাজার বন্ধের পর যাচাই" } },
-  { icon: <IconSun size={14} />, text: { en: "A brief at 9 AM on market days", bn: "লেনদেনের দিনে সকাল 9টায় ব্রিফ" } },
-  { icon: <IconBell size={14} />, text: { en: "A notification when something changes", bn: "কিছু বদলালে নোটিফিকেশন" } },
-];
-
-const MONTH_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const MONTH_BN = ["জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"];
-
-/** "28 Oct" / "28 অক্টোবর" from an ISO day. */
-const shortDay = (iso: string): Bi => {
-  const [, m, d] = iso.split("-").map(Number);
-  return { en: `${d} ${MONTH_EN[m - 1]}`, bn: `${d} ${MONTH_BN[m - 1]}` };
-};
-
 /** The free answer: one a month per reader, kept in this browser. */
 const TASTE_KEY = (uid: string) => `dsex.pf.taste.${uid}`;
 type TasteUse = { month: string; finding: PfFinding["key"] };
@@ -89,47 +54,28 @@ const readTaste = (uid: string): TasteUse | null => {
   }
 };
 
-const MISSED_DAYS = 4;
-const TOP_FINDINGS = 3;
-
 /**
- * THE Premium card on the portfolio page (`#pf-premium`, 2026-11-02, user:
- * "a single premium promo card which tells what kind of analysis and findings
- * waiting for him"). A free reader sees their money, their shares and the
- * detail tabs; the answer, the chapters and the plan sit behind one gate and
- * this card is where they would be. The grade letter is free (the dashboard
- * shows it too). The watcher's teaser push lands on this id.
+ * THE Premium card on the portfolio page (`#pf-premium`). A free reader sees
+ * their money, their shares and the detail tabs; the answer, the chapters and
+ * the plan sit behind one gate and this card is where they would be. The
+ * watcher's teaser push lands on this id.
  *
- * Enriched 2026-11-04 (user: "how can we enrich portfolio premium promo card
- * so more free user feel urge to buy premium?" → "build all"), from what the
- * page already holds (`report.promo`):
- *  1. what Premium would have told them in the last 30 days, by day (kinds,
- *     dates, taka — never which share);
- *  2. a taka headline — the money in shares marked Sell, with a serious
- *     warning or in weak companies — and the four areas as coloured dots;
- *  3. the price against their own money: the broker fee on one trade, and
- *     the share of what they hold;
- *  4. one answer free a month, on their own shares (`PfQuestion` open);
- *  5. the top three findings as short lines, the rest as chips, and "Premium
- *     shows you" said once;
- *  6. the nearest real date (results or a record date within 7 days).
- * GA events carry `variant: "v2"` to compare with the old card.
+ * Simplified 2026-11-06 (user: "portfolio premium promo card looks
+ * complicated … make it simple, clean and easy to understand"). Four parts,
+ * one job each: a standard headline on what the full check covers (user,
+ * same day: the taka headline was "too specific about one thing"),
+ * what we found (up to four counted findings, never a share name), the price
+ * and one button, and a quiet "try it first" row (a sample portfolio, and one
+ * answer free a month on their own shares). The area dots, the nearest date,
+ * the 30-day timeline, the feature chips and the broker-fee line are gone.
  */
 export default function PortfolioPromo({
-  grade,
   findings,
   promo,
-  feePct,
-  totalValue,
   sampleHref,
 }: {
-  grade: Grade;
   findings: PfFinding[];
   promo: PfPromo;
-  /** The reader's broker fee estimate, % a side (portfolio settings). */
-  feePct: number | null;
-  /** What their shares are worth today. */
-  totalValue: number | null;
   /** A sample portfolio's page: the full check, free. */
   sampleHref: string;
 }) {
@@ -142,11 +88,9 @@ export default function PortfolioPromo({
   const first = (user?.display_name ?? "").trim().split(/\s+/)[0] || "";
   const offer = user?.offer ?? null;
   const href = offer ? "/premium?plan=offer&src=portfolio#pay" : `${PREMIUM_PATH}#pay`;
-  const price = offer ? offer.amount : LOWEST_PRICE;
 
-  const need = promo.areas.filter((t) => t === "bad" || t === "fair").length;
-  const top = findings.slice(0, TOP_FINDINGS);
-  const rest = findings.slice(TOP_FINDINGS);
+  const shown = findings.slice(0, SHOWN);
+  const more = findings.length - shown.length;
 
   useEffect(() => {
     const el = ref.current;
@@ -157,7 +101,6 @@ export default function PortfolioPromo({
         seen.current = true;
         trackEvent("premium_lock_view", {
           area: "portfolio", lock: "pf-promo", state, stakes: findings.length, job: "watch", variant: VARIANT,
-          at_stake: promo.atStake ? 1 : 0, missed: promo.missed.total, soon: promo.soon ? 1 : 0,
         });
         io.disconnect();
       },
@@ -165,25 +108,22 @@ export default function PortfolioPromo({
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [state, findings.length, promo.atStake, promo.missed.total, promo.soon]);
+  }, [state, findings.length]);
 
   const onTap = () => {
     trackEvent("premium_lock_tap", { area: "portfolio", lock: "pf-promo", state, stakes: findings.length, job: "watch", variant: VARIANT });
-    const lead = promo.atStake
-      ? bn
-        ? `আপনার ${takaGroup(promo.atStake.amount)}-এ নজর দেওয়া দরকার`
-        : `${takaGroup(promo.atStake.amount)} of your money needs a look`
-      : null;
     savePremiumContext({
       from: "portfolio",
       label: bn ? "আপনার পোর্টফোলিওর পূর্ণ যাচাই" : "The full check on your portfolio",
-      stakes: [...(lead ? [lead] : []), ...findings.slice(0, lead ? 2 : 3).map((x) => (bn ? x.title.bn : x.title.en))],
+      stakes: findings.slice(0, 3).map((x) => (bn ? x.title.bn : x.title.en)),
     });
   };
 
+  const name = (en: string, bn: string) => ({ en: first ? `${first}, ${en}` : en[0].toUpperCase() + en.slice(1), bn: first ? `${first}, ${bn}` : bn });
+
   return (
-    <section ref={ref} id="pf-premium" className="sp dash-section" aria-labelledby="pfp-t">
-      {/* ── The lead: the money that needs a look, the four areas ── */}
+    <section ref={ref} id="pf-premium" className="sp pfx dash-section" aria-labelledby="pfp-t">
+      {/* ── The headline ── */}
       <div className="sp-top">
         <p className="sp-tag">
           <span className="sp-medal" aria-hidden="true">
@@ -191,135 +131,43 @@ export default function PortfolioPromo({
           </span>
           <T en="Premium · your portfolio check" bn="প্রিমিয়াম · আপনার পোর্টফোলিও যাচাই" />
         </p>
-        {promo.atStake ? (
-          <h2 id="pfp-t" className="spx-stake">
-            <b className="pv">{takaGroup(promo.atStake.amount)}</b>
-            <span>
-              <T
-                en={`${first ? `${first}, this` : "This"} much of your money needs a look.`}
-                bn={`${first ? `${first}, আপনার` : "আপনার"} এতটা টাকায় নজর দেওয়া দরকার।`}
-              />
-            </span>
-          </h2>
-        ) : (
-          <h2 id="pfp-t" className="sp-title">
-            <T
-              en={`${first ? `${first}, your` : "Your"} portfolio gets grade ${grade}. Premium tells you why, and what to do.`}
-              bn={`${first ? `${first}, আপনার` : "আপনার"} পোর্টফোলিওর গ্রেড ${grade}। কেন, আর এখন কী করবেন, তা জানায় প্রিমিয়াম।`}
-            />
-          </h2>
-        )}
-        {promo.atStake && (
-          <p className="sp-lead">
-            <T
-              en={`It sits in ${promo.atStake.shares} of your shares. Premium tells you which, why, and what to do.`}
-              bn={`এটি আপনার ${promo.atStake.shares}টি শেয়ারে। কোনগুলো, কেন, আর কী করবেন, তা জানায় প্রিমিয়াম।`}
-            />
-          </p>
-        )}
-        <div className="spx-areas">
-          <span className="spx-dots" aria-hidden="true">
-            {promo.areas.map((t, i) => (
-              <i key={i} data-tone={t} />
-            ))}
-          </span>
-          <span>
-            {need ? (
-              <T
-                en={`${need} of 4 areas need work · Grade ${grade}`}
-                bn={`4টির মধ্যে ${need}টি দিকে কাজ দরকার · গ্রেড ${grade}`}
-              />
-            ) : (
-              <T en={`All 4 areas look fine today · Grade ${grade}`} bn={`আজ 4টি দিকই ঠিক আছে · গ্রেড ${grade}`} />
-            )}
-          </span>
-        </div>
+        <h2 id="pfp-t" className="sp-title">
+          <T {...name("get the full check on your portfolio.", "আপনার পোর্টফোলিওর পূর্ণ যাচাই দেখুন।")} />
+        </h2>
+        <p className="sp-lead">
+          <T
+            en="We check every share you own: how strong each company is, how your money is spread, the prices you pay, the warnings and what is coming next. Premium shows you what we found, and what to do."
+            bn="আপনার প্রতিটি শেয়ার আমরা যাচাই করি: কোম্পানি কতটা শক্তিশালী, টাকা কীভাবে ভাগ করা, দাম কেমন, কোনো সতর্কসংকেত আছে কি না, আর সামনে কী আসছে। আমরা কী পেয়েছি আর এখন কী করবেন, তা দেখায় প্রিমিয়াম।"
+          />
+        </p>
       </div>
 
-      <div className="sp-body">
-        {/* ── The nearest real date ── */}
-        {promo.soon && (
-          <p className={`spx-soon${promo.soon.en.includes("৳") ? " pv" : ""}`}>
-            <span className="spx-soon-icon" aria-hidden="true">
-              <IconCalendar size={18} />
-            </span>
-            <span>{tx(promo.soon)}</span>
+      {/* ── What we found, counted ── */}
+      {shown.length > 0 && (
+        <div className="sp-body">
+          <p className="sp-k">
+            <T en="What we found in your portfolio" bn="আপনার পোর্টফোলিওতে আমরা যা পেয়েছি" />
           </p>
-        )}
-
-        {/* ── What the check found: three lines, the rest as chips ── */}
-        <p className="sp-k">
-          <T en="What we found in your portfolio" bn="আপনার পোর্টফোলিওতে আমরা যা পেয়েছি" />
-        </p>
-        <ul className="spx-finds">
-          {top.map((x, i) => (
-            <li key={`${x.key}-${i}`}>
-              <span className="sp-icon" aria-hidden="true">{ICON[x.key]}</span>
-              <b>{tx(x.title)}</b>
-            </li>
-          ))}
-        </ul>
-        {rest.length > 0 && (
-          <div className="spx-more">
-            <span className="spx-more-k">
-              <T en={`+${rest.length} more:`} bn={`আরও ${rest.length}টি:`} />
-            </span>
-            {rest.map((x, i) => (
-              <span key={`${x.key}-${i}`} className="spx-chip">{tx(SHORT[x.key])}</span>
+          <ul className="pfx-finds">
+            {shown.map((x, i) => (
+              <li key={`${x.key}-${i}`}>
+                <span className="pfx-icon" aria-hidden="true">{ICON[x.key]}</span>
+                <span>{tx(x.title)}</span>
+              </li>
             ))}
-          </div>
-        )}
-        <p className="spx-shows">
-          <IconLock size={14} />
-          <T en="Premium shows you which shares, why, and what to do." bn="কোন শেয়ার, কেন, আর কী করবেন, তা দেখায় প্রিমিয়াম।" />
-        </p>
-
-        {/* ── What Premium would have told them in the last 30 days ── */}
-        {promo.missed.total > 0 && (
-          <div className="spx-missed">
-            <p className="sp-k">
+          </ul>
+          {more > 0 && (
+            <p className="pfx-more">
               <T
-                en={`In the last 30 days, Premium would have told you ${promo.missed.total} thing${promo.missed.total === 1 ? "" : "s"} about your shares`}
-                bn={`গত 30 দিনে আপনার শেয়ার নিয়ে প্রিমিয়াম আপনাকে ${promo.missed.total}টি বিষয় জানাত`}
+                en={`And ${more} more thing${more === 1 ? "" : "s"} in your full check.`}
+                bn={`আপনার পূর্ণ যাচাইয়ে আরও ${more}টি বিষয় আছে।`}
               />
             </p>
-            <ol className="spx-days">
-              {promo.missed.days.slice(0, MISSED_DAYS).map((d) => {
-                const day = shortDay(d.day);
-                return (
-                  <li key={d.day} data-tone={d.tone}>
-                    <span className="spx-day">
-                      <T en={day.en} bn={day.bn} />
-                    </span>
-                    <span className={d.text.en.includes("৳") ? "pv" : undefined}>{tx(d.text)}</span>
-                  </li>
-                );
-              })}
-            </ol>
-            {promo.missed.days.length > MISSED_DAYS && (
-              <p className="spx-days-more">
-                <T
-                  en={`And ${promo.missed.days.length - MISSED_DAYS} more day${promo.missed.days.length - MISSED_DAYS === 1 ? "" : "s"} with news on your shares.`}
-                  bn={`আপনার শেয়ারে খবর ছিল আরও ${promo.missed.days.length - MISSED_DAYS} দিন।`}
-                />
-              </p>
-            )}
-          </div>
-        )}
+          )}
+        </div>
+      )}
 
-        {/* ── One answer free a month, on their own shares ── */}
-        {user && promo.tastes.length > 0 && <FreeAnswer uid={user.user_id} tastes={promo.tastes} state={state} />}
-
-        <ul className="sp-also">
-          {ALSO.map((a, i) => (
-            <li key={i}>
-              <span aria-hidden="true">{a.icon}</span>
-              <T en={a.text.en} bn={a.text.bn} />
-            </li>
-          ))}
-        </ul>
-      </div>
-
+      {/* ── The price and one button ── */}
       <div className="sp-foot">
         <div className="sp-price">
           {offer ? (
@@ -341,13 +189,6 @@ export default function PortfolioPromo({
               </span>
             </>
           )}
-          <PriceAgainst
-            price={price}
-            feePct={feePct}
-            held={totalValue}
-            minHeld={50_000}
-            of={(a) => ({ en: `the ${a} in your shares`, bn: `আপনার শেয়ারে থাকা ${a}` })}
-          />
         </div>
         <div className="sp-cta">
           <Button href={href} onClick={onTap} size="lg" block>
@@ -357,102 +198,58 @@ export default function PortfolioPromo({
               <T en="Get the full check" bn="পূর্ণ যাচাই নিন" />
             )}
           </Button>
+          <p className="pfx-fine">
+            <T en="bKash, Nagad or bank. Nothing renews by itself." bn="bKash, Nagad বা ব্যাংকে। নিজে থেকে নবায়ন হয় না।" />
+          </p>
         </div>
       </div>
 
-      <p className="sp-fine">
-        <T en="Pay by bKash, Nagad or bank transfer. Nothing renews by itself." bn="bKash, Nagad বা ব্যাংক ট্রান্সফারে টাকা দিতে পারবেন। মেয়াদ শেষে নিজে থেকে নবায়ন হয় না।" />
-      </p>
-
-      {/* The free sample, as its own band and button (2026-11-02). */}
-      <div className="pfp-sample">
-        <span className="pfp-sample-icon" aria-hidden="true">
-          <IconBook size={22} />
-        </span>
-        <span className="pfp-sample-text">
-          <b>
-            <T en="Not sure yet? See the full check on a sample portfolio." bn="এখনো নিশ্চিত নন? একটি নমুনা পোর্টফোলিওতে পূর্ণ যাচাই দেখুন।" />
-          </b>
-          <span>
-            <T en="Every part is open there, free: the answer, all the chapters and the plan." bn="সেখানে সব অংশ খোলা, ফ্রিতে: উত্তর, সব অধ্যায় আর পরিকল্পনা।" />
-          </span>
-        </span>
-        <Button
-          href={sampleHref}
-          variant="quiet"
-          size="lg"
-          className="pfp-sample-btn"
-          onClick={() => trackEvent("premium_sample_tap", { area: "portfolio", state, variant: VARIANT })}
-        >
-          <T en="See a sample check" bn="নমুনা যাচাই দেখুন" /> →
-        </Button>
-      </div>
+      {/* ── Try it first ── */}
+      <TryFirst
+        uid={user?.user_id ?? null}
+        tastes={promo.tastes}
+        sampleHref={sampleHref}
+        state={state}
+      />
     </section>
   );
 }
 
 /**
- * One answer free a month, on the reader's own shares (2026-11-04, user
- * decision "build all" on idea 4 — it bends the 2026-11-02 rule that every
- * answer on this page is Premium, on purpose). The most important finding's
- * question row opens in full once a month; the opened one stays open for the
- * rest of the month. Kept in this browser (a taste, not an entitlement).
+ * "Not sure yet?": a sample portfolio's full check, and one answer free a
+ * month on the reader's own shares (2026-11-04 — it bends the rule that every
+ * answer on this page is Premium, on purpose). The opened answer stays open
+ * for the rest of the Dhaka month, kept in this browser (a taste, not an
+ * entitlement).
  */
-function FreeAnswer({ uid, tastes, state }: { uid: string; tastes: PfTaste[]; state: string }) {
+function TryFirst({
+  uid,
+  tastes,
+  sampleHref,
+  state,
+}: {
+  uid: string | null;
+  tastes: PfTaste[];
+  sampleHref: string;
+  state: string;
+}) {
   const month = isoLocal(todayDhaka()).slice(0, 7);
   const [used, setUsed] = useState<TasteUse | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    if (!uid) return;
     const u = readTaste(uid);
     setUsed(u && u.month === month ? u : null);
     setReady(true);
   }, [uid, month]);
 
-  if (!ready) return null;
-  // The 1st of next month (month index m % 12 is next month's, 0-based).
-  const m = Number(month.slice(5, 7));
-  const next = { en: `1 ${MONTH_EN[m % 12]}`, bn: `1 ${MONTH_BN[m % 12]}` };
-
+  const canTaste = !!uid && ready && tastes.length > 0;
   const open = used ? tastes.find((t) => t.finding === used.finding) ?? null : null;
 
-  if (open) {
-    return (
-      <div className="spx-taste" data-open="true">
-        <p className="spx-taste-k">
-          <T en="Your free answer this month" bn="এ মাসে আপনার ফ্রি উত্তর" />
-        </p>
-        <div className="spx-taste-row">
-          <PfQuestion row={open.row} />
-        </div>
-        <p className="spx-taste-note">
-          <T
-            en={`Every other answer on your shares is in Premium. Your next free answer opens on ${next.en}.`}
-            bn={`আপনার শেয়ারের বাকি সব উত্তর প্রিমিয়ামে। পরের ফ্রি উত্তর খুলবে ${next.bn}।`}
-          />
-        </p>
-      </div>
-    );
-  }
-
-  if (used) {
-    return (
-      <div className="spx-taste">
-        <p className="spx-taste-k">
-          <T en="One answer free a month" bn="মাসে একটি উত্তর ফ্রি" />
-        </p>
-        <p className="spx-taste-note">
-          <T
-            en={`You used this month's free answer. The next one opens on ${next.en}.`}
-            bn={`এ মাসের ফ্রি উত্তরটি দেখে ফেলেছেন। পরেরটি খুলবে ${next.bn}।`}
-          />
-        </p>
-      </div>
-    );
-  }
-
-  const pick = tastes[0];
   const onOpen = () => {
+    if (!uid) return;
+    const pick = tastes[0];
     const u: TasteUse = { month, finding: pick.finding };
     try {
       localStorage.setItem(TASTE_KEY(uid), JSON.stringify(u));
@@ -464,20 +261,38 @@ function FreeAnswer({ uid, tastes, state }: { uid: string; tastes: PfTaste[]; st
   };
 
   return (
-    <div className="spx-taste">
-      <p className="spx-taste-k">
-        <T en="One answer free, on your own shares" bn="আপনার নিজের শেয়ারে একটি উত্তর ফ্রি" />
+    <div className="pfx-try">
+      <p className="pfx-try-k">
+        <T en="Not sure yet? Try it first." bn="এখনো নিশ্চিত নন? আগে দেখে নিন।" />
       </p>
-      <p className="spx-taste-q">{tx(pick.title)}</p>
-      <div className="spx-taste-act">
-        <Button type="button" variant="quiet" size="md" onClick={onOpen}>
-          <T en="Open this answer free" bn="উত্তরটি ফ্রিতে খুলুন" />
+      <div className="pfx-try-acts">
+        <Button
+          href={sampleHref}
+          variant="quiet"
+          size="md"
+          onClick={() => trackEvent("premium_sample_tap", { area: "portfolio", state, variant: VARIANT })}
+        >
+          <T en="See a sample check" bn="নমুনা যাচাই দেখুন" />
         </Button>
-        <span>
-          <T en="1 free answer a month" bn="মাসে 1টি ফ্রি উত্তর" />
-        </span>
+        {canTaste && !used && (
+          <Button type="button" variant="quiet" size="md" onClick={onOpen}>
+            <T en="Open 1 answer free" bn="1টি উত্তর ফ্রিতে খুলুন" />
+          </Button>
+        )}
       </div>
+      {canTaste && !used && (
+        <p className="pfx-try-note">
+          <T en="One free answer a month, on your own shares." bn="মাসে একটি উত্তর ফ্রি, আপনার নিজের শেয়ারে।" />
+        </p>
+      )}
+      {open && (
+        <div className="pfx-taste">
+          <p className="pfx-try-k">
+            <T en="Your free answer this month" bn="এ মাসে আপনার ফ্রি উত্তর" />
+          </p>
+          <PfQuestion row={open.row} />
+        </div>
+      )}
     </div>
   );
 }
-
