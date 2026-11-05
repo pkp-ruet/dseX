@@ -28,7 +28,7 @@
   background: color-mix(in srgb, var(--acc, var(--primary)) 13%, transparent);
 }
 .stock-rank--solid {
-  color: var(--surface);
+  color: var(--on-fill);
   background: var(--acc, var(--primary));
 }
 /* Icon tile in the leading slot (sector glyph, coin, bulb). */

@@ -20,7 +20,7 @@ export default function PriceWord({ word, short = false, className = "" }: Props
   const w = PRICE_WORDS[word];
   const tone =
     word === "very_low"
-      ? "bg-positive text-surface border-positive"
+      ? "bg-positive text-on-fill border-positive"
       : word === "low"
         ? "bg-positive/10 text-positive border-positive/25"
         : "bg-surface-2 text-text-main border-border";

@@ -59,6 +59,7 @@ import ConditionalAnalytics from "@/components/analytics/ConditionalAnalytics";
 import { AuthProvider } from "@/context/AuthContext";
 import { LangProvider } from "@/context/LangContext";
 import { DEFAULT_LANG, LANG_BOOT_SCRIPT } from "@/lib/lang";
+import { THEME_BOOT_SCRIPT, THEME_CHROME } from "@/lib/theme";
 import GoogleAuthProvider from "@/components/auth/GoogleAuthProvider";
 import { T } from "@/components/i18n/T";
 import Toaster from "@/components/ui/Toaster";
@@ -69,10 +70,14 @@ import PushOptInPrompt from "@/components/push/PushOptInPrompt";
 import PushAlertBanner from "@/components/push/PushAlertBanner";
 import InstallPrompt from "@/components/pwa/InstallPrompt";
 
-// Same white as the manifest theme_color so the browser chrome matches the navbar
-// in a normal tab too, not only when installed.
+// The navbar's surface in each mode, so the browser chrome continues it. The
+// media pair is right for readers on auto; the theme boot script rewrites both
+// metas when a reader picked light or dark themselves.
 export const viewport: Viewport = {
-  themeColor: "#FFFFFF",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: THEME_CHROME.light },
+    { media: "(prefers-color-scheme: dark)", color: THEME_CHROME.dark },
+  ],
 };
 
 export const metadata: Metadata = {
@@ -133,11 +138,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang={DEFAULT_LANG}
       data-lang={DEFAULT_LANG}
+      data-theme="light"
       suppressHydrationWarning
       className={`${inter.variable} ${hindSiliguri.variable}`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: LANG_BOOT_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
       </head>
       <body className="min-h-screen flex flex-col">
         <a href="#main" className="skip-link">

@@ -16,7 +16,7 @@ a.rr-eyebrow:hover { text-decoration: underline; text-underline-offset: 3px; }
 .rr-crown {
   width: 24px; height: 24px; border-radius: 50%;
   display: inline-grid; place-items: center;
-  background: var(--gold); color: var(--surface);
+  background: var(--gold); color: var(--on-fill);
 }
 .rr-dateline { margin-top: var(--space-3); font-size: var(--fs-sm); line-height: 1.5; color: var(--text); max-width: 62ch; }
 

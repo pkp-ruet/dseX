@@ -15,7 +15,7 @@
   padding: 0 5px;
   border-radius: 999px;
   background: var(--negative);
-  color: var(--surface);
+  color: var(--on-fill);
   font-size: var(--fs-2xs);
   font-weight: 700;
   line-height: 18px;
@@ -100,7 +100,7 @@ button.nt-row:active { background: var(--surface-2); }
   padding: 1px 7px;
   border-radius: 999px;
   background: var(--primary);
-  color: var(--surface);
+  color: var(--on-fill);
   font-weight: 700;
 }
 .nt-code { font-weight: 700; letter-spacing: 0.02em; }

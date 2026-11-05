@@ -97,7 +97,7 @@ export default function DailyBriefing({ hasWatchlist }: Props) {
         {/* Header: gradient icon · copy · progress count */}
         <div className="flex items-center gap-3">
           <span
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-white"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-on-fill"
             style={{
               background:
                 "linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 66%, var(--text)))",
@@ -193,7 +193,7 @@ export default function DailyBriefing({ hasWatchlist }: Props) {
                   }}
                 >
                   <span
-                    className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-white"
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-on-fill"
                     style={{ background: "var(--positive)" }}
                     aria-hidden
                   >
@@ -230,7 +230,7 @@ export default function DailyBriefing({ hasWatchlist }: Props) {
                   <span className="block text-xs leading-snug text-text-muted">{s.desc}</span>
                 </span>
                 <span
-                  className="shrink-0 inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-bold text-white transition-transform group-hover:translate-x-0.5"
+                  className="shrink-0 inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-bold text-on-fill transition-transform group-hover:translate-x-0.5"
                   style={{ background: "var(--primary)" }}
                 >
                   {s.cta}

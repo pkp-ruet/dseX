@@ -31,7 +31,7 @@
 
   --positive: #047857;      /* emerald — gain / buy (LOCKED market semantic) */
   --negative: #B91C1C;      /* red — loss / sell (LOCKED market semantic; one step deeper than #DC2626 so it clears AA on --surface-2) */
-  --bg: #FAF8F4;            /* warm white canvas (2026-10 redesign, decision 1 — was cream #F6F1E7). Cards lift off it by border + shadow, not by contrast */
+  --bg: #F3F1EC;            /* soft warm canvas (2026-11-06: one step down from #FAF8F4 — a reader found the bright screen tiring; was cream #F6F1E7 before the 2026-10 redesign). Cards lift off it by border + shadow, not by contrast */
   --border: #DED6C3;        /* warm hairline (deepened with the canvas so it still reads) */
   --text: #2E2B26;          /* charcoal ink */
   --text-muted: #2E2B26;    /* = --text since 2026-10-30 (user: "no line should be faded, all clearly visible"): secondary text is told apart by size and weight, never by a lighter colour */
@@ -83,14 +83,14 @@
   --watch: #B45309;            /* burnt-amber warn token (not a tier) */
 
   /* Surfaces */
-  --surface: #FFFFFF;
+  --surface: #FCFBF8;     /* cards — off-white since 2026-11-06 (pure #FFFFFF was the main glare) */
   --surface-2: #EFEADF;   /* inset panel — kept light enough that emerald/red text stay AA on it */
   --cell-rule: #EFE8DA;   /* table cell hairline (lighter than --border) */
 
   /* RGB triplets of the tokens above, so Tailwind opacity modifiers work
      (`bg-primary/10`, `border-border/60`). Keep in step with the hex values. */
-  --bg-rgb: 250 248 244;
-  --surface-rgb: 255 255 255;
+  --bg-rgb: 243 241 236;
+  --surface-rgb: 252 251 248;
   --surface-2-rgb: 239 234 223;
   --border-rgb: 222 214 195;
   --text-rgb: 46 43 38;
@@ -103,6 +103,71 @@
   --positive-rgb: 4 120 87;
   --negative-rgb: 185 28 28;
   --watch-rgb: 180 83 9;
+
+  /* Text and icons drawn ON a coloured fill (clay buttons, green ticks, red
+     badges, gold medals, the chosen tab). White here; near-black in dark mode,
+     where the fills are lighter. Never use --surface for this: on an ink fill
+     (`background: var(--text)`) --surface is right and flips with the theme,
+     on a coloured fill it would turn dark-on-clay in dark mode. */
+  --on-fill: #FFFFFF;
+  color-scheme: light;
+}
+/* ---- Dark mode (2026-11-06, user decision after a reader found the bright
+   screen tiring). `<html data-theme>` is set before first paint by the boot
+   script in lib/theme.ts: the reader's choice (menu → Screen), else the
+   phone's own setting. Same roles as light: warm near-black canvas, softer
+   ink (never pure white), every fill a step lighter so it reads on dark.
+   Up / down stay green / red — lighter shades of the same two colours.
+   Keep every `--x-rgb` triplet in step with its hex. ---- */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --primary: #D38B68;
+  --primary-ink: #E3A585;
+  --primary-soft: #7A4E3A;
+  --navy: #1E2630;          /* footer — a cool panel on the warm canvas */
+  --navy-ink: #2B3644;      /* toast, skip link — lighter than the canvas so they still stand out */
+  --navy-soft: #33404F;
+  --info: #86A8C6;
+  --info-ink: #A3BFD6;
+  --info-soft: #4F6B83;
+  --gold: #D2B676;
+  --gold-ink: #DBC48F;
+  --gold-soft: #6B5B37;
+  --gold-light: #2B251A;
+  --warm: #CBA75C;
+  --warm-soft: #4A3F26;
+  --warm-ink: #DFC383;
+  --positive: #3FBF8E;
+  --negative: #F27D73;
+  --bg: #161412;
+  --border: #3B3630;
+  --text: #ECE5DA;
+  --text-muted: #ECE5DA;    /* = --text, same rule as light: no faded text */
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.30), 0 6px 16px -10px rgba(0, 0, 0, 0.50);
+  --shadow-lift: 0 1px 2px rgba(0, 0, 0, 0.30), 0 22px 48px -16px rgba(0, 0, 0, 0.60);
+  --tier-excellent: #3FBF8E;
+  --tier-good: #8FB0CB;
+  --tier-average: #ABB3BF;
+  --tier-weak: #F27D73;
+  --watch: #E59C4F;
+  --surface: #1F1C19;
+  --surface-2: #2A2622;
+  --cell-rule: #2C2824;
+  --on-fill: #17130F;
+  --bg-rgb: 22 20 18;
+  --surface-rgb: 31 28 25;
+  --surface-2-rgb: 42 38 34;
+  --border-rgb: 59 54 48;
+  --text-rgb: 236 229 218;
+  --text-muted-rgb: 236 229 218;
+  --primary-rgb: 211 139 104;
+  --navy-rgb: 30 38 48;
+  --info-rgb: 134 168 198;
+  --gold-rgb: 210 182 118;
+  --warm-rgb: 203 167 92;
+  --positive-rgb: 63 191 142;
+  --negative-rgb: 242 125 115;
+  --watch-rgb: 229 156 79;
 }
 :root {
   /* Inter (latin subset) carries no Bengali glyphs, so every Bengali character
@@ -260,7 +325,7 @@ html {
   position: absolute;
   inset: 0;
   transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, #fff 60%, transparent), transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--surface) 60%, transparent), transparent);
   animation: skeleton-shimmer 1.4s infinite;
 }
 @keyframes skeleton-shimmer { 100% { transform: translateX(100%); } }
@@ -1204,7 +1269,7 @@ a:hover .ticker-tag,
   height: 34px;
   border-radius: 50%;
   background: var(--primary);
-  color: #fff;
+  color: var(--on-fill);
 }
 @media (max-width: 380px) {
 .mobile-bottom-bar-label {
@@ -1413,8 +1478,8 @@ a:hover .ticker-tag,
   transition: background 0.12s, border-color 0.12s;
 }
 .pa-chip:hover { background: var(--border); }
-.pa-chip--up { color: var(--positive); border-color: rgba(21, 128, 61, 0.3); }
-.pa-chip--down { color: var(--negative); border-color: rgba(220, 38, 38, 0.3); }
+.pa-chip--up { color: var(--positive); border-color: rgb(var(--positive-rgb) / 0.3); }
+.pa-chip--down { color: var(--negative); border-color: rgb(var(--negative-rgb) / 0.3); }
 /* Live "Alert me when…" preview sentence */
 .pa-sentence {
   margin: 0;
@@ -1423,8 +1488,8 @@ a:hover .ticker-tag,
   font-weight: 600;
   line-height: 1.4;
   color: var(--text);
-  background: rgba(180, 83, 9, 0.07);
-  border: 1px solid rgba(180, 83, 9, 0.25);
+  background: rgb(var(--watch-rgb) / 0.07);
+  border: 1px solid rgb(var(--watch-rgb) / 0.25);
   border-radius: var(--radius-sm);
   text-align: center;
 }
@@ -1847,7 +1912,7 @@ a:hover .ticker-tag,
   white-space: nowrap;
   transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.12s;
 }
-.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary { background: var(--primary); color: var(--on-fill); }
 .btn-primary:hover { background: var(--primary-ink); }
 .btn-primary:active { transform: scale(0.98); }
 .btn-quiet { background: var(--surface); color: var(--text); border-color: var(--border); }
@@ -1858,7 +1923,7 @@ a:hover .ticker-tag,
 /* Tab pill (segmented control member): quiet until active */
 .btn-tab { background: transparent; color: var(--text-muted); }
 .btn-tab:hover { color: var(--text); background: var(--surface-2); }
-.btn-tab.is-active { background: var(--primary); color: #fff; }
+.btn-tab.is-active { background: var(--primary); color: var(--on-fill); }
 .btn-primary:disabled, .btn-quiet:disabled, .btn-tab:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
 .btn-primary:focus-visible, .btn-quiet:focus-visible, .btn-link:focus-visible, .btn-tab:focus-visible {
   outline: 2px solid var(--primary);
@@ -2012,7 +2077,7 @@ a:hover .ticker-tag,
   margin-left: 6px; vertical-align: 2px; width: 16px; height: 16px; border-radius: var(--radius-sm);
   font-size: var(--fs-2xs); font-weight: 800; line-height: 1;
 }
-.ms-own--held { color: #fff; background: var(--primary); }
+.ms-own--held { color: var(--on-fill); background: var(--primary); }
 .ms-own--watch { color: var(--warm-ink); background: color-mix(in srgb, var(--warm) 24%, var(--surface)); }
 
 .ms-links { display: flex; flex-wrap: wrap; gap: 4px 18px; }

@@ -111,7 +111,7 @@
   height: 28px;
   border-radius: 50%;
   background: var(--primary);
-  color: var(--surface);
+  color: var(--on-fill);
   font-size: var(--fs-xs);
   font-weight: 700;
   flex-shrink: 0;
@@ -144,7 +144,7 @@
   padding: 0 var(--space-4);
   border-radius: var(--radius-md);
   background: var(--primary);
-  color: var(--surface);
+  color: var(--on-fill);
   font-size: var(--fs-sm);
   font-weight: 600;
   line-height: 1;
@@ -318,7 +318,7 @@
   height: 40px;
   border-radius: 50%;
   background: var(--primary);
-  color: var(--surface);
+  color: var(--on-fill);
   font-size: var(--fs-base);
   font-weight: 700;
   flex-shrink: 0;
@@ -566,7 +566,8 @@
     grid-template-areas:
       "search  search  account"
       "quick   quick   quick"
-      "markets find    learn";
+      "markets find    learn"
+      "theme   theme   theme";
     gap: var(--space-6) var(--space-8);
     align-items: start;
     padding: var(--space-6);
@@ -581,6 +582,12 @@
   .mobile-menu-section[data-group="markets"] { grid-area: markets; }
   .mobile-menu-section[data-group="find"] { grid-area: find; }
   .mobile-menu-section[data-group="learn"] { grid-area: learn; }
+  .theme-switch {
+    grid-area: theme;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border);
+  }
+  .theme-switch-opts { max-width: 28rem; }
 
   /* Quick access: the label, then one row of chips, over a hairline. */
   .mobile-menu-section[data-group="quick"] {
@@ -818,3 +825,66 @@ html[data-lang="bn"] .lang-switch [data-opt="bn"] .lang-switch-pill {
 
 /* A menu item whose main value is Premium (2026-10-29): one small gold crown. */
 .menu-premium { display: inline-flex; margin-left: 6px; vertical-align: 1px; color: var(--gold-ink); }
+
+/* ---- Light / dark switch (2026-11-06, components/layout/ThemeSwitch.tsx) ----
+   In the menu: a label, then three equal options in a hairline frame. The
+   chosen one reads from <html data-theme-pref>, so it is right before React
+   hydrates. In the desktop navbar: one 40px toggle, moon in light mode, sun
+   in dark mode. */
+.theme-switch {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.theme-switch-label {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.theme-switch-opts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+.theme-switch-opts button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.theme-switch-opts button svg { flex: none; }
+.theme-switch-opts button:hover { background: rgb(var(--surface-2-rgb) / 0.6); }
+.theme-switch-opts button:focus-visible { outline: none; box-shadow: var(--ring); }
+html:not([data-theme-pref]) .theme-switch-opts [data-opt="auto"],
+html[data-theme-pref="light"] .theme-switch-opts [data-opt="light"],
+html[data-theme-pref="dark"] .theme-switch-opts [data-opt="dark"],
+html[data-theme-pref="auto"] .theme-switch-opts [data-opt="auto"] {
+  background: var(--surface-2);
+  color: var(--primary-ink);
+}
+.theme-toggle {
+  width: 40px;
+  padding: 0;
+  justify-content: center;
+}
+.theme-toggle-sun { display: none; }
+html[data-theme="dark"] .theme-toggle-moon { display: none; }
+html[data-theme="dark"] .theme-toggle-sun { display: inline-flex; }
+.theme-toggle-moon { display: inline-flex; }

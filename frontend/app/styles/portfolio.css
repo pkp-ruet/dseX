@@ -144,7 +144,7 @@
 .pf-add-dot {
   display: inline-flex; align-items: center; justify-content: center;
   width: 28px; height: 28px; border-radius: 999px; flex-shrink: 0;
-  background: var(--primary); color: var(--surface);
+  background: var(--primary); color: var(--on-fill);
   transition: background-color 0.15s ease;
 }
 .pf-add:hover .pf-add-dot { background: var(--primary-ink); }
@@ -418,7 +418,7 @@ a.pfr-figs-k:active { opacity: 0.7; }
 .pfq-more-hint { font-size: var(--fs-sm); font-weight: 400; line-height: 1.35; color: var(--text); }
 .pfq-more-icon {
   flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
-  background: var(--primary); color: var(--surface);
+  background: var(--primary); color: var(--on-fill);
 }
 .pfq-more-icon svg { transition: transform 0.15s ease; }
 .pfq-more[open] .pfq-more-icon svg { transform: rotate(180deg); }
@@ -522,9 +522,9 @@ a.pfp-hold-name:hover { color: var(--primary-ink); text-decoration: underline; }
 .pfm-tab:hover { background: var(--surface-2); }
 .pfm-tab:active { background: var(--border); }
 .pfm-tab:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-.pfm-tab[data-on="true"] { background: var(--primary); color: var(--surface); box-shadow: var(--shadow-soft); }
+.pfm-tab[data-on="true"] { background: var(--primary); color: var(--on-fill); box-shadow: var(--shadow-soft); }
 .pfm-icon { display: inline-flex; color: var(--primary-ink); }
-.pfm-tab[data-on="true"] .pfm-icon { color: var(--surface); }
+.pfm-tab[data-on="true"] .pfm-icon { color: var(--on-fill); }
 
 /* The free sample as its own band at the foot of the portfolio's Premium
    card (`PortfolioPromo`, 2026-11-02): warm fill, a clay icon, one button. */

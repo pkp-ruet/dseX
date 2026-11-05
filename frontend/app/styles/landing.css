@@ -22,7 +22,7 @@
   font-weight: 700;
   line-height: 1.2;
   white-space: nowrap;
-  color: var(--surface);
+  color: var(--on-fill);
   background: var(--tier-average);
 }
 .lp-word[data-tone="good"] { background: var(--positive); }

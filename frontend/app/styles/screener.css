@@ -154,7 +154,7 @@
   height: 22px;
   border: 2px solid var(--border);
   border-radius: var(--radius-sm);
-  color: var(--surface);
+  color: var(--on-fill);
 }
 .scr-check.is-on { border-color: var(--primary); background: var(--primary); }
 

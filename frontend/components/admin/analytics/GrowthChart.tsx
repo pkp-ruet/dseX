@@ -36,7 +36,7 @@ export default function GrowthChart({ growth }: { growth: AdminGrowthPoint[] }) 
               onClick={() => setRange(r)}
               className={`text-xs font-semibold px-2.5 py-1 rounded-md transition-colors ${
                 range === r
-                  ? "bg-primary text-surface"
+                  ? "bg-primary text-on-fill"
                   : "text-text-muted hover:bg-surface-2"
               }`}
             >

@@ -47,7 +47,7 @@
   white-space: normal; text-align: center; color: var(--text);
 }
 .dc-tabrow > [role="tab"]:hover { background: var(--surface-2); color: var(--text); }
-.dc-tabrow > [role="tab"].is-active { background: var(--primary); color: var(--surface); box-shadow: var(--shadow-soft); }
+.dc-tabrow > [role="tab"].is-active { background: var(--primary); color: var(--on-fill); box-shadow: var(--shadow-soft); }
 .dc-tab-l { display: block; }
 .dc-tab-long { display: none; }
 .dc-tab-n { font-size: var(--fs-2xs); font-weight: 600; line-height: 1.1; font-variant-numeric: tabular-nums; }
@@ -66,7 +66,7 @@
     font-size: var(--fs-2xs); line-height: 1.2;
   }
   .dc-tabrow > [role="tab"].is-active .dc-tab-n {
-    background: color-mix(in srgb, var(--surface) 22%, transparent); color: var(--surface);
+    background: color-mix(in srgb, var(--on-fill) 22%, transparent); color: var(--on-fill);
   }
 }
 .dc-panel { padding-top: var(--space-4); }

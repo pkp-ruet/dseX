@@ -79,7 +79,7 @@ export default function CategoryNav({ categories }: { categories: LearnCategory[
                 aria-current={isActive ? "true" : undefined}
                 className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors ${
                   isActive
-                    ? "border-transparent bg-primary text-white"
+                    ? "border-transparent bg-primary text-on-fill"
                     : "border-border bg-surface text-text-muted hover:border-primary hover:text-primary"
                 }`}
               >
@@ -87,7 +87,7 @@ export default function CategoryNav({ categories }: { categories: LearnCategory[
                 <span>{c.short}</span>
                 <span
                   className={`text-xs font-bold ${
-                    isActive ? "text-white" : "text-text-muted"
+                    isActive ? "text-on-fill" : "text-text-muted"
                   }`}
                 >
                   {c.count}

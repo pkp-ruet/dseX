@@ -103,7 +103,7 @@ export default function StockSectionNav({ sections }: Props) {
             aria-current={isActive ? "true" : undefined}
             className={`stock-chip shrink-0 inline-flex items-center text-xs font-semibold px-3 rounded-full whitespace-nowrap border transition-colors ${
               isActive
-                ? "bg-primary border-primary text-surface"
+                ? "bg-primary border-primary text-on-fill"
                 : "bg-surface-2 border-border text-text-muted hover:text-text-main active:bg-border"
             }`}
           >

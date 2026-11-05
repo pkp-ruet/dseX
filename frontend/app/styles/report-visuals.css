@@ -67,7 +67,7 @@
 
 /* ---- Check dots ------------------------------------------------------ */
 .rv-dots { display: flex; flex-wrap: wrap; gap: 6px; }
-.rv-dots > i { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: var(--fs-2xs); font-weight: 700; color: var(--surface); }
+.rv-dots > i { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: var(--fs-2xs); font-weight: 700; color: var(--on-fill); }
 .rv-dots > i[data-tone="good"] { background: rgb(var(--positive-rgb) / 0.75); }
 .rv-dots > i[data-tone="fair"] { background: var(--watch); }
 .rv-dots > i[data-tone="bad"] { background: var(--negative); }
@@ -120,7 +120,7 @@
 .rv-rank-val { font-weight: 700; color: var(--text); text-align: right; font-variant-numeric: tabular-nums; }
 .rv-rank-dots { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
 .rv-rank-dots > i { width: 12px; height: 12px; border-radius: 50%; background: rgb(var(--text-muted-rgb) / 0.25); font-style: normal; }
-.rv-rank-dots > i[data-me="true"] { width: auto; min-width: 20px; height: 20px; margin-top: -4px; padding: 0 5px; border-radius: 999px; display: grid; place-items: center; background: var(--primary); color: var(--surface); font-size: var(--fs-2xs); font-weight: 700; }
+.rv-rank-dots > i[data-me="true"] { width: auto; min-width: 20px; height: 20px; margin-top: -4px; padding: 0 5px; border-radius: 999px; display: grid; place-items: center; background: var(--primary); color: var(--on-fill); font-size: var(--fs-2xs); font-weight: 700; }
 .rv-rank-bar { position: relative; height: 10px; margin-top: 8px; border-radius: 999px; background: var(--surface-2); }
 .rv-rank-bar > span { position: absolute; top: -4px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 0 2px var(--surface); }
 
@@ -157,7 +157,7 @@
 /* ---- Rating ladder --------------------------------------------------- */
 .rv-ladder { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 3px; }
 .rv-ladder > span { padding: 6px 0; border-radius: 4px; text-align: center; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted); background: var(--surface-2); }
-.rv-ladder > span[data-on="true"] { color: var(--surface); font-weight: 700; }
+.rv-ladder > span[data-on="true"] { color: var(--on-fill); font-weight: 700; }
 .rv-ladder > span[data-on="true"][data-tone="good"] { background: var(--positive); }
 .rv-ladder > span[data-on="true"][data-tone="fair"] { background: var(--watch); }
 .rv-ladder > span[data-on="true"][data-tone="bad"] { background: var(--negative); }
@@ -185,7 +185,7 @@
 .ac-light[data-blocker="true"] { border-width: 2px; }
 .ac-light[data-blocker="true"][data-tone="bad"] { border-color: var(--negative); }
 .ac-light[data-blocker="true"][data-tone="fair"] { border-color: var(--watch); }
-.ac-dot { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; color: var(--surface); font-size: var(--fs-2xs); font-weight: 700; }
+.ac-dot { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; color: var(--on-fill); font-size: var(--fs-2xs); font-weight: 700; }
 .ac-light[data-tone="good"] .ac-dot { background: var(--positive); }
 .ac-light[data-tone="fair"] .ac-dot { background: var(--watch); }
 .ac-light[data-tone="bad"] .ac-dot { background: var(--negative); }
@@ -259,7 +259,7 @@
   display: grid;
   place-items: center;
   background: var(--primary);
-  color: var(--surface);
+  color: var(--on-fill);
 }
 .rq-why-icon svg { transition: transform 0.15s ease; }
 .rq-why[open] .rq-why-icon svg { transform: rotate(180deg); }
@@ -424,7 +424,7 @@
   border-bottom: 1px solid rgb(var(--gold-rgb) / 0.40);
 }
 .sp-tag { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--fs-sm); font-weight: 700; color: var(--gold-ink); }
-.sp-medal { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--gold); color: var(--surface); }
+.sp-medal { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--gold); color: var(--on-fill); }
 .sp-title { margin-top: var(--space-3); font-size: var(--fs-xl); font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; color: var(--text); text-wrap: balance; }
 .sp-lead { margin-top: var(--space-2); max-width: 60ch; font-size: var(--fs-md); line-height: 1.5; color: var(--text); }
 

@@ -187,7 +187,7 @@ th[aria-sort="descending"] .dt-sort-icon { opacity: 1; }
 .dt-pill:hover { color: var(--text); background: var(--surface-2); }
 .dt-pill:active { background: color-mix(in srgb, var(--primary) 12%, transparent); }
 .dt-pill:focus-visible { outline: none; box-shadow: var(--ring); }
-.dt-pill.is-active { background: var(--primary); color: var(--surface); border-color: var(--primary); }
+.dt-pill.is-active { background: var(--primary); color: var(--on-fill); border-color: var(--primary); }
 .dt-count {
   margin-left: auto;
   font-size: var(--fs-2xs);

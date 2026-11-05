@@ -78,7 +78,7 @@
   display: grid;
   place-items: center;
   background: var(--chip-c);
-  color: var(--surface);
+  color: var(--on-fill);
   font-size: var(--fs-2xs);
   font-weight: 700;
 }

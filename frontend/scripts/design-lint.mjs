@@ -7,7 +7,7 @@
  *   - `[var(--x)]` arbitrary colour classes      → use the token utilities (text-text-muted …)
  *   - raw hex colours                             → tokens (OG-image routes exempt)
  *   - Tailwind palette colours (red-500, slate-…) → tokens
- *   - `dark:` variants                            → light-only app
+ *   - `dark:` variants                            → dark mode is token-based (globals.css `:root[data-theme="dark"]`), never a per-class variant
  *   - `text-[…]` font sizes                       → text-xs … text-5xl (12px floor)
  *   - `shadow-[…]` / `rounded-[…]`                → shadow-soft|lift, rounded-sm|md|lg|xl|3xl
  * and app/**\/*.css for raw font-size / border-radius / box-shadow values.

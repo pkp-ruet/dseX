@@ -192,8 +192,8 @@ export default function PriceChart({ code, events = [] }: Props) {
 
   const trend = data.length >= 2 ? data[data.length - 1].ltp - data[0].ltp : 0;
   const lineColor = trend >= 0 ? "var(--positive)" : "var(--negative)";
-  const fillTop   = trend >= 0 ? "rgba(21,128,61,0.18)" : "rgba(220,38,38,0.18)";
-  const fillBottom= trend >= 0 ? "rgba(21,128,61,0.0)"  : "rgba(220,38,38,0.0)";
+  const fillTop   = trend >= 0 ? "rgb(var(--positive-rgb) / 0.18)" : "rgb(var(--negative-rgb) / 0.18)";
+  const fillBottom= trend >= 0 ? "rgb(var(--positive-rgb) / 0)"  : "rgb(var(--negative-rgb) / 0)";
 
   return (
     <Card as="section" padding="none" className="mb-6 p-4 sm:p-6">

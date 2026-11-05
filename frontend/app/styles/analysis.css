@@ -436,6 +436,6 @@ a.cv-medal:active { opacity: 0.85; }
 .room-tab:hover { background: var(--surface-2); }
 .room-tab:active { background: var(--border); }
 .room-tab:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-.room-tab[data-on="true"] { background: var(--primary); color: var(--surface); box-shadow: var(--shadow-soft); }
+.room-tab[data-on="true"] { background: var(--primary); color: var(--on-fill); box-shadow: var(--shadow-soft); }
 .room-icon { display: inline-flex; color: var(--primary-ink); }
-.room-tab[data-on="true"] .room-icon { color: var(--surface); }
+.room-tab[data-on="true"] .room-icon { color: var(--on-fill); }

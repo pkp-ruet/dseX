@@ -681,7 +681,7 @@ details[open] > .pm-fold-summary .pm-fold-chev { transform: rotate(180deg); }
 .ans-medal {
   display: inline-flex; flex: none; align-items: center; justify-content: center;
   width: 44px; height: 44px; border-radius: var(--radius-md);
-  color: var(--surface); background: var(--gold-ink);
+  color: var(--on-fill); background: var(--gold-ink);
   box-shadow: var(--shadow-soft);
 }
 .ans-eyebrow { margin: 0; font-size: var(--fs-xs); font-weight: 700; color: var(--gold-ink); }

@@ -25,6 +25,7 @@ import { userIsPremium } from "@/lib/premium";
 import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
 import LangSwitch from "@/components/layout/LangSwitch";
+import ThemeSwitch, { ThemeToggleButton } from "@/components/layout/ThemeSwitch";
 
 const OPEN_DRAWER_EVENT = "dsex:open-drawer";
 
@@ -326,6 +327,7 @@ export default function Navbar() {
                 </Link>
               </>
             )}
+            <ThemeToggleButton className="ml-1" />
             <LangSwitch className="ml-2" />
           </nav>
 
@@ -461,6 +463,9 @@ export default function Navbar() {
                 </Button>
               </div>
             )}
+
+            {/* Light / dark / like my phone (2026-11-06). */}
+            <ThemeSwitch />
 
             {/* Quick access — the personal pages. Phones: four app-style
                 shortcuts; desktop: one row of chips. */}

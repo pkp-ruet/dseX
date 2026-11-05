@@ -141,7 +141,7 @@ export default function ShareholdingPie({ shareholding, previous = null, ownersh
                       }
                       style={{
                         color: delta > 0 ? "var(--positive)" : "var(--negative)",
-                        background: delta > 0 ? "rgba(21,128,61,0.1)" : "rgba(220,38,38,0.1)",
+                        background: delta > 0 ? "rgb(var(--positive-rgb) / 0.1)" : "rgb(var(--negative-rgb) / 0.1)",
                       }}
                     >
                       {delta > 0 ? "▲" : "▼"} {Math.abs(delta).toFixed(1)}
@@ -161,8 +161,8 @@ export default function ShareholdingPie({ shareholding, previous = null, ownersh
             className="text-sm mt-5 leading-snug font-medium rounded-xl px-3 py-2.5"
             style={{
               color: changeColor,
-              background: change.tone === "positive" ? "rgba(21,128,61,0.07)" : "rgba(180,83,9,0.08)",
-              border: `1px solid ${change.tone === "positive" ? "rgba(21,128,61,0.2)" : "rgba(180,83,9,0.25)"}`,
+              background: change.tone === "positive" ? "rgb(var(--positive-rgb) / 0.07)" : "rgb(var(--watch-rgb) / 0.08)",
+              border: `1px solid ${change.tone === "positive" ? "rgb(var(--positive-rgb) / 0.2)" : "rgb(var(--watch-rgb) / 0.25)"}`,
             }}
           >
             <T en={change.caption.en} bn={change.caption.bn} />

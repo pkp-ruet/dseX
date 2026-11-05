@@ -304,7 +304,7 @@
 .pk-checks-tick {
   flex: none; display: inline-flex; align-items: center; justify-content: center;
   width: 20px; height: 20px; border-radius: 999px;
-  background: var(--positive); color: var(--surface);
+  background: var(--positive); color: var(--on-fill);
 }
 .pk-checks-hint { flex: none; font-size: var(--fs-xs); font-weight: 600; color: var(--primary-ink); }
 .pk-checks-chev { flex: none; color: var(--primary-ink); }

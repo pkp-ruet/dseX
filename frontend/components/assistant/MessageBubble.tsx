@@ -23,7 +23,7 @@ export default function MessageBubble({
       .trim();
     return (
       <div className="flex justify-end">
-        <div className="max-w-[82%] rounded-xl rounded-br-sm bg-primary px-3.5 py-2 text-sm leading-snug text-surface">
+        <div className="max-w-[82%] rounded-xl rounded-br-sm bg-primary px-3.5 py-2 text-sm leading-snug text-on-fill">
           <T en={text} bn={bn} />
         </div>
       </div>
@@ -34,7 +34,7 @@ export default function MessageBubble({
     <div className="flex items-start gap-2">
       <span
         aria-hidden
-        className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold text-surface"
+        className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold text-on-fill"
         style={{ background: "var(--primary)" }}
       >
         {PERSONA.initial}

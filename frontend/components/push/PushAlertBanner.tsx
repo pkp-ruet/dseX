@@ -141,7 +141,7 @@ export default function PushAlertBanner() {
           type="button"
           onClick={enable}
           disabled={busy}
-          className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold text-white transition active:scale-[0.98] disabled:opacity-60"
+          className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold text-on-fill transition active:scale-[0.98] disabled:opacity-60"
           style={{ background: "var(--warm)" }}
         >
           {busy ? <T en="Turning on…" bn="চালু হচ্ছে…" /> : <T en="Turn on" bn="চালু করুন" />}

@@ -69,7 +69,7 @@ export default function InstallHomeBanner() {
           type="button"
           onClick={handle}
           disabled={busy}
-          className="shrink-0 rounded-lg bg-warm px-3 py-1.5 text-xs font-bold text-white transition active:scale-[0.98] disabled:opacity-70"
+          className="shrink-0 rounded-lg bg-warm px-3 py-1.5 text-xs font-bold text-on-fill transition active:scale-[0.98] disabled:opacity-70"
         >
           {ctaLabel}
         </button>

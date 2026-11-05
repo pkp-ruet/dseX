@@ -154,7 +154,7 @@ export default function ProfitsAndDividends({ financials, extFinancials, declara
                 <YAxis hide domain={[(dataMin: number) => Math.min(0, dataMin), 'auto']} />
                 <Tooltip
                   contentStyle={TIP_STYLE}
-                  cursor={{ fill: "rgba(15,23,42,0.05)" }}
+                  cursor={{ fill: "rgb(var(--text-rgb) / 0.05)" }}
                   formatter={(v: number) => [bn ? croreBn(v) : crore(v), bn ? "মুনাফা" : "Profit"]}
                 />
                 <Bar dataKey="profit" radius={[6, 6, 0, 0]}>
@@ -184,7 +184,7 @@ export default function ProfitsAndDividends({ financials, extFinancials, declara
                 <YAxis hide domain={[(dataMin: number) => Math.min(0, dataMin), 'auto']} />
                 <Tooltip
                   contentStyle={TIP_STYLE}
-                  cursor={{ fill: "rgba(15,23,42,0.05)" }}
+                  cursor={{ fill: "rgb(var(--text-rgb) / 0.05)" }}
                   formatter={(v: number) => [fmtEps(v), bn ? "ইপিএস" : "EPS"]}
                 />
                 <Bar dataKey="eps" radius={[6, 6, 0, 0]}>
@@ -229,7 +229,7 @@ export default function ProfitsAndDividends({ financials, extFinancials, declara
                   <YAxis hide domain={[0, 'auto']} />
                   <Tooltip
                     contentStyle={TIP_STYLE}
-                    cursor={{ fill: "rgba(15,23,42,0.05)" }}
+                    cursor={{ fill: "rgb(var(--text-rgb) / 0.05)" }}
                     formatter={(v: number) => [`${v}%`, bn ? "নগদ ডিভিডেন্ড" : "Cash dividend"]}
                   />
                   <Bar dataKey="cash" fill="var(--positive)" radius={[6, 6, 0, 0]}>

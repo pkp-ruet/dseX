@@ -19,7 +19,7 @@ export default function DseTodayPromo() {
       <div className="flex items-center gap-3 p-4 sm:gap-4 sm:p-5">
         {/* Icon badge — a chart trending up */}
         <span
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white shadow-sm sm:h-12 sm:w-12"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-on-fill shadow-sm sm:h-12 sm:w-12"
           style={{ background: "linear-gradient(135deg, var(--primary) 0%, var(--primary-soft) 100%)" }}
           aria-hidden="true"
         >
@@ -58,7 +58,7 @@ export default function DseTodayPromo() {
 
         {/* CTA */}
         <span
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-extrabold text-white transition-all group-hover:gap-2.5 sm:px-4 sm:text-sm"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-extrabold text-on-fill transition-all group-hover:gap-2.5 sm:px-4 sm:text-sm"
           style={{ background: "var(--primary)" }}
         >
           <span className="hidden sm:inline">

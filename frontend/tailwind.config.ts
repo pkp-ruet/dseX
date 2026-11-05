@@ -27,6 +27,9 @@ const config: Config = {
         "cell-rule": "var(--cell-rule)",
         "text-main": rgb("text"),
         "text-muted": rgb("text-muted"),
+        // text / icons on a coloured fill (clay button, green tick): white in
+        // light mode, near-black in dark mode where the fills are lighter
+        "on-fill": "var(--on-fill)",
         // roles
         primary: rgb("primary"),
         "primary-ink": "var(--primary-ink)",
