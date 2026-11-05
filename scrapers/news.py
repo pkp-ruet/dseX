@@ -7,7 +7,6 @@ from scrapers.base_scraper import BaseScraper
 from db.connection import get_db
 from config import DSE_NEWS_URL, NEWS_LOOKBACK_DAYS
 
-_PCT_RE = re.compile(r"(\d+(?:\.\d+)?)%")
 _DATE_FORMATS = [
     "%Y-%m-%d", "%d.%m.%Y", "%B %d, %Y", "%d/%m/%Y", "%d-%b-%Y", "%d %b %Y", "%d %B %Y",
     "%d-%m-%Y", "%B %d %Y", "%d %B, %Y", "%b %d, %Y", "%b %d %Y",
@@ -28,7 +27,6 @@ _AGM_LABEL_RE = re.compile(r"(?:Date\s+of\s+(?:the\s+)?AGM|AGM\s+Date)", re.IGNO
 _PERIOD_END_LABEL_RE = re.compile(
     r"(?:year|period|quarter|half[-\s]year)\s+end(?:ed|ing)(?:\s+on)?", re.IGNORECASE
 )
-_NO_DIVIDEND_RE = re.compile(r"no\s+(?:cash\s+)?dividend", re.IGNORECASE)
 # DSE posts follow-ups under the same "Dividend Declaration" title on the same day
 # — "(Additional Information)", "(Correction of Record Date)", "(Reason for
 # deviation in NOCFPS)". Those bodies carry no dividend figure, so writing them as
@@ -53,17 +51,11 @@ _INCLUDES_INTERIM_RE = re.compile(
 _AMENDMENT_BODY_RE = re.compile(
     r"^\s*(?:refer(?:ring)?\s+to|with\s+reference\s+to)", re.IGNORECASE
 )
-# Both orderings occur: "175% Cash Dividend" and "Cash Dividend of 475%".
-_CASH_RES = (
-    re.compile(r"(\d+(?:\.\d+)?)\s*%\s*(?:final\s+|interim\s+)?cash", re.IGNORECASE),
-    re.compile(r"cash\s+dividend\s*(?:of|@|:|at)?\s*(\d+(?:\.\d+)?)\s*%", re.IGNORECASE),
-)
-_STOCK_RES = (
-    re.compile(r"(\d+(?:\.\d+)?)\s*%\s*(?:stock|bonus)", re.IGNORECASE),
-    re.compile(r"(?:stock|bonus)\s+(?:dividend|share)s?\s*(?:of|@|:|at)?\s*(\d+(?:\.\d+)?)\s*%", re.IGNORECASE),
-)
 
 from utils.dividend_years import is_other_company_dividend  # noqa: E402
+# The body parser lives in utils so the backend can read declarations without
+# importing this scraper (and BeautifulSoup, which Render does not install).
+from utils.dividend_text import parse_dividend_parts  # noqa: E402,F401
 
 logger = logging.getLogger(__name__)
 
@@ -105,46 +97,6 @@ def _parse_labelled_date(text: str, label_re: re.Pattern):
     window = text[m.end(): m.end() + 48]
     token = _DATE_TOKEN_RE.search(window)
     return _parse_date_token(token.group(0)) if token else None
-
-
-def _first_pct(text: str, patterns) -> float | None:
-    """Earliest-in-string match across `patterns`, so a headline figure beats a
-    parenthetical one ("40% Final Cash Dividend (including 18% interim ...)")."""
-    best_pos = None
-    best_val = None
-    for pat in patterns:
-        m = pat.search(text)
-        if m and (best_pos is None or m.start() < best_pos):
-            best_pos = m.start()
-            try:
-                best_val = float(m.group(1))
-            except (TypeError, ValueError):
-                continue
-    return best_val
-
-
-def parse_dividend_parts(body: str) -> tuple[float, float]:
-    """Split a declaration body into (cash %, stock/bonus %) of face value.
-
-    "No dividend" is a real answer (0, 0), not missing data. A bare percentage
-    with no cash/stock wording is read as cash — the old single-figure behaviour.
-    """
-    if not body:
-        return 0.0, 0.0
-
-    cash = _first_pct(body, _CASH_RES)
-    stock = _first_pct(body, _STOCK_RES)
-
-    if _NO_DIVIDEND_RE.search(body):
-        # A plain "No Dividend" is (0, 0). "No cash dividend but 10% stock"
-        # still declares a bonus, so keep the stock leg rather than zeroing both.
-        return 0.0, stock or 0.0
-
-    if cash is None and stock is None:
-        m = _PCT_RE.search(body)
-        cash = float(m.group(1)) if m else 0.0
-
-    return cash or 0.0, stock or 0.0
 
 
 def is_declaration_title(title: str) -> bool:

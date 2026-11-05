@@ -230,7 +230,7 @@ def annual_record(title: str, body: str, post_date=None) -> Optional[dict]:
     stripped = _strip_code(title)
     if (_DIVIDEND_TITLE_RE.search(stripped) and "interim" not in stripped.lower()
             and not re.search(r"\((?:additional|revised|correction)", stripped, re.IGNORECASE)):
-        from scrapers.news import parse_dividend_parts  # local: the scraper module is heavier
+        from utils.dividend_text import parse_dividend_parts  # never scrapers.news: bs4 is not on Render
         cash, stock = parse_dividend_parts(body)
         rec["cash_pct"], rec["stock_pct"] = cash, stock
     return rec
