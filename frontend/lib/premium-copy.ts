@@ -276,10 +276,10 @@ export const GROUPS: Group[] = [
         },
       },
       {
-        name: { en: "All six research lists", bn: "ছয়টি গবেষণা তালিকা পুরোটা" },
+        name: { en: "Six research reports", bn: "ছয়টি গবেষণা প্রতিবেদন" },
         line: {
-          en: "Every share on each list with its fair price range and main risk, side by side, and who joined or left this month.",
-          bn: "প্রতিটি তালিকার সব শেয়ার, ন্যায্য দামের সীমা আর মূল ঝুঁকিসহ, পাশাপাশি, আর এই মাসে কে যোগ হলো বা বাদ পড়ল।",
+          en: "Companies with serious problems, what the auditors found, the results season, who is buying and selling, whether the profit is real, and dividends you can count on.",
+          bn: "গুরুতর সমস্যার কোম্পানি, নিরীক্ষকেরা কী পেয়েছেন, ফলের মৌসুম, কে কিনছে আর কে বেচছে, মুনাফা আসল কি না, আর ভরসার ডিভিডেন্ড।",
         },
       },
       {
@@ -313,10 +313,10 @@ export const GROUPS: Group[] = [
       },
     },
     free: {
-      en: "The top 3 on each research list, every screener filter on public figures, and each share's own dividends on its page.",
-      bn: "প্রতিটি গবেষণা তালিকার প্রথম 3টি, সাধারণ তথ্যের সব স্ক্রিনার ফিল্টার, আর প্রতিটি শেয়ারের নিজের ডিভিডেন্ড তার পেজে।",
+      en: "The key numbers of each research report, every screener filter on public figures, and each share's own dividends on its page.",
+      bn: "প্রতিটি গবেষণা প্রতিবেদনের মূল সংখ্যা, সাধারণ তথ্যের সব স্ক্রিনার ফিল্টার, আর প্রতিটি শেয়ারের নিজের ডিভিডেন্ড তার পেজে।",
     },
-    link: { href: "/stock-insights", label: { en: "See the research lists", bn: "গবেষণা তালিকা দেখুন" } },
+    link: { href: "/stock-insights", label: { en: "See Premium research", bn: "প্রিমিয়াম গবেষণা দেখুন" } },
   },
   {
     key: "limits",
@@ -408,9 +408,9 @@ export const TABLE: { group: GroupKey; rows: { what: Bi; free: Cell; premium: Ce
         premium: { en: "All 10 to 15, with reasons", bn: "10 থেকে 15টিই, কারণসহ" },
       },
       {
-        what: { en: "Research lists", bn: "গবেষণা তালিকা" },
-        free: { en: "Top 3 on each", bn: "প্রতিটির প্রথম 3টি" },
-        premium: { en: "Every share", bn: "সব শেয়ার" },
+        what: { en: "Research reports", bn: "গবেষণা প্রতিবেদন" },
+        free: { en: "The key numbers", bn: "মূল সংখ্যাগুলো" },
+        premium: { en: "Every company, and why", bn: "প্রতিটি কোম্পানি, আর কেন" },
       },
       {
         what: { en: "Stock screener", bn: "স্টক স্ক্রিনার" },

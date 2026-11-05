@@ -7,7 +7,7 @@
  *  - understand: the reasoning on any share (the report's answers, fair value,
  *    what a result or dividend means);
  *  - find: whole lists of shares worth a look (signals, Picked for you,
- *    research lists, the screener on your own terms);
+ *    the research reports, the screener on your own terms);
  *  - watch: your shares checked every day (the watcher, portfolio analysis,
  *    what to buy next, more alerts and portfolios).
  *

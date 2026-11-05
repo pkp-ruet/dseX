@@ -1,5 +1,5 @@
-"""Research lists — the rules (pure), the shareholding order they rely on,
-and the guards added to the old one-number lists."""
+"""The check library (pure, built for the research lists removed 2026-11-05)
+and the shareholding order its facts rely on."""
 from backend.services import research_lists as rl
 from backend.services.db_service import order_shareholdings
 from backend.services.research_lists_service import facts_from
@@ -7,49 +7,42 @@ from backend.services.stock_facts import build_items, ownership_baseline
 
 
 def payer(**over):
-    """A company that passes every Cash-machines check."""
+    """A company that passes every check in `PAYER_LIST`."""
     f = {
         "code": "GOOD", "name": "Good Co", "score": 72.0, "sector_class": "GENERAL", "cat": "A",
         "stale": False, "last_reported_year": 2025, "debt_level": "ok",
         "div_yield_pct": 6.5, "paid_years": 5, "payout_pct": 45.0, "payout_latest_pct": 50.0,
-        "p2_cfo": 8.0, "interim_nocfps": 1.2, "p4_val": 6.0,
+        "p2_cfo": 8.0, "interim_nocfps": 1.2, "p4_val": 6.0, "eps": 4.2,
     }
     f.update(over)
     return f
 
 
-def test_every_list_has_bilingual_checks_and_unique_slugs():
-    assert len(rl.LISTS) == 6
-    assert len({l.slug for l in rl.LISTS}) == 6
-    for lst in rl.LISTS:
-        assert lst.title_bn and lst.idea_bn
-        for c in lst.checks:
-            assert c.label_en and any("ঀ" <= ch <= "৿" for ch in c.label_bn), (lst.id, c.key)
+# A short run of shared checks, the way the recommendation gate builds one.
+PAYER_LIST = rl.ResearchList(
+    id="payer", slug="payer", title_en="Payer", title_bn="দাতা", idea_en="", idea_bn="",
+    checks=[rl.NOT_Z, rl.FRESH, rl.PROFITABLE,
+            rl.Check("cash", "Profit comes in as cash", "মুনাফা নগদে আসে", rl._cash_backed),
+            rl.Check("afford", "Can afford its dividend", "ডিভিডেন্ড দেওয়ার সামর্থ্য আছে", rl._affordable)],
+    rank=lambda f: f.get("div_yield_pct") or 0,
+    headline=lambda f: ("", ""),
+)
 
 
 def test_funnel_counts_shrink_in_order_and_ranks_passers():
     facts = [
         payer(code="A", div_yield_pct=8.0),
         payer(code="B", div_yield_pct=5.0),
-        payer(code="C", paid_years=4),                  # out at "paid every year"
+        payer(code="C", interim_nocfps=-0.5),           # out at "comes in as cash"
         payer(code="D", payout_pct=None),               # dividend out of a loss
         payer(code="E", cat="Z"),                       # out at not_z
         payer(code="F", score=None),                    # unrated: not in the universe
     ]
-    res = rl.run_list(rl.CASH_MACHINES, facts, rl.Ctx())
+    res = rl.run_list(PAYER_LIST, facts, rl.Ctx())
     assert res["universe"] == 5
     lefts = [s["left"] for s in res["funnel"]]
     assert lefts == sorted(lefts, reverse=True)
     assert [f["code"] for f in res["passed"]] == ["A", "B"]
-
-
-def test_first_failure_names_the_check_and_the_figure():
-    en, bn = rl.first_failure(rl.CASH_MACHINES, payer(payout_pct=85.0), rl.Ctx())
-    assert en.startswith("Pays out no more than 70% of its profit")
-    assert "85%" in en and "85%" in bn
-    assert rl.first_failure(rl.CASH_MACHINES, None, rl.Ctx())[0] == "No longer rated"
-    # Passes every check but fell outside the top 20.
-    assert rl.first_failure(rl.CASH_MACHINES, payer(), rl.Ctx())[0] == "Dropped out of the top 20"
 
 
 def test_cash_check_not_applied_to_lenders_but_negative_interim_cash_fails_industrials():
@@ -141,53 +134,3 @@ def test_dash_category_is_not_a_watch_out():
     assert "category_not_a" not in {i["key"] for i in items}
     items = build_items({"score": 70}, [], [], {"market_category": "B"})
     assert "category_not_a" in {i["key"] for i in items}
-
-
-# ---- Old one-number lists --------------------------------------------------
-
-def test_dividend_list_guard():
-    from backend.routers.stock_lists import _safe_dividend
-    ok = {"market_cat": "A", "stale_data": False, "payout_pct": 40.0, "payout_latest_pct": 45.0}
-    assert _safe_dividend(ok)
-    assert not _safe_dividend({**ok, "market_cat": "Z"})
-    assert not _safe_dividend({**ok, "stale_data": True})
-    assert not _safe_dividend({**ok, "payout_pct": None})          # paid out of a loss
-    assert not _safe_dividend({**ok, "payout_latest_pct": 140.0})  # paid more than it earned
-
-
-# --- market page: which list leads ------------------------------------------
-
-def test_market_case_follows_the_mood():
-    assert rl.market_case("up", "cheap") == "rising"
-    assert rl.market_case("steady", "cheap") == "low"
-    assert rl.market_case("down", "normal") == "low"
-    assert rl.market_case("weak", None) == "low"
-    assert rl.market_case("steady", "expensive") == "steady"
-    assert rl.market_case(None, None) == "steady"
-
-
-def test_market_order_leads_with_the_case_list_and_keeps_all_six():
-    passed = {l.id: 5 for l in rl.LISTS}
-    order = rl.market_order("low", passed)
-    assert order[0] == "cheap_not_broken"
-    assert sorted(order) == sorted(l.id for l in rl.LISTS)
-
-
-def test_market_order_skips_an_empty_lead():
-    passed = {l.id: 5 for l in rl.LISTS} | {"profits_rising": 0}
-    order = rl.market_order("rising", passed)
-    assert order[0] == "debt_free_growing"
-    assert "profits_rising" in order and len(order) == 6
-
-
-def test_count_then_prefers_a_month_back():
-    series = [{"date": "2026-09-01", "n": 4}, {"date": "2026-09-20", "n": 7},
-              {"date": "2026-10-20", "n": 9}]
-    assert rl.count_then(series, "2026-10-25") == {"date": "2026-09-20", "n": 7}
-
-
-def test_count_then_falls_back_to_a_week_old_point_then_none():
-    series = [{"date": "2026-10-10", "n": 3}, {"date": "2026-10-24", "n": 5}]
-    assert rl.count_then(series, "2026-10-25") == {"date": "2026-10-10", "n": 3}
-    assert rl.count_then([{"date": "2026-10-24", "n": 5}], "2026-10-25") is None
-    assert rl.count_then([], "2026-10-25") is None

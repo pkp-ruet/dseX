@@ -76,8 +76,8 @@ const ROWS: Row[] = [
   {
     href: "/stock-insights",
     icon: <IconList size={18} />,
-    label: ["Stock lists", "শেয়ারের তালিকা"],
-    sub: ["Dividends, big companies and more", "ডিভিডেন্ড, বড় কোম্পানি আর আরও তালিকা"],
+    label: ["Premium research", "প্রিমিয়াম গবেষণা"],
+    sub: ["Serious problems, auditors and results", "গুরুতর সমস্যা, নিরীক্ষক আর আর্থিক ফল"],
     acc: ACC.navy,
   },
   {

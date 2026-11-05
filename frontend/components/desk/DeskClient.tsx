@@ -255,7 +255,7 @@ function deskQuestions(desk: Desk): PageQuestion[] {
       key: "letter",
       fact: { en: "Your letter has 4 parts", bn: "আপনার চিঠির 4টি অংশ" },
       ask: { en: "What happened in the market, and what is next on your shares?", bn: "বাজারে কী ঘটল, আর সামনে আপনার শেয়ারে কী আসছে?" },
-      hint: { en: "The market in five lines, new names on our lists, next week's dates.", bn: "পাঁচ লাইনে বাজার, তালিকায় নতুন নাম, আগামী সপ্তাহের তারিখ।" },
+      hint: { en: "The market in five lines, serious problems this week, next week's dates.", bn: "পাঁচ লাইনে বাজার, এ সপ্তাহের গুরুতর সমস্যা, আগামী সপ্তাহের তারিখ।" },
     });
   }
   rows.push({

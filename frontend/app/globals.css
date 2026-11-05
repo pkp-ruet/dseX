@@ -1429,63 +1429,6 @@ a:hover .ticker-tag,
   text-align: center;
 }
 .pa-sentence b { font-weight: 800; }
-/* ════════════════════════════════════════════════════════════════════════
-   Editorial Stock Insights — premium, light, plain-language story layout
-   Prefix: .ed-  (used by /stock-insights + /stock-insights/[slug])
-   ════════════════════════════════════════════════════════════════════════ */
-/* Breadcrumb */
-.ed-crumbs {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--fs-sm);
-  color: var(--text-muted);
-  margin-bottom: 28px;
-}
-.ed-crumbs a { color: var(--text-muted); transition: color 0.15s; }
-.ed-crumbs a:hover { color: var(--primary-ink); }
-.ed-crumbs .sep { opacity: 0.5; }
-.ed-crumbs .here { color: var(--text); font-weight: 600; }
-/* Masthead */
-.ed-byline {
-  margin-top: 22px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 16px;
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  color: var(--text-muted);
-}
-.ed-byline .b-item { display: inline-flex; align-items: center; gap: 6px; }
-.ed-byline .b-dot { width: 4px; height: 4px; border-radius: 999px; background: var(--text-muted); opacity: 0.5; }
-.ed-byline .live {
-  color: var(--tier-excellent);
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.ed-byline .live::before {
-  content: "";
-  width: 7px; height: 7px; border-radius: 999px;
-  background: var(--tier-excellent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tier-excellent) 22%, transparent);
-}
-/* Section heading inside the story */
-.ed-section-label {
-  font-family: var(--font-ui);
-  font-size: var(--fs-2xs);
-  font-weight: 700;
-  color: var(--primary-ink);
-  margin: 52px 0 4px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
 /* ===================================================================
    Market page — "the whole market, in plain words" (/market-analysis)
    Bold, vibrant, plain-language. Catchy headers, no finance terms.

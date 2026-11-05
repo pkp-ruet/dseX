@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
-  ApiNotFoundError, getCompanyDetail, getInsightScores, getStockLists, getDividendHistory,
+  ApiNotFoundError, getCompanyDetail, getInsightScores, getDividendHistory,
   type DividendDeclarationRecord,
 } from "@/lib/api";
 import { getTier, TIER_LABELS } from "@/lib/constants";
-import { computeFeaturedIn } from "@/lib/featured-lists";
-import FeaturedInStrip from "@/components/stock/FeaturedInStrip";
 import HeroSection from "@/components/stock/HeroSection";
 import PriceChart from "@/components/stock/PriceChart";
 import ValuationPanel from "@/components/stock/ValuationPanel";
@@ -121,13 +119,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function StockDetailPage({ params }: PageProps) {
   const { code } = await params;
-  // Start the side fetches with the detail rather than after it — they only
-  // need the code, and waiting doubled the page's time on a slow backend. Each
+  // Start the dividend ledger with the detail rather than after it — it only
+  // needs the code, and waiting doubled the page's time on a slow backend. It
   // carries its own .catch, so a 404 below leaves no unhandled rejection.
-  const sideFetches = Promise.all([
-    getStockLists().catch(() => null),
-    getDividendHistory(code.toUpperCase()).catch(() => [] as DividendDeclarationRecord[]),
-  ]);
+  const ledgerFetch = getDividendHistory(code.toUpperCase()).catch(() => [] as DividendDeclarationRecord[]);
   let detail: Awaited<ReturnType<typeof getCompanyDetail>>;
   try {
     detail = await getCompanyDetail(code);
@@ -144,18 +139,9 @@ export default async function StockDetailPage({ params }: PageProps) {
 
   const score = score_row?.score as number | null;
 
-  // Which free stock lists does this stock appear in, plus the full dividend
-  // ledger. Both sources are cached and each is best-effort.
-  let featuredIn: ReturnType<typeof computeFeaturedIn> = [];
-  let dividendRows: DividendDeclarationRecord[] = [];
-  try {
-    const [stockLists, ledger] = await sideFetches;
-    featuredIn = computeFeaturedIn(profile.trading_code, stockLists);
-    dividendRows = Array.isArray(ledger) ? ledger : [];
-  } catch {
-    featuredIn = [];
-    dividendRows = [];
-  }
+  // The full dividend ledger (cached, best-effort).
+  const ledger = await ledgerFetch;
+  const dividendRows: DividendDeclarationRecord[] = Array.isArray(ledger) ? ledger : [];
   const report = detail.report ?? null;
 
   const BASE = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
@@ -381,9 +367,6 @@ export default async function StockDetailPage({ params }: PageProps) {
           body: (
             <div id="numbers" className="stock-anchor">
               <CompanyFacts detail={detail} />
-              <div className="mt-6">
-                <FeaturedInStrip entries={featuredIn} />
-              </div>
             </div>
           ),
         }]

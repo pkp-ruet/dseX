@@ -1,17 +1,18 @@
 """
-Research lists — data side. The rules live in ``research_lists.py`` (pure);
-this module gathers one flat "facts" dict per company from the loaders the
-rest of the app already caches, runs every list, builds the research cards
-for the stocks that pass, and keeps one snapshot per list per trading day in
-``research_list_snapshots`` so the page can say who joined and who left.
+Company facts — data side of the checks in ``research_lists.py`` (pure).
+Gathers one flat "facts" dict per company from the loaders the rest of the
+app already caches; read by the recommendation engine, the screener, saved
+screens and the watchlist / portfolio glance, plus each pick's watch-out
+(`snapshot_risk` / `_risk`) and fair-value range.
 
-Served by ``routers/research_lists.py``. Everything ships to every reader;
-the Premium lock is screen-only, like every other lock in the app.
+The six research lists and their pages, endpoints and daily snapshots
+(`research_list_snapshots`) were removed 2026-11-05 (user decision); the
+check library they were built from stays.
 """
 from __future__ import annotations
 
 import logging
-from datetime import date, datetime, timedelta, timezone
+from datetime import date
 from typing import Optional
 
 from backend.services import research_lists as rl
@@ -31,9 +32,6 @@ from utils.market_hours import bst_today_iso
 from utils.sector import normalize_sector
 
 logger = logging.getLogger(__name__)
-
-SNAPSHOT_COLLECTION = "research_list_snapshots"
-CHANGES_WINDOW_DAYS = 30
 
 # p5_consist (0/4/7/10) -> paying years out of the last five.
 _PAID_YEARS = {10.0: 5, 7.0: 4, 4.0: 3}
@@ -157,178 +155,9 @@ def _ctx() -> rl.Ctx:
                   today=bst_today_iso())
 
 
-@_ttl_cache(900)
-def run_all() -> dict[str, dict]:
-    """{list_id: {universe, funnel, passed (all), codes (top LIST_CAP)}}."""
-    facts = list(build_facts().values())
-    ctx = _ctx()
-    out = {}
-    for lst in rl.LISTS:
-        res = rl.run_list(lst, facts, ctx)
-        res["codes"] = [f["code"] for f in res["passed"][:rl.LIST_CAP]]
-        out[lst.id] = res
-    return out
-
-
-# ---------------------------------------------------------------------------
-# Snapshots (who joined / who left)
-# ---------------------------------------------------------------------------
-
-def _snapshots():
-    col = get_db()[SNAPSHOT_COLLECTION]
-    try:
-        col.create_index([("list_id", 1), ("date", 1)], unique=True, name="list_date")
-    except Exception:  # noqa: BLE001 — index already there under another spec
-        pass
-    return col
-
-
-def store_snapshots(day: Optional[str] = None) -> dict:
-    """Upsert today's members of every list. Idempotent per trading day; the
-    daily job calls it after the scores are recomputed."""
-    day = day or bst_today_iso()
-    runs = run_all()
-    col = _snapshots()
-    now = datetime.now(timezone.utc)
-    for lst in rl.LISTS:
-        res = runs.get(lst.id) or {}
-        col.update_one(
-            {"list_id": lst.id, "date": day},
-            {"$set": {"codes": res.get("codes", []), "passed": len(res.get("passed", [])),
-                      "computed_at": now}},
-            upsert=True,
-        )
-    return {"date": day, "lists": len(rl.LISTS)}
-
-
-def _baseline(list_id: str, today: str) -> Optional[dict]:
-    """The snapshot to compare against: the latest one at least a month old,
-    else the oldest one before today (the list is younger than a month)."""
-    col = get_db()[SNAPSHOT_COLLECTION]
-    cutoff = (date.fromisoformat(today) - timedelta(days=CHANGES_WINDOW_DAYS)).isoformat()
-    doc = col.find_one({"list_id": list_id, "date": {"$lte": cutoff}}, sort=[("date", -1)])
-    if doc:
-        return doc
-    return col.find_one({"list_id": list_id, "date": {"$lt": today}}, sort=[("date", 1)])
-
-
-@_ttl_cache(900)
-def pass_history(days: int = 365) -> dict[str, list[dict]]:
-    """{list_id: [{date, n}]} — how many companies passed each list on every
-    stored trading day, oldest first. Feeds the market page's "Bargains" chart
-    and its "was N a month ago" lines."""
-    cutoff = (date.fromisoformat(bst_today_iso()) - timedelta(days=days)).isoformat()
-    out: dict[str, list[dict]] = {l.id: [] for l in rl.LISTS}
-    docs = get_db()[SNAPSHOT_COLLECTION].find(
-        {"date": {"$gte": cutoff}}, {"_id": 0, "list_id": 1, "date": 1, "passed": 1},
-    ).sort("date", 1)
-    for d in docs:
-        if d.get("list_id") in out and d.get("passed") is not None:
-            out[d["list_id"]].append({"date": d["date"], "n": int(d["passed"])})
-    return out
-
-
-def _first_tracked(list_id: str) -> Optional[str]:
-    doc = get_db()[SNAPSHOT_COLLECTION].find_one({"list_id": list_id}, sort=[("date", 1)])
-    return doc.get("date") if doc else None
-
-
-def changes_for(lst: rl.ResearchList, codes_now: list[str], facts: dict[str, dict],
-                ctx: rl.Ctx) -> dict:
-    today = bst_today_iso()
-    try:
-        base = _baseline(lst.id, today)
-        tracked = _first_tracked(lst.id)
-    except Exception:  # noqa: BLE001
-        logger.exception("research lists: snapshot read failed")
-        base, tracked = None, None
-    if not base:
-        return {"since": None, "tracking_since": tracked, "joined": [], "left": []}
-    joined, left = rl.diff_codes(base.get("codes") or [], codes_now)
-
-    def name(code):
-        return (facts.get(code) or {}).get("name") or code
-
-    out_left = []
-    for code in left:
-        en, bn = rl.first_failure(lst, facts.get(code), ctx)
-        out_left.append({"code": code, "name": name(code), "reason_en": en, "reason_bn": bn})
-    return {
-        "since": base.get("date"),
-        "tracking_since": tracked,
-        "joined": [{"code": c, "name": name(c)} for c in joined],
-        "left": out_left,
-    }
-
-
-# ---------------------------------------------------------------------------
-# Responses
-# ---------------------------------------------------------------------------
-
 def _as_of() -> Optional[str]:
     dates = [p.get("date") for p in load_latest_prices().values() if p.get("date")]
     return max(dates) if dates else None
-
-
-def list_index() -> list[dict]:
-    """Every list with its pass count and today's top three — each with its
-    price and the list's key number (the first comparison column). Feeds the
-    /stock-insights hub and the homepage rail (`/api/user/home`). The page
-    decides who sees the names: Premium readers only."""
-    runs = run_all()
-    facts = build_facts()
-    out = []
-    for lst in rl.LISTS:
-        res = runs.get(lst.id) or {}
-        key = lst.columns[0] if lst.columns else None
-        top = []
-        for c in res.get("codes", [])[:3]:
-            f = facts.get(c) or {}
-            top.append({
-                "code": c, "name": f.get("name") or c,
-                "price": _n(f.get("ltp")), "change_pct": _n(f.get("change_pct")),
-                "metric": _n(f.get(key.key)) if key else None,
-            })
-        out.append({
-            "id": lst.id, "slug": lst.slug,
-            "title_en": lst.title_en, "title_bn": lst.title_bn,
-            "idea_en": lst.idea_en, "idea_bn": lst.idea_bn,
-            "universe": res.get("universe", 0),
-            "passed": len(res.get("passed", [])),
-            "checks": len(lst.checks),
-            "metric": ({"key": key.key, "label_en": key.label_en, "label_bn": key.label_bn, "fmt": key.fmt}
-                       if key else None),
-            "top": top,
-        })
-    return out
-
-
-def market_lists(tone: Optional[str], value_band: Optional[str], today: Optional[str]) -> dict:
-    """The six lists for the market-state bundle, the one that fits today's market
-    first. Each row is a `list_index()` row plus `codes` (today's top
-    LIST_CAP, so the page can count the reader's own stocks) and `then` (the
-    pass count about a month ago). Names are screen-locked by the page."""
-    rows = {r["id"]: r for r in list_index()}
-    runs = run_all()
-    try:
-        hist = pass_history()
-    except Exception:  # noqa: BLE001 — the "was N" line is optional
-        logger.exception("research lists: pass history failed")
-        hist = {}
-    case = rl.market_case(tone, value_band)
-    order = rl.market_order(case, {i: r["passed"] for i, r in rows.items()})
-    reason_en, reason_bn = rl.MARKET_REASON[case]
-    lists = []
-    for lid in order:
-        if lid not in rows:
-            continue
-        lists.append({
-            **rows[lid],
-            "codes": (runs.get(lid) or {}).get("codes", []),
-            "then": rl.count_then(hist.get(lid) or [], today) if today else None,
-        })
-    return {"case": case, "lead": order[0], "reason_en": reason_en, "reason_bn": reason_bn,
-            "lists": lists, "history": hist}
 
 
 def snapshot_risk(snap: Optional[dict]) -> Optional[dict]:
@@ -389,71 +218,3 @@ def _fair_value(code: str) -> Optional[dict]:
     if not fv:
         return None
     return {k: fv.get(k) for k in ("low", "high", "center", "today", "stance", "estimates_disagree")}
-
-
-def _card(lst: rl.ResearchList, f: dict, rank: int, ctx: rl.Ctx, signals: dict,
-          report_codes: set[str], snaps: Optional[dict] = None) -> dict:
-    head_en, head_bn = lst.headline(f)
-    sig = signals.get(f["code"]) or {}
-    q = None
-    if _n(f.get("interim_eps_yoy_pct")) is not None:
-        q = {"label_en": f.get("interim_label_en"), "label_bn": f.get("interim_label_bn"),
-             "eps_yoy_pct": _n(f.get("interim_eps_yoy_pct")), "q_yoy_pct": _n(f.get("interim_q_yoy_pct"))}
-    owners = None
-    # No sponsor group (government-owned) → nothing to say about owners.
-    if _n(f.get("sponsor_delta")) is not None and (_n(f.get("sponsor_now")) or 0) > 0:
-        owners = {"prev": f.get("sponsor_prev"), "now": f.get("sponsor_now"),
-                  "delta": f.get("sponsor_delta"), "since": f.get("sh_prev_date"), "date": f.get("sh_date")}
-    return {
-        "rank": rank,
-        "code": f["code"], "name": f.get("name"), "sector": f.get("sector"),
-        "price": _n(f.get("ltp")), "change_pct": _n(f.get("change_pct")),
-        "score": _n(f.get("score")),
-        "signal": sig.get("signal") or "none", "strength": sig.get("strength"),
-        "headline_en": head_en, "headline_bn": head_bn,
-        "checks": rl.check_values(lst, f, ctx),
-        "risk": _risk(f, snaps),
-        "fair_value": _fair_value(f["code"]),
-        "quarter": q,
-        "owners": owners,
-        "cash_per_10k": f.get("cash_per_10k"),
-        "has_report": f["code"] in report_codes,
-        "metrics": {c.key: _n(f.get(c.key)) for c in lst.columns},
-    }
-
-
-@_ttl_cache(900)
-def get_list(slug: str) -> Optional[dict]:
-    lst = rl.BY_SLUG.get(slug)
-    if not lst:
-        return None
-    from backend.services.signal_service import build_signals
-    from backend.services.deep_analysis_service import list_report_codes
-
-    facts = build_facts()
-    res = run_all().get(lst.id) or {"universe": 0, "funnel": [], "passed": [], "codes": []}
-    ctx = _ctx()
-    try:
-        signals = build_signals()
-    except Exception:  # noqa: BLE001
-        signals = {}
-    try:
-        reports = set(list_report_codes())
-    except Exception:  # noqa: BLE001
-        reports = set()
-
-    passed = res["passed"][:rl.LIST_CAP]
-    snaps = report_snapshots([f["code"] for f in passed])
-    return {
-        "id": lst.id, "slug": lst.slug,
-        "title_en": lst.title_en, "title_bn": lst.title_bn,
-        "idea_en": lst.idea_en, "idea_bn": lst.idea_bn,
-        "as_of": _as_of(),
-        "universe": res["universe"],
-        "funnel": res["funnel"],
-        "passed": len(res["passed"]),
-        "columns": [{"key": c.key, "label_en": c.label_en, "label_bn": c.label_bn, "fmt": c.fmt}
-                    for c in lst.columns],
-        "stocks": [_card(lst, f, i + 1, ctx, signals, reports, snaps) for i, f in enumerate(passed)],
-        "changes": changes_for(lst, res["codes"], facts, ctx),
-    }

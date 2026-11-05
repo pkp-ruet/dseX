@@ -29,7 +29,7 @@ def _sector_bn(name: str) -> str:
 
 def _one_year_returns() -> dict[str, float]:
     try:
-        from backend.routers.stock_lists import _one_year_returns as rets
+        from backend.services.returns import one_year_returns as rets
         return rets(get_db(), load_latest_prices())
     except Exception:  # noqa: BLE001 — the 1-year filter just has no figures
         logger.exception("screener: 1-year returns failed")

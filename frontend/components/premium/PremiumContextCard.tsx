@@ -12,8 +12,12 @@ const FROM: Record<string, { en: string; bn: string }> = {
   stock: { en: "From the share page", bn: "শেয়ারের পেজ থেকে" },
   "stock-analysis": { en: "From the in-depth report", bn: "বিস্তারিত রিপোর্ট থেকে" },
   "dividend-calendar": { en: "From the dividend calendar", bn: "ডিভিডেন্ড ক্যালেন্ডার থেকে" },
-  "stock-insights": { en: "From the research lists", bn: "গবেষণা তালিকা থেকে" },
-  "home-research": { en: "From the research lists on your homepage", bn: "হোমপেজের গবেষণা তালিকা থেকে" },
+  "research-risks": { en: "From companies with serious problems", bn: "গুরুতর সমস্যার কোম্পানি থেকে" },
+  "research-auditors": { en: "From what the auditors found", bn: "নিরীক্ষকেরা কী পেয়েছেন, সেখান থেকে" },
+  "research-season": { en: "From the results season report", bn: "ফলের মৌসুমের প্রতিবেদন থেকে" },
+  "research-owners": { en: "From who is buying, who is selling", bn: "কে কিনছে, কে বেচছে, সেখান থেকে" },
+  "research-quality": { en: "From is the profit real?", bn: "মুনাফা কি আসল, সেখান থেকে" },
+  "research-dividends": { en: "From dividends you can count on", bn: "ভরসার ডিভিডেন্ড থেকে" },
 };
 
 /**

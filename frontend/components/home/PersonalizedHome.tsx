@@ -33,7 +33,6 @@ import DeskCard from "@/components/home/personalized/DeskCard";
 import PullToRefresh from "@/components/home/personalized/PullToRefresh";
 import StoriesRow from "@/components/home/personalized/StoriesRow";
 import MarketTodayCard from "@/components/home/personalized/MarketTodayCard";
-import ResearchRail from "@/components/home/personalized/ResearchRail";
 import DiscoverRail from "@/components/home/personalized/DiscoverRail";
 import ScreenerCard from "@/components/home/personalized/ScreenerCard";
 import ForYouCard from "@/components/home/personalized/ForYouCard";
@@ -309,8 +308,8 @@ export default function PersonalizedHome() {
   //    2026-11-01 — a free reader's tiles are locked; user decision
   //    2026-10-27, replacing the old random "picked for you" opener removed
   //    2026-10-26), then the screener card (ready-made screens + top
-  //    three), ONE swipe rail for top ranked / trending, and
-  //    the research lists. Different kinds of block, so they get more air
+  //    three) and ONE swipe rail for top ranked / trending (the research
+  //    lists' rail was removed 2026-11-05). Different kinds of block, so they get more air
   //    between them than the other chapters' card pairs. ──
   const ideasChapter = (
     <section id="ideas" className="dash-section space-y-5">
@@ -348,9 +347,6 @@ export default function PersonalizedHome() {
             watched={watchedSet}
             lang={lang}
           />
-        </div>
-        <div data-card="research-lists">
-          <ResearchRail lists={bundle?.research_lists} held={heldSet} watched={watchedSet} lang={lang} />
         </div>
       </div>
     </section>

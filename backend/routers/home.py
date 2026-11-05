@@ -32,7 +32,6 @@ from backend.services.auth_service import get_user_watchlist, get_user_watchlist
 from backend.services.corporate_actions_service import build_dividend_calendar
 from backend.services import custom_lists_service
 from backend.services import screener_service
-from backend.services.research_lists_service import list_index
 from backend.services.rank_today_service import week_rank_moves
 from backend.services.db_service import load_ex_day_moves
 from backend.services.results_explainer import results_for, results_summary
@@ -123,9 +122,6 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
     movers = _safe("movers", load_market_movers, None)
 
     top20 = _safe("top20", lambda: ((compute_top20() or {}).get("items") or [])[:TOP20_LIMIT], [])
-    # The six research lists (homepage rail): names for Premium readers, the
-    # counts alone in the promotion card for everyone else — the page decides.
-    research_lists = _safe("research_lists", list_index, [])
     # This week's rank change for every company (the ranking card's pills).
     rank_moves = _safe("rank_moves", week_rank_moves, None)
     # The screener card: the ready-made screens (count + top three, all free)
@@ -178,7 +174,6 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
         "movers": movers,
         "top20": top20,
         "calendar": calendar,
-        "research_lists": research_lists,
         "rank_moves": rank_moves,
         "new_results": new_results,
         "results_week": results_week,

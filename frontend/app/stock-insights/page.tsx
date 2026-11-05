@@ -1,34 +1,30 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { STOCK_LISTS, type StockListsResponse } from "@/lib/stock-lists";
-import { RESEARCH_LISTS } from "@/lib/research-lists";
-import { getResearchLists, type ResearchListSummary } from "@/lib/api";
+import { getResearchSummary } from "@/lib/api";
+import { REPORTS, type ReportSlug, type ResearchSummary } from "@/lib/research-reports";
 import PageHeader from "@/components/ui/PageHeader";
-import Chip from "@/components/ui/Chip";
 import { T } from "@/components/i18n/T";
-import { Txt } from "@/components/research/ResearchText";
-import { IconLock } from "@/components/ui/icons";
+import { IconAlert, IconArrowRight, IconBriefcase, IconChartBars, IconCheckCircle, IconCoin, IconCrown, IconNews } from "@/components/ui/icons";
 
 export const revalidate = 3600;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
-const TITLE = "DSE Stock Lists — Research Lists and Rankings";
+const TITLE = "DSE Research: Risks, Owners, Profit Quality and Dividends";
 const DESCRIPTION =
-  "Six research lists that test every Dhaka Stock Exchange company against plain checks — dividends they can afford, cheap quality, rising profits, debt-free growth — plus four free rankings: top dividend yield, largest companies, most traded and best 1-year return.";
+  "Research on the whole Dhaka Stock Exchange: companies with serious problems, what the auditors found, the results season, who is buying and selling, whether profit turns into cash, and dividends you can count on.";
 
 export const metadata: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
   keywords: [
-    "DSE stock lists",
-    "best stocks Bangladesh",
-    "Dhaka Stock Exchange research",
-    "dividend stocks Bangladesh",
-    "undervalued stocks DSE",
-    "debt free companies Bangladesh",
-    "largest companies DSE",
-    "most traded stocks DSE",
+    "DSE research",
+    "Dhaka Stock Exchange analysis",
+    "DSE risky companies",
+    "DSE auditor qualified opinion",
+    "DSE results season",
+    "DSE going concern",
+    "Bangladesh company accounts",
   ],
   alternates: { canonical: `${BASE_URL}/stock-insights` },
   openGraph: {
@@ -52,146 +48,145 @@ const jsonLd = [
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
-      { "@type": "ListItem", position: 2, name: "Stock Lists", item: `${BASE_URL}/stock-insights` },
+      { "@type": "ListItem", position: 2, name: "Premium research", item: `${BASE_URL}/stock-insights` },
     ],
   },
 ];
 
-/** What each free ranking is sorted on, in plain words. */
-const FREE_COPY: Record<keyof StockListsResponse, { en: string; bn: string }> = {
-  top_dividend: {
-    en: "Ranked by cash dividend yield",
-    bn: "নগদ ডিভিডেন্ড ইল্ড অনুযায়ী সাজানো",
-  },
-  top_market_cap: {
-    en: "Ranked by total market value",
-    bn: "মোট বাজার মূলধন অনুযায়ী সাজানো",
-  },
-  top_volume: {
-    en: "Ranked by the money traded on the last trading day",
-    bn: "শেষ কার্যদিবসে কত টাকার লেনদেন হয়েছে, সেই অনুযায়ী সাজানো",
-  },
-  top_52w_return: {
-    en: "Ranked by price change over a year",
-    bn: "এক বছরে দামের পরিবর্তন অনুযায়ী সাজানো",
-  },
+const REPORT_ICON: Record<ReportSlug, typeof IconAlert> = {
+  "risk-register": IconAlert,
+  "auditor-warnings": IconNews,
+  "results-season": IconChartBars,
+  "who-is-buying": IconBriefcase,
+  "is-the-profit-real": IconCheckCircle,
+  "dividends-you-can-count-on": IconCoin,
 };
 
+/** The one figure under each report card, from /api/research/summary. */
+function reportFigure(slug: ReportSlug, s: ResearchSummary | null): { en: string; bn: string } | null {
+  if (!s) return null;
+  if (slug === "risk-register" && s.risks)
+    return {
+      en: `${s.risks.flagged} of ${s.risks.universe} companies have a serious problem today`,
+      bn: `আজ ${s.risks.universe}টির মধ্যে ${s.risks.flagged}টি কোম্পানির গুরুতর সমস্যা আছে`,
+    };
+  if (slug === "auditor-warnings" && s.auditors)
+    return {
+      en: `${s.auditors.companies} companies' accounts not fully approved, ${s.auditors.counts.going_concern} with doubt they can keep going`,
+      bn: `${s.auditors.companies}টি কোম্পানির হিসাব পুরোপুরি অনুমোদিত হয়নি, ${s.auditors.counts.going_concern}টির টিকে থাকা নিয়ে সন্দেহ`,
+    };
+  if (slug === "who-is-buying" && s.owners)
+    return {
+      en: `${s.owners.trade_buyers} companies' owners bought and ${s.owners.trade_sellers} sold this year; institutions moved in ${s.owners.inst_in} last month`,
+      bn: `এ বছর ${s.owners.trade_buyers}টি কোম্পানির মালিকেরা কিনেছেন, ${s.owners.trade_sellers}টির বেচেছেন; গত মাসে প্রতিষ্ঠান ঢুকেছে ${s.owners.inst_in}টিতে`,
+    };
+  if (slug === "is-the-profit-real" && s.quality) {
+    const paper = s.quality.counts.paper + s.quality.counts.none;
+    return {
+      en: `${s.quality.counts.backed} companies' profit is backed by cash; ${paper} show profit that mostly stayed on paper`,
+      bn: `${s.quality.counts.backed}টি কোম্পানির মুনাফা নগদে সমর্থিত; ${paper}টির মুনাফা বেশির ভাগই কাগজে`,
+    };
+  }
+  if (slug === "dividends-you-can-count-on" && s.dividends)
+    return {
+      en: `${s.dividends.every_year} paid cash every year for 5 years; ${s.dividends.at_risk} dividends look at risk`,
+      bn: `${s.dividends.every_year}টি টানা 5 বছর নগদ দিয়েছে; ${s.dividends.at_risk}টির ডিভিডেন্ড ঝুঁকিতে`,
+    };
+  if (slug === "results-season" && s.season)
+    return {
+      en: `${s.season.reported} reports so far: ${s.season.counts.up} made more profit`,
+      bn: `এখন পর্যন্ত ${s.season.reported}টি ফল: ${s.season.counts.up}টির মুনাফা বেড়েছে`,
+    };
+  return null;
+}
+
 /**
- * The stock-lists hub: ten lists, two kinds. Six research lists (the top
- * three of each free since 2026-10-29, named on each card; the rest Premium)
- * and four free rankings.
+ * The research hub (redone 2026-11-05, user: the six lists "are not premium
+ * standards", build "more analytical and depth reports", "change the whole
+ * view to a more clean and premium"). The six research lists and the four
+ * free rankings were removed the same day (user decision); their URLs 301 to
+ * this hub or to the screener's ready-made screens.
  */
 export default async function StockInsightsPage() {
-  const research = await getResearchLists().catch(() => null);
-  const live = new Map<string, ResearchListSummary>((research?.lists ?? []).map((l) => [l.slug, l]));
+  const summary = await getResearchSummary().catch(() => null);
 
   return (
-    <div className="page-narrow">
+    <div className="rr-hub">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <PageHeader
-        eyebrow={<T en="Stock lists" bn="শেয়ারের তালিকা" />}
-        title={<T en="Stock lists for the DSE" bn="ডিএসইর শেয়ারের তালিকা" />}
+        eyebrow={
+          <span className="rr-eyebrow">
+            <span className="rr-crown" aria-hidden="true">
+              <IconCrown size={14} />
+            </span>
+            <T en="Premium research" bn="প্রিমিয়াম গবেষণা" />
+          </span>
+        }
+        title={<T en="Our research on the DSE" bn="ডিএসই নিয়ে আমাদের গবেষণা" />}
         lead={
           <T
-            en="Six research lists that do the research for you, and four free rankings of the plain facts."
-            bn="ছয়টি গবেষণা তালিকা, যেগুলো আপনার হয়ে খুঁটিয়ে দেখে, আর সহজ তথ্যের চারটি ফ্রি র‍্যাঙ্কিং।"
+            en="Six reports where we check every company for you, in plain words."
+            bn="ছয়টি প্রতিবেদন, যেখানে আমরা আপনার হয়ে প্রতিটি কোম্পানি যাচাই করি, সহজ ভাষায়।"
           />
         }
       />
 
-      {/* Research lists: top three free, the rest Premium */}
-      <section id="research" className="rl-hub-section" aria-labelledby="rl-hub-research">
-        <div className="rl-hub-head">
-          <h2 id="rl-hub-research" className="rl-hub-h2">
-            <T en="Research lists" bn="গবেষণা তালিকা" />
+      {/* ── Reports ── */}
+      <section className="rr-shelf" aria-labelledby="rr-shelf-reports">
+        <div className="rr-shelf-head">
+          <h2 id="rr-shelf-reports" className="rr-h2">
+            <T en="Reports" bn="প্রতিবেদন" />
           </h2>
-          <Chip tone="info" icon={<IconLock size={12} />}>
-            <T en="Top 3 free · the rest in Premium" bn="শীর্ষ 3টি ফ্রি · বাকিটা প্রিমিয়ামে" />
-          </Chip>
+          <p className="rr-lead">
+            <T en="Updated after every close." bn="প্রতিদিন বাজার বন্ধের পর হালনাগাদ।" />
+          </p>
         </div>
-        <p className="rl-hub-lead">
-          <T
-            en="Each list tests one idea in the open. Every rated company goes through the same plain checks, and every share that passes gets a research card with its own numbers and the one thing that could go wrong."
-            bn="প্রতিটি তালিকা একটি ধারণা খোলাখুলি যাচাই করে। রেটিং পাওয়া প্রতিটি কোম্পানি একই সহজ যাচাইয়ের মধ্য দিয়ে যায়, আর যে শেয়ার পাস করে, তার জন্য থাকে একটি গবেষণা কার্ড: তার নিজের সংখ্যা আর যে একটি বিষয়ে ঝুঁকি আছে।"
-          />
-        </p>
-        <div className="rl-hub">
-          {RESEARCH_LISTS.map((def) => {
-            const l = live.get(def.slug);
+        <div className="rr-reports">
+          {REPORTS.map((r) => {
+            const Icon = REPORT_ICON[r.slug];
+            const fig = reportFigure(r.slug, summary);
             return (
-              <Link key={def.slug} prefetch={false} href={`/stock-insights/${def.slug}`} className="soft-card rl-hub-card">
-                <h3 className="rl-hub-title">
-                  <T en={def.shortName} bn={def.shortNameBn} />
-                </h3>
-                <Txt as="p" className="rl-hub-idea" en={def.hook} bn={def.hookBn} />
-                {l && (
-                  <div className="rl-hub-foot">
-                    <span className="rl-hub-num nums">{l.passed}</span>
-                    <Txt
-                      className="rl-hub-of"
-                      en={`pass all ${l.checks} checks, out of ${l.universe} companies`}
-                      bn={`কোম্পানি ${l.checks}টি যাচাইয়েই পাস করেছে, মোট ${l.universe}টির মধ্যে`}
-                    />
-                  </div>
+              <Link key={r.slug} href={`/stock-insights/${r.slug}`} prefetch={false} className="rr-report">
+                <span className="rr-report-top">
+                  <span className="rr-report-icon" aria-hidden="true">
+                    <Icon size={20} />
+                  </span>
+                  <span className="rr-badge">
+                    <IconCrown size={12} />
+                    <T en="Premium" bn="প্রিমিয়াম" />
+                  </span>
+                </span>
+                <span className="rr-report-t">
+                  <T en={r.title.en} bn={r.title.bn} />
+                </span>
+                <span className="rr-report-q">
+                  <T en={r.question.en} bn={r.question.bn} />
+                </span>
+                {fig && (
+                  <span className="rr-report-fig">
+                    <T en={fig.en} bn={fig.bn} />
+                  </span>
                 )}
-                {l && l.top.length > 0 && (
-                  <p className="m-0 mt-2 text-sm text-text-muted">
-                    <T en="Top today: " bn="আজ শীর্ষে: " />
-                    <span className="font-semibold text-text-main">{l.top.map((s) => s.code).join(" · ")}</span>
-                  </p>
-                )}
+                <span className="rr-report-go">
+                  <T en="Read the report" bn="প্রতিবেদন পড়ুন" />
+                  <IconArrowRight size={16} />
+                </span>
               </Link>
             );
           })}
-          <Link prefetch={false} href="/screener" className="soft-card rl-hub-card">
-            <h3 className="rl-hub-title">
-              <T en="Filter every share in the screener" bn="স্ক্রিনারে সব শেয়ার ফিল্টার করুন" />
-            </h3>
-            <Txt
-              as="p"
-              className="rl-hub-idea"
-              en="Set your own filters on price, P/E, dividend, profit, size, loans and sector. Free, every share."
-              bn="দাম, পিই, ডিভিডেন্ড, মুনাফা, আকার, ঋণ আর সেক্টর দিয়ে নিজের ফিল্টার দিন। ফ্রি, সব শেয়ার।"
-            />
-          </Link>
         </div>
       </section>
 
-      {/* Free rankings */}
-      <section className="rl-hub-section" aria-labelledby="rl-hub-free">
-        <div className="rl-hub-head">
-          <h2 id="rl-hub-free" className="rl-hub-h2">
-            <T en="Free rankings" bn="ফ্রি র‍্যাঙ্কিং" />
-          </h2>
-        </div>
-        <p className="rl-hub-lead">
-          <T
-            en="The top 20 on one plain number, refreshed every trading day. Each is a starting point, not a verdict on the company."
-            bn="একটি সহজ সংখ্যার ভিত্তিতে সেরা 20টি, প্রতি কার্যদিবসে হালনাগাদ। এটি শুরু করার জায়গা, কোম্পানি নিয়ে রায় নয়।"
-          />
-        </p>
-        <div className="rl-hub">
-          {STOCK_LISTS.map((list) => (
-            <Link key={list.slug} prefetch={false} href={`/stock-insights/${list.slug}`} className="soft-card rl-hub-card">
-              <h3 className="rl-hub-title">
-                <T en={list.shortName} bn={list.shortNameBn} />
-              </h3>
-              <Txt as="p" className="rl-hub-idea" en={FREE_COPY[list.apiKey].en} bn={FREE_COPY[list.apiKey].bn} />
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <div className="ed-nav">
-        <Link href="/dsestockranking" className="btn-primary">
-          <T en="See the full rankings" bn="পুরো র‍্যাঙ্কিং দেখুন" />
+      <p className="rr-hub-foot">
+        <T
+          en="Looking for a list of shares instead? The free screener has ready-made screens: high dividend, biggest companies, most traded and more."
+          bn="শেয়ারের তালিকা খুঁজছেন? ফ্রি স্ক্রিনারে তৈরি করা স্ক্রিন আছে: বেশি ডিভিডেন্ড, সবচেয়ে বড় কোম্পানি, সবচেয়ে বেশি লেনদেন আর আরও।"
+        />{" "}
+        <Link href="/screener" prefetch={false} className="rr-hub-link">
+          <T en="Open the screener" bn="স্ক্রিনার খুলুন" />
         </Link>
-        <Link href="/" className="btn-quiet">
-          <T en="Back to home" bn="হোমে ফিরুন" />
-        </Link>
-      </div>
+      </p>
     </div>
   );
 }

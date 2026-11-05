@@ -1,7 +1,5 @@
 /*
- * The one pillar colour scale. The prose helpers for the free stock lists
- * moved into `lib/stock-lists.ts` (`classicLede` / `classicLine`, both
- * languages) on 2026-10-28.
+ * The one pillar colour scale.
  */
 
 // ── Pillar colour ─────────────────────────────────────────────────────────────

@@ -49,21 +49,31 @@ def test_market_part_keeps_to_five_lines():
     assert lines[4]["en"] == "73 of 362 companies are mostly strong or better, 3 more than a week ago."
 
 
-def test_new_on_lists_needs_a_baseline():
-    joined = wl.new_on_lists({"a": ["GP", "ACI"], "b": ["X"]}, {"a": ["GP"]})
-    assert joined == {"a": ["ACI"]}
+def _risk_row(code, key="loans"):
+    return {"code": code, "key": key, "date": "2026-11-04",
+            "title": {"en": "Loans bigger than the company", "bn": "কোম্পানির চেয়ে বড় ঋণ"}}
 
 
-def test_lists_part_names_the_readers_own():
-    lists = [{"id": "a", "slug": "a-list", "title_en": "Pays cash every year", "title_bn": "ক"}]
-    part = wl.lists_part({"a": ["ACI", "GP"]}, lists, {"GP"})
-    assert part["lines"][1]["en"] == "Pays cash every year: ACI, GP. GP is one of yours."
-    assert part["lines"][1]["url"] == "/stock-insights/a-list"
+def test_risks_part_counts_the_market_and_names_the_readers_own():
+    week = {"added": [_risk_row("GP"), _risk_row("ACI"), _risk_row("ACI", "stale")], "fixed": [_risk_row("BXP")]}
+    part = wl.risks_part(week, {"GP", "ACI", "ZZZ"}, {"GP"}, {"GP": "Grameenphone"})
+    assert part["key"] == "risks"
+    assert part["lines"][0]["en"] == "2 companies picked up a serious problem this week, and 1 got rid of one."
+    assert part["lines"][1]["en"] == "Grameenphone: Loans bigger than the company (new this week)."
+    assert part["lines"][1]["tone"] == "bad"
+    assert part["lines"][-1]["en"] == "1 of your shares is on the list today: GP."
 
 
-def test_lists_part_without_history_says_so():
-    part = wl.lists_part({}, [], set(), tracked=False)
-    assert "next Friday" in part["lines"][0]["en"]
+def test_risks_part_quiet_week_and_no_shares_on_it():
+    part = wl.risks_part({"added": [], "fixed": []}, {"ZZZ"}, {"GP"}, {})
+    assert [ln["en"] for ln in part["lines"]] == [
+        "No company picked up or got rid of a serious problem this week.",
+        "None of your shares is on the list today."]
+
+
+def test_risks_part_without_the_register():
+    part = wl.risks_part(None, set(), {"GP"}, {})
+    assert len(part["lines"]) == 1 and part["lines"][0]["url"] == "/stock-insights/risk-register"
 
 
 def test_dates_part_keeps_next_week_on_the_readers_shares():

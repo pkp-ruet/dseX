@@ -91,11 +91,11 @@ const PAGES: PageShortcut[] = [
   },
   {
     href: "/stock-insights",
-    label: "Stock lists",
-    labelBn: "শেয়ারের তালিকা",
-    sub: "Dividends, big companies and more",
-    subBn: "ডিভিডেন্ড, বড় কোম্পানি আর আরও তালিকা",
-    keys: ["list", "lists", "insights", "তালিকা"],
+    label: "Premium research",
+    labelBn: "প্রিমিয়াম গবেষণা",
+    sub: "Serious problems, auditors, results season, lists",
+    subBn: "গুরুতর সমস্যা, নিরীক্ষক, ফলের মৌসুম, তালিকা",
+    keys: ["list", "lists", "insights", "research", "risk", "auditor", "qualified", "going concern", "results season", "তালিকা", "গবেষণা", "ঝুঁকি", "নিরীক্ষক"],
   },
   {
     href: "/watchlist",

@@ -37,25 +37,27 @@ const nextConfig: NextConfig = {
         destination: "/dse-trending-stocks",
         permanent: true,
       },
-      {
-        // Retired 2026-10-24: same market-cap data as largest-companies-dse, stale year in the title.
-        source: "/stock-insights/top-stocks-bangladesh-2025",
-        destination: "/stock-insights/largest-companies-dse",
-        permanent: true,
-      },
-      {
-        source: "/stock-lists/top-stocks-bangladesh-2025",
-        destination: "/stock-insights/largest-companies-dse",
-        permanent: true,
-      },
-      // Retired 2026-10-24: twelve overlapping lists cut to 4 free rankings + 6
-      // Premium research lists. Each old URL goes to the closest page left.
+      // Every stock list is gone: twelve retired 2026-10-24, then the four free
+      // rankings and the six research lists on 2026-11-05 (user decision, the
+      // hub became Premium research). Each old URL goes to the closest page
+      // left: a screener ready-made screen, a sector, the ranking or the hub.
       ...([
+        ["top-stocks-bangladesh-2025", "/screener?ready=biggest"],
+        ["largest-companies-dse", "/screener?ready=biggest"],
+        ["top-dividend-stocks-bangladesh", "/screener?ready=high_dividend"],
+        ["most-traded-stocks-dse", "/screener?ready=most_traded"],
+        ["top-performing-stocks-dse", "/screener?sort=ret_1y&dir=desc"],
+        ["dividend-cash-machines-dse", "/screener?ready=a_payers"],
+        ["cheap-quality-stocks-dse", "/screener?ready=low_pe"],
+        ["profits-rising-stocks-dse", "/screener?ready=profit_up"],
+        ["debt-free-growth-stocks-dse", "/screener?ready=no_loans"],
+        ["fallen-strong-stocks-dse", "/screener?ready=near_low"],
+        ["sponsors-buying-stocks-dse", "/stock-insights"],
         ["highest-eps-stocks-bangladesh", "/stock-insights"],
-        ["most-profitable-companies-bangladesh", "/stock-insights/largest-companies-dse"],
-        ["best-growth-stocks-bangladesh", "/stock-insights/profits-rising-stocks-dse"],
-        ["high-growth-stocks-2026", "/stock-insights/profits-rising-stocks-dse"],
-        ["undervalued-stocks-2026", "/stock-insights/cheap-quality-stocks-dse"],
+        ["most-profitable-companies-bangladesh", "/screener?ready=biggest"],
+        ["best-growth-stocks-bangladesh", "/screener?ready=profit_up"],
+        ["high-growth-stocks-2026", "/screener?ready=profit_up"],
+        ["undervalued-stocks-2026", "/screener?ready=low_pe"],
         ["best-bank-stocks-bangladesh", "/sector/bank"],
         ["best-bank-stocks-2026", "/sector/bank"],
         ["best-pharma-stocks-bangladesh", "/sector/pharmaceuticals-and-chemicals"],
@@ -89,11 +91,6 @@ const nextConfig: NextConfig = {
       // saved-list push's ?list= still opens it.
       { source: "/stock-recommendation", destination: "/screener", permanent: true },
       { source: "/my-lists", destination: "/screener?tab=saved", permanent: true },
-      {
-        source: "/stock-lists/:slug*",
-        destination: "/stock-insights/:slug*",
-        permanent: true,
-      },
       {
         source: "/stock-lists",
         destination: "/stock-insights",

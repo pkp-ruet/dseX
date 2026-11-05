@@ -21,7 +21,7 @@ const GROUPS: Record<HubGroup, { title: Pair; links: HubLink[] }> = {
     title: { en: "More ways to find a stock", bn: "শেয়ার খোঁজার আরও উপায়" },
     links: [
       { href: "/stocks", label: { en: "All stocks", bn: "সব শেয়ার" }, sub: { en: "The full A–Z list", bn: "A থেকে Z পুরো তালিকা" } },
-      { href: "/stock-insights", label: { en: "Stock lists", bn: "শেয়ারের তালিকা" }, sub: { en: "Ready-made lists", bn: "তৈরি করা তালিকা" } },
+      { href: "/stock-insights", label: { en: "Premium research", bn: "প্রিমিয়াম গবেষণা" }, sub: { en: "Risks, auditors and results", bn: "ঝুঁকি, নিরীক্ষক আর আর্থিক ফল" } },
       { href: "/screener", label: { en: "Stock screener", bn: "স্টক স্ক্রিনার" }, sub: { en: "Find stocks that fit what you want", bn: "আপনার চাওয়া অনুযায়ী শেয়ার খুঁজুন" } },
       { href: "/dse-trending-stocks", label: { en: "Trending stocks", bn: "আলোচিত শেয়ার" }, sub: { en: "This week's biggest movers", bn: "এ সপ্তাহে যেগুলোর দাম বেশি নড়েছে" } },
       { href: "/dse-popular-stocks", label: { en: "Popular stocks", bn: "জনপ্রিয় শেয়ার" }, sub: { en: "The most traded today", bn: "আজ সবচেয়ে বেশি লেনদেন হয়েছে" } },

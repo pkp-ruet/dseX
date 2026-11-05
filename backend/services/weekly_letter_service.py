@@ -93,25 +93,6 @@ def _closes(codes: set[str], week: str, today: date) -> tuple[dict[str, float], 
     return out_then, {c: v for c, (_d, v) in now.items()}
 
 
-def _list_news(week: str) -> tuple[dict[str, list[str]], list[dict], bool]:
-    """({list_id: joined codes}, list meta in display order, whether any list
-    had a snapshot from before the week to compare with)."""
-    from backend.services import research_lists as rl
-
-    col = get_db()["research_list_snapshots"]
-    latest, before = {}, {}
-    for lst in rl.LISTS:
-        new = col.find_one({"list_id": lst.id}, {"_id": 0, "codes": 1, "date": 1}, sort=[("date", -1)])
-        old = col.find_one({"list_id": lst.id, "date": {"$lt": week}}, {"_id": 0, "codes": 1},
-                           sort=[("date", -1)])
-        if new and new.get("date", "") >= week:
-            latest[lst.id] = new.get("codes") or []
-            if old is not None:
-                before[lst.id] = old.get("codes") or []
-    meta = [{"id": l.id, "slug": l.slug, "title_en": l.title_en, "title_bn": l.title_bn} for l in rl.LISTS]
-    return wl.new_on_lists(latest, before), meta, bool(before)
-
-
 def _shared(week: str, today: date, codes: set[str]) -> dict:
     """Everything every letter reads, loaded once."""
     from backend.services.corporate_actions_service import build_dividend_calendar
@@ -119,8 +100,8 @@ def _shared(week: str, today: date, codes: set[str]) -> dict:
     from backend.services.market_state_service import compute_market_state
     from backend.services.morning_brief_service import results_calendar
 
-    out: dict = {"moves": {}, "market": None, "joined": {}, "lists": [], "meetings": [],
-                 "record": [], "names": {}, "tracked": True}
+    out: dict = {"moves": {}, "market": None, "risk_week": None, "risk_codes": set(), "meetings": [],
+                 "record": [], "names": {}}
     try:
         then, now = _closes(codes, week, today)
         out["moves"] = wl.week_moves(then, now)
@@ -132,9 +113,12 @@ def _shared(week: str, today: date, codes: set[str]) -> dict:
         log.warning("market part failed", exc_info=True)
         out["market"] = wl.market_part(None)
     try:
-        out["joined"], out["lists"], out["tracked"] = _list_news(week)
+        from backend.services.research_reports_service import risk_register
+        reg = risk_register()
+        out["risk_week"] = reg.get("week")
+        out["risk_codes"] = {i["code"] for i in reg.get("items") or []}
     except Exception:  # noqa: BLE001
-        log.warning("research list news failed", exc_info=True)
+        log.warning("risk register failed", exc_info=True)
     try:
         out["meetings"] = results_calendar(codes).get("meetings") or []
     except Exception:  # noqa: BLE001
@@ -164,7 +148,7 @@ def letter_for(u: dict, week: str, today: date, shared: dict) -> dict:
     parts = [
         wl.shares_part(held, watched, shared["moves"], week_digest, shared["names"]),
         shared["market"] or wl.market_part(None),
-        wl.lists_part(shared["joined"], shared["lists"], mine, shared["tracked"]),
+        wl.risks_part(shared["risk_week"], shared["risk_codes"], mine, shared["names"]),
         wl.dates_part(mine, held, shared["meetings"], shared["record"], today),
     ]
     return wl.build_letter(week, parts)
@@ -197,8 +181,8 @@ def _email_html(letter: dict, lang: str, user_id: str, premium: bool) -> tuple[s
             f'<table role="presentation" width="100%" style="border-collapse:collapse">{rows}</table>'
         )
     if not premium:
-        more = ("আরও 3টি অংশ আপনার ডেস্কে: পাঁচ লাইনে বাজার, গবেষণা তালিকায় নতুন নাম, আর আগামী সপ্তাহে আপনার শেয়ার।"
-                if bn else "3 more parts are on your Desk: the market in five lines, new names on our research lists, and next week on your shares.")
+        more = ("আরও 3টি অংশ আপনার ডেস্কে: পাঁচ লাইনে বাজার, এ সপ্তাহের গুরুতর সমস্যা, আর আগামী সপ্তাহে আপনার শেয়ার।"
+                if bn else "3 more parts are on your Desk: the market in five lines, serious problems this week, and next week on your shares.")
         blocks.append(f'<p style="font-size:14px;color:#2E2B26;margin:16px 0 0">{more}</p>')
     button = "আপনার ডেস্ক খুলুন" if bn else "Open your Desk"
     unsub = "ইমেইল বন্ধ করুন" if bn else "Stop these emails"

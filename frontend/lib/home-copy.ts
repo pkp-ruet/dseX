@@ -122,7 +122,6 @@ const COPY = {
 
   // Lists rail
   // Research lists (homepage rail — the top three of each list, for every reader)
-  researchTitle: ["Research lists", "গবেষণা তালিকা"],
   researchSub: [
     "Six ideas, each tested on every company with the same plain checks.",
     "ছয়টি ধারণা, প্রতিটি কোম্পানিকে একই সহজ যাচাইয়ে পরীক্ষা করা।",

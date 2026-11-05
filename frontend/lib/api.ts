@@ -1,4 +1,13 @@
 import type { TierKey } from "@/lib/constants";
+import type {
+  AuditorTracker,
+  DividendReliability,
+  EarningsQuality,
+  OwnersReport,
+  ResearchSummary,
+  ResultsSeason,
+  RiskRegister,
+} from "@/lib/research-reports";
 import type { StockReport } from "@/lib/stock-report";
 
 /**
@@ -1196,112 +1205,35 @@ export async function getTodaysNews(revalidate = 900): Promise<DseTodayNewsItem[
   return apiFetch<DseTodayNewsItem[]>("/api/news/today", revalidate);
 }
 
-export async function getStockLists(): Promise<import("@/lib/stock-lists").StockListsResponse> {
-  return apiFetch("/api/stock-lists", 86400);
+// ---- Premium research reports (2026-11-05) ----
+
+export async function getResearchSummary(): Promise<ResearchSummary> {
+  return apiFetch("/api/research/summary", 3600);
 }
 
-// ── Research lists (Premium; backend services/research_lists.py) ─────────────
-
-export interface ResearchFunnelStep {
-  key: string;
-  label_en: string;
-  label_bn: string;
-  /** Companies still in after this check. */
-  left: number;
+export async function getRiskRegister(): Promise<RiskRegister> {
+  return apiFetch("/api/research/risks", 3600);
 }
 
-export interface ResearchCheck {
-  key: string;
-  label_en: string;
-  label_bn: string;
-  ok: boolean;
-  /** This company's own figure on the check. */
-  value_en: string;
-  value_bn: string;
+export async function getAuditorTracker(): Promise<AuditorTracker> {
+  return apiFetch("/api/research/auditors", 3600);
 }
 
-export interface ResearchColumn {
-  key: string;
-  label_en: string;
-  label_bn: string;
-  fmt: "pct" | "x" | "pp" | "score" | "num" | "taka";
+export async function getOwnersReport(): Promise<OwnersReport> {
+  return apiFetch("/api/research/owners", 3600);
 }
 
-export interface ResearchStock {
-  rank: number;
-  code: string;
-  name: string | null;
-  sector: string | null;
-  price: number | null;
-  change_pct: number | null;
-  score: number | null;
-  signal: "buy" | "sell" | "none";
-  strength: "strong" | "normal" | null;
-  headline_en: string;
-  headline_bn: string;
-  checks: ResearchCheck[];
-  risk: { en: string; bn: string; more: number } | null;
-  fair_value: {
-    low: number | null;
-    high: number | null;
-    center: number | null;
-    today: number | null;
-    stance: string | null;
-    estimates_disagree: boolean | null;
-  } | null;
-  quarter: { label_en: string | null; label_bn: string | null; eps_yoy_pct: number | null; q_yoy_pct: number | null } | null;
-  owners: { prev: number | null; now: number | null; delta: number | null; since: string | null; date: string | null } | null;
-  cash_per_10k: number | null;
-  has_report: boolean;
-  metrics: Record<string, number | null>;
+export async function getEarningsQuality(): Promise<EarningsQuality> {
+  return apiFetch("/api/research/earnings-quality", 3600);
 }
 
-export interface ResearchChanges {
-  /** Snapshot date compared against; null until the list has history. */
-  since: string | null;
-  tracking_since: string | null;
-  joined: { code: string; name: string | null }[];
-  left: { code: string; name: string | null; reason_en: string; reason_bn: string }[];
+export async function getDividendReliability(): Promise<DividendReliability> {
+  return apiFetch("/api/research/dividends", 3600);
 }
 
-export interface ResearchListDetail {
-  id: string;
-  slug: string;
-  title_en: string;
-  title_bn: string;
-  idea_en: string;
-  idea_bn: string;
-  as_of: string | null;
-  universe: number;
-  funnel: ResearchFunnelStep[];
-  passed: number;
-  columns: ResearchColumn[];
-  stocks: ResearchStock[];
-  changes: ResearchChanges;
-}
-
-export interface ResearchListSummary {
-  id: string;
-  slug: string;
-  title_en: string;
-  title_bn: string;
-  idea_en: string;
-  idea_bn: string;
-  universe: number;
-  passed: number;
-  checks: number;
-  /** The list's key number (its first comparison column) — what `top[].metric` is. */
-  metric: ResearchColumn | null;
-  /** Today's top three. Premium readers see these; the page shows free readers counts only. */
-  top: { code: string; name: string | null; price?: number | null; change_pct?: number | null; metric?: number | null }[];
-}
-
-export async function getResearchLists(): Promise<{ lists: ResearchListSummary[] }> {
-  return apiFetch("/api/research-lists", 3600);
-}
-
-export async function getResearchList(slug: string): Promise<ResearchListDetail> {
-  return apiFetch(`/api/research-lists/${encodeURIComponent(slug)}`, 3600);
+export async function getResultsSeason(season?: string): Promise<ResultsSeason> {
+  const q = season ? `?season=${encodeURIComponent(season)}` : "";
+  return apiFetch(`/api/research/results-season${q}`, 3600);
 }
 
 /** Flatten all tiers into a single array, including pillar scores. Used by insight pages. */
@@ -1459,25 +1391,6 @@ export interface MarketHistory {
   index: MarketHistoryIndexPoint[];
   /** The stored daily market snapshots, oldest first. */
   daily: MarketHistoryDailyPoint[];
-  /** How many companies passed "Good companies at a low price" each day, oldest first
-   *  (from `research_list_snapshots`, today's live count last). */
-  bargains?: { date: string; n: number }[];
-}
-
-/** One research list in the market-state bundle: the hub row plus today's top-20 codes
- *  (to count the reader's own stocks) and the pass count about a month ago. */
-export interface MarketResearchList extends ResearchListSummary {
-  codes: string[];
-  then: { date: string; n: number } | null;
-}
-
-/** The six research lists, the one that fits today's market first. */
-export interface MarketResearch {
-  case: "rising" | "low" | "steady";
-  lead: string;
-  reason_en: string;
-  reason_bn: string;
-  lists: MarketResearchList[];
 }
 
 export interface MarketNewName {
@@ -1597,8 +1510,6 @@ export interface MarketStateData {
     rising: MarketChanceStock[];
     fallen: MarketChanceStock[];
   };
-  /** Absent when the backend is behind or the lists failed — the section then hides. */
-  research?: MarketResearch | null;
   /** Things to watch out for (2026-10-31): the caution list + the Z-risk watch. */
   watch_out?: MarketWatchOut | null;
   stats: MarketStats;
@@ -2467,8 +2378,6 @@ export interface HomeBundle {
     record_dates: CorporateActionEvent[];
     recent_declarations: CorporateActionEvent[];
   };
-  /** The six Premium research lists (2026-10-24): counts + top three each. */
-  research_lists?: ResearchListSummary[];
   /** This week's rank change for every company (2026-11-01, the ranking card). */
   rank_moves?: RankingsToday["moves"];
   /** Quarterly results on the reader's own stocks, posted in the last three weeks. */

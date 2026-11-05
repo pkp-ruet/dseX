@@ -16,7 +16,7 @@ import "./styles/states.css";
 import "./styles/misc.css";
 import "./styles/ranking.css";
 import "./styles/premium.css";
-import "./styles/research.css";
+import "./styles/research-reports.css";
 import "./styles/market.css";
 import "./styles/watchlist.css";
 import "./styles/portfolio.css";

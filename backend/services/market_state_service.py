@@ -1169,30 +1169,6 @@ def _compute(df=None) -> tuple[dict, dict]:
     return bundle, extras
 
 
-def _add_research(bundle: dict) -> None:
-    """The six research lists, the one that fits today's mood first
-    (`research`), and the daily count of "good companies at a low price"
-    (`history.bargains`). Added here, not in `_compute`, so the daily snapshot
-    writer doesn't run the lists."""
-    from backend.services.research_lists_service import market_lists
-
-    mood = bundle.get("mood") or {}
-    today = _date_str(bundle.get("date"))
-    res = _guard(
-        "research_lists",
-        lambda: market_lists(mood.get("tone"), (mood.get("bands") or {}).get("value"), today),
-        None,
-    )
-    bundle["research"] = res
-    if not res:
-        return
-    series = list((res.pop("history", None) or {}).get("cheap_not_broken") or [])
-    live = next((l for l in res["lists"] if l["id"] == "cheap_not_broken"), None)
-    if live and today and (not series or series[-1]["date"] < today):
-        series.append({"date": today, "n": live["passed"]})
-    (bundle.get("history") or {})["bargains"] = series
-
-
 def _add_watch_out(bundle: dict) -> None:
     """Things to watch out for (2026-10-31): the caution list (prices running
     on no news, services/caution_list.py) and the Z-risk watch (companies close
@@ -1211,7 +1187,6 @@ def _add_watch_out(bundle: dict) -> None:
 @_ttl_cache(300)
 def compute_market_state() -> dict:
     bundle = _compute()[0]
-    _add_research(bundle)
     _add_watch_out(bundle)
     return bundle
 

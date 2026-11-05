@@ -111,7 +111,7 @@ export async function screenResponder(intent: IntentId, ent: Entities): Promise<
         .map((s) => ({ ...rowBase(s), metricValue: pct(s.div_yield_pct), metricTone: "pos" as const }));
       return result(intent, ent, items,
         { title: "Highest dividends", titleBn: "সবচেয়ে বেশি ডিভিডেন্ড", metric: "Yield", metricBn: "ইল্ড" },
-        "/stock-insights");
+        "/screener?ready=high_dividend");
     }
 
     case "screen_growth": {
@@ -125,7 +125,7 @@ export async function screenResponder(intent: IntentId, ent: Entities): Promise<
         .map((s) => ({ ...rowBase(s), metricValue: pct(s.eps_yoy_pct), metricTone: "pos" as const }));
       return result(intent, ent, items,
         { title: "Fastest profit growth", titleBn: "মুনাফা সবচেয়ে দ্রুত বাড়ছে", metric: "Growth", metricBn: "বৃদ্ধি" },
-        "/stock-insights");
+        "/screener?ready=profit_up");
     }
 
     case "screen_cheap": {

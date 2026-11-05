@@ -9,7 +9,8 @@ parts:
    the Desk.
 2. **The market in five lines** — mood, DSEX over the week, sectors, how
    many companies are healthy (built once from `market_state_service`).
-3. **New on our research lists** — names that joined a list this week.
+3. **Serious problems this week** — companies that picked up or got rid of
+   a serious problem (the risk register), and the reader's own on it.
 4. **Next week on your shares** — results meetings and record dates.
 
 Parts 2–4 are Premium on the Desk (screen-only, like every lock); the push
@@ -178,50 +179,51 @@ def market_part(state: Optional[dict]) -> dict:
             "lines": lines[:5]}
 
 
-def new_on_lists(latest: dict[str, list[str]], before: dict[str, list[str]]) -> dict[str, list[str]]:
-    """{list_id: codes that joined since `before`}, in the list's own order."""
-    out = {}
-    for lid, codes in latest.items():
-        old = set(before.get(lid) or [])
-        if lid not in before:
-            continue  # no baseline yet: everything would look new
-        joined = [c for c in codes if c not in old]
-        if joined:
-            out[lid] = joined
-    return out
-
-
-def lists_part(joined: dict[str, list[str]], lists: list[dict], mine: set[str], tracked: bool = True) -> dict:
-    """Part 3: names new on the research lists this week. `lists` = [{id,
-    slug, title_en, title_bn}] in display order."""
+def risks_part(week: Optional[dict], on_list: set[str], mine: set[str], names: dict[str, str]) -> dict:
+    """Part 3 (2026-11-05, replaced "New on our research lists" when the lists
+    were removed): serious problems this week, from the risk register
+    (`research_reports.risk_register`). `week` = its {added, fixed} rows (None
+    when the register couldn't be read), `on_list` = every code on it today."""
+    url = "/stock-insights/risk-register"
     lines: list[dict] = []
-    total = sum(len(v) for v in joined.values())
-    if total:
-        lines.append(line(
-            f"{total} {_plural(total, 'company', 'companies')} joined our research lists this week.",
-            f"এ সপ্তাহে আমাদের গবেষণা তালিকায় নতুন এসেছে {total}টি কোম্পানি।",
-        ))
-        for lst in lists:
-            codes = joined.get(lst["id"]) or []
-            if not codes:
-                continue
-            shown = ", ".join(codes[:LIST_CODES])
-            more = len(codes) - LIST_CODES
-            en = f"{lst['title_en']}: {shown}" + (f" and {more} more" if more > 0 else "")
-            bn = f"{lst['title_bn']}: {shown}" + (f" ও আরও {more}টি" if more > 0 else "")
-            yours = [c for c in codes if c in mine]
-            if yours:
-                en += f". {', '.join(yours)} is one of yours." if len(yours) == 1 else f". {', '.join(yours)} are yours."
-                bn += f"। {', '.join(yours)} আপনার শেয়ার।"
-            lines.append(line(en, bn, f"/stock-insights/{lst['slug']}", "good" if yours else "neutral"))
-    elif not tracked:
-        lines.append(line("We started keeping the lists' members this week, so from next Friday this part says who joined.",
-                          "এ সপ্তাহ থেকে তালিকার সদস্যদের হিসাব রাখা শুরু হয়েছে, তাই আগামী শুক্রবার থেকে এখানে দেখাবে কারা নতুন এল।",
-                          "/stock-insights#research"))
+    if week is None:
+        lines.append(line("Our list of companies with serious problems is on the Desk.",
+                          "গুরুতর সমস্যার কোম্পানির তালিকা ডেস্কে আছে।", url))
     else:
-        lines.append(line("No new names joined our research lists this week.",
-                          "এ সপ্তাহে আমাদের গবেষণা তালিকায় নতুন কোনো নাম আসেনি।", "/stock-insights#research"))
-    return {"key": "lists", "title_en": "New on our research lists", "title_bn": "গবেষণা তালিকায় নতুন",
+        added = week.get("added") or []
+        fixed = week.get("fixed") or []
+        new_co = len({r["code"] for r in added})
+        gone_co = len({r["code"] for r in fixed})
+        if new_co or gone_co:
+            lines.append(line(
+                f"{new_co} {_plural(new_co, 'company', 'companies')} picked up a serious problem this week, "
+                f"and {gone_co} got rid of one.",
+                f"এ সপ্তাহে {new_co}টি কোম্পানিতে নতুন গুরুতর সমস্যা দেখা দিয়েছে, আর {gone_co}টির একটি সমস্যা মিটেছে।",
+                url))
+        else:
+            lines.append(line("No company picked up or got rid of a serious problem this week.",
+                              "এ সপ্তাহে কোনো কোম্পানিতে নতুন গুরুতর সমস্যা আসেনি, কোনোটি মেটেওনি।", url))
+        for rows, tone, en_w, bn_w in ((added, "bad", "new this week", "এ সপ্তাহে নতুন"),
+                                       (fixed, "good", "gone this week", "এ সপ্তাহে মিটেছে")):
+            for r in rows:
+                if r["code"] not in mine:
+                    continue
+                t = r.get("title") or {}
+                nm = names.get(r["code"]) or r["code"]
+                lines.append(line(f"{nm}: {t.get('en', '')} ({en_w}).", f"{nm}: {t.get('bn', '')} ({bn_w})।",
+                                  f"/stock/{r['code']}#an-safety", tone))
+    yours = sorted(on_list & mine)
+    if yours:
+        more = len(yours) - LIST_CODES
+        shown = ", ".join(yours[:LIST_CODES]) + (f" and {more} more" if more > 0 else "")
+        shown_bn = ", ".join(yours[:LIST_CODES]) + (f" ও আরও {more}টি" if more > 0 else "")
+        verb = "is" if len(yours) == 1 else "are"
+        lines.append(line(f"{len(yours)} of your shares {verb} on the list today: {shown}.",
+                          f"আপনার {len(yours)}টি শেয়ার আজ এই তালিকায় আছে: {shown_bn}।", url, "bad"))
+    elif week is not None:
+        lines.append(line("None of your shares is on the list today.",
+                          "আপনার কোনো শেয়ার আজ এই তালিকায় নেই।", url, "good"))
+    return {"key": "risks", "title_en": "Serious problems this week", "title_bn": "এ সপ্তাহের গুরুতর সমস্যা",
             "lines": lines}
 
 

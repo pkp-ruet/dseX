@@ -45,8 +45,8 @@ const TILES: Tile[] = [
   {
     href: "/stock-insights",
     icon: <IconList size={20} />,
-    title: { en: "Stock lists", bn: "শেয়ারের তালিকা" },
-    sub: { en: "Six ideas, each tested in the open", bn: "ছয়টি ধারণা, প্রতিটি খোলাখুলি যাচাই করা" },
+    title: { en: "Premium research", bn: "প্রিমিয়াম গবেষণা" },
+    sub: { en: "Serious problems, auditors and results", bn: "গুরুতর সমস্যা, নিরীক্ষক আর আর্থিক ফল" },
     premium: true,
   },
   {

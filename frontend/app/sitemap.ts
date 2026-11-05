@@ -8,8 +8,6 @@ import {
 } from "@/lib/api";
 import { GUIDES } from "@/lib/guides";
 import { BLOG_POSTS } from "@/lib/blog-bn";
-import { STOCK_LISTS } from "@/lib/stock-lists";
-import { RESEARCH_LISTS } from "@/lib/research-lists";
 import { SAMPLE_SLUGS } from "@/lib/sample-portfolios";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
@@ -71,8 +69,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // the report's analyst note); their URLs 301 there (next.config.ts).
   const guidePages = GUIDES.map((g) => content(`/learn/${g.slug}`, "monthly", 0.7));
   const blogPages = BLOG_POSTS.map((p) => content(`/blog/${p.slug}`, "monthly", 0.7));
-  const stockListPages = STOCK_LISTS.map((l) => data(`/stock-insights/${l.slug}`, "daily", 0.8));
-  const researchListPages = RESEARCH_LISTS.map((l) => data(`/stock-insights/${l.slug}`, "daily", 0.8));
   const samplePortfolioPages = SAMPLE_SLUGS.map((slug) => content(`/sample-portfolio/${slug}`, "weekly", 0.7));
 
   return [
@@ -87,6 +83,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     data("/dividend-calendar", "daily", 0.85),
     data("/sectors", "daily", 0.85),
     data("/stock-insights", "weekly", 0.85),
+    data("/stock-insights/risk-register", "daily", 0.8),
+    data("/stock-insights/auditor-warnings", "weekly", 0.8),
+    data("/stock-insights/results-season", "daily", 0.8),
+    data("/stock-insights/who-is-buying", "weekly", 0.8),
+    data("/stock-insights/is-the-profit-real", "monthly", 0.8),
+    data("/stock-insights/dividends-you-can-count-on", "weekly", 0.8),
     data("/screener", "daily", 0.85),
     content("/assistant", "monthly", 0.6),
     content("/learn", "monthly", 0.8),
@@ -99,8 +101,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     content("/refund-policy", "yearly", 0.3),
     ...sectorPages,
     ...samplePortfolioPages,
-    ...stockListPages,
-    ...researchListPages,
     ...guidePages,
     ...blogPages,
     ...stockPages,
