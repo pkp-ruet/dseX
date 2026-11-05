@@ -254,8 +254,8 @@ export const GROUPS: Group[] = [
       },
     },
     free: {
-      en: "Every update on your dashboard, watchlist and Desk, and up to 3 phone notifications a week.",
-      bn: "ড্যাশবোর্ড, ওয়াচলিস্ট আর ডেস্কে প্রতিটি খবর, আর সপ্তাহে সর্বোচ্চ 3টি ফোন নোটিফিকেশন।",
+      en: "Every update on your dashboard, watchlist and notifications page, and up to 3 phone notifications a week.",
+      bn: "ড্যাশবোর্ড, ওয়াচলিস্ট আর নোটিফিকেশন পেজে প্রতিটি খবর, আর সপ্তাহে সর্বোচ্চ 3টি ফোন নোটিফিকেশন।",
     },
   },
   {
@@ -380,7 +380,7 @@ export const TABLE: { group: GroupKey; rows: { what: Bi; free: Cell; premium: Ce
   {
     group: "daily",
     rows: [
-      { what: { en: "Updates on your dashboard and Desk", bn: "ড্যাশবোর্ড আর ডেস্কে খবর" }, free: true, premium: true },
+      { what: { en: "Updates on your dashboard and notifications page", bn: "ড্যাশবোর্ড আর নোটিফিকেশন পেজে খবর" }, free: true, premium: true },
       {
         what: { en: "Phone notifications", bn: "ফোনে নোটিফিকেশন" },
         free: { en: "Up to 3 a week", bn: "সপ্তাহে সর্বোচ্চ 3টি" },

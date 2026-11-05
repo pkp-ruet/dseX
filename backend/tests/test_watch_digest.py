@@ -95,10 +95,10 @@ def test_pick_free_never_opens_our_answer():
     assert pick_free([ans]) is None
 
 
-def test_after_close_counts_what_the_desk_shows():
+def test_after_close_counts_what_the_list_shows():
     from backend.services.portfolio_daily import after_close_payload
     evs = [_ev("a", "answer", "GP", "bad"), _ev("b", "results", "ACI", "bad"), _ev("c", "record", "BATBC", "good")]
     p = after_close_payload(evs, "en")
-    assert p["title"] == "After the close: 2 things on your shares" and p["url"] == "/desk?src=watch"
+    assert p["title"] == "After the close: 2 things on your shares" and p["url"] == "/notifications?src=watch"
     lone = after_close_payload([_ev("a", "answer", "GP", "bad"), _ev("b", "record", "ACI", "good")], "en")
-    assert lone["url"] == "/desk?src=watch"            # the Desk shows the record date
+    assert lone["url"] == "/notifications?src=watch"            # the list shows the record date

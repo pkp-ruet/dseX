@@ -4,11 +4,11 @@
 `run_letter()` (CLI `python main.py weekly-letter`, Friday ~10 AM Dhaka via
 `.github/workflows/weekly-letter.yml`) builds one letter for every reader who
 holds or follows a share — free and Premium alike — stores it in
-`weekly_letters` (unique user_id + week, 120-day TTL) for the Desk, then sends
+`weekly_letters` (unique user_id + week, 120-day TTL) for the notifications list, then sends
 it once: a push (pref `weekly_letter`, campaign `letter-{week}`) to readers
 with a device, else an email (same campaign id in `email_sends`, never to an
 `email_opt_out` reader). A free reader's push / email carries the free part
-(their own shares) and says the other three parts are on the Desk.
+(their own shares) and says the other three parts come with Premium.
 
 The market part, the research-list news and the calendars are loaded once;
 each reader then costs one events query.
@@ -40,7 +40,7 @@ def ensure_indexes() -> None:
 
 
 def latest_letter(user_id: str) -> Optional[dict]:
-    """The reader's newest letter (the Desk's "Friday letter" row), or None."""
+    """The reader's newest letter (the notifications list reads every letter itself), or None."""
     doc = _letters().find_one({"user_id": user_id}, {"_id": 0, "user_id": 0}, sort=[("week", -1)])
     if not doc:
         return None
@@ -181,10 +181,10 @@ def _email_html(letter: dict, lang: str, user_id: str, premium: bool) -> tuple[s
             f'<table role="presentation" width="100%" style="border-collapse:collapse">{rows}</table>'
         )
     if not premium:
-        more = ("আরও 3টি অংশ আপনার ডেস্কে: পাঁচ লাইনে বাজার, এ সপ্তাহের গুরুতর সমস্যা, আর আগামী সপ্তাহে আপনার শেয়ার।"
-                if bn else "3 more parts are on your Desk: the market in five lines, serious problems this week, and next week on your shares.")
+        more = ("প্রিমিয়ামে আরও 3টি অংশ: পাঁচ লাইনে বাজার, এ সপ্তাহের গুরুতর সমস্যা, আর আগামী সপ্তাহে আপনার শেয়ার।"
+                if bn else "3 more parts come with Premium: the market in five lines, serious problems this week, and next week on your shares.")
         blocks.append(f'<p style="font-size:14px;color:#2E2B26;margin:16px 0 0">{more}</p>')
-    button = "আপনার ডেস্ক খুলুন" if bn else "Open your Desk"
+    button = "পুরো চিঠি পড়ুন" if bn else "Read the full letter"
     unsub = "ইমেইল বন্ধ করুন" if bn else "Stop these emails"
     lead = ("প্রতি শুক্রবার, আপনার শেয়ারের সপ্তাহ এক জায়গায়।" if bn
             else "Every Friday, your shares' week in one place.")
@@ -195,7 +195,7 @@ def _email_html(letter: dict, lang: str, user_id: str, premium: bool) -> tuple[s
         f'<h1 style="font-size:22px;color:#2E2B26;margin:6px 0 4px">{subject}</h1>'
         f'<p style="font-size:14px;color:#2E2B26;margin:0">{lead}</p>'
         + "".join(blocks)
-        + f'<p style="margin:20px 0 0"><a href="{html.escape(SITE_URL + "/desk?src=letter-email#letter")}" '
+        + f'<p style="margin:20px 0 0"><a href="{html.escape(SITE_URL + "/notifications?src=letter-email#letter")}" '
         'style="display:inline-block;background:#9E5F40;color:#FFFFFF;padding:10px 16px;border-radius:10px;'
         f'text-decoration:none;font-weight:600">{button}</a></p>'
         f'<p style="font-size:12px;color:#2E2B26;margin:20px 0 0"><a href="{html.escape(_unsub_url(user_id))}" '

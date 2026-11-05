@@ -6,11 +6,11 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { openGlobalSearch } from "@/components/layout/GlobalSearch";
 import WatchlistDot from "@/components/watchlist/WatchlistDot";
+import NotificationBell from "@/components/notifications/NotificationBell";
 import InstallAppButton from "@/components/pwa/InstallAppButton";
 import {
   IconBell,
   IconBriefcase,
-  IconCalendar,
   IconChevron,
   IconClose,
   IconCrown,
@@ -18,6 +18,7 @@ import {
   IconGrid,
   IconSearch,
   IconStar,
+  IconTarget,
 } from "@/components/ui/icons";
 import Button from "@/components/ui/Button";
 import { userIsPremium } from "@/lib/premium";
@@ -102,9 +103,9 @@ const QUICK: {
 }[] = [
   { href: "/watchlist", en: "Watchlist", bn: "ওয়াচলিস্ট", subEn: "Stocks you follow", subBn: "যে শেয়ারগুলো আপনি দেখছেন", Icon: IconStar },
   { href: "/portfolio", en: "Portfolio", bn: "পোর্টফোলিও", subEn: "Your shares and profit", subBn: "আপনার শেয়ার আর মুনাফা", Icon: IconBriefcase },
-  // Your Desk (2026-10-31, the Premium Desk plan): every push opens it.
-  { href: "/desk", en: "Your Desk", bn: "আপনার ডেস্ক", subEn: "What happened on your shares today", subBn: "আজ আপনার শেয়ারে যা ঘটেছে", Icon: IconCalendar, signedIn: true },
-  { href: "/alerts", en: "Price alerts", bn: "প্রাইস অ্যালার্ট", subEn: "A message when a price is hit", subBn: "দাম ছুঁলেই বার্তা পাবেন", Icon: IconBell },
+  // Notifications (2026-11-06, replaced Your Desk): every push opens it.
+  { href: "/notifications", en: "Notifications", bn: "নোটিফিকেশন", subEn: "What we noticed on your shares", subBn: "আপনার শেয়ারে আমরা যা দেখেছি", Icon: IconBell, signedIn: true },
+  { href: "/alerts", en: "Price alerts", bn: "প্রাইস অ্যালার্ট", subEn: "A message when a price is hit", subBn: "দাম ছুঁলেই বার্তা পাবেন", Icon: IconTarget },
   { href: "/premium", en: "Premium", bn: "প্রিমিয়াম", subEn: "The reasons behind every number", subBn: "প্রতিটি সংখ্যার পেছনের কারণ", Icon: IconCrown },
 ];
 
@@ -280,6 +281,7 @@ export default function Navbar() {
               <IconBriefcase size={16} />
               <T en="Portfolio" bn="পোর্টফোলিও" />
             </Link>
+            <NotificationBell variant="desktop" />
             {/* Price Alerts + Install app moved into the Explore drawer's "Quick access"
                 row (2026-09-22) — the bar carries five items, not eight. */}
             {isLoggedIn ? (
@@ -330,6 +332,7 @@ export default function Navbar() {
           {/* Mobile right controls — hidden on desktop via CSS */}
           <div className="navbar-mobile-controls">
             <LangSwitch />
+            <NotificationBell variant="mobile" />
             <button
               type="button"
               onClick={openGlobalSearch}

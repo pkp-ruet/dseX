@@ -32,6 +32,8 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      // Your Desk became Notifications (2026-11-06); old push links keep working.
+      { source: "/desk", destination: "/notifications", permanent: true },
       {
         source: "/dse-top-20",
         destination: "/dse-trending-stocks",

@@ -89,14 +89,14 @@ def test_dates_part_keeps_next_week_on_the_readers_shares():
     ]
 
 
-def test_free_reader_push_points_at_the_desk():
+def test_free_reader_push_points_at_the_notifications():
     letter = wl.build_letter("2026-10-25", [
         {"key": "shares", "title_en": "", "title_bn": "", "lines": [wl.line("One.", "এক।")]},
         {"key": "market", "title_en": "", "title_bn": "", "lines": []},
     ])
     assert [p["free"] for p in letter["parts"]] == [True, False]
     free = wl.push_payload(letter, "en", premium=False)
-    assert free["body"] == "One. 3 more parts on your Desk."
-    assert free["url"].startswith("/desk")
+    assert free["body"] == "One. 3 more parts with Premium."
+    assert free["url"].startswith("/notifications")
     assert wl.push_payload(letter, "en", premium=True)["body"] == "One."
     assert wl.worth_sending(letter)

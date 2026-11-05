@@ -6,14 +6,14 @@ parts:
 1. **Your shares this week** — how their shares moved since last Thursday's
    close, and what the watcher spotted on them (`portfolio_watch.digest`).
    This part is free: a free reader gets it in the push / email and in full on
-   the Desk.
+   the notifications list.
 2. **The market in five lines** — mood, DSEX over the week, sectors, how
    many companies are healthy (built once from `market_state_service`).
 3. **Serious problems this week** — companies that picked up or got rid of
    a serious problem (the risk register), and the reader's own on it.
 4. **Next week on your shares** — results meetings and record dates.
 
-Parts 2–4 are Premium on the Desk (screen-only, like every lock); the push
+Parts 2–4 are Premium in the notifications list (screen-only, like every lock); the push
 and email tell a free reader they are there. Loads, storage and sending live
 in `weekly_letter_service.py`. Facts only: never a buy or sell call, never a
 claim about how our picks did.
@@ -187,8 +187,8 @@ def risks_part(week: Optional[dict], on_list: set[str], mine: set[str], names: d
     url = "/stock-insights/risk-register"
     lines: list[dict] = []
     if week is None:
-        lines.append(line("Our list of companies with serious problems is on the Desk.",
-                          "গুরুতর সমস্যার কোম্পানির তালিকা ডেস্কে আছে।", url))
+        lines.append(line("Our list of companies with serious problems is in Premium research.",
+                          "গুরুতর সমস্যার কোম্পানির তালিকা প্রিমিয়াম গবেষণায় আছে।", url))
     else:
         added = week.get("added") or []
         fixed = week.get("fixed") or []
@@ -303,7 +303,7 @@ def worth_sending(letter: dict) -> bool:
 
 def push_payload(letter: dict, lang: str = "bn", premium: bool = False) -> Optional[dict]:
     """The Friday push: the reader's own first lines; a free reader is told the
-    other three parts are on the Desk."""
+    other three parts come with Premium."""
     shares = next((p for p in letter.get("parts") or [] if p["key"] == "shares"), None)
     if not shares or not shares.get("lines"):
         return None
@@ -311,6 +311,6 @@ def push_payload(letter: dict, lang: str = "bn", premium: bool = False) -> Optio
     k = "bn" if bn else "en"
     body = " ".join(ln[k] for ln in shares["lines"][:2])
     if not premium:
-        body += " " + ("আরও 3টি অংশ আপনার ডেস্কে।" if bn else "3 more parts on your Desk.")
+        body += " " + ("আরও 3টি অংশ প্রিমিয়ামে।" if bn else "3 more parts with Premium.")
     return {"title": "আপনার সাপ্তাহিক চিঠি" if bn else "Your weekly letter",
-            "body": body[:300], "url": "/desk?src=letter#letter", "tag": "letter"}
+            "body": body[:300], "url": "/notifications?src=letter#letter", "tag": "letter"}

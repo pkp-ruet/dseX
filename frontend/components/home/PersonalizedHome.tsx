@@ -29,7 +29,6 @@ import DailyBriefing from "@/components/home/personalized/DailyBriefing";
 import HeroGreeting from "@/components/home/personalized/HeroGreeting";
 import MoneyHero, { MoneyHeroSkeleton } from "@/components/home/personalized/MoneyHero";
 import MoneyHeroGhost from "@/components/home/personalized/MoneyHeroGhost";
-import DeskCard from "@/components/home/personalized/DeskCard";
 import PullToRefresh from "@/components/home/personalized/PullToRefresh";
 import StoriesRow from "@/components/home/personalized/StoriesRow";
 import MarketTodayCard from "@/components/home/personalized/MarketTodayCard";
@@ -375,19 +374,6 @@ export default function PersonalizedHome() {
           <MoneyHero holdings={holdings} priceMap={priceMap} marketIndex={marketIndex} lang={lang} />
         ) : (
           <MoneyHeroGhost lang={lang} />
-        )}
-        {/* The dashboard's ONE Premium pitch (2026-10-29): what the watcher
-            caught on the reader's shares this week — a plain summary for
-            Premium readers. */}
-        {holdings !== null && bundleSettled && (
-          <div data-card="desk">
-            <DeskCard
-              desk={bundle?.desk}
-              hasStocks={hasPortfolio || hasWatchlist}
-              premium={planState === "premium"}
-              lang={lang}
-            />
-          </div>
         )}
       </section>
 

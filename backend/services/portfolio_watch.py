@@ -471,7 +471,7 @@ def week_start(day: str) -> str:
 # Kinds that carry our answer on a share (Buy / Not yet / Avoid) or the buy
 # list — Premium only, never a free reader's open event (2026-11-04, audit EL2:
 # an Avoid ranks worst, so "Our answer on X changed: Avoid. It was Buy …" went
-# out in full in free teaser pushes). The Desk leaves them out too.
+# out in full in free teaser pushes). The notifications list leaves them out too.
 PREMIUM_ONLY_KINDS = {"answer", "buylist"}
 
 

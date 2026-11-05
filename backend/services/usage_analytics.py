@@ -71,7 +71,7 @@ AREAS: list[tuple[str, str, str]] = [
     ("statement", "Yearly statement", r"^/portfolio/statement"),
     ("portfolio", "Portfolio", r"^/portfolio(/|$)"),
     ("watchlist", "Watchlist", r"^/watchlist"),
-    ("desk", "Your Desk", r"^/desk"),
+    ("notifications", "Notifications", r"^/(notifications|desk)"),
     ("alerts", "Price alerts", r"^/alerts"),
     ("assistant", "TopStock AI", r"^/assistant"),
     ("ranking", "Company ranking", r"^/dsestockranking"),

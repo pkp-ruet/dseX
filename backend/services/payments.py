@@ -228,16 +228,16 @@ def renewal_payload(days_left: int, lang: str = "bn", caught: Optional[list[dict
     again = ("চালু রাখতে চাইলে বিকাশ, নগদ বা ব্যাংক ট্রান্সফারে আবার একটি প্ল্যান নিন।" if bn
              else "To keep it on, choose a plan again and pay by bKash, Nagad or bank transfer.")
     phrase = kinds_phrase(caught or [], "bn" if bn else "en")
-    # The reminder opens the Desk (2026-10-31): what Premium did for them is
-    # there, with a renew button while the plan is ending.
-    desk = (" সবকিছু দেখুন আপনার ডেস্কে।" if bn else " See it all on your Desk.")
+    # The reminder opens the reader's notifications (the Desk until
+    # 2026-11-06): what Premium found for them is listed there.
+    seeit = (" সবকিছু দেখুন আপনার নোটিফিকেশনে।" if bn else " See them all in your notifications.")
     if phrase:
         did = (f"এই মাসে প্রিমিয়াম আপনার শেয়ারে পেয়েছে {phrase}। " if bn
                else f"This month it found {phrase} on your shares. ")
-        body = did + again + desk
+        body = did + again + seeit
     else:
-        body = again + desk
-    return {"title": title, "body": body, "url": "/desk?src=renew", "tag": "premium-renew"}
+        body = again + seeit
+    return {"title": title, "body": body, "url": "/notifications?src=renew", "tag": "premium-renew"}
 
 
 def _caught_this_period(user_id: str, now: datetime) -> list[dict]:

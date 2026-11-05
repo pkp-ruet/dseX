@@ -73,7 +73,6 @@ async function legacyBundle(): Promise<HomeBundle> {
     new_results: [],
     results_week: null,
     week_watch: null,
-    desk: null,
     // The ready-made screens come only with the bundle; the card hides without them.
     screener: null,
     for_you: forYou,

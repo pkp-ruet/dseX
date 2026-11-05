@@ -41,9 +41,7 @@ from backend.services.db_service import (
     load_news_for_codes,
 )
 from backend.services.research_reports_service import summary_snapshot
-from backend.services.desk_service import desk_summary
 from backend.services.portfolio_daily import recent_events
-from backend.services.portfolio_signal_service import list_recent_events
 from backend.services.portfolio_watch import digest
 from backend.services.recommend_service import for_user
 from backend.services.morning_brief_service import results_calendar, today_brief
@@ -149,17 +147,10 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
     near = _safe("near_extremes", lambda: _dump(get_near_extremes()), None)
     market_index = _safe("market_index", load_market_index, None)
     alerts = _safe("alerts", lambda: price_alert_service.list_alerts(user_id), [])
-    # Recent Buy more / Sell flips: the Desk card reads them (not shipped on
-    # their own since 2026-11-05 — nothing on the dashboard rendered them).
-    signal_events = _safe("signal_events", lambda: list_recent_events(user_id), [])
     # What the watcher spotted on the reader's stocks this week. Free readers
     # see the counts, Premium readers the list (screen-only lock, like the rest).
     week_events = _safe("week_events", lambda: recent_events(user_id, days=WATCH_DAYS), [])
     week_watch = _safe("week_watch", lambda: digest(week_events), None)
-    # The Desk card (2026-10-31): before the bell · after the close · the
-    # Friday letter, from what is loaded above + the newest letter.
-    desk = _safe("desk", lambda: desk_summary(user_id, brief, week_events, signal_events), None)
-
 
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -182,6 +173,5 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
         "results_soon": results_soon,
         "brief": brief,
         "week_watch": week_watch,
-        "desk": desk,
         "screener": screener,
     }

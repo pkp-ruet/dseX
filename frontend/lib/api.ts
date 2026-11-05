@@ -2403,8 +2403,6 @@ export interface HomeBundle {
   /** What the watcher spotted on the reader's stocks in the last 7 days
    *  (`portfolio_watch.digest`). Free readers see the counts, Premium the list. */
   week_watch?: WeekWatch | null;
-  /** The Desk card (2026-10-31): before the bell · after the close · the letter. */
-  desk?: DeskSummary | null;
   /** The screener card (2026-11-01): the ready-made screens with counts + top
    *  three, and the reader's saved screens as of the last daily check. */
   screener?: { ready: ScreenerReadyCard[]; saved: ScreenerSaved[] } | null;
@@ -2435,21 +2433,8 @@ export async function apiGetHomeBundle(): Promise<HomeBundle> {
 }
 
 // ---------------------------------------------------------------------------
-// Your Desk (2026-10-31, the Premium Desk plan) — `/desk` + the dashboard card
+// Notifications (2026-11-06, replaced the Desk) — `/notifications` + the bell
 // ---------------------------------------------------------------------------
-
-/** One thing on the Desk: a watcher event or a Buy more / Sell flip. */
-export interface DeskItem {
-  id: string;
-  kind: PortfolioWatchEvent["kind"] | "signal";
-  code: string | null;
-  level: "good" | "watch" | "bad" | "neutral";
-  title_en: string;
-  title_bn: string;
-  body_en: string | null;
-  body_bn: string | null;
-  url: string;
-}
 
 /** One line of the Friday letter. */
 export interface LetterLine {
@@ -2461,7 +2446,7 @@ export interface LetterLine {
 }
 
 export interface LetterPart {
-  key: "shares" | "market" | "lists" | "dates";
+  key: "shares" | "market" | "risks" | "lists" | "dates";
   title_en: string;
   title_bn: string;
   /** The reader's own shares — free; the other three parts are Premium. */
@@ -2469,39 +2454,47 @@ export interface LetterPart {
   lines: LetterLine[];
 }
 
-export interface WeeklyLetter {
-  /** The Sunday the letter's week began. */
-  week: string;
-  parts: LetterPart[];
-  created_at?: string;
+/** One row of the reader's notifications (backend `notifications.build_feed`). */
+export interface NotificationItem {
+  id: string;
+  /** A watcher kind, or `alert` (a price alert hit), `brief` (9 AM), `letter` (Friday). */
+  kind: PortfolioWatchEvent["kind"] | "alert" | "brief" | "letter";
+  code: string | null;
+  level: "good" | "watch" | "bad" | "neutral" | "info";
+  /** When it came (ISO). */
+  at: string;
+  title_en: string;
+  title_bn: string;
+  body_en: string | null;
+  body_bn: string | null;
+  url: string;
+  /** Came after the reader last opened the list. */
+  new: boolean;
+  /** A brief with several items. */
+  items?: { title_en: string; title_bn: string; url: string; level: string }[];
+  /** A letter: its week and parts. */
+  week?: string;
+  parts?: LetterPart[];
 }
 
-export interface Desk {
-  day: string;
-  premium: boolean;
+export interface NotificationsFeed {
+  items: NotificationItem[];
+  unread: number;
+  seen_at: string | null;
   has_shares: boolean;
-  brief: MorningBrief | null;
-  after_close: { day: string; items: DeskItem[] } | null;
-  /** Who joined / left today's buy list (market-wide; null on a quiet day). */
-  buy_list?: { since: string; joined: string[]; joined_n: number; left_n: number } | null;
-  letter: WeeklyLetter | null;
-  watching: { holdings: number; watchlist: number; alerts: number; dividend_reminders: number; rank_alerts: number };
-  month: { total: number; kinds: { kind: PortfolioWatchEvent["kind"]; count: number }[]; phrase_en?: string; phrase_bn?: string };
+  premium: boolean;
 }
 
-/** The dashboard's Desk card, from the home bundle. */
-export interface DeskSummary {
-  brief_n: number;
-  brief_first: MorningBriefItem | null;
-  after_close_n: number;
-  after_close_day: string | null;
-  after_close_first: DeskItem | null;
-  letter_week: string | null;
-  letter_first: { en: string; bn: string } | null;
+export async function apiGetNotifications(): Promise<NotificationsFeed> {
+  return apiAuthFetch<NotificationsFeed>("/api/user/notifications");
 }
 
-export async function apiGetDesk(): Promise<Desk> {
-  return apiAuthFetch<Desk>("/api/user/desk");
+export async function apiGetUnreadNotifications(): Promise<{ unread: number }> {
+  return apiAuthFetch<{ unread: number }>("/api/user/notifications/unread");
+}
+
+export async function apiMarkNotificationsSeen(): Promise<{ seen_at: string }> {
+  return apiAuthFetch<{ seen_at: string }>("/api/user/notifications/seen", { method: "POST" });
 }
 
 // ---------------------------------------------------------------------------

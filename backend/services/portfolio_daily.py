@@ -13,8 +13,8 @@ every user who owns anything, across all their portfolios:
 3. **Watcher events** — `portfolio_watch.build_events` for the stocks they
    hold (and, for results + grade changes, the stocks they follow), stored in
    `portfolio_watch_events`; premium readers get one push (the after-close
-   note, opening /desk), free readers a capped teaser (the week's first event
-   in full, else the count + kinds), also opening /desk.
+   note, opening /notifications), free readers a capped teaser (the week's
+   first event in full, else the count + kinds), also opening /notifications.
 4. **Trial recap** — 3–6 days before a free month ends, one push saying what
    Premium caught for them during the month.
 
@@ -389,25 +389,25 @@ def _teasers_this_week(sends, uid: str, now: datetime) -> int:
 
 def after_close_payload(events: list[dict], lang: str = "bn") -> Optional[dict]:
     """A Premium reader's after-close note: "After the close: N things on your
-    shares", opening the Desk. One event keeps the watcher's own push (a lone
+    shares", opening the reader's notifications. One event keeps the watcher's own push (a lone
     result or grade change opens its card on the stock page)."""
     if len(events) <= 1:
-        return watch.push_payload(events, lang, "/desk?src=watch")
-    # Count what the Desk will show: it leaves out our-answer and buy-list
-    # events, so "After the close: 3 things" opened a Desk with 2 (audit EL2).
+        return watch.push_payload(events, lang, "/notifications?src=watch")
+    # Count what the notifications list will show: it leaves out our-answer
+    # and buy-list events, so "3 things" must not open a list of 2 (audit EL2).
     shown = [e for e in events if e.get("kind") not in watch.PREMIUM_ONLY_KINDS]
     if not shown:
         # Only answer changes: the most serious one opens its answer card.
         return watch.push_payload(sorted(events, key=lambda e: watch._LEVEL_ORDER.get(e.get("level"), 3))[:1],
-                                  lang, "/desk?src=watch")
-    payload = watch.push_payload(shown, lang, "/desk?src=watch")
+                                  lang, "/notifications?src=watch")
+    payload = watch.push_payload(shown, lang, "/notifications?src=watch")
     if payload and len(shown) > 1:
         n = len(shown)
         payload["title"] = (f"বাজার বন্ধের পর: আপনার শেয়ারে {n}টি খবর" if lang != "en"
                             else f"After the close: {n} things on your shares")
     elif payload:
-        # One thing the Desk shows (plus answer changes it doesn't): open the Desk.
-        payload["url"] = "/desk?src=watch"
+        # One thing the list shows (plus answer changes it doesn't): open the list.
+        payload["url"] = "/notifications?src=watch"
     return payload
 
 
@@ -540,7 +540,7 @@ def run_portfolio_daily(not_before_dhaka_hour: Optional[int] = None) -> dict:
             continue
         lang = prefs.get("language", "bn")
         if entitlements.is_premium(u, now):
-            # The after-close note (2026-10-31): several things open the Desk;
+            # The after-close note: several things open the notifications list;
             # a lone result / grade change still opens its card on the stock page.
             campaign_id = f"pwatch-{uid}-{day}"
             payload = after_close_payload(fresh, lang)
@@ -550,7 +550,7 @@ def run_portfolio_daily(not_before_dhaka_hour: Optional[int] = None) -> dict:
             campaign_id = f"pteaser-{uid}-{day}"
             if _teasers_this_week(sends, uid, now) >= watch.TEASER_WEEKLY_CAP:
                 continue
-            payload = watch.teaser_payload(fresh, free, lang, "/desk?src=watch-teaser")
+            payload = watch.teaser_payload(fresh, free, lang, "/notifications?src=watch-teaser")
         if not payload or sends.find_one({"campaign_id": campaign_id, "user_id": uid}, {"_id": 1}):
             continue
         result = push_service.send_to_user(uid, payload)
