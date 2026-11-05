@@ -1,0 +1,167 @@
+/* ===================================================================
+   The dashboard's "Find stocks" chapter (2026-11-06): four blocks, one
+   shape — Picked for you (`.fy-*`, picks.css), then the screener, the
+   ranking and the research, all `FindCard` (`.fc-*`):
+
+     eyebrow (icon + what it is + a Free / Premium tag)
+     title + one lead line                              See all →
+     body
+     one full-width link to the full page
+
+   Gold = Premium (the research block), clay = everything else.
+   =================================================================== */
+
+/* ---------- The card shell ---------- */
+.fc { overflow: hidden; }
+.fc-top { padding: var(--space-4) var(--space-4) var(--space-3); }
+.fc-eyebrow {
+  display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px;
+  font-size: var(--fs-xs); font-weight: 700; color: var(--primary-ink);
+}
+.fc-eyebrow-icon {
+  display: grid; place-items: center; width: 24px; height: 24px;
+  border-radius: var(--radius-sm); background: var(--primary-soft); color: var(--primary-ink);
+}
+.fc-tag {
+  display: inline-flex; align-items: center; padding: 1px 8px; border-radius: 999px;
+  background: rgb(var(--positive-rgb) / 0.1); color: var(--positive);
+}
+.fc-headline { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-2); }
+.fc-title { font-size: var(--fs-lg); font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; color: var(--text); text-wrap: balance; }
+.fc-lead { margin-top: 4px; max-width: 62ch; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+.fc-all {
+  flex: none; display: inline-flex; align-items: center; gap: 4px; min-height: 40px;
+  font-size: var(--fs-sm); font-weight: 600; color: var(--primary-ink);
+}
+.fc-all:hover { text-decoration: underline; }
+@media (max-width: 479px) { .fc-all { display: none; } }
+
+.fc-foot {
+  display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px;
+  padding: 0 var(--space-4);
+  border-top: 1px solid var(--border);
+  font-size: var(--fs-sm); font-weight: 600; color: var(--primary-ink);
+}
+.fc-foot:hover, .fc-foot:active { background: var(--surface-2); }
+
+@media (min-width: 640px) {
+  .fc-top { padding: var(--space-6) calc(var(--space-4) + var(--space-1)) var(--space-4); }
+  .fc-title { font-size: var(--fs-xl); }
+}
+
+/* Premium: a gold edge and a gold eyebrow; the links stay clay (you act). */
+.fc--gold { border-color: rgb(var(--gold-rgb) / 0.55); }
+.fc--gold .fc-eyebrow { color: var(--gold-ink); }
+.fc--gold .fc-eyebrow-icon { background: var(--gold-light); color: var(--gold-ink); }
+
+/* ---------- Screener: what it does + a picture of one screen ---------- */
+.fcs {
+  display: grid; gap: var(--space-4);
+  padding: 0 var(--space-4) var(--space-4);
+}
+@media (min-width: 640px) { .fcs { padding-inline: calc(var(--space-4) + var(--space-1)); } }
+@media (min-width: 768px) { .fcs { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); align-items: center; gap: var(--space-6); } }
+
+.fcs-points { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.fcs-points > li { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
+.fcs-points svg { flex: none; margin-top: 3px; color: var(--positive); }
+
+/* The picture: the screener's filter card in miniature. It is a link (opens
+   that screen), never a control. */
+.fcs-shot {
+  display: grid; gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  background: var(--bg);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.fcs-shot:hover { border-color: rgb(var(--primary-rgb) / 0.45); box-shadow: var(--shadow-soft); }
+.fcs-shot:active { background: var(--surface-2); }
+.fcs-shot-label { font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
+.fcs-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.fcs-chip {
+  display: inline-flex; align-items: center; min-height: 28px; padding: 0 10px;
+  border: 1px solid rgb(var(--primary-rgb) / 0.35); border-radius: 999px;
+  background: var(--surface); font-size: var(--fs-xs); font-weight: 600; color: var(--primary-ink);
+}
+.fcs-shot-count { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; padding-top: var(--space-3); border-top: 1px dashed var(--border); }
+.fcs-shot-count > b { font-size: var(--fs-2xl); font-weight: 700; line-height: 1; color: var(--text); }
+.fcs-shot-count > span { font-size: var(--fs-sm); color: var(--text); }
+
+/* Ready-made screens to start from: plain link pills with today's count. */
+.fcs-starts { padding: var(--space-3) var(--space-4) var(--space-4); border-top: 1px solid var(--cell-rule); }
+@media (min-width: 640px) { .fcs-starts { padding-inline: calc(var(--space-4) + var(--space-1)); } }
+.fcs-starts-label { margin-bottom: var(--space-2); font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
+.fcs-starts > ul { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.fcs-start {
+  display: inline-flex; align-items: center; gap: var(--space-2); min-height: 40px; padding: 0 var(--space-3);
+  border: 1px solid var(--border); border-radius: 999px; background: var(--surface);
+  font-size: var(--fs-sm); font-weight: 600; color: var(--text);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.fcs-start:hover { border-color: rgb(var(--primary-rgb) / 0.45); }
+.fcs-start:active { background: var(--surface-2); }
+.fcs-start-n {
+  display: inline-grid; place-items: center; min-width: 24px; height: 22px; padding: 0 6px;
+  border-radius: 999px; background: var(--surface-2); font-size: var(--fs-xs); font-weight: 700; color: var(--text);
+}
+
+.fcs-saved {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: 44px;
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--cell-rule); background: var(--primary-soft);
+  font-size: var(--fs-sm); font-weight: 600; color: var(--primary-ink);
+}
+@media (min-width: 640px) { .fcs-saved { padding-inline: calc(var(--space-4) + var(--space-1)); } }
+
+/* ---------- Ranking: the ranking page's rows (ranking.css), inside the card ---------- */
+.fcr-list { border-top: 1px solid var(--cell-rule); }
+.fcr-list .rk-co-code { display: inline-flex; align-items: center; gap: 4px; }
+@media (min-width: 640px) { .fcr-list .rk-line { padding-inline: calc(var(--space-4) + var(--space-1)); } }
+
+/* ---------- Research: six report tiles ---------- */
+.fcx {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 0;
+  margin: 0; padding: 0; list-style: none;
+  border-top: 1px solid var(--cell-rule);
+}
+.fcx > li { display: flex; min-width: 0; }
+.fcx > li + li { border-top: 1px solid var(--cell-rule); }
+.fcx-tile {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center;
+  gap: var(--space-3); width: 100%; min-height: 64px;
+  padding: var(--space-3) var(--space-4);
+  color: var(--text);
+}
+.fcx-tile:hover .fcx-name { color: var(--primary-ink); }
+.fcx-tile:active { background: var(--surface-2); }
+.fcx-icon {
+  display: grid; place-items: center; width: 40px; height: 40px;
+  border-radius: var(--radius-md); background: var(--gold-light); color: var(--gold-ink);
+}
+.fcx-body { display: grid; gap: 2px; min-width: 0; }
+.fcx-name { font-size: var(--fs-base); font-weight: 700; line-height: 1.3; transition: color 0.15s ease; }
+.fcx-stat, .fcx-q { font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
+.fcx-stat > b { font-weight: 700; color: var(--gold-ink); }
+.fcx-go { color: var(--text); }
+
+/* From 640px: a 2 × 3 grid of bordered tiles; from 1024px: 3 × 2. */
+@media (min-width: 640px) {
+  .fcx {
+    grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3);
+    padding: 0 calc(var(--space-4) + var(--space-1)) calc(var(--space-4) + var(--space-1));
+    border-top: 0;
+  }
+  .fcx > li + li { border-top: 0; }
+  .fcx-tile {
+    grid-template-columns: auto minmax(0, 1fr); align-items: start;
+    padding: var(--space-4);
+    border: 1px solid rgb(var(--gold-rgb) / 0.35); border-radius: var(--radius-md);
+    background: var(--surface);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .fcx-tile:hover { border-color: var(--gold); box-shadow: var(--shadow-soft); }
+  .fcx-go { display: none; }
+  .fcx-stat > b { display: block; font-size: var(--fs-xl); line-height: 1.2; margin-top: 4px; }
+}
+@media (min-width: 1024px) { .fcx { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

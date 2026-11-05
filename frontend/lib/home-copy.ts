@@ -44,18 +44,6 @@ const COPY = {
   marketClosesIn: ["closes in {t}", "{t} পরে বন্ধ হবে"],
   marketOpensIn: ["opens in {t}", "{t} পরে খুলবে"],
 
-  // Chapters
-  chMoney: ["Your money", "আপনার টাকা"],
-  chMarket: ["Market today", "আজকের বাজার"],
-  dseTodayLink: ["Market today", "আজকের শেয়ার বাজার"],
-  dseTodayLinkSub: ["How the market did today, in plain words", "আজ বাজার কেমন গেল, সহজ ভাষায়"],
-  chIdeas: ["Find stocks", "শেয়ার খুঁজুন"],
-  chIdeasSub: [
-    "Ready-made ways to find shares today. Pick one to see the names, then open the full list.",
-    "আজ শেয়ার খোঁজার তৈরি কিছু উপায়। একটি বেছে নিলে নামগুলো দেখবেন, তারপর পুরো তালিকা খুলুন।",
-  ],
-  chDividends: ["Dividends coming", "আসন্ন ডিভিডেন্ড"],
-  chLearn: ["Learn", "শিখুন"],
 
   // Your stocks (the story viewer reads upFlatDown; the row reads allQuiet)
   showAll: ["Show all {n}", "সব {n}টি দেখুন"],
@@ -114,55 +102,6 @@ const COPY = {
   aboveLow: ["{n}% above its low", "সর্বনিম্ন দামের {n}% ওপরে"],
   volumeX: ["{n} times its usual trading", "স্বাভাবিকের {n} গুণ লেনদেন"],
   whyItMatters: ["Why this matters", "কেন গুরুত্বপূর্ণ"],
-
-  // Top ranked
-  rankedTitle: ["Strongest companies on the DSE", "ডিএসইর সবচেয়ে শক্তিশালী কোম্পানি"],
-  rankedSub: ["Ranked by our in-depth fundamental analysis", "আমাদের গভীর ফান্ডামেন্টাল বিশ্লেষণ দেখে সাজানো"],
-  fullRanking: ["Full ranking", "পুরো র‍্যাঙ্কিং"],
-
-  // Lists rail
-  // Research lists (homepage rail — the top three of each list, for every reader)
-  researchSub: [
-    "Six ideas, each tested on every company with the same plain checks.",
-    "ছয়টি ধারণা, প্রতিটি কোম্পানিকে একই সহজ যাচাইয়ে পরীক্ষা করা।",
-  ],
-  // Screener card
-  screenerTitle: ["Find stocks your way", "নিজের মতো শেয়ার খুঁজুন"],
-  screenerSub: [
-    "Ready-made screens on the numbers every DSE site shows. Tap one to see which shares match today.",
-    "সব ডিএসই সাইটের সাধারণ সংখ্যা দিয়ে তৈরি স্ক্রিন। আজ কোন শেয়ার মেলে, দেখতে একটিতে চাপুন।",
-  ],
-  screenerAsks: ["The filters in this screen", "এই স্ক্রিনের ফিল্টার"],
-  screenerPassToday: ["{n} shares match today", "আজ {n}টি শেয়ার মিলেছে"],
-  screenerOpen: ["Screener", "স্ক্রিনার"],
-  screenerSeeAll: ["See all {n} in the screener", "স্ক্রিনারে সব {n}টি দেখুন"],
-  screenerChange: ["Open in the screener", "স্ক্রিনারে খুলুন"],
-  screenerNone: ["None match today. Try another screen.", "আজ কোনোটি মেলেনি। অন্য স্ক্রিন দেখুন।"],
-  screenerYours: ["Your saved screens", "আপনার সেভ করা স্ক্রিন"],
-  screenerNew: ["{n} new", "{n}টি নতুন"],
-  screenerPass: ["{n} match", "{n}টি মিলেছে"],
-  allLists: ["All lists", "সব তালিকা"],
-  researchSeeAll: ["See all {n}", "সব {n}টি দেখুন"],
-  topN: ["Top {n}", "সেরা {n}টি"],
-
-  // Trending / popular / tips
-  trendingTitle: ["Trending this week", "এ সপ্তাহের আলোচিত শেয়ার"],
-  sevenDay: ["7 days", "7 দিন"],
-  allTrending: ["All trending", "সব আলোচিত"],
-  upLastWeek: ["Up {n}% over the past week", "গত এক সপ্তাহে {n}% বেড়েছে"],
-  downLastWeek: ["Down {n}% over the past week", "গত এক সপ্তাহে {n}% কমেছে"],
-  popularTitle: ["What other readers are looking at", "অন্য পাঠকেরা যা দেখছেন"],
-  views: ["{n} views", "{n} বার দেখা হয়েছে"],
-  seeAll: ["See all", "সব দেখুন"],
-  tipsTitle: ["Today's tips", "আজকের টিপস"],
-  tipsSub: ["One useful fact about each", "প্রতিটি নিয়ে একটি কাজের তথ্য"],
-  trendingSub: ["Moved the most over the past 7 days", "গত 7 দিনে সবচেয়ে বেশি ওঠানামা করেছে"],
-  popularSub: ["Opened most by readers this week", "এ সপ্তাহে পাঠকেরা সবচেয়ে বেশি দেখেছেন"],
-  discoverTitle: ["More ways to find stocks", "শেয়ার খোঁজার আরও উপায়"],
-  discoverSub: [
-    "Short lists from today's market, three names each.",
-    "আজকের বাজার থেকে ছোট তালিকা, প্রতিটিতে তিনটি নাম।",
-  ],
 
   // Glance strip
   glanceDsex: ["DSEX", "DSEX"],

@@ -323,7 +323,7 @@ export interface ReportDef {
   source: Bi;
 }
 
-/** The three reports, in the hub's order. */
+/** The six reports, in the hub's order. */
 export const REPORTS: ReportDef[] = [
   {
     slug: "risk-register",
@@ -401,6 +401,51 @@ export const REPORTS: ReportDef[] = [
 
 export function reportDef(slug: ReportSlug): ReportDef {
   return REPORTS.find((r) => r.slug === slug)!;
+}
+
+/** The one headline number on a report's dashboard tile (2026-11-06): the
+ *  figure big, the words after it. Null without the summary. */
+export function reportStat(
+  slug: ReportSlug,
+  s: ResearchSummary | null | undefined,
+): { value: Bi; label: Bi } | null {
+  if (!s) return null;
+  const n = (v: number): Bi => ({ en: String(v), bn: `${v}টি` });
+  switch (slug) {
+    case "risk-register":
+      return s.risks
+        ? { value: n(s.risks.flagged), label: { en: "companies have a serious problem today", bn: "কোম্পানিতে এখন গুরুতর সমস্যা" } }
+        : null;
+    case "auditor-warnings":
+      return s.auditors
+        ? { value: n(s.auditors.companies), label: { en: "companies' accounts the auditor did not fully accept", bn: "কোম্পানির হিসাবে নিরীক্ষকের আপত্তি" } }
+        : null;
+    case "results-season":
+      return s.season
+        ? {
+            value: n(s.season.counts.up),
+            label: {
+              en: `of ${s.season.reported} companies made more profit than a year ago`,
+              bn: `কোম্পানির মুনাফা এক বছর আগের চেয়ে বেড়েছে (${s.season.reported}টির মধ্যে)`,
+            },
+          }
+        : null;
+    case "who-is-buying":
+      return s.owners
+        ? { value: n(s.owners.trade_buyers), label: { en: "companies where the owners bought shares this year", bn: "কোম্পানিতে এ বছর মালিকেরা শেয়ার কিনেছেন" } }
+        : null;
+    case "is-the-profit-real":
+      return s.quality
+        ? {
+            value: n(s.quality.counts.paper + s.quality.counts.none),
+            label: { en: "companies whose profit stayed mostly on paper", bn: "কোম্পানির মুনাফা বেশির ভাগই কাগজে" },
+          }
+        : null;
+    case "dividends-you-can-count-on":
+      return s.dividends
+        ? { value: n(s.dividends.every_year), label: { en: "companies paid cash every year for 5 years", bn: "কোম্পানি টানা 5 বছর নগদ ডিভিডেন্ড দিয়েছে" } }
+        : null;
+  }
 }
 
 /** "৳2.10" — a figure a share, always two decimals. */

@@ -2372,7 +2372,9 @@ export interface HomeBundle {
   /** Market chapter (added 2026-09-16) — optional so a bundle assembled by the
    *  legacy fallback still type-checks. */
   movers?: MarketMoversData | null;
-  top20?: Top20Item[];
+  /** One figure per Premium research report (2026-11-06, the dashboard's
+   *  research card) — null until the backend's first build is ready. */
+  research?: ResearchSummary | null;
   calendar?: {
     /** Record dates inside the next two weeks, market-wide. */
     record_dates: CorporateActionEvent[];

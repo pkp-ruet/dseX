@@ -33,17 +33,15 @@ import DeskCard from "@/components/home/personalized/DeskCard";
 import PullToRefresh from "@/components/home/personalized/PullToRefresh";
 import StoriesRow from "@/components/home/personalized/StoriesRow";
 import MarketTodayCard from "@/components/home/personalized/MarketTodayCard";
-import DiscoverRail from "@/components/home/personalized/DiscoverRail";
-import ScreenerCard from "@/components/home/personalized/ScreenerCard";
+import RankingTop from "@/components/home/personalized/RankingTop";
+import ScreenerFeature from "@/components/home/personalized/ScreenerFeature";
+import ResearchShelf from "@/components/home/personalized/ResearchShelf";
 import ForYouCard from "@/components/home/personalized/ForYouCard";
 import DividendBoardCard from "@/components/home/personalized/DividendBoardCard";
 import LearnCard from "@/components/home/personalized/LearnCard";
 import ExploreLinks from "@/components/home/personalized/ExploreLinks";
 import FreeReportCard from "@/components/home/FreeReportCard";
 import { freeReportCode } from "@/lib/free-report";
-import ChapterHead from "@/components/home/personalized/ChapterHead";
-import { IconBook, IconCoin, IconGrid, IconSparkle } from "@/components/home/personalized/DashIcons";
-import DashSectionNav, { type DashNavItem } from "@/components/home/personalized/DashSectionNav";
 import InstallHomeBanner from "@/components/pwa/InstallHomeBanner";
 
 function flatten(scores: ScoresResponse | null): Map<string, ScoreItem> {
@@ -57,10 +55,10 @@ function flatten(scores: ScoresResponse | null): Map<string, ScoreItem> {
  *  `auto`, which cannot shrink below a card's min-content, so one over-wide
  *  row would widen the whole page instead of being contained. `.dash-pair`
  *  stretches both cards to the taller one's height so a pair ends on one line.
- *  On a phone the flat sections get 24px between them (`gap-6`). */
-const PAIR = "dash-pair grid grid-cols-1 gap-6 sm:gap-3 md:grid-cols-2 [&>*:only-child]:md:col-span-2";
+ *  Every card on the page sits 24px from the next (`gap-6`, `space-y-6`). */
+const PAIR = "dash-pair grid grid-cols-1 gap-6 md:grid-cols-2 [&>*:only-child]:md:col-span-2";
 /** Space between the blocks inside one chapter. */
-const CHAPTER = "dash-section space-y-6 sm:space-y-3";
+const CHAPTER = "dash-section space-y-6";
 
 const EMPTY_DIVIDENDS = { upcoming_declarations: [], upcoming_record_dates: [] };
 const EMPTY_SET = new Set<string>();
@@ -160,7 +158,6 @@ export default function PersonalizedHome() {
   const marketIndex = bundle?.market_index ?? null;
   const dividendCash = bundle?.dividend_cash ?? [];
   const movers = bundle?.movers ?? null;
-  const top20 = bundle?.top20 ?? [];
   const calendarRows = bundle?.calendar?.record_dates ?? [];
   const declared = bundle?.calendar?.recent_declarations ?? [];
 
@@ -237,17 +234,6 @@ export default function PersonalizedHome() {
 
   const hasDividends = calendarRows.length > 0 || declared.length > 0;
 
-  const navItems = useMemo<DashNavItem[]>(() => {
-    const items: DashNavItem[] = [
-      { id: "money", label: t(lang, "chMoney") },
-      { id: "market", label: t(lang, "chMarket") },
-      { id: "ideas", label: t(lang, "chIdeas") },
-    ];
-    if (hasDividends) items.push({ id: "dividends", label: t(lang, "chDividends") });
-    items.push({ id: "learn", label: t(lang, "chLearn") });
-    return items;
-  }, [lang, hasDividends]);
-
   // One delegated listener: any link tapped inside a `[data-card]` wrapper
   // records which card it came from. No per-component wiring.
   function onTap(e: MouseEvent<HTMLDivElement>) {
@@ -257,11 +243,6 @@ export default function PersonalizedHome() {
     const card = link.closest("[data-card]")?.getAttribute("data-card");
     if (card) trackHomeTap(card, link.getAttribute("href") ?? undefined);
   }
-
-  // Chapter title, with its Bengali line under it in English mode.
-  const head = (key: "chMarket" | "chIdeas" | "chDividends" | "chLearn", icon: React.ReactNode, sub?: string) => (
-    <ChapterHead label={t(lang, key)} sub={sub} icon={icon} />
-  );
 
   // Today's free full report (lib/free-report.ts) — the whole Premium stock
   // page, open for everyone, one familiar company a day. Free readers only —
@@ -277,7 +258,6 @@ export default function PersonalizedHome() {
   //    market-wide, plus the latest declarations. ──
   const dividendsChapter = hasDividends ? (
     <section id="dividends" className={CHAPTER}>
-      {head("chDividends", <IconCoin size={16} />)}
       <div data-card="dividends">
         <DividendBoardCard recordDates={calendarRows} declared={declared} held={heldSet} watched={watchedSet} lang={lang} />
       </div>
@@ -290,7 +270,6 @@ export default function PersonalizedHome() {
   //    week's results) left with that change. ──
   const marketChapter = (
     <section id="market" className={CHAPTER}>
-      {head("chMarket", <IconGrid size={16} />)}
       <div data-card="market">
         <MarketTodayCard
           index={marketIndex}
@@ -302,19 +281,18 @@ export default function PersonalizedHome() {
     </section>
   );
 
-  // ── Chapter 3: Find stocks — "Picked for you" first (the recommendation
-  //    engine's top three as one row of tiles, the whole list and every
-  //    pick's reasons on /picked-for-you since 2026-11-05; Premium only since
-  //    2026-11-01 — a free reader's tiles are locked; user decision
-  //    2026-10-27, replacing the old random "picked for you" opener removed
-  //    2026-10-26), then the screener card (ready-made screens + top
-  //    three) and ONE swipe rail for top ranked / trending (the research
-  //    lists' rail was removed 2026-11-05). Different kinds of block, so they get more air
-  //    between them than the other chapters' card pairs. ──
+  // ── Chapter 3: Find stocks (redone 2026-11-06, user: "section wise …
+  //    clean, easy to understand and premium"). Four blocks, one shape
+  //    (eyebrow · title · lead · body · one link out), nothing else:
+  //    1 Picked for you — the engine's top three + a link (Premium; locked
+  //      tiles for a free reader);
+  //    2 Stock screener — one featured card and a link, no screener here;
+  //    3 Company ranking — the top five + a link (trending left this chapter);
+  //    4 Premium research — all six reports, each with today's number.
+  //    Today's free full report sits right after the market card. ──
   const ideasChapter = (
-    <section id="ideas" className="dash-section space-y-5">
-      {head("chIdeas", <IconSparkle size={16} />, t(lang, "chIdeasSub"))}
-      <div className="space-y-10">
+    <section id="ideas" className="dash-section">
+      <div className="space-y-6">
         <div data-card="for-you">
           <ForYouCard
             data={bundle?.for_you}
@@ -326,27 +304,20 @@ export default function PersonalizedHome() {
             lang={lang}
           />
         </div>
-        {freeReportCard}
-        {(bundle?.screener?.ready?.length ?? 0) > 0 && (
-          <div data-card="screener">
-            <ScreenerCard
-              ready={bundle?.screener?.ready}
-              saved={bundle?.screener?.saved}
-              held={heldSet}
-              watched={watchedSet}
-              lang={lang}
-            />
-          </div>
-        )}
-        <div data-card="discover">
-          <DiscoverRail
+        <div data-card="screener">
+          <ScreenerFeature ready={bundle?.screener?.ready} saved={bundle?.screener?.saved} />
+        </div>
+        <div data-card="ranking">
+          <RankingTop
             stocks={allStocks}
-            trending={top20}
             moves={bundle?.rank_moves ?? null}
             held={heldSet}
             watched={watchedSet}
             lang={lang}
           />
+        </div>
+        <div data-card="research">
+          <ResearchShelf summary={bundle?.research} premium={planState === "premium"} />
         </div>
       </div>
     </section>
@@ -366,7 +337,6 @@ export default function PersonalizedHome() {
   //    page. ──
   const learnChapter = (
     <section id="learn" className={CHAPTER}>
-      {head("chLearn", <IconBook size={16} />)}
       <div className={PAIR}>
         <div data-card="learn">
           <LearnCard brandNew={isBrandNew} lang={lang} />
@@ -421,11 +391,14 @@ export default function PersonalizedHome() {
         )}
       </section>
 
-      {/* Sticky chapter chips — the page is a long daily read. */}
-      <DashSectionNav items={navItems} lang={lang} />
-
-      <div className="mt-4 space-y-12 sm:space-y-10">
+      {/* No chapter titles and no sticky chapter chips (2026-11-06, user:
+          "only cards are enough"): the cards follow each other with one
+          even gap; each card's own title says what it is. */}
+      <div className="mt-6 space-y-6">
         {marketChapter}
+        {/* Today's free full report — free readers only, right under the
+            market card (2026-11-06, user decision). */}
+        {freeReportCard}
         {ideasChapter}
         {dividendsChapter}
         {setup}

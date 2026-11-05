@@ -6,6 +6,8 @@ lock on the page is screen-only, like every other lock in the app.
 from __future__ import annotations
 
 import logging
+import threading
+import time
 from datetime import date, datetime, timedelta, timezone
 from typing import Optional
 
@@ -406,3 +408,40 @@ def summary() -> dict:
     return {"risks": _guard("risks", risks), "auditors": _guard("auditors", auditors),
             "season": _guard("season", season), "owners": _guard("owners", owners),
             "quality": _guard("quality", quality), "dividends": _guard("dividends", dividends)}
+
+
+# ---------------------------------------------------------------- the dashboard
+
+SNAPSHOT_TTL = 900  # seconds before the dashboard's copy is rebuilt (in the background)
+_snap: dict = {"val": None, "at": 0.0, "busy": False}
+_snap_lock = threading.Lock()
+
+
+def _refresh_snapshot() -> None:
+    try:
+        val = summary()
+        with _snap_lock:
+            _snap["val"], _snap["at"] = val, time.time()
+    except Exception:  # noqa: BLE001
+        logger.exception("research summary snapshot failed")
+    finally:
+        with _snap_lock:
+            _snap["busy"] = False
+
+
+def summary_snapshot() -> Optional[dict]:
+    """The hub's figures for the dashboard's research card, never blocking.
+
+    A cold ``summary()`` builds all six reports (~13 s), far too slow for the
+    home bundle. This returns the last copy at once (None on a fresh worker)
+    and, when it is missing or older than SNAPSHOT_TTL, rebuilds it on a
+    background thread; the card shows the reports without figures until then.
+    """
+    with _snap_lock:
+        val, stale = _snap["val"], time.time() - _snap["at"] >= SNAPSHOT_TTL
+        start = stale and not _snap["busy"]
+        if start:
+            _snap["busy"] = True
+    if start:
+        threading.Thread(target=_refresh_snapshot, name="research-summary", daemon=True).start()
+    return val

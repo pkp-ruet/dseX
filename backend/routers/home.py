@@ -40,7 +40,7 @@ from backend.services.db_service import (
     load_market_movers,
     load_news_for_codes,
 )
-from backend.services.top20_service import compute_top20
+from backend.services.research_reports_service import summary_snapshot
 from backend.services.desk_service import desk_summary
 from backend.services.portfolio_daily import recent_events
 from backend.services.portfolio_signal_service import list_recent_events
@@ -54,7 +54,6 @@ router = APIRouter(prefix="/api/user", tags=["home"])
 T = TypeVar("T")
 
 NEWS_LIMIT = 20
-TOP20_LIMIT = 8
 # Dividend board on the dashboard: record dates inside this many days.
 CALENDAR_DAYS = 14
 CALENDAR_LIMIT = 12
@@ -121,7 +120,9 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
     # Market chapter — all from services that are already cached.
     movers = _safe("movers", load_market_movers, None)
 
-    top20 = _safe("top20", lambda: ((compute_top20() or {}).get("items") or [])[:TOP20_LIMIT], [])
+    # The research card: one figure per Premium report, from the last built
+    # copy (never waits on a cold build; None until the first one is ready).
+    research = _safe("research", summary_snapshot, None)
     # This week's rank change for every company (the ranking card's pills).
     rank_moves = _safe("rank_moves", week_rank_moves, None)
     # The screener card: the ready-made screens (count + top three, all free)
@@ -172,7 +173,7 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
         "near_extremes": near,
         "dividend_cash": dividend_cash,
         "movers": movers,
-        "top20": top20,
+        "research": research,
         "calendar": calendar,
         "rank_moves": rank_moves,
         "new_results": new_results,

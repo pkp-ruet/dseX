@@ -17,7 +17,6 @@ import {
   getDividendsUpcoming,
   getNearExtremes,
   getMarketMovers,
-  getTop20,
   getDividendCalendar,
   type HomeBundle,
 } from "@/lib/api";
@@ -46,10 +45,9 @@ async function legacyBundle(): Promise<HomeBundle> {
       ...(portfolio.holdings ?? []).map((h) => h.trading_code.toUpperCase()),
     ]),
   ).sort();
-  const [news, movers, top20, calendar] = await Promise.all([
+  const [news, movers, calendar] = await Promise.all([
     codes.length ? settle(getWatchlistNews(codes), []) : Promise.resolve([]),
     settle(getMarketMovers(), null),
-    settle(getTop20(), null),
     settle(getDividendCalendar(), null),
   ]);
   return {
@@ -63,7 +61,9 @@ async function legacyBundle(): Promise<HomeBundle> {
     near_extremes: extremes,
     dividend_cash: [],
     movers,
-    top20: top20?.items?.slice(0, 8) ?? [],
+    // The research figures come only with the bundle; the card shows the
+    // reports without them.
+    research: null,
     calendar: {
       record_dates: (calendar?.record_dates ?? []).filter(
         (e) => e.record_days_left != null && e.record_days_left >= 0 && e.record_days_left <= 14,

@@ -4,7 +4,8 @@ import { getResearchSummary } from "@/lib/api";
 import { REPORTS, type ReportSlug, type ResearchSummary } from "@/lib/research-reports";
 import PageHeader from "@/components/ui/PageHeader";
 import { T } from "@/components/i18n/T";
-import { IconAlert, IconArrowRight, IconBriefcase, IconChartBars, IconCheckCircle, IconCoin, IconCrown, IconNews } from "@/components/ui/icons";
+import { IconArrowRight, IconCrown } from "@/components/ui/icons";
+import { REPORT_ICON } from "@/components/research-reports/reportIcons";
 
 export const revalidate = 3600;
 
@@ -52,15 +53,6 @@ const jsonLd = [
     ],
   },
 ];
-
-const REPORT_ICON: Record<ReportSlug, typeof IconAlert> = {
-  "risk-register": IconAlert,
-  "auditor-warnings": IconNews,
-  "results-season": IconChartBars,
-  "who-is-buying": IconBriefcase,
-  "is-the-profit-real": IconCheckCircle,
-  "dividends-you-can-count-on": IconCoin,
-};
 
 /** The one figure under each report card, from /api/research/summary. */
 function reportFigure(slug: ReportSlug, s: ResearchSummary | null): { en: string; bn: string } | null {
