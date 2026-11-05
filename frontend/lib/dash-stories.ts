@@ -1163,8 +1163,8 @@ export function buildStarterStories(i: {
               ? { text: `${best.toFixed(1)}%`, tone: "positive", caption: L("the best yield among them, at today's price", "এর মধ্যে সর্বোচ্চ ইল্ড, আজকের দামে") }
               : undefined,
           sentence: L(
-            "Premium names each company, its cash a share, the last day to buy and whether the dividend looks safe.",
-            "প্রতিটি কোম্পানির নাম, শেয়ারপ্রতি নগদ, কেনার শেষ দিন আর ডিভিডেন্ডটি নিরাপদ কি না, তা দেখায় প্রিমিয়াম।",
+            "Premium names each company, its cash a share and the last day to buy to get it.",
+            "প্রতিটি কোম্পানির নাম, শেয়ারপ্রতি নগদ আর পেতে হলে কেনার শেষ দিন দেখায় প্রিমিয়াম।",
           ),
           rows: [
             {

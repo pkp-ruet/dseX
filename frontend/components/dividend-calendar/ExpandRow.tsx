@@ -16,22 +16,18 @@ export default function ExpandRow({
   fig,
   body,
   href,
-  rank,
 }: {
   head: ReactNode;
   fig: ReactNode;
   body: ReactNode | null;
   href: string;
-  rank?: number;
 }) {
   const [open, setOpen] = useState(false);
   const id = useId();
-  const rankCell = rank != null ? <span className="dc-rank">{rank}</span> : null;
 
   if (!body) {
     return (
-      <Link href={href} prefetch={false} className={`dc-row ${rank != null ? "dc-row--rank" : ""}`.trim()}>
-        {rankCell}
+      <Link href={href} prefetch={false} className="dc-row">
         <span className="min-w-0">{head}</span>
         <span className="dc-fig">{fig}</span>
       </Link>
@@ -42,12 +38,11 @@ export default function ExpandRow({
     <div className="dc-x" data-open={open ? "true" : "false"}>
       <button
         type="button"
-        className={`dc-row dc-row--x ${rank != null ? "dc-row--rank" : ""}`.trim()}
+        className="dc-row dc-row--x"
         aria-expanded={open}
         aria-controls={id}
         onClick={() => setOpen((v) => !v)}
       >
-        {rankCell}
         <span className="min-w-0">{head}</span>
         <span className="dc-fig">{fig}</span>
         <span className="dc-x-chev" aria-hidden="true">

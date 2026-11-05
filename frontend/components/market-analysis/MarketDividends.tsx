@@ -93,7 +93,7 @@ export default function MarketDividends({ items }: { items: MarketDividendEvent[
                   <T en={`${announced} dividend${as} just announced.`} bn={`সদ্য ঘোষিত ${announced}টি ডিভিডেন্ড।`} />
                 )}
               </p>
-              <DividendDays days={days} shown={5} toned={false} />
+              <DividendDays days={days} shown={5} />
             </div>
           )}
           <AnswerLock

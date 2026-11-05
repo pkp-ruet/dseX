@@ -1,30 +1,67 @@
 import ExpandRow from "@/components/dividend-calendar/ExpandRow";
 import Button from "@/components/ui/Button";
 import { T } from "@/components/i18n/T";
-import { Locked } from "@/components/premium/AnswerLock";
 import CalendarFold from "@/components/dividend-calendar/CalendarFold";
 import PanelHead from "@/components/dividend-calendar/PanelHead";
 import { perShareTk } from "@/components/dividend-calendar/DividendRow";
-import { dayShort } from "@/components/dividend-calendar/dates";
+import { dayParts, dayShort, type Pair } from "@/components/dividend-calendar/dates";
 import type { DividendForecast } from "@/lib/api";
-
-const TONE: Record<DividendForecast["tone"], string> = {
-  good: "dc-safety--safe",
-  neutral: "",
-  bad: "dc-safety--risk",
-};
 
 function pctWord(v: number): string {
   return `${Number.isInteger(v) ? v : v.toFixed(1)}%`;
 }
 
+/** "20 Nov" / "20 নভে." — a date inside a window, no weekday. */
+function dayMonth(iso: string | null | undefined): Pair {
+  const p = dayParts(iso);
+  return p ? { en: `${p.day} ${p.month.en}`, bn: `${p.day} ${p.month.bn}` } : { en: "—", bn: "—" };
+}
+
+/** When to look for it: the posted board meeting, else last year's date a year on. */
+function when(r: DividendForecast): { short: Pair; tone: "watch" | null; line: Pair } {
+  const decl = dayShort(r.last_declared, true);
+  if (r.meeting) {
+    const m = dayShort(r.meeting);
+    return {
+      short: { en: `Board meets ${m.en}`, bn: `পর্ষদ সভা ${m.bn}` },
+      tone: "watch",
+      line: {
+        en: `The board meets on ${m.en} on its yearly results. Dividends are declared at that meeting.`,
+        bn: `বার্ষিক ফল নিয়ে পর্ষদ সভা ${m.bn}। ডিভিডেন্ড সেই সভাতেই ঘোষণা হয়।`,
+      },
+    };
+  }
+  if (r.late) {
+    return {
+      short: { en: "Later than last year", bn: "গত বছরের চেয়ে দেরি" },
+      tone: null,
+      line: {
+        en: `Last year it declared on ${decl.en}. It has not declared yet this year.`,
+        bn: `গত বছর ${decl.bn} ঘোষণা করেছিল। এ বছর এখনো করেনি।`,
+      },
+    };
+  }
+  const a = dayMonth(r.window_start);
+  const b = dayMonth(r.window_end);
+  return {
+    short: { en: `Expected ${a.en} to ${b.en}`, bn: `সম্ভাব্য ${a.bn} থেকে ${b.bn}` },
+    tone: null,
+    line: {
+      en: `Last year it declared on ${decl.en}, so look for it around the same time this year.`,
+      bn: `গত বছর ${decl.bn} ঘোষণা করেছিল, তাই এ বছরও প্রায় একই সময়ে আশা করা যায়।`,
+    },
+  };
+}
+
 /**
- * "Coming next" (2026-10-31, the Premium Desk plan): companies that paid cash
- * for their last year and haven't declared for this one yet. Free: last
- * year's declaration and cash, and a board meeting DSE has posted. Premium
- * (screen-only `Locked`): when we expect it and how much, with the reason in
- * plain words (backend `dividend_forecast.forecast_row`). Board meetings come
- * first, then the expected dates, soonest first.
+ * "Coming next": companies that paid cash for their last year and haven't
+ * declared for this one yet — the dividends a reader can expect next.
+ * Facts only since 2026-11-05 (user: the calendar is "purely dedicated for
+ * finding dividends that are coming next", no analysis): when to look for it
+ * (a board meeting DSE has posted, else last year's declaration date a year
+ * on, ±2 weeks) and what it paid last year. Our profit-based estimate of the
+ * amount and the "May skip" word are no longer shown (the backend still sends
+ * them). Board meetings come first, then the expected dates, soonest first.
  */
 export default function ComingNext({ rows }: { rows: DividendForecast[] }) {
   const head = (
@@ -32,8 +69,8 @@ export default function ComingNext({ rows }: { rows: DividendForecast[] }) {
       title={<T en="Dividends coming next" bn="সামনে যেসব ডিভিডেন্ড আসতে পারে" />}
       lead={
         <T
-          en="Companies that paid cash last year and haven't declared for this year yet. Tap one to see when we expect it, and why."
-          bn="যে কোম্পানিগুলো গত বছর নগদ ডিভিডেন্ড দিয়েছে কিন্তু এ বছরের জন্য এখনো ঘোষণা করেনি। কবে আসতে পারে আর কেন, দেখতে কোম্পানিতে ট্যাপ করুন।"
+          en="Companies that paid cash last year and haven't declared for this year yet, with when to look for it."
+          bn="যে কোম্পানিগুলো গত বছর নগদ ডিভিডেন্ড দিয়েছে কিন্তু এ বছরের জন্য এখনো ঘোষণা করেনি, আর কবে তা আসতে পারে।"
         />
       }
     />
@@ -54,28 +91,19 @@ export default function ComingNext({ rows }: { rows: DividendForecast[] }) {
     );
   }
   const items = rows.map((r) => {
+    const w = when(r);
     const decl = dayShort(r.last_declared, true);
-    const meeting = r.meeting ? dayShort(r.meeting) : null;
+    const rec = r.last_record_date ? dayShort(r.last_record_date, true) : null;
     const href = `/stock/${encodeURIComponent(r.trading_code)}#dividends`;
     const head = (
       <>
         <span className="dc-name">{r.company_name || r.trading_code}</span>
         <span className="dc-meta">
           <span className="dc-code">{r.trading_code}</span>
-          {meeting && (
-            <>
-              <span className="dc-sep" aria-hidden="true">·</span>
-              <span className="dc-tone--watch">
-                <T en={`Board meets ${meeting.en}`} bn={`পর্ষদ সভা ${meeting.bn}`} />
-              </span>
-            </>
-          )}
-          <Locked as="span" className="dc-word">
-            <span className="dc-sep" aria-hidden="true">·</span>{" "}
-            <b className={`dc-safety-w ${TONE[r.tone]}`.trim()}>
-              <T en={r.word_en} bn={r.word_bn} />
-            </b>
-          </Locked>
+          <span className="dc-sep" aria-hidden="true">·</span>
+          <span className={w.tone ? "dc-tone--watch" : undefined}>
+            <T en={w.short.en} bn={w.short.bn} />
+          </span>
         </span>
       </>
     );
@@ -89,33 +117,13 @@ export default function ComingNext({ rows }: { rows: DividendForecast[] }) {
     );
     const body = (
       <>
-        <Locked>
-          <dl className="dc-why">
-            <div>
-              <dt>
-                <T en="What we expect" bn="আমাদের অনুমান" />
-              </dt>
-              <dd>
-                <b className={`dc-safety-w ${TONE[r.tone]}`.trim()}>
-                  <T en={`${r.word_en}.`} bn={`${r.word_bn}।`} />
-                </b>{" "}
-                <T en={r.when_en} bn={r.when_bn} />
-              </dd>
-            </div>
-            <div>
-              <dt>
-                <T en="Why" bn="কেন" />
-              </dt>
-              <dd>
-                <T en={r.why_en} bn={r.why_bn} />
-              </dd>
-            </div>
-          </dl>
-        </Locked>
+        <p className="dc-x-line">
+          <T en={w.line.en} bn={w.line.bn} />
+        </p>
         <p className="dc-x-facts">
           <T
-            en={`Last year ${pctWord(r.last_cash_pct)} cash, declared ${decl.en}`}
-            bn={`গত বছর ${pctWord(r.last_cash_pct)} নগদ, ঘোষণা ${decl.bn}`}
+            en={`Last year: ${pctWord(r.last_cash_pct)} cash (${perShareTk(r.last_cash_per_share)} a share), declared ${decl.en}${rec ? `, record date ${rec.en}` : ""}`}
+            bn={`গত বছর: ${pctWord(r.last_cash_pct)} নগদ (শেয়ারপ্রতি ${perShareTk(r.last_cash_per_share)}), ঘোষণা ${decl.bn}${rec ? `, রেকর্ড ডেট ${rec.bn}` : ""}`}
           />
           {r.last_stock_pct ? (
             <T en={` · also ${pctWord(r.last_stock_pct)} bonus`} bn={` · সঙ্গে ${pctWord(r.last_stock_pct)} বোনাস`} />
@@ -148,8 +156,8 @@ export default function ComingNext({ rows }: { rows: DividendForecast[] }) {
       </div>
       <p className="dc-fine">
         <T
-          en="An estimate, not a promise: the board decides. We move last year's cash with the change in profit over the last 12 months, and say so when profit turned to a loss."
-          bn="এটি অনুমান, প্রতিশ্রুতি নয়: সিদ্ধান্ত বোর্ডের। গত 12 মাসের মুনাফা যতটা বদলেছে, গত বছরের নগদ ডিভিডেন্ড ততটা বদলে আমরা হিসাব করি, আর মুনাফা লোকসানে গেলে তা জানাই।"
+          en="The board decides the date and the amount. The dates come from a board meeting DSE has posted, else from last year's declaration a year on."
+          bn="তারিখ আর পরিমাণ ঠিক করে বোর্ড। তারিখগুলো ডিএসইতে প্রকাশিত পর্ষদ সভা থেকে, না থাকলে গত বছরের ঘোষণার এক বছর পর থেকে ধরা।"
         />
       </p>
     </>

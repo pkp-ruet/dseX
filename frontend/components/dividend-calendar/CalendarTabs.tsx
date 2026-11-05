@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import Tabs from "@/components/ui/Tabs";
 import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
 import type { Pair } from "@/components/dividend-calendar/dates";
+import IncomeCard, {
+  incomeByMonth, useMainQty, type IncomeForecast, type IncomeRecord,
+} from "@/components/dividend-calendar/IncomeCard";
 
 export interface CalendarPanel {
   /** Also the panel's id, so the old section anchors (#agms …) still open it. */
@@ -16,9 +19,18 @@ export interface CalendarPanel {
   body: ReactNode;
 }
 
+/** What the "Your dividends" tab is built from (slim rows, sent from the page). */
+export interface YoursInput {
+  records: IncomeRecord[];
+  forecast: IncomeForecast[];
+  today: string;
+}
+
 /**
- * The calendar's lists in tabs (2026-10-29 compact redesign): record dates ·
- * AGMs · biggest payers · just declared. They used to be four sections one
+ * The calendar's lists in tabs (2026-10-29 compact redesign; since 2026-11-05:
+ * record dates · coming next · just declared · AGMs, then "Your dividends"
+ * for a signed-in reader with shares — added after mount from their main
+ * portfolio, so the server render never carries it). They used to be four sections one
  * under another, so everything below the record dates sat past a very long
  * scroll. Every panel stays in the HTML (search engines read it); only the
  * active one shows. The tab row sticks under the navbar, and a `#hash` naming
@@ -27,15 +39,36 @@ export interface CalendarPanel {
  * tabs"): every tab in view at once, the count leading on phones, the chosen
  * list filled clay.
  */
-export default function CalendarTabs({ panels }: { panels: CalendarPanel[] }) {
+export default function CalendarTabs({ panels: base, yours }: { panels: CalendarPanel[]; yours?: YoursInput }) {
   const { bn } = useLang();
+  const qty = useMainQty();
+  const panels = useMemo(() => {
+    if (!yours || !qty || qty.size === 0) return base;
+    const months = incomeByMonth(qty, yours.records, yours.forecast, yours.today);
+    const shares = new Set(months.flatMap((m) => m.lines.map((l) => l.code.toUpperCase()))).size;
+    return [
+      ...base,
+      {
+        key: "your-dividends",
+        label: { en: "Your dividends", bn: "আপনার ডিভিডেন্ড" },
+        short: { en: "Yours", bn: "আপনার" },
+        count: shares,
+        body: <IncomeCard months={months} />,
+      },
+    ];
+  }, [base, yours, qty]);
   const [active, setActive] = useState(panels[0]?.key ?? "");
   const top = useRef<HTMLElement>(null);
+  // The hash already acted on, so the "Your dividends" tab arriving after
+  // mount doesn't scroll the page a second time.
+  const handled = useRef("");
 
   useEffect(() => {
-    const pick = () => {
+    const pick = (e?: Event) => {
       const id = decodeURIComponent(window.location.hash.replace(/^#/, ""));
       if (!panels.some((p) => p.key === id)) return;
+      if (!e && handled.current === id) return;
+      handled.current = id;
       setActive(id);
       requestAnimationFrame(() => top.current?.scrollIntoView({ block: "start" }));
     };

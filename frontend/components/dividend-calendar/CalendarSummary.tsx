@@ -20,20 +20,15 @@ function Answer({ n, q, x }: { n: string; q: { en: string; bn: string }; x: { en
 }
 
 /**
- * The top of the calendar (clean pass 2026-11-04, user: the page "look messy
- * and hard to understand"). ONE card that answers "what's ahead?":
+ * The top of the calendar: ONE card that answers "what's coming?"
  *  1. three numbers — cash dividends ahead, record dates this week, the best
- *     yield (the AGM count left: it is the AGM tab's own count);
- *  2. "Is it safe?" across every cash dividend ahead, as one bar and three
- *     counts in the backend's own words;
- *  3. the next last day to buy, with a link that opens the record dates;
- *  4. the one rule, short (the full answer is in "How a dividend reaches you").
+ *     yield at today's price;
+ *  2. the next last day to buy, with a link that opens the record dates;
+ *  3. the one rule, short (the full answer is in "How a dividend reaches you").
+ * No "Is it safe?" here since 2026-11-05 (user: the calendar is "purely
+ * dedicated for finding dividends that are coming next").
  */
 export default function CalendarSummary({ data, promo }: { data: DividendCalendarData; promo: CalendarPromo }) {
-  const sf = promo.safety;
-  const rated = sf.safe + sf.watch + sf.risk;
-  const w = (n: number) => `${(n / rated) * 100}%`;
-
   // The nearest last day to buy that is still open, and how many cash
   // dividends it is the last day for.
   const next = data.record_dates.find(
@@ -67,33 +62,6 @@ export default function CalendarSummary({ data, promo }: { data: DividendCalenda
           x={{ en: "cash, at today's price", bn: "নগদ, আজকের দামে" }}
         />
       </div>
-
-      {rated > 0 && (
-        <div className="dc-safe">
-          <p className="dc-safe-k">
-            <T en={`Is it safe? Of the ${rated} cash dividends ahead:`} bn={`নিরাপদ কি? সামনের ${rated}টি নগদ ডিভিডেন্ডের মধ্যে:`} />
-          </p>
-          <div className="dc-safe-bar" aria-hidden="true">
-            {sf.safe > 0 && <span className="dc-safe-seg dc-safe-seg--safe" style={{ width: w(sf.safe) }} />}
-            {sf.watch > 0 && <span className="dc-safe-seg dc-safe-seg--watch" style={{ width: w(sf.watch) }} />}
-            {sf.risk > 0 && <span className="dc-safe-seg dc-safe-seg--risk" style={{ width: w(sf.risk) }} />}
-          </div>
-          <ul className="dc-safe-key">
-            <li>
-              <i className="dc-safe-dot dc-safe-seg--safe" aria-hidden="true" />
-              <T en={`${sf.safe} look steady`} bn={`${sf.safe}টি স্থিতিশীল`} />
-            </li>
-            <li>
-              <i className="dc-safe-dot dc-safe-seg--watch" aria-hidden="true" />
-              <T en={`${sf.watch} worth a check`} bn={`${sf.watch}টি যাচাই করে নিন`} />
-            </li>
-            <li>
-              <i className="dc-safe-dot dc-safe-seg--risk" aria-hidden="true" />
-              <T en={`${sf.risk} at risk`} bn={`${sf.risk}টি ঝুঁকিতে`} />
-            </li>
-          </ul>
-        </div>
-      )}
 
       {next && nextWhen && (
         <p className="dc-next">

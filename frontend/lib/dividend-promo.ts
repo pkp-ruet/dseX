@@ -1,12 +1,13 @@
 /**
- * What the dividend calendar's Premium card says (2026-11-04, user: "make the
- * whole dividend calendar page premium. free user will see a promo card like
- * stock and portfolio page"). Pure: built on the server from the calendar the
- * page already fetched, so the card is in the first paint.
+ * What the dividend calendar's Premium card says (2026-11-04; made simple
+ * 2026-11-05, user: the card should be about finding the dividends coming
+ * next, "more simple and easy to understand", no risk check). Pure: built on
+ * the server from the calendar the page already fetched, so the card is in
+ * the first paint.
  *
- * Counts and dates only — never a company name, a cash figure tied to a
- * company or a safety word tied to a company. The reader's own shares are
- * added in the browser (`DividendPromo`) from `records` / `expected`.
+ * Counts and dates, plus ONE free example: the next cash record date in full
+ * (company, cash a share, last day to buy) so a free reader sees exactly what
+ * the calendar is.
  */
 import type { DividendCalendarData } from "@/lib/api";
 
@@ -16,36 +17,45 @@ export const RECENT_LIMIT = 12;
 /** How far ahead the card's "coming up" timeline looks. */
 export const PROMO_DAYS = 14;
 
+/** The card's headline window ("… in the next 30 days"). */
+export const SOON_DAYS = 30;
+
 export type PromoDay = {
   date: string;
   /** Record dates that day. */
   n: number;
   /** The largest cash a share that day (taka), for "up to ৳X a share"; 0 = bonus shares only. */
   maxCash: number;
-  risk: number;
-  watch: number;
 };
 
 /** One record date, for the by-day timeline. */
-export type DayInput = { date: string; cash: number; level?: "safe" | "watch" | "risk" | null };
+export type DayInput = { date: string; cash: number };
 
 /** Record dates grouped by day, oldest first — the timeline on the calendar's
- *  Premium card, the dashboard's record-dates card and market analysis. */
+ *  Premium card and the dashboard's record-dates card. */
 export function groupDays(rows: DayInput[]): PromoDay[] {
   const byDay = new Map<string, PromoDay>();
   for (const r of rows) {
-    const d = byDay.get(r.date) ?? { date: r.date, n: 0, maxCash: 0, risk: 0, watch: 0 };
+    const d = byDay.get(r.date) ?? { date: r.date, n: 0, maxCash: 0 };
     d.n += 1;
     d.maxCash = Math.max(d.maxCash, r.cash || 0);
-    if (r.level === "risk") d.risk += 1;
-    else if (r.level === "watch") d.watch += 1;
     byDay.set(r.date, d);
   }
   return [...byDay.values()].sort((a, b) => a.date.localeCompare(b.date));
 }
 
-/** One cash record date ahead, slim, for the reader's own shares. */
-export type PromoRecord = { code: string; date: string; cash: number; buyBy: string | null };
+/** The card's free example: the next cash record date, in full. */
+export type PromoSample = {
+  code: string;
+  name: string;
+  date: string;
+  daysLeft: number | null;
+  buyBy: string | null;
+  buyDaysLeft: number | null;
+  cash: number;
+  yieldPct: number | null;
+  type: string | null;
+};
 
 export type CalendarPromo = {
   today: string;
@@ -53,71 +63,56 @@ export type CalendarPromo = {
   cash: number;
   /** Companies behind them (an interim and a final count once). */
   companies: number;
+  /** Companies with a cash record date in the next `SOON_DAYS`. */
+  soon: number;
   thisWeek: number;
-  agms: number;
-  declared: number;
-  topPayers: number;
   /** "Coming next": companies that haven't declared for this year yet. */
   comingNext: number;
-  /** How many of those carry an expected cash figure. */
-  estimates: number;
   bestYield: number | null;
-  /** "Is it safe?" over every cash record date ahead. */
-  safety: { safe: number; watch: number; risk: number };
-  /** Cash record dates that carry "Worth buying for it?". */
-  capture: number;
   days: PromoDay[];
-  records: PromoRecord[];
-  /** Codes we expect to declare, with their expected record date. */
-  expected: { code: string; date: string; cash: number }[];
+  sample: PromoSample | null;
 };
 
 export function buildCalendarPromo(data: DividendCalendarData): CalendarPromo {
   const cashRows = data.record_dates.filter((e) => (e.cash_per_share ?? 0) > 0 && e.record_date);
-  const safety = { safe: 0, watch: 0, risk: 0 };
-  for (const e of cashRows) {
-    const l = e.safety?.level;
-    if (l === "safe") safety.safe += 1;
-    else if (l === "watch") safety.watch += 1;
-    else if (l === "risk") safety.risk += 1;
-  }
+  const ahead = cashRows.filter((e) => e.record_days_left == null || e.record_days_left >= 0);
 
   const days = groupDays(
-    cashRows
-      .filter((e) => e.record_days_left != null && e.record_days_left >= 0 && e.record_days_left <= PROMO_DAYS)
-      .map((e) => ({ date: e.record_date as string, cash: e.cash_per_share ?? 0, level: e.safety?.level })),
+    ahead
+      .filter((e) => e.record_days_left != null && e.record_days_left <= PROMO_DAYS)
+      .map((e) => ({ date: e.record_date as string, cash: e.cash_per_share ?? 0 })),
   );
 
-  const forecast = data.forecast ?? [];
+  // The example: the soonest record date whose last day to buy is still open,
+  // else the soonest one ahead.
+  const byDate = [...ahead].sort((a, b) => (a.record_date as string).localeCompare(b.record_date as string));
+  const pick = byDate.find((e) => e.buy_days_left != null && e.buy_days_left >= 0) ?? byDate[0] ?? null;
+
   return {
     today: data.today,
     cash: cashRows.length,
     companies: new Set(cashRows.map((e) => e.trading_code.toUpperCase())).size,
+    soon: new Set(
+      ahead
+        .filter((e) => e.record_days_left != null && e.record_days_left <= SOON_DAYS)
+        .map((e) => e.trading_code.toUpperCase()),
+    ).size,
     thisWeek: data.stats.record_dates_this_week,
-    agms: data.agms.length,
-    // The "Just declared" tab shows this many.
-    declared: Math.min(data.recent_declarations.length, RECENT_LIMIT),
-    topPayers: data.top_cash_dividends.length,
-    comingNext: forecast.length,
-    estimates: forecast.filter((f) => (f.expected_cash_per_share ?? 0) > 0).length,
+    comingNext: (data.forecast ?? []).length,
     bestYield: data.stats.top_yield_pct,
-    safety,
-    capture: cashRows.filter((e) => e.capture).length,
     days,
-    records: cashRows
-      .map((e) => ({
-        code: e.trading_code.toUpperCase(),
-        date: e.record_date as string,
-        cash: e.cash_per_share as number,
-        buyBy: e.buy_by,
-      }))
-      .sort((a, b) => a.date.localeCompare(b.date)),
-    expected: forecast
-      .filter((f) => f.expected_record && (f.expected_cash_per_share ?? 0) > 0 && (f.expected_record as string) >= data.today)
-      .map((f) => ({
-        code: f.trading_code.toUpperCase(),
-        date: f.expected_record as string,
-        cash: f.expected_cash_per_share as number,
-      })),
+    sample: pick
+      ? {
+          code: pick.trading_code.toUpperCase(),
+          name: pick.company_name || pick.trading_code,
+          date: pick.record_date as string,
+          daysLeft: pick.record_days_left,
+          buyBy: pick.buy_by,
+          buyDaysLeft: pick.buy_days_left,
+          cash: pick.cash_per_share as number,
+          yieldPct: pick.yield_pct,
+          type: pick.dividend_type,
+        }
+      : null,
   };
 }

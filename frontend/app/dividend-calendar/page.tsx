@@ -4,14 +4,12 @@ import { recountCalendar } from "@/lib/dividend-dates";
 import { formatDate } from "@/lib/formatters";
 import CalendarSummary from "@/components/dividend-calendar/CalendarSummary";
 import ComingNext from "@/components/dividend-calendar/ComingNext";
-import IncomeCard from "@/components/dividend-calendar/IncomeCard";
 import PageGate from "@/components/premium/PageGate";
 import DividendPromo from "@/components/dividend-calendar/DividendPromo";
 import { CALENDAR_PREMIUM_ANCHOR } from "@/components/dividend-calendar/RemindButton";
 import { buildCalendarPromo } from "@/lib/dividend-promo";
 import RecordDateBoard from "@/components/dividend-calendar/RecordDateBoard";
 import AgmBoard from "@/components/dividend-calendar/AgmBoard";
-import TopCashDividends from "@/components/dividend-calendar/TopCashDividends";
 import RecentDeclarations, { RECENT_LIMIT } from "@/components/dividend-calendar/RecentDeclarations";
 import CalendarTabs, { type CalendarPanel } from "@/components/dividend-calendar/CalendarTabs";
 import HowDividendsWork, { buyTodayAnswer } from "@/components/dividend-calendar/HowDividendsWork";
@@ -78,22 +76,16 @@ export default async function DividendCalendarPage() {
 
   const promo = buildCalendarPromo(data);
 
-  // The five lists as tabs, in the order a reader needs them (2026-11-04
-  // clean pass): what can I still get, what's new, what's next, then the AGMs
-  // and the year's biggest payers. Ids keep the old section anchors working.
+  // The lists as tabs, in the order a reader tracking dividends needs them
+  // (2026-11-05): what can I still get, who pays next, what's new, the AGMs.
+  // "Your dividends" joins in the browser for a reader with shares. Ids keep
+  // the old section anchors working (#top-payers left with its list).
   const panels: CalendarPanel[] = [
     {
       key: "record-dates",
       label: { en: "Record dates", bn: "রেকর্ড ডেট" },
       count: data.record_dates.length,
       body: <RecordDateBoard events={data.record_dates} />,
-    },
-    {
-      key: "recent",
-      label: { en: "Just declared", bn: "সদ্য ঘোষিত" },
-      short: { en: "Declared", bn: "নতুন" },
-      count: Math.min(data.recent_declarations.length, RECENT_LIMIT),
-      body: <RecentDeclarations events={data.recent_declarations} />,
     },
     {
       // Who hasn't declared for this year yet (2026-10-31).
@@ -104,19 +96,30 @@ export default async function DividendCalendarPage() {
       body: <ComingNext rows={forecast} />,
     },
     {
+      key: "recent",
+      label: { en: "Just declared", bn: "সদ্য ঘোষিত" },
+      short: { en: "Declared", bn: "নতুন" },
+      count: Math.min(data.recent_declarations.length, RECENT_LIMIT),
+      body: <RecentDeclarations events={data.recent_declarations} />,
+    },
+    {
       key: "agms",
       label: { en: "AGMs", bn: "এজিএম" },
       count: data.agms.length,
       body: <AgmBoard events={data.agms} />,
     },
-    {
-      key: "top-payers",
-      label: { en: "Biggest payers", bn: "সবচেয়ে বড় ডিভিডেন্ড" },
-      short: { en: "Top payers", bn: "বড় ডিভিডেন্ড" },
-      count: data.top_cash_dividends.length,
-      body: <TopCashDividends events={data.top_cash_dividends} />,
-    },
   ].filter((p) => p.key === "record-dates" || p.count > 0);
+
+  // Slim rows for the reader's own "Your dividends" tab.
+  const yours = {
+    today: data.today,
+    records: data.record_dates
+      .filter((e) => (e.cash_per_share ?? 0) > 0 && e.record_date)
+      .map((e) => ({ trading_code: e.trading_code, record_date: e.record_date, cash_per_share: e.cash_per_share })),
+    forecast: forecast
+      .filter((f) => f.expected_record)
+      .map((f) => ({ trading_code: f.trading_code, expected_record: f.expected_record, last_cash_per_share: f.last_cash_per_share })),
+  };
 
   // FAQ copy mirrors components/dividend-calendar/HowDividendsWork.tsx.
   const jsonLd = {
@@ -216,8 +219,8 @@ export default async function DividendCalendarPage() {
         title={<T en="Dividend calendar" bn="ডিভিডেন্ড ক্যালেন্ডার" />}
         lead={
           <T
-            en="Which DSE companies pay a dividend, the last day to buy to get it, and whether each one looks safe."
-            bn="ডিএসইর কোন কোম্পানি ডিভিডেন্ড দিচ্ছে, পেতে হলে কবের মধ্যে কিনতে হবে, আর প্রতিটি নিরাপদ কি না।"
+            en="Every DSE dividend coming up: how much it pays, and the last day to buy to get it."
+            bn="ডিএসইর সামনের সব ডিভিডেন্ড: কত টাকা দেবে, আর পেতে হলে কবের মধ্যে কিনতে হবে।"
           />
         }
         actions={
@@ -242,11 +245,8 @@ export default async function DividendCalendarPage() {
         {/* What's ahead, in one card. */}
         <CalendarSummary data={data} promo={promo} />
 
-        {/* The reader's own cash by month (signed in, with shares). */}
-        <IncomeCard records={data.record_dates} forecast={forecast} today={data.today} />
-
-        {/* The five lists as tabs; tap a company to open it. */}
-        <CalendarTabs panels={panels} />
+        {/* The lists as tabs; tap a company to open it. */}
+        <CalendarTabs panels={panels} yours={yours} />
       </PageGate>
 
       <HowDividendsWork data={data} />
@@ -260,8 +260,8 @@ export default async function DividendCalendarPage() {
         intro={[
           <>
             This is a <b>calendar of every dividend event on the Dhaka Stock Exchange</b> that we can see
-            coming: upcoming record dates, AGM dates, the cash and bonus percentages each board declared, and
-            the biggest cash payouts of the past year. It is rebuilt from DSE&apos;s own corporate announcements
+            coming: upcoming record dates, the companies expected to declare next, AGM dates, and the cash and
+            bonus percentages each board declared. It is rebuilt from DSE&apos;s own corporate announcements
             every trading day, currently tracking {data.stats.declarations_tracked} declarations.
           </>,
           <>
@@ -272,17 +272,16 @@ export default async function DividendCalendarPage() {
             for T+2 settlement and DSE&apos;s spot-market window just before it.
           </>,
           <>
-            A high yield alone is not a reason to buy. The share price often drops by about the dividend after
-            the record date, and a company that pays out more than it earns cannot keep it up. Open the company
-            for its dividend history and fundamental score, or start from the{" "}
-            <Link href="/stock-insights/top-dividend-stocks-bangladesh">best dividend shares list</Link>.
+            After the record date the share price often drops by about the dividend. Open a company for its
+            full dividend history, or see the shares paying the most at today&apos;s price on the{" "}
+            <Link href="/stock-insights/top-dividend-stocks-bangladesh">top dividend yield list</Link>.
           </>,
         ]}
         introBn={[
           <>
             এটি <b>ঢাকা স্টক এক্সচেঞ্জের সামনের সব ডিভিডেন্ডের ক্যালেন্ডার</b>, যতটা আমরা আগে থেকে দেখতে পাই:
-            আসন্ন রেকর্ড ডেট, এজিএমের তারিখ, প্রতিটি বোর্ডের ঘোষিত নগদ আর বোনাস শতাংশ, আর গত এক বছরের সবচেয়ে
-            বড় নগদ ডিভিডেন্ড। প্রতিটি লেনদেনের দিনে ডিএসইতে কোম্পানির নিজের ঘোষণা থেকে এটি নতুন করে তৈরি হয়; এখন{" "}
+            আসন্ন রেকর্ড ডেট, যেসব কোম্পানি এরপর ঘোষণা দিতে পারে, এজিএমের তারিখ, আর প্রতিটি বোর্ডের ঘোষিত নগদ
+            আর বোনাস শতাংশ। প্রতিটি লেনদেনের দিনে ডিএসইতে কোম্পানির নিজের ঘোষণা থেকে এটি নতুন করে তৈরি হয়; এখন{" "}
             {data.stats.declarations_tracked}টি ঘোষণা দেখা হচ্ছে।
           </>,
           <>
@@ -293,10 +292,9 @@ export default async function DividendCalendarPage() {
             অ্যাকাউন্টে পৌঁছায়।
           </>,
           <>
-            শুধু বেশি ইল্ড দেখে কেনা ঠিক নয়। রেকর্ড ডেটের পর শেয়ারের দাম প্রায়ই ডিভিডেন্ডের সমান কমে যায়, আর যে
-            কোম্পানি আয়ের চেয়ে বেশি ডিভিডেন্ড দেয়, সে তা ধরে রাখতে পারে না। কোম্পানির ডিভিডেন্ডের ইতিহাস আর স্কোর
-            দেখতে তার পেজ খুলুন, অথবা শুরু করুন{" "}
-            <Link href="/stock-insights/top-dividend-stocks-bangladesh">সেরা ডিভিডেন্ড শেয়ারের তালিকা</Link> থেকে।
+            রেকর্ড ডেটের পর শেয়ারের দাম প্রায়ই ডিভিডেন্ডের সমান কমে যায়। কোম্পানির পুরো ডিভিডেন্ডের ইতিহাস দেখতে তার
+            পেজ খুলুন, অথবা আজকের দামে সবচেয়ে বেশি দেওয়া শেয়ারগুলো দেখুন{" "}
+            <Link href="/stock-insights/top-dividend-stocks-bangladesh">সর্বোচ্চ ডিভিডেন্ড ইল্ডের তালিকায়</Link>।
           </>,
         ]}
       />

@@ -292,8 +292,8 @@ export const GROUPS: Group[] = [
       {
         name: { en: "The dividend calendar", bn: "ডিভিডেন্ড ক্যালেন্ডার" },
         line: {
-          en: "Every record date, AGM and new dividend with the last day to buy, whether each dividend is safe, did buying for it pay in past years, who we expect to pay next, and your dividend income by month.",
-          bn: "প্রতিটি রেকর্ড ডেট, এজিএম আর নতুন ডিভিডেন্ড, কেনার শেষ দিনসহ; প্রতিটি ডিভিডেন্ড নিরাপদ কি না, আগে এর জন্য কেনা লাভজনক ছিল কি না, এরপর কে দিতে পারে, আর মাস অনুযায়ী আপনার ডিভিডেন্ড আয়।",
+          en: "Every DSE dividend coming up: the cash a share and the last day to buy, who we expect to declare next, a reminder before the last day, and your dividend income by month.",
+          bn: "ডিএসইর সামনের সব ডিভিডেন্ড: শেয়ারপ্রতি নগদ আর কেনার শেষ দিন, এরপর কে ঘোষণা দিতে পারে, শেষ দিনের আগে রিমাইন্ডার, আর মাস অনুযায়ী আপনার ডিভিডেন্ড আয়।",
         },
       },
       {
@@ -420,7 +420,7 @@ export const TABLE: { group: GroupKey; rows: { what: Bi; free: Cell; premium: Ce
       {
         what: { en: "Dividend calendar", bn: "ডিভিডেন্ড ক্যালেন্ডার" },
         free: { en: "Each share's own, on its page", bn: "প্রতিটি শেয়ারেরটা, তার পেজে" },
-        premium: { en: "Every date, is it safe, who pays next", bn: "সব তারিখ, নিরাপদ কি না, এরপর কে দেবে" },
+        premium: { en: "Every dividend coming up, who pays next", bn: "সামনের সব ডিভিডেন্ড, এরপর কে দেবে" },
       },
     ],
   },

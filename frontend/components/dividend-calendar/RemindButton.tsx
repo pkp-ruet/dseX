@@ -110,11 +110,12 @@ export default function RemindButton({ code, labeled = false }: { code: string; 
     ? bn ? `${up}: রিমাইন্ডার চালু, বন্ধ করুন` : `${up}: reminder on, tap to remove`
     : bn ? `${up} কেনার শেষ দিনে মনে করিয়ে দিন` : `Remind me on the last day to buy ${up}`;
   if (labeled) {
-    // Inside an opened calendar row (2026-11-04): a quiet button with words.
+    // Inside an opened calendar row: the row's first action since 2026-11-05
+    // (a reminder is what tracking dividends is for), filled until it is set.
     return (
       <button
         type="button"
-        className="btn-quiet btn-sm dc-remind-l"
+        className={`${on ? "btn-quiet" : "btn-primary"} btn-sm dc-remind-l`}
         data-on={on ? "true" : "false"}
         aria-pressed={on}
         onClick={tap}

@@ -30,7 +30,7 @@ const DAYS_SHOWN = 5;
  * Premium since 2026-11-04, with the whole dividend calendar (user: "Lock
  * them too"). A free reader keeps the lead line and the dates as counts
  * (`DividendDays`: how many pay each day, up to how much, how many are
- * theirs or at risk); the companies sit under one Premium line that opens
+ * theirs); the companies sit under one Premium line that opens
  * the calendar's Premium card. The reader's own record dates stay free in
  * their stories, the watchlist and the stock pages.
  */
@@ -64,7 +64,7 @@ export default function DividendBoardCard({
   const days = groupDays(
     rows
       .filter((e) => e.record_date)
-      .map((e) => ({ date: e.record_date as string, cash: e.cash_per_share ?? 0, level: e.safety?.level })),
+      .map((e) => ({ date: e.record_date as string, cash: e.cash_per_share ?? 0 })),
   );
   const mineOn = (date: string) => rows.filter((e) => e.record_date === date && isMine(e.trading_code)).length;
   const moreDays = days.length - DAYS_SHOWN;
@@ -147,8 +147,8 @@ export default function DividendBoardCard({
         what={{ en: "The dividend calendar", bn: "ডিভিডেন্ড ক্যালেন্ডার" }}
         lines={[
           decl.length > 0 && rows.length === 0
-            ? { en: "Which companies just declared a dividend, and whether each one looks safe", bn: "কোন কোম্পানি সদ্য ডিভিডেন্ড ঘোষণা করল, আর প্রতিটি নিরাপদ কি না" }
-            : { en: "Which companies, the cash a share, the last day to buy and whether each one looks safe", bn: "কোন কোম্পানি, শেয়ারপ্রতি নগদ, কেনার শেষ দিন আর প্রতিটি নিরাপদ কি না" },
+            ? { en: "Which companies just declared a dividend, and how much they pay", bn: "কোন কোম্পানি সদ্য ডিভিডেন্ড ঘোষণা করল, আর কত দেবে" }
+            : { en: "Which companies, the cash a share and the last day to buy", bn: "কোন কোম্পানি, শেয়ারপ্রতি নগদ আর কেনার শেষ দিন" },
         ]}
         boxClassName="dc-card-lock"
       >

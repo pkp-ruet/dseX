@@ -366,11 +366,8 @@
 .spx-days li::before {
   content: ""; position: absolute; left: -7px; top: calc(var(--space-2) + 0.35em);
   width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--surface);
-  background: rgb(var(--text-muted-rgb) / 0.5);
+  background: var(--gold);
 }
-.spx-days li[data-tone="good"]::before { background: var(--positive); }
-.spx-days li[data-tone="fair"]::before { background: var(--watch); }
-.spx-days li[data-tone="bad"]::before { background: var(--negative); }
 .spx-day { font-weight: 700; font-variant-numeric: tabular-nums; }
 @media (max-width: 380px) { .spx-days li { grid-template-columns: minmax(0, 1fr); gap: 0; } }
 .spx-days-more { margin-top: var(--space-2); font-size: var(--fs-sm); color: var(--text); }

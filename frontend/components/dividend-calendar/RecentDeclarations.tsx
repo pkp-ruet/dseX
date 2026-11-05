@@ -25,8 +25,8 @@ export default function RecentDeclarations({ events }: { events: CorporateAction
         title={<T en="Just declared" bn="সদ্য ঘোষিত" />}
         lead={
           <T
-            en="The newest announcements first. Tap one for its record date, its AGM and whether it looks safe."
-            bn="সবচেয়ে নতুন ঘোষণা আগে। রেকর্ড ডেট, এজিএম আর নিরাপদ কি না দেখতে ট্যাপ করুন।"
+            en="The newest announcements first. Tap one for its record date and its AGM."
+            bn="সবচেয়ে নতুন ঘোষণা আগে। রেকর্ড ডেট আর এজিএম দেখতে ট্যাপ করুন।"
           />
         }
       />

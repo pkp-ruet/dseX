@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { T } from "@/components/i18n/T";
-import { Locked } from "@/components/premium/AnswerLock";
 import { pct } from "@/lib/formatters";
 import type { CorporateActionEvent } from "@/lib/api";
 import { dayShort, daysWords } from "@/components/dividend-calendar/dates";
@@ -8,7 +7,7 @@ import RemindButton from "@/components/dividend-calendar/RemindButton";
 import ExpandRow from "@/components/dividend-calendar/ExpandRow";
 import Button from "@/components/ui/Button";
 
-type Mode = "record" | "agm" | "top" | "declared" | "dated";
+type Mode = "record" | "agm" | "declared" | "dated";
 
 /** "Final" / "Interim" as DSE's news titles give them. */
 const TYPE_BN: Record<string, string> = { Final: "চূড়ান্ত", Interim: "অন্তর্বর্তী" };
@@ -79,11 +78,11 @@ function extras(e: CorporateActionEvent, mode: Mode): ReactNode[] {
     const d = dayShort(e.agm_date);
     out.push(<T key="agm" en={`AGM ${d.en}`} bn={`এজিএম ${d.bn}`} />);
   }
-  if ((mode === "top" || mode === "record" || mode === "agm") && e.declaration_date) {
+  if ((mode === "record" || mode === "agm") && e.declaration_date) {
     const d = dayShort(e.declaration_date, true);
     out.push(<T key="decl" en={`Declared ${d.en}`} bn={`ঘোষণা ${d.bn}`} />);
   }
-  if (e.amended && mode !== "top") {
+  if (e.amended) {
     out.push(
       <span key="amended" className="dc-tone--watch">
         <T en="Dates changed by a later DSE notice" bn="ডিএসইর পরের নোটিশে তারিখ বদলেছে" />
@@ -103,27 +102,24 @@ function Sep() {
 
 /**
  * One company on the dividend calendar (and the dashboard's record-dates
- * card). Clean pass 2026-11-04 (user: the page "look messy and hard to
- * understand"): the row is two lines — the company name, then ticker ·
- * Final/Interim · bonus · the "Is it safe?" word — with the money on the
- * right (cash a share over the yield; `top` leads with the yield, `dated`
- * shows a date). A tap opens it in place (`ExpandRow`): "Is it safe?" and
- * "Worth buying for it?" with their sentences, the other dates, then "Open
- * the page" and "Remind me" (`remind`, a cash record date still ahead). The
- * explanations are Premium (`Locked`; the whole calendar is Premium too).
- * `mark` = the H / ★ owner tag on the dashboard. Yields are before tax; no
- * advice is drawn here.
+ * card). The row is two lines — the company name, then ticker ·
+ * Final/Interim · bonus — with the money on the right (cash a share over the
+ * yield; `dated` shows a date). A tap opens it in place (`ExpandRow`):
+ * "Remind me on the last day to buy" first (`remind`, a cash record date still
+ * ahead), the other dates, then "Open the page".
+ * Since 2026-11-05 (user: the calendar is "purely dedicated for finding
+ * dividends that are coming next") no row says whether a dividend looks safe
+ * or is worth buying for: dates and taka only. `mark` = the H / ★ owner tag on
+ * the dashboard. Yields are before tax; no advice is drawn here.
  */
 export default function DividendRow({
   e,
   mode = "record",
-  rank,
   mark,
   remind = false,
 }: {
   e: CorporateActionEvent;
   mode?: Mode;
-  rank?: number;
   mark?: ReactNode;
   remind?: boolean;
 }) {
@@ -132,20 +128,7 @@ export default function DividendRow({
   const cash = e.cash_per_share != null && e.cash_per_share > 0;
 
   let fig: ReactNode;
-  if (mode === "top") {
-    fig = (
-      <>
-        <span className="dc-amt">{e.yield_pct != null ? pct(e.yield_pct, 1) : "—"}</span>
-        <span className="dc-amt-x">
-          {cash ? (
-            <T en={`yield · ${perShareTk(e.cash_per_share as number)} a share`} bn={`ইল্ড · শেয়ারপ্রতি ${perShareTk(e.cash_per_share as number)}`} />
-          ) : (
-            <T en="yield" bn="ইল্ড" />
-          )}
-        </span>
-      </>
-    );
-  } else if (mode === "dated") {
+  if (mode === "dated") {
     const d = dayShort(e.record_date);
     const w = daysWords(e.record_days_left);
     fig = (
@@ -164,7 +147,6 @@ export default function DividendRow({
     fig = <MoneyFigure e={e} />;
   }
 
-  const safety = mode !== "dated" ? e.safety ?? null : null;
   const head = (
     <>
       <span className="dc-name">{name}</span>
@@ -183,58 +165,21 @@ export default function DividendRow({
             <T en={`+ ${pctWord(e.stock_pct)} bonus`} bn={`+ ${pctWord(e.stock_pct)} বোনাস`} />
           </>
         ) : null}
-        {safety && (
-          <Locked as="span" className="dc-word">
-            <Sep />{" "}
-            <b className={`dc-safety-w dc-safety--${safety.level}`}>
-              <T en={safety.word_en} bn={safety.word_bn} />
-            </b>
-          </Locked>
-        )}
       </span>
     </>
   );
 
-  if (mode === "dated") return <ExpandRow head={head} fig={fig} body={null} href={href} rank={rank} />;
+  if (mode === "dated") return <ExpandRow head={head} fig={fig} body={null} href={href} />;
 
-  const capture = mode === "record" ? e.capture ?? null : null;
   const facts = extras(e, mode);
   const canRemind = remind && mode === "record" && cash && (e.buy_days_left == null || e.buy_days_left >= 0);
-  const hasWhy = !!safety || !!capture;
   const body =
-    hasWhy || facts.length > 0 || canRemind ? (
+    facts.length > 0 || canRemind ? (
       <>
-        {hasWhy && (
-          <Locked>
-            <dl className="dc-why">
-              {safety && (
-                <div>
-                  <dt>
-                    <T en="Is it safe?" bn="নিরাপদ কি?" />
-                  </dt>
-                  <dd>
-                    <b className={`dc-safety-w dc-safety--${safety.level}`}>
-                      <T en={`${safety.word_en}.`} bn={`${safety.word_bn}।`} />
-                    </b>{" "}
-                    <T en={safety.line_en} bn={safety.line_bn} />
-                  </dd>
-                </div>
-              )}
-              {capture && (
-                <div>
-                  <dt>
-                    <T en="Worth buying for it?" bn="এর জন্য কেনা কি লাভের?" />
-                  </dt>
-                  <dd>
-                    <b className={`dc-safety-w dc-capture--${capture.level}`}>
-                      <T en={`${capture.word_en}.`} bn={`${capture.word_bn}।`} />
-                    </b>{" "}
-                    <T en={capture.line_en} bn={capture.line_bn} />
-                  </dd>
-                </div>
-              )}
-            </dl>
-          </Locked>
+        {canRemind && (
+          <div className="dc-x-remind">
+            <RemindButton code={e.trading_code} labeled />
+          </div>
         )}
         {facts.length > 0 && (
           <p className="dc-x-facts">
@@ -250,10 +195,9 @@ export default function DividendRow({
           <Button href={href} variant="quiet" size="sm">
             <T en={`Open the ${e.trading_code} page`} bn={`${e.trading_code}-এর পেজ খুলুন`} />
           </Button>
-          {canRemind && <RemindButton code={e.trading_code} labeled />}
         </div>
       </>
     ) : null;
 
-  return <ExpandRow head={head} fig={fig} body={body} href={href} rank={rank} />;
+  return <ExpandRow head={head} fig={fig} body={body} href={href} />;
 }

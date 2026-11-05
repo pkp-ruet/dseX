@@ -36,7 +36,7 @@ export default function BazarDividends({ items }: { items: MarketDividendEvent[]
           <p className="ms-bn-text">
             সামনে {n}টি কোম্পানির ডিভিডেন্ডের রেকর্ড ডেট। কোন দিন কতগুলো:
           </p>
-          <DividendDays days={days} shown={ROWS} toned={false} only="bn" />
+          <DividendDays days={days} shown={ROWS} only="bn" />
         </div>
       )}
 
