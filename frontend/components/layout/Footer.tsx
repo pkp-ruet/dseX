@@ -19,6 +19,7 @@ const marketsLinks: FootLink[] = [
 ];
 
 const findLinks: FootLink[] = [
+  { href: "/buy-list", en: "Buy List", bn: "কেনার তালিকা" },
   { href: "/picked-for-you", en: "Picked for you", bn: "আপনার জন্য বাছাই" },
   { href: "/dsestockranking", en: "Company ranking", bn: "কোম্পানির র‍্যাঙ্কিং" },
   { href: "/stocks", en: "All stocks", bn: "সব শেয়ার" },

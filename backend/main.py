@@ -9,6 +9,7 @@ from backend.routers import rankings
 from backend.routers import dividend_reminders
 from backend.routers import notifications_feed
 from backend.routers import research
+from backend.routers import buy_list
 
 app = FastAPI(title="dseX API", version="1.0.0")
 
@@ -76,6 +77,7 @@ app.include_router(notifications_feed.router)
 app.include_router(rankings.router)
 app.include_router(dividend_reminders.router)
 app.include_router(research.router)
+app.include_router(buy_list.router)
 
 
 def _startup_step(name, fn) -> None:

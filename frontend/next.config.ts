@@ -73,12 +73,11 @@ const nextConfig: NextConfig = {
       // Merged 2026-10-25: five "what should I buy?" pages became Buy signals
       // (tips folded in) + the Trending / Popular / Find-my-stocks tabs, and
       // Market Intelligence's condition tables overlapped /market-analysis.
-      { source: "/top-picks", destination: "/dsestockranking", permanent: true },
-      { source: "/daily-tips", destination: "/dsestockranking", permanent: true },
-      // Hidden 2026-11-01 (user decision): Buy / Sell signals now live only
-      // inside the stock report and the portfolio's Premium sections. The page
-      // code stays; a temporary redirect keeps it out of reach until it returns.
-      { source: "/buy-sell-signals", destination: "/dsestockranking", permanent: false },
+      // The buy page came back as the Buy List (2026-11-08, Premium): the old
+      // Buy signals page (hidden 2026-11-01) and its merged pages land there.
+      { source: "/top-picks", destination: "/buy-list", permanent: true },
+      { source: "/daily-tips", destination: "/buy-list", permanent: true },
+      { source: "/buy-sell-signals", destination: "/buy-list", permanent: true },
       // One market page (2026-11-05): DSE today, Market analysis and the
       // Bengali daily page (/share-bazar) merged into /dse-today, "Market today".
       { source: "/market-analysis", destination: "/dse-today", permanent: true },

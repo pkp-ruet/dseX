@@ -5,7 +5,7 @@ import ErrorState from "@/components/ui/ErrorState";
 import { T } from "@/components/i18n/T";
 
 /** Route error boundary — same surface as app/error.tsx, route-specific copy. */
-export default function BuySellSignalsError({
+export default function BuyListError({
   error,
   reset,
 }: {
@@ -13,14 +13,14 @@ export default function BuySellSignalsError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("buy-sell-signals failed to render:", error);
+    console.error("buy-list failed to render:", error);
   }, [error]);
 
   return (
     <ErrorState
-      title={<T en="We couldn't load the signals" bn="সিগন্যাল এখন লোড করা যাচ্ছে না" />}
+      title={<T en="We couldn't load the Buy List" bn="কেনার তালিকা এখন লোড করা যাচ্ছে না" />}
       onRetry={reset}
-      links={[{ href: "/dsestockranking", label: <T en="Stock rankings" bn="শেয়ার র‍্যাঙ্কিং" /> }]}
+      links={[{ href: "/dsestockranking", label: <T en="Company ranking" bn="কোম্পানির র‍্যাঙ্কিং" /> }]}
     />
   );
 }

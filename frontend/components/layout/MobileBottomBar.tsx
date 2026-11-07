@@ -22,6 +22,7 @@ const EXPLORE_PATHS = [
   "/dividend-calendar",
   "/sectors",
   "/sector",
+  "/buy-list",
   "/picked-for-you",
   "/dsestockranking",
   "/stocks",

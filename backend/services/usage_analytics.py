@@ -83,6 +83,7 @@ AREAS: list[tuple[str, str, str]] = [
                                r"|dse-trending-stocks|dse-popular-stocks|market)"),
     ("sectors", "Sectors", r"^/sectors?(/|$)"),
     ("stocks", "All stocks", r"^/stocks(/|$)"),
+    ("buylist", "Buy List", r"^/buy-list"),
     ("signals", "Buy signals (old page)", r"^/(buy-sell-signals|top-picks|daily-tips)"),
     ("samples", "Sample portfolios", r"^/sample-portfolio"),
     ("premium", "Premium page", r"^/(premium|refund-policy)"),

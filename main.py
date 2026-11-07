@@ -173,6 +173,19 @@ def cmd_compute_scores(_args):
         print(f"Warning: market snapshot store failed: {e}")
 
     _snapshot_stock_reports()
+    _snapshot_buy_list()
+
+
+def _snapshot_buy_list():
+    """Store today's Buy List (who is on it, who passed, since when) — the next
+    day's list reads it for "two closes in a row", "since" and what changed.
+    Best-effort — a failure here never fails the score job."""
+    try:
+        from backend.services.buy_list_service import store_snapshot
+        res = store_snapshot()
+        print(f"  Stored the Buy List for {res['date']} ({res['members']} on it, {res['passed']} passed).")
+    except Exception as e:
+        print(f"  Warning: Buy List snapshot failed: {e}")
 
 
 def _snapshot_stock_reports():
@@ -545,6 +558,10 @@ def cmd_scrape_all(args):
         print(f"  Stored {ssig.get('stored', 0)} signals for {ssig.get('date')}.\n")
     except Exception as e:
         print(f"  Warning: signal snapshot failed: {e}\n")
+
+    # Today's Buy List, after the report + signal snapshots it reads.
+    print("=== Post-scrape: Snapshotting the Buy List ===")
+    _snapshot_buy_list()
 
     # Regenerate the "TopStockBD Tips" homepage bullets from the fresh snapshot.
     print("=== Post-scrape: Regenerating TopStockBD Tips ===")

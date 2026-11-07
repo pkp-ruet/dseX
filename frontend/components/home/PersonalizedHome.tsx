@@ -32,6 +32,7 @@ import MoneyHeroGhost from "@/components/home/personalized/MoneyHeroGhost";
 import PullToRefresh from "@/components/home/personalized/PullToRefresh";
 import StoriesRow from "@/components/home/personalized/StoriesRow";
 import MarketTodayCard from "@/components/home/personalized/MarketTodayCard";
+import BuyListCard from "@/components/home/personalized/BuyListCard";
 import RankingTop from "@/components/home/personalized/RankingTop";
 import ScreenerFeature from "@/components/home/personalized/ScreenerFeature";
 import ResearchShelf from "@/components/home/personalized/ResearchShelf";
@@ -280,6 +281,21 @@ export default function PersonalizedHome() {
     </section>
   );
 
+  // The Buy List (2026-11-08, user: "a featured card like others … after
+  // market today"): today's top three for Premium, the free example + locked
+  // places for a free reader. From the bundle; nothing without it.
+  const buyListCard = bundle?.buy_list ? (
+    <div data-card="buy-list">
+      <BuyListCard
+        data={bundle.buy_list}
+        premium={planState === "premium"}
+        held={heldSet}
+        watched={watchedSet}
+        lang={lang}
+      />
+    </div>
+  ) : null;
+
   // ── Chapter 3: Find stocks (redone 2026-11-06, user: "section wise …
   //    clean, easy to understand and premium"). Four blocks, one shape
   //    (eyebrow · title · lead · body · one link out), nothing else:
@@ -382,6 +398,8 @@ export default function PersonalizedHome() {
           even gap; each card's own title says what it is. */}
       <div className="mt-6 space-y-6">
         {marketChapter}
+        {/* The Buy List, right under the market card (2026-11-08, user decision). */}
+        {buyListCard}
         {/* Today's free full report — free readers only, right under the
             market card (2026-11-06, user decision). */}
         {freeReportCard}

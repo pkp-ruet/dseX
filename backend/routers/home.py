@@ -41,6 +41,7 @@ from backend.services.db_service import (
     load_news_for_codes,
 )
 from backend.services.research_reports_service import summary_snapshot
+from backend.services.buy_list_service import home_summary as buy_list_summary
 from backend.services.portfolio_daily import recent_events
 from backend.services.portfolio_watch import digest
 from backend.services.recommend_service import for_user
@@ -121,6 +122,9 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
     # The research card: one figure per Premium report, from the last built
     # copy (never waits on a cold build; None until the first one is ready).
     research = _safe("research", summary_snapshot, None)
+    # The Buy List card (2026-11-08): the count, the top three and today's
+    # free pick. Built on the engine pool `for_you` just warmed.
+    buy_list = _safe("buy_list", buy_list_summary, None)
     # This week's rank change for every company (the ranking card's pills).
     rank_moves = _safe("rank_moves", week_rank_moves, None)
     # The screener card: the ready-made screens (count + top three, all free)
@@ -165,6 +169,7 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
         "dividend_cash": dividend_cash,
         "movers": movers,
         "research": research,
+        "buy_list": buy_list,
         "calendar": calendar,
         "rank_moves": rank_moves,
         "new_results": new_results,

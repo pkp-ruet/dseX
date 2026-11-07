@@ -9,6 +9,7 @@ import type {
   RiskRegister,
 } from "@/lib/research-reports";
 import type { StockReport } from "@/lib/stock-report";
+import type { BuyList, BuyListHome } from "@/lib/buy-list";
 
 /**
  * Backend base URL (no trailing slash).
@@ -1211,6 +1212,11 @@ export async function getResearchSummary(): Promise<ResearchSummary> {
   return apiFetch("/api/research/summary", 3600);
 }
 
+/** `GET /api/buy-list` — the Buy List page in one bundle (2026-11-08). */
+export async function getBuyList(): Promise<BuyList> {
+  return apiFetch("/api/buy-list", 900);
+}
+
 export async function getRiskRegister(): Promise<RiskRegister> {
   return apiFetch("/api/research/risks", 3600);
 }
@@ -2375,6 +2381,8 @@ export interface HomeBundle {
   /** One figure per Premium research report (2026-11-06, the dashboard's
    *  research card) — null until the backend's first build is ready. */
   research?: ResearchSummary | null;
+  /** The Buy List card (2026-11-08): count, top three, today's free pick. */
+  buy_list?: BuyListHome | null;
   calendar?: {
     /** Record dates inside the next two weeks, market-wide. */
     record_dates: CorporateActionEvent[];
@@ -2716,65 +2724,6 @@ export interface DailyTipsResponse {
 
 export async function getDailyTips(): Promise<DailyTipsResponse> {
   return apiFetch<DailyTipsResponse>("/api/daily-tips", 86400);
-}
-
-/** What Premium adds to each Buy on /buy-sell-signals (2026-10-31): when the
- *  run began, our buy price, and the price past which it stops being a Buy. */
-export interface SignalDetail {
-  since: string | null;
-  /** The run reaches past the 120 days we look back. */
-  since_floor: boolean;
-  buy_below: number | null;
-  stop_above: number | null;
-}
-
-export async function getSignalDetail(): Promise<{ as_of: string; items: Record<string, SignalDetail> }> {
-  return apiFetch("/api/signals/detail", 3600);
-}
-
-/** `GET /api/signals/today` — the buy signals page in one bundle (2026-10-31,
- *  backend `signal_today.py`). Funnel, changes and price words are free; `why`,
- *  the prices and `almost` are Premium (screen-only). */
-export interface SignalsToday {
-  as_of: string | null;
-  funnel: {
-    graded: number;
-    good: number;
-    buys: number;
-    left_out: ({ key: string; n: number } & BiText)[];
-  };
-  changes: {
-    since: string;
-    joined: string[];
-    left: { code: string; reason_key: string | null; reason: BiText | null }[];
-    /** So much moved at once that it was a rule change, not news. */
-    rebuilt: boolean;
-  } | null;
-  buys: Record<
-    string,
-    SignalDetail & {
-      price_word: "very_low" | "low" | "fair" | null;
-      /** Where today's price sits in its yearly range, 0 (low) to 100 (high). */
-      range_pct: number | null;
-      why: BiText[];
-    }
-  >;
-  almost: {
-    code: string;
-    reason_key: string | null;
-    group: string;
-    reason: BiText;
-    line: BiText | null;
-    /** The price under which it would come in, when the price keeps it off. */
-    under: number | null;
-    gap_pct: number | null;
-    score: number | null;
-    tier: string | null;
-  }[];
-}
-
-export async function getSignalsToday(): Promise<SignalsToday> {
-  return apiFetch("/api/signals/today", 3600);
 }
 
 // ---------------------------------------------------------------------------

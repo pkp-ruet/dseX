@@ -48,6 +48,15 @@ const PAGES: PageShortcut[] = [
     keys: ["dividend", "record date", "agm", "cash", "calendar", "ডিভিডেন্ড", "রেকর্ড ডেট"],
   },
   {
+    href: "/buy-list",
+    label: "Buy List",
+    labelBn: "কেনার তালিকা",
+    sub: "The shares we would buy today",
+    subBn: "আজ যে শেয়ার কেনার মতো",
+    keys: ["buy", "buy list", "buy signal", "signals", "what to buy", "best shares", "best stocks", "undervalued",
+      "কেনার তালিকা", "কী কিনব", "কোন শেয়ার কিনব", "সিগন্যাল"],
+  },
+  {
     href: "/picked-for-you",
     label: "Picked for you",
     labelBn: "আপনার জন্য বাছাই",
