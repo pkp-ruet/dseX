@@ -5,7 +5,7 @@ import { useLockScope } from "@/components/premium/LockScope";
 import { usePremium } from "@/lib/premium";
 
 /** True once the reader may see Premium content here: a Premium reader, or a
- *  page the lock scope opened (the free report of the day, a report key).
+ *  page the lock scope opened (one of the reader's free analyses).
  *  False on the server and the first paint — the server knows no user —
  *  except inside an `OpenScope`, which is open from the start. */
 export function usePremiumOpen(): boolean {

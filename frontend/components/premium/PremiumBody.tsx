@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import SectionHeader from "@/components/ui/SectionHeader";
@@ -16,7 +16,6 @@ import { JobTag } from "@/components/premium/AnswerLock";
 import { useLang } from "@/context/LangContext";
 import { usePremium } from "@/lib/premium";
 import { OFFER } from "@/lib/premium-plans";
-import { freeReportCode } from "@/lib/free-report";
 import {
   FAQS, GROUPS, HERO, LIMITS, PER_MONTH, PROMISES, SECTIONS, STEPS, TABLE,
   type Bi, type Cell, type Group, type GroupKey, type Tone,
@@ -65,9 +64,9 @@ function GroupIndex() {
 }
 
 /** One group: the question, what you get, an example, what stays free. */
-function GroupCard({ g, freeHref }: { g: Group; freeHref: string | null }) {
+function GroupCard({ g }: { g: Group }) {
   const { bn } = useLang();
-  const href = g.link?.href === "free-report" ? freeHref : g.link?.href;
+  const href = g.link?.href;
   return (
     <article id={groupId(g.key)} className="pm-group scroll-mt-24" aria-labelledby={`${groupId(g.key)}-h`}>
       <header className="pm-group-head">
@@ -183,11 +182,6 @@ export default function PremiumBody() {
   const { bn } = useLang();
   const { state } = usePremium();
 
-  // Today's free full report is a date — work it out in the browser, so an
-  // ISR copy built yesterday never links to yesterday's share.
-  const [freeHref, setFreeHref] = useState<string | null>(null);
-  useEffect(() => setFreeHref(`/stock/${freeReportCode()}`), []);
-
   // Payment help is folded; a link to #payment-help opens it.
   const helpRef = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
@@ -243,7 +237,7 @@ export default function PremiumBody() {
         <p className="pm-note"><Tx b={SECTIONS.examples} /></p>
         <div className="pm-groups">
           {GROUPS.map((g) => (
-            <GroupCard key={g.key} g={g} freeHref={freeHref} />
+            <GroupCard key={g.key} g={g} />
           ))}
         </div>
         {state !== "premium" && <p className="pm-note"><Tx b={SECTIONS.keys} /></p>}

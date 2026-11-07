@@ -36,10 +36,13 @@ export default function PlanUsage() {
     ...(!isPremium
       ? [{
           key: "reports",
-          label: { en: "Free full reports this month", bn: "এ মাসের ফ্রি পূর্ণ রিপোর্ট" },
+          label: { en: "Free full analyses this month", bn: "এ মাসের ফ্রি পূর্ণ বিশ্লেষণ" },
           used: keys?.used ?? 0,
-          limit: keys?.per_month ?? 3,
-          note: { en: "Each opens one share's whole report for 7 days.", bn: "প্রতিটিতে একটি শেয়ারের পুরো রিপোর্ট 7 দিনের জন্য খোলে।" },
+          limit: keys?.per_month ?? 10,
+          note: {
+            en: "The first shares you open each month show our full analysis, to the end of the month.",
+            bn: "মাসে প্রথম যে শেয়ারগুলো খোলেন, সেগুলোর পূর্ণ বিশ্লেষণ মাসের শেষ পর্যন্ত খোলা থাকে।",
+          },
         }]
       : []),
     {

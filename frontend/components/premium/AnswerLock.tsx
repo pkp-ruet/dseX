@@ -142,9 +142,9 @@ const FALLBACK_LINE: Bi = {
  * shown or it isn't drawn — no blur, no half-shown figures.
  *
  *  - Premium reader: the answer as plain content, no label.
- *  - Free reader on an open sample (`sample`, or a scope opened for everyone —
- *    today's free report): a gold rule, "Premium analysis" + "Free sample" /
- *    "Free today", then the answer.
+ *  - Free reader on an open sample (`sample`, or a scope a free analysis
+ *    opened): a gold rule, "Premium analysis" + "Free sample" /
+ *    "Your free analysis", then the answer.
  *  - Everyone else, `box`: `AnswerCard` — a gold header band (crown, the
  *    job, "Locked"), what Premium does here in easy words, 1–3 plain
  *    questions it answers (never the answer), three things you get, then one
@@ -225,20 +225,14 @@ export default function AnswerLock({
     // A Premium reader gets the answer as plain content: no label on every
     // part saying what they already pay for.
     if (isPremium) return <div className={`${openClassName ?? ""} ${className}`.trim() || undefined}>{children}</div>;
-    // A free reader is told why this one is open: a sample, or today's free report.
+    // A free reader is told why this one is open: a sample, or one of their free analyses.
     return (
       <div className={`ans ${className}`.trim()} data-open="true">
         <p className="ans-label">
           <IconCrown size={14} />
           <T en="Premium analysis" bn="প্রিমিয়াম বিশ্লেষণ" />
           <span className="ans-tag">
-            {sample ? (
-              <T en="Free sample" bn="ফ্রি নমুনা" />
-            ) : scope?.reason === "key" ? (
-              <T en="Your free report" bn="আপনার ফ্রি রিপোর্ট" />
-            ) : (
-              <T en="Free today" bn="আজ ফ্রি" />
-            )}
+            {sample ? <T en="Free sample" bn="ফ্রি নমুনা" /> : <T en="Your free analysis" bn="আপনার ফ্রি বিশ্লেষণ" />}
           </span>
         </p>
         {children}

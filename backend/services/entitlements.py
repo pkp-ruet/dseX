@@ -130,7 +130,7 @@ def plan_fields(user: dict) -> dict:
         "premium_source": user.get("premium_source"),
         "paid_plan": user.get("paid_plan"),
         "limits": limits_for(user),
-        # Three full stock reports a month for a free reader (report_keys.py).
+        # Ten full stock analyses a month for a free reader, opened by the page (report_keys.py).
         "report_keys": keys_state(user.get("report_keys"), now),
         # The reader's own ৳99 month (payments.offer_state), or None.
         "offer": offer_state(user, now, is_premium(user), offer_open()),

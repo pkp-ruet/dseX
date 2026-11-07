@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import { IconArrowRight, IconCrown, IconLock } from "@/components/ui/icons";
@@ -8,7 +8,6 @@ import ReportKeyButton from "@/components/premium/ReportKeyButton";
 import { T } from "@/components/i18n/T";
 import { useAuth } from "@/context/AuthContext";
 import { useLang } from "@/context/LangContext";
-import { freeReportCode } from "@/lib/free-report";
 import { takaGroup } from "@/lib/formatters";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
 import { FROM_MONTH, LOWEST_PRICE } from "@/lib/premium-plans";
@@ -53,6 +52,31 @@ function lookedAt(p: AnalysisPart): Bi {
   }
 }
 
+/** "1 Dec" — when the month's free analyses come back (Dhaka calendar). */
+function comesBack(month: string | undefined): Bi {
+  const m = /^(\d{4})-(\d{2})$/.exec(month ?? "");
+  const en = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const bn = ["জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"];
+  const i = m ? Number(m[2]) % 12 : 0;
+  return { en: `1 ${en[i]}`, bn: `1 ${bn[i]}` };
+}
+
+/** The shares they read, each a link back to its analysis. */
+function ReadList({ codes }: { codes: string[] }) {
+  return (
+    <>
+      {codes.map((c, i) => (
+        <span key={c}>
+          {i > 0 && ", "}
+          <Link href={`/stock/${c}#ch-analysis`} prefetch={false} className="font-semibold underline">
+            {c}
+          </Link>
+        </span>
+      ))}
+    </>
+  );
+}
+
 /** The safety-check count is free (it always was): a chip on that row. */
 function safetyCount(rf: RedFlagsSection["counts"] | null): { text: Bi; tone: Tone } | null {
   if (!rf) return null;
@@ -76,9 +100,13 @@ function safetyCount(rf: RedFlagsSection["counts"] | null): { text: Bi; tone: To
  * is the grade (free on the cover) and "see exactly why", then the analysis's
  * six parts as a locked contents list — what we read for each, never the
  * answer — with the safety-check count free, and our conclusion as the last
- * row. Then the price, one button, the free taste (3 reports a month and
- * today's free report). It sits right under the cover, above the chart.
- * GA events carry `variant: "v3"`.
+ * row. Then the price, one button, and the free taste (for a guest: sign up
+ * for 10 a month). It sits right under the cover, above the chart. GA events
+ * carry `variant: "v3"`.
+ *
+ * Since 2026-11-08 a signed-in free reader's first 10 shares a month open by
+ * themselves, so a free reader only meets this card once those are read —
+ * the card then says so first, naming the shares they read ("used_up" on GA).
  */
 export default function PremiumPromo({
   code,
@@ -98,8 +126,6 @@ export default function PremiumPromo({
   const { bn } = useLang();
   const ref = useRef<HTMLElement>(null);
   const seen = useRef(false);
-  const [today, setToday] = useState<string | null>(null);
-  useEffect(() => setToday(freeReportCode()), []);
 
   const first = (user?.display_name ?? "").trim().split(/\s+/)[0] || "";
   const { mine } = useMyStake(code);
@@ -108,6 +134,14 @@ export default function PremiumPromo({
 
   const g = analysis.grade;
   const strongish = g.tone === "good";
+
+  // The month's free analyses, all read (a guest has none; a failed open has some left).
+  const keys = user?.report_keys;
+  const usedUp = state === "free" && !!keys && keys.left <= 0;
+  const read = (keys?.read ?? []).filter((c) => c !== code.toUpperCase());
+  const shown = read.slice(0, 3);
+  const more = read.length - shown.length;
+  const back = comesBack(keys?.month);
   const sc = safetyCount(redFlags);
 
   const offer = user?.offer ?? null;
@@ -122,7 +156,7 @@ export default function PremiumPromo({
         seen.current = true;
         trackEvent("premium_lock_view", {
           area: "stock", lock: "stock-promo", state, stakes: analysis.parts.length, variant: VARIANT,
-          holder: held ? 1 : 0, grade: g.word.en,
+          holder: held ? 1 : 0, grade: g.word.en, used_up: usedUp ? 1 : 0,
         });
         io.disconnect();
       },
@@ -130,10 +164,10 @@ export default function PremiumPromo({
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [state, analysis.parts.length, held, g.word.en]);
+  }, [state, analysis.parts.length, held, g.word.en, usedUp]);
 
   const onTap = () => {
-    trackEvent("premium_lock_tap", { area: "stock", lock: "stock-promo", state, stakes: analysis.parts.length, variant: VARIANT, holder: held ? 1 : 0 });
+    trackEvent("premium_lock_tap", { area: "stock", lock: "stock-promo", state, stakes: analysis.parts.length, variant: VARIANT, holder: held ? 1 : 0, used_up: usedUp ? 1 : 0 });
     const stake = held ? (bn ? `${code}-এ আপনার ${takaGroup(held)}` : `Your ${takaGroup(held)} in ${code}`) : null;
     savePremiumContext({
       from: "stock",
@@ -154,6 +188,24 @@ export default function PremiumPromo({
           </span>
           <T en={`Premium · Our analysis of ${name}`} bn={`প্রিমিয়াম · ${name}: আমাদের বিশ্লেষণ`} />
         </p>
+        {usedUp && keys && (
+          <p className="spa-used">
+            <T
+              en={
+                <>
+                  You have read your {keys.per_month} free analyses this month
+                  {shown.length > 0 && <>: <ReadList codes={shown} />{more > 0 && ` and ${more} more`}</>}. {keys.per_month} more come on {back.en}.
+                </>
+              }
+              bn={
+                <>
+                  এ মাসের {keys.per_month}টি ফ্রি বিশ্লেষণ পড়া হয়ে গেছে
+                  {shown.length > 0 && <>: <ReadList codes={shown} />{more > 0 && ` আর আরও ${more}টি`}</>}। {back.bn} আবার {keys.per_month}টি পাবেন।
+                </>
+              }
+            />
+          </p>
+        )}
         {held ? (
           <h2 id="sp-t" className="spx-stake">
             <b className="pv">{takaGroup(held)}</b>
@@ -271,23 +323,18 @@ export default function PremiumPromo({
         </div>
       </div>
 
-      <div className="sp-body">
-        <div className="spx-taste">
-          <p className="spx-taste-k">
-            <T en={`Try it free on ${code}`} bn={`${code}-এ ফ্রিতে দেখে নিন`} />
-          </p>
-          <div className="spx-taste-act">
-            <ReportKeyButton code={code} />
-          </div>
-          {today && today !== code.toUpperCase() && (
-            <p className="spx-taste-note">
-              <Link href={`/stock/${today}#ch-analysis`} prefetch={false} className="font-semibold text-primary-ink hover:underline active:opacity-70">
-                <T en={`Or read today's free analysis: ${today}.`} bn={`অথবা আজকের ফ্রি বিশ্লেষণ পড়ুন: ${today}।`} />
-              </Link>
+      {!usedUp && (
+        <div className="sp-body">
+          <div className="spx-taste">
+            <p className="spx-taste-k">
+              <T en={`Try it free on ${code}`} bn={`${code}-এ ফ্রিতে দেখে নিন`} />
             </p>
-          )}
+            <div className="spx-taste-act">
+              <ReportKeyButton code={code} />
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       <p className="sp-fine">
         {state === "guest" ? (

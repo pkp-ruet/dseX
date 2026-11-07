@@ -406,8 +406,10 @@ export default async function StockDetailPage({ params }: PageProps) {
 
       <StockVisitTracker code={profile.trading_code} />
 
-      {/* The free report of the day and a report key open the whole report. */}
-      <StockLockScope code={profile.trading_code} anchor="ch-premium">
+      {/* A signed-in free reader's first 10 shares a month open the whole
+          report by themselves (`auto`, 2026-11-08) — only when there is an
+          analysis. */}
+      <StockLockScope code={profile.trading_code} anchor="ch-premium" auto={!!(report && analysis)}>
       {/* The cover (free): name, price, our grade, quick facts. Then OUR
           ANALYSIS in one card for a reader with the report, or the one
           Premium card for a reader without it (2026-11-05: above the chart). */}

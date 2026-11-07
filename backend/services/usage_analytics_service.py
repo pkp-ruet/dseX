@@ -27,6 +27,7 @@ from typing import Optional
 from backend.services import entitlements
 from backend.services import usage_analytics as ua
 from backend.services.db_service import get_db
+from backend.services.report_keys import REPORT_KEYS_PER_MONTH
 
 log = logging.getLogger("usage_analytics")
 
@@ -550,7 +551,7 @@ def _build(days: int) -> dict:
                                  if int((alerts.get(uid) or {}).get("armed") or 0) >= (entitlements.FREE_LIMITS["alerts"] or 10**9)),
             "report_key_users": sum(1 for n in keys_month if n),
             "report_keys_used": sum(keys_month),
-            "report_keys_per_month": 3,
+            "report_keys_per_month": REPORT_KEYS_PER_MONTH,
         },
         "interest": {
             "visited_premium": len(free_visited),

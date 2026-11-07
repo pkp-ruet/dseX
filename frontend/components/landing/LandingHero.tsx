@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { T } from "@/components/i18n/T";
@@ -39,13 +38,10 @@ const LOT = 100;
 export default function LandingHero({
   stocks,
   initialCode,
-  freeCode,
   dividend,
 }: {
   stocks: LandingStock[];
   initialCode: string | null;
-  /** Today's free full report (lib/free-report.ts), or null when it has no score. */
-  freeCode: string | null;
   dividend: HeroDividend | null;
 }) {
   const router = useRouter();
@@ -63,7 +59,6 @@ export default function LandingHero({
   const byCode = useMemo(() => new Map(stocks.map((s) => [s.code, s])), [stocks]);
   const stock = code ? byCode.get(code) ?? null : null;
   const quick = useMemo(() => pickQuickCodes(stocks, 4), [stocks]);
-  const free = freeCode ? byCode.get(freeCode) ?? null : null;
 
   return (
     <section aria-labelledby="hero-title" className="pt-8 sm:pt-14">
@@ -126,19 +121,6 @@ export default function LandingHero({
                   );
                 })}
               </div>
-            )}
-            {free && (
-              <Link
-                href={`/stock/${free.code}`}
-                className="mt-3 inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-primary-ink hover:underline"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <rect x="3" y="8" width="18" height="13" rx="2" />
-                  <path d="M12 8v13M3 12h18" />
-                  <path d="M12 8c-2-4-6-4-6-1.5S10 8 12 8c2 0 6 1 6-1.5S14 4 12 8z" />
-                </svg>
-                <T en={`Free full report today: ${shortName(free)}`} bn={`আজ ফ্রি পূর্ণ রিপোর্ট: ${shortName(free)}`} />
-              </Link>
             )}
           </div>
         </div>

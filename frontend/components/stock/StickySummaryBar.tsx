@@ -28,7 +28,7 @@ interface Props {
   changePct: number | null;
   /** The section chips — the bar's second line — as a free reader sees the page. */
   sections: NavSection[];
-  /** The chips once the full report is open (Premium, today's free report, a key). */
+  /** The chips once the full report is open (Premium, or one of a free reader's free analyses). */
   openSections?: NavSection[];
 }
 

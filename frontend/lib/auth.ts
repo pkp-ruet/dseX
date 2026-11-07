@@ -28,7 +28,7 @@ export interface AuthUser {
   paid_plan?: string | null;
   /** null = unlimited. */
   limits?: { watchlist: number | null; holdings?: number | null; alerts: number | null; ai_daily: number | null; portfolios?: number | null; custom_lists?: number | null };
-  /** Three full stock reports a month for a free reader (backend/services/report_keys.py). */
+  /** Ten full stock analyses a month for a free reader, opened by the stock page itself (backend/services/report_keys.py). */
   report_keys?: ReportKeys;
   /** The reader's own ৳99 month (backend `payments.offer_state`), or null
    *  when it isn't theirs (ended, Premium, already used). */
@@ -50,7 +50,9 @@ export interface ReportKeys {
   per_month: number;
   used: number;
   left: number;
-  /** Shares open now, each until its 7 days end. */
+  /** This month's shares, in the order they were opened (older backends: absent). */
+  read?: string[];
+  /** Shares open now, each to the end of its month (at least 7 days). */
   open: { code: string; until: string }[];
 }
 

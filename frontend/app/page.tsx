@@ -23,7 +23,6 @@ import StartFromZero from "@/components/landing/StartFromZero";
 import LandingClose from "@/components/landing/LandingClose";
 import FeedbackSection from "@/components/feedback/FeedbackSection";
 import OfferBanner from "@/components/premium/OfferBanner";
-import { freeReportCode } from "@/lib/free-report";
 
 // Hourly, not daily: the page renders today's movers and grades, so
 // day-old HTML would show yesterday's market. Matches the 3600s the scores /
@@ -126,12 +125,10 @@ async function HeroBlock({
 }) {
   const [data, market] = await Promise.all([landingData(promise), marketPromise]);
   if (!data) return <HeroFallback />;
-  const free = freeReportCode();
   return (
     <LandingHero
       stocks={data.stocks}
       initialCode={data.heroCode}
-      freeCode={data.stocks.some((s) => s.code === free && s.score != null) ? free : null}
       dividend={nextDividend(market)}
     />
   );

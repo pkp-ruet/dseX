@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -134,13 +134,15 @@ def mark_ai_used(current_user: dict = Depends(get_current_user)):
 
 
 # ---------------------------------------------------------------------------
-# Report keys (2026-10-29): three full stock reports a month for free readers
+# Report keys (2026-10-29; 10 a month, spent by the stock page itself since 2026-11-08)
 # ---------------------------------------------------------------------------
 
 @router.post("/report-keys/{code}")
 def open_report_key(code: str, current_user: dict = Depends(get_current_user)):
-    """Use one of the month's keys on a share's full report (7 days). Opening
-    a share that is already open costs nothing; a Premium reader needs none.
+    """Use one of the month's keys on a share's full report (open to the end
+    of the Dhaka month, at least 7 days). The stock page calls this by itself
+    when a free reader opens a share (2026-11-08). Opening a share that is
+    already open costs nothing; a Premium reader needs none.
     403 `limit_reached:report_keys` when the month's keys are spent."""
     from backend.services.db_service import load_all_company_codes
     from backend.services.entitlements import is_premium
@@ -157,8 +159,13 @@ def open_report_key(code: str, current_user: dict = Depends(get_current_user)):
     if status == "none_left":
         raise HTTPException(status_code=403, detail=LIMIT_REPORT_KEYS)
     if key:
+        # Two tabs opening the same share at once spend one key, not two.
+        recent = now - timedelta(minutes=10)
         get_db()["users"].update_one(
-            {"user_id": current_user["user_id"]},
+            {
+                "user_id": current_user["user_id"],
+                "report_keys": {"$not": {"$elemMatch": {"code": code, "opened_at": {"$gte": recent}}}},
+            },
             {"$push": {"report_keys": {"$each": [key], "$slice": -KEEP}}},
         )
         keys = [*keys, key][-KEEP:]

@@ -56,7 +56,6 @@ export interface Group {
   example?: { label: Bi; title: Bi; word?: Bi; tone?: Tone; line: Bi };
   /** What a free reader has in the same place. */
   free: Bi;
-  /** "free-report" = today's free full report, worked out in the browser. */
   link?: { href: string; label: Bi };
 }
 
@@ -125,10 +124,9 @@ export const GROUPS: Group[] = [
       },
     },
     free: {
-      en: "The price, the chart and every figure on every share, and 3 full reports a month on shares you choose.",
-      bn: "প্রতিটি শেয়ারের দাম, চার্ট আর সব হিসাব, আর আপনার বাছাই করা শেয়ারে মাসে 3টি পূর্ণ রিপোর্ট।",
+      en: "The price, the chart and every figure on every share, and our full analysis on the first 10 shares you open each month.",
+      bn: "প্রতিটি শেয়ারের দাম, চার্ট আর সব হিসাব, আর প্রতি মাসে প্রথম যে 10টি শেয়ার খোলেন, সেগুলোর পূর্ণ বিশ্লেষণ।",
     },
-    link: { href: "free-report", label: { en: "See today's free full report", bn: "আজকের ফ্রি পূর্ণ রিপোর্ট দেখুন" } },
   },
   {
     key: "portfolio",
@@ -269,10 +267,10 @@ export const GROUPS: Group[] = [
     },
     items: [
       {
-        name: { en: "Picked for you", bn: "আপনার জন্য বাছাই" },
+        name: { en: "Discover", bn: "খুঁজে দেখুন" },
         line: {
-          en: "10 to 15 shares a day that passed every safety check, matched to the shares you own and follow, each with one honest risk.",
-          bn: "দিনে 10 থেকে 15টি শেয়ার, যেগুলো সব নিরাপত্তা যাচাই পার হয়েছে, আপনার কেনা ও অনুসরণ করা শেয়ারের সঙ্গে মিলিয়ে, প্রতিটির একটি খোলামেলা ঝুঁকিসহ।",
+          en: "All 15 strong companies matched to your shares, not just the free top 5, each with the figures that matter, one honest risk and the checks it passed.",
+          bn: "আপনার শেয়ারের সাথে মিলিয়ে সব 15টি শক্তিশালী কোম্পানি, শুধু ফ্রি সেরা 5টি নয়, প্রতিটির জরুরি সংখ্যা, একটি খোলামেলা ঝুঁকি আর যে যাচাইগুলো পার করেছে।",
         },
       },
       {
@@ -305,11 +303,11 @@ export const GROUPS: Group[] = [
       },
     ],
     example: {
-      label: { en: "Picked for you", bn: "আপনার জন্য বাছাই" },
+      label: { en: "Discover", bn: "খুঁজে দেখুন" },
       title: { en: "Stronger than a share you own", bn: "আপনার একটি শেয়ারের চেয়ে শক্তিশালী" },
       line: {
-        en: "The same business as one of your shares, a stronger company at a lower price, and it pays about 5% a year in cash. Watch out: its profit grew slowly this year.",
-        bn: "আপনার একটি শেয়ারের মতোই ব্যবসা, তবে কোম্পানিটি বেশি শক্তিশালী, দামও কম, আর বছরে নগদে প্রায় 5% দেয়। খেয়াল রাখুন: এ বছর মুনাফা ধীরে বেড়েছে।",
+        en: "The same business as one of your shares, but a stronger company, and it pays about 5% a year in cash. Watch out: its profit grew slowly this year.",
+        bn: "আপনার একটি শেয়ারের মতোই ব্যবসা, তবে কোম্পানিটি বেশি শক্তিশালী, আর বছরে নগদে প্রায় 5% দেয়। খেয়াল রাখুন: এ বছর মুনাফা ধীরে বেড়েছে।",
       },
     },
     free: {
@@ -357,7 +355,7 @@ export const TABLE: { group: GroupKey; rows: { what: Bi; free: Cell; premium: Ce
       { what: { en: "Price, chart and every figure", bn: "দাম, চার্ট আর সব হিসাব" }, free: true, premium: true },
       {
         what: { en: "Full report with our answer", bn: "আমাদের উত্তরসহ পূর্ণ রিপোর্ট" },
-        free: { en: "3 a month", bn: "মাসে 3টি" },
+        free: { en: "10 a month", bn: "মাসে 10টি" },
         premium: { en: "Every share", bn: "প্রতিটি শেয়ারে" },
       },
       { what: { en: "Fair price and our buy price", bn: "ন্যায্য দাম আর কেনার দাম" }, free: false, premium: true },
@@ -403,9 +401,9 @@ export const TABLE: { group: GroupKey; rows: { what: Bi; free: Cell; premium: Ce
     group: "find",
     rows: [
       {
-        what: { en: "Picked for you", bn: "আপনার জন্য বাছাই" },
-        free: { en: "How many we chose", bn: "কতগুলো বাছাই হলো" },
-        premium: { en: "All 10 to 15, with reasons", bn: "10 থেকে 15টিই, কারণসহ" },
+        what: { en: "Discover", bn: "খুঁজে দেখুন" },
+        free: { en: "Your top 5, and why each fits you", bn: "আপনার সেরা 5টি, আর কেন মেলে" },
+        premium: { en: "All 15, with the full case for each", bn: "সব 15টি, প্রতিটির পুরো বিশ্লেষণসহ" },
       },
       {
         what: { en: "Research reports", bn: "গবেষণা প্রতিবেদন" },
@@ -494,8 +492,8 @@ export const SECTIONS = {
   feature: { en: "What you get", bn: "যা পাবেন" },
   promises: { en: "Our promises", bn: "আমাদের প্রতিশ্রুতি" },
   keys: {
-    en: "Not sure yet? A free account opens 3 full reports a month, on any shares you choose.",
-    bn: "এখনো ঠিক করেননি? ফ্রি অ্যাকাউন্টে মাসে 3টি পূর্ণ রিপোর্ট খোলা যায়, আপনার পছন্দের যেকোনো শেয়ারে।",
+    en: "Not sure yet? A free account shows our full analysis on the first 10 shares you open each month.",
+    bn: "এখনো ঠিক করেননি? ফ্রি অ্যাকাউন্টে প্রতি মাসে প্রথম যে 10টি শেয়ার খোলেন, সেগুলোর পূর্ণ বিশ্লেষণ দেখা যায়।",
   },
   howWeScore: {
     en: ["Would you like to see how the score works first? Read ", "how we score", "."],
@@ -542,8 +540,8 @@ export const FAQS: { q: Bi; a: Bi }[] = [
   {
     q: { en: "Can I see it before I pay?", bn: "পেমেন্টের আগে কি দেখে নিতে পারি?" },
     a: {
-      en: "Yes, in three ways. Every day one well-known company's full report is open for everyone: look for \"Today's free full report\" on the homepage. A free account opens 3 full reports a month on shares you choose. And our two sample portfolios show the whole portfolio check, free.",
-      bn: "হ্যাঁ, তিনভাবে। প্রতিদিন একটি পরিচিত কোম্পানির পূর্ণ রিপোর্ট সবার জন্য খোলা থাকে: হোমপেজে \"আজকের ফ্রি পূর্ণ রিপোর্ট\" দেখুন। ফ্রি অ্যাকাউন্টে আপনার বাছাই করা শেয়ারে মাসে 3টি পূর্ণ রিপোর্ট খোলা যায়। আর আমাদের দুটি নমুনা পোর্টফোলিওতে পুরো পোর্টফোলিও যাচাই ফ্রিতে দেখা যায়।",
+      en: "Yes, in two ways. A free account shows our full analysis on the first 10 shares you open each month. And our two sample portfolios show the whole portfolio check, free.",
+      bn: "হ্যাঁ, দুইভাবে। ফ্রি অ্যাকাউন্টে প্রতি মাসে প্রথম যে 10টি শেয়ার খোলেন, সেগুলোর পূর্ণ বিশ্লেষণ দেখা যায়। আর আমাদের দুটি নমুনা পোর্টফোলিওতে পুরো পোর্টফোলিও যাচাই ফ্রিতে দেখা যায়।",
     },
   },
   {

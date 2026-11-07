@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { T } from "@/components/i18n/T";
 import { Locked } from "@/components/premium/AnswerLock";
-import { OpenScope } from "@/components/premium/LockScope";
+import { OpenScope, useLockScope } from "@/components/premium/LockScope";
 import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
 
 /**
@@ -20,7 +20,7 @@ import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
  *
  * The report itself is always in the HTML, rendered open (`OpenScope`) and
  * hidden under one `Locked` (the paywall JSON-LD's `.premium-locked`), so a
- * Premium reader, today's free report or a report key shows it in place.
+ * Premium reader or one of a free reader's free analyses shows it in place.
  */
 // Links into the report that have a free twin in the data room.
 const FREE_TWIN: Record<string, string> = { results: "latest-results", "rp-this_year": "latest-results" };
@@ -59,7 +59,10 @@ function useLockedHash(enabled: boolean): boolean {
 
 export default function ReportGate({ promo = null, children }: { promo?: ReactNode; children: ReactNode }) {
   const open = usePremiumOpen();
-  const missed = useLockedHash(!open && promo != null);
+  // The page is opening one of the reader's free analyses (2026-11-08): no
+  // Premium card while it does.
+  const opening = !!useLockScope()?.opening;
+  const missed = useLockedHash(!open && !opening && promo != null);
   return (
     <>
       {!open && promo && missed && (
@@ -71,7 +74,7 @@ export default function ReportGate({ promo = null, children }: { promo?: ReactNo
         </p>
       )}
       {/* Old `#ch-premium` links still land somewhere once the report is open. */}
-      {open ? promo && <span id="ch-premium" className="stock-anchor block" aria-hidden="true" /> : promo}
+      {open || opening ? promo && <span id="ch-premium" className="stock-anchor block" aria-hidden="true" /> : promo}
       <Locked>
         <OpenScope>{children}</OpenScope>
       </Locked>

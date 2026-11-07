@@ -17,11 +17,18 @@
  */
 export const FREE_LIST_ROWS = 3;
 
-/* The dashboard's "Picked for you" has no free rows since 2026-11-01: the
-   whole list is Premium, a free reader gets one Premium card. */
+/**
+ * Discover (was "Picked for you", all Premium 2026-11-01 → 11-08): since
+ * 2026-11-08 (user: "Open list, lock depth") a free reader sees the top 5
+ * companies, each with its name and why it fits them; Premium opens the
+ * rest of the list and the full case under every company (the four facts,
+ * the one thing to watch, the checks it passed). The dashboard's three
+ * tiles are open for everyone.
+ */
+export const FREE_DISCOVER_ROWS = 5;
 
 /* The stock report has no free taste since 2026-11-01: the whole report is
-   Premium (today's free report and report keys still open it). */
+   Premium (a free reader's 10 free analyses a month still open it). */
 
 /** Split a list into the free head (`n` rows) and the locked rest. */
 export function splitFree<T>(items: T[], n: number): [T[], T[]] {
