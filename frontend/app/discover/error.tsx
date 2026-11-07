@@ -13,7 +13,7 @@ export default function PickedForYouError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("picked-for-you failed to render:", error);
+    console.error("discover failed to render:", error);
   }, [error]);
 
   return (

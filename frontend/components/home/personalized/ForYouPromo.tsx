@@ -5,42 +5,35 @@ import Link from "next/link";
 import { forYouCounts, type ForYou } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
 import { useAuth } from "@/context/AuthContext";
-import { t, type CopyKey } from "@/lib/home-copy";
+import { t } from "@/lib/home-copy";
 import { PREMIUM_PATH } from "@/lib/premium";
 import { FROM_MONTH, LOWEST_PRICE } from "@/lib/premium-plans";
 import { savePremiumContext } from "@/lib/premium-context";
+import { FREE_DISCOVER_ROWS } from "@/lib/free-share";
 import { trackEvent } from "@/lib/track";
 import Button from "@/components/ui/Button";
-import ForYouFunnel from "@/components/home/personalized/ForYouFunnel";
-import { IconAlert, IconCalendar, IconChartBars, IconCrown, IconTarget } from "@/components/ui/icons";
+import { IconAlert, IconChartBars, IconCheckCircle, IconCrown, IconTarget } from "@/components/ui/icons";
 
-const ROWS: { icon: ReactNode; q: CopyKey; line: CopyKey }[] = [
-  { icon: <IconTarget size={18} />, q: "forYouProRow1", line: "forYouProRow1Line" },
-  { icon: <IconChartBars size={18} />, q: "forYouProRow2", line: "forYouProRow2Line" },
-  { icon: <IconAlert size={18} />, q: "forYouProRow3", line: "forYouProRow3Line" },
-  { icon: <IconCalendar size={18} />, q: "forYouProRow4", line: "forYouProRow4Line" },
-];
+/** Anchor of the card: a free reader's locked case line under each company points here. */
+export const DISCOVER_PREMIUM_ANCHOR = "dp-premium";
 
 /**
- * "Picked for you" as a free reader sees it (2026-11-01, user: "everything of
- * Picked for you will be a premium feature"), on the /picked-for-you page
- * since 2026-11-05 (the dashboard keeps a slim tile row). No company, no
- * reason, no row —
- * only what the engine did for them (how many it analysed, how many passed,
- * how many it chose), what the list shows, a few counts from today's list and
- * one button. The stock page's Premium card look (`.sp`): gold band, white
- * body, price + button.
+ * Discover's Premium card for a free reader (2026-11-08, user: "Open list,
+ * lock depth" — it was the whole page's lock 2026-11-01 → 11-08). It sits
+ * under the free top `FREE_DISCOVER_ROWS`, which the reader has just seen
+ * with their names and why each fits them, and says what Premium adds: the
+ * rest of the list and the full case under every company. Never a company
+ * name. The stock page's Premium card look (`.sp`): gold band, white body,
+ * price + button.
  */
 export default function ForYouPromo({
   data,
-  name,
   lang = "en",
-  area = "home",
+  area = "discover",
 }: {
   data: ForYou;
-  name?: string | null;
   lang?: Lang;
-  /** Where it sits, for the lock events: the /picked-for-you page since 2026-11-05. */
+  /** Where it sits, for the lock events. */
   area?: string;
 }) {
   const { user } = useAuth();
@@ -50,30 +43,28 @@ export default function ForYouPromo({
 
   const counts = forYouCounts(data);
   const n = counts.total;
-  const personal = data.mode === "personal";
-  const first = (name ?? "").trim().split(/\s+/)[0] || "";
+  const free = Math.min(FREE_DISCOVER_ROWS, n);
+  const rest = n - free;
   const { held, watched } = data.based_on;
-  const basis = held && watched
-    ? t(lang, "forYouBasisBoth", { held, watched })
-    : held
-      ? t(lang, "forYouBasisHeld", { n: held })
-      : t(lang, "forYouBasisWatched", { n: watched });
-  const headKey = personal
-    ? first ? "forYouProHeadName" : "forYouProHead"
-    : first ? "forYouProHeadGenericName" : "forYouProHeadGeneric";
-  const lead = personal
-    ? t(lang, "forYouProLeadPersonal", { passed: data.funnel.passed, n, basis })
-    : t(lang, "forYouProLeadGeneric", { passed: data.funnel.passed, n });
 
-  // Counts from today's list — never a name.
+  const rows: { icon: ReactNode; q: string; line: string }[] = [
+    ...(rest > 0
+      ? [{ icon: <IconTarget size={18} />, q: t(lang, "forYouMoreRowAll", { n }), line: t(lang, "forYouMoreRowAllLine") }]
+      : []),
+    { icon: <IconChartBars size={18} />, q: t(lang, "forYouProRow2"), line: t(lang, "forYouProRow2Line") },
+    { icon: <IconAlert size={18} />, q: t(lang, "forYouProRow3"), line: t(lang, "forYouProRow3Line") },
+    { icon: <IconCheckCircle size={18} />, q: t(lang, "forYouMoreRowChecks"), line: t(lang, "forYouMoreRowChecksLine") },
+  ];
+
+  // Counts from the rest of today's list — never a name.
   const chips = [
     counts.new > 0 ? t(lang, "forYouProChipNew", { n: counts.new }) : null,
-    counts.own > 0 ? t(lang, "forYouProChipOwn", { n: counts.own }) : null,
     counts.strong > 0 ? t(lang, "forYouProChipStrong", { n: counts.strong }) : null,
   ].filter((c): c is string => !!c);
 
+  const head = rest > 0 ? t(lang, "forYouMoreHead", { rest }) : t(lang, "forYouMoreHeadNone");
   const offer = user?.offer ?? null;
-  const href = offer ? "/premium?plan=offer&src=for-you#pay" : `${PREMIUM_PATH}#pay`;
+  const href = offer ? "/premium?plan=offer&src=discover#pay" : `${PREMIUM_PATH}#pay`;
 
   useEffect(() => {
     const el = ref.current;
@@ -82,45 +73,50 @@ export default function ForYouPromo({
       (entries) => {
         if (seen.current || !entries.some((e) => e.isIntersecting)) return;
         seen.current = true;
-        trackEvent("premium_lock_view", { area, lock: "for-you", stakes: n });
+        trackEvent("premium_lock_view", { area, lock: "discover", stakes: rest });
         io.disconnect();
       },
       { threshold: 0.3 },
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [n, area]);
+  }, [rest, area]);
 
   const onTap = () => {
-    trackEvent("premium_lock_tap", { area, lock: "for-you", stakes: n });
-    savePremiumContext({ from: area, label: t(lang, "forYouProLabel"), stakes: chips.length ? chips : [t(lang, headKey, { name: first, n })] });
+    trackEvent("premium_lock_tap", { area, lock: "discover", stakes: rest });
+    savePremiumContext({ from: area, label: t(lang, "forYouProLabel"), stakes: chips.length ? chips : [head] });
   };
 
   return (
-    <section ref={ref} className={`sp fyp ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined} aria-labelledby="fyp-t">
+    <section
+      ref={ref}
+      id={DISCOVER_PREMIUM_ANCHOR}
+      className={`sp fyp ${bn ? "font-bn" : ""}`}
+      lang={bn ? "bn" : undefined}
+      aria-labelledby="fyp-t"
+    >
       <div className="sp-top">
         <p className="sp-tag">
           <span className="sp-medal" aria-hidden="true">
             <IconCrown size={16} />
           </span>
-          {t(lang, "forYouEyebrow")} · {t(lang, "forYouProTag")}
+          {t(lang, "forYouMoreTag")}
         </p>
         <h3 id="fyp-t" className="sp-title">
-          {t(lang, headKey, { name: first, n })}
+          {head}
         </h3>
-        <p className="sp-lead">{lead}</p>
-        {data.funnel.rated > 0 && <ForYouFunnel data={data} lang={lang} gold />}
+        <p className="sp-lead">{t(lang, "forYouMoreLead", { free, n })}</p>
       </div>
 
       <div className="sp-body">
         <p className="sp-k">{t(lang, "forYouProListHead")}</p>
         <ul className="sp-rows">
-          {ROWS.map((r) => (
+          {rows.map((r) => (
             <li key={r.q} className="sp-row">
               <span className="sp-icon" aria-hidden="true">{r.icon}</span>
               <span className="min-w-0">
-                <b>{t(lang, r.q)}</b>
-                <span>{t(lang, r.line)}</span>
+                <b>{r.q}</b>
+                <span>{r.line}</span>
               </span>
             </li>
           ))}
@@ -150,7 +146,7 @@ export default function ForYouPromo({
         </div>
         <div className="sp-cta">
           <Button href={href} onClick={onTap} size="lg" block>
-            {offer ? t(lang, "forYouProCtaOffer", { p: offer.amount }) : t(lang, "forYouProCta", { n })}
+            {offer ? t(lang, "forYouProCtaOffer", { p: offer.amount }) : t(lang, "forYouMoreCta")}
           </Button>
         </div>
       </div>
@@ -169,3 +165,4 @@ export default function ForYouPromo({
     </section>
   );
 }
+

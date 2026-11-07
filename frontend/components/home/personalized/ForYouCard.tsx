@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { forYouCounts, type ForYou, type ForYouItem } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
@@ -10,27 +9,36 @@ import { trackEvent } from "@/lib/track";
 import OwnerMark from "@/components/home/personalized/OwnerMark";
 import Skeleton from "@/components/ui/Skeleton";
 import { StockRank } from "@/components/ui/StockRow";
-import { IconArrowRight, IconCrown, IconLock, IconSparkle } from "@/components/ui/icons";
+import { IconArrowRight, IconSparkle } from "@/components/ui/icons";
+import { FREE_DISCOVER_ROWS } from "@/lib/free-share";
 
 /** The page that holds the whole list and every pick's reasons. */
-export const PICKS_PATH = "/picked-for-you";
+export const PICKS_PATH = "/discover";
 const TILES = 3;
 
 /** Kinds tied to the reader's own shares: their fit word reads clay. */
 const OWN_KINDS = new Set(["add_more", "watched", "upgrade", "similar", "style", "asked", "new_area"]);
 
 /**
+ * Since 2026-11-08 "Discover" (was "Picked for you") is a list of companies to explore, not
+ * a buy list: strong companies the reader doesn't own or follow yet, at any
+ * price, never one on today's Buy List (the card above it with the market).
+ * No price word on the tiles, quiet rank numbers, and the lead says "not a
+ * buy list".
+ *
  * "Picked for you" on the dashboard (2026-11-05, user: "dashboard only show
  * top 3 in a single row with only some keyword and a link to full page"):
  * three tiles in one row from 768px, three compact rows on phones (user,
  * same day: "mobile view needs scrolling … if 3 row looks better do it"),
  * each = rank, company, price, the fit word and two or three keywords; every tile and the footer
- * open `/picked-for-you`, where each pick is argued in full. The home bundle
+ * open `/discover`, where each pick is argued in full. The home bundle
  * carries only these three items (`counts` describes the whole list).
  *
- * Premium since 2026-11-01: a free reader gets the same row with the
- * companies locked (never a name or a reason), the counts, and one button
- * to the page, which holds the Premium card.
+ * Open for every reader since 2026-11-08 (user: "Open list, lock depth";
+ * it was Premium with locked tiles 2026-11-01 → 11-08): the three tiles
+ * show to everyone; on the page a free reader gets the top
+ * FREE_DISCOVER_ROWS with why each fits them, Premium the rest of the list
+ * and the full case under each company.
  */
 export default function ForYouCard({
   data,
@@ -51,38 +59,13 @@ export default function ForYouCard({
   lang?: Lang;
 }) {
   const bn = lang === "bn";
-  const ref = useRef<HTMLElement>(null);
-  const seen = useRef(false);
   const counts = data ? forYouCounts(data) : null;
   const n = counts?.total ?? 0;
-
-  // A free reader's locked row counts as a Premium lock seen (once).
-  useEffect(() => {
-    const el = ref.current;
-    if (premium || !el || !n || typeof IntersectionObserver === "undefined") return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (seen.current || !entries.some((e) => e.isIntersecting)) return;
-        seen.current = true;
-        trackEvent("premium_lock_view", { area: "home", lock: "for-you", stakes: n });
-        io.disconnect();
-      },
-      { threshold: 0.3 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [premium, n]);
 
   const eyebrow = (
     <p className="fy-eyebrow">
       <IconSparkle size={14} />
       {t(lang, "forYouEyebrow")}
-      {!premium && (
-        <span className="fy-pro">
-          <IconCrown size={12} />
-          {t(lang, "forYouProTag")}
-        </span>
-      )}
     </p>
   );
 
@@ -112,23 +95,16 @@ export default function ForYouCard({
   const top = data.items.slice(0, TILES);
   const k = Math.min(TILES, n);
 
-  const title = premium
-    ? t(lang, first ? "forYouTilesHeadName" : "forYouTilesHead", { name: first, k })
-    : t(lang, first ? "forYouFreeHeadName" : "forYouFreeHead", { name: first, n });
-  const lead = premium
-    ? t(lang, personal ? "forYouTilesLeadPersonal" : "forYouTilesLeadGeneric", { passed: data.funnel.passed })
-    : t(lang, "forYouFreeLead");
+  const title = t(lang, first ? "forYouTilesHeadName" : "forYouTilesHead", { name: first, k });
+  const lead = t(lang, personal ? "forYouTilesLeadPersonal" : "forYouTilesLeadGeneric", { passed: data.funnel.passed });
 
   const href = (code?: string) => (code ? `${PICKS_PATH}#pick-${code}` : PICKS_PATH);
   const onTap = (code?: string) => {
-    if (!premium) {
-      trackEvent("premium_lock_tap", { area: "home", lock: "for-you", stakes: n });
-    }
     trackEvent("picks_tile_tap", { code: code ?? "all", plan: premium ? "premium" : "free" });
   };
 
   return (
-    <section ref={ref} className={`soft-card fy ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined} aria-labelledby="fy-title">
+    <section className={`soft-card fy ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined} aria-labelledby="fy-title">
       <div className="fy-top">
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
           {eyebrow}
@@ -151,15 +127,13 @@ export default function ForYouCard({
       </div>
 
       <ol className="fy-tiles">
-        {premium
-          ? top.map((it, i) => (
-              <Tile key={it.code} it={it} rank={i + 1} href={href(it.code)} onTap={() => onTap(it.code)} held={held} watched={watched} lang={lang} />
-            ))
-          : Array.from({ length: k }, (_, i) => <LockedTile key={i} rank={i + 1} href={href()} onTap={() => onTap()} lang={lang} />)}
+        {top.map((it, i) => (
+          <Tile key={it.code} it={it} rank={i + 1} href={href(it.code)} onTap={() => onTap(it.code)} held={held} watched={watched} lang={lang} />
+        ))}
       </ol>
 
       <Link prefetch={false} href={href()} onClick={() => onTap()} className="fy-foot">
-        {premium ? t(lang, "forYouSeeAll", { n }) : t(lang, "forYouFreeCta", { n })}
+        {premium ? t(lang, "forYouSeeAll", { n }) : t(lang, "forYouFreeCta", { k: Math.min(FREE_DISCOVER_ROWS, n) })}
         <IconArrowRight size={16} />
       </Link>
     </section>
@@ -196,7 +170,7 @@ function Tile({
     <li className="fy-tile-li">
       <Link prefetch={false} href={href} onClick={onTap} className="fy-tile">
         <span className="fy-tile-rank">
-          <StockRank n={rank} solid />
+          <StockRank n={rank} />
         </span>
         <span className="fy-tile-name">{it.name || it.code}</span>
         <span className="fy-tile-meta">
@@ -221,34 +195,6 @@ function Tile({
             ))}
           </span>
         )}
-      </Link>
-    </li>
-  );
-}
-
-function LockedTile({ rank, href, onTap, lang }: { rank: number; href: string; onTap: () => void; lang: Lang }) {
-  return (
-    <li className="fy-tile-li">
-      <Link prefetch={false} href={href} onClick={onTap} className="fy-tile fy-tile--locked" aria-label={t(lang, "forYouLockedTile")}>
-        <span className="fy-tile-rank">
-          <StockRank n={rank} solid />
-        </span>
-        <span className="fy-tile-name" aria-hidden="true">
-          <span className="fy-mask fy-mask--name" />
-        </span>
-        <span className="fy-tile-meta" aria-hidden="true">
-          <span className="fy-mask fy-mask--code" />
-        </span>
-        <span className="fy-tile-price">
-          <span className="fy-lock">
-            <IconLock size={12} />
-            {t(lang, "forYouProTag")}
-          </span>
-        </span>
-        <span className="fy-words" aria-hidden="true">
-          <span className="fy-mask fy-mask--chip" />
-          <span className="fy-mask fy-mask--chip" />
-        </span>
       </Link>
     </li>
   );

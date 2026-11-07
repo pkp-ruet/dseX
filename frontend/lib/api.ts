@@ -2023,7 +2023,10 @@ export async function getStockRecommendations(
 
 // ---------------------------------------------------------------------------
 // Recommendation engine — "Picked for you" + "What to buy next"
-// (backend services/recommend.py; one engine for every personal suggestion)
+// (backend services/recommend.py; one engine for every personal suggestion).
+// "Picked for you" runs in explore mode since 2026-11-08: strong companies to
+// read about (any price, never one the reader owns or follows, never one on
+// today's Buy List); "What to buy next" keeps the Buy check.
 // ---------------------------------------------------------------------------
 
 /** What ties a pick to the reader: one they own and could add to, one they
@@ -2041,7 +2044,7 @@ export interface ForYouItem {
   change_pct: number | null;
   score: number | null;
   tier: string;
-  /** The Buy signal's "strong" conviction. */
+  /** Picked for you: strong all round. What to buy next: the Buy signal's "strong" conviction. */
   strong: boolean;
   kind: ForYouKind;
   /** The reader's own stock this pick is tied to ("Like GP", "Stronger than X"). */
@@ -2068,12 +2071,13 @@ export interface ForYouItem {
   sector_bn?: string | null;
   /** The company's group in the ranking's words ("Mostly strong"). */
   group?: BiText;
-  price_word?: "very_low" | "low" | "fair";
+  /** Only on "What to buy next"; null on Picked for you (no price verdict there). */
+  price_word?: "very_low" | "low" | "fair" | null;
   /** Two or three words for the dashboard's tile. */
   keywords?: (BiText & { tone: "good" | "neutral" })[];
   /** The same four facts for every pick: company · price · profit · cash. */
   facts?: ForYouFact[];
-  /** Our fair-price range, only when it agrees with the pick. */
+  /** Our fair-price range, only when it agrees with the pick (never on Picked for you). */
   fair?: { low: number; high: number } | null;
   /** Each safety check it passed, with its own figure. */
   checks?: { key: string; label: BiText; value: BiText }[];
@@ -2089,7 +2093,7 @@ export interface ForYouFact {
 
 export interface ForYouFunnel {
   rated: number;
-  /** Stocks with a Buy signal today. */
+  /** Left after the first check: a Buy signal today (buy mode) or mostly strong or better (Picked for you). */
   buys: number;
   /** …that pass every safety check. */
   passed: number;
@@ -2110,6 +2114,9 @@ export interface ForYou {
   counts?: { total: number; new: number; own: number; strong: number };
   /** Set when few (or no) stocks pass every check — the bar is never lowered. */
   note: BiText | null;
+  /** Today's Buy List, which Picked for you never repeats: its size and the
+   *  members that would fit this reader (named on the page as a pointer). */
+  buy_list?: { count: number; fits: { code: string; name: string | null }[]; fits_total: number };
 }
 
 /** The whole list counted, from `counts` when the backend sends it. */

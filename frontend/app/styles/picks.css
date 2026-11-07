@@ -3,12 +3,11 @@
 
    `.fy-*`  the dashboard's card (components/home/personalized/ForYouCard):
             the top three as three compact rows on phones and as tiles in
-            one row from 768px, a few keywords each, one link to the page. A free reader's
-            tiles are locked (gold = Premium).
-   `.pk-*`  the page /picked-for-you (components/picks/*): a short note,
-            a jump row, every pick as the same card, "How we pick".
-   The funnel (`.fy-funnel`) serves both, and the free reader's Premium
-   card (`.fyp`, ForYouPromo) on the page.
+            one row from 768px, a few keywords each, one link to the page. Open for
+            every reader since 2026-11-08.
+   `.pk-*`  the page /discover (components/picks/*): a short note, a jump
+            row, every pick as the same card, "How we pick"; a free reader's
+            Premium card (`.fyp`, ForYouPromo) under the open top 5.
    =================================================================== */
 
 /* ---------- Dashboard card ---------- */
@@ -17,11 +16,6 @@
 .fy-eyebrow {
   display: inline-flex; align-items: center; gap: 6px;
   font-size: var(--fs-xs); font-weight: 700; color: var(--primary-ink);
-}
-.fy-pro {
-  display: inline-flex; align-items: center; gap: 4px;
-  margin-left: 4px; padding: 1px 8px; border-radius: 999px;
-  background: rgb(var(--gold-rgb) / 0.14); color: var(--gold-ink);
 }
 .fy-headline { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-2); }
 .fy-title { font-size: var(--fs-lg); font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; color: var(--text); text-wrap: balance; }
@@ -94,18 +88,6 @@
 }
 .fy-word--good { background: rgb(var(--positive-rgb) / 0.1); color: var(--positive); }
 
-/* A free reader's pick: the shape of a row, the company hidden. */
-.fy-lock {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 1px 8px; border-radius: 999px;
-  background: rgb(var(--gold-rgb) / 0.14);
-  font-size: var(--fs-xs); font-weight: 700; color: var(--gold-ink);
-}
-.fy-mask { display: block; border-radius: var(--radius-sm); background: rgb(var(--text-rgb) / 0.1); }
-.fy-mask--name { width: 70%; height: 16px; margin-top: 3px; }
-.fy-mask--code { width: 40%; height: 12px; margin-top: 4px; }
-.fy-mask--chip { width: 72px; height: 20px; border-radius: 999px; }
-
 /* Loading rows. */
 .fy-skel { display: grid; gap: var(--space-2); width: 100%; padding: var(--space-3) var(--space-4); }
 
@@ -145,10 +127,6 @@
   }
   .fy-tile-price { flex-direction: row; align-items: baseline; justify-content: flex-start; gap: 6px; text-align: left; }
   .fy-words { align-self: end; margin-top: 0; padding-top: var(--space-2); border-top: 1px dashed var(--border); }
-  .fy-tile--locked { border-color: rgb(var(--gold-rgb) / 0.4); background: rgb(var(--gold-rgb) / 0.05); }
-  .fy-tile--locked:hover { border-color: var(--gold); }
-  .fy-tile--locked .fy-tile-price { justify-content: flex-start; }
-  .fy-mask--name { width: 85%; height: 18px; }
 }
 
 .fy-foot {
@@ -164,24 +142,6 @@
   .fy-title { font-size: var(--fs-xl); }
 }
 
-/* ---------- The funnel: analysed → passed → chosen ---------- */
-.fy-funnel { display: flex; align-items: stretch; gap: var(--space-1); margin-top: var(--space-4); }
-.fy-step {
-  flex: 1 1 0; min-width: 0;
-  display: flex; flex-direction: column; justify-content: center;
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--border); border-radius: var(--radius-md);
-  background: var(--surface);
-}
-.fy-step > b { font-size: var(--fs-lg); font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; color: var(--text); }
-.fy-step > span { margin-top: 2px; font-size: var(--fs-xs); line-height: 1.3; color: var(--text); }
-.fy-step--end { border-color: rgb(var(--primary-rgb) / 0.45); background: rgb(var(--primary-rgb) / 0.07); }
-.fy-step--end > b { color: var(--primary-ink); }
-.fy-funnel-arrow { flex: none; display: grid; place-items: center; color: var(--text); }
-.fy-funnel--gold .fy-step { border-color: rgb(var(--gold-rgb) / 0.45); }
-.fy-funnel--gold .fy-step--end { border-color: var(--gold); background: var(--surface); }
-.fy-funnel--gold .fy-step--end > b { color: var(--gold-ink); }
-
 /* The free reader's Premium card sits in the page's spacing. */
 .sp.fyp { margin: 0; }
 
@@ -193,7 +153,13 @@
 }
 .pk-title { margin-top: var(--space-2); font-size: var(--fs-xl); font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; text-wrap: balance; color: var(--text); }
 .pk-lead { margin-top: var(--space-2); max-width: 68ch; font-size: var(--fs-sm); line-height: 1.6; color: var(--text); }
-.pk-traits { margin-top: var(--space-3); font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+.pk-points { display: grid; gap: var(--space-3); margin-top: var(--space-4); max-width: 72ch; }
+.pk-points li { display: flex; align-items: flex-start; gap: var(--space-3); font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
+.pk-point-icon {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: var(--radius-md);
+  background: rgb(var(--primary-rgb) / 0.1); color: var(--primary-ink);
+}
 .pk-note {
   margin-top: var(--space-3); padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md); background: var(--surface-2);
@@ -272,16 +238,15 @@
   .pk-fact:nth-child(2n) { border-left: 1px solid var(--cell-rule); }
 }
 
-/* Our fair price: the range as a band, today's price as a dot. */
-.pk-fair-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
-.pk-fair-bar { position: relative; height: 8px; margin: 10px 0 8px; border-radius: 999px; background: rgb(var(--border-rgb) / 0.7); }
-.pk-fair-zone { position: absolute; top: 0; bottom: 0; border-radius: 999px; background: rgb(var(--positive-rgb) / 0.35); }
-.pk-fair-dot {
-  position: absolute; top: 50%; width: 14px; height: 14px;
-  border: 2px solid var(--surface); border-radius: 999px;
-  background: var(--text); transform: translate(-50%, -50%);
+/* A free reader's company: the case is Premium, one gold line says so. */
+.pk-locked {
+  display: flex; align-items: center; gap: var(--space-2); min-height: 44px;
+  padding: var(--space-2) var(--space-3); border-radius: var(--radius-md);
+  border: 1px dashed rgb(var(--gold-rgb) / 0.55); background: rgb(var(--gold-rgb) / 0.06);
+  font-size: var(--fs-sm); font-weight: 600; line-height: 1.4; color: var(--gold-ink);
 }
-.pk-fair-scale { font-size: var(--fs-xs); line-height: 1.45; color: var(--text); }
+.pk-locked:hover { background: rgb(var(--gold-rgb) / 0.12); }
+.pk-locked-icon { flex: none; display: inline-flex; }
 
 /* One honest thing to watch — or that there is nothing on its page. */
 .pk-watch, .pk-clear {
@@ -314,7 +279,11 @@
 .pk-check-label { display: block; font-size: var(--fs-xs); font-weight: 600; line-height: 1.4; color: var(--text); }
 .pk-check-value { display: block; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
 
-.pk-foot { margin-top: calc(-1 * var(--space-2)); }
+.pk-foot {
+  margin-top: calc(-1 * var(--space-2));
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-4);
+}
+.pk-follow { display: inline-flex; align-items: center; gap: var(--space-1); }
 .pk-more {
   display: inline-flex; align-items: center; gap: 6px; min-height: 40px;
   font-size: var(--fs-sm); font-weight: 600; color: var(--primary-ink);

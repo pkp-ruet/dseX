@@ -5,10 +5,11 @@ import { IconCheck } from "@/components/ui/icons";
 /**
  * "How we pick" on /picked-for-you — the method in four plain steps, with
  * today's counts, so a reader can see exactly what every pick had to clear.
- * Mirrors backend services/recommend.py: the gate (GATE), the conviction
- * weights (grade 45 · price 20 · safety 15 · profit direction 12 · room
- * under the yearly high 8), the fit kinds and the caps (SECTOR_CAP 3,
- * FINANCIAL_CAP 5, HEAVY_PCT 40, ADD_MORE_MAX_PCT 20, FEW_PASS). Change both
+ * Mirrors backend services/recommend.py in explore mode (2026-11-08): the
+ * gate (EXPLORE_GATE, no Buy check), the conviction weights (grade 55 ·
+ * safety 20 · profit direction 15 · price 10), the fit kinds without "add
+ * more" / "watched", the caps (SECTOR_CAP 3, FINANCIAL_CAP 5, HEAVY_PCT 40,
+ * FEW_PASS) and the Buy List rule (recommend_service._explore). Change both
  * together. Free: the method is public, the picks are Premium.
  */
 export default function HowWePick({ funnel }: { funnel: ForYouFunnel | null }) {
@@ -71,8 +72,8 @@ export default function HowWePick({ funnel }: { funnel: ForYouFunnel | null }) {
             </h3>
             <p className="pk-step-text">
               <T
-                en="Out of 100 points: how strong the company is counts most (45), then its price against its profit (20), how safe it is to hold (15), which way profit is going (12) and how far it sits under its yearly high (8)."
-                bn="100 নম্বরের মধ্যে: কোম্পানি কতটা শক্তিশালী, সেটিই সবচেয়ে বেশি (45), তারপর মুনাফার তুলনায় দাম (20), ধরে রাখা কতটা নিরাপদ (15), মুনাফা কোন দিকে যাচ্ছে (12), আর বছরের সর্বোচ্চ দামের চেয়ে কতটা নিচে (8)।"
+                en="Out of 100 points: how strong the company is counts most (55), then how safe it is to hold (20), which way profit is going (15) and its price against its profit (10). The company leads; the price only separates similar companies."
+                bn="100 নম্বরের মধ্যে: কোম্পানি কতটা শক্তিশালী, সেটিই সবচেয়ে বেশি (55), তারপর ধরে রাখা কতটা নিরাপদ (20), মুনাফা কোন দিকে যাচ্ছে (15), আর মুনাফার তুলনায় দাম (10)। কোম্পানিই আগে; দাম শুধু কাছাকাছি কোম্পানিগুলোকে আলাদা করে।"
               />
             </p>
           </div>
@@ -86,8 +87,8 @@ export default function HowWePick({ funnel }: { funnel: ForYouFunnel | null }) {
             </h3>
             <p className="pk-step-text">
               <T
-                en="A pick moves up when it is tied to what you own or follow: a share you can add to, one on your watchlist, a stronger company in the same business as a weak one of yours, the same business as a good one, what your shares have in common, or a sector you don't have yet."
-                bn="আপনার কেনা বা ফলো করা শেয়ারের সাথে মিল থাকলে একটি বাছাই ওপরে ওঠে: যে শেয়ার আরও কেনা যায়, আপনার ওয়াচলিস্টের শেয়ার, আপনার দুর্বল শেয়ারের একই ব্যবসার আরও শক্তিশালী কোম্পানি, ভালো শেয়ারের মতো একই ব্যবসা, আপনার শেয়ারগুলোর মিল, বা যে সেক্টর আপনার এখনো নেই।"
+                en="A company moves up when it is tied to what you own or follow: a stronger company in the same business as a weak one of yours, the same business as a good one, what your shares have in common, or a sector you don't have yet. Shares you already own or follow are never on this list: you know them."
+                bn="আপনার কেনা বা ফলো করা শেয়ারের সাথে মিল থাকলে একটি কোম্পানি ওপরে ওঠে: আপনার দুর্বল শেয়ারের একই ব্যবসার আরও শক্তিশালী কোম্পানি, ভালো শেয়ারের মতো একই ব্যবসা, আপনার শেয়ারগুলোর মিল, বা যে সেক্টর আপনার এখনো নেই। যে শেয়ার আপনার কাছে আছে বা ফলো করছেন, সেগুলো এই তালিকায় আসে না: সেগুলো আপনি চেনেন।"
               />
             </p>
           </div>
@@ -120,8 +121,8 @@ export default function HowWePick({ funnel }: { funnel: ForYouFunnel | null }) {
               </li>
               <li>
                 <T
-                  en="A share you own appears only while it is under a fifth of your money."
-                  bn="আপনার কেনা কোনো শেয়ার তখনই আসে, যখন সেটি আপনার টাকার পাঁচ ভাগের এক ভাগের কম।"
+                  en="This is not a buy list, and it never repeats one. A company on today's Buy List, where we say which shares we would buy, is left out here and named in one line instead."
+                  bn="এটি কেনার তালিকা নয়, আর কেনার তালিকার কিছু এখানে আবার আসে না। আজকের কেনার তালিকায় থাকা কোম্পানি, যেখানে আমরা বলি কোন শেয়ার কেনার মতো, এখানে বাদ থাকে; শুধু এক লাইনে নাম বলা হয়।"
                 />
               </li>
               <li>
@@ -137,8 +138,8 @@ export default function HowWePick({ funnel }: { funnel: ForYouFunnel | null }) {
 
       <p className="pk-advice">
         <T
-          en="These are ideas to look into, not advice. Read a share's full report before you buy, and never put money you need soon into shares."
-          bn="এগুলো খতিয়ে দেখার মতো আইডিয়া, পরামর্শ নয়। কেনার আগে শেয়ারের পুরো রিপোর্ট পড়ুন, আর শিগগিরই লাগবে এমন টাকা শেয়ারে রাখবেন না।"
+          en="These are companies to read about, not advice and not a list to buy from. Some cost more than they are usually worth today; our analysis on each stock page says so. Never put money you need soon into shares."
+          bn="এগুলো পড়ে দেখার মতো কোম্পানি, পরামর্শ বা কেনার তালিকা নয়। কোনো কোনোটির দাম আজ স্বাভাবিকের চেয়ে বেশি; প্রতিটি শেয়ারের পেজে আমাদের বিশ্লেষণ তা বলে দেয়। শিগগিরই লাগবে এমন টাকা শেয়ারে রাখবেন না।"
         />
       </p>
     </section>

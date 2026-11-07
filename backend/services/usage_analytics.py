@@ -84,6 +84,7 @@ AREAS: list[tuple[str, str, str]] = [
     ("sectors", "Sectors", r"^/sectors?(/|$)"),
     ("stocks", "All stocks", r"^/stocks(/|$)"),
     ("buylist", "Buy List", r"^/buy-list"),
+    ("discover", "Discover", r"^/(discover|picked-for-you)"),
     ("signals", "Buy signals (old page)", r"^/(buy-sell-signals|top-picks|daily-tips)"),
     ("samples", "Sample portfolios", r"^/sample-portfolio"),
     ("premium", "Premium page", r"^/(premium|refund-policy)"),

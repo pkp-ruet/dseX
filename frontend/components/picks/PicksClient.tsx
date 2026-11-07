@@ -16,22 +16,32 @@ import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
 import Skeleton from "@/components/ui/Skeleton";
 import { PersonalCodesProvider } from "@/components/market-analysis/PersonalCodes";
-import ForYouFunnel from "@/components/home/personalized/ForYouFunnel";
-import ForYouPromo from "@/components/home/personalized/ForYouPromo";
+import ForYouPromo, { DISCOVER_PREMIUM_ANCHOR } from "@/components/home/personalized/ForYouPromo";
+import { FREE_DISCOVER_ROWS } from "@/lib/free-share";
 import PickCard from "@/components/picks/PickCard";
 import HowWePick from "@/components/picks/HowWePick";
-import { IconSparkle } from "@/components/ui/icons";
+import { IconBook, IconSparkle, IconTarget } from "@/components/ui/icons";
 
 /**
- * The "Picked for you" page (`/picked-for-you`, 2026-11-05, user: "make a
+ * The Discover page (`/discover`, "Picked for you" at `/picked-for-you` until 2026-11-08; 2026-11-05, user: "make a
  * separate page for 'picked for you' … in full page every stock will [have
  * the] same reasoning"). One `GET /api/user/for-you` — the recommendation
  * engine's whole list (backend services/recommend.py).
  *
  * Premium: a short note (who it is for, the three numbers behind it, what it
- * was matched to), a jump row, then every pick as the same `PickCard`, then
- * "How we pick". Free: the Premium card (`ForYouPromo`, counts only, never a
- * company) and the method. Guest: what the page is + sign up.
+ * was matched to), a jump row, then every pick
+ * as the same `PickCard`, then "How we pick". Free (since 2026-11-08, "Open
+ * list, lock depth"): the same note, the top FREE_DISCOVER_ROWS with name,
+ * fit and reason (their case one locked line), then `ForYouPromo` for the
+ * rest of the list and the depth, then "How we pick".
+ *
+ * Since 2026-11-08 this is a list to explore, not a buy list (user: "buy
+ * signal is generic … our best selection to buy in whole market; picked for
+ * you is personalized … for exploring the other stocks in market, read
+ * analysis, know things"): strong companies the reader doesn't own or follow,
+ * at any price, never one on today's Buy List — those that would fit are
+ * left out (the API's `buy_list` still names the ones that would fit; the
+ * page no longer shows them). Guest: what the page is + sign up.
  */
 export default function PicksClient() {
   const { user, isLoggedIn, isLoading } = useAuth();
@@ -87,16 +97,28 @@ export default function PicksClient() {
     );
   }
 
+  // Free (2026-11-08, "Open list, lock depth"): the top FREE_DISCOVER_ROWS
+  // with names and why each fits them, the case under each locked to one
+  // line, then the Premium card for the rest and the depth.
   if (!isPremium) {
+    const open = data.items.slice(0, FREE_DISCOVER_ROWS);
     return (
-      <>
-        {data.items.length > 0 ? (
-          <ForYouPromo data={data} name={user?.display_name} lang={lang} area="picks" />
+      <PersonalCodesProvider>
+        <PicksIntro data={data} name={user?.display_name} />
+        {open.length > 0 ? (
+          <>
+            <ol className="pk-list">
+              {open.map((it, i) => (
+                <PickCard key={it.code} item={it} rank={i + 1} open={false} lockHref={`#${DISCOVER_PREMIUM_ANCHOR}`} />
+              ))}
+            </ol>
+            <ForYouPromo data={data} lang={lang} area="discover" />
+          </>
         ) : (
           <NothingToday data={data} />
         )}
         <HowWePick funnel={data.funnel} />
-      </>
+      </PersonalCodesProvider>
     );
   }
 
@@ -127,16 +149,22 @@ export default function PicksClient() {
   );
 }
 
-/** The note on top of a Premium reader's list. */
+/**
+ * The note on top of the list (simplified 2026-11-08, user: "looks complex
+ * and hard to understand"): when it was updated, one headline, one line on
+ * what these companies are and what they were matched to, three short
+ * points (picked from your own shares · new names only · a way to learn the
+ * market — user, same day: "how its personalized … to explore more stocks
+ * and enrich knowledge"), and a "How we pick" link. The funnel boxes, the "what your shares have in common" line
+ * and the Buy List pointer were removed; the check counts live in "How we
+ * pick".
+ */
 function PicksIntro({ data, name }: { data: ForYou; name?: string | null }) {
-  const { lang } = useLang();
   const personal = data.mode === "personal";
   const counts = forYouCounts(data);
   const n = counts.total;
   const first = (name ?? "").trim().split(/\s+/)[0] || "";
   const { held, watched } = data.based_on;
-  const stocks = held + watched;
-  const c = data.funnel.checks.length;
   const both = (fn: (l: "en" | "bn") => string) => <T en={fn("en")} bn={fn("bn")} />;
 
   const basis = (l: "en" | "bn") =>
@@ -163,28 +191,54 @@ function PicksIntro({ data, name }: { data: ForYou; name?: string | null }) {
         )}
       </p>
       <h2 id="pk-intro-title" className="pk-title">
-        {both((l) =>
-          personal
-            ? t(l, first ? "forYouHeadPersonalName" : "forYouHeadPersonal", { name: first, n })
-            : t(l, first ? "forYouHeadGenericName" : "forYouHeadGeneric", { name: first, n }),
-        )}
+        {both((l) => t(l, first ? "forYouHeadPersonalName" : "forYouHeadPersonal", { name: first, n }))}
       </h2>
       <p className="pk-lead">
-        {both((l) =>
-          personal ? t(l, "forYouLeadPersonal", { basis: basis(l), c }) : t(l, "forYouLeadGeneric", { c }),
-        )}
+        {both((l) => (personal ? t(l, "forYouLeadPersonal", { basis: basis(l) }) : t(l, "forYouLeadGeneric")))}
       </p>
 
-      {data.funnel.rated > 0 && <ForYouFunnel data={data} lang={lang} />}
-
-      {personal && data.traits.length > 0 && (
-        <p className="pk-traits">
-          <span className="font-semibold">
-            <T en="What your shares have in common:" bn="আপনার শেয়ারগুলোর মিল:" />
-          </span>{" "}
-          <T en={data.traits.map((x) => x.en).join(" · ")} bn={data.traits.map((x) => x.bn).join(" · ")} />
-        </p>
-      )}
+      <ul className="pk-points">
+        <li>
+          <span className="pk-point-icon" aria-hidden="true">
+            <IconTarget size={16} />
+          </span>
+          <span className="min-w-0">
+            {personal ? (
+              <T
+                en="Picked for you, not for everyone. We look at your own shares and find companies tied to them: a stronger company in the same business as a weak one you hold, one like a share you already have, or a business you don't have yet."
+                bn="সবার জন্য নয়, আপনার জন্য বাছাই। আমরা আপনার নিজের শেয়ারগুলো দেখি, আর সেগুলোর সাথে যুক্ত কোম্পানি খুঁজি: আপনার কোনো দুর্বল শেয়ারের একই ব্যবসায় আরও শক্তিশালী কোম্পানি, আপনার কোনো শেয়ারের মতো আরেকটি, বা এমন ব্যবসা যা আপনার এখনো নেই।"
+              />
+            ) : (
+              <T
+                en="Picked for you, not for everyone. Once you add the shares you own or follow, we find companies tied to them: stronger ones in the same business, ones like yours, or businesses you don't have yet."
+                bn="সবার জন্য নয়, আপনার জন্য বাছাই। আপনার কেনা বা ফলো করা শেয়ার যোগ করলে আমরা সেগুলোর সাথে যুক্ত কোম্পানি খুঁজি: একই ব্যবসায় আরও শক্তিশালী, আপনার শেয়ারের মতো, বা এমন ব্যবসা যা আপনার এখনো নেই।"
+              />
+            )}
+          </span>
+        </li>
+        <li>
+          <span className="pk-point-icon" aria-hidden="true">
+            <IconSparkle size={16} />
+          </span>
+          <span className="min-w-0">
+            <T
+              en="Companies you haven't looked at yet. Shares you already own or follow never appear here, so every name is a new one to get to know."
+              bn="এমন কোম্পানি, যা আপনি এখনো দেখেননি। আপনার কেনা বা ফলো করা শেয়ার এখানে আসে না, তাই প্রতিটি নামই নতুন করে চেনার মতো।"
+            />
+          </span>
+        </li>
+        <li>
+          <span className="pk-point-icon" aria-hidden="true">
+            <IconBook size={16} />
+          </span>
+          <span className="min-w-0">
+            <T
+              en="A way to learn the market. Each company says why it fits you; open our analysis to see how a strong DSE company makes its money, and follow the ones you like."
+              bn="বাজার চেনার একটি উপায়। প্রতিটি কোম্পানির সাথে বলা আছে কেন আপনার সাথে মেলে; আমাদের বিশ্লেষণ খুলে দেখুন একটি শক্তিশালী ডিএসই কোম্পানি কীভাবে আয় করে, আর যেগুলো ভালো লাগে সেগুলো ফলো করুন।"
+            />
+          </span>
+        </li>
+      </ul>
 
       {data.note && (
         <p className="pk-note">
@@ -192,7 +246,7 @@ function PicksIntro({ data, name }: { data: ForYou; name?: string | null }) {
         </p>
       )}
 
-      {stocks === 0 ? (
+      {held + watched === 0 && (
         <div className="mt-4 flex flex-wrap gap-2">
           <Button href="/watchlist" size="sm">
             {both((l) => t(l, "forYouAddWatchlist"))}
@@ -201,20 +255,12 @@ function PicksIntro({ data, name }: { data: ForYou; name?: string | null }) {
             {both((l) => t(l, "forYouAddPortfolio"))}
           </Button>
         </div>
-      ) : stocks < 3 ? (
-        <p className="mt-3 text-sm">
-          <Link prefetch={false} href="/watchlist" className="font-semibold text-primary-ink hover:underline">
-            {both((l) => t(l, "forYouNudgeFew"))} →
-          </Link>
-        </p>
-      ) : null}
+      )}
 
       <p className="pk-intro-foot">
         <a href="#how" className="font-semibold text-primary-ink hover:underline">
           <T en="How we pick" bn="কীভাবে বাছাই করি" />
         </a>
-        <span aria-hidden="true"> · </span>
-        <T en="Ideas to look into, not advice." bn="খতিয়ে দেখার মতো আইডিয়া, পরামর্শ নয়।" />
       </p>
     </section>
   );
@@ -229,8 +275,8 @@ function NothingToday({ data }: { data: ForYou }) {
           <T en={data.note.en} bn={data.note.bn} />
         ) : (
           <T
-            en="No stock passes every check today. When good companies get cheaper, picks appear here."
-            bn="আজ কোনো শেয়ার সব যাচাই পার হয়নি। ভালো কোম্পানির দাম কমলে এখানে বাছাই আসবে।"
+            en="No company that fits you passes every check today. The list is built again after every close."
+            bn="আজ আপনার সাথে মেলে এমন কোনো কোম্পানি সব যাচাই পার হয়নি। প্রতিদিন বাজার বন্ধের পর তালিকাটি নতুন করে তৈরি হয়।"
           />
         )
       }
@@ -243,12 +289,12 @@ function GuestPicks() {
   return (
     <div className="soft-card p-5 sm:p-6">
       <h2 className="text-lg font-bold text-text-main">
-        <T en="Your picks are built around your own shares" bn="আপনার বাছাই সাজানো হয় আপনার নিজের শেয়ার ঘিরে" />
+        <T en="Companies to explore, built around your own shares" bn="আপনার নিজের শেয়ার ঘিরে দেখার মতো কোম্পানি" />
       </h2>
       <p className="mt-2 text-sm leading-relaxed text-text-main">
         <T
-          en="Every day after the close we check every company we grade, keep only the ones that pass all our checks, and match them to the shares you own and follow. Open a free account to start."
-          bn="প্রতিদিন বাজার বন্ধের পর আমরা গ্রেড করা প্রতিটি কোম্পানি যাচাই করি, শুধু সব যাচাই পার হওয়াগুলো রাখি, আর আপনার কেনা ও ফলো করা শেয়ারের সাথে মেলাই। শুরু করতে একটি ফ্রি অ্যাকাউন্ট খুলুন।"
+          en="Every day after the close we check every company we grade, keep the strong ones that pass all our safety checks, and match them to the shares you own and follow, so you find companies worth reading about. Open a free account to start."
+          bn="প্রতিদিন বাজার বন্ধের পর আমরা গ্রেড করা প্রতিটি কোম্পানি যাচাই করি, সব নিরাপত্তা যাচাই পার করা শক্তিশালী কোম্পানিগুলো রাখি, আর আপনার কেনা ও ফলো করা শেয়ারের সাথে মেলাই, যাতে পড়ে দেখার মতো কোম্পানি খুঁজে পান। শুরু করতে একটি ফ্রি অ্যাকাউন্ট খুলুন।"
         />
       </p>
       <div className="mt-4 flex flex-wrap gap-2">

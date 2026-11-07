@@ -20,6 +20,21 @@ Three layers, each explainable in plain words:
    strengths their stocks share, or a sector they don't have. A reader with no
    stocks gets the strongest picks by conviction alone.
 
+Two modes (2026-11-08, user: "buy list is generic, our best selection to buy
+in the whole market; picked for you is a personalized list for exploring the
+other stocks in the market, read analysis, know things"):
+
+- **buy** (``GATE``) — today's Buy signal + the safety checks. The Buy List's
+  first three questions, the portfolio's "What to buy next" and TopStock AI's
+  "suggest stocks" read it.
+- **explore** (``EXPLORE_GATE``, ``explore=True``) — "Picked for you" and the
+  empty watchlist's "Suggested to follow": a company we grade mostly strong or
+  better that passes the safety checks, whatever its price today. Never a
+  share the reader owns or follows (they know those), never a company on
+  today's Buy List (the service leaves those out and names the ones that fit),
+  never a price word, a fair-price range or "add more" — those belong to the
+  Buy List and the portfolio. Conviction leans on the company, not the price.
+
 Deterministic on purpose: no shuffle, no popularity. The list changes only
 when the data changes. No performance claims anywhere — never add "since we
 picked it" returns.
@@ -91,6 +106,9 @@ def _enough_data(f, ctx):
         f"আমরা যে তথ্য দেখি তার {pct}% আছে"
 
 
+ENOUGH_DATA = rl.Check("enough_data", "We have enough of its figures to trust the grade",
+                       "গ্রেডে ভরসা করার মতো যথেষ্ট তথ্য আছে", _enough_data)
+
 GATE: list[rl.Check] = [
     # The Buy signal underneath; worded without it since 2026-11-01 (Buy /
     # Sell shows only in the stock report and the portfolio's Premium parts).
@@ -99,10 +117,31 @@ GATE: list[rl.Check] = [
     rl.PROFITABLE,
     rl.NO_GOVERNANCE,
     rl.DEBT_OK,
-    rl.Check("enough_data", "We have enough of its figures to trust the grade",
-             "গ্রেডে ভরসা করার মতো যথেষ্ট তথ্য আছে", _enough_data),
+    ENOUGH_DATA,
 ]
 N_CHECKS = len(GATE)
+
+
+def _strong_company(f, ctx):
+    key = tier_key(_n(f.get("score")))
+    if key == "unknown":
+        return False, "Not graded", "গ্রেড নেই"
+    return (key in ("good", "excellent"),
+            f"We grade it {TIER_WORDS[key].lower()}", f"আমাদের গ্রেডে {TIER_WORDS_BN[key]}")
+
+
+# "Picked for you": no price test. A strong company is worth knowing about
+# whatever it costs today; whether to buy it now is the Buy List's question.
+EXPLORE_GATE: list[rl.Check] = [
+    rl.Check("strong", "A company we grade mostly strong or better",
+             "আমাদের গ্রেডে বেশিরভাগ দিকে শক্তিশালী বা তার বেশি", _strong_company),
+    rl.PROFITABLE,
+    rl.NO_GOVERNANCE,
+    rl.DEBT_OK,
+    rl.TRADED,
+    ENOUGH_DATA,
+]
+N_EXPLORE_CHECKS = len(EXPLORE_GATE)
 
 
 def _size_part(mcap_mn: Optional[float]) -> float:
@@ -111,11 +150,15 @@ def _size_part(mcap_mn: Optional[float]) -> float:
     return 1.0 if m >= 50_000 else 0.7 if m >= 10_000 else 0.45 if m >= 2_000 else 0.25
 
 
-def conviction(f: dict, levels: Optional[dict] = None) -> float:
+def conviction(f: dict, levels: Optional[dict] = None, explore: bool = False) -> float:
     """0–100, the same for every reader. Grade 45 · price 20 · profit
     direction 12 · room under the yearly high 8 · safety 15, then small
     adjustments. Quality leads on purpose: a pick has to read as a company a
-    careful investor would recognise, not just the cheapest Buy."""
+    careful investor would recognise, not just the cheapest Buy.
+
+    ``explore``: grade 55 · safety 20 · profit direction 15 · price 10, no
+    room term and no strong-Buy bonus — the company leads, the price only
+    breaks ties between similar companies."""
     score = _n(f.get("score")) or 0.0
     p4 = _n(f.get("p4_val"))
     pos = _n(f.get("pct_in_range"))
@@ -132,9 +175,12 @@ def conviction(f: dict, levels: Optional[dict] = None) -> float:
     safety = (0.4 * (1.0 if cat == "A" else 0.6) + 0.3 * trade + 0.15 * paid
               + 0.15 * _size_part(_n(f.get("mcap_mn"))))
 
-    total = 45 * quality + 20 * price + 12 * profit + 8 * room + 15 * safety
-    if f.get("strength") == "strong":
-        total += 3
+    if explore:
+        total = 55 * quality + 10 * price + 15 * profit + 20 * safety
+    else:
+        total = 45 * quality + 20 * price + 12 * profit + 8 * room + 15 * safety
+        if f.get("strength") == "strong":
+            total += 3
     dc = _n(f.get("data_completeness"))
     if dc is not None and dc < 0.8:
         total -= 3
@@ -144,11 +190,12 @@ def conviction(f: dict, levels: Optional[dict] = None) -> float:
     return round(min(100.0, max(0.0, total)), 1)
 
 
-def gate_list() -> rl.ResearchList:
+def gate_list(explore: bool = False) -> rl.ResearchList:
     """The gate as a research list, so ``run_list`` gives the funnel."""
     return rl.ResearchList(
-        id="for_you", slug="for-you", title_en="Picked for you", title_bn="আপনার জন্য বাছাই",
-        idea_en="", idea_bn="", checks=GATE,
+        id="explore" if explore else "for_you", slug="for-you",
+        title_en="Discover", title_bn="খুঁজে দেখুন",
+        idea_en="", idea_bn="", checks=EXPLORE_GATE if explore else GATE,
         rank=lambda f: (_n(f.get("conviction")) or 0.0, _n(f.get("score")) or 0.0),
         headline=lambda f: ("", ""),
     )
@@ -293,13 +340,16 @@ def style_match(lv: Optional[dict], prof: dict) -> list[dict]:
     return sorted(shared, key=lambda t: (not t.get("asked"), t.get("common") or 0.0))
 
 
-def fit(c: dict, lv: Optional[dict], prof: dict) -> Optional[dict]:
+def fit(c: dict, lv: Optional[dict], prof: dict, explore: bool = False) -> Optional[dict]:
     """``{bonus, kind, anchor, shared}`` for one gated candidate, or None when
     it must not be suggested to this reader: it would add to a sector that
     already holds too much of their money (banks + finance + insurers count
     as one when they hold over half), or it is a stock they own that is not
-    an "add more" today."""
+    an "add more" today. In ``explore`` mode a stock they own or follow is
+    never suggested: the list is for companies they don't know yet."""
     code, sec = c["code"], c.get("sector")
+    if explore and code in prof["codes"]:
+        return None
     if sec in prof["heavy"] or ((c.get("sector_class") or "GENERAL") in _FINANCIAL and prof.get("fin_heavy")):
         return None
     s = prof["sectors"].get(sec) if sec else None
@@ -450,15 +500,17 @@ _PRICE_AT = {"very_low": ("at a very low price", "খুব কম দামে"
              "fair": ("at a fair price", "ন্যায্য দামে")}
 
 
-def _graded(c: dict) -> tuple[str, str]:
-    """ "We grade it mostly strong, and its price is low." """
+def _graded(c: dict, explore: bool = False) -> tuple[str, str]:
+    """ "We grade it mostly strong, and its price is low." (explore: no price) """
     g_en, g_bn = group_words(c)
+    if explore:
+        return f"We grade it {g_en.lower()}.", f"আমাদের গ্রেডে এটি {g_bn}।"
     p_en, p_bn = _PRICE_IS[pick_price_word(c)]
     return (f"We grade it {g_en.lower()}, and {p_en}.",
             f"আমাদের গ্রেডে এটি {g_bn}, {p_bn}।")
 
 
-def _top_why(c: dict, lv: Optional[dict]) -> tuple[str, str, Optional[str]]:
+def _top_why(c: dict, lv: Optional[dict], explore: bool = False) -> tuple[str, str, Optional[str]]:
     """A no-strings pick's reason, built from what stands out about it, so
     fifteen picks don't all read the same. Returns (en, bn, the fact kind it
     already says — skipped in the number lines)."""
@@ -476,19 +528,26 @@ def _top_why(c: dict, lv: Optional[dict]) -> tuple[str, str, Optional[str]]:
         extra, said = (f"and it pays {_r(y)}% a year in cash", f"বছরে {_r(y)}% নগদ ডিভিডেন্ড দেয়"), "dividends"
     elif trend is not None and trend >= 15:
         extra, said = (f"with profit up {_r(trend, 0)}% ({t_en})", f"মুনাফা {_r(trend, 0)}% বেশি ({t_bn})"), "growth"
-    elif below is not None and below >= 20:
+    elif below is not None and below >= 20 and not explore:
         extra, said = (f"{_r(below, 0)}% below its 1-year high", f"এক বছরের সর্বোচ্চের চেয়ে {_r(below, 0)}% কম"), "room"
     elif (lv.get("trading") or 0) >= 2:
         extra = ("and one of the market's big, easy-to-trade names", "বাজারের বড়, সহজে কেনাবেচার শেয়ার")
     elif (lv.get("safety") or 0) >= 2:
         extra = ("with almost no loans", "প্রায় কোনো ঋণ নেই")
+    elif explore and c.get("paid_years") == 5:
+        extra = ("and it has paid cash every year for 5 years", "গত 5 বছর প্রতি বছর নগদ ডিভিডেন্ড দিয়েছে")
+    if explore:
+        head = (("A company strong all round", "সব দিকে শক্তিশালী কোম্পানি") if s >= 75
+                else ("A mostly strong company", "বেশিরভাগ দিকে শক্তিশালী কোম্পানি"))
+        return (head[0] + (f", {extra[0]}." if extra else "."),
+                head[1] + (f"; {extra[1]}।" if extra else "।"), said)
     en = f"{lead[0]} {price[0]}" + (f", {extra[0]}." if extra else ".")
     bn = f"{lead[1]}, {price[1]}" + (f"; {extra[1]}।" if extra else "।")
     return en, bn, said
 
 
 def words(c: dict, kind: str, anchor: Optional[str], shared: list[dict], prof: dict,
-          anchor_score: Optional[float] = None, lv: Optional[dict] = None) -> dict:
+          anchor_score: Optional[float] = None, lv: Optional[dict] = None, explore: bool = False) -> dict:
     """The kind word, the reason and the number lines.
 
     The reason says, with the reader's own figures, why this pick fits them,
@@ -497,7 +556,7 @@ def words(c: dict, kind: str, anchor: Optional[str], shared: list[dict], prof: d
     the reasoning "more trustworthy and attractive")."""
     sec, sec_bn = c.get("sector") or "", _sector_bn(c)
     lead, skip = None, ()
-    g_en, g_bn = _graded(c)
+    g_en, g_bn = _graded(c, explore)
     if kind == "add_more":
         tag = ("Add more", "আরও কিনুন")
         w = _n(prof["weight"].get(c["code"]))
@@ -533,7 +592,7 @@ def words(c: dict, kind: str, anchor: Optional[str], shared: list[dict], prof: d
     elif kind == "asked":
         # The tag already says "your sector"; the reason says what stands out.
         tag = ("Your sector", "আপনার সেক্টর")
-        en, bn, said = _top_why(c, lv)
+        en, bn, said = _top_why(c, lv, explore)
         why = (f"You asked about {sec}. {en}", f"আপনি {sec_bn} সেক্টরের কথা জানতে চেয়েছিলেন। {bn}")
         skip = (said,) if said else ()
     elif kind == "style":
@@ -557,11 +616,17 @@ def words(c: dict, kind: str, anchor: Optional[str], shared: list[dict], prof: d
             why = (f"Adds {sec}, a business none of your stocks are in.",
                    f"{sec_bn} সেক্টর যোগ হয়, আপনার কোনো শেয়ার এই ব্যবসায় নেই।")
     else:
-        tag = ("Strong pick" if c.get("strength") == "strong" else "Top pick",
-               "জোরালো বাছাই" if c.get("strength") == "strong" else "সেরা বাছাই")
-        en, bn, said = _top_why(c, lv)
+        if explore:
+            tag = ("Worth a look", "দেখার মতো")
+        else:
+            tag = ("Strong pick" if c.get("strength") == "strong" else "Top pick",
+                   "জোরালো বাছাই" if c.get("strength") == "strong" else "সেরা বাছাই")
+        en, bn, said = _top_why(c, lv, explore)
         why = (en, bn)
         skip = (said,) if said else ()
+    if explore:
+        # Price talk belongs to the Buy List: no fair range, no room under the high.
+        skip = tuple(skip) + ("fair", "room")
     return {"tag_en": tag[0], "tag_bn": tag[1], "why_en": why[0], "why_bn": why[1],
             "points": points(c, lead, skip)}
 
@@ -618,6 +683,31 @@ def _company_row(c: dict) -> dict:
             bn += "; দুর্বল: " + _join([_CHECK_NAMES[k][1] for k in weak], True)
         note = (en + ".", bn + "।")
     return _row("company", ("The company", "কোম্পানি"), group_words(c), note, "good")
+
+
+def _explore_price_row(c: dict) -> dict:
+    """The price as a plain fact, no verdict: years of its profit you pay for,
+    beside its own usual and similar companies. Whether that makes it worth
+    buying today is the Buy List's question."""
+    pe, own, sect = _n(c.get("current_pe")), _n(c.get("own_avg_pe")), _n(c.get("sector_median_pe"))
+    label = ("Price for its profit", "মুনাফার তুলনায় দাম")
+    if pe is None or pe <= 0:
+        return _row("price", label, ("Can't tell", "বলা যায় না"),
+                    ("No recent profit to measure the price against.", "দাম মাপার মতো সাম্প্রতিক মুনাফা নেই।"), "neutral")
+    yrs = max(1, round(pe))
+    cmp_en, cmp_bn = [], []
+    if own and own > 0:
+        cmp_en.append(f"it usually costs {round(own)}")
+        cmp_bn.append(f"সাধারণত থাকে {round(own)} বছরের")
+    if sect and sect > 0:
+        cmp_en.append(f"similar companies cost {round(sect)}")
+        cmp_bn.append(f"একই সেক্টরের কোম্পানিতে {round(sect)} বছরের")
+    if cmp_en:
+        s = "; ".join(cmp_en)
+        note = (s[0].upper() + s[1:] + ".", "; ".join(cmp_bn) + "।")
+    else:
+        note = ("What today's price pays for each year of its profit.", "আজকের দামে এর কত বছরের মুনাফা কিনছেন।")
+    return _row("price", label, (f"{yrs} years of profit", f"{yrs} বছরের মুনাফা"), note, "neutral")
 
 
 def _price_row(c: dict) -> dict:
@@ -690,19 +780,35 @@ def _cash_row(c: dict) -> dict:
                 (" ".join(en), " ".join(bn)), "good" if y >= 4 else "neutral")
 
 
-def case_rows(c: dict) -> list[dict]:
+def case_rows(c: dict, explore: bool = False) -> list[dict]:
     """The same four facts for every pick: the company, the price, profit,
     cash to you. Each = a short value + one sentence it rests on."""
-    return [_company_row(c), _price_row(c), _profit_row(c), _cash_row(c)]
+    return [_company_row(c), _explore_price_row(c) if explore else _price_row(c), _profit_row(c), _cash_row(c)]
 
 
-def keywords(c: dict, lv: Optional[dict] = None) -> list[dict]:
+def keywords(c: dict, lv: Optional[dict] = None, explore: bool = False) -> list[dict]:
     """Two or three words for the dashboard's tile: the group, the price
-    word, and the one figure that stands out most."""
+    word, and the one figure that stands out most. ``explore``: the group and
+    up to two figures about the company, never a price word."""
     lv = lv or {}
     key = tier_key(_n(c.get("score")))
     out = [{"en": TIER_WORDS.get(key, "Unrated"), "bn": _GROUP_CHIP_BN.get(key, TIER_WORDS_BN.get(key, "")),
             "tone": "good"}]
+    if explore:
+        y = _n(c.get("div_yield_pct"))
+        trend = rl.profit_trend(c)[0]
+        found = []
+        if y is not None and y >= 4:
+            found.append({"en": f"Pays {_r(y)}% a year", "bn": f"বছরে {_r(y)}% নগদ", "tone": "good"})
+        if trend is not None and trend >= 15:
+            found.append({"en": f"Profit up {_r(trend, 0)}%", "bn": f"মুনাফা {_r(trend, 0)}% বেশি", "tone": "good"})
+        if (lv.get("safety") or 0) >= 2:
+            found.append({"en": "Almost no loans", "bn": "প্রায় ঋণমুক্ত", "tone": "good"})
+        if c.get("paid_years") == 5:
+            found.append({"en": "Pays every year", "bn": "প্রতি বছর নগদ দেয়", "tone": "good"})
+        if (lv.get("trading") or 0) >= 2:
+            found.append({"en": "Easy to trade", "bn": "সহজে কেনাবেচা", "tone": "neutral"})
+        return out + found[:2]
     pw = pick_price_word(c)
     out.append({"en": PRICE_WORDS[pw][0], "bn": PRICE_WORDS[pw][1], "tone": "neutral" if pw == "fair" else "good"})
     y = _n(c.get("div_yield_pct"))
@@ -738,6 +844,8 @@ def fair_range(c: dict) -> Optional[dict]:
 # the company's own figure.
 _CHECK_SHORT = {
     "buy": ("A good company at the right price", "ভালো কোম্পানি, ঠিক দাম"),
+    "strong": ("Mostly strong or better", "বেশিরভাগ দিকে শক্তিশালী বা তার বেশি"),
+    "traded": ("Trades enough", "যথেষ্ট লেনদেন হয়"),
     "profitable": ("Makes a profit", "মুনাফায় আছে"),
     "no_governance": ("No warnings in a year", "এক বছরে কোনো সতর্কতা নেই"),
     "debt_ok": ("Loans in check", "ঋণ নিয়ন্ত্রণে"),
@@ -783,7 +891,7 @@ def check_lines(c: dict, values: list[dict]) -> list[dict]:
 
 
 def item(c: dict, kind: str, anchor: Optional[str], shared: list[dict], prof: dict,
-         facts: dict[str, dict], total: float, lv: Optional[dict]) -> dict:
+         facts: dict[str, dict], total: float, lv: Optional[dict], explore: bool = False) -> dict:
     anchor_score = _n((facts.get(anchor) or {}).get("score")) if anchor else None
     risk = c.get("risk") or None
     return {
@@ -791,9 +899,10 @@ def item(c: dict, kind: str, anchor: Optional[str], shared: list[dict], prof: di
         "sector_bn": c.get("sector_bn") or _sector_name_bn(c.get("sector")),
         "price": _n(c.get("ltp")), "change_pct": _n(c.get("change_pct")),
         "score": _n(c.get("score")), "tier": tier_key(_n(c.get("score"))),
-        "strong": c.get("strength") == "strong",
+        # explore: "strong" = strong all round (there is no Buy behind a pick).
+        "strong": (tier_key(_n(c.get("score"))) == "excellent") if explore else c.get("strength") == "strong",
         "kind": kind, "anchor": anchor,
-        **words(c, kind, anchor, shared, prof, anchor_score, lv),
+        **words(c, kind, anchor, shared, prof, anchor_score, lv, explore),
         "watch": {"en": risk["en"], "bn": risk["bn"]} if risk else None,
         "signal_reason_en": c.get("reason_en"), "signal_reason_bn": c.get("reason_bn"),
         "strengths": cl.strength_tags(lv),
@@ -802,10 +911,10 @@ def item(c: dict, kind: str, anchor: Optional[str], shared: list[dict], prof: di
         "new": False,
         # The case (the "Picked for you" page): the same parts for every pick.
         "group": _pt(*group_words(c)),
-        "price_word": pick_price_word(c),
-        "keywords": keywords(c, lv),
-        "facts": case_rows(c),
-        "fair": fair_range(c),
+        "price_word": None if explore else pick_price_word(c),
+        "keywords": keywords(c, lv, explore),
+        "facts": case_rows(c, explore),
+        "fair": None if explore else fair_range(c),
         "checks": c.get("gate_checks") or [],
     }
 
@@ -823,12 +932,13 @@ def counts(items: list[dict]) -> dict:
 # 5. Ranking and selection
 # ---------------------------------------------------------------------------
 
-def rank(cands: list[dict], levels: dict[str, dict], prof: dict) -> list[tuple[float, dict, dict]]:
+def rank(cands: list[dict], levels: dict[str, dict], prof: dict,
+         explore: bool = False) -> list[tuple[float, dict, dict]]:
     """[(total, candidate, fit)] best first — conviction + fit, ties to score
     then code, so the same inputs always give the same order."""
     out = []
     for c in cands:
-        ft = fit(c, levels.get(c["code"]), prof)
+        ft = fit(c, levels.get(c["code"]), prof, explore)
         if ft is None:
             continue
         total = (_n(c.get("conviction")) or 0.0) + ft["bonus"]
@@ -869,9 +979,9 @@ def select(ranked: list[tuple[float, dict, dict]], prof: dict, n: int = N_PICKS)
 
 
 def recommend(cands: list[dict], levels: dict[str, dict], prof: dict, facts: dict[str, dict],
-              n: int = N_PICKS) -> list[dict]:
+              n: int = N_PICKS, explore: bool = False) -> list[dict]:
     """Gated candidates (with ``conviction``) -> up to ``n`` explained picks."""
-    picked = select(rank(cands, levels, prof), prof, n)
+    picked = select(rank(cands, levels, prof, explore), prof, n)
     labels: dict[str, int] = {}
     out = []
     for total, c, ft in picked:
@@ -879,7 +989,7 @@ def recommend(cands: list[dict], levels: dict[str, dict], prof: dict, facts: dic
         labels[kind] = labels.get(kind, 0) + 1
         if kind in LABEL_CAP and labels[kind] > LABEL_CAP[kind]:
             kind = "top"  # fifteen "New sector for you" rows would say nothing
-        out.append(item(c, kind, ft["anchor"], ft["shared"], prof, facts, total, levels.get(c["code"])))
+        out.append(item(c, kind, ft["anchor"], ft["shared"], prof, facts, total, levels.get(c["code"]), explore))
     return out
 
 
@@ -911,7 +1021,15 @@ def seen_update(state: Optional[dict], day: str, codes: list[str]) -> tuple[Opti
     return {"day": day, "codes": codes, "prev": prev}, prev
 
 
-def note(passed: int) -> Optional[dict]:
+def note(passed: int, explore: bool = False) -> Optional[dict]:
+    if explore:
+        if passed == 0:
+            return _pt("No company passes every check today, so there is nothing to show.",
+                       "আজ কোনো কোম্পানি সব যাচাই পার হয়নি, তাই দেখানোর মতো কিছু নেই।")
+        if passed < FEW_PASS:
+            return _pt(f"Only {passed} companies pass every check today. We don't lower the bar to fill the list.",
+                       f"আজ মাত্র {passed}টি কোম্পানি সব যাচাই পার হয়েছে। তালিকা ভরাতে আমরা মান কমাই না।")
+        return None
     if passed == 0:
         return _pt("No stock passes every check today, so we pick nothing. When good companies get cheaper, picks appear here.",
                    "আজ কোনো শেয়ার সব যাচাই পার হয়নি, তাই কিছু বাছাই করা হয়নি। ভালো কোম্পানির দাম কমলে এখানে বাছাই আসবে।")

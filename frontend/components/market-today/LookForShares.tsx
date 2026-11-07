@@ -36,11 +36,10 @@ const TILES: Tile[] = [
     sub: { en: "Filter shares by price, profit and dividend", bn: "দাম, মুনাফা আর ডিভিডেন্ড দিয়ে শেয়ার বাছাই" },
   },
   {
-    href: "/picked-for-you",
+    href: "/discover",
     icon: <IconSparkle size={20} />,
-    title: { en: "Picked for you", bn: "আপনার জন্য বাছাই" },
-    sub: { en: "Shares that fit what you own", bn: "আপনার শেয়ারের সঙ্গে মানানসই শেয়ার" },
-    premium: true,
+    title: { en: "Discover", bn: "খুঁজে দেখুন" },
+    sub: { en: "Companies to explore, matched to yours", bn: "আপনার শেয়ারের সাথে মিলিয়ে দেখার মতো কোম্পানি" },
   },
   {
     href: "/stock-insights",

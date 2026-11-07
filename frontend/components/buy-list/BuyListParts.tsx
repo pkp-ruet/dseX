@@ -61,6 +61,18 @@ export function HowWeChoose({ rules }: { rules: BuyList["rules"] }) {
             <T en="Change it for one reader" bn="কারও জন্য আলাদা করে বদলাই না" />
           </li>
         </ul>
+        <p className="bl-k">
+          <T en="Matched to your shares" bn="আপনার শেয়ারের সাথে মিলিয়ে" />
+        </p>
+        <p>
+          <T
+            en="Looking for strong companies to read about, matched to the shares you own and follow? That is Discover. It never repeats a share from this list."
+            bn="আপনার কেনা ও ফলো করা শেয়ারের সাথে মিলিয়ে পড়ে দেখার মতো শক্তিশালী কোম্পানি খুঁজছেন? সেটি খুঁজে দেখুন পেজ। এই তালিকার কোনো শেয়ার সেখানে আবার আসে না।"
+          />{" "}
+          <Link prefetch={false} href="/discover" className="font-semibold text-primary-ink hover:underline">
+            <T en="Open Discover" bn="খুঁজে দেখুন পেজে যান" /> →
+          </Link>
+        </p>
       </div>
     </section>
   );

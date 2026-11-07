@@ -23,7 +23,7 @@ const EXPLORE_PATHS = [
   "/sectors",
   "/sector",
   "/buy-list",
-  "/picked-for-you",
+  "/discover",
   "/dsestockranking",
   "/stocks",
   "/stock-insights",

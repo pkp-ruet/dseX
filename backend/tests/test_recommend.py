@@ -403,3 +403,87 @@ def test_example_size_is_an_equal_share_under_five_stocks_in_whole_shares():
     assert rc.size(100.0, 10_000.0, 3) == {"shares": 25, "amount": 2500.0, "target_pct": 20.0}
     assert rc.size(100.0, 10_000.0, 6)["target_pct"] == 10.0
     assert rc.size(None, 10_000.0, 3) is None
+
+
+# ---------------------------------------------------------------------------
+# Explore mode — "Picked for you" (2026-11-08): no Buy check, no price words
+# ---------------------------------------------------------------------------
+
+def explored(facts, gov=None):
+    return rl.run_list(rc.gate_list(explore=True), facts, rl.Ctx(governance=gov or (lambda code: [])))
+
+
+def test_explore_gate_takes_a_strong_company_at_any_price_but_keeps_the_safety_checks():
+    facts = [
+        F("CHEAP"),
+        F("PRICEY", signal="none", p4_val=2.0, turnover_mn=5.0),
+        F("MIXED", score=50.0, signal="none"),
+        F("LOSS", eps=-0.5),
+        F("LOANS", debt_level="over_reserve"),
+        F("QUIET", turnover_mn=0.2),
+    ]
+    for f in facts:
+        f.setdefault("turnover_mn", 5.0)
+    run = explored(facts)
+    assert sorted(f["code"] for f in run["passed"]) == ["CHEAP", "PRICEY"]
+    assert [c["key"] for c in run["funnel"]] == [c.key for c in rc.EXPLORE_GATE]
+
+
+def test_explore_never_suggests_a_stock_the_reader_owns_or_follows():
+    held, watched, new = F("SQUR"), F("ROBI", sector=TELECOM), F("CEM", sector=CEMENT)
+    facts = {f["code"]: f for f in (held, watched, new)}
+    prof = profile(held=[("SQUR", 1000.0)], watched=["ROBI"], facts=facts)
+    cands = with_conviction([held, watched, new])
+    items = rc.recommend(cands, {k: LV for k in facts}, prof, facts, explore=True)
+    assert [i["code"] for i in items] == ["CEM"]
+    assert all(i["kind"] not in ("add_more", "watched") for i in items)
+
+
+def test_explore_conviction_leans_on_the_company_not_the_price():
+    strong_pricey = F("A", score=85.0, p4_val=2.0)
+    weaker_cheap = F("B", score=62.0, p4_val=9.0)
+    assert rc.conviction(weaker_cheap, LV) > rc.conviction(strong_pricey, LV)
+    assert rc.conviction(strong_pricey, LV, explore=True) > rc.conviction(weaker_cheap, LV, explore=True)
+
+
+def test_an_explore_pick_says_nothing_about_buying_or_the_price_being_good():
+    c = F("A", strength="strong", div_yield_pct=6.0, paid_years=5, current_pe=9.0, own_avg_pe=13.0,
+          sector_median_pe=15.0, fair_value={"low": 90.0, "high": 140.0}, pct_below_high=30.0)
+    [it] = rc.recommend(with_conviction([c]), {"A": LV}, rc.empty_profile(), {}, explore=True)
+    assert it["price_word"] is None and it["fair"] is None
+    assert it["tag_en"] == "Worth a look"
+    assert [k["en"] for k in it["keywords"]] == ["Strong all round", "Pays 6% a year", "Pays every year"]
+    price = next(r for r in it["facts"] if r["key"] == "price")
+    assert price["value"]["en"] == "9 years of profit" and price["tone"] == "neutral"
+    assert price["note"]["en"] == "It usually costs 13; similar companies cost 15."
+    text = " ".join([it["why_en"], *(p["en"] for p in it["points"]), *(k["en"] for k in it["keywords"])]).lower()
+    for word in ("low price", "fair price", "cheap", "buy", "fair-value", "below its 1-year high"):
+        assert word not in text, word
+
+
+def test_explore_reasons_tied_to_their_stocks_say_the_group_without_a_price():
+    mine, other, third = F("GP", sector=TELECOM), F("SQUR"), F("CEM", sector=CEMENT)
+    facts = {"GP": mine, "SQUR": other, "CEM": third}
+    prof = profile(held=[("GP", 3000.0), ("SQUR", 3500.0), ("CEM", 3500.0)], facts=facts, sig="none")
+    [it] = rc.recommend(with_conviction([F("ROBI", sector=TELECOM, score=65.0)]), {"ROBI": LV}, prof, facts,
+                        explore=True)
+    assert it["kind"] == "similar"
+    assert it["why_en"] == "It is in the same business as GP, which you own. We grade it mostly strong."
+    assert "দাম" not in it["why_bn"]
+
+
+def test_explore_note_speaks_of_companies_not_cheaper_prices():
+    assert "cheaper" not in rc.note(0, explore=True)["en"]
+    assert rc.note(4, explore=True)["en"].startswith("Only 4 companies")
+    assert rc.note(40, explore=True) is None
+
+
+def test_picked_for_you_never_repeats_the_buy_list_and_names_the_ones_that_fit(monkeypatch):
+    from backend.services import recommend_service as rs
+    cands = with_conviction([F("SQUR"), F("ROBI", sector=TELECOM), F("CEM", sector=CEMENT), F("IT1", sector=IT)])
+    p = {"cands": cands, "levels": {c["code"]: LV for c in cands}, "facts": {c["code"]: c for c in cands}}
+    monkeypatch.setattr(rs, "_buy_list", lambda: [{"code": "SQUR"}, {"code": "ROBI"}, {"code": "ZZZ"}])
+    items, bl = rs._explore(p, rc.empty_profile(), 15)
+    assert sorted(i["code"] for i in items) == ["CEM", "IT1"]
+    assert bl["count"] == 3 and sorted(f["code"] for f in bl["fits"]) == ["ROBI", "SQUR"]
+    assert bl["fits_total"] == 2

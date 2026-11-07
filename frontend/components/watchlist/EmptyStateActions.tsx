@@ -33,9 +33,9 @@ const ICON_CHECK = (
 /**
  * Empty-watchlist on-ramp. Instead of a "blind" bulk add (one tap dumping five
  * unseen tickers into the list), we surface the recommendation engine's picks
- * (2026-10-28: the same list as the dashboard's "Picked for you" — Buy signals
- * that pass every safety check, built from the reader's portfolio when they
- * have one) by name with the engine's one-line reason, each added one at a
+ * (2026-10-28: the same list as the dashboard's "Picked for you" — since
+ * 2026-11-08 strong companies that pass every safety check at any price, built
+ * from the reader's portfolio when they have one) by name with the engine's one-line reason, each added one at a
  * time — so the user knows exactly what they're following and why. The
  * page/card above this always has a search box for adding any other stock.
  */

@@ -88,8 +88,13 @@ def main() -> None:
 
     p = rs.pool()
     f = p["funnel"]
-    print(f"as of {p['as_of']}: {f['rated']} rated · {f['buys']} Buy signals · {f['passed']} pass every check")
+    print(f"BUY gate (Buy List, what to buy next, TopStock AI) as of {p['as_of']}: "
+          f"{f['rated']} rated · {f['buys']} Buy signals · {f['passed']} pass every check")
     for c in f["checks"]:
+        print(f"    {c['left']:>3} left after: {c['en']}")
+    e = rs.explore_pool()["funnel"]
+    print(f"EXPLORE gate (Picked for you): {e['rated']} rated · {e['passed']} pass every check")
+    for c in e["checks"]:
         print(f"    {c['left']:>3} left after: {c['en']}")
 
     user = {"user_id": None}

@@ -40,8 +40,6 @@ import ForYouCard from "@/components/home/personalized/ForYouCard";
 import DividendBoardCard from "@/components/home/personalized/DividendBoardCard";
 import LearnCard from "@/components/home/personalized/LearnCard";
 import ExploreLinks from "@/components/home/personalized/ExploreLinks";
-import FreeReportCard from "@/components/home/FreeReportCard";
-import { freeReportCode } from "@/lib/free-report";
 import InstallHomeBanner from "@/components/pwa/InstallHomeBanner";
 
 function flatten(scores: ScoresResponse | null): Map<string, ScoreItem> {
@@ -244,16 +242,6 @@ export default function PersonalizedHome() {
     if (card) trackHomeTap(card, link.getAttribute("href") ?? undefined);
   }
 
-  // Today's free full report (lib/free-report.ts) — the whole Premium stock
-  // page, open for everyone, one familiar company a day. Free readers only —
-  // Premium readers have every report open already.
-  const freeItem = priceMap.get(freeReportCode());
-  const freeReportCard =
-    planState !== "premium" && freeItem && freeItem.score != null ? (
-      <div data-card="free-report">
-        <FreeReportCard item={freeItem} lang={lang} />
-      </div>
-    ) : null;
   // ── Chapter 4: Money coming — every record date in the next two weeks,
   //    market-wide, plus the latest declarations. ──
   const dividendsChapter = hasDividends ? (
@@ -299,26 +287,17 @@ export default function PersonalizedHome() {
   // ── Chapter 3: Find stocks (redone 2026-11-06, user: "section wise …
   //    clean, easy to understand and premium"). Four blocks, one shape
   //    (eyebrow · title · lead · body · one link out), nothing else:
-  //    1 Picked for you — the engine's top three + a link (Premium; locked
-  //      tiles for a free reader);
-  //    2 Stock screener — one featured card and a link, no screener here;
-  //    3 Company ranking — the top five + a link (trending left this chapter);
-  //    4 Premium research — all six reports, each with today's number.
-  //    Today's free full report sits right after the market card. ──
+  //    1 Stock screener — one featured card and a link, no screener here;
+  //    2 Company ranking — the top five + a link (trending left this chapter);
+  //    3 Picked for you — three companies to explore + a link (Premium;
+  //      locked tiles for a free reader). Moved down from first place
+  //      2026-11-08 so it no longer sits under the Buy List card: the Buy
+  //      List (with the market) says what we would buy today, this card is
+  //      for exploring, and the two never share a company;
+  //    4 Premium research — all six reports, each with today's number. ──
   const ideasChapter = (
     <section id="ideas" className="dash-section">
       <div className="space-y-6">
-        <div data-card="for-you">
-          <ForYouCard
-            data={bundle?.for_you}
-            loading={!bundleSettled}
-            premium={planState === "premium"}
-            name={user?.display_name}
-            held={heldSet}
-            watched={watchedSet}
-            lang={lang}
-          />
-        </div>
         <div data-card="screener">
           <ScreenerFeature ready={bundle?.screener?.ready} saved={bundle?.screener?.saved} />
         </div>
@@ -326,6 +305,17 @@ export default function PersonalizedHome() {
           <RankingTop
             stocks={allStocks}
             moves={bundle?.rank_moves ?? null}
+            held={heldSet}
+            watched={watchedSet}
+            lang={lang}
+          />
+        </div>
+        <div data-card="for-you">
+          <ForYouCard
+            data={bundle?.for_you}
+            loading={!bundleSettled}
+            premium={planState === "premium"}
+            name={user?.display_name}
             held={heldSet}
             watched={watchedSet}
             lang={lang}
@@ -400,9 +390,6 @@ export default function PersonalizedHome() {
         {marketChapter}
         {/* The Buy List, right under the market card (2026-11-08, user decision). */}
         {buyListCard}
-        {/* Today's free full report — free readers only, right under the
-            market card (2026-11-06, user decision). */}
-        {freeReportCard}
         {ideasChapter}
         {dividendsChapter}
         {setup}

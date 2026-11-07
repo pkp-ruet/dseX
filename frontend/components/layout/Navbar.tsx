@@ -71,8 +71,8 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Find stocks",
     labelBn: "শেয়ার খুঁজুন",
     items: [
-      { href: "/buy-list", label: "Buy List", labelBn: "কেনার তালিকা", sub: "The shares we would buy today", subBn: "আজ যে শেয়ার কেনার মতো", icon: "buylist", premium: true },
-      { href: "/picked-for-you", label: "Picked for you", labelBn: "আপনার জন্য বাছাই", sub: "Stocks matched to your shares, and why", subBn: "আপনার শেয়ারের সাথে মিলিয়ে বাছাই, আর কেন", icon: "picks", premium: true },
+      { href: "/buy-list", label: "Buy List", labelBn: "কেনার তালিকা", sub: "What we would buy today, the same for everyone", subBn: "আজ যা কেনার মতো, সবার জন্য একই", icon: "buylist", premium: true },
+      { href: "/discover", label: "Discover", labelBn: "খুঁজে দেখুন", sub: "Companies to explore, matched to your shares", subBn: "আপনার শেয়ারের সাথে মিলিয়ে দেখার মতো কোম্পানি", icon: "picks" },
       { href: "/dsestockranking", label: "Company ranking", labelBn: "কোম্পানির র‍্যাঙ্কিং", sub: "The strongest companies on the DSE", subBn: "ডিএসইর সবচেয়ে শক্তিশালী কোম্পানি", icon: "rankings" },
       { href: "/stocks", label: "All stocks", labelBn: "সব শেয়ার", sub: "The full A–Z list", subBn: "A থেকে Z পুরো তালিকা", icon: "browse" },
       { href: "/screener", label: "Stock screener", labelBn: "স্টক স্ক্রিনার", sub: "Find stocks that fit what you want", subBn: "আপনার চাওয়া অনুযায়ী শেয়ার খুঁজুন", icon: "find" },

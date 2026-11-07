@@ -120,8 +120,8 @@ export default function BuyListCard({
       />
     ) : (
       <T
-        en={`${count} of ${universe} companies pass all six of our questions today: strong, well under what we think they are worth, nothing seriously wrong.${week > 0 ? ` ${week} joined this week.` : ""}`}
-        bn={`আজ ${universe}টির মধ্যে ${count}টি কোম্পানি আমাদের ছয়টি প্রশ্নেই পাস করেছে: শক্তিশালী, ন্যায্য দামের চেয়ে বেশ কম দামে, আর গুরুতর কোনো সমস্যা নেই।${week > 0 ? ` এই সপ্তাহে নতুন এসেছে ${week}টি।` : ""}`}
+        en={`${count} of ${universe} companies pass all six of our questions today: strong, well under what we think they are worth, nothing seriously wrong. The same list for every reader.${week > 0 ? ` ${week} joined this week.` : ""}`}
+        bn={`আজ ${universe}টির মধ্যে ${count}টি কোম্পানি আমাদের ছয়টি প্রশ্নেই পাস করেছে: শক্তিশালী, ন্যায্য দামের চেয়ে বেশ কম দামে, আর গুরুতর কোনো সমস্যা নেই। সব পাঠকের জন্য একই তালিকা।${week > 0 ? ` এই সপ্তাহে নতুন এসেছে ${week}টি।` : ""}`}
       />
     );
 

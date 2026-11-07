@@ -6,12 +6,19 @@ Recommendation engine — data side. The rules live in ``recommend.py`` (pure).
 ranking of ~30 passers against their own stocks, so it is cheap to build on
 every dashboard load.
 
+Two pools (2026-11-08): ``pool()`` = the **buy** gate (today's Buy signal +
+the safety checks) and ``explore_pool()`` = the **explore** gate (mostly
+strong or better + the safety checks, any price). See ``recommend.py``.
+
 Callers:
-- ``for_user``   — "Picked for you": the page ``/picked-for-you`` (``/api/user/for-you``,
-                   all 15) and the dashboard's tile row (home bundle, ``top=3``);
-                   the empty watchlist's "Suggested to follow".
-- ``for_portfolio`` — the portfolio's "What to buy next" (``/api/user/portfolio/buy-next``).
-- ``from_answers``  — TopStock AI's "suggest stocks" (``POST /api/recommendations``).
+- ``for_user``   — "Picked for you" (explore): the page ``/picked-for-you``
+                   (``/api/user/for-you``, all 15) and the dashboard's tile row
+                   (home bundle, ``top=3``); never a Buy List member (those that
+                   fit are named in ``buy_list.fits``); the empty watchlist's
+                   "Suggested to follow".
+- ``for_portfolio`` — the portfolio's "What to buy next" (buy, ``/api/user/portfolio/buy-next``).
+- ``from_answers``  — TopStock AI's "suggest stocks" (buy, ``POST /api/recommendations``).
+- ``buy_list_service`` — the Buy List's questions 1–3 (buy).
 
 ``users.for_you_seen = {day, codes, prev}`` remembers the reader's last list so
 a pick can say "New"; written only when the day or the list changes.
@@ -49,11 +56,23 @@ def _users():
 @_ttl_cache(900)
 def pool() -> dict:
     """``{as_of, funnel, cands, facts, levels}`` — ``cands`` = every company
-    that passes the safety gate, with conviction, its one watch-out and the
+    that passes the buy gate, with conviction, its one watch-out and the
     fair-value range (looked up for the passers only)."""
+    return _build_pool(explore=False)
+
+
+@_ttl_cache(900)
+def explore_pool() -> dict:
+    """The same shape for "Picked for you": every company that passes the
+    explore gate (mostly strong or better + the safety checks, any price)."""
+    return _build_pool(explore=True)
+
+
+def _build_pool(explore: bool) -> dict:
     from backend.services.custom_lists_service import facts as signal_facts, question_table
     from backend.services.research_lists_service import _as_of, _ctx, _fair_value, _risk, report_snapshots
     from backend.services.signal_service import build_signals
+    from backend.services.tiers import tier_key
     from utils.sector import sector_bn as _sector_bn
 
     facts = signal_facts()
@@ -66,23 +85,27 @@ def pool() -> dict:
         sigs = {}
 
     ctx = _ctx()
-    buys = [f for f in facts.values() if f.get("signal") == "buy"]
+    if explore:
+        first = [f for f in facts.values() if tier_key(_n(f.get("score"))) in ("good", "excellent")]
+    else:
+        first = [f for f in facts.values() if f.get("signal") == "buy"]
     with ThreadPoolExecutor(_WORKERS) as ex:
-        # Warm the gate's one slow check (a year of news) for every Buy at once.
-        list(ex.map(lambda f: ctx.governance(f["code"]), buys))
-    run = rl.run_list(rc.gate_list(), list(facts.values()), ctx)
+        # Warm the gate's one slow check (a year of news) for everyone past
+        # the first check at once.
+        list(ex.map(lambda f: ctx.governance(f["code"]), first))
+    gate = rc.gate_list(explore)
+    run = rl.run_list(gate, list(facts.values()), ctx)
     snaps = report_snapshots([f["code"] for f in run["passed"]])
     with ThreadPoolExecutor(_WORKERS) as ex:
         extras = list(ex.map(lambda f: (_risk(f, snaps), _fair_value(f["code"])), run["passed"]))
 
-    gate = rc.gate_list()
     cands = []
     for f, (risk, fair) in zip(run["passed"], extras):
         sig = sigs.get(f["code"]) or {}
         c = {**f, "strength": sig.get("strength"), "reason_key": sig.get("reason_key"),
              "reason_en": sig.get("reason_en"), "reason_bn": sig.get("reason_bn"),
              "sector_bn": _sector_bn(f.get("sector")) or f.get("sector")}
-        c["conviction"] = rc.conviction(c, levels.get(f["code"]))
+        c["conviction"] = rc.conviction(c, levels.get(f["code"]), explore)
         c["risk"], c["fair_value"] = risk, fair
         # Each check it passed, with its own figure (the page's "Passed all 5
         # checks" fold). The governance news is already cached from the gate.
@@ -168,7 +191,40 @@ def _track(user: dict, items: list[dict]) -> int:
     return len(rc.mark_new(items, prev))
 
 
-def _envelope(p: dict, prof: dict, items: list[dict], new: int) -> dict:
+def _buy_list() -> list[dict]:
+    """Today's Buy List items (cached 900s in its service). Empty when it
+    fails — "Picked for you" then just leaves nothing out."""
+    try:
+        from backend.services import buy_list_service
+        return buy_list_service.build().get("items") or []
+    except Exception:  # noqa: BLE001
+        logger.warning("recommend: buy list unavailable", exc_info=True)
+        return []
+
+
+# Buy List companies that fit the reader, named in one line on the page.
+BUY_LIST_FITS = 5
+
+
+def _explore(p: dict, prof: dict, n: int) -> tuple[list[dict], dict]:
+    """(picks, buy_list) — the two lists never share a company (2026-11-08,
+    user: "2 separate premium lists … may create confusion"). A company on
+    today's Buy List is left out of the picks; the ones that would fit this
+    reader are named instead (``buy_list.fits``), so a strong match is never
+    lost, only pointed at the list that says "buy"."""
+    bl = _buy_list()
+    on = {i["code"] for i in bl}
+    rest = [c for c in p["cands"] if c["code"] not in on]
+    items = rc.recommend(rest, p["levels"], prof, p["facts"], n, explore=True)
+    fits = rc.rank([c for c in p["cands"] if c["code"] in on], p["levels"], prof, explore=True)
+    return items, {
+        "count": len(bl),
+        "fits": [{"code": c["code"], "name": c.get("name")} for _t, c, _f in fits[:BUY_LIST_FITS]],
+        "fits_total": len(fits),
+    }
+
+
+def _envelope(p: dict, prof: dict, items: list[dict], new: int, buy_list: Optional[dict] = None) -> dict:
     personal = bool(prof["codes"])
     return {
         "as_of": p["as_of"],
@@ -180,25 +236,26 @@ def _envelope(p: dict, prof: dict, items: list[dict], new: int) -> dict:
         "items": items,
         "new": new,
         "counts": rc.counts(items),
-        "note": rc.note(p["funnel"]["passed"]),
+        "note": rc.note(p["funnel"]["passed"], explore=True),
+        "buy_list": buy_list or {"count": 0, "fits": [], "fits_total": 0},
     }
 
 
 def for_user(user: dict, holdings: Optional[list[dict]] = None, watchlist: Optional[list[str]] = None,
              n: int = rc.N_PICKS, track: bool = True, top: Optional[int] = None) -> dict:
-    """The reader's picks. ``holdings`` / ``watchlist`` are passed in by the
-    home bundle (already loaded there); other callers leave them None.
-    ``top`` keeps only the first few items (the dashboard's tile row) —
-    ``counts`` still describes the whole list."""
-    p = pool()
+    """The reader's companies to explore. ``holdings`` / ``watchlist`` are
+    passed in by the home bundle (already loaded there); other callers leave
+    them None. ``top`` keeps only the first few items (the dashboard's tile
+    row) — ``counts`` still describes the whole list."""
+    p = explore_pool()
     if holdings is None:
         holdings = _load_holdings(user)
     if watchlist is None:
         watchlist = _load_watchlist(user)
     prof = _profile(p, user, holdings, watchlist)
-    items = rc.recommend(p["cands"], p["levels"], prof, p["facts"], n)
+    items, bl = _explore(p, prof, n)
     new = _track(user, items) if track else 0
-    env = _envelope(p, prof, items, new)
+    env = _envelope(p, prof, items, new, bl)
     if top is not None:
         env["items"] = env["items"][:top]
     return env
@@ -206,9 +263,10 @@ def for_user(user: dict, holdings: Optional[list[dict]] = None, watchlist: Optio
 
 def generic(n: int = rc.N_PICKS) -> dict:
     """The no-stocks list — conviction alone."""
-    p = pool()
+    p = explore_pool()
     prof = rc.empty_profile()
-    return _envelope(p, prof, rc.recommend(p["cands"], p["levels"], prof, p["facts"], n), 0)
+    items, bl = _explore(p, prof, n)
+    return _envelope(p, prof, items, 0, bl)
 
 
 def for_portfolio(user: dict, holdings: list[dict], watchlist: Optional[list[str]] = None) -> dict:

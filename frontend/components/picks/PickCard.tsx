@@ -5,7 +5,8 @@ import { sectorBn } from "@/lib/bn";
 import { T } from "@/components/i18n/T";
 import { StockRank } from "@/components/ui/StockRow";
 import { PersonalMark } from "@/components/market-analysis/PersonalCodes";
-import { IconAlert, IconArrowRight, IconCheck, IconCheckCircle, IconChevronDown } from "@/components/ui/icons";
+import StarButton from "@/components/ui/StarButton";
+import { IconAlert, IconArrowRight, IconCheck, IconCheckCircle, IconChevronDown, IconLock } from "@/components/ui/icons";
 
 /** What the fit tag's colour means: clay = tied to the reader's own shares. */
 const OWN_KINDS = new Set(["add_more", "watched", "upgrade", "similar", "style", "asked", "new_area"]);
@@ -22,19 +23,6 @@ const GROUP_TONE: Record<string, string> = {
   good: "text-tier-good",
 };
 
-/** Our fair-price range as a bar: the shaded zone is the range, the dot today's price. */
-function FairBar({ low, high, price }: { low: number; high: number; price: number | null }) {
-  const lo = Math.min(low, price ?? low) * 0.92;
-  const hi = Math.max(high, price ?? high) * 1.08;
-  const at = (v: number) => `${((v - lo) / (hi - lo)) * 100}%`;
-  return (
-    <div className="pk-fair-bar" aria-hidden="true">
-      <span className="pk-fair-zone" style={{ left: at(low), width: `calc(${at(high)} - ${at(low)})` }} />
-      {price != null && <span className="pk-fair-dot" style={{ left: at(price) }} />}
-    </div>
-  );
-}
-
 /**
  * One pick on the "Picked for you" page (2026-11-05, user: "in full page
  * every stock will [have the] same reasoning … more trustworthy and
@@ -45,18 +33,32 @@ function FairBar({ low, high, price }: { low: number; high: number; price: numbe
  *    reader's own figures ("Like GP", "61% of your money is in …");
  * 3. the same four facts for every pick (the company · the price · profit ·
  *    cash dividend), each a short value and the sentence it rests on;
- * 4. our fair-price range, when the estimates agree and it agrees with the pick;
- * 5. one honest thing to watch (or that its page shows no warnings);
- * 6. the safety checks it passed, folded, each with the company's own figure;
- * 7. a link to its full report.
+ * 4. one honest thing to watch (or that its page shows no warnings);
+ * 5. the safety checks it passed, folded, each with the company's own figure;
+ * 6. a link to our analysis of it, and a star to follow it.
+ *
+ * No price verdict and no fair-price range since 2026-11-08: this is a list
+ * of companies to explore; whether one is worth buying today is the Buy
+ * List's job (`/buy-list`).
  *
  * Text is `<T>` pairs, so it follows the navbar language switch.
  */
-export default function PickCard({ item, rank }: { item: ForYouItem; rank: number }) {
+export default function PickCard({
+  item,
+  rank,
+  open = true,
+  lockHref = "#dp-premium",
+}: {
+  item: ForYouItem;
+  rank: number;
+  /** false = a free reader's company: name, fit and reason open, the case (facts,
+   *  watch-out, checks) replaced by one line pointing at the Premium card. */
+  open?: boolean;
+  lockHref?: string;
+}) {
   const own = OWN_KINDS.has(item.kind);
   const facts = item.facts ?? [];
   const checks = item.checks ?? [];
-  const fair = item.fair ?? null;
 
   return (
     <li id={`pick-${item.code}`} className="pk-card soft-card">
@@ -101,7 +103,22 @@ export default function PickCard({ item, rank }: { item: ForYouItem; rank: numbe
         </p>
       </div>
 
-      {facts.length > 0 && (
+      {!open && (
+        <a href={lockHref} className="pk-locked">
+          <span className="pk-locked-icon" aria-hidden="true">
+            <IconLock size={14} />
+          </span>
+          <span className="min-w-0 flex-1">
+            <T
+              en="Its figures, one thing to watch and the checks it passed are Premium."
+              bn="এর সংখ্যা, খেয়াল রাখার মতো একটি বিষয় আর যাচাইগুলো প্রিমিয়ামে।"
+            />
+          </span>
+          <IconArrowRight size={14} />
+        </a>
+      )}
+
+      {open && facts.length > 0 && (
         <dl className="pk-facts">
           {facts.map((f) => (
             <div key={f.key} className="pk-fact">
@@ -121,27 +138,7 @@ export default function PickCard({ item, rank }: { item: ForYouItem; rank: numbe
         </dl>
       )}
 
-      {fair && (
-        <div className="pk-fair">
-          <div className="pk-fair-head">
-            <span className="text-sm font-semibold text-text-main">
-              <T en="Our fair price" bn="আমাদের হিসাবে ন্যায্য দাম" />
-            </span>
-            <span className="nums text-sm font-semibold text-text-main">
-              {money(fair.low)} – {money(fair.high)}
-            </span>
-          </div>
-          <FairBar low={fair.low} high={fair.high} price={item.price} />
-          <p className="pk-fair-scale">
-            <T
-              en={`Today ${money(item.price)}. The shaded band is the range our estimates agree on.`}
-              bn={`আজ ${money(item.price)}। রঙ করা অংশটি আমাদের হিসাবগুলোর মিলে যাওয়া সীমা।`}
-            />
-          </p>
-        </div>
-      )}
-
-      {item.watch ? (
+      {!open ? null : item.watch ? (
         <p className="pk-watch">
           <span className="mt-0.5 shrink-0" aria-hidden="true">
             <IconAlert size={16} />
@@ -167,7 +164,7 @@ export default function PickCard({ item, rank }: { item: ForYouItem; rank: numbe
         </p>
       )}
 
-      {checks.length > 0 && (
+      {open && checks.length > 0 && (
         <details className="pk-checks group">
           <summary>
             <span className="pk-checks-tick" aria-hidden="true">
@@ -204,10 +201,16 @@ export default function PickCard({ item, rank }: { item: ForYouItem; rank: numbe
       )}
 
       <footer className="pk-foot">
-        <Link prefetch={false} href={`/stock/${item.code}`} className="pk-more" data-pick={item.code}>
-          <T en={`Read the full report on ${item.code}`} bn={`${item.code}-এর পুরো রিপোর্ট পড়ুন`} />
+        <Link prefetch={false} href={`/stock/${item.code}#ch-analysis`} className="pk-more" data-pick={item.code}>
+          <T en={`Read our analysis of ${item.code}`} bn={`${item.code}-এর বিশ্লেষণ পড়ুন`} />
           <IconArrowRight size={16} />
         </Link>
+        <span className="pk-follow">
+          <span className="text-sm font-semibold text-text-main">
+            <T en="Follow" bn="ফলো করুন" />
+          </span>
+          <StarButton code={item.code} />
+        </span>
       </footer>
     </li>
   );

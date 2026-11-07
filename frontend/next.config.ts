@@ -78,6 +78,9 @@ const nextConfig: NextConfig = {
       { source: "/top-picks", destination: "/buy-list", permanent: true },
       { source: "/daily-tips", destination: "/buy-list", permanent: true },
       { source: "/buy-sell-signals", destination: "/buy-list", permanent: true },
+      // "Picked for you" became "Discover" (2026-11-08): a list to explore,
+      // not to buy from. Old links, pushes and bookmarks land on the new page.
+      { source: "/picked-for-you", destination: "/discover", permanent: true },
       // One market page (2026-11-05): DSE today, Market analysis and the
       // Bengali daily page (/share-bazar) merged into /dse-today, "Market today".
       { source: "/market-analysis", destination: "/dse-today", permanent: true },
