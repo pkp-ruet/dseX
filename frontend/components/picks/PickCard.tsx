@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import type { ForYouFact, ForYouItem } from "@/lib/api";
 import { changePct, changeTone, money } from "@/lib/formatters";
 import { sectorBn } from "@/lib/bn";

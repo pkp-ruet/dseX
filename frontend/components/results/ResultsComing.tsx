@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { useEffect, useMemo, useState } from "react";
 import type { UpcomingResult } from "@/lib/api";
 import { T } from "@/components/i18n/T";

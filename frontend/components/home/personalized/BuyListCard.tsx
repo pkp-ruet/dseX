@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import type { Lang } from "@/context/LangContext";
 import FindCard from "@/components/home/personalized/FindCard";
 import OwnerMark from "@/components/home/personalized/OwnerMark";

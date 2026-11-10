@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import SectionHead from "@/components/i18n/SectionHead";
 import { T } from "@/components/i18n/T";
 import { BLOG_TO_LEARN } from "@/lib/i18n-pairs";

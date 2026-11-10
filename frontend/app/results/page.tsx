@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { getLatestResults, getUpcomingResults } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 import PageHeader from "@/components/ui/PageHeader";

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import PageHeader from "@/components/ui/PageHeader";
 import { T } from "@/components/i18n/T";
 import { TIER_LABELS, TIER_LABELS_BN, TIER_MEANINGS, TIER_MEANINGS_BN, type TierKey } from "@/lib/constants";

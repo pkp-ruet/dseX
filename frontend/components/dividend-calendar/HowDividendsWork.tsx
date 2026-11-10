@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { T } from "@/components/i18n/T";
 import type { DividendCalendarData } from "@/lib/api";
 import SectionHeader from "@/components/ui/SectionHeader";

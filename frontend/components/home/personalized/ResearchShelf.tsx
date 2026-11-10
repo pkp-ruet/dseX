@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { REPORTS, reportStat, type ResearchSummary } from "@/lib/research-reports";
 import FindCard from "@/components/home/personalized/FindCard";
 import { REPORT_ICON } from "@/components/research-reports/reportIcons";

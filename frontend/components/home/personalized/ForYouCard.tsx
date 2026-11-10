@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { forYouCounts, type ForYou, type ForYouItem } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
 import { t } from "@/lib/home-copy";

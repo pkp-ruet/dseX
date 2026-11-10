@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import type { SectorDetailData, SectorRead as Read } from "@/lib/api";
 import { T } from "@/components/i18n/T";
 import { Locked } from "@/components/premium/AnswerLock";

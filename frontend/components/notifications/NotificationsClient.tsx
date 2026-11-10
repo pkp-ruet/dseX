@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { useAuth } from "@/context/AuthContext";
 import {
   apiGetNotifications,

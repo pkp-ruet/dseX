@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import type { ReactNode } from "react";
 import type { ScoreItem } from "@/lib/api";
 import Card from "@/components/ui/Card";

@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, type ReactNode } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { TONE_CLASS, ToneChip, tx } from "@/components/report/chip";
 import { IconChevronDown } from "@/components/ui/icons";
 import { T } from "@/components/i18n/T";

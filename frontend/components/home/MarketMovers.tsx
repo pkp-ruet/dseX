@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { taka, pct, formatDate, crore } from "@/lib/formatters";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { T } from "@/components/i18n/T";

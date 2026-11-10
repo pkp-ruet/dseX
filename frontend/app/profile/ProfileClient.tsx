@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { useAuth } from "@/context/AuthContext";
 import PlanUsage from "@/components/premium/PlanUsage";
 import { getCachedWatchlist, loadWatchlist, subscribeWatchlist } from "@/lib/watchlist";

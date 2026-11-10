@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { T } from "@/components/i18n/T";
 import { IconArrowDown, IconArrowUp, IconChevron } from "@/components/ui/icons";
 import { changePct, changeTone, money } from "@/lib/formatters";

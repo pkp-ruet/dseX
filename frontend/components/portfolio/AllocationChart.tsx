@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import type { AnalysisLang, PortfolioAnalysis } from "@/lib/portfolio-analysis";
 import { takaGroup } from "@/lib/formatters";
 import PfCard, { PfShowMore, SHORT_LIST, folds } from "./PfCard";

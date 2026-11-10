@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import type { WatchlistNewsItem } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 import Skeleton from "@/components/ui/Skeleton";

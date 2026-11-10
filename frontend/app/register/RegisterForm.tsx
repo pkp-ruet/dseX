@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { useAuth } from "@/context/AuthContext";
 import { apiRegister, type AuthApiResponse } from "@/lib/api";
 import { addToWatchlist, loadWatchlist } from "@/lib/watchlist";

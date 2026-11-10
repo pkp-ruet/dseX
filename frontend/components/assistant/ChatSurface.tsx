@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { useAssistant } from "./useAssistant";
 import MessageList from "./MessageList";
 import ChatComposer from "./ChatComposer";

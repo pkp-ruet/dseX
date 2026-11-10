@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import WatchlistButton from "@/components/stock/WatchlistButton";
 import AddToPortfolioButton from "@/components/stock/AddToPortfolioButton";
 import PriceAlertButton from "@/components/stock/PriceAlertButton";

@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getCachedWatchlist, subscribeWatchlist, loadWatchlist } from "@/lib/watchlist";

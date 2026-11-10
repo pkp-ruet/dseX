@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { TONE_CLASS, ToneChip, tx } from "@/components/report/chip";
 import { CompareBars, DateLine, HundredBar } from "@/components/stock/visuals/kit";
 import { IconAlert, IconChevronDown, IconCrown } from "@/components/ui/icons";

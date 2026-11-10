@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 
 /**
  * One line above an article that exists in only one language. It shows only

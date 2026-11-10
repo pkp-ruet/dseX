@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { useAuth } from "@/context/AuthContext";
 import type { PortfolioHolding, WatchlistMeta } from "@/lib/api";
 import { loadMainHoldings } from "@/lib/main-holdings";

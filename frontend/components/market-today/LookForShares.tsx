@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { T } from "@/components/i18n/T";
 import {
   IconCalendar,

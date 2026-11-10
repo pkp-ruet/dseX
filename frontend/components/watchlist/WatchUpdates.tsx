@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { T } from "@/components/i18n/T";
 import Card from "@/components/ui/Card";
 import SectionHeader from "@/components/ui/SectionHeader";

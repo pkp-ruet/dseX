@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import type { ReactNode } from "react";
 import TierPill from "@/components/ui/TierPill";
 import { PersonalMark, usePersonalCodesCtx } from "@/components/market-analysis/PersonalCodes";

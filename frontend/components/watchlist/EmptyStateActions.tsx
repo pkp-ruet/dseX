@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { apiGetForYou, type ForYouItem } from "@/lib/api";
 import { addToWatchlist, getCachedWatchlist, subscribeWatchlist } from "@/lib/watchlist";
 import { taka } from "@/lib/formatters";

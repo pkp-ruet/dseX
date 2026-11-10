@@ -1,6 +1,6 @@
 "use client";
 import { useState, useMemo } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import type { BiText, RelatedStock } from "@/lib/api";
 import { T } from "@/components/i18n/T";
 import { sectorBn } from "@/lib/bn";

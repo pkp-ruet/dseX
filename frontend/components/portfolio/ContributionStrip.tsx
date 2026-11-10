@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import PfCard, { PfShowMore, SHORT_LIST, folds } from "./PfCard";
 import Stat from "@/components/ui/Stat";
 import { takaGroup } from "@/lib/formatters";

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import type { RankingsToday, ScoreItem } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
 import { changePct, changeTone, companyShort, money } from "@/lib/formatters";

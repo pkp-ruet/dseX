@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import type { ScoreItem, WatchlistMetaEntry } from "@/lib/api";
 import { changePct, changeTone, companyShort, money } from "@/lib/formatters";
 import { getTier } from "@/lib/constants";

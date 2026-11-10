@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import type { ReactNode } from "react";
 import PageHeader from "@/components/ui/PageHeader";
 import PageGate from "@/components/premium/PageGate";

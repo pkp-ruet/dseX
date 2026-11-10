@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import PageHeader from "@/components/ui/PageHeader";
 import { T } from "@/components/i18n/T";
 import { PAID_PLANS } from "@/lib/premium-plans";

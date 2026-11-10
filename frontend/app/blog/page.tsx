@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import PageHeader from "@/components/ui/PageHeader";
 import { BLOG_CATEGORIES, BLOG_POSTS } from "@/lib/blog-bn";
 import CategoryNav from "@/components/learn/CategoryNav";

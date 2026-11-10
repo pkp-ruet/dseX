@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import Button from "@/components/ui/Button";
 import { IconArrowRight, IconCrown, IconLock } from "@/components/ui/icons";
 import ReportKeyButton from "@/components/premium/ReportKeyButton";

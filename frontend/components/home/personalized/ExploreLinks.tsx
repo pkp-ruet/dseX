@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import type { Lang } from "@/context/LangContext";
 import { t } from "@/lib/home-copy";
 import {

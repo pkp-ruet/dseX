@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { T } from "@/components/i18n/T";
 import { DateTile } from "@/components/dividend-calendar/DateGroup";
 import { dayShort } from "@/components/dividend-calendar/dates";

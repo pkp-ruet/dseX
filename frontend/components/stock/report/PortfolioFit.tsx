@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import QuestionRow from "@/components/report/QuestionRow";
 import { TONE_CLASS, tx } from "@/components/report/chip";
 import Chip from "@/components/ui/Chip";

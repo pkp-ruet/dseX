@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import type { ReactNode } from "react";
 import { TIER_VAR, type TierKey } from "@/lib/constants";
 import ScoreBadge from "@/components/ui/ScoreBadge";

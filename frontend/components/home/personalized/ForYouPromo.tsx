@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { forYouCounts, type ForYou } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
 import { useAuth } from "@/context/AuthContext";

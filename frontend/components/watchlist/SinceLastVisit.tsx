@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { apiVisitWatchlist, type ScoreItem, type WatchlistNewsItem } from "@/lib/api";
 import { changePct, changeTone } from "@/lib/formatters";
 import { T } from "@/components/i18n/T";

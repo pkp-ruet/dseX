@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { flattenTiers, getMarketIndex, getScores } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 import StocksTable from "@/components/stocks/StocksTable";

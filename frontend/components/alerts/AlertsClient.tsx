@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { useAuth } from "@/context/AuthContext";
 import { getScores, type ScoreItem, type ScoresResponse } from "@/lib/api";
 import { cacheKeys, readCache, writeCache } from "@/lib/swr-cache";

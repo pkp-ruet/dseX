@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import type { MarketDividendEvent } from "@/lib/api";
 import { money } from "@/lib/formatters";
 import { bnDate } from "@/lib/bn";

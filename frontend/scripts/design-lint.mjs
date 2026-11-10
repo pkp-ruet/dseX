@@ -40,6 +40,10 @@ const TSX_RULES = [
   { name: "legacy Bengali sub-line (use <T en bn />)", re: /components\/i18n\/Bn["']/g },
   { name: "subLang prop (one language per page)", re: /\bsubLang=/g },
   { name: "Bengali numeral (write Western digits)", re: /[০-৯]/g },
+  // Link preloading (2026-11-10): `next/link` preloads every page that scrolls
+  // into view (tens of MB of readers' data on the ranking). Use the wrapper,
+  // which preloads on touch / hover only.
+  { name: "next/link import (use @/components/ui/Link)", re: /from\s+["']next\/link["']/g, skipFile: /components[\\/]ui[\\/]Link\.tsx$/ },
 ];
 
 // `(?=\S)` pins the lookahead to the first non-space character so `\s*` cannot
@@ -69,6 +73,7 @@ for (const d of SRC_DIRS) {
     const lines = src.split("\n");
     lines.forEach((line, i) => {
       for (const rule of rules) {
+        if (rule.skipFile && rule.skipFile.test(file)) continue;
         if (rule.skipLine && rule.skipLine.test(line)) continue;
         const m = line.match(rule.re);
         if (m) findings.push(`${relative(ROOT, file)}:${i + 1}  ${rule.name}: ${m[0]}`);

@@ -17,7 +17,7 @@ import { bnDate } from "@/lib/bn";
 import { T } from "@/components/i18n/T";
 import PageHeader from "@/components/ui/PageHeader";
 import PageGuide from "@/components/seo/PageGuide";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 

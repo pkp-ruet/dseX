@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { type PortfolioHolding, type ScoreItem, type MarketIndexData } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
 import { analyzePortfolio, portfolioTodayMove, type ComputedRow, type Grade } from "@/lib/portfolio-analysis";

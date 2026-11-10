@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import Stat from "@/components/ui/Stat";
 import { T } from "@/components/i18n/T";
 import { changePct, companyShort, money, takaGroup } from "@/lib/formatters";

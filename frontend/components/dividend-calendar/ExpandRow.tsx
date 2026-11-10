@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { useId, useState, type ReactNode } from "react";
 import { IconChevronDown } from "@/components/ui/icons";
 

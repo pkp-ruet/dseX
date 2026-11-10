@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import PfCard from "./PfCard";
 import Stat from "@/components/ui/Stat";
 import { takaGroup, formatDate } from "@/lib/formatters";

@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { T } from "@/components/i18n/T";
 import Tabs from "@/components/ui/Tabs";
 import { useLang } from "@/context/LangContext";

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import type { DividendDeclarationRecord } from "@/lib/api";
 import { formatDate, money } from "@/lib/formatters";
 import { recordDateInfo, todayDhaka, toDate, isoLocal } from "@/lib/dividend-dates";

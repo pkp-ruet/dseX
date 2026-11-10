@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { T } from "@/components/i18n/T";
 import SectionHead from "@/components/i18n/SectionHead";
 import MoverTabs from "@/components/landing/MoverTabs";

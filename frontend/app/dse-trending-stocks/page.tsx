@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { getTop20 } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 import Top20Deck from "@/components/top20/Top20Deck";

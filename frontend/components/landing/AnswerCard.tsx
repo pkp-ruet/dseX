@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { getTier, TIER_LABELS, TIER_LABELS_BN } from "@/lib/constants";
 import { checkWord, landingChecksLine, landingGrade, landingLights, PILLARS, shortName, type LandingStock } from "@/lib/landing";
 import { pillarColor } from "@/lib/insight-utils";
