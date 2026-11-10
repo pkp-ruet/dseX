@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { getCompanyDetail } from "@/lib/api";
 import { getTier, TIER_LABELS, TIER_COLORS } from "@/lib/constants";
 
-export const runtime = "edge";
+// Node runtime: the Cloudflare (OpenNext) build has no edge runtime.
 export const alt = "TopStockBD DSEF Score";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -90,10 +90,10 @@ export default async function OgImage({ params }: { params: Promise<{ code: stri
             <div style={{ display: "flex", flexDirection: "column" }}>
               <div style={{ fontSize: 14, color: "#5C554A" }}>Last Price</div>
               <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                <span style={{ fontSize: 28, fontWeight: 700 }}>৳{ltp.toFixed(2)}</span>
+                <span style={{ fontSize: 28, fontWeight: 700 }}>{`Tk ${ltp.toFixed(2)}`}</span>
                 {changePct != null && (
                   <span style={{ fontSize: 18, fontWeight: 600, color: changeColor }}>
-                    {changePct >= 0 ? "▲" : "▼"}{Math.abs(changePct).toFixed(1)}%
+                    {`${changePct >= 0 ? "+" : "−"}${Math.abs(changePct).toFixed(1)}%`}
                   </span>
                 )}
               </div>
@@ -103,14 +103,14 @@ export default async function OgImage({ params }: { params: Promise<{ code: stri
             <div style={{ display: "flex", flexDirection: "column" }}>
               <div style={{ fontSize: 14, color: "#5C554A" }}>EPS YoY</div>
               <div style={{ fontSize: 28, fontWeight: 700, color: epsYoy >= 0 ? positive : negative }}>
-                {epsYoy >= 0 ? "+" : ""}{epsYoy.toFixed(1)}%
+                {`${epsYoy >= 0 ? "+" : ""}${epsYoy.toFixed(1)}%`}
               </div>
             </div>
           )}
           {divYield != null && (
             <div style={{ display: "flex", flexDirection: "column" }}>
               <div style={{ fontSize: 14, color: "#5C554A" }}>Div Yield</div>
-              <div style={{ fontSize: 28, fontWeight: 700 }}>{divYield.toFixed(1)}%</div>
+              <div style={{ fontSize: 28, fontWeight: 700 }}>{`${divYield.toFixed(1)}%`}</div>
             </div>
           )}
         </div>

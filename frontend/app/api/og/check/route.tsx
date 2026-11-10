@@ -3,7 +3,7 @@ import { getCompanyDetail } from "@/lib/api";
 import { getTier, TIER_LABELS, TIER_COLORS } from "@/lib/constants";
 import type { CheckKey, Tone } from "@/lib/stock-report";
 
-export const runtime = "edge";
+// Node runtime: the Cloudflare (OpenNext) build has no edge runtime.
 
 /**
  * One scorecard check of the stock report as a share image (2026-10-28):
@@ -58,7 +58,7 @@ export async function GET(req: Request) {
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ fontSize: 30, fontWeight: 700, color: C.clay }}>TopStockBD</div>
-          <div style={{ fontSize: 24, color: C.muted }}>Stock report · {code}</div>
+          <div style={{ fontSize: 24, color: C.muted }}>{`Stock report · ${code}`}</div>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", marginTop: 72 }}>
@@ -100,11 +100,12 @@ export async function GET(req: Request) {
         </div>
 
         <div style={{ marginTop: "auto", display: "flex", justifyContent: "space-between", fontSize: 24, color: C.muted }}>
-          <span>
-            Grade: <b style={{ color: TIER_COLORS[tier], marginLeft: 8 }}>{TIER_LABELS[tier]}</b>
-            {score != null ? ` · ${Math.round(score)}/100` : ""}
+          <span style={{ display: "flex" }}>
+            <span>Grade:</span>
+            <b style={{ color: TIER_COLORS[tier], marginLeft: 8 }}>{TIER_LABELS[tier]}</b>
+            <span>{score != null ? ` · ${Math.round(score)}/100` : ""}</span>
           </span>
-          <span>topstockbd.com/stock/{code}</span>
+          <span>{`topstockbd.com/stock/${code}`}</span>
         </div>
       </div>
     ),

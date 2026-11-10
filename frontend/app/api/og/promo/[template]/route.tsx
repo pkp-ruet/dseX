@@ -4,7 +4,7 @@ import { getTier, TIER_LABELS, TIER_COLORS } from "@/lib/constants";
 import { formatDate } from "@/lib/formatters";
 import type { ScoreItem, Top20Item } from "@/lib/api";
 
-export const runtime = "edge";
+// Node runtime: the Cloudflare (OpenNext) build has no edge runtime.
 
 const SIZE = { width: 1080, height: 1080 };
 const PORTRAIT = { width: 1080, height: 1350 };
