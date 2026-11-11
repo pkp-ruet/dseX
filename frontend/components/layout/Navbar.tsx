@@ -64,6 +64,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: "/dividend-calendar", label: "Dividend calendar", labelBn: "ডিভিডেন্ড ক্যালেন্ডার", sub: "Record dates and AGMs", subBn: "রেকর্ড ডেট আর এজিএম", icon: "dividend", premium: true },
       { href: "/results", label: "Quarterly results", labelBn: "প্রান্তিকের ফল", sub: "Each company's latest profit", subBn: "প্রতিটি কোম্পানির সর্বশেষ মুনাফা", icon: "results" },
       { href: "/sectors", label: "Sectors", labelBn: "সেক্টর", sub: "Compare whole industries", subBn: "পুরো সেক্টর মিলিয়ে দেখুন", icon: "sectors" },
+      { href: "/stock-insights", label: "Premium research", labelBn: "প্রিমিয়াম গবেষণা", sub: "Risks, auditors, results and lists", subBn: "ঝুঁকি, নিরীক্ষক, আর্থিক ফল আর তালিকা", icon: "lists", premium: true },
     ],
   },
   {
@@ -72,12 +73,11 @@ export const NAV_GROUPS: NavGroup[] = [
     labelBn: "শেয়ার খুঁজুন",
     items: [
       { href: "/buy-list", label: "Buy List", labelBn: "কেনার তালিকা", sub: "What we would buy today, the same for everyone", subBn: "আজ যা কেনার মতো, সবার জন্য একই", icon: "buylist", premium: true },
+      { href: "/screener", label: "Stock screener", labelBn: "স্টক স্ক্রিনার", sub: "Find stocks that fit what you want", subBn: "আপনার চাওয়া অনুযায়ী শেয়ার খুঁজুন", icon: "find" },
+      { href: "/compare-stocks", label: "Compare stocks", labelBn: "শেয়ার তুলনা", sub: "Put shares side by side", subBn: "শেয়ার পাশাপাশি মিলিয়ে দেখুন", icon: "compare" },
       { href: "/discover", label: "Discover", labelBn: "খুঁজে দেখুন", sub: "Companies to explore, matched to your shares", subBn: "আপনার শেয়ারের সাথে মিলিয়ে দেখার মতো কোম্পানি", icon: "picks" },
       { href: "/dsestockranking", label: "Company ranking", labelBn: "কোম্পানির র‍্যাঙ্কিং", sub: "The strongest companies on the DSE", subBn: "ডিএসইর সবচেয়ে শক্তিশালী কোম্পানি", icon: "rankings" },
       { href: "/stocks", label: "All stocks", labelBn: "সব শেয়ার", sub: "The full A–Z list", subBn: "A থেকে Z পুরো তালিকা", icon: "browse" },
-      { href: "/screener", label: "Stock screener", labelBn: "স্টক স্ক্রিনার", sub: "Find stocks that fit what you want", subBn: "আপনার চাওয়া অনুযায়ী শেয়ার খুঁজুন", icon: "find" },
-      { href: "/compare-stocks", label: "Compare stocks", labelBn: "শেয়ার তুলনা", sub: "Put shares side by side", subBn: "শেয়ার পাশাপাশি মিলিয়ে দেখুন", icon: "compare" },
-      { href: "/stock-insights", label: "Premium research", labelBn: "প্রিমিয়াম গবেষণা", sub: "Risks, auditors, results and lists", subBn: "ঝুঁকি, নিরীক্ষক, আর্থিক ফল আর তালিকা", icon: "lists", premium: true },
       { href: "/assistant", label: "TopStock AI", labelBn: "TopStock AI", sub: "Ask in plain words", subBn: "সহজ ভাষায় প্রশ্ন করুন", icon: "ai" },
     ],
   },

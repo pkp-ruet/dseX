@@ -16,16 +16,16 @@ const marketsLinks: FootLink[] = [
   { href: "/dividend-calendar", en: "Dividend calendar", bn: "ডিভিডেন্ড ক্যালেন্ডার" },
   { href: "/results", en: "Quarterly results", bn: "প্রান্তিকের ফল" },
   { href: "/sectors", en: "Sectors", bn: "সেক্টর" },
+  { href: "/stock-insights", en: "Premium research", bn: "প্রিমিয়াম গবেষণা" },
 ];
 
 const findLinks: FootLink[] = [
   { href: "/buy-list", en: "Buy List", bn: "কেনার তালিকা" },
+  { href: "/screener", en: "Stock screener", bn: "স্টক স্ক্রিনার" },
+  { href: "/compare-stocks", en: "Compare stocks", bn: "শেয়ার তুলনা" },
   { href: "/discover", en: "Discover", bn: "খুঁজে দেখুন" },
   { href: "/dsestockranking", en: "Company ranking", bn: "কোম্পানির র‍্যাঙ্কিং" },
   { href: "/stocks", en: "All stocks", bn: "সব শেয়ার" },
-  { href: "/screener", en: "Stock screener", bn: "স্টক স্ক্রিনার" },
-  { href: "/compare-stocks", en: "Compare stocks", bn: "শেয়ার তুলনা" },
-  { href: "/stock-insights", en: "Premium research", bn: "প্রিমিয়াম গবেষণা" },
   { href: "/assistant", en: "TopStock AI", bn: "TopStock AI" },
 ];
 
