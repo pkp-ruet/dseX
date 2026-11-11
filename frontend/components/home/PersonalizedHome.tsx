@@ -35,6 +35,7 @@ import MarketTodayCard from "@/components/home/personalized/MarketTodayCard";
 import BuyListCard from "@/components/home/personalized/BuyListCard";
 import RankingTop from "@/components/home/personalized/RankingTop";
 import ScreenerFeature from "@/components/home/personalized/ScreenerFeature";
+import CompareFeature from "@/components/home/personalized/CompareFeature";
 import ResearchShelf from "@/components/home/personalized/ResearchShelf";
 import ForYouCard from "@/components/home/personalized/ForYouCard";
 import DividendBoardCard from "@/components/home/personalized/DividendBoardCard";
@@ -288,6 +289,8 @@ export default function PersonalizedHome() {
   //    clean, easy to understand and premium"). Four blocks, one shape
   //    (eyebrow · title · lead · body · one link out), nothing else:
   //    1 Stock screener — one featured card and a link, no screener here;
+  //    1b Compare stocks — what it does, one question card in miniature on
+  //      the reader's own shares, comparisons to start from (2026-11-12);
   //    2 Company ranking — the top five + a link (trending left this chapter);
   //    3 Picked for you — three companies to explore + a link (Premium;
   //      locked tiles for a free reader). Moved down from first place
@@ -300,6 +303,9 @@ export default function PersonalizedHome() {
       <div className="space-y-6">
         <div data-card="screener">
           <ScreenerFeature ready={bundle?.screener?.ready} saved={bundle?.screener?.saved} />
+        </div>
+        <div data-card="compare">
+          <CompareFeature holdings={holdings} watchlist={codes} priceMap={priceMap} premium={planState === "premium"} />
         </div>
         <div data-card="ranking">
           <RankingTop

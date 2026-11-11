@@ -22,6 +22,9 @@ from typing import Optional
 # 2026-10-30) — None here; HARD_LIMITS["holdings"] (100) applies to everyone.
 FREE_LIMITS = {
     "watchlist": 5, "holdings": None, "alerts": 3, "ai_daily": 10, "portfolios": 1, "custom_lists": 0,
+    # Shares side by side on /compare-stocks (screen-only: the page caps it; the
+    # API sends up to HARD_LIMITS["compare"] to anyone). 2026-11-12.
+    "compare": 3,
 }
 
 # Ceilings for every account, Premium included. Not a plan feature — a size cap
@@ -29,7 +32,7 @@ FREE_LIMITS = {
 # document, which every signed-in request reads).
 # Holdings: 100 shares a portfolio since 2026-11-02 (user: "set a generic cap of
 # 100"; was 300) — the only cap on shares, free or Premium.
-HARD_LIMITS = {"watchlist": 200, "alerts": 50, "holdings": 100}
+HARD_LIMITS = {"watchlist": 200, "alerts": 50, "holdings": 100, "compare": 10}
 
 # HTTPException detail strings the frontend matches (`lib/premium.ts:isLimitError`).
 LIMIT_WATCHLIST = "limit_reached:watchlist"

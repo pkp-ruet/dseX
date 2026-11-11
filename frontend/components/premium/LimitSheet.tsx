@@ -53,6 +53,14 @@ const COPY: Partial<Record<LimitKind, (n: number) => { title: Bi; line: Bi; gets
     },
     gets: { en: "Up to six portfolios", bn: "ছয়টি পর্যন্ত পোর্টফোলিও" },
   }),
+  compare: (n) => ({
+    title: { en: `A free account compares ${n} shares at a time`, bn: `ফ্রি অ্যাকাউন্টে একসাথে ${n}টি শেয়ার তুলনা করা যায়` },
+    line: {
+      en: "Take one share off to add another. With Premium you can put up to 10 side by side, with our analysis of each.",
+      bn: "নতুন শেয়ার যোগ করতে একটি বাদ দিন। প্রিমিয়ামে 10টি পর্যন্ত পাশাপাশি দেখা যায়, সাথে প্রতিটির ওপর আমাদের বিশ্লেষণ।",
+    },
+    gets: { en: "Compare up to 10 shares at once", bn: "একসাথে 10টি পর্যন্ত শেয়ার তুলনা" },
+  }),
   custom_lists: () => ({
     title: { en: "Saving screens is part of Premium", bn: "স্ক্রিন সেভ করা প্রিমিয়ামের অংশ" },
     line: {

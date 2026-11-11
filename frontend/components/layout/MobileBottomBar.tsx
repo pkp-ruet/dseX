@@ -26,6 +26,7 @@ const EXPLORE_PATHS = [
   "/discover",
   "/dsestockranking",
   "/stocks",
+  "/compare-stocks",
   "/stock-insights",
   "/assistant",
   "/learn",

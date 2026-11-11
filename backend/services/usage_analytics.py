@@ -76,6 +76,7 @@ AREAS: list[tuple[str, str, str]] = [
     ("assistant", "TopStock AI", r"^/assistant"),
     ("ranking", "Company ranking", r"^/dsestockranking"),
     ("screener", "Stock screener", r"^/(screener|my-lists|stock-recommendation)"),
+    ("compare", "Compare stocks", r"^/compare-stocks"),
     ("lists", "Research & stock lists", r"^/stock-insights"),
     ("dividends", "Dividend calendar", r"^/dividend-calendar"),
     ("results", "Results", r"^/results"),

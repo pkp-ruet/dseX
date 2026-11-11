@@ -3,6 +3,7 @@ import WatchlistButton from "@/components/stock/WatchlistButton";
 import AddToPortfolioButton from "@/components/stock/AddToPortfolioButton";
 import PriceAlertButton from "@/components/stock/PriceAlertButton";
 import ShareButton from "@/components/stock/ShareButton";
+import CompareButton from "@/components/stock/CompareButton";
 import CategoryChip from "@/components/stock/CategoryChip";
 import YourPosition from "@/components/stock/YourPosition";
 import GradeMedal from "@/components/stock/GradeMedal";
@@ -244,6 +245,7 @@ export default function HeroSection({ detail }: Props) {
             <WatchlistButton code={code} />
             <AddToPortfolioButton code={code} ltp={ltp} />
             <PriceAlertButton code={code} ltp={ltp} w52High={latest_price.w52_high} w52Low={latest_price.w52_low} />
+            <CompareButton code={code} />
             <ShareButton code={code} companyName={profile.company_name} score={score} ltp={ltp} />
           </div>
         </div>

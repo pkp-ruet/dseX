@@ -18,7 +18,7 @@ import { type AuthUser, getStoredUser } from "@/lib/auth";
  *  plan fields; the server value always wins once /me has refreshed.
  *  Watchlist 5 since 2026-10-30. Holdings (shares in one portfolio): no free
  *  cap since 2026-11-02 (was 7), only `MAX_HOLDINGS` for everyone. */
-export const FREE_LIMITS = { watchlist: 5, holdings: null, alerts: 3, ai_daily: 10, portfolios: 1, custom_lists: 0 } as const;
+export const FREE_LIMITS = { watchlist: 5, holdings: null, alerts: 3, ai_daily: 10, portfolios: 1, custom_lists: 0, compare: 3 } as const;
 
 export type LimitKind = keyof typeof FREE_LIMITS;
 
@@ -74,6 +74,7 @@ export function usePremium() {
       alerts: limitFor(user, "alerts"),
       ai_daily: limitFor(user, "ai_daily"),
       portfolios: limitFor(user, "portfolios"),
+      compare: limitFor(user, "compare"),
     }),
     [user],
   );

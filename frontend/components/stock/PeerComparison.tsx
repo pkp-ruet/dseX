@@ -7,6 +7,9 @@ import { sectorBn } from "@/lib/bn";
 import Card from "@/components/ui/Card";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import SectionTitle from "@/components/stock/SectionTitle";
+import Button from "@/components/ui/Button";
+import { IconCompare } from "@/components/ui/icons";
+import { compareHref, FREE_COMPARE } from "@/lib/compare";
 
 export interface PeerRow {
   trading_code: string;
@@ -100,6 +103,11 @@ export default function PeerComparison({ current, peers, sector, note = null }: 
     { key: "roe_pct", en: "ROE", bn: "আরওই", kind: "pct", show: showRoe },
   ] as Col[]).filter((c) => c.show);
   const cell = (c: Col) => `px-2 sm:px-3 ${c.wide ? "hidden sm:table-cell" : ""}`;
+
+  // This share and its first peers, as many as a free account compares.
+  const compareCodes = [current.trading_code, ...peers.map((p) => p.trading_code)]
+    .filter((c, i, all) => all.indexOf(c) === i)
+    .slice(0, FREE_COMPARE);
 
   return (
     <section id="peers" className="mb-8 stock-anchor">
@@ -218,6 +226,17 @@ export default function PeerComparison({ current, peers, sector, note = null }: 
           </table>
         </div>
       </Card>
+
+      {compareCodes.length > 1 && (
+        <div className="mt-3">
+          <Button variant="quiet" size="sm" href={compareHref(compareCodes)}>
+            <IconCompare size={14} />
+            <span>
+              <T en="Compare these side by side" bn="এগুলো পাশাপাশি তুলনা করুন" />
+            </span>
+          </Button>
+        </div>
+      )}
     </section>
   );
 }

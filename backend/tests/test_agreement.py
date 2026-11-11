@@ -206,6 +206,9 @@ def test_frontend_limits_and_plans_match_the_backend():
     front = json.loads(re.sub(r"(\w+):", r'"\1":', m.group(1)))
     assert front == FREE_LIMITS
     assert int(re.search(r"export const MAX_HOLDINGS = (\d+);", src).group(1)) == HARD_LIMITS["holdings"]
+    cmp_src = _front("lib/compare.ts")
+    assert int(re.search(r"export const FREE_COMPARE = (\d+);", cmp_src).group(1)) == FREE_LIMITS["compare"]
+    assert int(re.search(r"export const MAX_COMPARE = (\d+);", cmp_src).group(1)) == HARD_LIMITS["compare"]
 
     plans = _front("lib/premium-plans.ts")
     for key, p in PAID_PLANS.items():

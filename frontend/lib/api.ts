@@ -1,3 +1,4 @@
+import type { ComparePayload } from "@/lib/compare";
 import type { TierKey } from "@/lib/constants";
 import type {
   AuditorTracker,
@@ -1561,6 +1562,14 @@ export interface MarketWatchOut {
 }
 
 /** Client-side price history fetch (no Next.js cache) */
+/** Shares side by side (`/compare-stocks`). Client-side, no cache: the backend
+ *  keeps each set of codes for 300s. */
+export async function getComparison(codes: string[]): Promise<ComparePayload> {
+  const res = await fetch(`${getApiUrl()}/api/compare?codes=${encodeURIComponent(codes.join(","))}`);
+  if (!res.ok) throw new Error(`Compare fetch failed: ${res.status}`);
+  return res.json() as Promise<ComparePayload>;
+}
+
 export async function getPriceHistory(code: string, range: "1y" | "2y" | "3y" | "5y" | "all" = "1y"): Promise<PricePoint[]> {
   const res = await fetch(`${getApiUrl()}/api/company/${code.toUpperCase()}/prices?range=${range}`);
   if (!res.ok) throw new Error(`Price history fetch failed: ${res.status}`);

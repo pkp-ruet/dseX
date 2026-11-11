@@ -91,6 +91,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     data("/stock-insights/is-the-profit-real", "monthly", 0.8),
     data("/stock-insights/dividends-you-can-count-on", "weekly", 0.8),
     data("/screener", "daily", 0.85),
+    content("/compare-stocks", "monthly", 0.7),
     content("/assistant", "monthly", 0.6),
     content("/learn", "monthly", 0.8),
     content("/blog", "monthly", 0.8),

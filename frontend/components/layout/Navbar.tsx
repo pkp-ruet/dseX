@@ -76,6 +76,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: "/dsestockranking", label: "Company ranking", labelBn: "কোম্পানির র‍্যাঙ্কিং", sub: "The strongest companies on the DSE", subBn: "ডিএসইর সবচেয়ে শক্তিশালী কোম্পানি", icon: "rankings" },
       { href: "/stocks", label: "All stocks", labelBn: "সব শেয়ার", sub: "The full A–Z list", subBn: "A থেকে Z পুরো তালিকা", icon: "browse" },
       { href: "/screener", label: "Stock screener", labelBn: "স্টক স্ক্রিনার", sub: "Find stocks that fit what you want", subBn: "আপনার চাওয়া অনুযায়ী শেয়ার খুঁজুন", icon: "find" },
+      { href: "/compare-stocks", label: "Compare stocks", labelBn: "শেয়ার তুলনা", sub: "Put shares side by side", subBn: "শেয়ার পাশাপাশি মিলিয়ে দেখুন", icon: "compare" },
       { href: "/stock-insights", label: "Premium research", labelBn: "প্রিমিয়াম গবেষণা", sub: "Risks, auditors, results and lists", subBn: "ঝুঁকি, নিরীক্ষক, আর্থিক ফল আর তালিকা", icon: "lists", premium: true },
       { href: "/assistant", label: "TopStock AI", labelBn: "TopStock AI", sub: "Ask in plain words", subBn: "সহজ ভাষায় প্রশ্ন করুন", icon: "ai" },
     ],
@@ -150,6 +151,8 @@ function MenuIcon({ name }: { name?: string }) {
       return <svg {...p}><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /><path d="M12 13.5v4M10.6 14.2h2.2a1.1 1.1 0 0 1 0 2.2h-1.5a1.1 1.1 0 0 0 0 2.2h2.3" /></svg>;
     case "find":
       return <svg {...p}><circle cx="11" cy="11" r="7" /><path d="M11 8v6M8 11h6" /><path d="m20 20-3-3" /></svg>;
+    case "compare":
+      return <svg {...p}><path d="M7 7h12l-3.5-3.5" /><path d="M17 17H5l3.5 3.5" /></svg>;
     case "lists":
       return <svg {...p}><path d="M12 3 3 8l9 5 9-5-9-5Z" /><path d="m3 13 9 5 9-5M3 18l9 5 9-5" opacity="0.55" /></svg>;
     case "browse":

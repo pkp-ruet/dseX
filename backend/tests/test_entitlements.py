@@ -62,7 +62,7 @@ def test_limits():
     assert limits_for({}, NOW) == FREE_LIMITS
     assert limits_for({"premium_until": NOW + timedelta(days=1)}, NOW) == {
         "watchlist": None, "holdings": None, "alerts": None, "ai_daily": None, "portfolios": None,
-        "custom_lists": None,
+        "custom_lists": None, "compare": None,
     }
 
 
@@ -108,4 +108,5 @@ def test_plan_fields_shape(monkeypatch):
     assert out["is_premium"] is False
     assert "trial_available" not in out
     assert out["premium_until"] is None
-    assert set(out["limits"]) == {"watchlist", "holdings", "alerts", "ai_daily", "portfolios", "custom_lists"}
+    assert set(out["limits"]) == {"watchlist", "holdings", "alerts", "ai_daily", "portfolios", "custom_lists",
+                                  "compare"}

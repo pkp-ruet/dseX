@@ -83,6 +83,15 @@ const PAGES: PageShortcut[] = [
       "high dividend", "yield", "market cap", "eps", "growing", "বাছাই", "স্ক্রিনার", "খুঁজুন", "সস্তা", "লভ্যাংশ"],
   },
   {
+    href: "/compare-stocks",
+    label: "Compare stocks",
+    labelBn: "শেয়ার তুলনা",
+    sub: "Put shares side by side",
+    subBn: "শেয়ার পাশাপাশি মিলিয়ে দেখুন",
+    keys: ["compare", "comparison", "vs", "versus", "side by side", "which is better", "better share",
+      "তুলনা", "পাশাপাশি", "কোনটা ভালো"],
+  },
+  {
     href: "/sectors",
     label: "Sectors",
     labelBn: "সেক্টর",

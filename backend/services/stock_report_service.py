@@ -391,7 +391,7 @@ def latest_snapshots(codes) -> dict[str, dict]:
     for d in get_db()[SNAPSHOT_COLLECTION].find(
         {"trading_code": {"$in": codes}, "date": {"$gte": since}},
         {"_id": 0, "trading_code": 1, "date": 1, "red": 1, "amber": 1, "red_keys": 1, "red_lines": 1,
-         "amber_keys": 1, "amber_lines": 1},
+         "amber_keys": 1, "amber_lines": 1, "words": 1},
     ).sort("date", -1):
         out.setdefault(d["trading_code"], d)
     return out
