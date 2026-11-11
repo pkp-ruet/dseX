@@ -9,7 +9,7 @@ import type { Bi, Tone } from "@/lib/stock-report";
 /**
  * ONE question of a report (2026-10-30 rebuild; the stock report's — the
  * portfolio report used it too until its own leaner row, `PfQuestion` in
- * `components/portfolio/report/PfReportChapter.tsx`, 2026-11-04).
+ * `components/portfolio/report/PfArea.tsx`, 2026-11-04).
  *
  * The whole report is Premium (2026-11-01) and the page renders it inside
  * `ReportGate`, open, so a row has one layout (clean pass 2026-11-04): the

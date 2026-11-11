@@ -132,6 +132,8 @@ export function buildPortfolioFit({
   code,
   ltp: pageLtp,
   spend: wanted,
+  qty: wantQty,
+  price: paidPrice,
 }: {
   holdings: PortfolioHolding[];
   priceMap: Map<string, ScoreItem>;
@@ -139,6 +141,10 @@ export function buildPortfolioFit({
   ltp: number | null;
   /** Taka to put in; the suggestion when absent. */
   spend?: number | null;
+  /** Whole shares to buy (the buy sheets, 2026-11-11); `spend` / the suggestion when absent. */
+  qty?: number | null;
+  /** The price paid a share (the buy sheets); today's price when absent. */
+  price?: number | null;
 }): PortfolioFit | null {
   const CODE = code.toUpperCase();
   const item = priceMap.get(CODE);
@@ -151,8 +157,9 @@ export function buildPortfolioFit({
   const total = rows.reduce((s, r) => s + valueOf(r), 0);
   const heldValue = mine.reduce((s, r) => s + valueOf(r), 0);
   const spendAsked = wanted != null && wanted > 0 ? wanted : suggestSpend(total, rows.length, ltp, heldValue);
-  const qty = Math.max(1, Math.floor(spendAsked / ltp));
-  const spend = qty * ltp;
+  const qty = wantQty != null && wantQty > 0 ? Math.floor(wantQty) : Math.max(1, Math.floor(spendAsked / ltp));
+  const paid = paidPrice != null && paidPrice > 0 ? paidPrice : ltp;
+  const spend = qty * paid;
 
   const before = analyzePortfolio(rows, priceMap, "en");
 

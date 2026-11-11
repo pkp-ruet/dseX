@@ -2,16 +2,16 @@ import type { BuyNext, GlanceRow, ScoreItem, ScoresResponse, UpcomingResult } fr
 import { flattenTiers } from "@/lib/api";
 import { isoLocal, todayDhaka } from "@/lib/dividend-dates";
 import { planFromEngine, type AnalysisLang, type ComputedRow, type PortfolioAnalysis } from "@/lib/portfolio-analysis";
-import { buildNextMove, gradeLifts } from "@/lib/portfolio-next";
+import { buildNextMove, gradeLifts, gradePath } from "@/lib/portfolio-next";
 import { buildProInsights } from "@/lib/portfolio-pro";
 import { buildPortfolioReport, type PortfolioReport } from "@/lib/portfolio-report";
 import { analyzeSample } from "@/lib/sample-portfolio-analysis";
 import type { SamplePortfolio } from "@/lib/sample-portfolios";
 
-/** Rows the sample leaves out: Buy more / Sell is Premium (2026-11-01), and
- *  a sample has no watcher history, so "What changed this week?" would only
- *  ever say "quiet". */
-const SKIP_ROWS = new Set(["sell", "changed"]);
+/** Rows the sample leaves out: a sample has no watcher history, so "What
+ *  changed this week?" would only ever say "quiet". (The Sell row left the
+ *  areas for "Each of your shares" on 2026-11-11.) */
+const SKIP_ROWS = new Set(["changed"]);
 
 export interface SampleReport {
   report: PortfolioReport;
@@ -51,6 +51,7 @@ export function buildSampleReport(
       next: { en: buildNextMove(analysis, planEn, "en"), bn: buildNextMove(analysis, planBn, "bn") },
       plan,
       lifts: gradeLifts(rows, priceMap, analysis, plan, lang),
+      path: gradePath(rows, priceMap, analysis, plan, { lines }),
       pro: buildProInsights(analysis, priceMap, lang),
       priceMap,
       glance: glanceMap,
@@ -64,8 +65,10 @@ export function buildSampleReport(
   const en = run("en");
   const bn = run("bn");
   const report = mergeLang(en.report, bn.report);
-  report.chapters = report.chapters.map((c) => ({ ...c, rows: c.rows.filter((r) => !SKIP_ROWS.has(r.key)) }));
-  report.answered = report.chapters.reduce((a, c) => a + c.rows.length, 0) + 4;
+  report.areas = report.areas.map((c) => ({ ...c, rows: c.rows.filter((r) => !SKIP_ROWS.has(r.key)) }));
+  const answers = report.areas.reduce((a, c) => a + c.rows.length, 0);
+  report.answered += answers - report.outline.answers;
+  report.outline = { ...report.outline, answers };
   return { report, rows: en.rows, analysis: en.analysis };
 }
 

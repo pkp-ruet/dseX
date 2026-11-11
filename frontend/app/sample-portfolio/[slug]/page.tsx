@@ -13,9 +13,9 @@ import {
 } from "@/lib/sample-portfolios";
 import { buildSampleReport } from "@/lib/sample-portfolio-report";
 import { OpenScope } from "@/components/premium/LockScope";
-import PortfolioAnswer from "@/components/portfolio/report/PortfolioAnswer";
-import PfReportChapter from "@/components/portfolio/report/PfReportChapter";
-import PfPlanSection from "@/components/portfolio/report/PfPlanSection";
+import PfVerdict from "@/components/portfolio/report/PfVerdict";
+import PfArea from "@/components/portfolio/report/PfArea";
+import PfPlan from "@/components/portfolio/report/PfPlan";
 import SampleHoldings from "@/components/sample-portfolio/SampleHoldings";
 import SampleNav from "@/components/sample-portfolio/SampleNav";
 
@@ -167,18 +167,33 @@ export default async function SamplePortfolioPage({ params }: Props) {
         />
       </p>
 
-      <SampleNav loss={report.chapters.some((c) => c.key === "loss")} />
+      <SampleNav />
 
       <SampleHoldings rows={rows} analysis={analysis} />
 
       {/* The full check, as a Premium reader sees it on their own portfolio. */}
       <OpenScope>
         <div className="smp-report">
-          <PortfolioAnswer answer={report.answer} />
-          {report.chapters.map((c) => (
-            <PfReportChapter key={c.key} chapter={c} />
-          ))}
-          <PfPlanSection plan={report.plan} grade={analysis.grade} />
+          <PfVerdict answer={report.answer} start={report.start} />
+          <PfPlan wayBack={report.wayBack} path={report.path} each={report.each} grade={analysis.grade} feePct={0.4} />
+          <section id="pf-why" className="dash-section pf-part" aria-labelledby="pf-why-h">
+            <header className="pf-part-h">
+              <p className="pf-part-n">
+                <T en="3 · Why we say this" bn="3 · কেন বলছি" />
+              </p>
+              <h2 id="pf-why-h" className="pf-part-title">
+                <T en={`Four areas, ${report.outline.answers} answers`} bn={`চারটি দিক, ${report.outline.answers}টি উত্তর`} />
+              </h2>
+              <p className="pf-part-lead">
+                <T en="Each area opens with its answer. Its questions are folded under it." bn="প্রতিটি দিকের শুরুতে তার উত্তর। প্রশ্নগুলো নিচে ভাঁজ করা।" />
+              </p>
+            </header>
+            <div className="pfar-grid">
+              {report.areas.map((c) => (
+                <PfArea key={c.key} chapter={c} />
+              ))}
+            </div>
+          </section>
         </div>
       </OpenScope>
 

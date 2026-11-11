@@ -6,11 +6,14 @@ import { taka } from "@/lib/formatters";
 import Button from "@/components/ui/Button";
 import Sheet from "@/components/ui/Sheet";
 import type { AnalysisLang } from "@/lib/portfolio-analysis";
+import BeforeYouSave from "./BeforeYouSave";
 
 interface Props {
   allCodes: string[];
   priceMap: Map<string, ScoreItem>;
   existingCodes: Set<string>;
+  /** The open portfolio's holdings, for "Before you save" (2026-11-11). */
+  holdings?: PortfolioHolding[];
   onClose: () => void;
   /** Called with the server's authoritative holdings (and log) after a successful add. */
   onAdded: (holdings: PortfolioHolding[], log?: PortfolioLogEntry[]) => void;
@@ -26,7 +29,7 @@ const emptyForm = () => ({ trading_code: "", price: "", qty: "" });
  * sheet on phones, dialog from 640px. Code with type-ahead (company name
  * beside each code), price prefilled with today's price, quantity.
  */
-export default function AddHoldingModal({ allCodes, priceMap, existingCodes, onClose, onAdded, pid, lang = "en" }: Props) {
+export default function AddHoldingModal({ allCodes, priceMap, existingCodes, holdings = [], onClose, onAdded, pid, lang = "en" }: Props) {
   const bn = lang === "bn";
   const L = (en: string, b: string) => (bn ? b : en);
   const [form, setForm] = useState(emptyForm);
@@ -201,6 +204,18 @@ export default function AddHoldingModal({ allCodes, priceMap, existingCodes, onC
             />
           </div>
         </div>
+
+        {picked && holdings.length > 0 && (
+          <BeforeYouSave
+            code={code}
+            qty={parseInt(form.qty, 10) || null}
+            price={parseFloat(form.price) || null}
+            holdings={holdings}
+            priceMap={priceMap}
+            source="add"
+            onUseQty={(n) => setForm((f) => ({ ...f, qty: String(n) }))}
+          />
+        )}
 
         {error && <p className="form-error">{error}</p>}
 

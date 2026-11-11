@@ -6,11 +6,13 @@ import {
   apiSellHolding,
   type PortfolioHolding,
   type PortfolioLogEntry,
+  type ScoreItem,
 } from "@/lib/api";
 import { taka, takaGroup } from "@/lib/formatters";
 import Button from "@/components/ui/Button";
 import Sheet from "@/components/ui/Sheet";
 import type { AnalysisLang } from "@/lib/portfolio-analysis";
+import BeforeYouSave from "./BeforeYouSave";
 
 type Mode = "buy" | "sell";
 
@@ -26,6 +28,11 @@ interface Props {
   /** Which portfolio (absent = the main one). */
   pid?: string;
   lang?: AnalysisLang;
+  /** The open portfolio and today's scores, for "Before you save" on a buy (2026-11-11). */
+  holdings?: PortfolioHolding[];
+  priceMap?: Map<string, ScoreItem>;
+  /** What the portfolio check's plan says for this share. */
+  plan?: { label: { en: string; bn: string }; line: { en: string; bn: string } } | null;
 }
 
 type Preview =
@@ -48,7 +55,7 @@ const n = (v: number) => v.toLocaleString("en-IN");
  * everything removes the holding. A live "after this" panel spells out the
  * resulting position and the profit, so the outcome is never a surprise.
  */
-export default function BuySellModal({ mode, holding, ltp, companyName, onClose, onDone, pid, lang = "en" }: Props) {
+export default function BuySellModal({ mode, holding, ltp, companyName, onClose, onDone, pid, lang = "en", holdings = [], priceMap, plan = null }: Props) {
   const isBuy = mode === "buy";
   const bn = lang === "bn";
   const L = (en: string, b: string) => (bn ? b : en);
@@ -227,6 +234,19 @@ export default function BuySellModal({ mode, holding, ltp, companyName, onClose,
               </p>
             )}
           </div>
+        )}
+
+        {isBuy && priceMap && holdings.length > 0 && (
+          <BeforeYouSave
+            code={holding.trading_code}
+            qty={qtyValid ? qtyNum : null}
+            price={priceValid ? priceNum : null}
+            holdings={holdings}
+            priceMap={priceMap}
+            source="more"
+            plan={plan}
+            onUseQty={(v) => setQty(String(v))}
+          />
         )}
 
         {error && <p className="form-error">{error}</p>}

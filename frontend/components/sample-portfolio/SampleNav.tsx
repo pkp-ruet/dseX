@@ -5,19 +5,14 @@ import { useLang } from "@/context/LangContext";
 
 const ITEMS: { id: string; en: string; bn: string }[] = [
   { id: "smp-shares", en: "Shares", bn: "শেয়ার" },
-  { id: "ch-answer", en: "Answer", bn: "উত্তর" },
-  { id: "ch-companies", en: "Companies", bn: "কোম্পানি" },
-  { id: "ch-spread", en: "Spread", bn: "বণ্টন" },
-  { id: "ch-prices", en: "Prices", bn: "দাম" },
-  { id: "ch-loss", en: "Losses", bn: "লোকসান" },
-  { id: "ch-watch", en: "Watch", bn: "নজর" },
+  { id: "ch-answer", en: "Verdict", bn: "রায়" },
   { id: "ch-plan", en: "Plan", bn: "পরিকল্পনা" },
+  { id: "pf-why", en: "Why", bn: "কেন" },
 ];
 
-/** The sample page's chapter chips: the portfolio page's, in the reader's
- *  language. `loss` = the sample has shares below what it paid. */
-export default function SampleNav({ loss = false }: { loss?: boolean }) {
+/** The sample page's chips: the portfolio page's three parts (2026-11-11),
+ *  in the reader's language. */
+export default function SampleNav() {
   const { lang, bn } = useLang();
-  const items = ITEMS.filter((i) => loss || i.id !== "ch-loss");
-  return <DashSectionNav items={items.map((i) => ({ id: i.id, label: bn ? i.bn : i.en }))} lang={lang} />;
+  return <DashSectionNav items={ITEMS.map((i) => ({ id: i.id, label: bn ? i.bn : i.en }))} lang={lang} />;
 }

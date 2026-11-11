@@ -320,3 +320,252 @@ export function gradeLifts(
     .sort((a, b) => b.toOverall - b.fromOverall - (a.toOverall - a.fromOverall))
     .slice(0, 3);
 }
+
+// ── Three changes to an A (2026-11-11) ─────────────────────────────────────
+//
+// `gradeLifts` tries one change at a time. `gradePath` chains them: at each
+// step it tries every change the page can stand behind on the portfolio as it
+// would be after the steps before, keeps the one that lifts the overall score
+// most, and stops at an A, after three steps, or when nothing lifts it. Then
+// it replays the chosen changes in the order a reader acts (problem shares
+// sold or swapped first, a big share trimmed next, buys last, so the sales pay
+// for the buys) and grades after each. It never invents a change of its own:
+// - sell a share marked Sell (all of it);
+// - trim a share whose own advice is Trim (its price is high) to a quarter;
+// - swap a weak / Z share for the engine's stronger company in its business;
+// - add one of the engine's ideas (never "add more" of a share already held,
+//   so nothing is pushed past a fifth of the money).
+// The path is kept only when the last letter is better than today's; steps
+// at the end that don't change the letter are dropped.
+
+export type PathStepKind = "sell" | "trim" | "swap" | "add";
+
+export interface PathTrade {
+  side: "sell" | "buy";
+  code: string;
+  qty: number;
+  /** Shares held before the step (sells), else null. */
+  held: number | null;
+  price: number;
+  amount: number;
+  /** What was paid a share (sells), for the profit or loss the sale makes real. */
+  avgCost: number | null;
+}
+
+export interface PathStep {
+  kind: PathStepKind;
+  /** The share sold or trimmed (sell / trim / swap), or bought (add). */
+  code: string;
+  /** The share bought (swap / add). */
+  pick: string | null;
+  pickKind: RebalanceKind | null;
+  trades: PathTrade[];
+  from: Grade;
+  to: Grade;
+  /** The sold / trimmed share's business: its part of the money before and after. */
+  sector: { name: string; before: number; after: number } | null;
+  /** The sold / trimmed share's part of the money before the step, %. */
+  weight: number;
+  /** The biggest single share after the step, %. */
+  topAfter: number;
+  /** The share bought is in a business the portfolio didn't hold. */
+  newSector: boolean;
+}
+
+export interface GradePath {
+  from: Grade;
+  to: Grade;
+  steps: PathStep[];
+}
+
+/** Steps in a path at most. */
+export const PATH_MAX_STEPS = 3;
+/** A step must lift the overall score at least this much. */
+const PATH_MIN_LIFT = 0.05;
+
+type RebalanceKind = RebalancePlan["picks"][number]["kind"];
+type AnalyzeOpts = Parameters<typeof analyzePortfolio>[3];
+
+/** One change, independent of the portfolio it is applied to. */
+interface Intent {
+  kind: PathStepKind;
+  /** The share sold / trimmed (sell / trim / swap), or bought (add). */
+  code: string;
+  pick: string | null;
+  pickKind: RebalanceKind | null;
+  /** Shares bought (swap / add). */
+  shares: number;
+}
+
+/** The order a reader acts in: get out of problem shares first, then bring a
+ *  big share down, then buy (the sales pay for the buys). */
+const KIND_ORDER: Record<PathStepKind, number> = { sell: 0, swap: 1, trim: 2, add: 3 };
+
+const sectorPctOf = (a: PortfolioAnalysis, sector: string | null) =>
+  sector ? a.sectorSpread.find((s) => s.name === sector)?.weightPct ?? 0 : 0;
+
+export function gradePath(
+  rows: ComputedRow[],
+  priceMap: Map<string, ScoreItem>,
+  analysis: PortfolioAnalysis,
+  plan: RebalancePlan | null,
+  opts?: AnalyzeOpts,
+): GradePath | null {
+  if (rows.length === 0 || analysis.grade === "A") return null;
+  const run = (rs: ComputedRow[]) => analyzePortfolio(rs, priceMap, analysis.lang, opts);
+
+  // 1. Choose: at each step the change that lifts the overall score most.
+  let cur = rows;
+  let curA = analysis;
+  const used = new Set<string>();
+  const chosen: Intent[] = [];
+  for (let i = 0; i < PATH_MAX_STEPS && curA.grade !== "A"; i++) {
+    let best: { it: Intent; rows: ComputedRow[]; a: PortfolioAnalysis } | null = null;
+    for (const it of pathIntents(cur, curA, plan, used)) {
+      const applied = applyIntent(it, cur, curA, priceMap);
+      if (!applied || !applied.rows.length) continue;
+      const a = run(applied.rows);
+      if (!best || a.subScores.overall > best.a.subScores.overall) best = { it, rows: applied.rows, a };
+    }
+    if (!best || best.a.subScores.overall - curA.subScores.overall < PATH_MIN_LIFT) break;
+    chosen.push(best.it);
+    used.add(best.it.code.toUpperCase());
+    if (best.it.pick) used.add(best.it.pick.toUpperCase());
+    cur = best.rows;
+    curA = best.a;
+  }
+  if (!chosen.length) return null;
+
+  // 2. Replay them in the order a reader acts, grading after each.
+  const replay = (order: Intent[]): PathStep[] | null => {
+    let rs = rows;
+    let a = analysis;
+    const out: PathStep[] = [];
+    for (const it of order) {
+      const applied = applyIntent(it, rs, a, priceMap);
+      if (!applied || !applied.rows.length) return null;
+      const next = run(applied.rows);
+      const outSector = it.kind === "add" ? null : a.holdings.find((h) => h.code.toUpperCase() === it.code.toUpperCase())?.sector ?? null;
+      const pickSector = it.pick ? priceMap.get(it.pick.toUpperCase())?.sector ?? null : null;
+      out.push({
+        kind: it.kind,
+        code: it.code,
+        pick: it.pick,
+        pickKind: it.pickKind,
+        trades: applied.trades,
+        from: a.grade,
+        to: next.grade,
+        sector: outSector ? { name: outSector, before: sectorPctOf(a, outSector), after: sectorPctOf(next, outSector) } : null,
+        weight: it.kind === "add" ? 0 : a.holdings.find((h) => h.code.toUpperCase() === it.code.toUpperCase())?.weightPct ?? 0,
+        topAfter: Math.max(0, ...next.holdings.map((h) => h.weightPct)),
+        newSector: !!pickSector && !a.holdings.some((h) => h.sector === pickSector),
+      });
+      rs = applied.rows;
+      a = next;
+    }
+    return out;
+  };
+  const ordered = [...chosen].sort((x, y) => KIND_ORDER[x.kind] - KIND_ORDER[y.kind]);
+  let steps = replay(ordered) ?? replay(chosen);
+  if (!steps) return null;
+  const last = steps[steps.length - 1].to;
+  if (GRADE_RANK[last] <= GRADE_RANK[analysis.grade]) {
+    // In the reader's order the letter didn't climb (rare): keep the chosen order.
+    steps = replay(chosen);
+    if (!steps) return null;
+  }
+
+  // Steps at the end that don't change the letter add nothing to the path.
+  while (steps.length && steps[steps.length - 1].from === steps[steps.length - 1].to) steps.pop();
+  if (!steps.length) return null;
+  const to = steps[steps.length - 1].to;
+  if (GRADE_RANK[to] <= GRADE_RANK[analysis.grade]) return null;
+  return { from: analysis.grade, to, steps };
+}
+
+/** Every change the page can stand behind on this portfolio. */
+function pathIntents(rows: ComputedRow[], a: PortfolioAnalysis, plan: RebalancePlan | null, used: Set<string>): Intent[] {
+  const out: Intent[] = [];
+  const held = new Set(rows.map((r) => r.holding.trading_code.toUpperCase()));
+  for (const h of a.holdings) {
+    const code = h.code.toUpperCase();
+    if (used.has(code) || rows.length < 2) continue;
+    // 1. Sell a share marked Sell.
+    if (h.signal.signal === "sell") out.push({ kind: "sell", code: h.code, pick: null, pickKind: null, shares: 0 });
+    // 2. Trim a share whose own advice is Trim (applied only while it is over a quarter).
+    if (h.signal.signal === "trim") out.push({ kind: "trim", code: h.code, pick: null, pickKind: null, shares: 0 });
+  }
+  for (const p of plan?.picks ?? []) {
+    const pick = p.code.toUpperCase();
+    if (!p.suggest || used.has(pick) || held.has(pick)) continue;
+    // 3. Swap a weak / Z share for a stronger company in its business.
+    if (p.kind === "swap") {
+      if (p.replaces && held.has(p.replaces.toUpperCase()) && !used.has(p.replaces.toUpperCase())) {
+        out.push({ kind: "swap", code: p.replaces, pick: p.code, pickKind: p.kind, shares: p.suggest.shares });
+      }
+      continue;
+    }
+    // 4. Add one of the engine's ideas (never more of a share already held).
+    if (p.kind === "add_more") continue;
+    out.push({ kind: "add", code: p.code, pick: p.code, pickKind: p.kind, shares: p.suggest.shares });
+  }
+  return out;
+}
+
+/** The portfolio after one change, and its trades; null when it doesn't apply. */
+function applyIntent(
+  it: Intent,
+  rows: ComputedRow[],
+  a: PortfolioAnalysis,
+  priceMap: Map<string, ScoreItem>,
+): { rows: ComputedRow[]; trades: PathTrade[] } | null {
+  const rowOf = (code: string) => rows.find((r) => r.holding.trading_code.toUpperCase() === code.toUpperCase());
+  const sellAll = (r: ComputedRow): PathTrade => ({
+    side: "sell",
+    code: r.holding.trading_code,
+    qty: r.holding.qty,
+    held: r.holding.qty,
+    price: r.ltp ?? r.holding.buy_price,
+    amount: r.holding.qty * (r.ltp ?? r.holding.buy_price),
+    avgCost: r.holding.buy_price,
+  });
+  const buy = (code: string, shares: number): { trade: PathTrade; row: ComputedRow } | null => {
+    const item = priceMap.get(code.toUpperCase());
+    if (!item?.ltp || shares <= 0) return null;
+    return {
+      trade: { side: "buy", code, qty: shares, held: null, price: item.ltp, amount: shares * item.ltp, avgCost: null },
+      row: rowFor(code, shares, item.ltp, item.ltp, item.company_name ?? null),
+    };
+  };
+
+  if (it.kind === "sell") {
+    const r = rowOf(it.code);
+    if (!r || rows.length < 2) return null;
+    return { rows: rows.filter((x) => x !== r), trades: [sellAll(r)] };
+  }
+  if (it.kind === "trim") {
+    const r = rowOf(it.code);
+    const h = a.holdings.find((x) => x.code.toUpperCase() === it.code.toUpperCase());
+    if (!r || !h?.ltp || h.weightPct <= MAX_STOCK_PCT) return null;
+    // Down to a quarter of what is left.
+    const total = a.holdings.reduce((acc, x) => acc + valueOf(x), 0);
+    const t = MAX_STOCK_PCT / 100;
+    const keep = Math.max(1, Math.floor((t * (total - h.qty * h.ltp)) / ((1 - t) * h.ltp)));
+    if (keep >= h.qty) return null;
+    const sold = h.qty - keep;
+    return {
+      // The holding keeps its own advice (its signal) at the smaller size.
+      rows: rows.map((x) => (x === r ? { ...rowFor(r.holding.trading_code, keep, r.holding.buy_price, r.ltp, r.company_name), holding: { ...r.holding, qty: keep } } : x)),
+      trades: [{ side: "sell", code: it.code, qty: sold, held: h.qty, price: h.ltp, amount: sold * h.ltp, avgCost: r.holding.buy_price }],
+    };
+  }
+  if (it.kind === "swap") {
+    const r = rowOf(it.code);
+    const b = it.pick ? buy(it.pick, it.shares) : null;
+    if (!r || !b) return null;
+    return { rows: [...rows.filter((x) => x !== r), b.row], trades: [sellAll(r), b.trade] };
+  }
+  const b = it.pick ? buy(it.pick, it.shares) : null;
+  if (!b) return null;
+  return { rows: [...rows, b.row], trades: [b.trade] };
+}

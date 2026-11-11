@@ -95,12 +95,14 @@ import PortfolioHero from "./PortfolioHero";
 import AddHoldingModal from "./AddHoldingModal";
 import BuySellModal from "./BuySellModal";
 import PortfolioNews from "./PortfolioNews";
-import PortfolioAnswer from "./report/PortfolioAnswer";
 import PortfolioPromo from "./report/PortfolioPromo";
-import PfReportChapter, { PfReportBand } from "./report/PfReportChapter";
-import PfPlanSection from "./report/PfPlanSection";
+import PfArea, { PfReportBand } from "./report/PfArea";
+import PfVerdict from "./report/PfVerdict";
+import PfPlan from "./report/PfPlan";
 import PfMoneyRoom from "./report/PfMoneyRoom";
-import { buildNextMove, gradeLifts } from "@/lib/portfolio-next";
+import TierPill from "@/components/ui/TierPill";
+import type { TierKey } from "@/lib/constants";
+import { buildNextMove, gradeLifts, gradePath } from "@/lib/portfolio-next";
 import { buildPortfolioReport } from "@/lib/portfolio-report";
 import { SAMPLE_PORTFOLIOS } from "@/lib/sample-portfolios";
 import { isoLocal, todayDhaka } from "@/lib/dividend-dates";
@@ -658,6 +660,11 @@ export default function PortfolioClient() {
     () => gradeLifts(rows, priceMap, analysis, rebalance, lang),
     [rows, priceMap, analysis, rebalance, lang],
   );
+  // Three changes to an A (2026-11-11): the grade lifts chained, step by step.
+  const path = useMemo(
+    () => gradePath(rows, priceMap, analysis, rebalance, { lines: priceLines }),
+    [rows, priceMap, analysis, rebalance, priceLines],
+  );
   const proInsights = useMemo(() => buildProInsights(analysis, priceMap, lang), [analysis, priceMap, lang]);
   const { isPremium, state: planState, premiumUntil } = usePremium();
   // An extra portfolio kept from a free month that has ended: readable, not editable.
@@ -857,39 +864,39 @@ export default function PortfolioClient() {
         sinceLast: valueDelta,
         feePct: settings.fee_pct,
         divReceived,
+        path,
+        divTaxPct: settings.div_tax_pct,
       }),
-    [analysis, nextBoth, rebalance, lifts, proInsights, priceMap, glance, results, myWatch, myFlips, valueDelta, settings.fee_pct, divReceived],
+    [analysis, nextBoth, rebalance, lifts, proInsights, priceMap, glance, results, myWatch, myFlips, valueDelta, settings.fee_pct, settings.div_tax_pct, divReceived, path],
   );
+  // Each share's group (free) and the plan's word for it (Premium), for the rows.
+  const insightOf = useMemo(() => new Map(analysis.holdings.map((h) => [h.code.toUpperCase(), h])), [analysis]);
+  const actionOf = useMemo(() => new Map(report.each.act.map((a) => [a.code.toUpperCase(), a])), [report.each]);
 
   const bn = lang === "bn";
   // The analysis is Premium (2026-11-02): a free reader's chips skip its
   // chapters and point at the one Premium card instead.
   const reportOpen = usePremiumOpen();
-  const hasLoss = report.chapters.some((c) => c.key === "loss");
+  // Six chips for the check's three parts (2026-11-11, was nine).
   const navItems = useMemo(
     () =>
       reportOpen
         ? [
             { id: "pf-money", label: lang === "bn" ? "টাকা" : "Money" },
-            // The shares list sits right under the money, the answer after it (2026-11-04)
+            // The shares list sits right under the money, the check after it (2026-11-04)
             { id: "pf-shares", label: lang === "bn" ? "শেয়ার" : "Shares" },
-            { id: "ch-answer", label: lang === "bn" ? "উত্তর" : "Answer" },
-            { id: "ch-companies", label: lang === "bn" ? "কোম্পানি" : "Companies" },
-            { id: "ch-spread", label: lang === "bn" ? "বণ্টন" : "Spread" },
-            { id: "ch-prices", label: lang === "bn" ? "দাম" : "Prices" },
-            // Only when some shares are below what the reader paid (2026-11-04).
-            ...(hasLoss ? [{ id: "ch-loss", label: lang === "bn" ? "লোকসান" : "Losses" }] : []),
-            { id: "ch-watch", label: lang === "bn" ? "নজর" : "Watch" },
+            { id: "ch-answer", label: lang === "bn" ? "রায়" : "Verdict" },
             { id: "ch-plan", label: lang === "bn" ? "পরিকল্পনা" : "Plan" },
+            { id: "pf-why", label: lang === "bn" ? "কেন" : "Why" },
             { id: "ch-money", label: lang === "bn" ? "বিস্তারিত" : "Details" },
           ]
         : [
             { id: "pf-money", label: lang === "bn" ? "টাকা" : "Money" },
             { id: "pf-shares", label: lang === "bn" ? "শেয়ার" : "Shares" },
-            { id: "pf-premium", label: lang === "bn" ? "প্রিমিয়াম" : "Premium" },
+            { id: "pf-premium", label: lang === "bn" ? "আপনার যাচাই" : "Your check" },
             { id: "ch-money", label: lang === "bn" ? "বিস্তারিত" : "Details" },
           ],
-    [lang, reportOpen, hasLoss],
+    [lang, reportOpen],
   );
   const statementHref = isMain ? "/portfolio/statement" : `/portfolio/statement?pid=${encodeURIComponent(pid)}`;
 
@@ -1281,6 +1288,9 @@ export default function PortfolioClient() {
                   const code = row.holding.trading_code;
                   const name = row.company_name ?? code;
                   const tags = updateTags.get(code.toUpperCase()) ?? [];
+                  const ins = insightOf.get(code.toUpperCase());
+                  const tierOf = ins && ins.tierKey !== "unscored" ? (ins.tierKey as TierKey) : null;
+                  const act = actionOf.get(code.toUpperCase()) ?? null;
                   const open = openId === row.holding.id;
                   const moreId = `pf-more-${row.holding.id}`;
                   const pos =
@@ -1318,9 +1328,16 @@ export default function PortfolioClient() {
                           <span className="pf-hold-chev"><IconChevronDown size={18} /></span>
                         </div>
 
-                        {tags.length > 0 && (
+                        {(tags.length > 0 || tierOf || (reportOpen && act)) && (
                           <div className="pf-hold-mid">
-                            {/* This stock's own updates, from chapter 2's list */}
+                            {tierOf && <TierPill tier={tierOf} />}
+                            {/* The plan's word for this share (Premium, 2026-11-11) */}
+                            {reportOpen && act && (
+                              <span className="pf-act" data-act={act.action}>
+                                <span className={bnCls}>{bn ? act.label.bn : act.label.en}</span>
+                              </span>
+                            )}
+                            {/* This stock's own updates */}
                             {tags.map((e) => (
                               <Chip key={e.kind} tone={LEVEL_TONE[e.level]}>
                                 <span className={bnCls}>{bn ? KIND_TAG[e.kind].bn : KIND_TAG[e.kind].en}</span>
@@ -1371,6 +1388,21 @@ export default function PortfolioClient() {
                             </div>
                           )}
                         </div>
+
+                        {reportOpen && act && (
+                          <p className={`pf-hold-plan ${bnCls}`}>
+                            <span className="pf-act" data-act={act.action}>{bn ? act.label.bn : act.label.en}</span>
+                            <span>
+                              {bn ? act.line.bn : act.line.en}
+                              {act.step != null && (
+                                <>
+                                  {" "}
+                                  <a href="#pf-path" className="pf-inline-link">{L("See your path", "আপনার পথ দেখুন")}</a>
+                                </>
+                              )}
+                            </span>
+                          </p>
+                        )}
 
                         {!readOnly && (
                           <div className="pf-hold-actions">
@@ -1428,6 +1460,7 @@ export default function PortfolioClient() {
             <PortfolioPromo
               findings={report.findings}
               promo={report.promo}
+              outline={report.outline}
               sampleHref={`/sample-portfolio/${SAMPLE_PORTFOLIOS.diversified.slug}`}
             />
           )}
@@ -1435,25 +1468,34 @@ export default function PortfolioClient() {
           <Locked>
             <OpenScope>
               <PfReportBand answered={report.answered} />
-              {/* THE answer: is your portfolio in good shape? Four lights. */}
-              <div className="pf-answer-slot">
-                <PortfolioAnswer answer={report.answer} />
-              </div>
-              {report.chapters.map((c) => (
-                <PfReportChapter key={c.key} chapter={c} />
-              ))}
-
-              <PfPlanSection plan={report.plan} grade={analysis.grade}>
+              <PfVerdict answer={report.answer} start={report.start} />
+              <PfPlan wayBack={report.wayBack} path={report.path} each={report.each} grade={analysis.grade} feePct={settings.fee_pct}>
                 <div id="pf-whatif" className="dash-section">
                   <WhatIfCard rows={rows} priceMap={priceMap} allCodes={allCodes} lang={lang} />
                 </div>
-                <p className={`pf-disclaimer ${bnCls}`}>
-                  {L(
-                    "This analysis is for guidance only. Always do your own research before making investment decisions.",
-                    "এই বিশ্লেষণ শুধু ধারণা দেওয়ার জন্য। বিনিয়োগের সিদ্ধান্ত নেওয়ার আগে সবসময় নিজে যাচাই করুন।",
-                  )}
-                </p>
-              </PfPlanSection>
+              </PfPlan>
+              <section id="pf-why" className="dash-section pf-part" aria-labelledby="pf-why-h">
+                <header className="pf-part-h">
+                  <p className="pf-part-n">{L("3 · Why we say this", "3 · কেন বলছি")}</p>
+                  <h2 id="pf-why-h" className="pf-part-title">
+                    {L(`Four areas, ${report.outline.answers} answers`, `চারটি দিক, ${report.outline.answers}টি উত্তর`)}
+                  </h2>
+                  <p className="pf-part-lead">
+                    {L("Each area opens with its answer. Its questions are folded under it.", "প্রতিটি দিকের শুরুতে তার উত্তর। প্রশ্নগুলো নিচে ভাঁজ করা।")}
+                  </p>
+                </header>
+                <div className="pfar-grid">
+                  {report.areas.map((c) => (
+                    <PfArea key={c.key} chapter={c} />
+                  ))}
+                </div>
+              </section>
+              <p className={`pf-disclaimer ${bnCls}`}>
+                {L(
+                  "This analysis is for guidance only. Always do your own research before making investment decisions.",
+                  "এই বিশ্লেষণ শুধু ধারণা দেওয়ার জন্য। বিনিয়োগের সিদ্ধান্ত নেওয়ার আগে সবসময় নিজে যাচাই করুন।",
+                )}
+              </p>
             </OpenScope>
           </Locked>
 
@@ -1547,6 +1589,7 @@ export default function PortfolioClient() {
           allCodes={allCodes}
           priceMap={priceMap}
           existingCodes={existingCodes}
+          holdings={holdings}
           onClose={() => setAddOpen(false)}
           onAdded={applyHoldings}
           pid={pid}
@@ -1565,6 +1608,9 @@ export default function PortfolioClient() {
           onDone={applyHoldings}
           pid={pid}
           lang={lang}
+          holdings={holdings}
+          priceMap={priceMap}
+          plan={reportOpen ? actionOf.get(tx.holding.trading_code.toUpperCase()) ?? null : null}
         />
       )}
 

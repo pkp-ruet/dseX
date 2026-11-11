@@ -25,7 +25,7 @@
 import type { GlanceRow, PortfolioSignalEvent, PortfolioWatchEvent, ScoreItem, UpcomingResult } from "@/lib/api";
 import { sectorBn } from "@/lib/bn";
 import { companyShort, money, takaGroup } from "@/lib/formatters";
-import { TIER_LABELS, TIER_PILL_BN } from "@/lib/constants";
+import { getTier, TIER_LABELS, TIER_PILL_BN } from "@/lib/constants";
 import {
   BUY_MORE_MAX_PCT,
   FIN_HEAVY_PCT,
@@ -42,7 +42,7 @@ import {
   type PortfolioAnalysis,
   type RebalancePlan,
 } from "@/lib/portfolio-analysis";
-import type { GradeLift, NextMove } from "@/lib/portfolio-next";
+import type { GradeLift, GradePath, NextMove, PathStep } from "@/lib/portfolio-next";
 import type { ProInsights } from "@/lib/portfolio-pro";
 import type { Bi, Tone } from "@/lib/stock-report";
 
@@ -177,12 +177,132 @@ export interface PfPromo {
   tastes: PfTaste[];
 }
 
+/** A share's loss group in "Your way back": only the price fell, in
+ *  between, or the company has problems too. */
+export type LossKind = "price" | "mixed" | "worse";
+
+/** One share below what was paid (more than 5%), in "Your way back". */
+export interface PfWayItem {
+  code: string;
+  name: string;
+  /** Its group word ("Mostly strong"), or null when not graded. */
+  tier: Bi | null;
+  tierKey: string;
+  z: boolean;
+  /** Why it sits in its group, one sentence. */
+  why: Bi;
+  downPct: number;
+  /** Taka below what was paid. */
+  down: number;
+  /** The price that gives the money back after fees both ways (and the cash dividends already received). */
+  even: number;
+  /** How far the price must rise from today, %. */
+  rise: number;
+  /** It traded at or above that price in the past year (null = not known). */
+  reached: boolean | null;
+  /** Cash dividends a year at last year's dividend, after tax. */
+  cash: number;
+  /** A stronger company the money could move to (problem shares), with the path step that does it. */
+  move: { code: string; line: Bi; step: number | null } | null;
+  /** What buying more would do (a strong share marked Buy more only). */
+  more: Bi | null;
+}
+
+export interface PfWayGroup {
+  kind: LossKind;
+  title: Bi;
+  line: Bi;
+  down: number;
+  items: PfWayItem[];
+  /** One summing line under the group (cash while you wait). */
+  note: Bi | null;
+}
+
+/** "Your way back" (2026-11-11): the money below what was paid, split into
+ *  what is only the price and what is the company. Replaces the loss chapter. */
+export interface PfWayBack {
+  down: number;
+  n: number;
+  groups: PfWayGroup[];
+  watch: Bi | null;
+}
+
+export interface PfPathStepView {
+  n: number;
+  kind: PathStep["kind"];
+  code: string;
+  title: Bi;
+  trades: { side: "sell" | "buy"; text: Bi }[];
+  why: Bi;
+  /** The profit or loss a sale makes real. */
+  note: { text: Bi; tone: Tone } | null;
+  from: Grade;
+  to: Grade;
+}
+
+/** "Three changes to an A" (2026-11-11): `gradePath` in words. */
+export interface PfPathView {
+  title: Bi;
+  line: Bi;
+  from: Grade;
+  to: Grade;
+  steps: PfPathStepView[];
+  totals: { sold: number; bought: number; fees: number; left: number };
+  /** The engine's other ideas for this portfolio (not used by a step). */
+  more: PfPlanItem[];
+}
+
+export type PfAction = "switch" | "sell" | "trim" | "review" | "buy_more";
+
+export interface PfEachItem {
+  code: string;
+  name: string;
+  action: PfAction;
+  label: Bi;
+  tone: Tone;
+  line: Bi;
+  /** The path step that acts on it. */
+  step: number | null;
+}
+
+/** "Each of your shares": the ones to act on, then the rest on one line. */
+export interface PfEach {
+  act: PfEachItem[];
+  rest: { code: string; name: string; line: Bi }[];
+}
+
+/** The free card (2026-11-11): the outline of the reader's own check, counted. */
+export interface PfOutline {
+  grade: Grade;
+  /** Areas (of 4) that are not good. */
+  toLook: number;
+  wayBack: { down: number; n: number; groups: { kind: LossKind; count: number; down: number }[] } | null;
+  path: { grades: Grade[] } | null;
+  act: number;
+  n: number;
+  /** Answers in "Why we say this". */
+  answers: number;
+  /** Shares with a serious warning (the stock report's red flags, or Z). */
+  warnings: number;
+  /** Record dates, AGMs and results meetings on their shares in the next 30 days. */
+  dates: number;
+  /** What the watcher flagged on their shares in the last 30 days. */
+  flagged: number;
+}
+
 export interface PortfolioReport {
   answer: PfAnswer;
-  chapters: PfChapter[];
+  /** "Start here": the first step of the path, else the first move. */
+  start: { title: Bi; href: string } | null;
+  /** The four areas (companies, spread, prices, to watch), in "Why we say this". */
+  areas: PfChapter[];
+  wayBack: PfWayBack | null;
+  path: PfPathView | null;
+  each: PfEach;
   plan: PfPlan;
-  /** What the full check found, counted (the Premium card). */
+  /** What the full check found, counted (the Premium context, the free answer). */
   findings: PfFinding[];
+  outline: PfOutline;
   /** What the Premium card leads with. */
   promo: PfPromo;
   /** How many questions the full check answers (the band). */
@@ -215,6 +335,10 @@ export interface ReportInput {
   /** {CODE: cash dividends logged on the holding since it was added} — taken
    *  off the price that gives the money back (the loss chapter). */
   divReceived?: Map<string, number>;
+  /** `gradePath` (three changes to an A), or null. */
+  path?: GradePath | null;
+  /** Tax on cash dividends, % (portfolio settings; 10 when unset). */
+  divTaxPct?: number;
 }
 
 // ── Words ──────────────────────────────────────────────────────────────────
@@ -442,10 +566,39 @@ export function buildPortfolioReport(inp: ReportInput): PortfolioReport {
   const answer = buildAnswer(inp, f, lights, issue);
   const plan = buildPlan(inp);
   const findings = buildFindings(inp, f, lights, issue, plan, lf);
+  // The chapters above (loss chapter and Sell row included) still feed the
+  // free answer a month; the page shows the four areas (2026-11-11): the loss
+  // chapter became "Your way back", the Sell row "Each of your shares".
   const promo = buildPromo(inp, f, issue, chapters, findings, lights);
-  const answered = chapters.reduce((acc, c) => acc + c.rows.length, 0) + 4;
+  const areas = [companies, spread, prices, { ...watch, rows: watch.rows.filter((r) => r.key !== "sell") }];
 
-  return { answer, chapters, plan, findings, promo, answered };
+  const path = buildPathView(inp, f);
+  const wayBack = lf ? buildWayBack(inp, f, lf, path) : null;
+  const each = buildEach(inp, f, lf, path);
+  const start: PortfolioReport["start"] = path
+    ? { title: B(`Step 1: ${path.steps[0].title.en}`, `ধাপ 1: ${path.steps[0].title.bn}`), href: "#pf-path" }
+    : answer.first
+      ? { title: answer.first.title, href: "#pf-each" }
+      : null;
+  const answers = areas.reduce((acc, c) => acc + c.rows.length, 0);
+  const outline: PfOutline = {
+    grade: a.grade,
+    toLook: lights.filter((l) => l.tone === "bad" || l.tone === "fair").length,
+    wayBack: wayBack
+      ? { down: wayBack.down, n: wayBack.n, groups: wayBack.groups.map((g) => ({ kind: g.kind, count: g.items.length, down: g.down })) }
+      : null,
+    path: path ? { grades: [path.from, ...path.steps.map((s) => s.to)] } : null,
+    act: each.act.length,
+    n: f.n,
+    answers,
+    warnings: f.serious.length,
+    dates: datesAhead(inp, f),
+    flagged: promo.missed.total,
+  };
+  // The verdict, the plan's parts and the areas' questions.
+  const answered = answers + 1 + (wayBack ? 1 : 0) + (path ? 1 : 0) + 1;
+
+  return { answer, start, areas, wayBack, path, each, plan, findings, outline, promo, answered };
 }
 
 function buildAnswer(inp: ReportInput, f: Facts, lights: PfLight[], issue: SpreadIssue): PfAnswer {
@@ -1188,7 +1341,6 @@ const LOSS_PCT = -5;
  *  backend's Buy more line, lib/portfolio-limits). */
 const MORE_MAX_PCT = BUY_MORE_MAX_PCT;
 
-type LossKind = "price" | "mixed" | "worse";
 
 interface LossItem {
   h: HoldingInsight;
@@ -1300,6 +1452,28 @@ function lossFacts(inp: ReportInput, f: Facts): LossFacts | null {
     fee,
     steadyYield,
   };
+}
+
+interface MoreExample {
+  x: LossItem;
+  q: number;
+  spend: number;
+  avg: number;
+  rise: number;
+}
+
+/** Buying more of a share in a loss: half of what is in it, capped so the
+ *  share stays under the Buy more line. Null when there is no room. */
+function moreExample(x: LossItem, total: number, fee: number): MoreExample | null {
+  const cap = MORE_MAX_PCT / 100;
+  const ltp = x.h.ltp as number;
+  // Spending s keeps the share under the cap when (value + s) ≤ cap × (total + s).
+  const room = (cap * total - x.value) / (1 - cap);
+  const q = Math.floor(Math.min(x.cost * 0.5, Math.max(0, room)) / ltp);
+  if (q < 1) return null;
+  const avg = (x.cost + q * ltp) / (x.h.qty + q);
+  const even = breakEvenNet(x.cost + q * ltp, x.h.qty + q, x.div, fee);
+  return { x, q, spend: q * ltp, avg, rise: Math.max(0, (even / ltp - 1) * 100) };
 }
 
 const KIND_WORD: Record<LossKind, Bi> = {
@@ -1477,24 +1651,12 @@ function lossChapter(inp: ReportInput, f: Facts, lf: LossFacts): PfChapter {
   };
 
   // What would buying more do? Only on a company that is not weaker; the
-  // example is half of what is in it, capped so the share stays under a quarter.
-  const cap = MORE_MAX_PCT / 100;
+  // example is half of what is in it, capped so the share stays under a fifth.
   // Only a share whose own advice is Buy more (signal_service.holding_signal):
   // an average or ungraded company the signal wouldn't buy gets no
   // "lower your average" example (2026-11-05).
   const buyable = items.filter((x) => x.kind !== "worse" && x.h.signal.signal === "buy_more");
-  const examples = buyable
-    .map((x) => {
-      const ltp = x.h.ltp as number;
-      // Spending s keeps the share under the cap when (value + s) ≤ cap × (total + s).
-      const room = (cap * f.total - x.value) / (1 - cap);
-      const q = Math.floor(Math.min(x.cost * 0.5, Math.max(0, room)) / ltp);
-      if (q < 1) return null;
-      const avg = (x.cost + q * ltp) / (x.h.qty + q);
-      const even = breakEvenNet(x.cost + q * ltp, x.h.qty + q, x.div, lf.fee);
-      return { x, q, spend: q * ltp, avg, rise: Math.max(0, (even / ltp - 1) * 100) };
-    })
-    .filter(Boolean) as { x: LossItem; q: number; spend: number; avg: number; rise: number }[];
+  const examples = buyable.map((x) => moreExample(x, f.total, lf.fee)).filter(Boolean) as MoreExample[];
   const ex = examples[0] ?? null;
   const more: PfRow = {
     key: "more",
@@ -1627,6 +1789,332 @@ function lossChapter(inp: ReportInput, f: Facts, lf: LossFacts): PfChapter {
     },
     rows,
   };
+}
+
+/** Record dates and AGMs within 30 days, and results meetings within 14, on
+ *  the held shares (the watch area's "What's coming up?", counted). */
+function datesAhead(inp: ReportInput, f: Facts): number {
+  const held = new Set(f.hs.map((h) => h.code.toUpperCase()));
+  let n = 0;
+  for (const code of held) {
+    const ev = inp.glance.get(code)?.event;
+    if (ev && ev.days_left != null && ev.days_left >= 0 && ev.days_left <= 30) n++;
+  }
+  for (const m of inp.results) if (held.has(m.code.toUpperCase()) && m.days >= 0 && m.days <= 14) n++;
+  return n;
+}
+
+// ── Your plan (2026-11-11) ─────────────────────────────────────────────────
+//
+// Three parts in reading order: "Your way back" (the money below what was
+// paid, split into only the price and the company), "Three changes to an A"
+// (`gradePath` in words) and "Each of your shares". One decision per share
+// across all three: the way back's "could move to", the path's swap and the
+// share's "Switch" always name the same company (the engine's swap idea).
+
+const lowerTier = (k: string): Bi => {
+  const p = GRADE_PAIR[k] ?? GRADE_PAIR.unscored;
+  return B(p.en.toLowerCase(), p.bn);
+};
+
+/** Today's price in one word, from the stock page's valuation score (7 low, 4 fair). */
+function priceWord(item: ScoreItem | undefined): Bi | null {
+  if (!item || item.eps == null || item.eps <= 0 || item.p4_val == null) return null;
+  if (item.p4_val >= 7) return B("low", "কম");
+  if (item.p4_val >= 4) return B("fair", "ন্যায্য");
+  return B("high", "বেশি");
+}
+
+/** Why a share is a problem, one sentence (the worst thing first). */
+function problemSentence(h: HoldingInsight, item: ScoreItem | undefined): Bi {
+  const c = h.code;
+  const loss = item?.eps != null && item.eps <= 0;
+  if (h.flags.zCategory && loss) return B(`${c} is in DSE's Z category and making a loss.`, `${c} DSE-এর Z ক্যাটাগরিতে আছে, আর লোকসানে চলছে।`);
+  if (h.flags.zCategory) return B(`${c} is in DSE's Z category.`, `${c} DSE-এর Z ক্যাটাগরিতে আছে।`);
+  if (loss) return B(`${c} made a loss in its latest results.`, `সর্বশেষ ফলে ${c} লোকসান করেছে।`);
+  if (h.signal.signal === "sell") return B(`${c} is marked Sell.`, `${c}-এ বিক্রির সংকেত।`);
+  if (h.tierKey === "weak") return B(`${c} is mostly weak on our checks.`, `আমাদের যাচাইয়ে ${c} বেশ দুর্বল।`);
+  return B(`${c} is weaker than other companies in its business.`, `${c} নিজের ব্যবসার অন্য কোম্পানির চেয়ে দুর্বল।`);
+}
+
+/** The company the money would go to, one or two sentences. */
+function pickSentence(code: string, item: ScoreItem | undefined, where: "same" | "new" | "any"): Bi {
+  const tier = lowerTier(getTier(item?.score ?? null));
+  const pw = priceWord(item);
+  const y = item?.div_yield_pct ?? 0;
+  const whereEn = where === "same" ? ", in the same business" : where === "new" ? ", in a business you don't own" : "";
+  const whereBn = where === "same" ? ", একই ব্যবসায়" : where === "new" ? ", এমন ব্যবসায় যা আপনার নেই" : "";
+  return join([
+    B(
+      `${code} is ${tier.en}${whereEn}${pw ? `, and its price is ${pw.en} today` : ""}.`,
+      `${code} ${tier.bn}${whereBn}${pw ? `, আর আজ এর দাম ${pw.bn}` : ""}।`,
+    ),
+    y >= 1 ? B(`It pays about ${y.toFixed(1)}% a year in cash.`, `বছরে নগদ প্রায় ${y.toFixed(1)}% দেয়।`) : B("", ""),
+  ]);
+}
+
+const WAY_TITLE: Record<LossKind, Bi> = {
+  price: B("Only the price fell", "শুধু দাম কমেছে"),
+  mixed: B("Worth a closer look", "ভালো করে দেখা দরকার"),
+  worse: B("The company has problems", "কোম্পানিতেও সমস্যা"),
+};
+const WAY_LINE: Record<LossKind, Bi> = {
+  price: B(
+    "These companies are still strong. A strong company's price can climb back as its profit grows.",
+    "কোম্পানিগুলো এখনো শক্তিশালী। শক্তিশালী কোম্পানির মুনাফা বাড়লে দামও আবার উঠতে পারে।",
+  ),
+  mixed: B(
+    "Not weak, but not strong either, or the profit is slipping. Look at each one before you add to it.",
+    "দুর্বল নয়, আবার শক্তিশালীও নয়, বা মুনাফা কিছুটা কমছে। আরও কেনার আগে প্রতিটি ভালো করে দেখুন।",
+  ),
+  worse: B(
+    "A weaker company gives its price less reason to come back. The question is where this money works better from today.",
+    "কোম্পানি দুর্বল হলে দাম ফেরার কারণও কমে। প্রশ্ন হলো, আজ থেকে এই টাকা কোথায় বেশি কাজে আসবে।",
+  ),
+};
+
+/** The engine's swap idea for a share, if any. */
+const swapFor = (inp: ReportInput, code: string) =>
+  inp.plan.picks.find((p) => p.kind === "swap" && p.suggest && (p.replaces ?? "").toUpperCase() === code.toUpperCase()) ?? null;
+/** The path step that acts on a share (sells, trims or swaps it), 1-based. */
+const stepFor = (path: PfPathView | null, code: string) => {
+  const i = path?.steps.findIndex((s) => s.kind !== "add" && s.code.toUpperCase() === code.toUpperCase()) ?? -1;
+  return i >= 0 ? i + 1 : null;
+};
+
+function buildWayBack(inp: ReportInput, f: Facts, lf: LossFacts, path: PfPathView | null): PfWayBack {
+  const tax = Math.min(Math.max(inp.divTaxPct ?? 10, 0), 100) / 100;
+  const heldSectors = new Set(f.hs.map((h) => h.sector));
+  // A problem share with no same-business idea gets one of the engine's other
+  // ideas, each idea used once (a business they don't own first).
+  const spare = inp.plan.picks
+    .filter((p) => p.kind !== "swap" && p.kind !== "add_more" && p.suggest)
+    .sort((a, b) => Number(heldSectors.has(a.sector)) - Number(heldSectors.has(b.sector)));
+  const usedSpare = new Set<string>();
+
+  const itemOf = (x: LossItem): PfWayItem => {
+    const code = x.h.code;
+    let move: PfWayItem["move"] = null;
+    if (x.kind !== "price") {
+      const swap = swapFor(inp, code);
+      if (swap) {
+        move = { code: swap.code, line: pickSentence(swap.code, inp.priceMap.get(swap.code.toUpperCase()), "same"), step: stepFor(path, code) };
+      } else if (x.kind === "worse") {
+        const p = spare.find((s) => !usedSpare.has(s.code));
+        if (p) {
+          usedSpare.add(p.code);
+          const add = path?.steps.findIndex((st) => st.kind === "add" && st.code.toUpperCase() === p.code.toUpperCase()) ?? -1;
+          move = {
+            code: p.code,
+            line: pickSentence(p.code, inp.priceMap.get(p.code.toUpperCase()), heldSectors.has(p.sector) ? "any" : "new"),
+            step: add >= 0 ? add + 1 : null,
+          };
+        }
+      }
+    }
+    const ex = x.kind === "price" && x.h.signal.signal === "buy_more" ? moreExample(x, f.total, lf.fee) : null;
+    const whyLine =
+      x.kind === "worse" && (x.h.flags.zCategory || (inp.priceMap.get(code.toUpperCase())?.eps ?? 1) <= 0)
+        ? problemSentence(x.h, inp.priceMap.get(code.toUpperCase()))
+        : B(`${upperFirst(x.why.en)}.`, `${x.why.bn}।`);
+    return {
+      code,
+      name: nameOf(x.h),
+      tier: x.h.tierKey !== "unscored" ? GRADE_PAIR[x.h.tierKey] ?? null : null,
+      tierKey: x.h.tierKey,
+      z: x.h.flags.zCategory,
+      why: whyLine,
+      downPct: x.downPct,
+      down: x.down,
+      even: x.even,
+      rise: x.rise,
+      reached: x.hi52 != null ? x.hi52 >= x.even : null,
+      cash: x.cash * (1 - tax),
+      move,
+      more: ex
+        ? B(
+            `Buying ${ex.q.toLocaleString("en-IN")} more at today's price brings it down to ${money(breakEvenNet(ex.x.cost + ex.spend, ex.x.h.qty + ex.q, ex.x.div, lf.fee))} (${signedPct(ex.rise)}), and keeps it under a fifth of your money.`,
+            `আজকের দামে আরও ${ex.q.toLocaleString("en-IN")}টি কিনলে এটি নামে ${money(breakEvenNet(ex.x.cost + ex.spend, ex.x.h.qty + ex.q, ex.x.div, lf.fee))}-এ (${signedPct(ex.rise)}), আর শেয়ারটি আপনার টাকার এক-পঞ্চমাংশের নিচে থাকে।`,
+          )
+        : null,
+    };
+  };
+
+  const groups: PfWayGroup[] = (["price", "mixed", "worse"] as LossKind[])
+    .map((kind) => {
+      const xs = lf.items.filter((x) => x.kind === kind);
+      if (!xs.length) return null;
+      const items = xs.map(itemOf);
+      const cash = items.reduce((acc, it) => acc + it.cash, 0);
+      const value = xs.reduce((acc, x) => acc + x.value, 0);
+      const steady = lf.steadyYield != null ? ((value * lf.steadyYield) / 100) * (1 - tax) : null;
+      let note: Bi | null = null;
+      if (kind === "price") {
+        note =
+          cash >= 1
+            ? B(
+                `While you wait, ${xs.length === 1 ? "it pays" : `these ${xs.length} pay`} you about ${takaGroup(cash)} a year in cash, after tax. The money-back price counts broker fees both ways.`,
+                `অপেক্ষার সময় ${xs.length === 1 ? "এটি" : `এই ${xs.length}টি`} কর কাটার পর বছরে প্রায় ${takaGroup(cash)} নগদ দেয়। টাকা ফেরার দামে কেনা-বেচা দুই দিকের ব্রোকার ফি ধরা আছে।`,
+              )
+            : B("The money-back price counts broker fees both ways.", "টাকা ফেরার দামে কেনা-বেচা দুই দিকের ব্রোকার ফি ধরা আছে।");
+      } else if (kind === "worse" && steady != null && steady > cash * 1.2) {
+        note = B(
+          `${xs.length === 1 ? "It pays" : "They pay"} ${cash >= 1 ? `about ${takaGroup(cash)}` : "nothing"} a year in cash. Strong companies that pay steadily would pay about ${takaGroup(steady)} on the same money, after tax.`,
+          `${xs.length === 1 ? "এটি" : "এগুলো"} বছরে ${cash >= 1 ? `প্রায় ${takaGroup(cash)}` : "কিছুই"} নগদ দেয়। নিয়মিত ডিভিডেন্ড দেওয়া শক্তিশালী কোম্পানি একই টাকায় কর কাটার পর প্রায় ${takaGroup(steady)} দিত।`,
+        );
+      }
+      return { kind, title: WAY_TITLE[kind], line: WAY_LINE[kind], down: xs.reduce((acc, x) => acc + x.down, 0), items, note };
+    })
+    .filter(Boolean) as PfWayGroup[];
+
+  const worse = groups.find((g) => g.kind === "worse");
+  return {
+    down: lf.down,
+    n: lf.items.length,
+    groups,
+    watch: worse
+      ? B(
+          `Selling turns a paper loss into a real one. Buying more of ${worse.items[0].code} lowers its money-back price, but puts more of your money in a weaker company.`,
+          `বিক্রি করলে কাগজে-কলমের লোকসান আসল লোকসান হয়ে যায়। ${worse.items[0].code} আরও কিনলে টাকা ফেরার দাম কমে, কিন্তু দুর্বল কোম্পানিতে আপনার আরও টাকা আটকায়।`,
+        )
+      : null,
+  };
+}
+
+function buildPathView(inp: ReportInput, f: Facts): PfPathView | null {
+  const gp = inp.path;
+  if (!gp || !gp.steps.length) return null;
+  const fee = Math.max(0, inp.feePct ?? 0.4) / 100;
+  const qty = (n: number) => n.toLocaleString("en-IN");
+  const holdingOf = (code: string) => f.hs.find((h) => h.code.toUpperCase() === code.toUpperCase());
+  let sold = 0;
+  let bought = 0;
+
+  const steps: PfPathStepView[] = gp.steps.map((s, i) => {
+    const h = holdingOf(s.code);
+    const pick = s.pick ? inp.priceMap.get(s.pick.toUpperCase()) : undefined;
+    let title: Bi;
+    let why: Bi;
+    if (s.kind === "sell") {
+      title = B(`Sell ${s.code}`, `${s.code} বিক্রি করুন`);
+      const g = inp.glance.get(s.code.toUpperCase())?.signal;
+      why = join([
+        h ? problemSentence(h, inp.priceMap.get(s.code.toUpperCase())) : B("", ""),
+        g?.reason_en && h?.signal.signal === "sell" ? B(g.reason_en, g.reason_bn || g.reason_en) : B("", ""),
+      ]);
+    } else if (s.kind === "trim") {
+      title = B(`Bring ${s.code} down to a quarter of your money`, `${s.code} কমিয়ে আপনার টাকার এক-চতুর্থাংশে আনুন`);
+      const sw = s.sector ? sectorWord(s.sector.name) : null;
+      why = join([
+        B(`It is ${pct(s.weight)} of your money, and its price is high or near its top this year.`, `এটি আপনার টাকার ${pct(s.weight)}, আর এর দাম এখন বেশি বা বছরের সর্বোচ্চের কাছে।`),
+        sw && s.sector && s.sector.before > SECTOR_FAIR_PCT && Math.round(s.sector.after) < Math.round(s.sector.before)
+          ? B(`Money in ${sw.en} drops from ${pct(s.sector.before)} to ${pct(s.sector.after)}.`, `${sw.bn} সেক্টরে টাকা ${pct(s.sector.before)} থেকে নেমে ${pct(s.sector.after)} হয়।`)
+          : B("", ""),
+      ]);
+    } else if (s.kind === "swap") {
+      title = B(`Swap ${s.code} for ${s.pick}`, `${s.code}-এর বদলে ${s.pick}`);
+      why = join([h ? problemSentence(h, inp.priceMap.get(s.code.toUpperCase())) : B("", ""), pickSentence(s.pick as string, pick, "same")]);
+    } else {
+      title = s.newSector
+        ? B(`Add a business you don't own: ${s.pick}`, `নতুন একটি ব্যবসা যোগ করুন: ${s.pick}`)
+        : s.pickKind === "dividend"
+          ? B(`Add a steady dividend payer: ${s.pick}`, `নিয়মিত ডিভিডেন্ড দেয় এমন শেয়ার যোগ করুন: ${s.pick}`)
+          : B(`Add ${s.pick}`, `${s.pick} যোগ করুন`);
+      why = join([
+        pickSentence(s.pick as string, pick, s.newSector ? "new" : "any"),
+        s.topAfter <= ONE_SHARE_FAIR_PCT && (f.top?.weightPct ?? 0) > ONE_SHARE_FAIR_PCT
+          ? B("After this no share is over a quarter of your money.", "এরপর কোনো শেয়ারে আপনার টাকার এক-চতুর্থাংশের বেশি থাকে না।")
+          : B("", ""),
+      ]);
+    }
+
+    const trades = s.trades.map((t) => {
+      if (t.side === "buy") {
+        bought += t.amount;
+        return { side: t.side, text: B(`Buy ${qty(t.qty)} ${t.code}, about ${takaGroup(t.amount)}`, `${t.code}-এর ${qty(t.qty)}টি কিনুন, প্রায় ${takaGroup(t.amount)}`) };
+      }
+      sold += t.amount;
+      return {
+        side: t.side,
+        text:
+          t.held != null && t.qty < t.held
+            ? B(`Sell ${qty(t.qty)} of your ${qty(t.held)} ${t.code}, about ${takaGroup(t.amount)}`, `আপনার ${qty(t.held)}টি ${t.code}-এর ${qty(t.qty)}টি বিক্রি করুন, প্রায় ${takaGroup(t.amount)}`)
+            : B(`Sell all ${qty(t.qty)} ${t.code}, about ${takaGroup(t.amount)}`, `${t.code}-এর সব ${qty(t.qty)}টি বিক্রি করুন, প্রায় ${takaGroup(t.amount)}`),
+      };
+    });
+
+    // The profit or loss the sale makes real.
+    const sale = s.trades.find((t) => t.side === "sell" && t.avgCost != null);
+    const pl = sale ? (sale.price - (sale.avgCost as number)) * sale.qty : 0;
+    const note: PfPathStepView["note"] =
+      pl <= -1
+        ? { text: B(`This turns a ${takaGroup(-pl)} paper loss into a real one.`, `এতে কাগজে-কলমের ${takaGroup(-pl)} লোকসান আসল লোকসান হয়ে যায়।`), tone: "fair" }
+        : pl >= 1
+          ? { text: B(`You keep about ${takaGroup(pl)} of profit on these.`, `এগুলোতে প্রায় ${takaGroup(pl)} লাভ হাতে আসে।`), tone: "good" }
+          : null;
+
+    return { n: i + 1, kind: s.kind, code: s.code, title, trades, why, note, from: s.from, to: s.to };
+  });
+
+  const n = steps.length;
+  const toEn = gp.to === "A" ? "an A" : `a ${gp.to}`;
+  const countEn = ["One change", "Two changes", "Three changes"][n - 1] ?? `${n} changes`;
+  const fees = (sold + bought) * fee;
+  const usedCodes = new Set(gp.steps.flatMap((s) => [s.code.toUpperCase(), (s.pick ?? "").toUpperCase()]));
+  return {
+    title: B(`${countEn} to ${toEn}`, `${n}টি বদলে গ্রেড ${gp.to}`),
+    line: B(
+      `Your grade is ${gp.from}. ${n === 1 ? "This change takes" : `These ${n === 2 ? "two" : "three"} changes take`} it to ${gp.to}.`,
+      `আপনার গ্রেড এখন ${gp.from}। ${n === 1 ? "এই বদলে" : `এই ${n}টি বদলে`} তা ${gp.to} হয়।`,
+    ),
+    from: gp.from,
+    to: gp.to,
+    steps,
+    totals: { sold, bought, fees, left: sold - bought - fees },
+    more: buildPlan(inp).buys.filter((b) => !usedCodes.has((b.code ?? "").toUpperCase())),
+  };
+}
+
+const ACTION_WORD: Record<PfAction, Bi> = {
+  switch: B("Switch", "বদলান"),
+  sell: B("Sell", "বিক্রি"),
+  trim: B("Trim", "কিছুটা কমান"),
+  review: B("Read the warning", "সতর্কতাটি পড়ুন"),
+  buy_more: B("Buy more", "আরও কেনা যায়"),
+};
+const ACTION_TONE: Record<PfAction, Tone> = { switch: "bad", sell: "bad", trim: "fair", review: "fair", buy_more: "good" };
+const ACTION_ORDER: Record<PfAction, number> = { switch: 0, sell: 1, trim: 2, review: 3, buy_more: 4 };
+
+function buildEach(inp: ReportInput, f: Facts, lf: LossFacts | null, path: PfPathView | null): PfEach {
+  const reasonOf = new Map(inp.pro.actions.map((a) => [a.code.toUpperCase(), a.reason]));
+  const worse = new Set((lf?.items ?? []).filter((x) => x.kind === "worse").map((x) => x.h.code.toUpperCase()));
+  const act: PfEachItem[] = [];
+  const rest: PfEach["rest"] = [];
+  for (const h of f.hs) {
+    const code = h.code.toUpperCase();
+    const sig = h.signal.signal;
+    const swap = swapFor(inp, code);
+    const problem = sig === "sell" || h.tierKey === "weak" || h.flags.zCategory || worse.has(code);
+    const action: PfAction | null =
+      swap && problem ? "switch" : sig === "sell" ? "sell" : sig === "trim" ? "trim" : sig === "review" ? "review" : sig === "buy_more" ? "buy_more" : null;
+    if (!action) {
+      rest.push({ code: h.code, name: nameOf(h), line: same(reasonOf.get(code) ?? h.descriptor) });
+      continue;
+    }
+    const step = stepFor(path, code);
+    const stepLine = step ? B(`Step ${step} of your path.`, `আপনার পথের ধাপ ${step}।`) : B("", "");
+    const line =
+      action === "switch" && swap
+        ? join([
+            problemSentence(h, inp.priceMap.get(code)),
+            B(`${swap.code} is a stronger company in the same business.`, `একই ব্যবসায় ${swap.code} বেশি শক্তিশালী কোম্পানি।`),
+            stepLine,
+          ])
+        : join([same(reasonOf.get(code) ?? h.signal.reason), stepLine]);
+    act.push({ code: h.code, name: nameOf(h), action, label: ACTION_WORD[action], tone: ACTION_TONE[action], line, step });
+  }
+  act.sort((a, b) => ACTION_ORDER[a.action] - ACTION_ORDER[b.action] || (a.step ?? 9) - (b.step ?? 9));
+  return { act, rest };
 }
 
 // ── Chapter 4 · watch ──────────────────────────────────────────────────────

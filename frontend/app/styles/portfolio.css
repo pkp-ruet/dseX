@@ -286,33 +286,6 @@ a.pf-hold-name:hover { color: var(--primary-ink); }
    report-visuals.css) with four lights, the chapters as one sheet each
    (`.rp-sheet.rc` + shared question rows), the plan's lists, and the money
    tabs. A free reader gets the stock page's Premium card (`.sp`) instead. */
-.ac.pfa { margin-bottom: 0; }
-.pfa-wordrow { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); margin-top: 2px; }
-.pfa-wordrow .ac-word { margin-top: 0; }
-.pfa-grade {
-  display: inline-flex; align-items: center; min-height: 30px; padding: 2px 10px;
-  border: 1.5px solid currentColor; border-radius: var(--radius-sm);
-  font-size: var(--fs-sm); font-weight: 700; font-variant-numeric: tabular-nums;
-}
-.pfa-lights { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); margin-top: var(--space-4); }
-@media (min-width: 640px) { .pfa-lights { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-@media (max-width: 380px) { .pfa-lights { grid-template-columns: minmax(0, 1fr); } }
-.pfa-lights .ac-light { padding: var(--space-3); }
-/* "Do this first" under the lights: one warm box, the taka on the right */
-.pfa-move { margin-top: var(--space-4); padding: var(--space-4); border-radius: var(--radius-md); background: var(--surface-2); }
-.pfa-move-top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px var(--space-3); }
-.pfa-move-k { font-size: var(--fs-xs); font-weight: 700; color: var(--primary-ink); }
-.pfa-move-amt { display: inline-flex; align-items: baseline; gap: 4px; flex: none; margin-left: auto; font-size: var(--fs-xs); color: var(--text); white-space: nowrap; }
-.pfa-move-amt b { font-size: var(--fs-md); font-weight: 700; font-variant-numeric: tabular-nums; }
-.pfa-move-t { margin-top: 4px; font-size: var(--fs-md); font-weight: 700; line-height: 1.35; color: var(--text); }
-.pfa-move-l { margin-top: 4px; max-width: 65ch; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
-.pfa-move-link {
-  display: inline-flex; align-items: center; gap: 4px; min-height: 40px; margin-top: 2px;
-  font-size: var(--fs-sm); font-weight: 600; color: var(--primary-ink); text-decoration: none;
-}
-.pfa-move-link:hover { text-decoration: underline; }
-.pfa-move-link:active { opacity: 0.7; }
-
 /* The head over the analysis (Premium readers): a gold badge, the title, one
    line (2026-11-04, was a gold note box). The answer card sits under it. */
 .pf-check-head { display: grid; justify-items: start; gap: 6px; margin-top: 48px; }
@@ -325,7 +298,6 @@ a.pf-hold-name:hover { color: var(--primary-ink); }
 .pf-check-title { margin: 0; font-size: var(--fs-xl); font-weight: 700; line-height: 1.15; letter-spacing: -0.015em; color: var(--text); }
 @media (min-width: 640px) { .pf-check-title { font-size: var(--fs-2xl); } }
 .pf-check-sub { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
-.pf-answer-slot { margin-top: var(--space-4); }
 /* Bonus shares + dividends, last on the page; nothing to show = no gap */
 .pf-tail { margin-top: 48px; }
 .pf-tail:empty { display: none; }
@@ -353,21 +325,10 @@ a.pfr-figs-k:active { opacity: 0.7; }
   .pfr-figs--stack li { grid-template-columns: minmax(0, 12rem) minmax(0, 1fr); gap: var(--space-4); }
 }
 
-/* ---- The chapters and the plan, clean pass (2026-11-04) ----
-   ONE card per chapter: the question, then its answer chip with one count
-   line, then the rows split by hairlines. A row = question + answer word,
-   one sentence, the picture, a short list of what it found, one watch line,
-   and one clay tap bar for why it matters and the figures. */
-.pfc-wrap { margin-top: var(--space-6); }
-@media (min-width: 640px) { .pfc-wrap { margin-top: var(--space-8); } }
-.pfc { padding: 0 var(--space-4); }
-@media (min-width: 640px) { .pfc { padding: 0 var(--space-8); } }
-.pfc-head { display: grid; gap: var(--space-3); padding: var(--space-6) 0 var(--space-4); border-bottom: 1px solid var(--border); }
-.pfc-title { margin: 0; font-size: var(--fs-lg); font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; color: var(--text); }
-@media (min-width: 640px) { .pfc-title { font-size: var(--fs-xl); } }
-.pfc-answer { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
-.pfc-sub { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
-
+/* ---- A question row (`PfQuestion`): question + answer word, one sentence,
+   the picture, a short list of what it found, one watch line, and one clay
+   tap bar for why it matters and the figures. Inside an area's fold since
+   2026-11-11. */
 .pfq { padding: var(--space-6) 0; }
 .pfq + .pfq { border-top: 1px solid var(--border); }
 .pfq-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
@@ -433,40 +394,6 @@ a.pfr-figs-k:active { opacity: 0.7; }
 .pfq-more--tight > summary { min-height: 44px; font-size: var(--fs-sm); }
 .pfq-more--tight .pfq-more-icon { width: 28px; height: 28px; }
 
-/* Your plan: numbered first steps, grade lifts, ideas, each share */
-.pfp-list { display: grid; margin: var(--space-3) 0 0; padding: 0; list-style: none; }
-.pfp-list--num { counter-reset: pfp; }
-.pfp-item { display: grid; gap: 4px; padding: var(--space-3) 0; border-top: 1px solid var(--border); }
-.pfp-item:first-child { border-top: 0; padding-top: 0; }
-.pfp-list--num > .pfp-item { counter-increment: pfp; position: relative; padding-left: 36px; }
-.pfp-list--num > .pfp-item::before {
-  content: counter(pfp); position: absolute; left: 0; top: var(--space-3);
-  width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
-  background: var(--text); color: var(--surface); font-size: var(--fs-xs); font-weight: 700;
-}
-.pfp-list--num > .pfp-item:first-child::before { top: 0; }
-/* Title and tag / taka: the title keeps a real width; the tag drops under it
-   when the row is too narrow, never over it (2026-11-04). */
-.pfp-item-top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px var(--space-3); }
-.pfp-item-t { flex: 1 1 10rem; min-width: 0; overflow-wrap: break-word; font-size: var(--fs-md); font-weight: 700; line-height: 1.35; color: var(--text); text-decoration: none; }
-a.pfp-item-t:hover { color: var(--primary-ink); text-decoration: underline; }
-.pfp-tag { flex: 0 1 auto; max-width: 100%; margin-left: auto; font-size: var(--fs-xs); font-weight: 700; text-align: right; }
-.pfp-amt { display: inline-flex; align-items: baseline; gap: 4px; flex: none; margin-left: auto; font-size: var(--fs-xs); color: var(--text); white-space: nowrap; }
-.pfp-amt b { font-size: var(--fs-md); font-weight: 700; font-variant-numeric: tabular-nums; }
-.pfp-item-l { max-width: 65ch; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
-.pfp-item-a { font-size: var(--fs-sm); color: var(--text); }
-.pfp-lift { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) 0; }
-.pfp-lift-tag {
-  flex: none; display: inline-flex; align-items: center; min-height: 28px; padding: 2px 10px;
-  border-radius: 999px; background: rgb(var(--positive-rgb) / 0.12); color: var(--positive);
-  font-size: var(--fs-sm); font-weight: 700; font-variant-numeric: tabular-nums;
-}
-.pfp-hold-names { min-width: 0; font-size: var(--fs-md); line-height: 1.5; color: var(--text); }
-.pfp-hold-name { font-weight: 700; color: var(--text); text-decoration: none; }
-a.pfp-hold-name:hover { color: var(--primary-ink); text-decoration: underline; }
-.pfr-figs li.pfp-hold-why { display: grid; gap: 2px; justify-content: stretch; }
-.pfp-hold-why .pfr-figs-k { font-weight: 700; }
-
 /* ---- Sample portfolio pages (`/sample-portfolio/[slug]`, 2026-11-02) ----
    The full portfolio check, open, on a made-up portfolio: the story, one note
    on what the page is, the money and the shares as one card, then the
@@ -526,22 +453,7 @@ a.pfp-hold-name:hover { color: var(--primary-ink); text-decoration: underline; }
 .pfm-icon { display: inline-flex; color: var(--primary-ink); }
 .pfm-tab[data-on="true"] .pfm-icon { color: var(--on-fill); }
 
-/* THE Premium card on the portfolio (`PortfolioPromo`, simplified
-   2026-11-06): the `.sp` shell, then up to four findings split by hairlines,
-   the price + one button, and a quiet "try it first" row. */
-.pfx-finds { display: grid; margin: var(--space-3) 0 0; padding: 0; list-style: none; }
-.pfx-finds li {
-  display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) 0;
-  font-size: var(--fs-md); font-weight: 600; line-height: 1.4; color: var(--text);
-}
-.pfx-finds li + li { border-top: 1px solid var(--border); }
-.pfx-finds li > span:last-child { min-width: 0; }
-.pfx-icon {
-  flex: none; width: 36px; height: 36px; border-radius: var(--radius); display: grid; place-items: center;
-  background: var(--gold-light); color: var(--gold-ink);
-}
-.pfx-more { margin-top: var(--space-2); font-size: var(--fs-sm); color: var(--text); }
-.pfx-fine { font-size: var(--fs-xs); line-height: 1.5; color: var(--text); text-align: center; }
+/* The free card's "Not sure yet?" row (`PortfolioPromo` → `TryFirst`). */
 .pfx-try { padding: var(--space-4); border-top: 1px solid var(--border); background: var(--surface-2); }
 .pfx-try-k { font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
 .pfx-try-acts { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
@@ -554,3 +466,351 @@ a.pfp-hold-name:hover { color: var(--primary-ink); text-decoration: underline; }
 @media (min-width: 640px) {
   .pfx-try { padding: var(--space-6) var(--space-8); }
 }
+
+/* ---- The portfolio check, rebuilt (2026-11-11) ----
+   Mockup https://claude.ai/artifact/QJjjrtfUu1ZSJ4rd7wvVeY. Three parts in
+   reading order: 1 the verdict (`PfVerdict`), 2 your plan (`PfPlan`: your way
+   back · three changes to an A · each of your shares), 3 why we say this
+   (`PfArea` ×4, the questions folded). The free card (`.pfo`) is the outline
+   of the same three parts. Before you save (`.bys`) sits in the buy sheets. */
+
+/* A grade letter in a box (path ladder, sheets, the free card) */
+.pf-gbox {
+  display: inline-grid; place-items: center; flex: none;
+  width: 34px; height: 34px; border: 2px solid currentColor; border-radius: var(--radius-sm);
+  background: var(--surface); font-size: var(--fs-md); font-weight: 700; line-height: 1;
+}
+.pf-gbox[data-size="sm"] { width: 26px; height: 26px; border-width: 1.5px; border-radius: var(--radius-sm); font-size: var(--fs-sm); }
+
+/* The share's action word (row heads, "Each of your shares") */
+.pf-act {
+  display: inline-flex; align-items: center; min-height: 24px; padding: 2px 10px;
+  border-radius: 999px; font-size: var(--fs-xs); font-weight: 700; line-height: 1.2; white-space: nowrap;
+  background: var(--surface-2); color: var(--text);
+}
+.pf-act[data-act="switch"], .pf-act[data-act="sell"] { background: var(--negative); color: var(--on-fill); }
+.pf-act[data-act="trim"], .pf-act[data-act="review"] { background: var(--watch); color: var(--on-fill); }
+.pf-act[data-act="buy_more"] { background: var(--positive); color: var(--on-fill); }
+
+.pf-inline-link { font-weight: 600; color: var(--primary-ink); text-decoration: none; white-space: nowrap; }
+.pf-inline-link:hover { text-decoration: underline; }
+.pf-inline-link:active { opacity: 0.7; }
+
+/* A part's head ("2 · Your plan", "3 · Why we say this") */
+.pf-part { display: grid; gap: var(--space-4); margin-top: var(--space-10, 40px); }
+.pf-part-h { display: grid; gap: 4px; }
+.pf-part-n { font-size: var(--fs-xs); font-weight: 700; color: var(--primary-ink); }
+.pf-part-title { margin: 0; font-size: var(--fs-xl); font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; color: var(--text); }
+.pf-part-lead { max-width: 65ch; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+
+/* Every plan card opens the same way: small label, the answer as its title, one lead */
+.pf-card-k { font-size: var(--fs-xs); font-weight: 700; color: var(--primary-ink); }
+.pf-card-title { margin: 4px 0 0; font-size: var(--fs-lg); font-weight: 700; line-height: 1.3; color: var(--text); text-wrap: balance; }
+.pf-card-lead { margin-top: 4px; max-width: 65ch; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+
+/* A quiet fold inside a card (more ideas, the shares with nothing to do) */
+.pf-fold { margin-top: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius); }
+.pf-fold > summary {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+  min-height: 44px; padding: var(--space-2) var(--space-3); cursor: pointer; list-style: none;
+  font-size: var(--fs-sm); font-weight: 600; line-height: 1.4; color: var(--text);
+}
+.pf-fold > summary::-webkit-details-marker { display: none; }
+.pf-fold > summary:hover { background: var(--surface-2); }
+.pf-fold > summary > svg { flex: none; transition: transform 0.15s ease; }
+.pf-fold[open] > summary > svg { transform: rotate(180deg); }
+.pf-fold-list { display: grid; margin: 0; padding: 0 var(--space-3) var(--space-3); list-style: none; }
+.pf-fold-list li { display: grid; gap: 2px; padding: var(--space-3) 0; border-top: 1px solid var(--border); font-size: var(--fs-sm); line-height: 1.5; }
+.pf-fold-top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px var(--space-2); }
+.pf-fold-name { font-weight: 700; color: var(--text); text-decoration: none; }
+a.pf-fold-name:hover { color: var(--primary-ink); text-decoration: underline; }
+.pf-fold-tag { font-size: var(--fs-xs); font-weight: 700; color: var(--primary-ink); }
+@media (prefers-reduced-motion: reduce) { .pf-fold > summary > svg { transition: none; } }
+
+/* 1 · The verdict */
+.pfv { display: grid; gap: var(--space-4); margin-top: var(--space-4); padding: var(--space-5, 20px) var(--space-4); }
+@media (min-width: 640px) { .pfv { padding: var(--space-6) var(--space-8); } }
+.pfv-grid { display: grid; gap: var(--space-4); }
+@media (min-width: 900px) { .pfv-grid { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: start; gap: var(--space-6); } }
+.pfv-main { display: grid; gap: var(--space-3); }
+.pfv-q { font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
+.pfv-word { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.pfv-h { margin: 0; display: inline-flex; }
+.pfv-grade {
+  display: inline-grid; place-items: center; width: 42px; height: 42px;
+  border: 2px solid currentColor; border-radius: var(--radius); font-size: var(--fs-xl); font-weight: 700;
+}
+.pfv-line { max-width: 62ch; font-size: var(--fs-md); line-height: 1.55; color: var(--text); }
+.pfv-areas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+.pfv-area {
+  display: grid; gap: 4px; min-height: 64px; padding: var(--space-3);
+  border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface);
+  color: var(--text); text-decoration: none;
+}
+.pfv-area:hover { background: var(--surface-2); }
+.pfv-area:active { background: var(--border); }
+.pfv-area[data-blocker="true"] { border-width: 2px; }
+.pfv-area[data-tone="bad"][data-blocker="true"] { border-color: var(--negative); }
+.pfv-area[data-tone="fair"][data-blocker="true"] { border-color: var(--watch); }
+.pfv-area-k { font-size: var(--fs-xs); font-weight: 600; }
+.pfv-area-w { display: flex; align-items: center; gap: 6px; font-size: var(--fs-sm); font-weight: 700; line-height: 1.3; }
+.pfv-dot {
+  flex: none; display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--text-muted); color: var(--on-fill); font-size: var(--fs-2xs); font-weight: 700; line-height: 1;
+}
+.pfv-area[data-tone="good"] .pfv-area-w { color: var(--positive); }
+.pfv-area[data-tone="good"] .pfv-dot { background: var(--positive); }
+.pfv-area[data-tone="fair"] .pfv-area-w { color: var(--watch); }
+.pfv-area[data-tone="fair"] .pfv-dot { background: var(--watch); }
+.pfv-area[data-tone="bad"] .pfv-area-w { color: var(--negative); }
+.pfv-area[data-tone="bad"] .pfv-dot { background: var(--negative); }
+.pfv-start {
+  display: flex; align-items: center; gap: var(--space-3); min-height: 56px; padding: var(--space-3) var(--space-4);
+  border: 1px solid rgb(var(--primary-rgb) / 0.35); border-radius: var(--radius-md);
+  background: rgb(var(--primary-rgb) / 0.08); color: var(--primary-ink); text-decoration: none;
+}
+.pfv-start:hover { background: rgb(var(--primary-rgb) / 0.13); }
+.pfv-start:active { background: rgb(var(--primary-rgb) / 0.18); }
+.pfv-start-t { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.pfv-start-k { font-size: var(--fs-xs); font-weight: 700; }
+.pfv-start b { font-size: var(--fs-md); font-weight: 700; line-height: 1.35; color: var(--text); }
+
+/* 2 · Your plan: the three cards */
+.pfw, .pfpath, .pfe { padding: var(--space-5, 20px) var(--space-4); }
+@media (min-width: 640px) { .pfw, .pfpath, .pfe { padding: var(--space-6) var(--space-8); } }
+
+/* Your way back */
+.pfw-split { display: grid; gap: var(--space-2); margin-top: var(--space-4); }
+.pfw-bar { display: flex; gap: 2px; height: 12px; border-radius: 999px; overflow: hidden; }
+.pfw-bar i { display: block; min-width: 6px; height: 100%; }
+.pfw-key { display: flex; flex-wrap: wrap; gap: 4px var(--space-4); margin: 0; padding: 0; list-style: none; font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
+.pfw-key li { display: inline-flex; align-items: center; gap: 6px; }
+.pfw-key i { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.pfw-bar i[data-tone="good"], .pfw-key i[data-tone="good"] { background: var(--positive); }
+.pfw-bar i[data-tone="fair"], .pfw-key i[data-tone="fair"] { background: var(--watch); }
+.pfw-bar i[data-tone="bad"], .pfw-key i[data-tone="bad"] { background: var(--negative); }
+.pfw-groups { display: grid; gap: var(--space-3); margin-top: var(--space-4); }
+@media (min-width: 900px) { .pfw-groups { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); align-items: start; } }
+.pfw-group { border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; background: var(--surface); }
+.pfw-gh { display: grid; gap: 4px; padding: var(--space-3) var(--space-4); }
+.pfw-group[data-tone="good"] .pfw-gh { background: rgb(var(--positive-rgb) / 0.07); }
+.pfw-group[data-tone="fair"] .pfw-gh { background: rgb(var(--watch-rgb) / 0.08); }
+.pfw-group[data-tone="bad"] .pfw-gh { background: rgb(var(--negative-rgb) / 0.07); }
+.pfw-gh-top { display: flex; flex-wrap: wrap; align-items: center; gap: 4px var(--space-2); }
+.pfw-gh h4 { margin: 0; font-size: var(--fs-md); font-weight: 700; color: var(--text); }
+.pfw-count { font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
+.pfw-amt { margin-left: auto; font-size: var(--fs-md); font-weight: 700; font-variant-numeric: tabular-nums; }
+.pfw-gh p { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+.pfw-item { display: grid; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-top: 1px solid var(--border); }
+.pfw-it-top { display: flex; flex-wrap: wrap; align-items: center; gap: 6px var(--space-2); }
+.pfw-code { font-size: var(--fs-md); font-weight: 700; color: var(--text); text-decoration: none; }
+.pfw-code:hover { color: var(--primary-ink); text-decoration: underline; }
+.pfw-z { font-size: var(--fs-xs); font-weight: 700; padding: 0 6px; border: 1px solid var(--negative); border-radius: var(--radius-sm); color: var(--negative); }
+.pfw-pct { margin-left: auto; font-size: var(--fs-sm); font-weight: 700; font-variant-numeric: tabular-nums; }
+.pfw-why { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+.pfw-cells { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2) var(--space-3); margin: 0; }
+@media (min-width: 560px) { .pfw-cells { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.pfw-cells div { display: grid; gap: 1px; min-width: 0; }
+.pfw-cells dt { font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
+.pfw-cells dd { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+.pfw-rise { font-weight: 400; }
+.pfw-more { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); padding-left: var(--space-3); border-left: 3px solid rgb(var(--positive-rgb) / 0.45); }
+.pfw-move {
+  display: flex; align-items: flex-start; gap: var(--space-2); padding: var(--space-3);
+  border-radius: var(--radius); background: var(--surface-2); font-size: var(--fs-sm); line-height: 1.5; color: var(--text);
+}
+.pfw-move > svg { flex: none; margin-top: 2px; color: var(--primary-ink); }
+.pfw-note {
+  display: flex; align-items: flex-start; gap: var(--space-2); padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--border); font-size: var(--fs-sm); font-weight: 600; line-height: 1.5; color: var(--text);
+}
+.pfw-note > svg { flex: none; margin-top: 2px; color: var(--gold-ink); }
+
+/* Three changes to an A */
+.pfpath-ladder {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4);
+  margin: var(--space-4) 0 0; padding: var(--space-3) var(--space-4); list-style: none;
+  border-radius: var(--radius-md); background: var(--surface-2);
+}
+.pfpath-ladder li { position: relative; display: grid; justify-items: center; gap: 4px; font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
+.pfpath-ladder li + li::before { content: "→"; position: absolute; left: calc(-1 * var(--space-4) + 2px); top: 7px; font-weight: 700; color: var(--text); }
+.pfpath-steps { display: grid; gap: var(--space-3); margin: var(--space-4) 0 0; padding: 0; list-style: none; }
+@media (min-width: 900px) { .pfpath-steps { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); align-items: start; } }
+.pfpath-step { display: grid; gap: var(--space-2); padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); }
+.pfpath-top { display: flex; align-items: flex-start; gap: var(--space-3); }
+.pfpath-n {
+  flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%;
+  background: var(--text); color: var(--surface); font-size: var(--fs-sm); font-weight: 700;
+}
+.pfpath-top h4 { flex: 1; min-width: 0; margin: 0; font-size: var(--fs-md); font-weight: 700; line-height: 1.35; color: var(--text); }
+.pfpath-g { flex: none; display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-xs); font-weight: 700; }
+.pfpath-trades { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.pfpath-trades li { display: flex; align-items: baseline; gap: var(--space-2); font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
+.pfpath-tk { flex: none; padding: 0 7px; border: 1px solid; border-radius: var(--radius-sm); font-size: var(--fs-xs); font-weight: 700; }
+.pfpath-tk[data-side="sell"] { color: var(--negative); border-color: rgb(var(--negative-rgb) / 0.45); }
+.pfpath-tk[data-side="buy"] { color: var(--positive); border-color: rgb(var(--positive-rgb) / 0.45); }
+.pfpath-why { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+.pfpath-note { font-size: var(--fs-sm); font-weight: 600; line-height: 1.45; }
+.pfpath-totals {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: var(--space-4) 0 0;
+  border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden;
+}
+.pfpath-totals div { display: grid; gap: 1px; padding: var(--space-2) var(--space-3); border-left: 1px solid var(--border); min-width: 0; }
+.pfpath-totals div:first-child { border-left: 0; }
+.pfpath-totals dt { font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
+.pfpath-totals dd { margin: 0; font-size: var(--fs-md); font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+.pfpath-left { margin-top: var(--space-2); font-size: var(--fs-sm); color: var(--text); }
+.pfpath-acts { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-4); }
+.pfpath-fine { margin-top: var(--space-3); font-size: var(--fs-xs); line-height: 1.5; color: var(--text); }
+.pfpath--none .pf-card-title { font-size: var(--fs-md); font-weight: 600; }
+
+/* Each of your shares */
+.pfe-list { display: grid; margin: var(--space-3) 0 0; padding: 0; list-style: none; }
+.pfe-row { display: grid; gap: 6px var(--space-4); padding: var(--space-3) 0; border-top: 1px solid var(--border); }
+.pfe-row:first-child { border-top: 0; }
+@media (min-width: 640px) { .pfe-row { grid-template-columns: 150px minmax(0, 1fr); align-items: start; } }
+.pfe-who { display: flex; flex-wrap: wrap; align-items: center; gap: 6px var(--space-2); }
+@media (min-width: 640px) { .pfe-who { flex-direction: column; align-items: flex-start; } }
+.pfe-code { font-size: var(--fs-md); font-weight: 700; color: var(--text); text-decoration: none; }
+.pfe-code:hover { color: var(--primary-ink); text-decoration: underline; }
+.pfe-line { max-width: 65ch; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
+
+/* 3 · Why we say this: four area cards */
+.pfar-grid { display: grid; gap: var(--space-3); }
+@media (min-width: 900px) { .pfar-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } }
+.pfar { display: grid; gap: var(--space-3); padding: var(--space-5, 20px) var(--space-4); min-width: 0; }
+@media (min-width: 640px) { .pfar { padding: var(--space-6); } }
+.pfar-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.pfar-title { margin: 0; font-size: var(--fs-lg); font-weight: 700; line-height: 1.25; color: var(--text); }
+.pfar-count { font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
+.pfar-ans { max-width: 65ch; font-size: var(--fs-md); line-height: 1.55; color: var(--text); }
+.pfar-qs { border-top: 1px solid var(--border); }
+.pfar-qs > summary {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-2);
+  min-height: 44px; padding-top: var(--space-2); cursor: pointer; list-style: none;
+  font-size: var(--fs-sm); font-weight: 700; color: var(--primary-ink);
+}
+.pfar-qs > summary::-webkit-details-marker { display: none; }
+.pfar-qs > summary:hover { text-decoration: underline; }
+.pfar-qs > summary > svg { flex: none; transition: transform 0.15s ease; }
+.pfar-qs[open] > summary > svg { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) { .pfar-qs > summary > svg { transition: none; } }
+.pfar-qs .pfq { padding: var(--space-4) 0; }
+.pfar-qs .pfq:first-child { padding-top: var(--space-2); }
+
+/* The free card (`PortfolioPromo`, richer 2026-11-12): the band, "You have
+   now" against "Premium adds", four numbered parts (question, one plain
+   sentence, what it found on their shares, a made-up example), the price
+   sticky beside the parts from 900px, and "Not sure yet?". `overflow: clip`
+   (not hidden) so the sticky price still follows the page. */
+.pfo {
+  margin-top: var(--space-6); border: 1px solid rgb(var(--gold-rgb) / 0.6); border-radius: var(--radius-lg);
+  background: var(--surface); box-shadow: var(--shadow-soft); overflow: clip;
+}
+.pfo-band { display: grid; gap: 6px; padding: var(--space-5, 20px) var(--space-4); background: rgb(var(--gold-rgb) / 0.14); border-bottom: 1px solid rgb(var(--gold-rgb) / 0.4); }
+@media (min-width: 640px) { .pfo-band { padding: var(--space-6) var(--space-8); } }
+.pfo-k { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); font-weight: 700; color: var(--gold-ink); }
+.pfo-title { margin: 0; font-size: var(--fs-xl); font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; color: var(--text); text-wrap: balance; }
+@media (min-width: 640px) { .pfo-title { font-size: var(--fs-2xl); } }
+.pfo-lead { max-width: 64ch; font-size: var(--fs-md); line-height: 1.55; color: var(--text); }
+
+/* You have now / Premium adds */
+.pfo-compare { display: grid; gap: var(--space-3); padding: var(--space-4); border-bottom: 1px solid var(--border); }
+@media (min-width: 640px) { .pfo-compare { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: var(--space-5, 20px) var(--space-8); } }
+.pfo-col { display: grid; gap: var(--space-2); align-content: start; padding: var(--space-3) var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); }
+.pfo-col--pm { border-color: rgb(var(--gold-rgb) / 0.6); background: rgb(var(--gold-rgb) / 0.08); }
+.pfo-col-k { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+.pfo-col--pm .pfo-col-k { color: var(--gold-ink); }
+.pfo-col ul, .pfo-col ol { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.pfo-col li { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
+.pfo-col li > svg { flex: none; margin-top: 3px; color: var(--positive); }
+.pfo-mini-n {
+  flex: none; display: inline-grid; place-items: center; width: 20px; height: 20px; margin-top: 1px; border-radius: 50%;
+  background: var(--gold); color: var(--on-fill); font-size: var(--fs-2xs); font-weight: 700;
+}
+
+/* The four parts and the price */
+.pfo-main { display: grid; }
+@media (min-width: 900px) { .pfo-main { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); } }
+.pfo-parts { margin: 0; padding: 0; list-style: none; }
+@media (min-width: 900px) { .pfo-parts { border-right: 1px solid var(--border); } }
+.pfo-part { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: var(--space-3); padding: var(--space-5, 20px) var(--space-4); border-bottom: 1px solid var(--border); }
+@media (min-width: 640px) { .pfo-part { padding: var(--space-6) var(--space-8); } }
+.pfo-n {
+  display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%;
+  background: var(--text); color: var(--surface); font-size: var(--fs-sm); font-weight: 700;
+}
+.pfo-t { display: grid; gap: var(--space-2); min-width: 0; }
+.pfo-name { display: flex; align-items: center; gap: var(--space-2); font-size: var(--fs-lg); font-weight: 700; line-height: 1.3; color: var(--text); }
+.pfo-icon { display: inline-flex; color: var(--primary-ink); }
+.pfo-ask { font-size: var(--fs-md); font-weight: 600; line-height: 1.4; color: var(--primary-ink); }
+.pfo-what { max-width: 62ch; font-size: var(--fs-sm); line-height: 1.6; color: var(--text); }
+.pfo-found { display: grid; gap: 6px; padding: var(--space-3); border-radius: var(--radius); background: var(--surface-2); }
+.pfo-found-k { font-size: var(--fs-xs); font-weight: 700; color: var(--text); }
+.pfo-free { display: flex; flex-wrap: wrap; align-items: center; gap: 6px var(--space-2); font-size: var(--fs-sm); font-weight: 600; line-height: 1.45; color: var(--text); }
+.pfo-wb { display: grid; gap: 6px; }
+.pfo-ladder { display: inline-flex; align-items: center; gap: 4px; }
+.pfo-ladder-step { display: inline-flex; align-items: center; gap: 4px; }
+.pfo-ar { font-size: var(--fs-xs); font-weight: 700; }
+
+/* A made-up example of what a Premium reader sees (no ticker) */
+.pfo-ex { display: grid; gap: 6px; padding: var(--space-3); border: 1px dashed rgb(var(--gold-rgb) / 0.75); border-radius: var(--radius); background: rgb(var(--gold-rgb) / 0.07); }
+.pfo-ex-k { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); font-weight: 700; color: var(--gold-ink); }
+.pfo-ex-body { display: grid; gap: 6px; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+.pfo-ex-row { display: flex; align-items: center; gap: var(--space-2); }
+.pfo-ex-chip { display: inline-flex; align-items: center; min-height: 26px; padding: 2px 10px; border-radius: 999px; font-size: var(--fs-xs); font-weight: 700; color: var(--on-fill); background: var(--text); }
+.pfo-ex-chip[data-tone="fair"] { background: var(--watch); }
+
+/* "Every day": what arrives */
+.pfo-list { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.pfo-list li { display: flex; align-items: flex-start; gap: var(--space-3); font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+.pfo-list-icon {
+  flex: none; display: grid; place-items: center; width: 30px; height: 30px; border-radius: var(--radius-sm);
+  background: rgb(var(--gold-rgb) / 0.16); color: var(--gold-ink);
+}
+
+.pfo-buy { padding: var(--space-5, 20px) var(--space-4); border-bottom: 1px solid var(--border); }
+@media (min-width: 640px) { .pfo-buy { padding: var(--space-6) var(--space-8); } }
+@media (min-width: 900px) { .pfo-buy { border-bottom: 0; padding: var(--space-6); } }
+.pfo-buy-in { display: grid; gap: var(--space-3); }
+@media (min-width: 900px) { .pfo-buy-in { position: sticky; top: 128px; } }
+.pfo-buy-k { font-size: var(--fs-sm); font-weight: 700; color: var(--gold-ink); }
+.pfo-price { display: grid; gap: 2px; }
+.pfo-price b { font-size: var(--fs-2xl); font-weight: 700; color: var(--text); }
+.pfo-price span { font-size: var(--fs-sm); color: var(--text); }
+.pfo-promise { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.pfo-promise li { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
+.pfo-promise li > svg { flex: none; margin-top: 3px; color: var(--positive); }
+.pfo .pfx-try { border-top: 0; }
+
+/* Before you save (the Add stock and Bought more sheets) */
+.bys { display: grid; gap: var(--space-2); padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-2); }
+.bys-h { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.bys-title { font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+.bys-fact { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
+.bys-fact > svg { flex: none; margin-top: 2px; }
+.bys-fact--bad > svg { color: var(--negative); }
+.bys-grade { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding-top: var(--space-2); border-top: 1px dashed var(--border); font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
+.bys-ladder { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
+.bys-lines { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.bys-lines li { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px var(--space-3); font-size: var(--fs-sm); line-height: 1.4; color: var(--text); }
+.bys-lines li > span { flex: 1 1 9rem; min-width: 0; }
+.bys-lines b { margin-left: auto; font-weight: 700; white-space: nowrap; }
+.bys .pfq-watch { margin-top: 0; }
+.bys-size { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
+.bys-size > span { flex: 1 1 12rem; min-width: 0; }
+.bys-lock {
+  display: flex; align-items: flex-start; gap: var(--space-2); padding: var(--space-3);
+  border: 1px dashed rgb(var(--gold-rgb) / 0.75); border-radius: var(--radius); background: rgb(var(--gold-rgb) / 0.1);
+  font-size: var(--fs-sm); line-height: 1.45; color: var(--text);
+}
+.bys-lock > svg { flex: none; margin-top: 2px; color: var(--gold-ink); }
+.bys-lock-link { font-weight: 700; color: var(--gold-ink); text-decoration: underline; }
+
+/* The plan's word on an open share row (Premium) */
+.pf-hold-plan {
+  display: flex; align-items: flex-start; gap: var(--space-2); margin: var(--space-3) 0 0;
+  padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--surface); font-size: var(--fs-sm); line-height: 1.5; color: var(--text);
+}
+.pf-hold-plan .pf-act { margin-top: 1px; }

@@ -7,30 +7,54 @@ import { IconAlert, IconChevronDown, IconCrown } from "@/components/ui/icons";
 import { T } from "@/components/i18n/T";
 import type { PfChapter, PfFigure, PfPicture, PfRow } from "@/lib/portfolio-report";
 
+/** The four areas' names (2026-11-11): what each card is about. */
+const AREA_NAME: Record<string, { en: string; bn: string }> = {
+  companies: { en: "Your companies", bn: "আপনার কোম্পানি" },
+  spread: { en: "Your spread", bn: "টাকার বণ্টন" },
+  prices: { en: "Prices today", bn: "আজকের দাম" },
+  watch: { en: "To watch", bn: "নজর রাখুন" },
+};
+
 /**
- * One chapter of the portfolio report (2026-10-30), redone clean 2026-11-04
- * (user: "the whole portfolio analysis section looks bit unorganized and too
- * much text"). ONE card per chapter: the question as its title, the answer
- * chip beside it and one count line under it — no lead line, and no written
- * "read" (it only repeated the rows' first sentences). Then the rows, split
- * by hairlines (`PfQuestion`). Premium: the page hides every chapter from a
- * free reader under one `Locked` and shows its one Premium card instead.
+ * One area of "Why we say this" (2026-11-11, was one chapter card with every
+ * question open; mockup https://claude.ai/artifact/QJjjrtfUu1ZSJ4rd7wvVeY):
+ * the area's name and its answer word, one count line, the first question's
+ * answer and picture, and the questions folded under ONE bar. The first
+ * question inside the fold skips the answer and picture shown above it.
+ * Keeps the chapter ids (`#ch-companies` …) the verdict's tiles jump to.
  */
-export default function PfReportChapter({ chapter }: { chapter: PfChapter }) {
+export default function PfArea({ chapter }: { chapter: PfChapter }) {
+  const first = chapter.rows[0];
+  const name = AREA_NAME[chapter.key] ?? chapter.title;
+  const n = chapter.rows.length;
   return (
-    <section id={chapter.id} className="dash-section pf-chapter pfc-wrap" aria-labelledby={`${chapter.id}-h`}>
-      <div className="soft-card pfc">
-        <header className="pfc-head">
-          <h2 id={`${chapter.id}-h`} className="pfc-title">{tx(chapter.title)}</h2>
-          <div className="pfc-answer">
-            <ToneChip word={chapter.head.word} tone={chapter.head.tone} size="lg" />
-            <span className="pfc-sub">{tx(chapter.head.line)}</span>
+    <section id={chapter.id} className="soft-card pfar dash-section" aria-labelledby={`${chapter.id}-h`}>
+      <header className="pfar-head">
+        <h3 id={`${chapter.id}-h`} className="pfar-title">{tx(name)}</h3>
+        <ToneChip word={chapter.head.word} tone={chapter.head.tone} />
+      </header>
+      <p className="pfar-count">{tx(chapter.head.line)}</p>
+      {first?.headline && <p className="pfar-ans">{tx(first.headline)}</p>}
+      {first?.picture && (
+        <div className="pfar-pic">
+          <PfPictureView pic={first.picture} />
+        </div>
+      )}
+      {n > 0 && (
+        <details className="pfar-qs">
+          <summary>
+            <span>
+              <T en={`${n} question${n === 1 ? "" : "s"} behind this`} bn={`এর পেছনের ${n}টি প্রশ্ন`} />
+            </span>
+            <IconChevronDown size={16} />
+          </summary>
+          <div className="pfar-qs-body">
+            {chapter.rows.map((r, i) => (
+              <PfQuestion key={r.key} row={r} summarized={i === 0} />
+            ))}
           </div>
-        </header>
-        {chapter.rows.map((r) => (
-          <PfQuestion key={r.key} row={r} />
-        ))}
-      </div>
+        </details>
+      )}
     </section>
   );
 }
@@ -42,7 +66,7 @@ export default function PfReportChapter({ chapter }: { chapter: PfChapter }) {
  * quiet bar, why it matters and the figures. The general text lives in the
  * fold so the open card stays short.
  */
-export function PfQuestion({ row }: { row: PfRow }) {
+export function PfQuestion({ row, summarized = false }: { row: PfRow; summarized?: boolean }) {
   const hasMore = row.meaning.length > 0 || row.figures.length > 0;
   return (
     <section id={`pf-q-${row.key}`} className="pfq dash-section" aria-labelledby={`pf-q-${row.key}-t`}>
@@ -50,8 +74,8 @@ export function PfQuestion({ row }: { row: PfRow }) {
         <h3 id={`pf-q-${row.key}-t`}>{tx(row.title)}</h3>
         {row.word && <ToneChip word={row.word} tone={row.tone} />}
       </div>
-      {row.headline && <p className="pfq-answer">{tx(row.headline)}</p>}
-      {row.picture && (
+      {row.headline && !summarized && <p className="pfq-answer">{tx(row.headline)}</p>}
+      {row.picture && !summarized && (
         <div className="pfq-pic">
           <PfPictureView pic={row.picture} />
         </div>
@@ -182,8 +206,8 @@ export function PfReportBand({ answered }: { answered: number }) {
       </h2>
       <p className="pf-check-sub">
         <T
-          en={`Checked again after every close · ${answered} questions answered`}
-          bn={`প্রতিদিন বাজার বন্ধের পর আবার যাচাই · ${answered}টি প্রশ্নের উত্তর`}
+          en={`Checked again after every close · 3 parts · ${answered} answers`}
+          bn={`প্রতিদিন বাজার বন্ধের পর আবার যাচাই · 3টি অংশ · ${answered}টি উত্তর`}
         />
       </p>
     </header>
