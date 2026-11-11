@@ -37,6 +37,45 @@ jobs:
       REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history, so the wait step can tell whether the live backend
+          # already runs this commit or a later one.
+          fetch-depth: 0
+
+      # The build reads the backend, and new pages throw without their
+      # endpoints. When this push also changed backend code, wait until
+      # Render runs it (/health reports RENDER_GIT_COMMIT) before building.
+      - name: Wait for the backend to deploy this push
+        working-directory: .
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          set -u
+          if [ -z "${BEFORE}" ] || [ "${BEFORE}" = "0000000000000000000000000000000000000000" ] \
+             || ! git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
+            echo "Started by hand (or no earlier commit to compare): not waiting."
+            exit 0
+          fi
+          CHANGED=$(git diff --name-only "${BEFORE}" "${GITHUB_SHA}" \
+            | grep -vE '^(frontend/|\.github/|docs/)|\.md$' || true)
+          if [ -z "${CHANGED}" ]; then
+            echo "This push changed no backend code: not waiting."
+            exit 0
+          fi
+          echo "Backend files in this push:"; echo "${CHANGED}" | head -20
+          for i in $(seq 1 75); do
+            LIVE=$(curl -s -m 60 https://dsex.onrender.com/health \
+              | python3 -c 'import sys,json; print(json.load(sys.stdin).get("commit") or "")' 2>/dev/null || true)
+            if [ -n "${LIVE}" ] && git cat-file -e "${LIVE}^{commit}" 2>/dev/null \
+               && git merge-base --is-ancestor "${GITHUB_SHA}" "${LIVE}"; then
+              echo "The backend runs ${LIVE}: building the frontend now."
+              exit 0
+            fi
+            echo "Waiting for Render to deploy ${GITHUB_SHA:0:7} (live: ${LIVE:0:7}) …"
+            sleep 20
+          done
+          echo "::error::The backend did not deploy ${GITHUB_SHA:0:7} within 25 minutes. Check Render, then re-run this job."
+          exit 1
 
       - uses: actions/setup-node@v4
         with:

@@ -186,7 +186,9 @@ def health():
         db_status = "connected"
     except Exception:
         db_status = "error"
-    return {"status": "ok", "db": db_status}
+    # The commit this instance runs (Render sets it). The frontend deploy waits
+    # for it, so a push that changes both deploys the backend first.
+    return {"status": "ok", "db": db_status, "commit": os.getenv("RENDER_GIT_COMMIT")}
 
 
 @app.head("/health")
