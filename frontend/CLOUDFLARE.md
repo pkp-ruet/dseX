@@ -12,7 +12,7 @@ the database (Atlas) did not move.
 | Cache tags (`revalidateTag("market-data")`) | D1 database `topstockbd-tags` |
 | Background page rebuilds | Durable Object `DOQueueHandler` |
 | Adapter options | `open-next.config.ts` |
-| Deploy | GitHub Action "Deploy frontend (Cloudflare)" (every push to `main` that touches `frontend/`, or by hand) |
+| Deploy | GitHub Action "Deploy frontend (Cloudflare)", run by hand only |
 
 Cost: Workers Paid, $5 a month. It includes 10 million requests and 30 million
 CPU-milliseconds a month; R2 and D1 stay inside their free allowances at this
@@ -74,7 +74,12 @@ Nothing changes on Render: `FRONTEND_REVALIDATE_URL` stays
 
 ## Day to day
 
-- Deploy: push to `main`, or run the Action by hand.
+- Deploy: GitHub → Actions → "Deploy frontend (Cloudflare)" → Run workflow
+  (branch `main`). A push never deploys by itself.
+- Backend first: when a change needs new backend endpoints, deploy the
+  backend on Render (Manual Deploy → Deploy latest commit), wait until it is
+  Live, then run the Action. The build reads the backend, and a page whose
+  endpoint is missing fails the build (the old site keeps serving).
 - Deploy from your PC: use WSL (OpenNext doesn't fully support Windows):
   `npm run deploy`.
 - Logs: dashboard → Workers & Pages → topstockbd → Logs, or
