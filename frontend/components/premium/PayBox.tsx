@@ -18,6 +18,7 @@ import { AUTH_USER_UPDATED_EVENT, setStoredUser } from "@/lib/auth";
 import { formatDate } from "@/lib/formatters";
 import { bnDate } from "@/lib/bn";
 import { usePremium } from "@/lib/premium";
+import { dayWords, dhakaDay, extendedUntil } from "@/lib/renewal";
 import {
   METHOD_BN,
   METHOD_LABEL,
@@ -106,9 +107,15 @@ export default function PayBox() {
   // The reader's own ৳99 month, while it is theirs (backend decides).
   const offer = isLoggedIn && !isPremium ? user?.offer ?? null : null;
 
-  // The homepage banner links here with ?plan=offer.
+  // The homepage banner links here with ?plan=offer, the renewal banner with
+  // ?plan=yearly; any paid plan's key picks it.
   useEffect(() => {
-    if (offer && new URLSearchParams(window.location.search).get("plan") === "offer") setPlan("offer");
+    const want = new URLSearchParams(window.location.search).get("plan");
+    if (want === "offer") {
+      if (offer) setPlan("offer");
+    } else if (want && PAID_PLANS.some((p) => p.key === want)) {
+      setPlan(want as PlanKey);
+    }
   }, [offer]);
 
   useEffect(() => {
@@ -158,6 +165,7 @@ export default function PayBox() {
       );
       setStoredUser(user);
       window.dispatchEvent(new CustomEvent(AUTH_USER_UPDATED_EVENT));
+      const newEnd = payment.granted && user.premium_until ? dayWords(dhakaDay(user.premium_until)) : null;
       trackEvent("premium_payment_submit", {
         plan: planKey,
         method,
@@ -165,7 +173,12 @@ export default function PayBox() {
         granted: payment.granted ? 1 : 0,
       });
       toast({
-        message: payment.granted ? (
+        message: newEnd ? (
+          <T
+            en={`Premium is on till ${newEnd.en}. Thank you.`}
+            bn={`প্রিমিয়াম চালু আছে ${newEnd.bn} পর্যন্ত। ধন্যবাদ।`}
+          />
+        ) : payment.granted ? (
           <T en="Premium is on. Thank you." bn="প্রিমিয়াম চালু হয়েছে। ধন্যবাদ।" />
         ) : (
           <T en="Thank you. We will switch Premium on once we find your payment." bn="ধন্যবাদ। পেমেন্ট পেলেই প্রিমিয়াম চালু করব।" />
@@ -268,6 +281,23 @@ export default function PayBox() {
         })}
       </div>
       </div>
+
+      {/* A Premium reader renewing early: the new days start after the ones left. */}
+      {isPremium && premiumUntil && planKey !== "offer" ? (
+        <p className="pay-stack" role="note">
+          <T
+            en={`Your Premium runs till ${dayWords(dhakaDay(premiumUntil)).en}. This plan adds ${chosen.days} days after that, so Premium runs till `}
+            bn={`আপনার প্রিমিয়াম চলবে ${dayWords(dhakaDay(premiumUntil)).bn} পর্যন্ত। এই প্ল্যান তার পরে ${chosen.days} দিন যোগ করবে, তাই প্রিমিয়াম চলবে `}
+          />
+          <strong>
+            <T
+              en={dayWords(dhakaDay(extendedUntil(premiumUntil, chosen.days))).en}
+              bn={dayWords(dhakaDay(extendedUntil(premiumUntil, chosen.days))).bn}
+            />
+          </strong>
+          <T en=". You keep every day you have left." bn=" পর্যন্ত। বাকি দিনগুলো হারাবেন না।" />
+        </p>
+      ) : null}
 
       {isLoading ? null : !isLoggedIn ? (
         <div className="flex flex-col items-start gap-2">

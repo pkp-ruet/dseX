@@ -875,3 +875,156 @@ details[open] > .pm-fold-summary .pm-fold-chev { transform: rotate(180deg); }
   background: rgb(var(--watch-rgb) / 0.08);
   font-size: var(--fs-xs); line-height: 1.45; color: var(--watch);
 }
+
+/* ── The renewal banner (2026-11-13) ───────────────────────────────────────
+   `components/premium/RenewBanner.tsx`: on top of every page while Premium
+   ends within 10 days. Calm gold for 10 to 4 days, amber for the last 3. On
+   phones the "what you'd lose" list folds behind one button; from 640px it
+   is open. */
+.rn-wrap {
+  max-width: 64rem; /* the main column (max-w-5xl) */
+  margin: var(--space-3) auto 0;
+  padding: 0 var(--space-4);
+  width: 100%;
+}
+@media (min-width: 640px) { .rn-wrap { padding: 0 var(--space-6); } }
+.rn {
+  padding: var(--space-4);
+  border: 1px solid rgb(var(--gold-rgb) / 0.55);
+  border-radius: var(--radius-lg);
+  background: var(--gold-light);
+  box-shadow: var(--shadow-soft);
+}
+@media (min-width: 640px) { .rn { padding: var(--space-4) var(--space-6); } }
+.rn--soon,
+.rn--last {
+  border-color: rgb(var(--watch-rgb) / 0.55);
+  background: rgb(var(--watch-rgb) / 0.08);
+}
+.rn--last { border-width: 2px; }
+.rn-top { display: flex; align-items: flex-start; gap: var(--space-3); }
+.rn-icon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--gold-ink);
+}
+.rn--soon .rn-icon,
+.rn--last .rn-icon { color: var(--watch); }
+.rn-title { font-size: var(--fs-base); font-weight: 700; color: var(--text); line-height: 1.35; }
+@media (min-width: 640px) { .rn-title { font-size: var(--fs-lg); } }
+.rn-lead { margin-top: 2px; font-size: var(--fs-sm); color: var(--text); }
+.rn-offer {
+  margin-top: var(--space-3);
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+  color: var(--text);
+}
+@media (min-width: 640px) { .rn-offer { font-size: var(--fs-base); } }
+.rn-was {
+  margin-left: var(--space-1);
+  font-size: 0.85em;
+  font-weight: 600;
+  color: var(--negative);
+}
+.rn-body { margin-top: var(--space-3); }
+@media (max-width: 639px) { .rn-body:not([data-open]) { display: none; } }
+.rn-found { font-size: var(--fs-sm); font-weight: 600; color: var(--text); margin-bottom: var(--space-2); }
+.rn-lose-h { font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
+.rn-lose {
+  margin-top: var(--space-1);
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+@media (min-width: 900px) { .rn-lose { grid-template-columns: 1fr 1fr; column-gap: var(--space-6); } }
+.rn-lose li { position: relative; padding-left: var(--space-4); }
+.rn-lose li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0.55em;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--text);
+}
+.rn-lose-mine { font-weight: 600; }
+.rn-lose-mine::before { background: var(--watch) !important; }
+.rn-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin-top: var(--space-4);
+}
+.rn-more {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 40px;
+  padding: 0 var(--space-2);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text);
+}
+.rn-more[aria-expanded="true"] .rn-more-chev { transform: rotate(180deg); }
+.rn-more-chev { display: inline-flex; transition: transform 0.15s ease; }
+@media (min-width: 640px) { .rn-more { display: none; } }
+
+/* The pay box's "your new days start after the ones left" line (2026-11-13). */
+.pay-stack {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid rgb(var(--gold-rgb) / 0.55);
+  border-radius: var(--radius);
+  background: var(--gold-light);
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+  color: var(--text);
+}
+/* The banner's ✕: a menu of two choices (Remind me later · Don't show again). */
+.rn-close { position: relative; flex: none; margin: -6px -6px 0 0; }
+.rn-close-btn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius);
+  color: var(--text);
+}
+.rn-close-btn:hover,
+.rn-close-btn[aria-expanded="true"] { background: rgb(var(--text-rgb) / 0.06); }
+.rn-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 60;
+  width: 15rem;
+  padding: var(--space-1) 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-lift);
+}
+.rn-menu-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  min-height: 48px;
+  padding: var(--space-2) var(--space-4);
+  text-align: left;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text);
+}
+.rn-menu-item:hover,
+.rn-menu-item:focus-visible { background: var(--surface-2); }
+.rn-menu-note { font-size: var(--fs-xs); font-weight: 400; }

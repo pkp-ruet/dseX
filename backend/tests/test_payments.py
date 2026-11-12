@@ -172,3 +172,44 @@ def test_offer_banner_buttons():
     later = offer_dismiss_update("later", NOW)
     assert offer_state(later, NOW + timedelta(days=1), premium=False, is_open=True)["banner"] is False
     assert offer_state(later, NOW + timedelta(days=4), premium=False, is_open=True)["banner"] is True
+
+
+def test_one_more_year_counts_from_the_current_end_date():
+    from backend.services.payments import days_to_end, dhaka_day_words, year_until
+
+    ends = NOW + timedelta(days=6)
+    assert year_until(ends, NOW) == ends + timedelta(days=365)
+    # Already ended: the year starts today.
+    assert year_until(NOW - timedelta(days=2), NOW) == NOW + timedelta(days=365)
+    # The date is the Dhaka calendar day: 20:00 UTC is the next morning there.
+    late = datetime(2027, 11, 19, 20, 0, tzinfo=timezone.utc)
+    assert dhaka_day_words(late, "en") == "20 Nov 2027"
+    assert dhaka_day_words(late, "bn") == "20 নভেম্বর 2027"
+    # Days left are Dhaka calendar days: 23:00 Dhaka today ends today.
+    assert days_to_end(datetime(2026, 10, 25, 17, 0, tzinfo=timezone.utc), NOW) == 0
+    assert days_to_end(late, datetime(2027, 11, 9, 18, 30, tzinfo=timezone.utc)) == 10
+
+
+def test_renewal_reminder_offers_the_year_with_its_end_date():
+    end = datetime(2027, 11, 22, 4, 0, tzinfo=timezone.utc)
+    en = renewal_payload(4, "en", [], end)["body"]
+    assert "Add one year for ৳1,899 and it runs till 22 Nov 2027." in en
+    assert "You keep the days you have left." in en
+    bn = renewal_payload(4, "bn", [], end)["body"]
+    assert "22 নভেম্বর 2027" in bn and "২" not in bn
+
+
+def test_renewal_banner_counts_what_a_free_account_limits():
+    from backend.services.payments import renewal_found, renewal_have
+
+    have = renewal_have({"watchlist": ["GP"] * 14, "extra_portfolios": [{}, {}],
+                         "custom_lists": [{}], "dividend_reminders": []}, 8)
+    assert have == {"watchlist": 14, "extra_portfolios": 2, "saved_screens": 1,
+                    "alerts": 8, "dividend_reminders": 0}
+    assert renewal_have({}) == {"watchlist": 0, "extra_portfolios": 0, "saved_screens": 0,
+                                "alerts": 0, "dividend_reminders": 0}
+    assert renewal_found([]) is None
+    found = renewal_found([{"kind": "results", "count": 2}, {"kind": "record", "count": 1}])
+    assert found["total"] == 3
+    assert found["en"] == "In the last 30 days Premium found 2 results reports and 1 record date on your shares."
+    assert "২" not in found["bn"]

@@ -61,6 +61,15 @@ def my_payments(current_user: dict = Depends(get_current_user)):
     return {"ref_code": payments.ref_code(uid), "items": payments.user_payments(uid)}
 
 
+@router.get("/renewal")
+def renewal(current_user: dict = Depends(get_current_user)):
+    """The renewal banner (Premium ends within 10 days): the yearly plan and
+    the date it would run to, what Premium found in the last 30 days, and what
+    the reader set up that a free account limits. `renewal` is null when the
+    banner shouldn't show."""
+    return {"renewal": payments.renewal_state(current_user["user_id"])}
+
+
 class OfferDismissBody(BaseModel):
     action: Literal["never", "later"]
 

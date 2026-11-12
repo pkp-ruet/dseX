@@ -86,7 +86,6 @@ import CorrectionsCard from "./CorrectionsCard";
 import HistoryCard from "./HistoryCard";
 import { KIND_TAG, LEVEL_TONE } from "./watchKinds";
 import WhatIfCard from "./WhatIfCard";
-import TrialEndingBanner from "./TrialEndingBanner";
 import PortfolioSwitcher from "./PortfolioSwitcher";
 import PortfolioSettingsSheet from "./PortfolioSettingsSheet";
 import ContributionStrip from "./ContributionStrip";
@@ -666,15 +665,10 @@ export default function PortfolioClient() {
     [rows, priceMap, analysis, rebalance, priceLines],
   );
   const proInsights = useMemo(() => buildProInsights(analysis, priceMap, lang), [analysis, priceMap, lang]);
-  const { isPremium, state: planState, premiumUntil } = usePremium();
+  const { isPremium, state: planState } = usePremium();
   // An extra portfolio kept from a free month that has ended: readable, not editable.
   const readOnly = !isMain && !isPremium;
   const made = useMemo(() => moneyMade(holdings, priceMap, log, settings), [holdings, priceMap, log, settings]);
-  const caughtThisTrial = useMemo(() => {
-    if (!premiumUntil) return watchEvents.length;
-    const start = new Date(new Date(premiumUntil).getTime() - 30 * 86_400_000).toISOString();
-    return watchEvents.filter((e) => e.created_at >= start).length;
-  }, [watchEvents, premiumUntil]);
 
   // Updates on the stocks in the open portfolio only — chapter 2 is about these.
   const heldUpper = useMemo(
@@ -1092,8 +1086,6 @@ export default function PortfolioClient() {
           </p>
         </div>
       )}
-
-      <TrialEndingBanner caught={caughtThisTrial} extraPortfolios={Math.max(0, portfolios.length - 1)} lang={lang} />
 
       {rowError && <p className="form-error mb-3">{rowError}</p>}
 

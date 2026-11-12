@@ -78,6 +78,14 @@ ERR_USER = "user_not_found"
 ERR_OFFER = "offer_closed"
 
 RENEW_WINDOW_DAYS = (2, 5)  # remind once, 2–5 days before a paid plan ends
+# The renewal banner on top of every page (2026-11-13): shown while Premium
+# ends within this many days; it always offers the yearly plan, counted from
+# the current end date (`extend_until`), so renewing early loses nothing.
+RENEW_BANNER_DAYS = 10
+RENEW_PLAN = "yearly"
+DHAKA = timezone(timedelta(hours=6))
+_BN_MONTHS = ("জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট",
+              "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর")
 
 _SENDER_RE = re.compile(r"^01[3-9]\d{8}$")
 
@@ -216,17 +224,74 @@ def gift_payload(lang: str = "bn") -> dict:
     return {"title": title, "body": body, "url": "/premium?src=granted", "tag": "premium-payment"}
 
 
-def renewal_payload(days_left: int, lang: str = "bn", caught: Optional[list[dict]] = None) -> dict:
+def dhaka_day_words(when: datetime, lang: str = "en") -> str:
+    """"19 Nov 2027" / "19 নভেম্বর 2027" — the Dhaka calendar date."""
+    d = (_as_utc(when) or when).astimezone(DHAKA)
+    if lang != "en":
+        return f"{d.day} {_BN_MONTHS[d.month - 1]} {d.year}"
+    return f"{d.day} {d.strftime('%b')} {d.year}"
+
+
+def days_to_end(until: datetime, now: datetime) -> int:
+    """Whole Dhaka calendar days from today to the end day (0 = ends today),
+    the count the banner shows (frontend `lib/renewal.ts` `daysToEnd`)."""
+    return ((_as_utc(until) or until).astimezone(DHAKA).date()
+            - (_as_utc(now) or now).astimezone(DHAKA).date()).days
+
+
+def year_until(current, now: datetime) -> datetime:
+    """Where Premium would end after one more year bought today: 365 days on
+    top of the days still left (the same rule a payment uses)."""
+    return extend_until(current, PAID_PLANS[RENEW_PLAN]["days"], now)
+
+
+def renewal_have(user: dict, armed_alerts: int = 0) -> dict:
+    """What this reader set up with Premium that a free account limits — the
+    banner's "what you'd lose" lines, from the user document."""
+    return {
+        "watchlist": len(user.get("watchlist") or []),
+        "extra_portfolios": len(user.get("extra_portfolios") or []),
+        "saved_screens": len(user.get("custom_lists") or []),
+        "alerts": int(armed_alerts or 0),
+        "dividend_reminders": len(user.get("dividend_reminders") or []),
+    }
+
+
+def renewal_found(caught: list[dict]) -> Optional[dict]:
+    """"In the last 30 days Premium found 2 results reports and 1 record date
+    on your shares." in both languages, or None when it found nothing."""
+    from backend.services.portfolio_watch import kinds_phrase
+
+    total = sum(int(k.get("count") or 0) for k in caught or [])
+    if not total:
+        return None
+    return {
+        "total": total,
+        "en": f"In the last 30 days Premium found {kinds_phrase(caught, 'en')} on your shares.",
+        "bn": f"গত 30 দিনে প্রিমিয়াম আপনার শেয়ারে পেয়েছে {kinds_phrase(caught, 'bn')}।",
+    }
+
+
+def renewal_payload(days_left: int, lang: str = "bn", caught: Optional[list[dict]] = None,
+                    year_end: Optional[datetime] = None) -> dict:
     """The renewal reminder. Plans never renew by themselves, so the reminder
     says what Premium did this period — `caught` is the watcher's counts by
-    kind on the reader's stocks (``portfolio_watch.digest()["kinds"]``)."""
+    kind on the reader's stocks (``portfolio_watch.digest()["kinds"]``). With
+    `year_end` it offers the yearly plan and names the date it would run to."""
     from backend.services.portfolio_watch import kinds_phrase
 
     bn = lang != "en"
     title = (f"আপনার প্রিমিয়াম শেষ হতে আর {days_left} দিন বাকি" if bn
              else f"Your Premium ends in {days_left} day{'' if days_left == 1 else 's'}")
-    again = ("চালু রাখতে চাইলে বিকাশ, নগদ বা ব্যাংক ট্রান্সফারে আবার একটি প্ল্যান নিন।" if bn
-             else "To keep it on, choose a plan again and pay by bKash, Nagad or bank transfer.")
+    if year_end is not None:
+        price = f"৳{PAID_PLANS[RENEW_PLAN]['amount']:,}"
+        again = (f"{price} দিয়ে এক বছর যোগ করলে প্রিমিয়াম চলবে {dhaka_day_words(year_end, 'bn')} পর্যন্ত। "
+                 "বাকি দিনগুলো হারাবেন না।" if bn
+                 else f"Add one year for {price} and it runs till {dhaka_day_words(year_end, 'en')}. "
+                 "You keep the days you have left.")
+    else:
+        again = ("চালু রাখতে চাইলে বিকাশ, নগদ বা ব্যাংক ট্রান্সফারে আবার একটি প্ল্যান নিন।" if bn
+                 else "To keep it on, choose a plan again and pay by bKash, Nagad or bank transfer.")
     phrase = kinds_phrase(caught or [], "bn" if bn else "en")
     # The reminder opens the reader's notifications (the Desk until
     # 2026-11-06): what Premium found for them is listed there.
@@ -737,7 +802,7 @@ def send_renewal_reminders(now: datetime, day: str, push_ok: bool) -> int:
         except Exception:  # noqa: BLE001 — the recap line is a nice-to-have
             caught = []
         result = push_service.send_to_user(
-            uid, renewal_payload(days_left, prefs.get("language", "bn"), caught))
+            uid, renewal_payload(days_left, prefs.get("language", "bn"), caught, year_until(until, now)))
         campaign_id = f"premiumrenew-{uid}-{day}"
         _db()["push_sends"].update_one(
             {"campaign_id": campaign_id, "user_id": uid},
@@ -749,3 +814,43 @@ def send_renewal_reminders(now: datetime, day: str, push_ok: bool) -> int:
         if result["sent"]:
             sent += 1
     return sent
+
+
+def renewal_state(user_id: str, now: Optional[datetime] = None) -> Optional[dict]:
+    """The renewal banner's data, or None when it shouldn't show: not Premium,
+    an admin, more than `RENEW_BANNER_DAYS` left, or a payment still waiting
+    (its days are already on, or will be once an admin accepts it)."""
+    from backend.services.entitlements import FREE_LIMITS, is_admin
+
+    now = now or datetime.now(timezone.utc)
+    db = _db()
+    u = db["users"].find_one(
+        {"user_id": user_id},
+        {"_id": 0, "user_id": 1, "email": 1, "email_verified": 1, "created_at": 1,
+         "premium_until": 1, "premium_source": 1, "watchlist": 1, "extra_portfolios": 1,
+         "custom_lists": 1, "dividend_reminders": 1},
+    )
+    if not u or is_admin(u):
+        return None
+    until = _as_utc(u.get("premium_until"))
+    if not until or until <= now or days_to_end(until, now) > RENEW_BANNER_DAYS:
+        return None
+    if _payments().count_documents({"user_id": user_id, "status": "pending"}, limit=1):
+        return None
+    armed = db["price_alerts"].count_documents({"user_id": user_id, "is_active": True})
+    try:
+        found = renewal_found(_caught_this_period(user_id, now))
+    except Exception:  # noqa: BLE001 — the recap line is a nice-to-have
+        found = None
+    plan = PAID_PLANS[RENEW_PLAN]
+    year_end = year_until(until, now)
+    return {
+        "premium_until": until.isoformat(),
+        "premium_source": u.get("premium_source"),
+        "plan": {"key": RENEW_PLAN, "amount": plan["amount"],
+                 "list_amount": plan.get("list_amount"), "days": plan["days"],
+                 "until": year_end.isoformat()},
+        "found": found,
+        "have": renewal_have(u, armed),
+        "free": {"watchlist": FREE_LIMITS["watchlist"], "alerts": FREE_LIMITS["alerts"]},
+    }

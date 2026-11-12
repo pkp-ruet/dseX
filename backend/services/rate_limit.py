@@ -141,6 +141,7 @@ RULES: list[Rule] = [
     _rule("rank-history", "GET", r"^/api/rankings/history/[^/]+$", 60, 30),
     _rule("compare", "GET", r"^/api/compare$", 60, 30),
     _rule("notifications", "GET", r"^/api/user/notifications$", 30, 15),
+    _rule("premium-renewal", "GET", r"^/api/user/premium/renewal$", 30, 15),
     _rule("notifications-unread", "GET", r"^/api/user/notifications/unread$", 60, 30),
     # Writes.
     _rule("stock-visit", "POST", r"^/api/stock-visit/", 60, 30, by_ip=True),

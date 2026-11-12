@@ -11,6 +11,7 @@ import type {
 } from "@/lib/research-reports";
 import type { StockReport } from "@/lib/stock-report";
 import type { BuyList, BuyListHome } from "@/lib/buy-list";
+import type { RenewalHave } from "@/lib/renewal";
 
 /**
  * Backend base URL (no trailing slash).
@@ -1723,6 +1724,20 @@ export async function apiSubmitPayment(body: {
   reference?: string;
 }): Promise<{ payment: PremiumPayment; user: AuthUser }> {
   return apiAuthFetch("/api/user/premium/payments", { method: "POST", body: JSON.stringify(body) });
+}
+
+/** The renewal banner's data (backend `payments.renewal_state`), null when it shouldn't show. */
+export interface RenewalState {
+  premium_until: string;
+  premium_source: string | null;
+  plan: { key: "yearly"; amount: number; list_amount: number | null; days: number; until: string };
+  found: { total: number; en: string; bn: string } | null;
+  have: RenewalHave;
+  free: { watchlist: number; alerts: number };
+}
+
+export async function apiGetRenewal(): Promise<{ renewal: RenewalState | null }> {
+  return apiAuthFetch("/api/user/premium/renewal");
 }
 
 /** The offer banner's "Not interested" (`never`) or "Remind me later" (`later`). */
