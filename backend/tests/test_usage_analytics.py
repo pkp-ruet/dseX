@@ -122,9 +122,12 @@ def test_plan_counts_only_paying_members_by_plan():
         {"premium_source": "paid", "paid_plan": "monthly"},
         {"premium_source": "paid", "paid_plan": "monthly"},
         {"premium_source": "paid", "paid_plan": "yearly"},
-        {"premium_source": "paid", "paid_plan": "quarterly"},   # no longer sold
+        {"premium_source": "paid", "paid_plan": "quarterly"},
+        {"premium_source": "paid", "paid_plan": "biannual"},     # unknown key
         {"premium_source": "trial", "paid_plan": None},          # given, not paying
     ])
     assert [(r["key"], r["members"]) for r in rows] == [
-        ("monthly", 2), ("halfyearly", 0), ("yearly", 1), ("offer", 0), ("other", 1)]
-    assert [r["key"] for r in ua.plan_counts([])] == ["monthly", "halfyearly", "yearly", "offer"]
+        ("monthly", 2), ("quarterly", 1), ("halfyearly", 0), ("yearly", 1), ("offer", 0),
+        ("other", 1)]
+    assert [r["key"] for r in ua.plan_counts([])] == [
+        "monthly", "quarterly", "halfyearly", "yearly", "offer"]

@@ -22,7 +22,6 @@ import { dayWords, dhakaDay, extendedUntil } from "@/lib/renewal";
 import {
   METHOD_BN,
   METHOD_LABEL,
-  OFFER,
   OWN_OFFER_PLAN,
   PAID_PLANS,
   TRANSFER_LABEL,
@@ -213,12 +212,12 @@ export default function PayBox() {
       <div className="pay-plans">
         {PAID_PLANS.map((p) => {
           const on = p.key === planKey;
-          // 30 / 180 / 365 days → 1 / 6 / 12 months. On an offer plan the
-          // saving is the discount off its regular price; otherwise it is
-          // against paying the one-month price that many times.
+          // 30 / 90 / 365 days → 1 / 3 / 12 months. The saving is against
+          // paying the one-month price that many times (flat prices, no
+          // struck-through regular price since 2026-11-13).
           const months = Math.max(1, Math.round(p.days / 30));
           const perMonth = Math.round(p.amount / months);
-          const save = p.listAmount ? p.listAmount - p.amount : BASE_MONTHLY * months - p.amount;
+          const save = BASE_MONTHLY * months - p.amount;
           return (
             <button
               key={p.key}
@@ -239,21 +238,8 @@ export default function PayBox() {
                   <T en={p.name} bn={p.bn} />
                 </span>
               </span>
-              {p.listAmount && (
-                <span className="pay-plan-offer">
-                  <T en={OFFER.label.en} bn={OFFER.label.bn} />
-                </span>
-              )}
               <span className="pay-plan-price tabular-nums">
                 ৳{p.amount.toLocaleString("en-IN")}
-                {p.listAmount && (
-                  <s className="pay-plan-was">
-                    <span className="sr-only">
-                      <T en="Regular price " bn="আগের দাম " />
-                    </span>
-                    ৳{p.listAmount.toLocaleString("en-IN")}
-                  </s>
-                )}
               </span>
               <span className="block text-sm text-text-muted">
                 <T en={p.per} bn={p.perBn} />

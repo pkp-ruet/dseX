@@ -21,15 +21,13 @@ NOW = datetime(2026, 10, 25, 6, 0, tzinfo=timezone.utc)
 
 def test_plans_are_the_advertised_prices():
     assert {k: (v["amount"], v["days"]) for k, v in PAID_PLANS.items()} == {
-        "monthly": (199, 30), "halfyearly": (999, 180), "yearly": (1899, 365),
+        "monthly": (199, 30), "quarterly": (499, 90), "yearly": (1499, 365),
     }
 
 
-def test_offer_prices_sit_below_the_regular_price():
-    assert {k: v.get("list_amount") for k, v in PAID_PLANS.items()} == {
-        "monthly": None, "halfyearly": 1149, "yearly": 2199,
-    }
-    assert all(v["amount"] < v["list_amount"] for v in PAID_PLANS.values() if "list_amount" in v)
+def test_plans_are_flat_prices():
+    # No struck-through "regular" price on any plan since 2026-11-13.
+    assert all("list_amount" not in v for v in PAID_PLANS.values())
 
 
 def test_sender_number_forms():
@@ -193,7 +191,7 @@ def test_one_more_year_counts_from_the_current_end_date():
 def test_renewal_reminder_offers_the_year_with_its_end_date():
     end = datetime(2027, 11, 22, 4, 0, tzinfo=timezone.utc)
     en = renewal_payload(4, "en", [], end)["body"]
-    assert "Add one year for ৳1,899 and it runs till 22 Nov 2027." in en
+    assert "Add one year for ৳1,499 and it runs till 22 Nov 2027." in en
     assert "You keep the days you have left." in en
     bn = renewal_payload(4, "bn", [], end)["body"]
     assert "22 নভেম্বর 2027" in bn and "২" not in bn

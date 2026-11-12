@@ -15,7 +15,6 @@ import PaymentHelp from "@/components/premium/PaymentHelp";
 import { JobTag } from "@/components/premium/AnswerLock";
 import { useLang } from "@/context/LangContext";
 import { usePremium } from "@/lib/premium";
-import { OFFER } from "@/lib/premium-plans";
 import {
   FAQS, GROUPS, HERO, LIMITS, PER_MONTH, PROMISES, SECTIONS, STEPS, TABLE,
   type Bi, type Cell, type Group, type GroupKey, type Tone,
@@ -207,7 +206,6 @@ export default function PremiumBody() {
           lead={<Tx b={HERO.lead} />}
         />
         <div className="pm-price">
-          <p className="pm-offer"><Tx b={OFFER.label} /></p>
           <p>
             <span className="pm-price-from"><Tx b={HERO.from} /></span>{" "}
             <span className="pm-price-num">৳{PER_MONTH}</span>{" "}
@@ -251,7 +249,6 @@ export default function PremiumBody() {
           title={<Tx b={SECTIONS.plan} />}
           lead={
             <>
-              <span className="block font-semibold text-text-main"><Tx b={OFFER.line} /></span>
               <Tx b={SECTIONS.planLead} />{" "}
               <Link href="/refund-policy" className="font-semibold text-primary-ink hover:underline">
                 <Tx b={SECTIONS.refund} />

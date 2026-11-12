@@ -208,10 +208,11 @@ def money_summary(payments: list[dict], now: datetime) -> dict:
 
 
 # The plans readers buy (payments.PAID_PLANS + the own-offer month), in the
-# order the page shows them. `quarterly` is no longer sold; old buyers fall
-# under "Other".
+# order the page shows them. `halfyearly` was sold 2026-10-27 → 11-13 and is
+# still counted while its buyers have days left.
 PLAN_LABELS = [
     ("monthly", "1 month"),
+    ("quarterly", "3 months"),
     ("halfyearly", "6 months"),
     ("yearly", "1 year"),
     ("offer", "৳99 first month"),
@@ -220,7 +221,7 @@ PLAN_LABELS = [
 
 def plan_counts(members: list[dict]) -> list[dict]:
     """Paying members (premium_source "paid") by the plan they bought last
-    (`users.paid_plan`). Always the four plans, then "Other" when there is any."""
+    (`users.paid_plan`). Always the five plans, then "Other" when there is any."""
     counts: dict[str, int] = {}
     for m in members:
         if m.get("premium_source") != "paid":

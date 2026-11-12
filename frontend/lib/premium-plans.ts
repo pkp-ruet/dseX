@@ -1,14 +1,13 @@
 /**
  * The paid plans — mirrors backend `services/payments.py:PAID_PLANS` (amount +
- * days + list amount); this file adds the words. A plain module (no "use client")
- * so the server-rendered /premium page and its client PayBox share it.
+ * days); this file adds the words. A plain module (no "use client") so the
+ * server-rendered /premium page and its client PayBox share it.
  *
- * 2026-10-27: 1 month ৳199 · 6 months ৳999 (regular ৳1,149) · 1 year ৳1,899
- * (regular ৳2,199). The 6-month and yearly prices are a limited-time offer —
- * `listAmount` is the regular price, shown struck through with the offer label
- * (`OFFER`). The reader always pays `amount`.
+ * 2026-11-13: flat prices — 1 month ৳199 · 3 months ৳499 · 1 year ৳1,499. No
+ * struck-through "regular" price and no limited-time offer on any plan (the
+ * reader's own ৳99 month below is a separate, admin-switched offer).
  */
-export type PlanKey = "monthly" | "halfyearly" | "yearly" | "offer";
+export type PlanKey = "monthly" | "quarterly" | "yearly" | "offer";
 
 export interface PaidPlan {
   key: PlanKey;
@@ -16,7 +15,7 @@ export interface PaidPlan {
   bn: string;
   amount: number;
   days: number;
-  /** Regular price while a limited-time offer runs (struck through). */
+  /** Regular price, struck through — only the reader's own ৳99 month has one. */
   listAmount?: number;
   per: string;
   perBn: string;
@@ -38,45 +37,34 @@ export const PAID_PLANS: PaidPlan[] = [
     noteBn: "এক মাস চালিয়ে দেখুন।",
   },
   {
-    key: "halfyearly",
-    name: "6 months",
-    bn: "6 মাস",
-    amount: 999,
-    listAmount: 1149,
-    days: 180,
-    per: "for 180 days",
-    perBn: "180 দিনের জন্য",
-    note: "About ৳167 a month.",
-    noteBn: "মাসে প্রায় ৳167।",
+    key: "quarterly",
+    name: "3 months",
+    bn: "3 মাস",
+    amount: 499,
+    days: 90,
+    per: "for 90 days",
+    perBn: "90 দিনের জন্য",
+    note: "About ৳166 a month.",
+    noteBn: "মাসে প্রায় ৳166।",
   },
   {
     key: "yearly",
     name: "1 year",
     bn: "1 বছর",
-    amount: 1899,
-    listAmount: 2199,
+    amount: 1499,
     days: 365,
     per: "for 365 days",
     perBn: "365 দিনের জন্য",
-    note: "About ৳158 a month.",
-    noteBn: "মাসে প্রায় ৳158।",
+    note: "About ৳125 a month.",
+    noteBn: "মাসে প্রায় ৳125।",
     best: true,
   },
 ];
 
-/** The cheapest month on any plan (the yearly one: ৳1,899 / 12 ≈ ৳158). */
+/** The cheapest month on any plan (the yearly one: ৳1,499 / 12 ≈ ৳125). */
 export const FROM_MONTH = Math.min(
   ...PAID_PLANS.map((p) => Math.round(p.amount / Math.max(1, Math.round(p.days / 30)))),
 );
-
-/** The words for the limited-time offer on the discounted plans. */
-export const OFFER = {
-  label: { en: "Limited-time offer", bn: "সীমিত সময়ের অফার" },
-  line: {
-    en: "Limited-time offer: 6 months for ৳999 (was ৳1,149) and 1 year for ৳1,899 (was ৳2,199).",
-    bn: "সীমিত সময়ের অফার: 6 মাস ৳999 (আগে ৳1,149), 1 বছর ৳1,899 (আগে ৳2,199)।",
-  },
-} as const;
 
 /**
  * The reader's own offer (2026-10-29): one month for ৳99 instead of ৳199,
@@ -103,13 +91,13 @@ export const OWN_OFFER_PLAN: PaidPlan = {
 // as a name (the payment row stores its own amount + days).
 const RETIRED_PLANS: PaidPlan[] = [
   {
-    key: "quarterly" as PlanKey,
-    name: "3 months",
-    bn: "3 মাস",
-    amount: 499,
-    days: 90,
-    per: "for 90 days",
-    perBn: "90 দিনের জন্য",
+    key: "halfyearly" as PlanKey,
+    name: "6 months",
+    bn: "6 মাস",
+    amount: 999,
+    days: 180,
+    per: "for 180 days",
+    perBn: "180 দিনের জন্য",
     note: "",
     noteBn: "",
   },
