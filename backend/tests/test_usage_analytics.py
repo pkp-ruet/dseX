@@ -115,3 +115,16 @@ def test_pct_and_median_handle_empty():
     assert ua.pct(1, 0) == 0.0
     assert ua.median([]) == 0.0
     assert ua.median([1, 2, 10]) == 2.0
+
+
+def test_plan_counts_only_paying_members_by_plan():
+    rows = ua.plan_counts([
+        {"premium_source": "paid", "paid_plan": "monthly"},
+        {"premium_source": "paid", "paid_plan": "monthly"},
+        {"premium_source": "paid", "paid_plan": "yearly"},
+        {"premium_source": "paid", "paid_plan": "quarterly"},   # no longer sold
+        {"premium_source": "trial", "paid_plan": None},          # given, not paying
+    ])
+    assert [(r["key"], r["members"]) for r in rows] == [
+        ("monthly", 2), ("halfyearly", 0), ("yearly", 1), ("offer", 0), ("other", 1)]
+    assert [r["key"] for r in ua.plan_counts([])] == ["monthly", "halfyearly", "yearly", "offer"]

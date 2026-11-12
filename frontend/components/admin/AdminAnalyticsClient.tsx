@@ -100,6 +100,22 @@ function PremiumBlock({ d }: { d: AdminAnalyticsResponse }) {
         {facts.map((f) => <Stat key={f.label} value={f.value} label={f.label} sub={f.sub} tone={f.tone} />)}
       </div>
 
+      {p.plans && p.plans.length > 0 && (
+        <>
+          <h3 className="mb-3 mt-6 text-sm font-bold text-text-main">Paying members by plan</h3>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {p.plans.map((r) => (
+              <Stat
+                key={r.key}
+                value={n(r.members)}
+                label={r.label}
+                sub={p.paying ? `${pc((r.members / p.paying) * 100)} of paying` : undefined}
+              />
+            ))}
+          </div>
+        </>
+      )}
+
       <h3 className="mb-2 mt-6 text-sm font-bold text-text-main">
         Premium ends in the next 14 days · {n(p.ending.length)}
       </h3>

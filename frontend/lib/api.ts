@@ -2908,6 +2908,8 @@ export interface AdminAnalyticsResponse {
     buyers: number;
     repeat_buyers: number;
     new_buyers_30d: number;
+    /** Paying members by the plan they bought last (1 month, 6 months, 1 year, ৳99 month, other). */
+    plans?: { key: string; label: string; members: number }[];
     ending: AdminEnding[];  // Premium ending in the next 14 days
   };
   groups: { free: AdminGroupFigures; premium: AdminGroupFigures };

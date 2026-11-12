@@ -207,6 +207,33 @@ def money_summary(payments: list[dict], now: datetime) -> dict:
     }
 
 
+# The plans readers buy (payments.PAID_PLANS + the own-offer month), in the
+# order the page shows them. `quarterly` is no longer sold; old buyers fall
+# under "Other".
+PLAN_LABELS = [
+    ("monthly", "1 month"),
+    ("halfyearly", "6 months"),
+    ("yearly", "1 year"),
+    ("offer", "৳99 first month"),
+]
+
+
+def plan_counts(members: list[dict]) -> list[dict]:
+    """Paying members (premium_source "paid") by the plan they bought last
+    (`users.paid_plan`). Always the four plans, then "Other" when there is any."""
+    counts: dict[str, int] = {}
+    for m in members:
+        if m.get("premium_source") != "paid":
+            continue
+        key = m.get("paid_plan") or "other"
+        key = key if key in dict(PLAN_LABELS) else "other"
+        counts[key] = counts.get(key, 0) + 1
+    rows = [{"key": k, "label": label, "members": counts.get(k, 0)} for k, label in PLAN_LABELS]
+    if counts.get("other"):
+        rows.append({"key": "other", "label": "Other", "members": counts["other"]})
+    return rows
+
+
 def ending_soon(members: list[dict], today: date, last_active: dict[str, str],
                 push_users: set[str], days: int = ENDING_DAYS) -> list[dict]:
     """Premium readers whose Premium ends within `days` (today included), soonest

@@ -107,6 +107,7 @@ def _users(db, now: datetime, start30: datetime, admins: list[str], push_users: 
                              {"$lte": ["$created_at", now - timedelta(days=7)]}]},
             "premium_until": 1,
             "premium_source": 1,
+            "paid_plan": 1,
         }},
         {"$facet": {
             "plans": [{"$group": {
@@ -132,7 +133,8 @@ def _users(db, now: datetime, start30: datetime, admins: list[str], push_users: 
             ],
             "members": [
                 {"$match": {"premium": True}},
-                {"$project": {"user_id": 1, "premium_until": 1, "premium_source": 1, "last_seen_at": 1}},
+                {"$project": {"user_id": 1, "premium_until": 1, "premium_source": 1, "paid_plan": 1,
+                              "last_seen_at": 1}},
             ],
             "lapsed": [
                 {"$match": {"premium_source": "paid",
@@ -282,6 +284,7 @@ def _build() -> dict:
             "buyers": money["buyers"],
             "repeat_buyers": money["repeat_buyers"],
             "new_buyers_30d": money["new_buyers_30d"],
+            "plans": ua.plan_counts(members),
             "ending": ending,
         },
         "groups": {
