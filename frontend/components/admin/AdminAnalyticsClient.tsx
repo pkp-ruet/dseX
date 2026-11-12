@@ -163,6 +163,48 @@ function PremiumBlock({ d }: { d: AdminAnalyticsResponse }) {
   );
 }
 
+/** The homepage Premium banner for free readers: who saw it, what they tapped,
+ *  and who sent a payment afterwards (counted in `banner_events`). */
+function BannerBlock({ d }: { d: AdminAnalyticsResponse }) {
+  const b = d.banner;
+  if (!b) return null;
+  const of = (p: number) => `${pc(p)} of those who saw it`;
+  const facts = [
+    { value: n(b.seen), label: "Saw the banner", sub: `${n(b.views)} times · ${b.avg_days} days each on average` },
+    { value: n(b.pay), label: "Tapped Get Premium", sub: of(b.pay_pct) },
+    { value: n(b.more), label: "Opened “See everything”", sub: of(b.more_pct) },
+    { value: n(b.later), label: "Tapped Maybe later", sub: of(b.later_pct) },
+    { value: n(b.never), label: "Not interested", sub: of(b.never_pct), tone: b.never_pct >= 30 ? ("watch" as const) : undefined },
+    {
+      value: n(b.paid_after_view),
+      label: "Paid after seeing it",
+      sub: `${pc(b.paid_after_view_pct)} of those who saw it · ${n(b.paid_year_after_view)} took 1 year`,
+      tone: b.paid_after_view ? ("positive" as const) : undefined,
+    },
+    {
+      value: n(b.paid_after_tap),
+      label: "Paid after tapping Get Premium",
+      sub: `${pc(b.paid_after_tap_of_taps_pct)} of those who tapped`,
+      tone: b.paid_after_tap ? ("positive" as const) : undefined,
+    },
+  ];
+  return (
+    <Block title="Premium banner on the homepage" note={`Last ${b.days} days · free readers · each reader counted once`}>
+      {b.seen === 0 && b.pay === 0 ? (
+        <p className="text-sm text-text-muted">No reader has seen the banner yet.</p>
+      ) : (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {facts.map((f) => <Stat key={f.label} value={f.value} label={f.label} sub={f.sub} tone={f.tone} />)}
+        </div>
+      )}
+      <p className="mt-4 text-xs text-text-muted">
+        A payment counts when it was sent (waiting or accepted) after the reader first saw the banner or first tapped
+        Get Premium in this window, on any plan.
+      </p>
+    </Block>
+  );
+}
+
 function GroupTable({ free, premium }: { free: AdminGroupFigures; premium: AdminGroupFigures }) {
   const rows: { label: string; f: string; p: string }[] = [
     { label: "Accounts", f: n(free.accounts), p: n(premium.accounts) },
@@ -328,6 +370,8 @@ export default function AdminAnalyticsClient() {
           </Block>
 
           <PremiumBlock d={data} />
+
+          <BannerBlock d={data} />
 
           <div className="grid gap-4 lg:grid-cols-2">
             <GroupTable free={data.groups.free} premium={data.groups.premium} />

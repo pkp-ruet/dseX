@@ -1740,6 +1740,15 @@ export async function apiGetRenewal(): Promise<{ renewal: RenewalState | null }>
   return apiAuthFetch("/api/user/premium/renewal");
 }
 
+export type PremiumBannerAction = "view" | "pay" | "more" | "later" | "never";
+
+/** What the reader did with the homepage Premium banner (counted on the admin
+ *  analytics page). Fire and forget: a failure is ignored. */
+export function apiPremiumBannerEvent(action: PremiumBannerAction): void {
+  apiAuthFetch("/api/user/premium/banner", { method: "POST", body: JSON.stringify({ action, banner: "home" }) })
+    .catch(() => {});
+}
+
 /** The offer banner's "Not interested" (`never`) or "Remind me later" (`later`). */
 export async function apiDismissOffer(action: "never" | "later"): Promise<{ user: AuthUser }> {
   return apiAuthFetch("/api/user/premium/offer", { method: "POST", body: JSON.stringify({ action }) });
@@ -2930,6 +2939,23 @@ export interface AdminAnalyticsResponse {
   groups: { free: AdminGroupFigures; premium: AdminGroupFigures };
   areas: { key: string; label: string; free: number; premium: number; free_pct: number; premium_pct: number }[];
   stocks: { code: string; users: number; views: number }[];
+  /** The homepage Premium banner, last 30 days (readers; % = of readers who saw it). */
+  banner?: AdminBannerFigures;
+}
+
+export interface AdminBannerFigures {
+  days: number;
+  seen: number;
+  views: number;
+  avg_days: number;
+  pay: number; pay_pct: number;
+  more: number; more_pct: number;
+  later: number; later_pct: number;
+  never: number; never_pct: number;
+  paid_after_view: number; paid_after_view_pct: number;
+  paid_after_tap: number; paid_after_tap_pct: number;
+  paid_year_after_view: number; paid_year_after_view_pct: number;
+  paid_after_tap_of_taps_pct: number;
 }
 
 export async function apiGetAdminAnalytics(fresh = false): Promise<AdminAnalyticsResponse> {

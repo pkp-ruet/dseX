@@ -113,6 +113,11 @@ def startup():
     from backend.services.price_alert_service import ensure_price_alert_indexes
     from backend.services.portfolio_daily import ensure_indexes as ensure_portfolio_daily_indexes
     from backend.services.payments import ensure_payment_indexes
+    from backend.services import banner_events
+    from backend.services.db_service import get_db as _get_db
+
+    def _banner_indexes():
+        banner_events.ensure_indexes(_get_db())
 
     for name, fn in (
         ("users", ensure_users_indexes),
@@ -124,6 +129,7 @@ def startup():
         ("price_alerts", ensure_price_alert_indexes),
         ("portfolio_daily", ensure_portfolio_daily_indexes),
         ("payments", ensure_payment_indexes),
+        ("banner_events", _banner_indexes),
         ("stock_visits", _ensure_stock_visits),
     ):
         _startup_step(name, fn)

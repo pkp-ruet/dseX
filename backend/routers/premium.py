@@ -4,8 +4,9 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from backend.routers.auth import get_current_user
-from backend.services import payments
+from backend.services import banner_events, payments
 from backend.services.auth_service import get_user_by_id, public_user
+from backend.services.db_service import get_db
 
 router = APIRouter(prefix="/api/user/premium", tags=["premium"])
 public_router = APIRouter(prefix="/api/premium", tags=["premium"])
@@ -81,3 +82,20 @@ def dismiss_offer(body: OfferDismissBody, current_user: dict = Depends(get_curre
     until it ends."""
     payments.dismiss_offer(current_user["user_id"], body.action)
     return {"user": public_user(get_user_by_id(current_user["user_id"]))}
+
+
+class BannerEventBody(BaseModel):
+    action: Literal["view", "pay", "more", "later", "never"]
+    banner: Literal["home"] = "home"
+
+
+@router.post("/banner")
+def banner_event(body: BannerEventBody, current_user: dict = Depends(get_current_user)):
+    """What the reader did with the Premium banner (a view, or which button),
+    counted on the admin analytics page. Best-effort: never an error."""
+    try:
+        banner_events.record(get_db(), current_user["user_id"], body.banner, body.action)
+    except Exception:  # noqa: BLE001 — analytics must never break the page
+        import logging
+        logging.getLogger("premium").warning("banner event write failed", exc_info=True)
+    return {"ok": True}

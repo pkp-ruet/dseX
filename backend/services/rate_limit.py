@@ -148,6 +148,7 @@ RULES: list[Rule] = [
     _rule("feedback", "POST", r"^/api/feedback", 10 * PER_HOUR, 5, by_ip=True),
     _rule("push-test", "POST", r"^/api/notifications/test$", 6 * PER_HOUR, 3),
     _rule("push-subscribe", "POST", r"^/api/notifications/subscribe$", 20 * PER_HOUR, 10),
+    _rule("premium-banner", "POST", r"^/api/user/premium/banner$", 30, 15),
     _rule("payment", "POST", r"^/api/user/premium/payments$", 10 * PER_HOUR, 5),
     _rule("rank-alerts", "POST", r"^/api/user/rank-alerts", 30, 15),
     _rule("div-reminders", "POST", r"^/api/user/dividend-reminders", 30, 15),

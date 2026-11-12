@@ -805,6 +805,159 @@ details[open] > .pm-fold-summary .pm-fold-chev { transform: rotate(180deg); }
   color: var(--negative);
 }
 
+/* ── The Premium banner for free readers (2026-11-13) ───────────────────────
+   `components/premium/PremiumBanner.tsx`, top of the signed-in homepage only.
+   Phones: the points as titles in a gold box, the button under them, the two
+   ways out splitting the card's foot. 640px: each point gets its line, two
+   columns. 900px: the yearly plan in a gold panel on the right. */
+.prb {
+  margin-top: var(--space-4);
+  border: 1px solid rgb(var(--gold-rgb) / 0.55);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+.prb-body {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-6) var(--space-4) var(--space-4);
+}
+@media (min-width: 640px) { .prb-body { padding: var(--space-6); } }
+@media (min-width: 900px) {
+  .prb-body { grid-template-columns: minmax(0, 1fr) 300px; gap: var(--space-8); }
+}
+.prb-main { min-width: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.prb-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text);
+}
+.prb-crown {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: rgb(var(--gold-rgb) / 0.18);
+  color: var(--gold);
+}
+.prb-title {
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text);
+}
+@media (min-width: 640px) { .prb-title { font-size: var(--fs-xl); } }
+.prb-lead { display: none; font-size: var(--fs-base); color: var(--text); }
+@media (min-width: 640px) { .prb-lead { display: block; } }
+.prb-list {
+  display: grid;
+  gap: 10px;
+  margin-top: var(--space-2);
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: rgb(var(--gold-rgb) / 0.12);
+  list-style: none;
+}
+@media (min-width: 640px) {
+  .prb-list { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--space-8); row-gap: var(--space-3); }
+}
+@media (min-width: 900px) {
+  .prb-list { padding: 0; background: none; margin-top: var(--space-3); }
+}
+.prb-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+  color: var(--text);
+}
+@media (min-width: 640px) { .prb-item { font-size: var(--fs-base); } }
+.prb-tick {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  border-radius: 999px;
+  background: rgb(var(--gold-rgb) / 0.2);
+  color: var(--gold-ink);
+}
+.prb-item-t { font-weight: 600; }
+.prb-item-d { display: none; }
+@media (min-width: 640px) { .prb-item-d { display: inline; } }
+.prb-pay { display: flex; flex-direction: column; gap: var(--space-2); }
+@media (min-width: 900px) {
+  .prb-pay {
+    justify-content: center;
+    gap: var(--space-3);
+    padding: var(--space-6);
+    border-radius: var(--radius-md);
+    background: rgb(var(--gold-rgb) / 0.12);
+  }
+}
+.prb-pay-head,
+.prb-pay-sub { display: none; color: var(--text); }
+@media (min-width: 900px) {
+  .prb-pay-head { display: block; font-size: var(--fs-base); font-weight: 700; }
+  .prb-pay-sub { display: block; font-size: var(--fs-sm); line-height: 1.45; }
+}
+.prb-price {
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+  text-align: center;
+  color: var(--text);
+}
+.prb-more {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--primary-ink);
+}
+.prb-more:hover { text-decoration: underline; }
+.prb-close {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--border);
+}
+.prb-close-btn {
+  min-height: 48px;
+  padding: 0 var(--space-3);
+  border: 0;
+  background: transparent;
+  font-size: var(--fs-sm);
+  color: var(--text);
+  cursor: pointer;
+}
+.prb-close-btn:hover,
+.prb-close-btn:focus-visible { background: var(--surface-2); }
+.prb-close-btn--later { font-weight: 600; border-right: 1px solid var(--border); }
+.prb-close-long { display: none; }
+@media (min-width: 640px) {
+  .prb-close {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+  }
+  .prb-close-btn { min-height: 40px; border-radius: var(--radius); }
+  .prb-close-btn--later { border-right: 0; }
+  .prb-close-long { display: inline; }
+  .prb-close-short { display: none; }
+}
+
 /* ── The page question card (2026-10-31, the Premium Desk plan) ─────────────
    `components/premium/PageQuestions.tsx`: a market page's ONE Premium card —
    free facts from the page beside the questions they leave. */

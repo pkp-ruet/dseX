@@ -23,6 +23,7 @@ import StartFromZero from "@/components/landing/StartFromZero";
 import LandingClose from "@/components/landing/LandingClose";
 import FeedbackSection from "@/components/feedback/FeedbackSection";
 import OfferBanner from "@/components/premium/OfferBanner";
+import PremiumBanner from "@/components/premium/PremiumBanner";
 
 // Hourly, not daily: the page renders today's movers and grades, so
 // day-old HTML would show yesterday's market. Matches the 3600s the scores /
@@ -234,6 +235,9 @@ export default function HomePage() {
 
       {/* The signed-in reader's own ৳99 month (client-only; never for guests) */}
       <OfferBanner />
+
+      {/* What Premium gives, for signed-in free readers (client-only; waits while the offer is up) */}
+      <PremiumBanner />
 
       <HomePersonalizationGate>
         <HeroBlock promise={scoresPromise} marketPromise={marketPromise} />
