@@ -2851,248 +2851,72 @@ export async function getTrust(): Promise<TrustStats> {
 }
 
 // ---------------------------------------------------------------------------
-// Admin analytics
+// Admin analytics (the short page, 2026-11-13 — backend usage_analytics_service)
 // ---------------------------------------------------------------------------
 
-export type EngagementSegment = "new" | "active" | "at_risk" | "dormant";
-
-export interface AdminRetentionStat {
-  eligible: number;
-  retained: number;
-  pct: number;
-}
-
-export interface AdminGrowthPoint {
-  date: string; // YYYY-MM-DD (Dhaka)
-  signups: number;
-  active: number;
-}
-
-export interface AdminStockCount {
-  code: string;
-  users: number;
-  views?: number;
-}
-
-/** Who a group is: paying, on the old free month / given by an admin, free —
- *  plus "all" and "premium" (paying + given). */
-export type AdminGroupKey = "all" | "premium" | "paid" | "gifted" | "free";
-
-export interface AdminSpread {
-  mean: number;
-  median: number;
-}
-
-/** How much one group uses the site and what it opens, over the window. Every
- *  per-reader figure is over the group's readers active in the window. */
-export interface AdminGroupUsage {
-  key: AdminGroupKey;
-  label: string;
+export interface AdminGroupFigures {
   accounts: number;
-  active: { today: number; d7: number; window: number; window_pct: number };
-  /** Average active readers a day ÷ readers active in the window, %. */
-  stickiness: number;
-  usage: {
-    days: AdminSpread;          // active days
-    views: AdminSpread;         // page views
-    visits: AdminSpread;        // visits (a 30-minute gap ends one)
-    minutes: AdminSpread;       // estimated minutes on the site in the window
-    visit_minutes: AdminSpread; // per visit
-    visit_pages: AdminSpread;   // per visit
-    total_views: number;
-    total_visits: number;
-  };
-  intensity: { label: string; users: number }[];
-  daily: { date: string; active: number; views: number }[];
-  areas: { key: string; label: string; users: number; reach: number; views: number; per_user: number }[];
-  pages: { path: string; views: number; users: number }[];
-  stocks: AdminStockCount[];
-  hours: { matrix: number[][]; max: number };
-  sources: { src: string; views: number; users: number }[];
-  setup: {
-    key: string;
-    label: string;
-    users: number;
-    pct: number;            // of the group's accounts
-    active_users: number;
-    pct_active: number;     // of the group's readers active in the window
-    median: number | null;  // size among those who have it (watchlist, holdings …)
-  }[];
-  notified: {
-    push_sent: number;
-    push_failed: number;
-    push_users: number;
-    email_sent: number;
-    email_users: number;
-    kinds: { kind: string; label: string; sent: number; users: number }[];
-  };
+  active_7d: number;
+  active_7d_pct: number;
+  active_30d: number;
+  median_days: number;   // active days in 30, among readers active in 30
+  follow_pct: number;
+  portfolio_pct: number;
+  push_pct: number;
+  at_cap?: number;       // free only: at the free watchlist cap
 }
 
-/** One reader, for the members and most-engaged lists (window figures). */
-export interface AdminPerson {
+export interface AdminEnding {
   name: string | null;
-  email: string | null;
-  phone_only: boolean;
-  signed_up: string | null;
-  last_seen: string | null;
-  active_days: number;
-  views: number;
-  visits: number;
-  minutes: number;
-  active7: boolean;
-  top_areas: string[];
-  premium_views: number;
-  holdings: number;
-  watchlist: number;
-  alerts: number;
-  push: boolean;
-  installed: boolean;
-  caps: string[];
-}
-
-export interface AdminMember extends AdminPerson {
+  contact: string | null;
   plan: "paid" | "gifted";
-  plan_label: string;
-  method: string | null;
-  paid_total: number;
-  payments: number;
-  first_paid: string | null;
-  until: string | null;
-  days_left: number | null;
+  until: string;         // YYYY-MM-DD (Dhaka)
+  days_left: number;
+  seen_7d: boolean;
+  push: boolean;
 }
 
-export interface AdminLead extends AdminPerson {
-  lapsed: boolean;
-}
-
-export interface AdminMoneyRow {
-  key: string;
-  label: string;
-  payments: number;
-  amount: number;
-}
-
-export interface AdminRenewalWeek {
-  start: string;
-  end: string;
-  paid: number;
-  paid_active7: number;
-  paid_push: number;
-  gifted: number;
-}
-
-export interface AdminRevenue {
-  total: number;
-  payments: number;
-  buyers: number;
-  window: number;
-  window_payments: number;
-  month: number;
-  month_payments: number;
-  repeat_buyers: number;
-  pending: number;
-  revoked: number;
-  by_plan: AdminMoneyRow[];
-  by_method: AdminMoneyRow[];
-}
-
-export interface AdminConversion {
-  payers: number;
-  signup_to_pay: { label: string; users: number }[];
-  before: {
-    payers: number;
-    areas: { key: string; label: string; users: number }[];
-    sources: { src: string; users: number }[];
-  };
-  premium_page: {
-    free_active: number;
-    free_visited: number;
-    free_visit_views: number;
-    bought: number;
-    bought_visited: number;
-  };
-  before_after: { span: number; payers: number; before: number; after: number };
-}
-
-export interface AdminFreeBlock {
-  limits: {
-    watchlist_cap: number;
-    alerts_cap: number;
-    at_watchlist_cap: number;
-    at_watchlist_cap_active: number;
-    at_alerts_cap: number;
-    report_key_users: number;
-    report_keys_used: number;
-    report_keys_per_month: number;
-  };
-  interest: {
-    visited_premium: number;
-    premium_views: number;
-    offer_dismissed: number;
-    offer_later: number;
-    taps: { src: string; views: number; users: number }[];
-  };
-  lapsed: { accounts: number; paid_before: number; active: number };
-  leads: AdminLead[];
-}
-
-/** GET /api/admin/analytics?days=7|30|90 — the whole admin analytics page.
- *  The fields marked optional arrived with the 2026-11-04 redesign, so a
- *  frontend deploy that lands before the backend still renders the overview. */
+/** GET /api/admin/analytics — the whole short page. */
 export interface AdminAnalyticsResponse {
   generated_at: string;
-  window_days?: number;
-  admins_left_out?: number;
-  plans?: { paid: number; gifted: number; free: number };
-  groups?: Record<AdminGroupKey, AdminGroupUsage>;
-  headline: {
-    total_users: number;
+  build_seconds?: number;
+  admins_left_out: number;
+  tiles: {
+    accounts: number;
     new_today: number;
     new_7d: number;
-    new_30d: number;
-    dau: number;
-    wau: number;
-    mau: number;
-    stickiness: number; // DAU / MAU %
+    active_today: number;
+    active_7d: number;
+    active_30d: number;
+    premium: number;
+    paying: number;
+    given: number;
+    money_month: number;
+    payments_month: number;
   };
-  growth: AdminGrowthPoint[]; // last 90 days, ascending
-  retention: { d1: AdminRetentionStat; d7: AdminRetentionStat; d30: AdminRetentionStat };
-  segments: Record<EngagementSegment, number>;
-  activation: {
-    signed_up: number;
-    returned: number;
-    built_watchlist: number;
-    added_portfolio: number;
-    power_feature: number;
+  growth: { date: string; signups: number; active: number }[]; // 30 Dhaka days, oldest first
+  came_back: { eligible: number; returned: number; pct: number };
+  premium: {
+    paying: number;
+    given: number;
+    pending: number;
+    lapsed_30d: number;
+    money_month: number;
+    month_payments: number;
+    money_total: number;
+    payments: number;
+    buyers: number;
+    repeat_buyers: number;
+    new_buyers_30d: number;
+    ending: AdminEnding[];  // Premium ending in the next 14 days
   };
-  features: { push: number; installed: number; alerts: number; ai: number };
-  premium?: {
-    active: number;          // premium_until in the future (admins not counted)
-    on_trial: number;        // …of those, on their free month
-    granted: number;         // …of those, given days by an admin
-    trials_started: number;  // ever pressed "Start my free month"
-    trials_7d: number;       // started in the last 7 days
-    trials_ended: number;    // used the month and are no longer premium
-    paid?: number;           // …of the active ones, on a bought plan
-    payments_pending?: number; // payments waiting to be checked in /admin/payments
-    lapsed_30d?: number;     // paid before, Premium ended in the last 30 days
-    revenue?: AdminRevenue;
-    members?: AdminMember[];
-    renewals?: AdminRenewalWeek[];
-    conversion?: AdminConversion;
-  };
-  free?: AdminFreeBlock;
-  sections: { category: string; views: number; users: number }[]; // the window
-  stocks: { viewed: AdminStockCount[]; watched: AdminStockCount[]; held: AdminStockCount[] };
-  active_hours: { matrix: number[][]; max: number }; // [weekday 0=Sun..6=Sat][hour 0..23]
-  signup_source: { google: number; password: number };
-  notifications: { src: string; views: number; users: number }[]; // the window
+  groups: { free: AdminGroupFigures; premium: AdminGroupFigures };
+  areas: { key: string; label: string; free: number; premium: number; free_pct: number; premium_pct: number }[];
+  stocks: { code: string; users: number; views: number }[];
 }
 
-export type AdminWindow = 7 | 30 | 90;
-
-export async function apiGetAdminAnalytics(days: AdminWindow = 30, fresh = false): Promise<AdminAnalyticsResponse> {
-  return apiAuthFetch<AdminAnalyticsResponse>(`/api/admin/analytics?days=${days}${fresh ? "&fresh=true" : ""}`);
+export async function apiGetAdminAnalytics(fresh = false): Promise<AdminAnalyticsResponse> {
+  return apiAuthFetch<AdminAnalyticsResponse>(`/api/admin/analytics${fresh ? "?fresh=true" : ""}`);
 }
 
 // ---------------------------------------------------------------------------

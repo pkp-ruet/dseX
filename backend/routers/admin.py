@@ -14,13 +14,13 @@ router = APIRouter(prefix="/api/admin", tags=["admin"])
 
 
 @router.get("/analytics")
-def get_analytics(days: int = 30, fresh: bool = False, _: dict = Depends(get_current_admin_user)):
-    """The whole admin analytics page in one response: everyone, Premium and
-    Free side by side — how much each group uses the site, what it opens, what
-    it has set up, revenue and renewals, and the earlier overview panels.
-    `days` = the behaviour window (7, 30 or 90 Dhaka days). Admin accounts and
-    /admin pages are left out. See `usage_analytics_service`."""
-    return usage_analytics_service.build(days, fresh=fresh)
+def get_analytics(fresh: bool = False, _: dict = Depends(get_current_admin_user)):
+    """The short admin analytics page in one response: headline numbers, 30 days
+    of sign-ups and active readers, Premium money and who ends this week, Free
+    vs Premium, and what readers opened in 7 days. Counted in Mongo; served
+    from a 15-minute copy (`fresh` builds now). Admin accounts and /admin pages
+    are left out. See `usage_analytics_service`."""
+    return usage_analytics_service.build(fresh=fresh)
 
 
 # ---------------------------------------------------------------------------

@@ -1,41 +1,25 @@
-"""Admin usage analytics — the pure parts (tests: backend/tests/test_usage_analytics.py).
+"""Admin analytics — the pure parts (tests: backend/tests/test_usage_analytics.py).
 
-Which plan a reader is on, which product area a page path belongs to, how one
-reader's page views turn into active days and visits, and how a group of
-readers is summed up. Mongo reads live in ``usage_analytics_service.py``.
+The short admin page (2026-11-13): headline numbers, 30 days of sign-ups and
+active readers, Premium money and who ends soon, Free vs Premium side by side,
+and what readers opened in the last 7 days. Mongo reads live in
+``usage_analytics_service.py``; it counts inside Mongo and hands these helpers
+small rows (one per active reader at most), never the raw page views.
 
 Page views come from ``user_events`` (signed-in readers only, one row per
-reader × path × minute with a ``count``, kept 90 days). A *visit* is a run of
-page views with no gap over ``VISIT_GAP_MIN`` minutes; its length runs from the
-first page to the last, so a one-page visit counts as one minute. Time figures
-are therefore estimates, and the page says so.
+reader × path × minute with a ``count``, kept 90 days).
 """
 from __future__ import annotations
 
 import re
-from collections import Counter
-from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 from statistics import median as _median
 from typing import Iterable, Optional
 
 DHAKA = timezone(timedelta(hours=6))
-VISIT_GAP_MIN = 30
-WINDOWS = (7, 30, 90)
-
-# ---------------------------------------------------------------------------
-# Plans and groups
-# ---------------------------------------------------------------------------
-
-PLANS = ("paid", "gifted", "free")
-GROUPS = ("all", "premium", "paid", "gifted", "free")
-GROUP_LABELS = {
-    "all": "Everyone",
-    "premium": "All Premium",
-    "paid": "Paying",
-    "gifted": "Free month / given",
-    "free": "Free",
-}
+WINDOW_DAYS = 30
+AREA_DAYS = 7
+ENDING_DAYS = 14
 
 
 def as_utc(v) -> Optional[datetime]:
@@ -43,6 +27,11 @@ def as_utc(v) -> Optional[datetime]:
     if not isinstance(v, datetime):
         return None
     return v if v.tzinfo else v.replace(tzinfo=timezone.utc)
+
+
+def dhaka_day(v) -> Optional[date]:
+    t = as_utc(v)
+    return t.astimezone(DHAKA).date() if t else None
 
 
 def plan_of(premium_until, premium_source, now: datetime) -> str:
@@ -54,17 +43,12 @@ def plan_of(premium_until, premium_source, now: datetime) -> str:
     return "paid" if premium_source == "paid" else "gifted"
 
 
-def groups_of(plan: str) -> tuple[str, ...]:
-    if plan in ("paid", "gifted"):
-        return ("all", "premium", plan)
-    return ("all", plan)
-
-
 # ---------------------------------------------------------------------------
-# Paths → areas, pages, stocks, sources
+# Paths → areas
 # ---------------------------------------------------------------------------
 
-# (key, label, regex). Ordered; the first match wins.
+# (key, label, regex). Ordered; the first match wins. Run in Mongo through
+# `area_switch()`, so keep the patterns plain (PCRE and Python agree on them).
 AREAS: list[tuple[str, str, str]] = [
     ("home", "Home / dashboard", r"^/$"),
     ("stock", "Stock pages", r"^/stock/"),
@@ -77,7 +61,7 @@ AREAS: list[tuple[str, str, str]] = [
     ("ranking", "Company ranking", r"^/dsestockranking"),
     ("screener", "Stock screener", r"^/(screener|my-lists|stock-recommendation)"),
     ("compare", "Compare stocks", r"^/compare-stocks"),
-    ("lists", "Research & stock lists", r"^/stock-insights"),
+    ("lists", "Premium research", r"^/stock-insights"),
     ("dividends", "Dividend calendar", r"^/dividend-calendar"),
     ("results", "Results", r"^/results"),
     ("market", "Market pages", r"^/(market-analysis|market-intelligence|dse-today|share-bazar|todays-news"
@@ -95,10 +79,8 @@ AREAS: list[tuple[str, str, str]] = [
 ]
 AREA_LABELS = {k: label for k, label, _ in AREAS} | {"other": "Other"}
 _AREA_RX = [(k, re.compile(rx)) for k, _, rx in AREAS]
-
-_SRC_RX = re.compile(r"[?&]src=([^&#]+)")
-_STOCK_RX = re.compile(r"^/stock/([^/?#]+)")
-_SLUG_RX = re.compile(r"^/(learn|blog|sector|stock-insights|sample-portfolio)/[^/?#]+")
+STOCK_RX = r"^/stock/([^/?#]+)"
+_STOCK_RX = re.compile(STOCK_RX)
 
 
 def bare(path: str) -> str:
@@ -113,48 +95,26 @@ def area_of(path: str) -> str:
     return "other"
 
 
-def page_of(path: str) -> str:
-    """One row per page *kind*: query dropped, codes and slugs folded."""
-    p = bare(path)
-    p = _STOCK_RX.sub("/stock/[code]", p)
-    p = _SLUG_RX.sub(lambda m: f"/{m.group(1)}/[slug]", p)
-    return p.rstrip("/") or "/"
-
-
 def stock_of(path: str) -> Optional[str]:
     m = _STOCK_RX.match(bare(path))
     code = m.group(1).strip().upper() if m else ""
     return code or None
 
 
-def src_of(path: str) -> Optional[str]:
-    """Where a tagged deep link came from (`?src=push-digest`, `offer-banner` …)."""
-    m = _SRC_RX.search(path or "")
-    return m.group(1)[:40] if m else None
+def bare_expr(field: str = "$path") -> dict:
+    """Mongo: the path without its query or hash (the same as `bare`)."""
+    no_q = {"$arrayElemAt": [{"$split": [{"$ifNull": [field, "/"]}, "?"]}, 0]}
+    no_h = {"$arrayElemAt": [{"$split": [no_q, "#"]}, 0]}
+    return {"$cond": [{"$eq": [no_h, ""]}, "/", no_h]}
 
 
-# Push campaign ids are `<kind>-<uid>-<day>`; the kind is everything before the
-# first dash.
-PUSH_KINDS = {
-    "digest": "Daily digest",
-    "evt": "Stock events",
-    "pwatch": "Premium watcher",
-    "pteaser": "Free teaser",
-    "pa": "Price alerts",
-    "psig": "Buy more / Sell",
-    "rank": "Rank alerts",
-    "clist": "Saved screens",
-    "brief": "Morning brief",
-    "letter": "Friday letter",
-    "grade": "Grade change",
-    "premiumrenew": "Renewal reminder",
-    "trialrecap": "Free-month recap",
-}
-
-
-def push_kind(campaign_id: str) -> str:
-    head = (campaign_id or "").split("-", 1)[0]
-    return head if head in PUSH_KINDS else "other"
+def area_switch(field: str | dict = "$p") -> dict:
+    """Mongo: the area key of a bare path (the same as `area_of`)."""
+    return {"$switch": {
+        "branches": [{"case": {"$regexMatch": {"input": field, "regex": rx}}, "then": key}
+                     for key, _, rx in AREAS],
+        "default": "other",
+    }}
 
 
 # ---------------------------------------------------------------------------
@@ -166,172 +126,134 @@ def median(xs: Iterable[float]) -> float:
     return round(float(_median(xs)), 1) if xs else 0.0
 
 
-def mean(xs: Iterable[float]) -> float:
-    xs = list(xs)
-    return round(sum(xs) / len(xs), 1) if xs else 0.0
-
-
 def pct(part: float, whole: float) -> float:
     return round(part / whole * 100, 1) if whole else 0.0
 
 
-def spread(xs: list[float]) -> dict:
-    return {"mean": mean(xs), "median": median(xs)}
-
-
-# Active-days buckets per window, (label, lo, hi) inclusive; hi None = open.
-_EDGES = {
-    7: [("1 day", 1, 1), ("2 days", 2, 2), ("3–4 days", 3, 4), ("5–6 days", 5, 6), ("Every day", 7, None)],
-    30: [("1 day", 1, 1), ("2–3 days", 2, 3), ("4–7 days", 4, 7), ("8–14 days", 8, 14), ("15+ days", 15, None)],
-    90: [("1 day", 1, 1), ("2–5 days", 2, 5), ("6–20 days", 6, 20), ("21–45 days", 21, 45), ("46+ days", 46, None)],
-}
-
-
-def intensity(day_counts: Iterable[int], window: int) -> list[dict]:
-    edges = _EDGES.get(window) or _EDGES[30]
-    counts = [0] * len(edges)
-    for n in day_counts:
-        for i, (_, lo, hi) in enumerate(edges):
-            if n >= lo and (hi is None or n <= hi):
-                counts[i] += 1
-                break
-    return [{"label": label, "users": c} for (label, _, _), c in zip(edges, counts)]
-
-
 # ---------------------------------------------------------------------------
-# One reader's page views
+# Readers' active days → the page's figures
 # ---------------------------------------------------------------------------
 
-def visits(minute_views: dict[int, int]) -> list[tuple[int, int]]:
-    """[(length_minutes, views)] — a visit ends after a gap over VISIT_GAP_MIN."""
-    out: list[tuple[int, int]] = []
-    if not minute_views:
-        return out
-    mins = sorted(minute_views)
-    start = prev = mins[0]
-    views = minute_views[start]
-    for m in mins[1:]:
-        if m - prev > VISIT_GAP_MIN:
-            out.append((prev - start + 1, views))
-            start, views = m, 0
-        views += minute_views[m]
-        prev = m
-    out.append((prev - start + 1, views))
+def active_figures(user_days: dict[str, list[str]], premium: set[str], today: date,
+                   window: int = WINDOW_DAYS) -> dict:
+    """`user_days` = {uid: ["YYYY-MM-DD", …]} (Dhaka days with a page view in the
+    window). Returns the active counts for everyone / free / premium, each
+    group's median active days, the readers per day, and each reader's last day."""
+    t = today.isoformat()
+    d7 = (today - timedelta(days=6)).isoformat()
+    groups = {g: {"today": 0, "d7": 0, "d30": 0, "days": []} for g in ("all", "free", "premium")}
+    per_day: dict[str, int] = {}
+    last: dict[str, str] = {}
+    for uid, days in user_days.items():
+        days = sorted(set(days))
+        if not days:
+            continue
+        last[uid] = days[-1]
+        for d in days:
+            per_day[d] = per_day.get(d, 0) + 1
+        for g in ("all", "premium" if uid in premium else "free"):
+            G = groups[g]
+            G["d30"] += 1
+            G["d7"] += days[-1] >= d7
+            G["today"] += days[-1] == t
+            G["days"].append(len(days))
+    out = {g: {"today": v["today"], "d7": v["d7"], "d30": v["d30"], "median_days": median(v["days"])}
+           for g, v in groups.items()}
+    return {"groups": out, "per_day": per_day, "last": last}
+
+
+def growth_series(today: date, signups: dict[str, int], active: dict[str, int],
+                  days: int = WINDOW_DAYS) -> list[dict]:
+    out = []
+    for i in range(days - 1, -1, -1):
+        d = (today - timedelta(days=i)).isoformat()
+        out.append({"date": d, "signups": int(signups.get(d, 0)), "active": int(active.get(d, 0))})
     return out
 
 
-@dataclass
-class Usage:
-    """One reader's page views inside the window."""
-    days: set = field(default_factory=set)              # Dhaka date ordinals
-    views: int = 0
-    minutes: dict = field(default_factory=dict)         # epoch minute → views
-    areas: Counter = field(default_factory=Counter)     # area → views
+# ---------------------------------------------------------------------------
+# Premium
+# ---------------------------------------------------------------------------
 
-    def add(self, day_ord: int, minute: int, area: str, count: int) -> None:
-        self.days.add(day_ord)
-        self.views += count
-        self.minutes[minute] = self.minutes.get(minute, 0) + count
-        self.areas[area] += count
-
-    def visit_list(self) -> list[tuple[int, int]]:
-        return visits(self.minutes)
-
-    def top_areas(self, n: int = 3) -> list[str]:
-        return [AREA_LABELS.get(k, k) for k, _ in self.areas.most_common() if k != "admin"][:n]
-
-
-def usage_summary(usages: list[Usage]) -> dict:
-    """How much a group's active readers use the site (per reader, then per visit)."""
-    days, views, visit_n, time_total, visit_len, visit_pages = [], [], [], [], [], []
-    for u in usages:
-        vs = u.visit_list()
-        days.append(len(u.days))
-        views.append(u.views)
-        visit_n.append(len(vs))
-        time_total.append(sum(length for length, _ in vs))
-        visit_len.extend(length for length, _ in vs)
-        visit_pages.extend(v for _, v in vs)
+def money_summary(payments: list[dict], now: datetime) -> dict:
+    """Accepted payments → this month (Dhaka), all time, buyers, repeat buyers
+    and readers whose first payment is in the last 30 days."""
+    month_start = now.astimezone(DHAKA).date().replace(day=1)
+    since30 = now - timedelta(days=30)
+    first: dict[str, datetime] = {}
+    count: dict[str, int] = {}
+    month = month_n = total = 0
+    for p in payments:
+        amt = int(p.get("amount") or 0)
+        total += amt
+        t = as_utc(p.get("created_at"))
+        if t and t.astimezone(DHAKA).date() >= month_start:
+            month += amt
+            month_n += 1
+        uid = p.get("user_id")
+        if not uid:
+            continue
+        count[uid] = count.get(uid, 0) + 1
+        if t and (uid not in first or t < first[uid]):
+            first[uid] = t
     return {
-        "days": spread(days),
-        "views": spread(views),
-        "visits": spread(visit_n),
-        "minutes": spread(time_total),       # estimated minutes on the site in the window
-        "visit_minutes": spread(visit_len),  # per visit
-        "visit_pages": spread(visit_pages),  # per visit
-        "total_views": sum(views),
-        "total_visits": sum(visit_n),
+        "month": month,
+        "month_payments": month_n,
+        "total": total,
+        "payments": len(payments),
+        "buyers": len(count),
+        "repeat_buyers": sum(1 for n in count.values() if n >= 2),
+        "new_buyers_30d": sum(1 for t in first.values() if t >= since30),
     }
 
 
-def area_rows(areas_users: dict[str, set], areas_views: Counter, active: int) -> list[dict]:
-    """Reach first: how many of the group's active readers opened each area."""
-    rows = []
-    for key, users in areas_users.items():
-        if key == "admin" or not users:
-            continue
-        v = areas_views.get(key, 0)
-        rows.append({
-            "key": key,
-            "label": AREA_LABELS.get(key, key),
-            "users": len(users),
-            "reach": pct(len(users), active),
-            "views": v,
-            "per_user": round(v / len(users), 1),
-        })
-    rows.sort(key=lambda r: (-r["users"], -r["views"]))
-    return rows
-
-
-def top_rows(views: Counter, users: dict[str, set], key: str, limit: int) -> list[dict]:
-    rows = [{key: k, "views": v, "users": len(users.get(k, ()))} for k, v in views.most_common(limit)]
-    return rows
-
-
-# ---------------------------------------------------------------------------
-# Premium: paying, renewals, conversion
-# ---------------------------------------------------------------------------
-
-_PAY_LAG = [("Same day", 0, 0), ("1–7 days", 1, 7), ("8–30 days", 8, 30),
-            ("1–3 months", 31, 90), ("3+ months", 91, None)]
-
-
-def signup_to_pay(lags: Iterable[int]) -> list[dict]:
-    counts = [0] * len(_PAY_LAG)
-    for n in lags:
-        n = max(0, n)
-        for i, (_, lo, hi) in enumerate(_PAY_LAG):
-            if n >= lo and (hi is None or n <= hi):
-                counts[i] += 1
-                break
-    return [{"label": label, "users": c} for (label, _, _), c in zip(_PAY_LAG, counts)]
-
-
-def renewal_weeks(members: list[dict], today: date, weeks: int = 8) -> list[dict]:
-    """Premium end dates bucketed into the next `weeks` 7-day spans from today.
-    `members` rows: {until: date, plan: paid|gifted, active7: bool, push: bool}."""
+def ending_soon(members: list[dict], today: date, last_active: dict[str, str],
+                push_users: set[str], days: int = ENDING_DAYS) -> list[dict]:
+    """Premium readers whose Premium ends within `days` (today included), soonest
+    first. `members` rows: {user_id, name, contact, plan, until (datetime),
+    last_seen_at}."""
+    week_ago = today - timedelta(days=6)
     out = []
-    for w in range(weeks):
-        start = today + timedelta(days=7 * w)
-        end = start + timedelta(days=6)
-        rows = [m for m in members if m.get("until") and start <= m["until"] <= end]
-        paid = [m for m in rows if m["plan"] == "paid"]
+    for m in members:
+        until = dhaka_day(m.get("until"))
+        if not until or not (today <= until < today + timedelta(days=days)):
+            continue
+        uid = m.get("user_id")
+        last = last_active.get(uid)
+        seen = (date.fromisoformat(last) >= week_ago) if last else bool(
+            (dhaka_day(m.get("last_seen_at")) or date.min) >= week_ago)
         out.append({
-            "start": start.isoformat(),
-            "end": end.isoformat(),
-            "paid": len(paid),
-            "paid_active7": sum(1 for m in paid if m.get("active7")),
-            "paid_push": sum(1 for m in paid if m.get("push")),
-            "gifted": len(rows) - len(paid),
+            "name": m.get("name") or None,
+            "contact": m.get("contact") or None,
+            "plan": m.get("plan"),
+            "until": until.isoformat(),
+            "days_left": (until - today).days,
+            "seen_7d": seen,
+            "push": uid in push_users,
         })
+    out.sort(key=lambda r: (r["until"], r["name"] or ""))
     return out
 
 
-def before_after(days: set[int], paid_day: int, today_ord: int, span: int = 14) -> Optional[tuple[int, int]]:
-    """Active days in the `span` days before paying vs the `span` days from the
-    payment day. None until the reader has had `span` days of Premium."""
-    if today_ord - paid_day < span:
-        return None
-    before = sum(1 for d in days if paid_day - span <= d < paid_day)
-    after = sum(1 for d in days if paid_day <= d < paid_day + span)
-    return before, after
+# ---------------------------------------------------------------------------
+# What readers opened
+# ---------------------------------------------------------------------------
+
+def area_rows(rows: list[dict], active7: dict[str, int]) -> list[dict]:
+    """`rows` from Mongo: {area, premium: bool, users}. One row per area with
+    free and Premium readers and each as a share of that group's readers
+    active in the 7 days. Admin pages are left out; biggest reach first."""
+    by: dict[str, dict] = {}
+    for r in rows:
+        key = r.get("area") or "other"
+        if key == "admin":
+            continue
+        row = by.setdefault(key, {"key": key, "label": AREA_LABELS.get(key, key), "free": 0, "premium": 0})
+        row["premium" if r.get("premium") else "free"] += int(r.get("users") or 0)
+    out = []
+    for row in by.values():
+        row["free_pct"] = pct(row["free"], active7.get("free", 0))
+        row["premium_pct"] = pct(row["premium"], active7.get("premium", 0))
+        out.append(row)
+    out.sort(key=lambda r: (-(r["free"] + r["premium"]), r["label"]))
+    return out
