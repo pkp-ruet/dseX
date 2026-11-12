@@ -45,9 +45,22 @@ jobs:
 
       - run: npm ci
 
-      # Wake the Render backend first: the build reads it, and a cold free
-      # instance can take a minute to answer.
+      # Wake the Render backend and fill its caches first. The build gives each
+      # backend read 30 s (lib/api.ts API_TIMEOUT_MS) and a page whose main
+      # read fails stops the build. Right after a backend deploy the caches
+      # are empty and /api/market/state alone took over 30 s (2026-11-13,
+      # /dse-today failed the build), so call the slow ones here first, with
+      # no time limit that matters, all at once.
       - name: Wake the backend
-        run: curl -s -o /dev/null -m 120 https://dsex.onrender.com/health || true
+        run: |
+          B=https://dsex.onrender.com
+          curl -s -o /dev/null -m 120 "$B/health" || true
+          for p in /api/scores /api/market/state /api/dse-today \
+                   /api/dividend-calendar /api/sectors /api/screener \
+                   /api/buy-list /api/results /api/rankings/today \
+                   /api/research/summary; do
+            curl -s -o /dev/null -m 240 -w "$p %{http_code} %{time_total}s\n" "$B$p" &
+          done
+          wait
 
       - run: npm run deploy
