@@ -11,9 +11,13 @@ Storage: ``users.custom_lists`` = up to ``MAX_LISTS`` of
 ``spec`` is a screener spec (``{"v": 2, "filters", "sort", "dir"}``) or an old
 ``{"checks", "sort"}`` one. ``members`` is every code that passed at the last
 daily check (None until the first check), ``joined`` / ``left`` what changed
-on ``changed_on``. The daily job (``run_alerts``, called from
-``portfolio-daily``) re-runs every Premium reader's screens and sends one push
-a day naming the newcomers. Saving is Premium and enforced in the router.
+on ``changed_on``, ``joined_why`` / ``left_why`` {code: {en, bn}} the reason in
+one line, and ``almost`` {code: filter key} the shares one filter away at the
+last check (so the next day can say what changed for a share that joined).
+The daily job (``run_alerts``, called from ``portfolio-daily``) re-runs every
+Premium reader's screens, logs each change on ``users.screen_log`` (the
+Notifications page reads it, last ``SCREEN_LOG_KEEP``) and sends one push a
+day naming the newcomers and why. Saving is Premium and enforced in the router.
 
 ``facts`` / ``question_table`` stay here for the recommendation engine, which
 still reads each company's strengths on the old six questions.
@@ -31,6 +35,10 @@ from backend.services import screener as sc
 from backend.services.db_service import _ttl_cache, get_db
 
 logger = logging.getLogger(__name__)
+
+ALMOST_CAP = 300       # codes one filter away, kept per screen
+SCREEN_LOG_KEEP = 60   # screen changes kept on the user for the Notifications page
+
 
 def _users():
     return get_db()["users"]
@@ -96,12 +104,18 @@ def _live(spec: dict) -> dict:
 def _public(doc: dict, live: Optional[dict] = None) -> dict:
     names = {c: (facts().get(c) or {}).get("name") or c for c in (doc.get("joined") or []) + (doc.get("left") or [])}
     spec = doc.get("spec") or {}
+    jw, lw = doc.get("joined_why") or {}, doc.get("left_why") or {}
+
+    def item(c: str, why: dict) -> dict:
+        r = why.get(c) or {}
+        return {"code": c, "name": names.get(c, c), "why_en": r.get("en"), "why_bn": r.get("bn")}
+
     out = {
         "id": doc["id"], "name": doc.get("name"), "spec": spec,
         "summary": sc.summary(spec) if sc.is_v2(spec) else cl.summary(spec),
         "alerts": bool(doc.get("alerts", True)),
-        "joined": [{"code": c, "name": names.get(c, c)} for c in doc.get("joined") or []],
-        "left": [{"code": c, "name": names.get(c, c)} for c in doc.get("left") or []],
+        "joined": [item(c, jw) for c in doc.get("joined") or []],
+        "left": [item(c, lw) for c in doc.get("left") or []],
         "changed_on": doc.get("changed_on"),
         "created_at": _iso(doc.get("created_at")),
         "updated_at": _iso(doc.get("updated_at")),
@@ -154,6 +168,41 @@ def saved_news(user_id: str) -> list[dict]:
     return out
 
 
+def _almost(spec: dict) -> dict[str, str]:
+    """{code: the one filter it fails} for a v2 screen; {} for an old one."""
+    if not sc.is_v2(spec):
+        return {}
+    from backend.services import screener_service as ss
+
+    try:
+        out = sc.one_away(ss.rows(), spec.get("filters") or [])
+    except Exception:  # noqa: BLE001 — reasons fall back to "passes every filter"
+        logger.exception("custom lists: one-away failed")
+        return {}
+    return dict(list(out.items())[:ALMOST_CAP])
+
+
+def change_reasons(spec: dict, almost_then: dict, joined: list[str], left: list[str],
+                   values: dict[str, dict]) -> tuple[dict, dict]:
+    """({code: {en, bn}} for joiners, the same for leavers). A joiner's reason
+    is the filter it missed at the last check, read on today's figure; a
+    leaver's the first filter it fails today. Old (check-based) screens get
+    none. ``values`` = {code: row figures}. Pure."""
+    if not sc.is_v2(spec):
+        return {}, {}
+    filters = spec.get("filters") or []
+    jw = {c: sc.change_reason(c, (almost_then or {}).get(c), values.get(c) or {}, True) for c in joined}
+    lw = {}
+    for c in left:
+        v = values.get(c)
+        if v is None:  # gone from the graded list (delisted, no score)
+            lw[c] = {"en": f"{c} is no longer graded.", "bn": f"{c}-এর আর গ্রেড নেই।"}
+            continue
+        failed = sc.misses(v, filters)
+        lw[c] = sc.change_reason(c, failed[0] if failed else None, v, False)
+    return jw, lw
+
+
 def create(user_id: str, name, spec_in, alerts: bool = True) -> dict:
     docs = _docs(user_id)
     if len(docs) >= cl.MAX_LISTS:
@@ -171,6 +220,7 @@ def create(user_id: str, name, spec_in, alerts: bool = True) -> dict:
     }
     # Today's passers are the baseline: tomorrow's newcomers are the news.
     doc["members"] = _live(spec)["codes"][:cl.MEMBERS_CAP]
+    doc["almost"] = _almost(spec)
     _users().update_one({"user_id": user_id}, {"$push": {"custom_lists": doc}})
     return _public(doc)
 
@@ -198,6 +248,9 @@ def update(user_id: str, list_id: str, name=None, spec_in=None, alerts: Optional
             doc["joined"] = sets["custom_lists.$.joined"] = []
             doc["left"] = sets["custom_lists.$.left"] = []
             doc["changed_on"] = sets["custom_lists.$.changed_on"] = None
+            doc["almost"] = sets["custom_lists.$.almost"] = _almost(spec)
+            sets["custom_lists.$.joined_why"] = {}
+            sets["custom_lists.$.left_why"] = {}
     _users().update_one({"user_id": user_id, "custom_lists.id": list_id}, {"$set": sets})
     return _public(doc)
 
@@ -212,24 +265,32 @@ def delete(user_id: str, list_id: str) -> None:
 # The daily check + push
 # ---------------------------------------------------------------------------
 
-def push_payload(changes: list[tuple[dict, list[str]]], lang: str = "bn") -> Optional[dict]:
+def push_payload(changes: list[tuple], lang: str = "bn") -> Optional[dict]:
     """One notification for a reader's lists that gained stocks today.
-    ``changes`` = [(list doc, joined codes)]."""
-    changes = [(d, j) for d, j in changes if j]
+    ``changes`` = [(list doc, joined codes)] or [(list doc, joined codes,
+    {code: {en, bn}} reasons)]: one screen with reasons says why."""
+    changes = [c for c in changes if c[1]]
     if not changes:
         return None
     bn = lang != "en"
     if len(changes) == 1:
-        d, joined = changes[0]
+        d, joined = changes[0][0], changes[0][1]
+        why = changes[0][2] if len(changes[0]) > 2 else {}
         names = ", ".join(joined[:3]) + ("…" if len(joined) > 3 else "")
         title = (f"'{d['name']}' স্ক্রিনে নতুন {len(joined)}টি শেয়ার" if bn
                  else f"{len(joined)} new {'share' if len(joined) == 1 else 'shares'} on your screen '{d['name']}'")
         url = f"/screener?tab=saved&list={d['id']}&src=alert"
+        lines = [(why.get(c) or {}).get("bn" if bn else "en") for c in joined[:2]]
+        lines = [x for x in lines if x]
+        if lines:
+            more = len(joined) - len(lines)
+            body = " ".join(lines) + ((f" আরও {more}টি।" if bn else f" And {more} more.") if more > 0 else "")
+            return {"title": title, "body": body, "url": url, "tag": "customlists"}
     else:
-        total = sum(len(j) for _, j in changes)
+        total = sum(len(c[1]) for c in changes)
         title = (f"আপনার {len(changes)}টি স্ক্রিনে নতুন {total}টি শেয়ার" if bn
                  else f"{total} new shares on {len(changes)} of your screens")
-        names = " · ".join(f"{d['name']}: {', '.join(j[:2])}" for d, j in changes[:3])
+        names = " · ".join(f"{c[0]['name']}: {', '.join(c[1][:2])}" for c in changes[:3])
         url = "/screener?tab=saved&src=alert"
     body = (f"আজ সব ফিল্টারে মিলেছে: {names}" if bn else f"Matched every filter today: {names}")
     return {"title": title, "body": body, "url": url, "tag": "customlists"}
@@ -241,8 +302,11 @@ def run_alerts(now: datetime, day: str, push_ok: bool) -> int:
     as they are. Returns how many readers were pushed."""
     from backend.services import entitlements, push_service
 
+    from backend.services import screener_service as ss
+
     sends = get_db()["push_sends"]
-    cache: dict[str, list[str]] = {}
+    cache: dict[str, tuple[list[str], dict]] = {}
+    values: Optional[dict[str, dict]] = None
     pushed = 0
     for u in _users().find(
         {"custom_lists.0": {"$exists": True}},
@@ -252,7 +316,7 @@ def run_alerts(now: datetime, day: str, push_ok: bool) -> int:
         if not entitlements.is_premium(u, now):
             continue
         uid = u["user_id"]
-        changes = []
+        changes, log = [], []
         for d in u.get("custom_lists") or []:
             if d.get("checked_on") == day:
                 continue
@@ -260,18 +324,34 @@ def run_alerts(now: datetime, day: str, push_ok: bool) -> int:
             key = repr(spec)
             if key not in cache:
                 try:
-                    cache[key] = _live(spec)["codes"][:cl.MEMBERS_CAP]
+                    cache[key] = (_live(spec)["codes"][:cl.MEMBERS_CAP], _almost(spec))
                 except ValueError:
                     continue
-            now_codes = cache[key]
+            now_codes, almost_now = cache[key]
             joined, left = cl.diff_members(d.get("members"), now_codes)
-            sets = {"custom_lists.$.members": now_codes, "custom_lists.$.checked_on": day}
+            sets = {"custom_lists.$.members": now_codes, "custom_lists.$.checked_on": day,
+                    "custom_lists.$.almost": almost_now}
+            jw: dict = {}
             if joined or left:
+                if values is None:
+                    try:
+                        values = {r["code"]: r["v"] for r in ss.rows()}
+                    except Exception:  # noqa: BLE001 — reasons fall back to "passes every filter"
+                        values = {}
+                jw, lw = change_reasons(spec, d.get("almost") or {}, joined, left, values)
                 sets.update({"custom_lists.$.joined": joined, "custom_lists.$.left": left,
+                             "custom_lists.$.joined_why": jw, "custom_lists.$.left_why": lw,
                              "custom_lists.$.changed_on": day})
+                if d.get("alerts", True):
+                    log.append({"day": day, "id": d["id"], "name": d.get("name"), "at": now,
+                                "joined": [{"code": c, **(jw.get(c) or {})} for c in joined],
+                                "left": [{"code": c, **(lw.get(c) or {})} for c in left]})
             _users().update_one({"user_id": uid, "custom_lists.id": d["id"]}, {"$set": sets})
             if joined and d.get("alerts", True):
-                changes.append((d, joined))
+                changes.append((d, joined, jw))
+        if log:
+            _users().update_one({"user_id": uid},
+                                {"$push": {"screen_log": {"$each": log, "$slice": -SCREEN_LOG_KEEP}}})
         if not (changes and push_ok and u.get("push_enabled")):
             continue
         prefs = {**push_service.DEFAULT_PREFS, **(u.get("notification_prefs") or {})}

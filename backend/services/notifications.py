@@ -9,7 +9,10 @@ One list, newest first, of everything we noticed for the reader in the last
 - price alerts that hit (`price_alerts.triggered_at`);
 - the 9 AM brief (`morning_briefs`, Premium readers only — the job builds it
   for nobody else), one row with its items;
-- the Friday letter (`weekly_letters`), one row with its parts.
+- the Friday letter (`weekly_letters`), one row with its parts;
+- changes on the reader's saved screens (`users.screen_log`, Premium readers
+  only — the daily check runs for nobody else), one row per screen per day
+  with each share that joined or left and why.
 
 A row is `new` when it came after the reader last opened the page
 (`users.notifications_seen_at`). Pushes open this page (several things at
@@ -151,11 +154,47 @@ def letter_row(doc: dict) -> Optional[dict]:
     }
 
 
+def screen_row(entry: dict) -> Optional[dict]:
+    """One saved screen's change at one daily check (`users.screen_log`)."""
+    joined = [j for j in entry.get("joined") or [] if j.get("code")]
+    left = [x for x in entry.get("left") or [] if x.get("code")]
+    if not (joined or left) or not entry.get("id"):
+        return None
+    name = entry.get("name") or "your screen"
+    n = len(joined)
+    if n:
+        title_en = f"{n} new {'share' if n == 1 else 'shares'} on your screen “{name}”"
+        title_bn = f"আপনার “{name}” স্ক্রিনে নতুন {n}টি শেয়ার"
+    else:
+        m = len(left)
+        title_en = f"{m} {'share' if m == 1 else 'shares'} left your screen “{name}”"
+        title_bn = f"আপনার “{name}” স্ক্রিন থেকে {m}টি শেয়ার বাদ পড়েছে"
+    url = f"/screener?tab=saved&list={entry['id']}"
+    items = []
+    for x, level in [(j, "good") for j in joined] + [(x, "watch") for x in left]:
+        en = x.get("en") or x["code"]
+        items.append({"title_en": en, "title_bn": x.get("bn") or en, "url": f"/stock/{x['code']}", "level": level})
+    return {
+        "id": f"screen-{entry['id']}-{entry.get('day')}",
+        "kind": "screen",
+        "code": None,
+        "level": "good" if n else "watch",
+        "at": _iso(entry.get("at")),
+        "title_en": title_en,
+        "title_bn": title_bn,
+        "body_en": None,
+        "body_bn": None,
+        "url": url,
+        "items": items,
+    }
+
+
 def build_feed(events: list[dict], alerts: list[dict], briefs: list[dict],
-               letters: list[dict], seen_at: Optional[str]) -> dict:
+               letters: list[dict], seen_at: Optional[str], screens: Optional[list[dict]] = None) -> dict:
     """{items (newest first, ≤ MAX_ROWS, each with `new`), unread}. Pure."""
     rows: list[dict] = []
-    for fn, docs in ((event_row, events), (alert_row, alerts), (brief_row, briefs), (letter_row, letters)):
+    for fn, docs in ((event_row, events), (alert_row, alerts), (brief_row, briefs), (letter_row, letters),
+                     (screen_row, screens or [])):
         for d in docs:
             r = fn(d)
             if r and r.get("at"):

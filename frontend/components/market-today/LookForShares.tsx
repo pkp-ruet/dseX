@@ -34,6 +34,7 @@ const TILES: Tile[] = [
     icon: <IconTune size={20} />,
     title: { en: "Stock screener", bn: "স্টক স্ক্রিনার" },
     sub: { en: "Filter shares by price, profit and dividend", bn: "দাম, মুনাফা আর ডিভিডেন্ড দিয়ে শেয়ার বাছাই" },
+    premium: true,
   },
   {
     href: "/discover",

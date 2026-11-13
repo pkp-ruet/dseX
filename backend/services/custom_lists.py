@@ -21,7 +21,7 @@ from backend.services import research_lists as rl
 from backend.services.research_lists import Check, ResearchList, _n, _r
 
 MAX_CHECKS = 16  # six answers at their strictest + a sector = 15
-MAX_LISTS = 5
+MAX_LISTS = 10  # saved screens a Premium reader keeps (5 until 2026-11-14)
 NAME_MAX = 40
 MEMBERS_CAP = 200
 

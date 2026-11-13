@@ -37,6 +37,7 @@ const KIND: Record<string, Pair> = {
   alert: { en: "Price alert", bn: "প্রাইস অ্যালার্ট" },
   brief: { en: "9 AM brief", bn: "সকাল 9টার খবর" },
   letter: { en: "Friday letter", bn: "শুক্রবারের চিঠি" },
+  screen: { en: "Saved screen", bn: "সেভ করা স্ক্রিন" },
 };
 
 const DHAKA_DAY = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dhaka" });
@@ -297,10 +298,14 @@ function Row({
     );
   }
 
-  if (i.kind === "brief" && i.items?.length) {
+  if ((i.kind === "brief" || i.kind === "screen") && i.items?.length) {
     return (
       <li id={i.id} className="nt-item" data-new={i.new || undefined}>
-        <div className="nt-row nt-row--static">{body}</div>
+        {i.kind === "screen" ? (
+          <Link href={i.url} prefetch={false} className="nt-row">{body}</Link>
+        ) : (
+          <div className="nt-row nt-row--static">{body}</div>
+        )}
         <ul className="nt-sub">
           {i.items.map((s, k) => (
             <li key={k}>

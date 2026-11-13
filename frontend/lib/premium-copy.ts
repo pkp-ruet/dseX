@@ -281,10 +281,10 @@ export const GROUPS: Group[] = [
         },
       },
       {
-        name: { en: "The screener, with our view", bn: "আমাদের মতসহ স্ক্রিনার" },
+        name: { en: "The stock screener", bn: "স্টক স্ক্রিনার" },
         line: {
-          en: "Filter by our grade, our price check and serious warnings. Save up to 5 screens and hear when a new share matches.",
-          bn: "আমাদের গ্রেড, দামের যাচাই আর গুরুতর সতর্কতা দিয়ে ফিল্টার করুন। 5টি পর্যন্ত স্ক্রিন সেভ করুন, নতুন শেয়ার মিললে জানবেন।",
+          en: "Six goals and 22 filters, six of them our own analysis. See every share that matches, the ones a small price fall would bring in, and save 10 screens that tell you when a share joins.",
+          bn: "ছয়টি লক্ষ্য আর 22টি ফিল্টার, যার ছয়টি আমাদের নিজের বিশ্লেষণ। যে শেয়ারগুলো মেলে তার প্রতিটি দেখুন, দাম সামান্য কমলে কোনগুলো আসবে তা দেখুন, আর 10টি স্ক্রিন সেভ করুন, নতুন শেয়ার যোগ হলে জানবেন।",
         },
       },
       {
@@ -311,8 +311,8 @@ export const GROUPS: Group[] = [
       },
     },
     free: {
-      en: "The key numbers of each research report, every screener filter on public figures, and each share's own dividends on its page.",
-      bn: "প্রতিটি গবেষণা প্রতিবেদনের মূল সংখ্যা, সাধারণ তথ্যের সব স্ক্রিনার ফিল্টার, আর প্রতিটি শেয়ারের নিজের ডিভিডেন্ড তার পেজে।",
+      en: "The key numbers of each research report, how many shares match on the screener, and each share's own dividends on its page.",
+      bn: "প্রতিটি গবেষণা প্রতিবেদনের মূল সংখ্যা, স্ক্রিনারে কতগুলো শেয়ার মেলে, আর প্রতিটি শেয়ারের নিজের ডিভিডেন্ড তার পেজে।",
     },
     link: { href: "/stock-insights", label: { en: "See Premium research", bn: "প্রিমিয়াম গবেষণা দেখুন" } },
   },
@@ -412,8 +412,8 @@ export const TABLE: { group: GroupKey; rows: { what: Bi; free: Cell; premium: Ce
       },
       {
         what: { en: "Stock screener", bn: "স্টক স্ক্রিনার" },
-        free: { en: "Every public figure", bn: "সাধারণ সব তথ্য" },
-        premium: { en: "Plus our view, 5 saved screens", bn: "সঙ্গে আমাদের মত, 5টি সেভ করা স্ক্রিন" },
+        free: { en: "How many shares match", bn: "কতগুলো শেয়ার মেলে" },
+        premium: { en: "Which shares, and 10 saved screens", bn: "কোন শেয়ার, আর 10টি সেভ করা স্ক্রিন" },
       },
       {
         what: { en: "Dividend calendar", bn: "ডিভিডেন্ড ক্যালেন্ডার" },

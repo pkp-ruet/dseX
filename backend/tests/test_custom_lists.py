@@ -74,6 +74,24 @@ def test_push_names_the_newcomers():
     assert p["body"] == "Matched every filter today: CITYBANK, EBL"
     assert p["url"] == "/screener?tab=saved&list=x1&src=alert"
     assert push_payload([({"id": "x1", "name": "a"}, [])], "en") is None
+    # With reasons, one screen says why.
+    why = {"GP": {"en": "GP: Our price check is now Low price.", "bn": "GP: আমাদের দাম যাচাই এখন কম দাম।"}}
+    p = push_payload([({"id": "x1", "name": "Strong and cheap"}, ["GP", "EBL", "ROBI"], why)], "en")
+    assert p["body"] == "GP: Our price check is now Low price. And 2 more."
+
+
+def test_change_reasons_name_the_filter_that_moved():
+    from backend.services import screener as sc
+    from backend.services.custom_lists_service import change_reasons
+
+    spec = {"v": 2, "filters": [{"key": "pe", "max": 10}], "sort": "mcap", "dir": "desc"}
+    values = {"A": {"pe": 9.5, "price": 50.0}, "B": {"pe": 12.0, "price": 50.0}}
+    jw, lw = change_reasons(spec, {"A": "pe"}, ["A"], ["B", "GONE"], values)
+    assert jw["A"]["en"] == "A: P/E is now 9.5."
+    assert lw["B"]["en"] == "B: P/E is now 12."
+    assert lw["GONE"]["en"] == "GONE is no longer graded."
+    assert change_reasons({"checks": []}, {}, ["A"], [], values) == ({}, {})
+    assert sc.MAX_FILTERS >= 6
 
 
 def test_quarter_better_reads_the_interim_report():

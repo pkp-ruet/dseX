@@ -1,3 +1,6 @@
+from datetime import datetime, timezone
+
+from backend.services import notifications as nt
 from backend.services.notifications import alert_row, brief_row, build_feed, event_row, letter_row
 
 EV = {"id": "results-GP-1", "kind": "results", "code": "gp", "level": "good",
@@ -46,3 +49,17 @@ def test_feed_is_newest_first_and_marks_new_after_seen():
     assert [r["new"] for r in out["items"]] == [True, False]
     assert out["unread"] == 1
     assert build_feed([EV], [], [], [], None)["unread"] == 1
+
+
+def test_a_saved_screen_change_is_one_row_with_its_reasons():
+    at = datetime(2026, 11, 13, 9, 0, tzinfo=timezone.utc)
+    entry = {"day": "2026-11-13", "id": "x1", "name": "Strong and cheap", "at": at,
+             "joined": [{"code": "GP", "en": "GP: Our price check is now Low price.", "bn": "GP: আমাদের দাম যাচাই এখন কম দাম।"}],
+             "left": [{"code": "EBL", "en": "EBL: P/E is now 12.", "bn": "EBL: পিই এখন 12।"}]}
+    out = nt.build_feed([], [], [], [], None, [entry])
+    row = out["items"][0]
+    assert row["kind"] == "screen" and row["new"] is True
+    assert row["title_en"] == "1 new share on your screen “Strong and cheap”"
+    assert row["url"] == "/screener?tab=saved&list=x1"
+    assert [i["level"] for i in row["items"]] == ["good", "watch"]
+    assert nt.screen_row({"id": "x1", "joined": [], "left": []}) is None

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Sheet from "@/components/ui/Sheet";
 import Button from "@/components/ui/Button";
-import { IconCheck, IconCrown } from "@/components/ui/icons";
+import { IconCheck } from "@/components/ui/icons";
 import type { ScreenerFilter, ScreenerFilterDef } from "@/lib/api";
 import { useLang } from "@/context/LangContext";
 import { countWith, fmt, histogram, typical, type ScreenerRow } from "@/lib/screener";
@@ -23,24 +23,29 @@ const UNIT_HINT: Record<string, { en: string; bn: string }> = {
   crore: { en: "৳ crore", bn: "৳ কোটি" },
   lakh: { en: "৳ lakh", bn: "৳ লাখ" },
   paid: { en: "years", bn: "বছর" },
+  days: { en: "days", bn: "দিন" },
   x: { en: "", bn: "" },
 };
 
 /**
- * One filter's sheet: what the figure means (its market word small), where
- * most DSE shares sit on it, a bar chart of the whole market with the chosen
- * range lit, ready-made ranges with a live count each, and your own from / to.
+ * One filter's sheet (simplified 2026-11-14, user: "lots of filters and
+ * complicated things"): what the figure means (its market word small), then
+ * three or four choices, each with a live count. "Set my own range" opens
+ * where most DSE shares sit, a bar chart of the market with the chosen range
+ * lit, and your own from / to (open from the start when the filter already
+ * holds a range that is not one of the choices).
  * A set filter (sector, category, our grade …) is a list of choices with a
  * count each. Every count is "with your other filters", so nobody taps into 0.
- * TopStockBD's view filters work for everyone — the count is free — and say
- * up front that which shares pass is Premium.
+ * Our own analysis (grade, price check, warnings, dividend safety, cash behind
+ * profit, owners) says so up front, with a gold dot.
  */
 export default function FilterSheet({
   def,
   current,
   filters,
   rows,
-  locked,
+  ours,
+  countFor,
   onApply,
   onClose,
   t,
@@ -51,8 +56,11 @@ export default function FilterSheet({
   /** Every filter on the screen. */
   filters: ScreenerFilter[];
   rows: ScreenerRow[];
-  /** A view filter for a free reader. */
-  locked: boolean;
+  /** Our own analysis (a gold note on top). */
+  ours: boolean;
+  /** How many shares a choice gives with everything else on the page (the
+   *  lists picked included); without it, `filters` with this one replaced. */
+  countFor?: (f: ScreenerFilter | null) => number;
   onApply: (f: ScreenerFilter | null) => void;
   onClose: () => void;
   t: (en: string, bn: string) => string;
@@ -61,6 +69,7 @@ export default function FilterSheet({
   const [min, setMin] = useState("");
   const [max, setMax] = useState("");
   const [picked, setPicked] = useState<string[]>([]);
+  const [own, setOwn] = useState(false);
 
   // A fresh draft every time the sheet opens on a filter.
   useEffect(() => {
@@ -68,6 +77,8 @@ export default function FilterSheet({
     setMin(toStr(current?.min));
     setMax(toStr(current?.max));
     setPicked(current?.in ?? []);
+    const preset = def.presets.some((p) => p.min === (current?.min ?? null) && p.max === (current?.max ?? null));
+    setOwn(def.kind === "range" && !!current && !preset);
   }, [def, current]);
 
   const key = def?.key ?? "";
@@ -80,7 +91,9 @@ export default function FilterSheet({
     return { key, ...(lo != null ? { min: lo } : {}), ...(hi != null ? { max: hi } : {}) };
   }, [def, key, min, max, picked]);
 
-  const count = useMemo(() => (def ? countWith(rows, filters, key, draft) : 0), [def, rows, filters, key, draft]);
+  const countOf = (f: ScreenerFilter | null) => (countFor ? countFor(f) : countWith(rows, filters, key, f));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const count = useMemo(() => (def ? countOf(draft) : 0), [def, rows, filters, key, draft, countFor]);
   const mid = useMemo(() => (def?.kind === "range" ? typical(rows, key) : null), [def, rows, key]);
   const bars = useMemo(() => (def?.kind === "range" && def.unit !== "paid" ? histogram(rows, key) : null), [def, rows, key]);
 
@@ -117,12 +130,12 @@ export default function FilterSheet({
       }
     >
       <div className="space-y-5">
-        {locked && (
+        {ours && (
           <p className="scr-view-note">
-            <IconCrown size={16} />
+            <span className="scr-own-dot" aria-hidden="true" />
             <span>
-              {t("This is TopStockBD's view, part of Premium. You see how many shares pass; which ones they are, with Premium.",
-                 "এটি টপস্টকবিডির মত, প্রিমিয়ামের অংশ। কতগুলো শেয়ার মেলে তা দেখবেন; কোনগুলো, তা প্রিমিয়ামে।")}
+              {t("Our own analysis of each company. No other DSE site has it.",
+                 "প্রতিটি কোম্পানি নিয়ে আমাদের নিজের বিশ্লেষণ। ডিএসইর আর কোনো সাইটে এটি নেই।")}
             </span>
           </p>
         )}
@@ -130,103 +143,107 @@ export default function FilterSheet({
 
         {def.kind === "range" ? (
           <>
-            {mid && (
-              <div>
-                <p className="text-sm text-text-main">
-                  {t(`Most DSE shares: ${f(mid.lo)} to ${f(mid.hi)}. The middle one: ${f(mid.mid)}.`,
-                     `বেশিরভাগ ডিএসই শেয়ার: ${f(mid.lo)} থেকে ${f(mid.hi)}। ঠিক মাঝেরটি: ${f(mid.mid)}।`)}
-                </p>
-                {bars && (
-                  <div className="scr-hist" aria-hidden>
-                    {bars.counts.map((n, i) => {
-                      const step = (bars.hi - bars.lo) / bars.counts.length;
-                      const a = bars.lo + i * step, b = a + step;
-                      const on = draft != null && (lo == null || b > lo) && (hi == null || a <= hi);
-                      const top = Math.max(...bars.counts) || 1;
-                      return (
-                        <span
-                          key={i}
-                          className={on ? "scr-hist-bar is-on" : "scr-hist-bar"}
-                          style={{ height: `${Math.max(4, (n / top) * 100)}%` }}
-                        />
-                      );
-                    })}
+            <ul className="divide-y divide-border" role="radiogroup" aria-label={t("Choices", "বিকল্প")}>
+              {def.presets.map((p) => {
+                const on = lo === p.min && hi === p.max;
+                const n = countOf({ key, ...(p.min != null ? { min: p.min } : {}), ...(p.max != null ? { max: p.max } : {}) });
+                return (
+                  <li key={p.en}>
+                    <button
+                      type="button"
+                      role="radio"
+                      aria-checked={on}
+                      onClick={() => { setMin(toStr(p.min)); setMax(toStr(p.max)); }}
+                      className="flex min-h-12 w-full items-center gap-3 py-2 text-left active:bg-surface-2"
+                    >
+                      <span className={`scr-check scr-radio${on ? " is-on" : ""}`} aria-hidden>{on && <IconCheck size={14} />}</span>
+                      <span className={`flex-1 text-base text-text-main ${on ? "font-semibold" : ""}`}>{t(p.en, p.bn)}</span>
+                      <span className={`text-sm tabular-nums ${n === 0 ? "text-negative" : "text-text-muted"}`}>{n}</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+
+            {!own ? (
+              <button type="button" className="scr-link" onClick={() => setOwn(true)}>
+                {t("Set my own range", "নিজের সীমা ঠিক করুন")}
+              </button>
+            ) : (
+              <div className="space-y-3">
+                {mid && (
+                  <div>
+                    <p className="text-sm text-text-main">
+                      {t(`Most DSE shares: ${f(mid.lo)} to ${f(mid.hi)}. The middle one: ${f(mid.mid)}.`,
+                         `বেশিরভাগ ডিএসই শেয়ার: ${f(mid.lo)} থেকে ${f(mid.hi)}। ঠিক মাঝেরটি: ${f(mid.mid)}।`)}
+                    </p>
+                    {bars && (
+                      <div className="scr-hist" aria-hidden>
+                        {bars.counts.map((n, i) => {
+                          const step = (bars.hi - bars.lo) / bars.counts.length;
+                          const a = bars.lo + i * step, b = a + step;
+                          const on = draft != null && (lo == null || b > lo) && (hi == null || a <= hi);
+                          const top = Math.max(...bars.counts) || 1;
+                          return (
+                            <span
+                              key={i}
+                              className={on ? "scr-hist-bar is-on" : "scr-hist-bar"}
+                              style={{ height: `${Math.max(4, (n / top) * 100)}%` }}
+                            />
+                          );
+                        })}
+                      </div>
+                    )}
+                    {bars && (
+                      <div className="mt-1 flex justify-between text-xs text-text-muted tabular-nums">
+                        <span>{f(bars.lo)}</span>
+                        <span>{f(bars.hi)}</span>
+                      </div>
+                    )}
                   </div>
                 )}
-                {bars && (
-                  <div className="mt-1 flex justify-between text-xs text-text-muted tabular-nums">
-                    <span>{f(bars.lo)}</span>
-                    <span>{f(bars.hi)}</span>
-                  </div>
-                )}
+                <div className="grid grid-cols-2 gap-3">
+                  <label htmlFor="scr-min" className="block">
+                    <span className="mb-1 block text-xs font-semibold text-text-muted">
+                      {t("From", "থেকে")}{unit.en && ` (${t(unit.en, unit.bn)})`}
+                    </span>
+                    <input
+                      id="scr-min"
+                      className="input-field tabular-nums"
+                      inputMode="decimal"
+                      value={min}
+                      onChange={(e) => setMin(e.target.value)}
+                      placeholder={t("No lower limit", "নিচের সীমা নেই")}
+                    />
+                  </label>
+                  <label htmlFor="scr-max" className="block">
+                    <span className="mb-1 block text-xs font-semibold text-text-muted">
+                      {t("To", "পর্যন্ত")}{unit.en && ` (${t(unit.en, unit.bn)})`}
+                    </span>
+                    <input
+                      id="scr-max"
+                      className="input-field tabular-nums"
+                      inputMode="decimal"
+                      value={max}
+                      onChange={(e) => setMax(e.target.value)}
+                      placeholder={t("No upper limit", "ওপরের সীমা নেই")}
+                    />
+                  </label>
+                </div>
               </div>
             )}
-
-            <div>
-              <p className="mb-2 text-sm font-semibold text-text-main">{t("Pick a range", "একটি সীমা বাছুন")}</p>
-              <div className="flex flex-wrap gap-2">
-                {def.presets.map((p) => {
-                  const on = lo === p.min && hi === p.max;
-                  const n = countWith(rows, filters, key, { key, ...(p.min != null ? { min: p.min } : {}), ...(p.max != null ? { max: p.max } : {}) });
-                  return (
-                    <button
-                      key={p.en}
-                      type="button"
-                      aria-pressed={on}
-                      onClick={() => { setMin(toStr(p.min)); setMax(toStr(p.max)); }}
-                      className={`scr-preset${on ? " is-on" : ""}`}
-                    >
-                      <span>{t(p.en, p.bn)}</span>
-                      <span className={`scr-preset-n${n === 0 ? " is-zero" : ""}`}>{n}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div>
-              <p className="mb-2 text-sm font-semibold text-text-main">{t("Or set your own", "অথবা নিজে ঠিক করুন")}</p>
-              <div className="grid grid-cols-2 gap-3">
-                <label htmlFor="scr-min" className="block">
-                  <span className="mb-1 block text-xs font-semibold text-text-muted">
-                    {t("From", "থেকে")}{unit.en && ` (${t(unit.en, unit.bn)})`}
-                  </span>
-                  <input
-                    id="scr-min"
-                    className="input-field tabular-nums"
-                    inputMode="decimal"
-                    value={min}
-                    onChange={(e) => setMin(e.target.value)}
-                    placeholder={t("No lower limit", "নিচের সীমা নেই")}
-                  />
-                </label>
-                <label htmlFor="scr-max" className="block">
-                  <span className="mb-1 block text-xs font-semibold text-text-muted">
-                    {t("To", "পর্যন্ত")}{unit.en && ` (${t(unit.en, unit.bn)})`}
-                  </span>
-                  <input
-                    id="scr-max"
-                    className="input-field tabular-nums"
-                    inputMode="decimal"
-                    value={max}
-                    onChange={(e) => setMax(e.target.value)}
-                    placeholder={t("No upper limit", "ওপরের সীমা নেই")}
-                  />
-                </label>
-              </div>
-              {def.key === "pe" && (
-                <p className="mt-2 text-xs text-text-muted">
-                  {t("Companies with a loss have no P/E, so they are left out while this filter is on.",
-                     "লোকসানি কোম্পানির পিই নেই, তাই এই ফিল্টার চালু থাকলে সেগুলো বাদ থাকে।")}
-                </p>
-              )}
-            </div>
+            {def.key === "pe" && (
+              <p className="text-xs text-text-muted">
+                {t("Companies with a loss have no P/E, so they are left out while this filter is on.",
+                   "লোকসানি কোম্পানির পিই নেই, তাই এই ফিল্টার চালু থাকলে সেগুলো বাদ থাকে।")}
+              </p>
+            )}
           </>
         ) : (
           <ul className="divide-y divide-border">
             {def.options.map((o) => {
               const on = picked.includes(o.value);
-              const n = countWith(rows, filters, key, { key, in: [o.value] });
+              const n = countOf({ key, in: [o.value] });
               return (
                 <li key={o.value}>
                   <button

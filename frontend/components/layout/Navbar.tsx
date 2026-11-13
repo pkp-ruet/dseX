@@ -73,7 +73,7 @@ export const NAV_GROUPS: NavGroup[] = [
     labelBn: "শেয়ার খুঁজুন",
     items: [
       { href: "/buy-list", label: "Buy List", labelBn: "কেনার তালিকা", sub: "What we would buy today, the same for everyone", subBn: "আজ যা কেনার মতো, সবার জন্য একই", icon: "buylist", premium: true },
-      { href: "/screener", label: "Stock screener", labelBn: "স্টক স্ক্রিনার", sub: "Find stocks that fit what you want", subBn: "আপনার চাওয়া অনুযায়ী শেয়ার খুঁজুন", icon: "find" },
+      { href: "/screener", label: "Stock screener", labelBn: "স্টক স্ক্রিনার", sub: "Find stocks that fit what you want", subBn: "আপনার চাওয়া অনুযায়ী শেয়ার খুঁজুন", icon: "find", premium: true },
       { href: "/compare-stocks", label: "Compare stocks", labelBn: "শেয়ার তুলনা", sub: "Put shares side by side", subBn: "শেয়ার পাশাপাশি মিলিয়ে দেখুন", icon: "compare" },
       { href: "/discover", label: "Discover", labelBn: "খুঁজে দেখুন", sub: "Companies to explore, matched to your shares", subBn: "আপনার শেয়ারের সাথে মিলিয়ে দেখার মতো কোম্পানি", icon: "picks" },
       { href: "/dsestockranking", label: "Company ranking", labelBn: "কোম্পানির র‍্যাঙ্কিং", sub: "The strongest companies on the DSE", subBn: "ডিএসইর সবচেয়ে শক্তিশালী কোম্পানি", icon: "rankings" },

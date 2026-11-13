@@ -78,12 +78,8 @@
 .fcs-shot:hover { border-color: rgb(var(--primary-rgb) / 0.45); box-shadow: var(--shadow-soft); }
 .fcs-shot:active { background: var(--surface-2); }
 .fcs-shot-label { font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
-.fcs-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.fcs-chip {
-  display: inline-flex; align-items: center; min-height: 28px; padding: 0 10px;
-  border: 1px solid rgb(var(--primary-rgb) / 0.35); border-radius: 999px;
-  background: var(--surface); font-size: var(--fs-xs); font-weight: 600; color: var(--primary-ink);
-}
+/* The list in one plain line (2026-11-14: its rules as chips read as "preselected filters"). */
+.fcs-line { font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
 .fcs-shot-count { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; padding-top: var(--space-3); border-top: 1px dashed var(--border); }
 .fcs-shot-count > b { font-size: var(--fs-2xl); font-weight: 700; line-height: 1; color: var(--text); }
 .fcs-shot-count > span { font-size: var(--fs-sm); color: var(--text); }

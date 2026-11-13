@@ -73,7 +73,7 @@ def _user(uid: str) -> dict:
     return get_db()["users"].find_one(
         {"user_id": uid},
         {"_id": 0, "notifications_seen_at": 1, "portfolio": 1, "extra_portfolios": 1, "watchlist": 1,
-         "premium_until": 1, "email": 1, "email_verified": 1, "created_at": 1},
+         "premium_until": 1, "email": 1, "email_verified": 1, "created_at": 1, "screen_log": 1},
     ) or {}
 
 
@@ -92,6 +92,19 @@ def _seen_iso(u: dict) -> Optional[str]:
     return None
 
 
+def _screens(u: dict) -> list[dict]:
+    """The reader's saved-screen changes from the last 30 days."""
+    since = _since()
+    out = []
+    for e in u.get("screen_log") or []:
+        at = e.get("at")
+        if isinstance(at, datetime) and at.tzinfo is None:
+            at = at.replace(tzinfo=timezone.utc)
+        if isinstance(at, datetime) and at >= since:
+            out.append(e)
+    return out
+
+
 def _build(uid: str) -> tuple[dict, dict]:
     u = _safe("user", lambda: _user(uid), {})
     out = nt.build_feed(
@@ -100,6 +113,7 @@ def _build(uid: str) -> tuple[dict, dict]:
         _safe("briefs", lambda: _briefs(uid), []),
         _safe("letters", lambda: _letters(uid), []),
         _seen_iso(u),
+        _safe("screens", lambda: _screens(u), []),
     )
     return out, u
 

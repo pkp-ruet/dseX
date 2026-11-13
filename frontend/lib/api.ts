@@ -714,10 +714,10 @@ export class ApiNotFoundError extends Error {
  *  budget + retry a single slow call could hold a render for ~2 minutes. */
 const API_TIMEOUT_MS = 30_000;
 
-function apiFetchSignal(): AbortSignal | undefined {
+function apiFetchSignal(ms: number = API_TIMEOUT_MS): AbortSignal | undefined {
   if (typeof AbortSignal === "undefined") return undefined;
   const ctor = AbortSignal as unknown as { timeout?: (ms: number) => AbortSignal };
-  return typeof ctor.timeout === "function" ? ctor.timeout(API_TIMEOUT_MS) : undefined;
+  return typeof ctor.timeout === "function" ? ctor.timeout(ms) : undefined;
 }
 
 function isTimeout(err: unknown): boolean {
@@ -736,6 +736,8 @@ async function apiFetch<T>(
   path: string,
   revalidate?: number,
   tags: string[] = [MARKET_DATA_TAG],
+  /** Longer than API_TIMEOUT_MS for a response that is slow to build cold (the screener). */
+  timeoutMs: number = API_TIMEOUT_MS,
 ): Promise<T> {
   const url = `${getApiUrl()}${path}`;
   const nextOpts: { revalidate: number; tags?: string[] } = {
@@ -753,8 +755,8 @@ async function apiFetch<T>(
       const res = await fetch(
         url,
         process.env.NODE_ENV === "development"
-          ? { signal: apiFetchSignal(), cache: "no-store", headers: internalHeaders() }
-          : { signal: apiFetchSignal(), next: nextOpts, headers: internalHeaders() },
+          ? { signal: apiFetchSignal(timeoutMs), cache: "no-store", headers: internalHeaders() }
+          : { signal: apiFetchSignal(timeoutMs), next: nextOpts, headers: internalHeaders() },
       );
       if (res.status === 404) throw new ApiNotFoundError(path);
       if (!res.ok) {
@@ -2505,8 +2507,9 @@ export interface LetterPart {
 /** One row of the reader's notifications (backend `notifications.build_feed`). */
 export interface NotificationItem {
   id: string;
-  /** A watcher kind, or `alert` (a price alert hit), `brief` (9 AM), `letter` (Friday). */
-  kind: PortfolioWatchEvent["kind"] | "alert" | "brief" | "letter";
+  /** A watcher kind, or `alert` (a price alert hit), `brief` (9 AM), `letter` (Friday),
+   *  `screen` (a saved screen changed: who joined or left and why, Premium). */
+  kind: PortfolioWatchEvent["kind"] | "alert" | "brief" | "letter" | "screen";
   code: string | null;
   level: "good" | "watch" | "bad" | "neutral" | "info";
   /** When it came (ISO). */
@@ -3359,13 +3362,15 @@ export async function getWatchlistUpdates(codes: string[]): Promise<WatchlistUpd
 }
 
 // ---------------------------------------------------------------------------
-// The stock screener (backend services/screener.py, rebuilt 2026-11-01):
-// filters on public figures. `GET /api/screener` ships every scored company's
-// figures; the page filters, counts and sorts them in the browser
-// (lib/screener.ts). Saving a screen is Premium (403 limit_reached:custom_lists).
+// The stock screener (backend services/screener.py, rebuilt 2026-11-01,
+// Premium since 2026-11-14): goals, filters on public figures and our own
+// analysis. `GET /api/screener` ships every scored company's figures; the page
+// filters, counts and sorts them in the browser (lib/screener.ts). Anyone sees
+// how many shares match; which ones is Premium (screen-only). Saving a screen
+// is Premium (403 limit_reached:custom_lists).
 // ---------------------------------------------------------------------------
 
-export type ScreenerUnit = "taka" | "pct" | "x" | "crore" | "lakh" | "paid";
+export type ScreenerUnit = "taka" | "pct" | "x" | "crore" | "lakh" | "paid" | "days";
 
 export interface ScreenerFilterDef {
   key: string;
@@ -3388,8 +3393,10 @@ export interface ScreenerFilterDef {
   signed: boolean;
   /** Higher is the better end, so the column sorts high to low first. */
   high_good: boolean;
-  /** TopStockBD's view: the count is free, which shares pass is Premium. */
-  premium: boolean;
+  /** Our own analysis (a gold chip): no other DSE site has it. */
+  ours: boolean;
+  /** False = not offered in "Add a filter" (today's change, our score: they still sort). */
+  menu: boolean;
   presets: { min: number | null; max: number | null; en: string; bn: string }[];
   options: { value: string; en: string; bn: string }[];
 }
@@ -3406,6 +3413,12 @@ export interface ScreenerSpec {
   filters: ScreenerFilter[];
   sort: string;
   dir: "asc" | "desc";
+  /** On a saved screen made on the one-page screener (2026-11-14): the lists
+   *  picked, the reader's own filters and the safety switch, so it reopens as
+   *  it was made. `filters` is what runs. */
+  lists?: string[];
+  own?: ScreenerFilter[];
+  safe?: boolean;
 }
 
 export interface ScreenerReady {
@@ -3417,6 +3430,8 @@ export interface ScreenerReady {
   spec: ScreenerSpec;
   /** The figure a card shows beside each share. */
   metric: string;
+  /** One of the six goal cards (2026-11-14). The others only load from `?ready=` (old links). */
+  goal?: boolean;
 }
 
 export interface ScreenerUniverse {
@@ -3426,15 +3441,20 @@ export interface ScreenerUniverse {
   max_filters: number;
   /** The price day the figures are from. */
   as_of: string | null;
-  /** Filter keys, in the order each row carries its figures. */
+  /** Filter keys (then lo52, hi52, low_below, high_above, buy_by), in the order each row carries its figures. */
   cols: string[];
   /** [code, name, figure per `cols` …] — one per scored company. */
   rows: (string | number | null)[][];
 }
 
+/** How long the screener page waits for `/api/screener`: a cold backend builds
+ *  every company's facts plus four lookups (cash behind profit, owners'
+ *  trades, record dates, warnings) before it answers. */
+const SCREENER_TIMEOUT_MS = 120_000;
+
 /** The whole screener for the server render (ISR). */
 export async function getScreener(): Promise<ScreenerUniverse> {
-  return apiFetch("/api/screener", 900);
+  return apiFetch("/api/screener", 900, [MARKET_DATA_TAG], SCREENER_TIMEOUT_MS);
 }
 
 /** A share on a saved-screen card or a homepage card. */
@@ -3454,8 +3474,9 @@ export interface SavedCustomList {
   spec: ScreenerSpec | { checks: { key: string; value: unknown }[]; sort?: string };
   summary: { key: string; en: string; bn: string }[];
   alerts: boolean;
-  joined: { code: string; name: string }[];
-  left: { code: string; name: string }[];
+  /** Who joined / left at the last check, each with why in one line (screens saved after 2026-11-14). */
+  joined: { code: string; name: string; why_en?: string | null; why_bn?: string | null }[];
+  left: { code: string; name: string; why_en?: string | null; why_bn?: string | null }[];
   changed_on: string | null;
   created_at: string | null;
   updated_at: string | null;

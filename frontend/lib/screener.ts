@@ -121,6 +121,7 @@ export function fmt(v: number, unit: ScreenerUnit, decimals = 1, bn = false): st
     case "crore": return `৳${s} ${bn ? "কোটি" : "crore"}`;
     case "lakh": return v >= 100 ? fmt(v / 100, "crore", 1, bn) : `৳${s} ${bn ? "লাখ" : "lakh"}`;
     case "paid": return `${s} ${bn ? "বছর" : s === "1" ? "year" : "years"}`;
+    case "days": return `${s} ${bn ? "দিন" : s === "1" ? "day" : "days"}`;
     default: return s;
   }
 }
@@ -141,6 +142,16 @@ export function cell(v: Figure, def: ScreenerFilterDef, bn = false): string {
   if (headUnit(def)) return trim(v, def.decimals);
   const s = fmt(v, def.unit, def.decimals, bn);
   return def.signed && v > 0 ? `+${s}` : s;
+}
+
+/** A share's figure on one filter in words: "Low price", "9.6", "4.2%". */
+export function figureWords(v: Figure, def: ScreenerFilterDef): Bi {
+  if (v == null) return { en: "no figure", bn: "তথ্য নেই" };
+  if (def.kind === "set") {
+    const o = def.options.find((x) => x.value === String(v));
+    return { en: o?.en ?? String(v), bn: o?.bn ?? String(v) };
+  }
+  return { en: cell(v, def), bn: cell(v, def, true) };
 }
 
 /** A range in words: its preset's label when it is one, else "10 or less" / "5% or more" / "10 to 15". */
@@ -236,6 +247,146 @@ export function decodeFilters(raw: string, defs: Map<string, ScreenerFilterDef>)
     out.push({ key, ...(min != null ? { min } : {}), ...(max != null ? { max } : {}) });
   }
   return out;
+}
+
+// ---------------------------------------------------------------------------
+// Almost there (Premium): one filter away, and the price that brings it in.
+// Mirrors backend `screener.join_price` / `near_misses`.
+// ---------------------------------------------------------------------------
+
+/** "Almost there" lists shares a fall of at most this much would bring in. */
+export const NEAR_FALL_PCT = 10;
+
+const numOf = (x: Figure): number | null => (typeof x === "number" && Number.isFinite(x) ? x : null);
+
+/** The highest price at which the share would pass `f` on today's other
+ *  figures, when a lower price is what it takes; null when the filter doesn't
+ *  move with the price, a rise would be needed, or a figure is missing. */
+export function joinPrice(v: Record<string, Figure>, f: ScreenerFilter): number | null {
+  const price = numOf(v.price);
+  if (!price || price <= 0) return null;
+  const lo = f.min ?? null, hi = f.max ?? null;
+  let out: number | null = null;
+  if (f.key === "price" && hi != null) out = hi;
+  else if ((f.key === "pe" || f.key === "pb" || f.key === "mcap") && hi != null) {
+    const x = numOf(v[f.key]);
+    out = x && x > 0 ? (price * hi) / x : null;
+  } else if (f.key === "yield" && lo != null && lo > 0) {
+    const x = numOf(v.yield);
+    out = x && x > 0 ? (price * x) / lo : null;
+  } else if (f.key === "range_pos" && hi != null) {
+    const a = numOf(v.lo52), b = numOf(v.hi52);
+    out = a != null && b != null && b > a ? a + ((b - a) * hi) / 100 : null;
+  } else if (f.key === "price_word" && f.in?.length) {
+    out = numOf(f.in.includes("low") ? v.low_below : f.in.includes("fair") ? v.high_above : null);
+  }
+  if (out == null || out <= 0 || out >= price) return null;
+  return Math.round(out * 100) / 100;
+}
+
+export interface NearMiss {
+  row: ScreenerRow;
+  /** The one filter it misses. */
+  filter: ScreenerFilter;
+  join: number;
+  fallPct: number;
+}
+
+/** Shares that fail exactly one filter a lower price would fix, within
+ *  `maxFall` % of today, closest first. */
+export function nearMisses(rows: ScreenerRow[], spec: ScreenerSpec, maxFall = NEAR_FALL_PCT): NearMiss[] {
+  const out: NearMiss[] = [];
+  for (const r of rows) {
+    const failed = spec.filters.filter((f) => !passes(r.v, f));
+    if (failed.length !== 1) continue;
+    const j = joinPrice(r.v, failed[0]);
+    const price = numOf(r.v.price);
+    if (j == null || !price) continue;
+    const fallPct = ((price - j) / price) * 100;
+    if (fallPct <= maxFall) out.push({ row: r, filter: failed[0], join: j, fallPct });
+  }
+  return out.sort((a, b) => a.fallPct - b.fallPct || a.row.code.localeCompare(b.row.code));
+}
+
+/** The six lists; an older backend without the flag gets its ready-made screens. */
+export function goalScreens(ready: ScreenerReady[]): ScreenerReady[] {
+  const goals = ready.filter((r) => r.goal);
+  return goals.length ? goals : ready;
+}
+
+// ---------------------------------------------------------------------------
+// The safety rules and the quick ways to narrow a list (2026-11-14, user:
+// "lots of filters and complicated things"). Mirrors backend
+// `screener.SAFETY` / `with_safety`.
+// ---------------------------------------------------------------------------
+
+/** Leave out Z shares and shares that hardly trade (under ৳10 lakh a day). */
+export const SAFETY: ScreenerFilter[] = [
+  { key: "category", in: ["A", "B", "N"] },
+  { key: "turnover", min: 10 },
+];
+
+/** `filters` plus the safety rules, unless the reader set that figure
+ *  themselves ("Category A only" is stricter than "not Z"). */
+export function withSafety(filters: ScreenerFilter[], on = true): ScreenerFilter[] {
+  if (!on) return filters;
+  const keys = new Set(filters.map((f) => f.key));
+  return [...filters, ...SAFETY.filter((r) => !keys.has(r.key))];
+}
+
+/** A saved or linked screen's filters without the safety rules, and whether
+ *  it had both (then the switch is on). */
+export function stripSafety(filters: ScreenerFilter[]): { filters: ScreenerFilter[]; safe: boolean } {
+  const isRule = (f: ScreenerFilter) => SAFETY.some((r) => sameFilter(r, f));
+  const safe = SAFETY.every((r) => filters.some((f) => sameFilter(r, f)));
+  return { filters: safe ? filters.filter((f) => !isRule(f)) : filters, safe };
+}
+
+/** The three quick ways to narrow a list: a sector, a share price, category A only. */
+export const REFINE_KEYS = ["sector", "price", "category"] as const;
+export const A_ONLY: ScreenerFilter = { key: "category", in: ["A"] };
+
+/** Several lists and the reader's own filters as one set of filters: two
+ *  rules on the same figure become the stricter of the two ("4% or more" and
+ *  "3% or more" → "4% or more"; choices keep what both allow). When nothing
+ *  can pass both, both stay and nothing passes. */
+export function mergeFilters(filters: ScreenerFilter[]): ScreenerFilter[] {
+  const out: ScreenerFilter[] = [];
+  for (const f of filters) {
+    const i = out.findIndex((x) => x.key === f.key);
+    if (i < 0) {
+      out.push({ ...f });
+      continue;
+    }
+    const a = out[i];
+    if (a.in || f.in) {
+      const both = (a.in ?? []).filter((v) => (f.in ?? []).includes(v));
+      if (both.length) out[i] = { key: a.key, in: both };
+      else out.push({ ...f });
+      continue;
+    }
+    const lo = a.min == null ? f.min : f.min == null ? a.min : Math.max(a.min, f.min);
+    const hi = a.max == null ? f.max : f.max == null ? a.max : Math.min(a.max, f.max);
+    out[i] = { key: a.key, ...(lo != null ? { min: lo } : {}), ...(hi != null ? { max: hi } : {}) };
+  }
+  return out;
+}
+
+/** A saved screen that is one of the lists (+ quick narrowing): it reopens as
+ *  that list, not as a pile of filters. */
+export function matchGoal(
+  spec: ScreenerSpec,
+  goals: ScreenerReady[],
+): { goal: ScreenerReady; refine: ScreenerFilter[]; safe: boolean } | null {
+  const { filters, safe } = stripSafety(spec.filters);
+  for (const g of goals) {
+    if (!g.spec.filters.every((f) => filters.some((x) => sameFilter(f, x)))) continue;
+    const rest = filters.filter((x) => !g.spec.filters.some((f) => sameFilter(f, x)));
+    const ok = rest.every((x) => (REFINE_KEYS as readonly string[]).includes(x.key)
+      && (x.key !== "category" || sameFilter(x, A_ONLY)));
+    if (ok) return { goal: g, refine: rest, safe };
+  }
+  return null;
 }
 
 /** The columns a result table shows beside price and today's change: the

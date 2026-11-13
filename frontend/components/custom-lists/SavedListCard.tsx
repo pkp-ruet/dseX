@@ -9,8 +9,10 @@ import { formatDate } from "@/lib/formatters";
 
 /**
  * One saved screen: its filters in words, how many companies match today, who
- * joined or left at the last daily check, the top three, and its controls.
- * A screen saved in the old screener says so; opening it moves it to filters.
+ * joined or left at the last daily check and why (one line each, screens
+ * checked after 2026-11-14), the top three, and its controls. Shares are
+ * Premium: a lapsed reader keeps the counts, not the names. A screen saved in
+ * the old screener says so; opening it moves it to filters.
  */
 export default function SavedListCard({
   list, bn, canEdit, onEdit, onToggleAlerts, onDelete,
@@ -24,6 +26,8 @@ export default function SavedListCard({
 }) {
   const t = (en: string, b: string) => (bn ? b : en);
   const names = (xs: { code: string }[]) => xs.map((x) => x.code).join(", ");
+  const why = (xs: SavedCustomList["joined"]) => xs.map((x) => (bn ? x.why_bn : x.why_en)).filter(Boolean) as string[];
+  const reasons = [...why(list.joined), ...why(list.left)];
 
   return (
     <Card padding="none" className="overflow-hidden" id={`list-${list.id}`}>
@@ -53,7 +57,7 @@ export default function SavedListCard({
                "পুরোনো স্ক্রিনারে বানানো। এটি আগের মতোই চলছে; নতুন ফিল্টারে আনতে স্ক্রিনটি খুলুন।")}
           </p>
         )}
-        {(list.joined.length > 0 || list.left.length > 0) && list.changed_on && (
+        {canEdit && (list.joined.length > 0 || list.left.length > 0) && list.changed_on && (
           <div className="mt-3 rounded-lg bg-surface-2 p-3 text-sm">
             <p className="text-xs text-text-muted">{t(`Changed on ${formatDate(list.changed_on)}`, `${formatDate(list.changed_on)}-এ বদলেছে`)}</p>
             {list.joined.length > 0 && (
@@ -66,10 +70,15 @@ export default function SavedListCard({
                 <span className="font-semibold text-negative">{t("Left", "বাদ পড়েছে")}:</span> {names(list.left)}
               </p>
             )}
+            {reasons.length > 0 && (
+              <ul className="mt-2 space-y-1 text-text-main">
+                {reasons.slice(0, 6).map((r) => <li key={r}>{r}</li>)}
+              </ul>
+            )}
           </div>
         )}
       </div>
-      {list.top && list.top.length > 0 && (
+      {canEdit && list.top && list.top.length > 0 && (
         <ul className="border-t border-border">
           {list.top.map((s) => (
             <StockRow

@@ -8,9 +8,9 @@ import FindCard from "@/components/home/personalized/FindCard";
 import { T } from "@/components/i18n/T";
 import { IconArrowRight, IconCheck, IconTune } from "@/components/ui/icons";
 
-/** The screen the picture shows: the one most readers start from. */
-const FEATURED = "high_dividend";
-/** Ready-made screens offered as a place to start. */
+/** The list the picture shows: the one most readers start from. */
+const FEATURED = "strong_cheap";
+/** Lists offered as a place to start. */
 const STARTS = 4;
 
 /**
@@ -23,7 +23,9 @@ const STARTS = 4;
  * the last daily check.
  *
  * Replaced `ScreenerCard` (chips that ran the screens on the dashboard + the
- * top three rows of the chosen one).
+ * top three rows of the chosen one). Premium since 2026-11-14 (the screener
+ * is): a gold card, the goals with today's counts (counts are free), never a
+ * share's name.
  */
 export default function ScreenerFeature({
   ready,
@@ -48,18 +50,19 @@ export default function ScreenerFeature({
       id="fc-screener"
       icon={<IconTune size={14} />}
       eyebrow={<T en="Stock screener" bn="স্টক স্ক্রিনার" />}
-      tag={<T en="Free" bn="ফ্রি" />}
-      title={<T en="Find shares by the numbers you care about" bn="যে সংখ্যা আপনার কাছে জরুরি, তা দিয়ে শেয়ার খুঁজুন" />}
+      tone="gold"
+      tag={<T en="Premium" bn="প্রিমিয়াম" />}
+      title={<T en="Find the shares that fit what you want" bn="আপনার চাওয়ার সাথে মেলে এমন শেয়ার খুঁজুন" />}
       lead={
         universe > 0 ? (
           <T
-            en={`Filter all ${universe} DSE shares by price, dividend, profit, loans and more.`}
-            bn={`দাম, ডিভিডেন্ড, মুনাফা, ঋণ আর আরও অনেক কিছু দিয়ে ডিএসইর ${universe}টি শেয়ার ছেঁকে নিন।`}
+            en={`Pick what you are looking for and see how many of the ${universe} DSE shares fit today.`}
+            bn={`কী খুঁজছেন বাছুন, দেখুন আজ ডিএসইর ${universe}টি শেয়ারের কতগুলো মেলে।`}
           />
         ) : (
           <T
-            en="Filter every DSE share by price, dividend, profit, loans and more."
-            bn="দাম, ডিভিডেন্ড, মুনাফা, ঋণ আর আরও অনেক কিছু দিয়ে ডিএসইর প্রতিটি শেয়ার ছেঁকে নিন।"
+            en="Pick what you are looking for and see how many DSE shares fit today."
+            bn="কী খুঁজছেন বাছুন, দেখুন আজ ডিএসইর কতগুলো শেয়ার মেলে।"
           />
         )
       }
@@ -71,15 +74,15 @@ export default function ScreenerFeature({
         <ul className="fcs-points">
           <li>
             <IconCheck size={14} />
-            <T en="Pick a filter, see how many shares pass" bn="একটি ফিল্টার বাছুন, কতগুলো শেয়ার মেলে দেখুন" />
+            <T en="Six ready lists: strong and cheap, steady dividends and more" bn="তৈরি ছয়টি তালিকা: শক্তিশালী ও কম দামে, নিয়মিত ডিভিডেন্ড আরও অনেক" />
           </li>
           <li>
             <IconCheck size={14} />
-            <T en="Sort by any figure, every row free" bn="যেকোনো সংখ্যায় সাজান, সব সারি ফ্রি" />
+            <T en="Or make your own, with our own analysis" bn="বা নিজে বানান, আমাদের নিজের বিশ্লেষণ দিয়ে" />
           </li>
           <li>
             <IconCheck size={14} />
-            <T en="Start from a ready-made screen" bn="তৈরি করা স্ক্রিন থেকে শুরু করুন" />
+            <T en="Watch a list; we tell you when a share joins" bn="তালিকায় নজর রাখুন; নতুন শেয়ার যোগ হলে জানাব" />
           </li>
         </ul>
 
@@ -93,15 +96,9 @@ export default function ScreenerFeature({
             <span className="fcs-shot-label">
               <T en="Example" bn="উদাহরণ" /> · <T en={featured.title_en} bn={featured.title_bn} />
             </span>
-            {featured.words.length > 0 && (
-              <span className="fcs-chips" aria-hidden="true">
-                {featured.words.slice(0, 3).map((w) => (
-                  <span key={w.key} className="fcs-chip">
-                    <T en={w.en} bn={w.bn} />
-                  </span>
-                ))}
-              </span>
-            )}
+            <span className="fcs-line">
+              <T en={featured.blurb_en} bn={featured.blurb_bn} />
+            </span>
             <span className="fcs-shot-count">
               <b className="nums">
                 <T en={String(featured.passed)} bn={`${featured.passed}টি`} />
