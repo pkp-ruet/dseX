@@ -223,13 +223,16 @@ def cmd_snapshot_signals(_args):
           f"(buy {res.get('buy', 0)}, sell {res.get('sell', 0)}, none {res.get('none', 0)}).")
 
 
-def _trigger_post_scrape_hooks():
+def _trigger_post_scrape_hooks(scope: str = "all"):
     """Clear the backend's caches, then purge the Next.js market-data tag.
 
-    Called by `scrape-all` (full daily refresh) and `scrape-quick` (fast price/index
-    refresh at market close), so each ISR page is rewritten at most twice daily on the
-    next request. There is no Vercel rebuild: the tag purge already refreshes every
-    ISR page, and a rebuild only re-ran generateStaticParams against the backend.
+    Called by `scrape-all` (full daily refresh) and `scrape-quick` (price/index
+    refresh, several times a day). There is no Vercel rebuild: the tag purge
+    already refreshes every ISR page on its next request.
+
+    `scope="prices"` asks the backend to drop only its price caches (market-hours
+    runs): the scores, financials, news and research didn't change, and clearing
+    them every 10-20 minutes made the worker rebuild everything at once.
     """
     import os
     import urllib.request
@@ -245,13 +248,15 @@ def _trigger_post_scrape_hooks():
     if revalidate_secret:
         try:
             req = urllib.request.Request(
-                f"{backend_url.rstrip('/')}/api/scores/refresh",
+                f"{backend_url.rstrip('/')}/api/scores/refresh"
+                + ("?scope=prices" if scope == "prices" else ""),
                 method="POST",
                 headers={"x-revalidate-secret": revalidate_secret,
                          "User-Agent": "dsex-scraper"},
             )
             urllib.request.urlopen(req, timeout=90)
-            print("Backend caches cleared.")
+            print("Backend price caches cleared." if scope == "prices"
+                  else "Backend caches cleared.")
         except Exception as e:
             print(f"Warning: backend cache clear failed: {e}")
 
@@ -282,13 +287,16 @@ def _trigger_post_scrape_hooks():
             print(f"Warning: frontend revalidate failed: {e}")
 
 
-def cmd_scrape_quick(_args):
-    """Fast market-close refresh — latest prices + DSE market summary only.
+def cmd_scrape_quick(args):
+    """Fast price refresh — latest prices + DSE market summary only.
 
     Skips the heavy details/news/cashflow steps so it finishes in well under a
-    minute. Updates the data behind every price/index/movers/market-analysis view,
-    then purges the Next.js `market-data` tag so those pages refetch. Scores are NOT
+    minute. Updates the data behind every price/index/movers/market view, then
+    purges the Next.js `market-data` tag so those pages refetch. Scores are NOT
     recomputed (fundamentals don't change intraday) — `scrape-all` handles those.
+
+    While DSE's official close isn't in yet (market hours), the backend clears
+    only its price caches; once it is, the full clear runs. `--scope` overrides.
     """
     print("=== Quick step 1/2: Latest prices ===")
     sp = StockPriceScraper()
@@ -306,12 +314,16 @@ def cmd_scrape_quick(_args):
     # Only purge the cache when the price scrape actually produced data — a parser
     # break that silently returns 0 rows must not invalidate every ISR page.
     if len(prices) >= 200:
-        _trigger_post_scrape_hooks()
+        scope = getattr(args, "scope", None) or (
+            "all" if _close_is_final(quiet=True) else "prices")
+        print(f"Cache clear: {scope}.")
+        _trigger_post_scrape_hooks(scope)
     else:
         print(f"Skipping revalidate — only {len(prices)} prices scraped (expected >=200).")
 
 
-def _close_is_final(min_traded: int = 200, min_share: float = 0.9) -> bool:
+def _close_is_final(min_traded: int = 200, min_share: float = 0.9,
+                    quiet: bool = False) -> bool:
     """True once today's stored prices carry DSE's official close (CLOSEP).
 
     DSE closes at 2:30 PM and shows CLOSEP as 0 until then (stored as None), so
@@ -329,7 +341,7 @@ def _close_is_final(min_traded: int = 200, min_share: float = 0.9) -> bool:
         {"date": today, "ltp": {"$gt": 0}, "close_price": {"$gt": 0}}
     )
     final = traded >= min_traded and closed >= min_share * traded
-    if not final:
+    if not final and not quiet:
         print(f"Close not final yet for {today}: {closed} of {traded} traded stocks "
               f"have DSE's official close. Skipping (scrape-all runs this again later).")
     return final
@@ -662,9 +674,15 @@ def main():
 
     sub.add_parser("scrape-market-summary", help="Scrape DSE index values and daily market totals")
 
-    sub.add_parser(
+    quick_parser = sub.add_parser(
         "scrape-quick",
-        help="Fast market-close refresh: latest prices + market summary, then purge ISR cache",
+        help="Fast price refresh: latest prices + market summary, then purge ISR cache",
+    )
+    quick_parser.add_argument(
+        "--scope",
+        choices=["all", "prices"],
+        default=None,
+        help="Backend cache clear: prices only, or all (default: prices until DSE's official close is in)",
     )
 
     sub.add_parser(

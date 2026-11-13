@@ -88,6 +88,7 @@ python main.py scrape-market-summary   # DSE index values + daily totals
 python main.py portfolio-daily         # bonus/dividends onto holdings, value snapshots, Premium watcher (quick-scrape cron, 2 PM gate; --force)
 python main.py morning-brief           # before the bell (~9 AM Dhaka, Sun–Thu): re-scrape followed stocks' news, then Premium readers' brief (--no-scrape, --force)
 python main.py snapshot-stock-reports # today's stock-report snapshot per company (scorecard words, red flags; also run by compute-scores + scrape-all, ~4 min)
+python main.py scrape-quick            # prices + index, then a backend cache clear (prices only until DSE's official close is in, then all; --scope all|prices) + the frontend `market-data` purge
 python main.py scrape-all              # run all 6 scrapers sequentially, then clear backend caches + purge the frontend `market-data` tag (no Vercel rebuild)
 ```
 
@@ -530,7 +531,7 @@ A 401 response from `apiAuthFetch` triggers `logout()` and throws `AUTH_EXPIRED`
 
 | File | Endpoint(s) | Purpose |
 |---|---|---|
-| `routers/scores.py` | `GET /api/scores`, `POST /api/scores/refresh` | DSEF tiers (finished response memoized on its cached inputs, `Cache-Control: max-age=300`). Refresh = admin token or `x-revalidate-secret` header: clears every in-process cache and reloads the stored snapshot; `?recompute=true` (admin only) reruns the scoring pipeline. `scrape-all` / `scrape-quick` call it before purging the frontend tag |
+| `routers/scores.py` | `GET /api/scores`, `POST /api/scores/refresh` | DSEF tiers (finished response memoized on its cached inputs, `Cache-Control: max-age=300`). Refresh = admin token or `x-revalidate-secret` header: clears every in-process cache and reloads the stored snapshot; `?recompute=true` (admin only) reruns the scoring pipeline. `?scope=prices` (market-hours `scrape-quick`, 2026-11-14) clears only the caches marked `_ttl_cache(…, prices=True)` (`db_service.clear_price_caches`: latest prices, price history, movers, index, DSE today table, market intelligence, market state, near-extremes, the 30-day market window, trending) and the stock report cache — the scores snapshot, financials, news, research and recommendation caches stay warm. A new cache that holds today's prices gets `prices=True`. `scrape-all` / `scrape-quick` call it before purging the frontend tag |
 | `routers/companies.py` | `GET /api/companies/codes`, `GET /api/company/:code`, `GET /api/news/multi?codes=` | Company list + detail + multi-code news. The detail carries `report` (the stock report, `stock_report_service.build_report`, built from what the route already loaded, best-effort) |
 | `routers/prices.py` | `GET /api/company/:code/prices?range=` | Price history |
 | `routers/market_movers.py` | `GET /api/market-movers` | Top 5 gainers / losers / most-traded |

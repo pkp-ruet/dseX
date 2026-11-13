@@ -1184,7 +1184,7 @@ def _add_watch_out(bundle: dict) -> None:
     }
 
 
-@_ttl_cache(300)
+@_ttl_cache(300, prices=True)
 def compute_market_state() -> dict:
     bundle = _compute()[0]
     _add_watch_out(bundle)

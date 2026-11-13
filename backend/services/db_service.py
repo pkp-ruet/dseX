@@ -75,6 +75,11 @@ def close_db() -> None:
 # ---------------------------------------------------------------------------
 
 _ALL_CACHES: list = []
+# The caches that hold today's prices (marked `prices=True`). A market-hours
+# price scrape clears only these (`clear_price_caches`): the scores snapshot,
+# financials, news, research and the recommendation pool didn't change, and
+# rebuilding all of them every 10-20 minutes spiked the 512 MB worker.
+_PRICE_CACHES: list = []
 
 
 def clear_all_caches() -> None:
@@ -83,7 +88,13 @@ def clear_all_caches() -> None:
         clear()
 
 
-def _ttl_cache(ttl_seconds: int = 300, max_entries: int = 50):
+def clear_price_caches() -> None:
+    """Drop only the caches marked `prices=True` (market-hours price scrape)."""
+    for clear in _PRICE_CACHES:
+        clear()
+
+
+def _ttl_cache(ttl_seconds: int = 300, max_entries: int = 50, prices: bool = False):
     """Module-level TTL cache keyed by function + args.
 
     Bounded LRU: when the store exceeds ``max_entries``, the least-recently-used
@@ -98,6 +109,9 @@ def _ttl_cache(ttl_seconds: int = 300, max_entries: int = 50):
     concurrent callers wait for that result instead of all hitting Mongo at once.
 
     Keys are the exact call args: ``f()`` and ``f(None)`` are different entries.
+
+    ``prices=True`` marks a cache that holds today's prices, so the market-hours
+    refresh (`clear_price_caches`) drops it too.
     """
     def decorator(fn):
         _store: "OrderedDict[tuple, dict]" = OrderedDict()
@@ -150,6 +164,8 @@ def _ttl_cache(ttl_seconds: int = 300, max_entries: int = 50):
         wrapper.cache_clear = cache_clear
         wrapper.__wrapped__ = fn
         _ALL_CACHES.append(cache_clear)
+        if prices:
+            _PRICE_CACHES.append(cache_clear)
         return wrapper
     return decorator
 
@@ -211,7 +227,7 @@ _LATEST_FIELDS = ("date", "ltp", "close_price", "change", "change_pct", "high", 
                   "volume", "value_mn", "trade_count", "ycp")
 
 
-@_ttl_cache(60)
+@_ttl_cache(60, prices=True)
 def load_latest_prices() -> dict[str, dict]:
     """Returns {trading_code: {ltp, change, change_pct, date, high, low, volume, ycp, ...}}
 
@@ -461,7 +477,7 @@ def _stream_adjusted_ranges(rows, acts: dict[str, list[dict]]) -> dict[str, dict
     return out
 
 
-@_ttl_cache(300)
+@_ttl_cache(300, prices=True)
 def load_price_history(trading_code: str) -> list[dict]:
     db = get_db()
     docs = list(
@@ -621,7 +637,7 @@ def load_dividend_declarations() -> list[dict]:
     return list(latest.values())
 
 
-@_ttl_cache(300)
+@_ttl_cache(300, prices=True)
 def load_dse_today_table() -> list[dict]:
     """Flat per-stock list for the latest trading day: code, name, sector, ltp, chg%, vol, val."""
     prices = load_latest_prices()
@@ -693,7 +709,7 @@ def _market_news_feed() -> list[dict]:
     return docs
 
 
-@_ttl_cache(300)
+@_ttl_cache(300, prices=True)
 def load_market_movers() -> dict:
     """Top 5 gainers, losers, and most-traded for the latest trading day."""
     db = get_db()
@@ -734,7 +750,7 @@ def load_market_movers() -> dict:
     }
 
 
-@_ttl_cache(60)
+@_ttl_cache(60, prices=True)
 def load_market_index() -> dict:
     """
     Returns the latest DSE index snapshot (DSEX/DSES/DS30 + market totals).
@@ -875,7 +891,7 @@ def load_market_index() -> dict:
     }
 
 
-@_ttl_cache(300)
+@_ttl_cache(300, prices=True)
 def compute_market_intelligence() -> dict:
     """
     Auto-detect market condition and compute intelligence signals.

@@ -40,7 +40,7 @@ class NearExtremesResponse(BaseModel):
     date: Optional[str] = None
 
 
-@_ttl_cache(900)
+@_ttl_cache(900, prices=True)
 def _compute_near_extremes() -> dict:
     companies = {c["trading_code"]: c for c in load_companies()}
     prices = load_latest_prices()

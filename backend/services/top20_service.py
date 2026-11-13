@@ -100,7 +100,7 @@ def _rationale(item: dict) -> str:
 # Shared 30-day market window (bulk, cached)
 # ---------------------------------------------------------------------------
 
-@_ttl_cache(300)
+@_ttl_cache(300, prices=True)
 def _market_window_raw(as_of: Optional[str] = None) -> dict:
     """Per-code price-window factors over the last 30 trading days, computed
     for EVERY code with a usable window in one bulk pass (one 30-day price
@@ -341,7 +341,7 @@ def _market_window_raw(as_of: Optional[str] = None) -> dict:
 # Core compute
 # ---------------------------------------------------------------------------
 
-@_ttl_cache(300)
+@_ttl_cache(300, prices=True)
 def compute_top20() -> dict:
     generated_at = datetime.utcnow().isoformat() + "Z"
 

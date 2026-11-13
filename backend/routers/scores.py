@@ -3,7 +3,7 @@ import math
 import os
 import threading
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Literal, Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Response
 from backend.routers.auth import get_current_user_optional
@@ -31,6 +31,7 @@ def _json_float(v):
 @router.post("/api/scores/refresh")
 def refresh_scores(
     recompute: bool = False,
+    scope: Literal["all", "prices"] = "all",
     x_revalidate_secret: Optional[str] = Header(default=None),
     user: Optional[dict] = Depends(get_current_user_optional),
 ):
@@ -40,24 +41,39 @@ def refresh_scores(
     header `x-revalidate-secret` = REVALIDATE_SECRET), or by an admin.
     `recompute=true` (admin only) also reruns the full scoring pipeline — use it
     after deploying a scoring change. This used to be public and always
-    recomputed, so anyone could pin the web process's CPU and memory with it."""
+    recomputed, so anyone could pin the web process's CPU and memory with it.
+
+    `scope=prices` (the market-hours `scrape-quick` runs) drops only the caches
+    that hold today's prices and the stock reports built on them; the scores
+    snapshot, financials, news, research and the recommendation pool stay warm."""
     is_admin = _is_admin(user)
     secret = os.getenv("REVALIDATE_SECRET")
     by_secret = bool(secret and x_revalidate_secret
                      and hmac.compare_digest(x_revalidate_secret, secret))
     if not (is_admin or by_secret):
         raise HTTPException(status_code=403, detail="Not allowed")
+    if scope == "prices" and not recompute:
+        from backend.services.db_service import clear_price_caches
+        clear_price_caches()
+        _clear_report_cache()
+        return {"status": "price caches cleared"}
     if recompute:
         if not is_admin:
             raise HTTPException(status_code=403, detail="Recompute is admin-only")
         invalidate_scores_cache()
     reload_after_scrape()
-    try:  # the stock report keeps its own 300s cache (services/stock_report_service.py)
-        from backend.services.stock_report_service import clear_cache as clear_report_cache
-        clear_report_cache()
+    _clear_report_cache()
+    return {"status": "recomputed" if recompute else "caches cleared"}
+
+
+def _clear_report_cache() -> None:
+    """The stock report keeps its own 300s cache keyed by (code, price day), so
+    an intraday price change wouldn't reach it (services/stock_report_service.py)."""
+    try:
+        from backend.services.stock_report_service import clear_cache
+        clear_cache()
     except Exception:
         pass
-    return {"status": "recomputed" if recompute else "caches cleared"}
 
 
 # The finished response, rebuilt only when one of its inputs is a new object

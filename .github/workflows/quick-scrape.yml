@@ -9,6 +9,9 @@ on:
   # close; a 2:00 PM run skips them and daily-scrape.yml sends them) — latest prices +
   # market summary, then purge the ISR cache so price/index/market-analysis views
   # update everywhere. Heavy fundamentals stay on daily-scrape.yml.
+  # Market-hours runs (before DSE's official close is in) clear only the backend's
+  # price caches, so it can run every 10-20 minutes; the run after the close does
+  # the full clear. `python main.py scrape-quick --scope all|prices` overrides.
   # Revert to native cron with:  schedule: [{ cron: "0 8 * * 0-4" }]
   workflow_dispatch:
 
