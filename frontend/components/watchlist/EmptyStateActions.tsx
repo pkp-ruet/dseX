@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "@/components/ui/Link";
-import { apiGetForYou, type ForYouItem } from "@/lib/api";
+import { apiGetForYou, type ForYouPick } from "@/lib/api";
 import { addToWatchlist, getCachedWatchlist, subscribeWatchlist } from "@/lib/watchlist";
 import { taka } from "@/lib/formatters";
 import Button from "@/components/ui/Button";
@@ -32,15 +32,14 @@ const ICON_CHECK = (
 
 /**
  * Empty-watchlist on-ramp. Instead of a "blind" bulk add (one tap dumping five
- * unseen tickers into the list), we surface the recommendation engine's picks
- * (2026-10-28: the same list as the dashboard's "Picked for you" — since
- * 2026-11-08 strong companies that pass every safety check at any price, built
- * from the reader's portfolio when they have one) by name with the engine's one-line reason, each added one at a
- * time — so the user knows exactly what they're following and why. The
- * page/card above this always has a search box for adding any other stock.
+ * unseen tickers into the list), we surface the free starter list from
+ * "Based on your shares" (2026-11-18: strong, well-known companies that pass
+ * every safety check, one a sector) by name with one plain reason, each added
+ * one at a time — so the user knows exactly what they're following and why.
+ * The page/card above this always has a search box for adding any other stock.
  */
 export default function EmptyStateActions({ compact = false, onAdded }: Props = {}) {
-  const [picks, setPicks] = useState<ForYouItem[] | null>(null);
+  const [picks, setPicks] = useState<ForYouPick[] | null>(null);
   const [watched, setWatched] = useState<string[]>([]);
   const { lang } = useLang();
   const L = (en: string, bn: string) => (lang === "bn" ? bn : en);
@@ -49,7 +48,9 @@ export default function EmptyStateActions({ compact = false, onAdded }: Props = 
     let cancelled = false;
     apiGetForYou()
       .then((r) => {
-        if (!cancelled) setPicks(r.items);
+        // The free starter list: strong, well-known companies (never the
+        // reader's personal picks, which are Premium on /for-you).
+        if (!cancelled) setPicks(r.starter ?? (r.mode === "generic" ? r.items : []));
       })
       .catch(() => !cancelled && setPicks([]));
     setWatched(getCachedWatchlist());

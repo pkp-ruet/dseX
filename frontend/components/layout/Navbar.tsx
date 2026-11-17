@@ -75,7 +75,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: "/buy-list", label: "Buy List", labelBn: "কেনার তালিকা", sub: "What we would buy today, the same for everyone", subBn: "আজ যা কেনার মতো, সবার জন্য একই", icon: "buylist", premium: true },
       { href: "/screener", label: "Stock screener", labelBn: "স্টক স্ক্রিনার", sub: "Find stocks that fit what you want", subBn: "আপনার চাওয়া অনুযায়ী শেয়ার খুঁজুন", icon: "find", premium: true },
       { href: "/compare-stocks", label: "Compare stocks", labelBn: "শেয়ার তুলনা", sub: "Put shares side by side", subBn: "শেয়ার পাশাপাশি মিলিয়ে দেখুন", icon: "compare" },
-      { href: "/discover", label: "Discover", labelBn: "খুঁজে দেখুন", sub: "Companies to explore, matched to your shares", subBn: "আপনার শেয়ারের সাথে মিলিয়ে দেখার মতো কোম্পানি", icon: "picks" },
+      { href: "/for-you", label: "Based on your shares", labelBn: "আপনার শেয়ার দেখে বাছাই", sub: "Companies to watch next, picked from your shares", subBn: "আপনার শেয়ার দেখে বাছাই, পরে নজরে রাখার মতো কোম্পানি", icon: "picks", premium: true },
       { href: "/dsestockranking", label: "Company ranking", labelBn: "কোম্পানির র‍্যাঙ্কিং", sub: "The strongest companies on the DSE", subBn: "ডিএসইর সবচেয়ে শক্তিশালী কোম্পানি", icon: "rankings" },
       { href: "/stocks", label: "All stocks", labelBn: "সব শেয়ার", sub: "The full A–Z list", subBn: "A থেকে Z পুরো তালিকা", icon: "browse" },
       { href: "/assistant", label: "TopStock AI", labelBn: "TopStock AI", sub: "Ask in plain words", subBn: "সহজ ভাষায় প্রশ্ন করুন", icon: "ai" },

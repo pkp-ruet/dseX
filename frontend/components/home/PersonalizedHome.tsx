@@ -212,7 +212,7 @@ export default function PersonalizedHome() {
     : ownStories;
   const quietStories = !isBrandNew && (hasPortfolio || hasWatchlist) && ownStories.every((st) => st.kind === "today");
 
-  // Gold counts on the icons: the Buy List's joiners this week, Discover's new picks today.
+  // Gold counts on the icons: the Buy List's joiners this week, "For you"'s new picks today.
   const forYouNew = bundle?.for_you && !isBrandNew ? (bundle.for_you.counts?.new ?? bundle.for_you.new ?? 0) : 0;
   const badges = { buylist: bundle?.buy_list?.week_joined ?? 0, discover: forYouNew };
 
@@ -240,7 +240,7 @@ export default function PersonalizedHome() {
   //     then the free Buy List pick, the ৳99 month or the Premium banner,
   //     notifications, the setup step and install)
   //   6 today for you: your dates this week, then Buy List · record dates ·
-  //     dividends coming to you · results this week · Discover, counts for a
+  //     dividends coming to you · results this week · For you, counts for a
   //     free reader, names for Premium (replaced the Buy List, dividend and
   //     Picked for you cards)
   //   7 latest on your shares: notices to DSE as plain sentences (round 3,

@@ -37,10 +37,11 @@ const TILES: Tile[] = [
     premium: true,
   },
   {
-    href: "/discover",
+    href: "/for-you",
     icon: <IconSparkle size={20} />,
-    title: { en: "Discover", bn: "খুঁজে দেখুন" },
-    sub: { en: "Companies to explore, matched to yours", bn: "আপনার শেয়ারের সাথে মিলিয়ে দেখার মতো কোম্পানি" },
+    title: { en: "Based on your shares", bn: "আপনার শেয়ার দেখে বাছাই" },
+    sub: { en: "Companies to watch next, picked from your shares", bn: "আপনার শেয়ার দেখে বাছাই, পরে নজরে রাখার মতো কোম্পানি" },
+    premium: true,
   },
   {
     href: "/stock-insights",

@@ -157,67 +157,9 @@ const COPY = {
   moodWeak: ["The market is weak today.", "আজ বাজার দুর্বল।"],
   moodFallback: ["See how the whole market is doing today.", "আজ পুরো বাজারের অবস্থা দেখুন।"],
 
-  // Discover (was "Picked for you" until 2026-11-08; recommendation engine, explore mode)
-  forYouEyebrow: ["Discover", "খুঁজে দেখুন"],
-  forYouHeadPersonalName: ["{name}, {n} companies to explore", "{name}, খুঁজে দেখার মতো {n}টি কোম্পানি"],
-  forYouHeadPersonal: ["{n} companies to explore", "খুঁজে দেখার মতো {n}টি কোম্পানি"],
-  forYouLeadPersonal: ["Strong companies with no serious warnings, matched to {basis}.", "গুরুতর কোনো সতর্কতা নেই এমন শক্তিশালী কোম্পানি, মেলানো হয়েছে {basis}-এর সাথে।"],
-  forYouLeadGeneric: ["Strong companies with no serious warnings. Add the shares you own or follow, and the list is built around you.", "গুরুতর কোনো সতর্কতা নেই এমন শক্তিশালী কোম্পানি। আপনার কেনা বা ফলো করা শেয়ার যোগ করলে তালিকাটি আপনার মতো করে সাজানো হবে।"],
-  forYouBasisBoth: ["the {held} shares you own and the {watched} you follow", "আপনার কেনা {held}টি আর ফলো করা {watched}টি শেয়ার"],
-  forYouBasisHeld: ["the {n} shares you own", "আপনার কেনা {n}টি শেয়ার"],
-  forYouBasisWatched: ["the {n} shares you follow", "আপনার ফলো করা {n}টি শেয়ার"],
-  forYouNewToday: ["{n} new today", "আজ {n}টি নতুন"],
+  // The recommendation engine's rows (RecoRow: the portfolio's "What to buy next").
   forYouNew: ["New", "নতুন"],
   forYouWatch: ["Watch:", "খেয়াল রাখুন:"],
-  // The dashboard's tile row (2026-11-05): the top three, the rest on /discover.
-  forYouTilesHeadName: ["{name}, {k} companies to discover", "{name}, খুঁজে দেখার মতো {k}টি কোম্পানি"],
-  forYouTilesHead: ["{k} companies to discover", "খুঁজে দেখার মতো {k}টি কোম্পানি"],
-  forYouTilesLeadPersonal: [
-    "Strong companies you don't own or follow yet, matched to your shares. To read about, not a buy list.",
-    "আপনার শেয়ারের সাথে মিলিয়ে এমন শক্তিশালী কোম্পানি, যা এখনো আপনার কাছে নেই বা ফলো করছেন না। পড়ে দেখার জন্য, কেনার তালিকা নয়।",
-  ],
-  forYouTilesLeadGeneric: [
-    "Strong companies worth getting to know. To read about, not a buy list.",
-    "জেনে রাখার মতো শক্তিশালী কোম্পানি। পড়ে দেখার জন্য, কেনার তালিকা নয়।",
-  ],
-  forYouSeeAll: ["See all {n} and why each one fits you", "সব {n}টি আর কেন প্রতিটি আপনার সাথে মেলে, দেখুন"],
-  forYouSeeAllShort: ["See all {n}", "সব {n}টি"],
-  forYouFreeCta: ["See your top {k}, and why each fits you", "আপনার সেরা {k}টি আর কেন প্রতিটি মেলে, দেখুন"],
-  forYouAddWatchlist: ["Build a watchlist", "ওয়াচলিস্ট বানান"],
-  forYouAddPortfolio: ["Add your portfolio", "পোর্টফোলিও যোগ করুন"],
-  // The Premium card's shared parts (price, rows, chips).
-  forYouProTag: ["Premium", "প্রিমিয়াম"],
-  forYouProListHead: ["What your list shows you", "আপনার তালিকায় যা পাবেন"],
-  // The Premium card under a free reader's open top 5 (2026-11-08, "Open list, lock depth").
-  forYouMoreTag: ["Discover · Premium", "খুঁজে দেখুন · প্রিমিয়াম"],
-  forYouMoreHead: ["{rest} more companies for you, and the full case for each", "আপনার জন্য আরও {rest}টি কোম্পানি, আর প্রতিটির পুরো বিশ্লেষণ"],
-  forYouMoreHeadNone: ["The full case for each of your companies", "আপনার প্রতিটি কোম্পানির পুরো বিশ্লেষণ"],
-  forYouMoreLead: [
-    "You've seen your top {free} and why each fits you. Premium opens all {n}, and under every company the figures that matter, the one thing to watch and the checks it passed.",
-    "আপনার সেরা {free}টি আর কেন প্রতিটি মেলে, তা দেখেছেন। প্রিমিয়ামে সব {n}টি খুলে যায়, আর প্রতিটি কোম্পানির নিচে জরুরি সংখ্যাগুলো, খেয়াল রাখার মতো একটি বিষয় আর যে যাচাইগুলো পার করেছে।",
-  ],
-  forYouMoreRowAll: ["All {n} companies", "সব {n}টি কোম্পানি"],
-  forYouMoreRowAllLine: ["The rest of your list, built again after every close with new ones marked.", "আপনার তালিকার বাকিগুলো, প্রতিদিন বাজার বন্ধের পর নতুন করে, নতুনগুলো চিহ্নিত।"],
-  forYouMoreRowChecks: ["The checks it passed", "যে যাচাইগুলো পার করেছে"],
-  forYouMoreRowChecksLine: ["Each safety check, with the company's own figure.", "প্রতিটি নিরাপত্তা যাচাই, কোম্পানির নিজের সংখ্যাসহ।"],
-  forYouMoreCta: ["Open the full list", "পুরো তালিকা দেখুন"],
-  forYouProRow2: ["The numbers that matter", "যে সংখ্যাগুলো জরুরি"],
-  forYouProRow2Line: [
-    "Our grade, how many years of profit the price pays for, which way profit is going and the cash it pays.",
-    "আমাদের গ্রেড, দামে কত বছরের মুনাফা, মুনাফা কোন দিকে যাচ্ছে, আর কত নগদ ডিভিডেন্ড দেয়।",
-  ],
-  forYouProRow3: ["One honest risk", "একটি খোলামেলা ঝুঁকি"],
-  forYouProRow3Line: ["The one thing to watch on every pick, said plainly.", "প্রতিটি বাছাইয়ে যে একটি বিষয় খেয়াল রাখা দরকার, সোজাসুজি বলা।"],
-  forYouProChipNew: ["{n} new since yesterday", "গতকালের পর {n}টি নতুন"],
-  forYouProChipStrong: ["{n} strong all round", "{n}টি সব দিকে শক্তিশালী"],
-  forYouProPrice: ["৳{p} a month", "মাসে ৳{p}"],
-  forYouProPriceLine: ["About ৳{p} a month on the yearly plan.", "বছরের প্ল্যানে মাসে প্রায় ৳{p}।"],
-  forYouProOffer: ["Your first month: ৳{p}", "আপনার প্রথম মাস: ৳{p}"],
-  forYouProOfferLine: ["Instead of ৳{p}, once.", "৳{p}-এর বদলে, একবারই।"],
-  forYouProCtaOffer: ["See them for ৳{p}", "৳{p}-এ দেখুন"],
-  forYouProFine: ["Pay by bKash, Nagad or bank transfer. Nothing renews by itself.", "bKash, Nagad বা ব্যাংক ট্রান্সফারে টাকা দিতে পারবেন। মেয়াদ শেষে নিজে থেকে নবায়ন হয় না।"],
-  forYouProAdd: ["Add your shares so the list is built around you", "আপনার শেয়ার যোগ করুন, তালিকা সাজানো হবে আপনার মতো করে"],
-  forYouProLabel: ["Discover", "খুঁজে দেখুন"],
 
   // Explore / learn
   exploreMarket: ["Explore the market", "বাজার ঘুরে দেখুন"],

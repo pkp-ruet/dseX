@@ -78,9 +78,9 @@ const FIRST: Service[] = [
     line: { en: "Every company's latest results.", bn: "প্রতিটি কোম্পানির সর্বশেষ আর্থিক ফল।" },
   },
   {
-    key: "discover", href: "/discover", Icon: IconCompass,
-    name: { en: "Discover", bn: "খুঁজে দেখুন" },
-    line: { en: "Companies matched to your shares, to explore.", bn: "আপনার শেয়ারের সাথে মিলিয়ে বাছাই করা কোম্পানি।" },
+    key: "discover", href: "/for-you", Icon: IconCompass, premium: true,
+    name: { en: "For you", bn: "আপনার জন্য" },
+    line: { en: "Companies to watch next, picked from your shares. Not a buy list.", bn: "আপনার শেয়ার দেখে বাছাই, পরে নজরে রাখার মতো কোম্পানি। কেনার তালিকা নয়।" },
   },
 ];
 
@@ -139,7 +139,7 @@ const ALL = [...FIRST, ...MORE];
  * own Premium card. Free readers see a crown on the Premium pages; members see
  * a thin gold ring on them instead (round 2, 2026-11-18: what they unlocked);
  * a small gold number shows what is new (the Buy List's joiners this week,
- * Discover's new picks today). "See more" and "What is each one?" sit side by
+ * "For you"'s new picks today). "See more" and "What is each one?" sit side by
  * side on the card's bottom edge from the start. Every icon carries its own
  * `data-card` for the home tap tracking.
  */

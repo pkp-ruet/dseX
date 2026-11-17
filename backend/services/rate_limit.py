@@ -153,6 +153,7 @@ RULES: list[Rule] = [
     _rule("rank-alerts", "POST", r"^/api/user/rank-alerts", 30, 15),
     _rule("div-reminders", "POST", r"^/api/user/dividend-reminders", 30, 15),
     _rule("notifications-seen", "POST", r"^/api/user/notifications/seen$", 30, 15),
+    _rule("for-you-hide", "POST DELETE", r"^/api/user/for-you/hide/", 30, 15),
     _rule("refresh", "POST", r"^/api/scores/refresh$", 10, 5, by_ip=True),
 ]
 

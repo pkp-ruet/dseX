@@ -40,13 +40,18 @@ def _holdings(spec: str) -> list[dict]:
 
 
 def _print_list(title: str, res: dict, bn: bool) -> None:
+    L = "bn" if bn else "en"
     print(f"\n=== {title} — {res['mode']}, based on {res['based_on']}")
-    if res["traits"]:
-        print("    traits:", " · ".join(t["en"] for t in res["traits"]))
-    for i, it in enumerate(res["items"], 1):
-        tag = it["tag_bn"] if bn else it["tag_en"]
-        why = it["why_bn"] if bn else it["why_en"]
-        print(f"{i:>2}. {it['code']:<11} {it['rank_score']:>5}  {(it['sector'] or '')[:18]:<18} [{tag}] {why}")
+    by_group: dict = {}
+    for it in res["items"]:
+        by_group.setdefault(it.get("group_key"), []).append(it)
+    for g in res.get("groups") or []:
+        print(f"  [{g['rel']}] {g['anchor'] or g['key']}: {g['line'][L]}")
+        for it in by_group.get(g["key"], []):
+            print(f"      {it['code']:<11} {(it['sector'] or '')[:18]:<18} [{it['tag_' + L]}] {it['why_' + L]}")
+    if res["mode"] == "generic":
+        for it in res["items"]:
+            print(f"      {it['code']:<11} {(it['sector'] or '')[:18]:<18} [{it['tag_' + L]}] {it['why_' + L]}")
     if res.get("note"):
         print("    note:", res["note"]["en"])
 
@@ -93,7 +98,7 @@ def main() -> None:
     for c in f["checks"]:
         print(f"    {c['left']:>3} left after: {c['en']}")
     e = rs.explore_pool()["funnel"]
-    print(f"EXPLORE gate (Picked for you): {e['rated']} rated · {e['passed']} pass every check")
+    print(f"EXPLORE gate (Based on your shares): {e['rated']} rated · {e['passed']} pass every check")
     for c in e["checks"]:
         print(f"    {c['left']:>3} left after: {c['en']}")
 
@@ -101,7 +106,7 @@ def main() -> None:
     if a.codes or a.held:
         _print_list("Your reader", rs.for_user(user, _holdings(a.held), [c.strip().upper() for c in a.codes.split(",") if c.strip()], track=False), a.bn)
     elif not a.portfolio:
-        _print_list("No stocks yet", rs.generic(), a.bn)
+        _print_list("No stocks yet", rs.for_user(user, [], [], track=False), a.bn)
         for title, (held, watched) in _samples().items():
             _print_list(f"{title} (held {held or '-'}, follows {','.join(watched) or '-'})",
                         rs.for_user(user, _holdings(held), watched, track=False), a.bn)

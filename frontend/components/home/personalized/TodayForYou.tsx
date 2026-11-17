@@ -220,8 +220,9 @@ interface SumRow {
  *    on the shares they own, record dates in 60 days, after 10% tax — taka
  *    only while the band shows their money, else how many) · Results this
  *    week (free, round 2, 2026-11-18: the reader's own shares named) ·
- *    Discover. A free reader's caption says what is free and that the rest is
- *    Premium, in words; a Premium reader's names the shares.
+ *    For you ("Based on your shares"). A free reader's caption says what is
+ *    free and that the rest is Premium, in words; a Premium reader's names the
+ *    shares.
  *
  * No chips, no lock lines, no sub-lines. From 1024px the two cards sit side by
  * side; without the dates card the rows sit side by side (four: two by two).
@@ -381,20 +382,33 @@ export default function TodayForYou({
     });
   }
 
-  // 5 · Companies to discover (the top three are free)
+  // 5 · For you ("Based on your shares", 2026-11-18): the count and the
+  //     reader's own shares are free; the picked names are Premium. A reader
+  //     with no shares yet gets the free starter list, named.
   if (forYou && forYou.items.length > 0) {
     const c = forYouCounts(forYou);
+    const anchors = (forYou.groups ?? []).map((g) => g.anchor).filter((a): a is string => !!a);
+    const starter = forYou.mode === "generic";
     const list = names(forYou.items.map((x) => x.code), c.total);
     rows.push({
       key: "discover",
-      href: "/discover",
+      href: "/for-you",
       Icon: IconCompass,
-      title: { en: "Discover", bn: "খুঁজে দেখুন" },
-      premiumPage: false,
+      title: { en: "For you", bn: "আপনার জন্য" },
+      premiumPage: !starter,
       fresh: c.new,
       value: c.total,
-      unit: { en: c.total === 1 ? "company" : "companies", bn: "কোম্পানি" },
-      caption: { en: list, bn: list },
+      unit: starter ? { en: "to start", bn: "শুরুর জন্য" } : { en: c.total === 1 ? "company" : "companies", bn: "কোম্পানি" },
+      caption: starter
+        ? { en: `Strong ones to start with: ${list}`, bn: `শুরু করার মতো: ${list}` }
+        : premium
+          ? { en: list, bn: list }
+          : anchors.length > 0
+            ? {
+                en: `From ${anchors[0]}${anchors.length > 1 ? ` and ${anchors.length - 1} more` : ""} of your shares · names with Premium`,
+                bn: `আপনার ${anchors[0]}${anchors.length > 1 ? ` ও আরও ${anchors.length - 1}টি` : ""} শেয়ার দেখে · নাম প্রিমিয়ামে`,
+              }
+            : { en: "Picked from your shares · names with Premium", bn: "আপনার শেয়ার দেখে বাছাই · নাম প্রিমিয়ামে" },
     });
   }
 

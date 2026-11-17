@@ -2135,22 +2135,78 @@ export interface ForYouFunnel {
   checks: { key: string; en: string; bn: string; left: number }[];
 }
 
+/** How a pick on "Based on your shares" is tied to the reader (backend services/for_you.py). */
+export type ForYouPickKind = "stronger" | "like" | "like_other" | "new_business" | "steady_payer" | "starter";
+/** The reader's share a group came from: owned, followed, read about, or a gap in their money. */
+export type ForYouRel = "own" | "follow" | "read" | "gap";
+
+/** One company on "Based on your shares" (2026-11-18). */
+export interface ForYouPick {
+  code: string;
+  name: string | null;
+  sector: string | null;
+  sector_bn?: string | null;
+  price: number | null;
+  change_pct: number | null;
+  score: number | null;
+  tier: string;
+  /** The company's group in the ranking's words ("Mostly strong"). */
+  group?: BiText;
+  /** Strong all round. */
+  strong: boolean;
+  kind: ForYouPickKind;
+  /** The reader's share it came from ("Stronger than ACI"), null for a gap or the starter list. */
+  anchor: string | null;
+  rel: ForYouRel | null;
+  /** The group it sits in (`ForYouGroup.key`). */
+  group_key: string | null;
+  tag_en: string;
+  tag_bn: string;
+  /** Why it fits the reader, in words about their own share. */
+  why_en: string;
+  why_bn: string;
+  /** What it shares with their share, or what is stronger. */
+  chips: (BiText & { tone: "good" | "neutral" })[];
+  conviction: number | null;
+  /** Not in the reader's list on the previous day. */
+  new: boolean;
+}
+
+/** One of the reader's shares (or a gap in their money) and what it led to. */
+export interface ForYouGroup {
+  key: string;
+  rel: ForYouRel;
+  anchor: string | null;
+  anchor_name: string | null;
+  /** Days the reader opened the share's page this month (read groups). */
+  days: number | null;
+  /** The reason a free reader sees: about their own share, never a pick's name. */
+  line: BiText;
+  n: number;
+  codes: string[];
+  /** Each pick's business, shown on a free reader's locked rows. */
+  sectors: BiText[];
+}
+
 export interface ForYou {
   as_of: string | null;
+  /** personal = tied to the reader's shares; generic = no shares yet (the starter list). */
   mode: "personal" | "generic";
-  based_on: { held: number; watched: number };
-  /** What the reader's stocks have in common (or what they asked for). */
-  traits: (BiText & { key: string; n: number | null; of: number | null; asked: boolean })[];
+  based_on: { held: number; watched: number; read?: number };
+  traits?: unknown[];
   funnel: ForYouFunnel;
-  items: ForYouItem[];
+  groups?: ForYouGroup[];
+  items: ForYouPick[];
+  /** Strong, well-known companies to start with — free for every reader. */
+  starter?: ForYouPick[];
   /** How many picks are new since the previous day. */
   new: number;
   /** The whole list counted — the home bundle carries only the top three items. */
   counts?: { total: number; new: number; own: number; strong: number };
   /** Set when few (or no) stocks pass every check — the bar is never lowered. */
   note: BiText | null;
-  /** Today's Buy List, which Picked for you never repeats: its size and the
-   *  members that would fit this reader (named on the page as a pointer). */
+  /** Companies hidden with "Not for me". */
+  hidden?: number;
   buy_list?: { count: number; fits: { code: string; name: string | null }[]; fits_total: number };
 }
 
@@ -2160,13 +2216,20 @@ export function forYouCounts(d: ForYou): { total: number; new: number; own: numb
   return {
     total: d.items.length,
     new: d.items.filter((i) => i.new).length,
-    own: d.items.filter((i) => i.kind === "add_more" || i.kind === "watched").length,
+    own: 0,
     strong: d.items.filter((i) => i.strong).length,
   };
 }
 
 export async function apiGetForYou(): Promise<ForYou> {
   return apiAuthFetch<ForYou>("/api/user/for-you");
+}
+
+/** "Not for me": hide a company from the reader's list for 90 days (`undo` puts it back). */
+export async function apiHideForYou(code: string, undo = false): Promise<{ hidden: string[] }> {
+  return apiAuthFetch<{ hidden: string[] }>(`/api/user/for-you/hide/${encodeURIComponent(code)}`, {
+    method: undo ? "DELETE" : "POST",
+  });
 }
 
 export type BuyNextKind = "swap" | "dividend" | "new_sector" | "spread" | "fit" | "add_more";

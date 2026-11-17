@@ -37,7 +37,7 @@ export function SixChecks() {
 
 /** "How we choose": each question with one plain line, the full rule folded
  *  under it, then one line on the limits and order, one on what we never do,
- *  and Discover. Free for every reader. */
+ *  and "Based on your shares". Free for every reader. */
 export function HowWeChoose({ rules }: { rules: BuyList["rules"] }) {
   return (
     <section id={HOW_ANCHOR} className="bl-how soft-card" aria-labelledby="bl-how-t">
@@ -89,9 +89,9 @@ export function HowWeChoose({ rules }: { rules: BuyList["rules"] }) {
           />
         </p>
         <p>
-          <T en="Want companies matched to your own shares?" bn="আপনার নিজের শেয়ারের সাথে মিলিয়ে কোম্পানি চান?" />{" "}
-          <Link prefetch={false} href="/discover" className="font-semibold text-primary-ink hover:underline">
-            <T en="Open Discover" bn="খুঁজে দেখুন পেজে যান" /> →
+          <T en="Want companies to watch next, picked from your own shares?" bn="আপনার নিজের শেয়ার দেখে পরে নজরে রাখার মতো কোম্পানি চান?" />{" "}
+          <Link prefetch={false} href="/for-you" className="font-semibold text-primary-ink hover:underline">
+            <T en="Open Based on your shares" bn="আপনার শেয়ার দেখে বাছাই পেজে যান" /> →
           </Link>
         </p>
       </div>

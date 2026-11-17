@@ -11,11 +11,12 @@ the safety checks) and ``explore_pool()`` = the **explore** gate (mostly
 strong or better + the safety checks, any price). See ``recommend.py``.
 
 Callers:
-- ``for_user``   — "Picked for you" (explore): the page ``/picked-for-you``
-                   (``/api/user/for-you``, all 15) and the dashboard's tile row
-                   (home bundle, ``top=3``); never a Buy List member (those that
-                   fit are named in ``buy_list.fits``); the empty watchlist's
-                   "Suggested to follow".
+- ``for_user``   — "Based on your shares" (explore, rules in ``for_you.py``):
+                   the page ``/for-you`` (``/api/user/for-you``, up to 15,
+                   grouped by the reader's own shares) and the home row (home
+                   bundle, ``top=3``); never a Buy List member; its free
+                   ``starter`` list feeds the empty watchlist's "Suggested to
+                   follow".
 - ``for_portfolio`` — the portfolio's "What to buy next" (buy, ``/api/user/portfolio/buy-next``).
 - ``from_answers``  — TopStock AI's "suggest stocks" (buy, ``POST /api/recommendations``).
 - ``buy_list_service`` — the Buy List's questions 1–3 (buy).
@@ -27,10 +28,11 @@ from __future__ import annotations
 
 import logging
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from backend.services import custom_lists as cl
+from backend.services import for_you as fy
 from backend.services import recommend as rc
 from backend.services import research_lists as rl
 from backend.services.db_service import _ttl_cache, get_db
@@ -231,7 +233,7 @@ def _track(user: dict, items: list[dict]) -> int:
 
 def _buy_list() -> list[dict]:
     """Today's Buy List items (cached 900s in its service). Empty when it
-    fails — "Picked for you" then just leaves nothing out."""
+    fails — "Based on your shares" then just leaves nothing out."""
     try:
         from backend.services import buy_list_service
         return buy_list_service.build().get("items") or []
@@ -240,71 +242,98 @@ def _buy_list() -> list[dict]:
         return []
 
 
-# Buy List companies that fit the reader, named in one line on the page.
-BUY_LIST_FITS = 5
+@_ttl_cache(900, max_entries=500)
+def _visits(uid: str) -> dict:
+    """{code: {days, last}} — the stock pages this reader opened in the last
+    30 days, from the page views the ping already stores (``user_events``,
+    indexed on user + time). Cached per reader; cleared after every scrape."""
+    since = datetime.now(timezone.utc) - timedelta(days=fy.READ_WINDOW_DAYS)
+    rows = get_db()["user_events"].find(
+        {"user_id": uid, "ts": {"$gte": since}, "path": {"$regex": "^/stock/"}},
+        {"_id": 0, "path": 1, "ts": 1},
+    )
+    return fy.visits_from_events(list(rows))
 
 
-def _explore(p: dict, prof: dict, n: int) -> tuple[list[dict], dict]:
-    """(picks, buy_list) — the two lists never share a company (2026-11-08,
-    user: "2 separate premium lists … may create confusion"). A company on
-    today's Buy List is left out of the picks; the ones that would fit this
-    reader are named instead (``buy_list.fits``), so a strong match is never
-    lost, only pointed at the list that says "buy"."""
+def _reads(user: dict, exclude: set[str], known: set[str], now: datetime) -> list[dict]:
+    uid = user.get("user_id")
+    if not uid:
+        return []
+    try:
+        return fy.read_anchors(_visits(uid), exclude, known, now)
+    except Exception:  # noqa: BLE001 — reads only add ties; never fail the list on them
+        logger.warning("recommend: visits unavailable for %s", uid, exc_info=True)
+        return []
+
+
+def explore_list(p: dict, user: dict, holdings: list[dict], watchlist: list[str],
+                 n: int = fy.N_PICKS, now: Optional[datetime] = None) -> dict:
+    """The page's list before tracking: groups, items, the starter list.
+
+    Never a company on today's Buy List (2026-11-08, user: "2 separate
+    premium lists … may create confusion"), never one the reader owns,
+    follows, read about or hid with "Not for me"."""
+    now = now or datetime.now(timezone.utc)
+    facts, levels = p["facts"], p["levels"]
+    mine = _mine(holdings, watchlist, facts)
+    prof = rc.build_profile(mine, facts, levels)
+    reads = _reads(user, prof["codes"], set(facts), now)
+    hidden = fy.hidden_codes(user.get("for_you_hidden"), now)
     bl = _buy_list()
     on = {i["code"] for i in bl}
-    rest = [c for c in p["cands"] if c["code"] not in on]
-    items = rc.recommend(rest, p["levels"], prof, p["facts"], n, explore=True)
-    fits = rc.rank([c for c in p["cands"] if c["code"] in on], p["levels"], prof, explore=True)
-    return items, {
-        "count": len(bl),
-        "fits": [{"code": c["code"], "name": c.get("name")} for _t, c, _f in fits[:BUY_LIST_FITS]],
-        "fits_total": len(fits),
-    }
-
-
-def _envelope(p: dict, prof: dict, items: list[dict], new: int, buy_list: Optional[dict] = None) -> dict:
-    personal = bool(prof["codes"])
+    skip = on | prof["codes"] | {r["code"] for r in reads} | hidden
+    cands = [c for c in p["cands"] if c["code"] not in skip]
+    groups, items = fy.build(mine, reads, cands, facts, levels, prof, n)
+    personal = bool(fy.anchors(mine, reads, facts))
+    start = fy.starter([c for c in p["cands"] if c["code"] not in (on | prof["codes"] | hidden)], levels)
     return {
-        "as_of": p["as_of"],
         "mode": "personal" if personal else "generic",
-        "based_on": {"held": len(prof["held"]), "watched": len(prof["watched"] - prof["held"])},
-        "traits": [{"key": t["key"], "en": t["en"], "bn": t["bn"], "n": t.get("n"), "of": t.get("of"),
-                    "asked": bool(t.get("asked"))} for t in prof["traits"][:3]],
-        "funnel": p["funnel"],
-        "items": items,
-        "new": new,
-        "counts": rc.counts(items),
-        "note": rc.note(p["funnel"]["passed"], explore=True),
-        "buy_list": buy_list or {"count": 0, "fits": [], "fits_total": 0},
+        "based_on": {"held": len(prof["held"]), "watched": len(prof["watched"] - prof["held"]),
+                     "read": len(reads)},
+        "groups": groups,
+        # A reader with nothing to match gets the starter list as the list.
+        "items": items if personal else start,
+        "starter": start,
+        "hidden": len(hidden),
+        "buy_list": {"count": len(bl), "fits": [], "fits_total": 0},
     }
 
 
 def for_user(user: dict, holdings: Optional[list[dict]] = None, watchlist: Optional[list[str]] = None,
-             n: int = rc.N_PICKS, track: bool = True, top: Optional[int] = None) -> dict:
-    """The reader's companies to explore. ``holdings`` / ``watchlist`` are
+             n: int = fy.N_PICKS, track: bool = True, top: Optional[int] = None) -> dict:
+    """"Based on your shares" (``/for-you``). ``holdings`` / ``watchlist`` are
     passed in by the home bundle (already loaded there); other callers leave
-    them None. ``top`` keeps only the first few items (the dashboard's tile
-    row) — ``counts`` still describes the whole list."""
+    them None. ``top`` keeps only the first few items (the home row) —
+    ``counts`` and ``groups`` still describe the whole list."""
     p = explore_pool()
     if holdings is None:
         holdings = _load_holdings(user)
     if watchlist is None:
         watchlist = _load_watchlist(user)
-    prof = _profile(p, user, holdings, watchlist)
-    items, bl = _explore(p, prof, n)
-    new = _track(user, items) if track else 0
-    env = _envelope(p, prof, items, new, bl)
+    out = explore_list(p, user, holdings, watchlist, n)
+    new = _track(user, out["items"]) if track else 0
+    env = {
+        "as_of": p["as_of"],
+        **out,
+        "traits": [],
+        "funnel": p["funnel"],
+        "new": new,
+        "counts": fy.counts(out["items"]),
+        "note": rc.note(p["funnel"]["passed"], explore=True),
+    }
     if top is not None:
         env["items"] = env["items"][:top]
     return env
 
 
-def generic(n: int = rc.N_PICKS) -> dict:
-    """The no-stocks list — conviction alone."""
-    p = explore_pool()
-    prof = rc.empty_profile()
-    items, bl = _explore(p, prof, n)
-    return _envelope(p, prof, items, 0, bl)
+def hide(user: dict, code: str, undo: bool = False) -> list[str]:
+    """"Not for me": hide one company from this reader's list for 90 days
+    (``users.for_you_hidden``), or put it back. Returns the hidden codes."""
+    now = datetime.now(timezone.utc)
+    entries = (fy.unhide(user.get("for_you_hidden"), code) if undo
+               else fy.hide(user.get("for_you_hidden"), code, now))
+    _users().update_one({"user_id": user["user_id"]}, {"$set": {"for_you_hidden": entries}})
+    return sorted(fy.hidden_codes(entries, now))
 
 
 def for_portfolio(user: dict, holdings: list[dict], watchlist: Optional[list[str]] = None) -> dict:

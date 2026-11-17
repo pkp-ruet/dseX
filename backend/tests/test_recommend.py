@@ -476,14 +476,3 @@ def test_explore_note_speaks_of_companies_not_cheaper_prices():
     assert "cheaper" not in rc.note(0, explore=True)["en"]
     assert rc.note(4, explore=True)["en"].startswith("Only 4 companies")
     assert rc.note(40, explore=True) is None
-
-
-def test_picked_for_you_never_repeats_the_buy_list_and_names_the_ones_that_fit(monkeypatch):
-    from backend.services import recommend_service as rs
-    cands = with_conviction([F("SQUR"), F("ROBI", sector=TELECOM), F("CEM", sector=CEMENT), F("IT1", sector=IT)])
-    p = {"cands": cands, "levels": {c["code"]: LV for c in cands}, "facts": {c["code"]: c for c in cands}}
-    monkeypatch.setattr(rs, "_buy_list", lambda: [{"code": "SQUR"}, {"code": "ROBI"}, {"code": "ZZZ"}])
-    items, bl = rs._explore(p, rc.empty_profile(), 15)
-    assert sorted(i["code"] for i in items) == ["CEM", "IT1"]
-    assert bl["count"] == 3 and sorted(f["code"] for f in bl["fits"]) == ["ROBI", "SQUR"]
-    assert bl["fits_total"] == 2

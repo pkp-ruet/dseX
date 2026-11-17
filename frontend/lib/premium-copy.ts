@@ -267,10 +267,10 @@ export const GROUPS: Group[] = [
     },
     items: [
       {
-        name: { en: "Discover", bn: "খুঁজে দেখুন" },
+        name: { en: "Based on your shares", bn: "আপনার শেয়ার দেখে বাছাই" },
         line: {
-          en: "All 15 strong companies matched to your shares, not just the free top 5, each with the figures that matter, one honest risk and the checks it passed.",
-          bn: "আপনার শেয়ারের সাথে মিলিয়ে সব 15টি শক্তিশালী কোম্পানি, শুধু ফ্রি সেরা 5টি নয়, প্রতিটির জরুরি সংখ্যা, একটি খোলামেলা ঝুঁকি আর যে যাচাইগুলো পার করেছে।",
+          en: "Companies to watch next, picked from the shares you own, follow and read about: every name, under the share it came from, with why it fits you.",
+          bn: "আপনার কেনা, ফলো করা আর পড়ে দেখা শেয়ার দেখে বাছাই করা, পরে নজরে রাখার মতো কোম্পানি: প্রতিটির নাম, যে শেয়ার থেকে এসেছে তার নিচে, আর কেন আপনার সাথে মেলে।",
         },
       },
       {
@@ -303,11 +303,11 @@ export const GROUPS: Group[] = [
       },
     ],
     example: {
-      label: { en: "Discover", bn: "খুঁজে দেখুন" },
+      label: { en: "Based on your shares", bn: "আপনার শেয়ার দেখে বাছাই" },
       title: { en: "Stronger than a share you own", bn: "আপনার একটি শেয়ারের চেয়ে শক্তিশালী" },
       line: {
-        en: "The same business as one of your shares, but a stronger company, and it pays about 5% a year in cash. Watch out: its profit grew slowly this year.",
-        bn: "আপনার একটি শেয়ারের মতোই ব্যবসা, তবে কোম্পানিটি বেশি শক্তিশালী, আর বছরে নগদে প্রায় 5% দেয়। খেয়াল রাখুন: এ বছর মুনাফা ধীরে বেড়েছে।",
+        en: "Same business as a share you own. Yours is weak on profit and finances; this company is strong on both, and has paid cash every year for 5 years.",
+        bn: "আপনার কেনা একটি শেয়ারের একই ব্যবসা। আপনারটি মুনাফা আর আর্থিক অবস্থায় দুর্বল; এই কোম্পানি দুটিতেই শক্তিশালী, আর গত 5 বছর প্রতি বছর নগদ দিয়েছে।",
       },
     },
     free: {
@@ -401,9 +401,9 @@ export const TABLE: { group: GroupKey; rows: { what: Bi; free: Cell; premium: Ce
     group: "find",
     rows: [
       {
-        what: { en: "Discover", bn: "খুঁজে দেখুন" },
-        free: { en: "Your top 5, and why each fits you", bn: "আপনার সেরা 5টি, আর কেন মেলে" },
-        premium: { en: "All 15, with the full case for each", bn: "সব 15টি, প্রতিটির পুরো বিশ্লেষণসহ" },
+        what: { en: "Based on your shares", bn: "আপনার শেয়ার দেখে বাছাই" },
+        free: { en: "How many we picked, and from which of your shares", bn: "কতগুলো বাছাই, আর আপনার কোন শেয়ার থেকে" },
+        premium: { en: "Every name, and why each fits you", bn: "প্রতিটির নাম, আর কেন মেলে" },
       },
       {
         what: { en: "Research reports", bn: "গবেষণা প্রতিবেদন" },

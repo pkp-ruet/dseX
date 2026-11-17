@@ -32,7 +32,7 @@ const findLinks: FootLink[] = [
   { href: "/buy-list", en: "Buy List", bn: "কেনার তালিকা" },
   { href: "/screener", en: "Stock screener", bn: "স্টক স্ক্রিনার" },
   { href: "/compare-stocks", en: "Compare stocks", bn: "শেয়ার তুলনা" },
-  { href: "/discover", en: "Discover", bn: "খুঁজে দেখুন" },
+  { href: "/for-you", en: "Based on your shares", bn: "আপনার শেয়ার দেখে বাছাই" },
   { href: "/dsestockranking", en: "Company ranking", bn: "কোম্পানির র‍্যাঙ্কিং" },
   { href: "/stocks", en: "All stocks", bn: "সব শেয়ার" },
   { href: "/assistant", en: "TopStock AI", bn: "TopStock AI" },

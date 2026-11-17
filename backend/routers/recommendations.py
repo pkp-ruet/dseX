@@ -2,8 +2,9 @@
 The recommendation engine's endpoints. Rules live in services/recommend.py,
 data in services/recommend_service.py — this router stays thin.
 
-- ``GET  /api/user/for-you``            the reader's picks (the page ``/picked-for-you``);
+- ``GET  /api/user/for-you``            "Based on your shares" (the page ``/for-you``);
                                         the home bundle carries the top three as ``for_you``
+- ``POST|DELETE /api/user/for-you/hide/{code}``  "Not for me" (90 days) and its undo
 - ``GET  /api/user/portfolio/buy-next`` the portfolio's "What to buy next" (``?pid=``)
 - ``GET  /api/portfolio/sample-plan``   the same for a sample portfolio's holdings
                                         (``/sample-portfolio/[slug]``, public)
@@ -81,10 +82,30 @@ def post_recommendations(
 
 @router.get("/user/for-you")
 def get_for_you(current_user: dict = Depends(get_current_user)):
-    """The reader's picks: up to 15, built from their own stocks (or the
-    strongest Buys when they have none). The page ``/picked-for-you`` shows
-    them all to Premium readers; the home bundle carries the top three."""
+    """"Based on your shares": up to 15 companies, each tied to a share the
+    reader owns, follows or reads about, in groups by that share (or a
+    starter list when they have none). The page ``/for-you`` names them to
+    Premium readers; the home bundle carries the top three."""
     return recommend_service.for_user(current_user)
+
+
+def _hide_code(code: str) -> str:
+    code = (code or "").strip().upper()
+    if not code or len(code) > 20 or not code.isascii() or not code.replace("-", "").replace("&", "").isalnum():
+        raise HTTPException(status_code=400, detail="bad_code")
+    return code
+
+
+@router.post("/user/for-you/hide/{code}")
+def hide_for_you(code: str, current_user: dict = Depends(get_current_user)):
+    """"Not for me": leave this company out of the reader's list for 90 days."""
+    return {"hidden": recommend_service.hide(current_user, _hide_code(code))}
+
+
+@router.delete("/user/for-you/hide/{code}")
+def unhide_for_you(code: str, current_user: dict = Depends(get_current_user)):
+    """Undo "Not for me"."""
+    return {"hidden": recommend_service.hide(current_user, _hide_code(code), undo=True)}
 
 
 @router.get("/user/portfolio/buy-next")
