@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useLang } from "@/context/LangContext";
 import { T } from "@/components/i18n/T";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
+import HydratedInput from "@/components/ui/HydratedInput";
 import { apiRegister, type AuthApiResponse, type TrustStats } from "@/lib/api";
 import { looksNewlyCreated, markJustSignedUp } from "@/lib/welcome";
 import { loadWatchlist } from "@/lib/watchlist";
@@ -136,7 +137,7 @@ function SignUpForm() {
           <label htmlFor="lp-signup-id" className="text-sm font-semibold text-text-main">
             <T en="Email or phone" bn="ইমেইল বা ফোন" />
           </label>
-          <input
+          <HydratedInput
             id="lp-signup-id"
             type="text"
             inputMode="email"
@@ -153,7 +154,7 @@ function SignUpForm() {
             <T en="Password" bn="পাসওয়ার্ড" />
           </label>
           <div className="relative">
-            <input
+            <HydratedInput
               id="lp-signup-pw"
               type={showPw ? "text" : "password"}
               value={password}

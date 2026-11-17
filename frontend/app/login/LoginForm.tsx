@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { apiLogin, type AuthApiResponse } from "@/lib/api";
 import { loadWatchlist } from "@/lib/watchlist";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
+import HydratedInput from "@/components/ui/HydratedInput";
 import PageHeader from "@/components/ui/PageHeader";
 import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
@@ -116,7 +117,7 @@ export default function LoginForm() {
                 <T en="Phone number" bn="ফোন নম্বর" />
               )}
             </label>
-            <input id="login-1"
+            <HydratedInput id="login-1"
               type={mode === "email" ? "email" : "tel"}
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
@@ -132,7 +133,7 @@ export default function LoginForm() {
               <T en="Password" bn="পাসওয়ার্ড" />
             </label>
             <div className="relative">
-              <input id="login-2"
+              <HydratedInput id="login-2"
                 type={showPw ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
