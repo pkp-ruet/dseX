@@ -20,7 +20,7 @@ import re
 from typing import Any, Optional
 
 MAX_CODES = 10          # = entitlements.HARD_LIMITS["compare"]; Premium compares up to 10
-FREE_CODES = 3          # = entitlements.FREE_LIMITS["compare"]
+FREE_CODES = 2          # = entitlements.FREE_LIMITS["compare"] (3 until 2026-11-18)
 SIMILAR_MAX = 6
 DATE_DAYS = 60          # dates ahead on the page: the next two months
 _CODE_RX = re.compile(r"^[A-Z0-9&.\-]{1,20}$")

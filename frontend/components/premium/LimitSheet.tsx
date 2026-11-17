@@ -103,7 +103,9 @@ export default function LimitSheet() {
 
   if (!kind) return null;
 
-  const n = storedLimit(kind) ?? FREE_LIMITS[kind];
+  // The compare cap is screen-only (the page enforces FREE_LIMITS.compare
+  // itself), so the popup says the page's number, not a stored one.
+  const n = kind === "compare" ? FREE_LIMITS.compare : (storedLimit(kind) ?? FREE_LIMITS[kind]);
   const make = COPY[kind];
   if (!make || n == null) return null;
   const c = make(n);

@@ -6,7 +6,7 @@ import FindCard from "@/components/home/personalized/FindCard";
 import { T } from "@/components/i18n/T";
 import { IconCheck, IconCompare } from "@/components/ui/icons";
 import type { PortfolioHolding, ScoreItem } from "@/lib/api";
-import { FREE_COMPARE, MAX_COMPARE, PRESETS, compareHref, shortName } from "@/lib/compare";
+import { FREE_COMPARE, MAX_COMPARE, PRESETS, compareHref, presetLabel, shortName } from "@/lib/compare";
 
 /**
  * "Compare stocks" on the dashboard (2026-11-12, user: "add a feature card in
@@ -38,13 +38,13 @@ export default function CompareFeature({
     const out: string[] = [];
     for (const c of [...held, ...watchlist.map((w) => w.toUpperCase())]) {
       if (!out.includes(c) && priceMap.get(c)?.score != null) out.push(c);
-      if (out.length >= FREE_COMPARE) break;
+      if (out.length >= Math.min(limit, 3)) break;
     }
     return out;
-  }, [holdings, watchlist, priceMap]);
+  }, [holdings, watchlist, priceMap, limit]);
 
   const ownSet = mine.length >= 2;
-  const pictureCodes = ownSet ? mine : PRESETS[0].codes;
+  const pictureCodes = ownSet ? mine : PRESETS[0].codes.slice(0, Math.max(FREE_COMPARE, Math.min(limit, 3)));
   const bars = pictureCodes
     .map((c) => {
       const s = priceMap.get(c);
@@ -131,13 +131,16 @@ export default function CompareFeature({
               </Link>
             </li>
           )}
-          {starts.map((p) => (
-            <li key={p.en}>
-              <Link prefetch={false} href={compareHref(p.codes)} className="fcs-start">
-                <T en={p.en} bn={p.bn} />
-              </Link>
-            </li>
-          ))}
+          {starts.map((p) => {
+            const label = presetLabel(p, limit);
+            return (
+              <li key={p.codes.join(",")}>
+                <Link prefetch={false} href={compareHref(p.codes.slice(0, limit))} className="fcs-start">
+                  <T en={label.en} bn={label.bn} />
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </div>
     </FindCard>

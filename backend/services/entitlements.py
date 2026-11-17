@@ -23,8 +23,9 @@ from typing import Optional
 FREE_LIMITS = {
     "watchlist": 5, "holdings": None, "alerts": 3, "ai_daily": 10, "portfolios": 1, "custom_lists": 0,
     # Shares side by side on /compare-stocks (screen-only: the page caps it; the
-    # API sends up to HARD_LIMITS["compare"] to anyone). 2026-11-12.
-    "compare": 3,
+    # API sends up to HARD_LIMITS["compare"] to anyone). 2026-11-12; 3 → 2 on
+    # 2026-11-18 (user: "make free user can compare at most 2 stocks").
+    "compare": 2,
 }
 
 # Ceilings for every account, Premium included. Not a plan feature — a size cap
