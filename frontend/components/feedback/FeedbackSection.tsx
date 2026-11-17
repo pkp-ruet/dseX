@@ -2,24 +2,44 @@
 
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useLang } from "@/context/LangContext";
 import { apiSubmitFeedback } from "@/lib/api";
 import { dismissFeedback } from "@/lib/feedback";
+import { T } from "@/components/i18n/T";
 import StarRating from "@/components/feedback/StarRating";
 import Button from "@/components/ui/Button";
+import { IconCheck } from "@/components/ui/icons";
 
+const RATING_WORDS: Record<number, { en: string; bn: string }> = {
+  1: { en: "Poor", bn: "খারাপ" },
+  2: { en: "Could be better", bn: "আরও ভালো হতে পারে" },
+  3: { en: "Okay", bn: "মোটামুটি" },
+  4: { en: "Good", bn: "ভালো" },
+  5: { en: "Very good", bn: "খুব ভালো" },
+};
+
+/**
+ * The review block at the end of the signed-in home (redone 2026-11-18 in the
+ * simple home's look, user: "make the review section … match with current
+ * design"): the home's one heading style (`.hm-head`), one card like the
+ * "Today for you" cards, both languages, no emoji. Stars, an optional note,
+ * one button. Styles `hm-rv-*` in app/styles/home.css.
+ */
 export default function FeedbackSection() {
   const { user } = useAuth();
+  const { lang } = useLang();
+  const bn = lang === "bn";
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "done">("idle");
-  const [error, setError] = useState("");
+  const [failed, setFailed] = useState(false);
 
   const canSubmit = rating > 0 || comment.trim().length > 0;
 
   async function submit() {
     if (!canSubmit || status === "sending") return;
     setStatus("sending");
-    setError("");
+    setFailed(false);
     try {
       await apiSubmitFeedback({
         rating: rating > 0 ? rating : undefined,
@@ -30,8 +50,8 @@ export default function FeedbackSection() {
       // A signed-in user who reviews here shouldn't also get nagged by the popup.
       if (user?.user_id) dismissFeedback(user.user_id);
       setStatus("done");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong. Please try again.");
+    } catch {
+      setFailed(true);
       setStatus("idle");
     }
   }
@@ -41,52 +61,74 @@ export default function FeedbackSection() {
   if (!user) return null;
 
   return (
-    <section className="soft-card mt-16 px-5 py-8 sm:mt-24 sm:px-8 sm:py-10" aria-labelledby="feedback-heading">
-      <div className="max-w-2xl">
-        <p className="text-xs font-bold   text-primary-ink">
-          Your feedback
-        </p>
-        <h2
-          id="feedback-heading"
-          className="font-display mt-1.5 text-xl sm:text-2xl font-bold tracking-tight text-text-main"
-        >
-          Help us build the best stock research tool in Bangladesh
+    <section className="hm-rv" aria-labelledby="feedback-heading">
+      <div className="hm-head">
+        <h2 id="feedback-heading" className="hm-head-h">
+          <T en="How are we doing?" bn="আমরা কেমন করছি?" />
         </h2>
-        <p className="mt-2 text-sm sm:text-base text-text-muted">
-          We&apos;re a small team building TopStockBD for DSE investors like you. Every suggestion gets read.
-        </p>
+      </div>
 
+      <div className="hm-rv-card">
         {status === "done" ? (
-          <div className="mt-6 rounded-xl border border-positive/30 bg-positive/10 px-4 py-4 text-sm text-text-main">
-            Thank you 🙏 We read every single message.
-          </div>
+          <p className="hm-rv-done" role="status">
+            <span className="hm-rv-done-ic" aria-hidden>
+              <IconCheck size={16} />
+            </span>
+            <T en="Thank you. We read every message." bn="ধন্যবাদ। আমরা প্রতিটি বার্তা পড়ি।" />
+          </p>
         ) : (
-          <div className="mt-6 flex flex-col gap-4">
-            <div className="flex items-center gap-3">
-              <StarRating value={rating} onChange={setRating} />
-              {rating > 0 && <span className="text-sm text-text-muted">{rating}/5</span>}
+          <>
+            <p className="hm-rv-lead">
+              <T
+                en="We are a small team building TopStockBD for DSE investors. Tell us what works and what is missing; we read every message."
+                bn="ডিএসইর বিনিয়োগকারীদের জন্য ছোট একটি দল TopStockBD বানাচ্ছে। কী ভালো লাগছে আর কী নেই, জানান; আমরা প্রতিটি বার্তা পড়ি।"
+              />
+            </p>
+
+            <div className="hm-rv-stars">
+              <StarRating value={rating} onChange={setRating} size={30} />
+              {rating > 0 && (
+                <span className="hm-rv-word">{bn ? RATING_WORDS[rating].bn : RATING_WORDS[rating].en}</span>
+              )}
             </div>
+
+            <label htmlFor="feedback-comment" className="sr-only">
+              {bn ? "আপনার মতামত" : "Your feedback"}
+            </label>
             <textarea
+              id="feedback-comment"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               rows={3}
               maxLength={2000}
-              placeholder="What's working? What's missing? Tell us anything…"
-              className="w-full resize-y rounded-xl border border-border bg-bg px-3.5 py-3 text-sm text-text-main placeholder:text-text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              placeholder={bn ? "কী ভালো লাগছে, কী নেই? যা খুশি লিখুন…" : "What works? What is missing? Tell us anything…"}
+              className="hm-rv-text"
             />
-            {error && <p className="text-sm text-negative">{error}</p>}
-            <div className="flex items-center gap-3">
-              <Button
-                type="button"
-                variant="primary"
-                onClick={submit}
-                disabled={!canSubmit || status === "sending"}
-              >
-                {status === "sending" ? "Sending…" : "Send feedback"}
+
+            {failed && (
+              <p className="hm-rv-error" role="alert">
+                <T
+                  en="We couldn't send it. Please try again."
+                  bn="পাঠানো যায়নি। আবার চেষ্টা করুন।"
+                />
+              </p>
+            )}
+
+            <div className="hm-rv-acts">
+              <Button type="button" variant="primary" onClick={submit} disabled={!canSubmit || status === "sending"}>
+                {status === "sending" ? (
+                  <T en="Sending…" bn="পাঠানো হচ্ছে…" />
+                ) : (
+                  <T en="Send" bn="পাঠান" />
+                )}
               </Button>
-              {!canSubmit && <span className="text-xs text-text-muted">Rate or write something first</span>}
+              {!canSubmit && (
+                <span className="hm-rv-hint">
+                  <T en="Pick a star or write a line first." bn="আগে একটি তারা বাছুন বা এক লাইন লিখুন।" />
+                </span>
+              )}
             </div>
-          </div>
+          </>
         )}
       </div>
     </section>

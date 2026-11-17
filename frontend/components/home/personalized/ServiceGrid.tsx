@@ -136,10 +136,12 @@ const ALL = [...FIRST, ...MORE];
  * for one line about every page. It replaced the dashboard's feature cards
  * (screener, compare, ranking, research, learn, explore links): the page
  * behind each icon explains itself and, where it is Premium, opens with its
- * own Premium card. Free readers see a crown on the Premium pages; a small
- * gold number shows what is new (the Buy List's joiners this week, Discover's
- * new picks today). Every icon carries its own `data-card` for the home tap
- * tracking.
+ * own Premium card. Free readers see a crown on the Premium pages; members see
+ * a thin gold ring on them instead (round 2, 2026-11-18: what they unlocked);
+ * a small gold number shows what is new (the Buy List's joiners this week,
+ * Discover's new picks today). "See more" and "What is each one?" sit side by
+ * side on the card's bottom edge from the start. Every icon carries its own
+ * `data-card` for the home tap tracking.
  */
 export default function ServiceGrid({
   lang,
@@ -169,7 +171,7 @@ export default function ServiceGrid({
           return (
             <li key={s.key} data-card={`icon-${s.key}`}>
               <Link href={s.href} className="hm-svc">
-                <span className="hm-svc-ic" aria-hidden>
+                <span className={`hm-svc-ic ${s.premium && premium ? "hm-svc-ic--member" : ""}`} aria-hidden>
                   <s.Icon size={24} />
                   {n > 0 && <span className="hm-badge nums">{n > 9 ? "9+" : n}</span>}
                   {s.premium && !premium && (
@@ -191,23 +193,29 @@ export default function ServiceGrid({
         })}
       </ul>
 
-      {more && (
-        <button type="button" className="hm-what" onClick={() => setSheet(true)}>
-          <IconInfo size={16} />
-          {bn ? "কোনটা কী কাজের?" : "What is each one?"}
+      {/* Two pills on the card's bottom edge: more icons, and one line about
+          every page — from the start, since a new reader needs it most. */}
+      <div className="hm-hang">
+        <button
+          type="button"
+          className="hm-more"
+          onClick={() => setMore((v) => !v)}
+          aria-expanded={more}
+          aria-controls="hm-grid-list"
+        >
+          {more ? (bn ? "কম দেখুন" : "See less") : bn ? "আরও দেখুন" : "See more"}
+          <IconChevronDown size={16} />
         </button>
-      )}
-
-      <button
-        type="button"
-        className="hm-more"
-        onClick={() => setMore((v) => !v)}
-        aria-expanded={more}
-        aria-controls="hm-grid-list"
-      >
-        {more ? (bn ? "কম দেখুন" : "See less") : bn ? "আরও দেখুন" : "See more"}
-        <IconChevronDown size={16} />
-      </button>
+        <button
+          type="button"
+          className="hm-more hm-help"
+          onClick={() => setSheet(true)}
+          aria-label={bn ? "কোনটা কী কাজের?" : "What is each one?"}
+        >
+          <IconInfo size={16} />
+          <span className="hm-help-txt">{bn ? "কোনটা কী কাজের?" : "What is each one?"}</span>
+        </button>
+      </div>
 
       <Sheet open={sheet} onClose={() => setSheet(false)} title={bn ? "কোনটা কী কাজের" : "What each one does"}>
         <ul className="hm-sheet-list">

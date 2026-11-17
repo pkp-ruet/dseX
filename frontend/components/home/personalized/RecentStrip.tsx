@@ -16,9 +16,11 @@ const SHOWN = 5;
  * "Continue where you left off" (2026-11-17, the simple home): the last five
  * shares opened on this device (`lib/recent-stocks.ts`, written by the stock
  * page), each with today's move, one tap back to its page — like bKash's
- * recent contacts. A free reader also sees how many of the month's free
- * analyses are left, and a small book on the shares already read with one.
- * Nothing renders until the reader has opened a share on this device.
+ * recent contacts. A free reader sees a small book on the shares already read
+ * with a free analysis. Nothing renders until the reader has opened a share on
+ * this device. Since round 2 (2026-11-18) it sits under the market line: it
+ * appears only after the page loads, so above the story rings it pushed them
+ * down mid-tap.
  */
 export default function RecentStrip({
   lang,
@@ -50,28 +52,15 @@ export default function RecentStrip({
 
   if (codes.length === 0) return null;
 
+  // How many free analyses are left lives on the band's plan chip (round 2);
+  // here a small book still marks the shares already read with one.
   const keys = !premium ? reportKeys ?? null : null;
   const read = new Set((keys?.read ?? []).map((c) => c.toUpperCase()));
-  const note = keys
-    ? keys.left > 0
-      ? bn
-        ? `এ মাসে ${keys.per_month}টির মধ্যে ${keys.left}টি ফ্রি বিশ্লেষণ বাকি`
-        : `${keys.left} of ${keys.per_month} free analyses left this month`
-      : bn
-        ? `এ মাসের ${keys.per_month}টি ফ্রি বিশ্লেষণ পড়া শেষ`
-        : `All ${keys.per_month} free analyses read this month`
-    : null;
 
   return (
     <section className={`hm-recent ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined} data-card="recent">
-      <div className="hm-recent-head">
-        <h2 className="hm-recent-h">{bn ? "যেখানে থেমেছিলেন" : "Continue where you left off"}</h2>
-        {note && (
-          <span className="hm-recent-note">
-            <IconBook size={13} />
-            {note}
-          </span>
-        )}
+      <div className="hm-head">
+        <h2 className="hm-head-h">{bn ? "যেখানে থেমেছিলেন" : "Continue where you left off"}</h2>
       </div>
       <ul className="hm-recent-list">
         {codes.map((code) => {

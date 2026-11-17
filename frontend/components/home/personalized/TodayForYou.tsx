@@ -1,11 +1,28 @@
-import type { ComponentType } from "react";
+"use client";
+
+import { useState, type ComponentType } from "react";
 import Link from "@/components/ui/Link";
 import type { Lang } from "@/context/LangContext";
-import { forYouCounts, type CorporateActionEvent, type ForYou, type UpcomingResult } from "@/lib/api";
+import {
+  forYouCounts,
+  type CorporateActionEvent,
+  type ForYou,
+  type HomeBundle,
+  type LatestResultRow,
+  type UpcomingResult,
+} from "@/lib/api";
 import type { BuyListHome } from "@/lib/buy-list";
 import { dayShort } from "@/components/dividend-calendar/dates";
 import { DateTile } from "@/components/dividend-calendar/DateGroup";
-import { IconChevronRight, IconClipboardCheck, IconCalendar, IconCompass, IconCrown } from "@/components/ui/icons";
+import {
+  IconChevronDown,
+  IconChevronRight,
+  IconClipboardCheck,
+  IconCalendar,
+  IconCompass,
+  IconCrown,
+  IconFileText,
+} from "@/components/ui/icons";
 
 type Bi = { en: string; bn: string };
 
@@ -33,6 +50,11 @@ function daysFrom(fromIso: string, iso: string): number {
   const a = Date.parse(`${fromIso.slice(0, 10)}T00:00:00Z`);
   const b = Date.parse(`${iso.slice(0, 10)}T00:00:00Z`);
   return Math.round((b - a) / 86_400_000);
+}
+
+/** `iso` minus `days`, as YYYY-MM-DD. */
+function daysBefore(iso: string, days: number): string {
+  return new Date(Date.parse(`${iso.slice(0, 10)}T00:00:00Z`) - days * 86_400_000).toISOString().slice(0, 10);
 }
 
 function taka(v: number): string {
@@ -140,14 +162,16 @@ interface SumRow {
  * 1. **Your dates this week** — free, only for a reader with shares or a
  *    watchlist: one row per date (the dividend calendar's date tile, the share,
  *    "Wed · Last day to buy for its ৳6 dividend"), each opening that share.
- * 2. **Three summary rows**, identical parts: icon (crown on a Premium page for
- *    a reader without Premium) · title (+ a gold "N new") · one caption · a big
+ *    Four rows, then "See all N dates" opens the rest in place (round 2).
+ * 2. **Summary rows**, identical parts: icon (crown on a Premium page for a
+ *    reader without Premium) · title (+ a gold "N new") · one caption · a big
  *    number with what it counts · chevron. Buy List · Record dates (next two
- *    weeks) · To discover. A free reader's caption says what is free and that
- *    the rest is Premium, in words; a Premium reader's caption names the shares.
+ *    weeks) · Results this week (free, round 2, 2026-11-18: the reader's own
+ *    shares named) · Discover. A free reader's caption says what is free and
+ *    that the rest is Premium, in words; a Premium reader's names the shares.
  *
  * No chips, no lock lines, no sub-lines. From 1024px the two cards sit side by
- * side; without the dates card the three rows sit side by side.
+ * side; without the dates card the rows sit side by side (four: two by two).
  */
 export default function TodayForYou({
   lang,
@@ -160,6 +184,8 @@ export default function TodayForYou({
   todayIso,
   resultsSoon,
   ownDividends,
+  resultsWeek,
+  ownResults,
 }: {
   lang: Lang;
   premium: boolean;
@@ -177,7 +203,12 @@ export default function TodayForYou({
   resultsSoon: UpcomingResult[];
   /** The calendar's record-date rows for the reader's own codes (bundle `dividend_cash`). */
   ownDividends: CorporateActionEvent[];
+  /** The market's week of results (bundle `results_week`). */
+  resultsWeek?: HomeBundle["results_week"];
+  /** Results on the reader's own shares, last three weeks (bundle `new_results`). */
+  ownResults?: LatestResultRow[];
 }) {
+  const [allDates, setAllDates] = useState(false);
   const bn = lang === "bn";
   const pick = (b: Bi) => (bn ? b.bn : b.en);
   const dates = mine.size > 0 && !loading ? buildDates(todayIso, resultsSoon, ownDividends) : null;
@@ -238,7 +269,37 @@ export default function TodayForYou({
     });
   }
 
-  // 3 · Companies to discover (the top three are free)
+  // 3 · Results posted this week (free; the reader's own shares named first)
+  if (resultsWeek && resultsWeek.recent > 0) {
+    const cutoff = daysBefore(todayIso, resultsWeek.days || 7);
+    const own = Array.from(
+      new Set((ownResults ?? []).filter((r) => (r.post_date ?? "") >= cutoff).map((r) => r.code.toUpperCase())),
+    );
+    const latest = resultsWeek.latest.filter((r) => (r.post_date ?? "") >= cutoff).map((r) => r.code);
+    const n = resultsWeek.recent;
+    const ownList = names(own, own.length);
+    rows.push({
+      key: "results",
+      href: own.length > 0 ? "/results?level=mine" : "/results",
+      Icon: IconFileText,
+      title: { en: "Results this week", bn: "এই সপ্তাহের আর্থিক ফল" },
+      premiumPage: false,
+      fresh: 0,
+      value: n,
+      unit: { en: n === 1 ? "company" : "companies", bn: "কোম্পানি" },
+      caption:
+        own.length > 0
+          ? {
+              en: `${own.length} ${own.length === 1 ? "is your share" : "are your shares"}: ${ownList}`,
+              bn: `${own.length}টি আপনার শেয়ার: ${ownList}`,
+            }
+          : latest.length > 0
+            ? { en: `Latest: ${names(latest, n)}`, bn: `সর্বশেষ: ${names(latest, n)}` }
+            : { en: "Every company's latest results", bn: "প্রতিটি কোম্পানির সর্বশেষ আর্থিক ফল" },
+    });
+  }
+
+  // 4 · Companies to discover (the top three are free)
   if (forYou && forYou.items.length > 0) {
     const c = forYouCounts(forYou);
     const list = names(forYou.items.map((x) => x.code), c.total);
@@ -246,7 +307,7 @@ export default function TodayForYou({
       key: "discover",
       href: "/discover",
       Icon: IconCompass,
-      title: { en: "To discover", bn: "খুঁজে দেখুন" },
+      title: { en: "Discover", bn: "খুঁজে দেখুন" },
       premiumPage: false,
       fresh: c.new,
       value: c.total,
@@ -268,8 +329,8 @@ export default function TodayForYou({
         )}
       </div>
       {dates.length > 0 ? (
-        <ul className="hm-dlist">
-          {dates.slice(0, DATE_ROWS).map((d) => (
+        <ul className="hm-dlist" id="hm-dlist">
+          {(allDates ? dates : dates.slice(0, DATE_ROWS)).map((d) => (
             <li key={`${d.code}-${d.iso}-${d.what.en}`}>
               <Link href={d.href} className="hm-drow">
                 <DateTile iso={d.iso} small soon={daysFrom(todayIso, d.iso) <= 1} />
@@ -294,9 +355,22 @@ export default function TodayForYou({
         </p>
       )}
       {dates.length > DATE_ROWS && (
-        <p className="hm-dnote">
-          {bn ? `আরও ${dates.length - DATE_ROWS}টি তারিখ` : `+${dates.length - DATE_ROWS} more`}
-        </p>
+        <button
+          type="button"
+          className="hm-dmore"
+          onClick={() => setAllDates((v) => !v)}
+          aria-expanded={allDates}
+          aria-controls="hm-dlist"
+        >
+          {allDates
+            ? bn
+              ? "কম দেখুন"
+              : "Show fewer"
+            : bn
+              ? `সব ${dates.length}টি তারিখ দেখুন`
+              : `See all ${dates.length} dates`}
+          <IconChevronDown size={16} />
+        </button>
       )}
     </div>
   ) : null;
@@ -354,7 +428,9 @@ export default function TodayForYou({
 
   return (
     <section className={`hm-today ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
-      <h2 className="hm-sec-h">{bn ? "আজ আপনার জন্য" : "Today for you"}</h2>
+      <div className="hm-head">
+        <h2 className="hm-head-h">{bn ? "আজ আপনার জন্য" : "Today for you"}</h2>
+      </div>
       <div className="hm-today-grid">
         {datesCard}
         {sumCard}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { T } from "@/components/i18n/T";
 import { subscribeWatchlist, getCachedWatchlist } from "@/lib/watchlist";
@@ -26,9 +27,14 @@ import {
  * iOS Safari can't subscribe unless the site is installed to the home screen, so
  * iOS-not-installed users get an "Add to Home Screen" hint instead of a dead-end
  * button. Mounted globally in app/layout.tsx.
+ *
+ * Not on the signed-in home page (2026-11-18): there the same ask is a slide in
+ * the home's offer slot (`OfferSlot`, same gate and keys), so nothing floats
+ * over the page.
  */
 export default function PushOptInPrompt() {
   const { isLoggedIn } = useAuth();
+  const pathname = usePathname();
   const [show, setShow] = useState(false);
   const [mode, setMode] = useState<"prompt" | "ios">("prompt");
   const [busy, setBusy] = useState(false);
@@ -36,6 +42,10 @@ export default function PushOptInPrompt() {
 
   useEffect(() => {
     if (!isLoggedIn || typeof window === "undefined") return;
+    if (pathname === "/") {
+      setShow(false);
+      return;
+    }
     if (!canShowPushPromptByHistory()) return;
 
     const canPrompt = isPushSupported() && getPermission() === "default";
@@ -59,7 +69,7 @@ export default function PushOptInPrompt() {
       clearTimeout(t);
       unsub();
     };
-  }, [isLoggedIn]);
+  }, [isLoggedIn, pathname]);
 
   // "Not now" / iOS "Got it" → soft snooze: comes back after the cooldown, up to a cap.
   function snooze() {

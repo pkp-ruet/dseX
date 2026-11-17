@@ -223,18 +223,23 @@ export default function PersonalizedHome() {
   }
 
   // The bKash-style home (2026-11-17, mockup
-  // https://claude.ai/artifact/PzbGUGyZQpwFEpCTTo5jDJ). Six blocks, one job
-  // each; the page behind every icon / row does the explaining and the selling:
-  //   1 the band: greeting + ONE button for the reader's money (hidden until
-  //     tapped on a new device, then remembered)
-  //   2 what you can do: 8 icons + See more (replaced the screener, compare,
-  //     ranking, research, learn and explore cards)
-  //   3 one offer slot, swipe only (the ৳99 month, the Premium banner, the
-  //     install card and the setup step share it)
-  //   4 the story rings, unchanged, beside 5 the market in one line
-  //   6 today for you: Buy List · record dates · Discover, counts for a free
-  //     reader, names for Premium (replaced the Buy List, dividend and Picked
-  //     for you cards)
+  // https://claude.ai/artifact/PzbGUGyZQpwFEpCTTo5jDJ; round 2 2026-11-18,
+  // https://claude.ai/artifact/VjM6tbPk1kKo3BJjCD3Frk). One job per block;
+  // the page behind every icon / row does the explaining and the selling:
+  //   1 the band: greeting, the plan chip, ONE button for the reader's money
+  //     (hidden until tapped on a new device, then remembered), search
+  //   2 what you can do: 8 icons + See more + What is each one? (replaced the
+  //     screener, compare, ranking, research, learn and explore cards)
+  //   3 the story rings ("Your shares today") + the market in one line
+  //   4 continue where you left off (shares opened on this device)
+  //   5 one offer slot, swipe only (a free reader's portfolio check first,
+  //     then the free Buy List pick, the ৳99 month or the Premium banner,
+  //     notifications, the setup step and install)
+  //   6 today for you: your dates this week, then Buy List · record dates ·
+  //     results this week · Discover, counts for a free reader, names for
+  //     Premium (replaced the Buy List, dividend and Picked for you cards)
+  // 4 and 5 show only after reading localStorage, so they sit below 3: the
+  // rings never move once painted.
   return (
     <PullToRefresh onRefresh={() => runFetches()}>
       <div className="hm pb-4" onClickCapture={onTap}>
@@ -244,6 +249,8 @@ export default function PersonalizedHome() {
             dateStr={dateStr}
             isNew={isNewUser}
             premium={premium}
+            premiumUntil={user?.premium_until ?? null}
+            reportKeys={user?.report_keys ?? null}
             holdings={holdings}
             priceMap={priceMap}
             todayMove={todayMove}
@@ -252,19 +259,6 @@ export default function PersonalizedHome() {
           />
           <ServiceGrid lang={lang} premium={premium} badges={badges} />
         </div>
-
-        {/* The last shares opened on this device, one tap back (+ the free analyses left). */}
-        <RecentStrip lang={lang} premium={premium} priceMap={priceMap} reportKeys={user?.report_keys ?? null} />
-
-        <OfferSlot
-          lang={lang}
-          brandNew={isBrandNew}
-          hasWatchlist={hasWatchlist}
-          hasPortfolio={hasPortfolio}
-          week={bundle?.week_watch ?? null}
-          brief={premium ? bundle?.brief ?? null : null}
-          research={bundle?.research ?? null}
-        />
 
         <div className="hm-side">
           <div data-card="stories">
@@ -285,6 +279,23 @@ export default function PersonalizedHome() {
           />
         </div>
 
+        {/* Both read localStorage before they show, so they sit below the story
+            rings: above them, they pushed the rings down mid-tap. */}
+        <RecentStrip lang={lang} premium={premium} priceMap={priceMap} reportKeys={user?.report_keys ?? null} />
+
+        <OfferSlot
+          lang={lang}
+          brandNew={isBrandNew}
+          hasWatchlist={hasWatchlist}
+          hasPortfolio={hasPortfolio}
+          week={bundle?.week_watch ?? null}
+          brief={premium ? bundle?.brief ?? null : null}
+          research={bundle?.research ?? null}
+          buyList={bundle?.buy_list ?? null}
+          holdings={holdings}
+          priceMap={priceMap}
+        />
+
         <TodayForYou
           lang={lang}
           premium={premium}
@@ -296,6 +307,8 @@ export default function PersonalizedHome() {
           todayIso={isoToday}
           resultsSoon={bundle?.results_soon ?? []}
           ownDividends={dividendCash}
+          resultsWeek={bundle?.results_week ?? null}
+          ownResults={newResults}
         />
       </div>
     </PullToRefresh>

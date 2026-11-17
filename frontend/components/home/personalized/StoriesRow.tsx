@@ -102,13 +102,14 @@ export default function StoriesRow({
     setOpen({ list: ordered, index: 0 });
   }, [autoOpened, loading, ordered]);
 
-  // The label holds its place while the rings load, so nothing jumps.
+  // The label holds its place while the rings load, so nothing jumps. Same
+  // heading as every other home block (`.hm-head`, round 2, 2026-11-18).
   const head = (
-    <div className="flex items-baseline justify-between gap-3">
-      <p id={headId} className="text-sm font-semibold text-text-main">
+    <div className="hm-head">
+      <h2 id={headId} className="hm-head-h">
         {t(lang, starter ? "storiesMarket" : "storiesTitle")}
-      </p>
-      <p className="shrink-0 text-xs text-text-muted">{t(lang, "storiesHint")}</p>
+      </h2>
+      <p className="hm-head-note">{t(lang, "storiesHint")}</p>
     </div>
   );
 

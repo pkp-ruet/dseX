@@ -1,16 +1,21 @@
 /* ===================================================================
    The signed-in home (2026-11-17, bKash-style; mockup
-   https://claude.ai/artifact/PzbGUGyZQpwFEpCTTo5jDJ). Six blocks:
+   https://claude.ai/artifact/PzbGUGyZQpwFEpCTTo5jDJ; round 2, 2026-11-18,
+   https://claude.ai/artifact/VjM6tbPk1kKo3BJjCD3Frk). In page order:
 
-     1 the band: initial, date, greeting, the portfolio button  (.hm-band)
-     2 what you can do: 8 icons + See more                      (.hm-grid)
-     3 one offer slot, swipe only                               (.hm-slot)
-     4 your shares today (the story rings) + 5 the market line  (.hm-side)
-     6 today for you: three rows with counts                    (.hm-today)
+     1 the band: date, greeting, plan chip, money, search       (.hm-band)
+     2 what you can do: 8 icons + See more + What is each one?  (.hm-grid)
+     3 your shares today (the story rings) + the market line    (.hm-side)
+     4 continue where you left off                              (.hm-recent)
+     5 one offer slot, swipe only                               (.hm-slot)
+     6 today for you: your dates + four rows with counts        (.hm-today)
 
-   One colour for every icon (clay); gold only marks Premium (crowns, the
-   Premium slides) and "new" counts. Phones: one column. From 1024px the
-   offer slot sits beside the stories + market line.
+   Nothing above the story rings appears after the page loads (the recent
+   row and the slot read localStorage first), so the rings never jump.
+   One colour for every icon (clay); gold only marks Premium (crowns, rings,
+   the Premium slides) and "new" counts. Phones: one column. From 1024px the
+   offer slot sits beside the stories + market line (dense flow pulls it up
+   into the row the stories start).
    =================================================================== */
 
 .hm { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-6); padding-top: var(--space-4); }
@@ -24,13 +29,23 @@
 .hm-side { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); min-width: 0; }
 .hm-side > * { min-width: 0; }
 @media (min-width: 1024px) {
-  .hm { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); column-gap: var(--space-6); align-items: start; }
+  .hm { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); grid-auto-flow: row dense; column-gap: var(--space-6); align-items: start; }
   .hm-top, .hm-today { grid-column: 1 / -1; }
   .hm-slot { grid-column: 1; }
   .hm-side { grid-column: 2; }
   .hm-side .hm-mkt { order: -1; }
   .hm:not(:has(.hm-slot)) .hm-side { grid-column: 1 / -1; }
 }
+
+/* ONE heading for every block (round 2, 2026-11-18): your shares today,
+   continue where you left off, today for you. Title left, an optional note
+   right. */
+.hm-head {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+  gap: var(--space-1) var(--space-3); margin-bottom: var(--space-3);
+}
+.hm-head-h { font-size: var(--fs-md); font-weight: 700; line-height: 1.3; color: var(--text); }
+.hm-head-note { font-size: var(--fs-2xs); font-weight: 600; color: var(--text); }
 
 /* ---------- 1 · The band ---------- */
 .hm-band {
@@ -64,7 +79,29 @@
   margin-top: 2px; font-size: var(--fs-xl); font-weight: 700; line-height: 1.2;
   letter-spacing: -0.01em; color: var(--text); text-wrap: balance;
 }
-.hm-pill-wrap { grid-column: 2; min-width: 0; }
+/* Round 2 (2026-11-18): the money spans the band on phones, so the value can
+   be the biggest number on the screen. */
+.hm-pill-wrap { grid-column: 1 / -1; min-width: 0; }
+
+/* The reader's plan, under the greeting: Premium till when, or the free
+   analyses left this month (one tap to /premium). */
+.hm-plan {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 6px; max-width: 100%;
+  margin-top: var(--space-2); min-height: 30px; padding: 0 var(--space-3) 0 var(--space-2);
+  border: 1px solid var(--border); border-radius: 999px; background: var(--surface);
+  font-size: var(--fs-2xs); font-weight: 600; color: var(--text);
+}
+/* A 40px tap area around a 30px chip. */
+.hm-plan::after { content: ""; position: absolute; inset: -5px 0; }
+.hm-plan:hover { border-color: rgb(var(--primary-rgb) / 0.45); }
+.hm-plan svg { flex: none; color: var(--gold-ink); }
+.hm-plan-txt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hm-plan--prem { border-color: transparent; background: var(--gold-light); box-shadow: inset 0 0 0 1px rgb(var(--gold-rgb) / 0.9); }
+.hm-plan--prem:hover { border-color: transparent; }
+/* The last 3 days of Premium: amber, like the renewal banner. */
+.hm-plan--soon { background: rgb(var(--watch-rgb) / 0.14); box-shadow: inset 0 0 0 1px rgb(var(--watch-rgb) / 0.6); }
+.hm-plan--soon svg { color: var(--watch); }
 .hm-pill {
   display: inline-flex; align-items: center; flex-wrap: wrap; gap: 4px var(--space-2);
   min-height: 44px; max-width: 100%;
@@ -82,14 +119,24 @@
   display: grid; place-items: center;
   background: var(--primary); color: var(--on-fill);
 }
-.hm-pill-val { font-size: var(--fs-md); font-weight: 700; }
-.hm-pill-day { font-size: var(--fs-2xs); font-weight: 700; }
-/* Shown: the eye hides it again, the rest opens the portfolio. */
-.hm-pill--open { flex-wrap: nowrap; gap: var(--space-2); padding: 6px var(--space-2) 6px 6px; border-radius: var(--radius-lg); }
-.hm-pill--open .hm-pill-ic { cursor: pointer; }
-.hm-pill--open .hm-pill-ic:hover { background: var(--primary-ink); }
-.hm-pill-open { min-width: 0; display: grid; gap: 1px; color: var(--text); }
-.hm-pill-l1 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px var(--space-2); }
+/* Shown: the eye (44px) hides it again; everything right of it, the arrow
+   included, opens the portfolio. */
+.hm-pill--open {
+  display: flex; width: 100%; flex-wrap: nowrap; gap: var(--space-3);
+  padding: var(--space-2); border-radius: var(--radius-lg);
+}
+.hm-pill-eye { width: 44px; height: 44px; cursor: pointer; }
+.hm-pill-eye:hover { background: var(--primary-ink); }
+.hm-pill-open { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--space-2); color: var(--text); }
+.hm-pill-txt { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.hm-pill-l1 { display: flex; flex-wrap: wrap; align-items: center; gap: 4px var(--space-2); }
+.hm-pill-val { font-size: var(--fs-xl); font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; }
+.hm-pill-day {
+  display: inline-flex; align-items: center; height: 22px; padding: 0 var(--space-2);
+  border-radius: 999px; font-size: var(--fs-2xs); font-weight: 700; white-space: nowrap;
+}
+.hm-pill-day--up { background: rgb(var(--positive-rgb) / 0.12); color: var(--positive); }
+.hm-pill-day--down { background: rgb(var(--negative-rgb) / 0.12); color: var(--negative); }
 .hm-pill-l2 { font-size: var(--fs-2xs); font-weight: 600; }
 .hm-pill-chev { flex: none; display: grid; place-items: center; color: var(--primary-ink); }
 
@@ -112,6 +159,7 @@
   .hm-band-in { grid-template-columns: 56px minmax(0, 1fr) auto; }
   .hm-av { width: 56px; height: 56px; }
   .hm-pill-wrap { grid-column: 3; grid-row: 1; }
+  .hm-pill--open { width: auto; }
   .hm-hi { font-size: var(--fs-2xl); }
 }
 
@@ -121,7 +169,7 @@
   margin: calc(var(--space-6) * -1 - var(--space-1)) var(--space-3) 0;
   padding: var(--space-4) var(--space-2) var(--space-8);
   border: 1px solid var(--border); border-radius: var(--radius-xl);
-  background: var(--surface); box-shadow: var(--shadow-soft);
+  background: var(--surface); box-shadow: var(--shadow-lift);
 }
 .hm-grid-list {
   list-style: none; margin: 0; padding: 0;
@@ -134,15 +182,17 @@
 }
 .hm-svc {
   display: flex; flex-direction: column; align-items: center; gap: 7px;
-  min-height: 88px; padding: 6px 2px; border-radius: var(--radius-md);
+  min-height: 92px; padding: 6px 2px; border-radius: var(--radius-md);
   text-align: center; color: var(--text);
 }
 .hm-svc:hover, .hm-svc:active { background: var(--surface-2); }
 .hm-svc-ic {
-  position: relative; width: 52px; height: 52px; border-radius: 50%;
+  position: relative; width: 56px; height: 56px; border-radius: 50%;
   display: grid; place-items: center;
   background: rgb(var(--primary-rgb) / 0.12); color: var(--primary);
 }
+/* A member's Premium pages: a thin gold ring where a free reader sees a crown. */
+.hm-svc-ic--member { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--gold); }
 .hm-svc-name { font-size: var(--fs-xs); font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
 .hm-badge {
   position: absolute; top: -4px; right: -8px;
@@ -157,8 +207,12 @@
   background: var(--surface); color: var(--gold-ink);
   box-shadow: 0 0 0 1.5px rgb(var(--gold-rgb) / 0.9);
 }
+/* "See more" and "What is each one?" sit on the card's bottom edge. */
+.hm-hang {
+  position: absolute; left: var(--space-2); right: var(--space-2); bottom: -20px;
+  display: flex; justify-content: center; gap: var(--space-2);
+}
 .hm-more {
-  position: absolute; left: 50%; bottom: -20px; transform: translateX(-50%);
   display: inline-flex; align-items: center; gap: 4px;
   min-height: 40px; padding: 0 var(--space-4);
   border: 1px solid var(--border); border-radius: 999px;
@@ -166,13 +220,13 @@
   font-size: var(--fs-xs); font-weight: 600; color: var(--primary-ink); white-space: nowrap;
 }
 .hm-more:hover { border-color: rgb(var(--primary-rgb) / 0.45); }
-.hm-more svg { transition: transform 0.15s ease; }
+.hm-more svg { flex: none; transition: transform 0.15s ease; }
 .hm-more[aria-expanded="true"] svg { transform: rotate(180deg); }
-.hm-what {
-  display: flex; width: fit-content; align-items: center; gap: 6px;
-  margin: var(--space-3) auto 0; min-height: 40px; padding: 0 var(--space-3);
-  font-size: var(--fs-xs); font-weight: 600; color: var(--primary-ink);
-  text-decoration: underline; text-underline-offset: 3px;
+.hm-help { gap: 6px; padding: 0 var(--space-3); }
+/* Under 360px both labels don't fit: the help pill keeps only its icon. */
+@media (max-width: 359px) {
+  .hm-help { width: 40px; padding: 0; justify-content: center; }
+  .hm-help-txt { display: none; }
 }
 
 /* "What is each one?" (inside ui/Sheet) */
@@ -302,7 +356,6 @@
    same parts — icon · title (+ "N new") · one caption · a big number · ›.
    No chips, no lock lines. From 1024px the two cards sit side by side; with
    no dates card the three rows do. */
-.hm-sec-h { margin-bottom: var(--space-3); font-size: var(--fs-base); font-weight: 700; color: var(--text); }
 .hm-today-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
 .hm-tcard {
   min-width: 0; margin: 0; padding: 0; list-style: none;
@@ -330,6 +383,18 @@
 .hm-dnote {
   padding: var(--space-3) var(--space-4); border-top: 1px solid var(--border);
   font-size: var(--fs-xs); font-weight: 600; line-height: 1.45; color: var(--text);
+}
+/* "See all 6 dates": the rest opens in place (it was plain "+2 more" text). */
+.hm-dmore {
+  display: flex; width: 100%; align-items: center; justify-content: space-between; gap: var(--space-2);
+  min-height: 48px; padding: 0 var(--space-4); border-top: 1px solid var(--border);
+  font-size: var(--fs-xs); font-weight: 700; color: var(--primary-ink); text-align: left;
+}
+.hm-dmore:hover, .hm-dmore:active { background: var(--surface-2); }
+.hm-dmore svg { flex: none; transition: transform 0.15s ease; }
+.hm-dmore[aria-expanded="true"] svg { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) {
+  .hm-dmore svg { transition: none; }
 }
 
 /* The three summary rows */
@@ -363,17 +428,46 @@ a.hm-srow:hover, a.hm-srow:active { background: var(--surface-2); }
   .hm-today-grid:has(> .hm-dcard) { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
   .hm-today-grid:not(:has(> .hm-dcard)) .hm-sum { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
   .hm-today-grid:not(:has(> .hm-dcard)) .hm-sum > li + li { border-top: 0; border-left: 1px solid var(--border); }
+  /* Four rows: two by two (four in a line left each too narrow). */
+  .hm-today-grid:not(:has(> .hm-dcard)) .hm-sum:has(> li:nth-child(4)) {
+    grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .hm-today-grid:not(:has(> .hm-dcard)) .hm-sum:has(> li:nth-child(4)) > li:nth-child(odd) { border-left: 0; }
+  .hm-today-grid:not(:has(> .hm-dcard)) .hm-sum:has(> li:nth-child(4)) > li:nth-child(n + 3) { border-top: 1px solid var(--border); }
+}
+
+/* ---------- The review block (end of the signed-in home, 2026-11-18) ----------
+   `components/feedback/FeedbackSection.tsx`: the home's heading, one card. */
+.hm-rv { margin-top: var(--space-6); }
+.hm-rv-card {
+  display: grid; gap: var(--space-3); padding: var(--space-4);
+  border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface);
+}
+.hm-rv-card > * { max-width: 640px; }
+@media (min-width: 640px) {
+  .hm-rv-card { padding: var(--space-6); }
+}
+.hm-rv-lead { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+.hm-rv-stars { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-3); }
+.hm-rv-word { font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
+.hm-rv-text {
+  display: block; width: 100%; min-height: 96px; resize: vertical;
+  padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-md);
+  background: var(--bg); color: var(--text); font: inherit; font-size: var(--fs-sm); line-height: 1.5;
+}
+.hm-rv-text:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgb(var(--primary-rgb) / 0.2); }
+.hm-rv-error { font-size: var(--fs-xs); font-weight: 600; color: var(--negative); }
+.hm-rv-acts { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
+.hm-rv-hint { font-size: var(--fs-2xs); font-weight: 600; color: var(--text); }
+.hm-rv-done { display: flex; align-items: center; gap: var(--space-2); font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
+.hm-rv-done-ic {
+  flex: none; width: 28px; height: 28px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: rgb(var(--positive-rgb) / 0.12); color: var(--positive);
 }
 
 /* ---------- Continue where you left off ---------- */
 .hm-recent { min-width: 0; }
-.hm-recent-head {
-  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
-  gap: var(--space-1) var(--space-3); margin-bottom: var(--space-2);
-}
-.hm-recent-h { font-size: var(--fs-base); font-weight: 700; color: var(--text); }
-.hm-recent-note { display: inline-flex; align-items: center; gap: 5px; font-size: var(--fs-2xs); font-weight: 600; color: var(--text); }
-.hm-recent-note svg { flex: none; color: var(--gold-ink); }
 .hm-recent-list {
   list-style: none; margin: 0 calc(var(--space-1) * -1); padding: var(--space-1);
   display: flex; gap: var(--space-2); overflow-x: auto; scrollbar-width: none;

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 
-const FILLED = "#F59E0B"; // amber — warm accent, reads on the light theme
+// The site's gold (stars everywhere else are gold too); a token, so it reads in both themes.
+const FILLED = "var(--gold)";
 
 export default function StarRating({
   value,
@@ -31,7 +32,7 @@ export default function StarRating({
           onMouseEnter={() => !disabled && setHover(n)}
           onMouseLeave={() => !disabled && setHover(0)}
           onClick={() => !disabled && onChange(n)}
-          className="rounded transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-default"
+          className="grid min-h-10 min-w-10 place-items-center rounded transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-default"
         >
           <svg
             width={size}

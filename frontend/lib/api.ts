@@ -2437,8 +2437,8 @@ export interface HomeBundle {
   /** The day's move on the reader's stocks whose record date fell since the
    *  previous close, with the dividend / bonus taken out (2026-11-04). */
   ex_moves?: Record<string, number>;
-  /** The market's week of quarterly results. Shown nowhere since 2026-11-05
-   *  (the dashboard's `MarketLinks` tile left with the one-card market chapter). */
+  /** The market's week of quarterly results: the home's "Results this week"
+   *  row (2026-11-18; shown nowhere 2026-11-05 → 11-18). */
   results_week?: {
     days: number;
     recent: number;

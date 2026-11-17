@@ -67,7 +67,7 @@ const COPY = {
 
   // The stories row: its label (a reader with no stocks gets market stories),
   // the hint beside it, and the line on a day with nothing new on their stocks
-  storiesTitle: ["Your stories today", "আপনার আজকের স্টোরি"],
+  storiesTitle: ["Your shares today", "আজ আপনার শেয়ার"],
   storiesMarket: ["Today's market stories", "আজকের বাজারের স্টোরি"],
   storiesHint: ["Tap to watch", "দেখতে ট্যাপ করুন"],
   allQuiet: ["Nothing new on your stocks", "আপনার শেয়ারে নতুন কিছু নেই"],

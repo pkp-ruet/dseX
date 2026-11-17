@@ -758,35 +758,6 @@ a:hover .ticker-tag,
     margin-bottom: 16px;
   }
 }
-/* Footer */
-.np-footer-modern {
-  margin-top: 22px;
-  margin-bottom: 12px;
-  padding: 22px 20px 26px;
-  border-radius: var(--radius-lg);
-  background: var(--navy);
-  color: #fff;
-}
-.np-footer-brand {
-  font-family: var(--font-ui);
-  font-size: var(--fs-base);
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: #fff;
-}
-.np-footer-tagline {
-  font-size: var(--fs-2xs);
-  color: #fff;
-  margin-top: 4px;
-  letter-spacing: 0.02em;
-}
-/* Footer is a navy anchor — flip its content to light; links hover to gold.
-   Every line solid white (2026-10-30: no faded text anywhere). */
-.np-footer-modern h3 { color: #fff; }
-.np-footer-modern a { color: #fff; }
-.np-footer-modern a:hover { color: var(--gold); }
-.np-footer-modern p { color: #fff; }
-.np-footer-modern strong { color: #fff; font-weight: 600; }
 /* =======================================================
    Two-column homepage layout
    ======================================================= */

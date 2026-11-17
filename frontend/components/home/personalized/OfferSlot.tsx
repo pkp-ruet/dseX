@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Button from "@/components/ui/Button";
 import Link from "@/components/ui/Link";
 import type { Lang } from "@/context/LangContext";
@@ -10,23 +10,40 @@ import {
   apiDismissOffer,
   apiPremiumBannerEvent,
   type MorningBrief,
+  type PortfolioHolding,
   type PortfolioWatchEvent,
   type PremiumBannerAction,
+  type ScoreItem,
   type WeekWatch,
 } from "@/lib/api";
+import { portfolioGlance } from "@/lib/home-portfolio";
 import { AUTH_USER_UPDATED_EVENT, setStoredUser } from "@/lib/auth";
+import { BUY_LIST_ANCHOR, type BuyListHome } from "@/lib/buy-list";
 import { OWN_OFFER_PLAN, PAID_PLANS } from "@/lib/premium-plans";
 import { REPORTS, reportStat, type ReportSlug, type ResearchSummary } from "@/lib/research-reports";
 import { useInstallPrompt, showInstallBanner } from "@/lib/install";
+import {
+  canShowPushPromptByHistory,
+  dismissPushPromptForever,
+  getPermission,
+  isIOS,
+  isPushSupported,
+  isStandalone,
+  snoozePushPrompt,
+  subscribeToPush,
+} from "@/lib/push";
 import { BLOG_TO_LEARN } from "@/lib/i18n-pairs";
 import { savePremiumContext } from "@/lib/premium-context";
 import { toast } from "@/lib/toast";
 import { trackEvent } from "@/lib/track";
 import {
+  IconAlert,
+  IconBell,
   IconBook,
   IconCap,
   IconCheck,
   IconChevronRight,
+  IconClipboardCheck,
   IconCrown,
   IconDownload,
   IconGift,
@@ -108,11 +125,25 @@ function readFlag(get: () => string | null): boolean {
  * more, and dots under it say how many.
  *
  * What each reader sees first:
- * - a free reader with shares: what the watcher noticed on their shares this
- *   week (counts and kinds, never the meaning), then one Premium pitch (the
- *   ৳99 month while it is open, else the Premium banner — never both);
- * - a Premium reader: today's 9 AM brief, then one research report's figure;
- * - a brand-new account: three beginner guides, then "follow a share".
+ * - every free reader: **the portfolio check** first (2026-11-18, user: "our
+ *   most used premium feature"): with a portfolio, "We checked your 8 shares:
+ *   grade C" and up to three counted findings (`lib/home-portfolio.ts`: weak
+ *   companies, shares in a loss, too much in one place, too few shares — no
+ *   names, no taka, no advice) → the portfolio page's Premium card; without
+ *   one, "Get your portfolio checked every day" → add your shares;
+ * - then, with shares: today's free pick from the Buy List (one slide that
+ *   gives), what the watcher noticed on their shares this week (counts and
+ *   kinds, never the meaning), one Premium pitch (the ৳99 month while it is
+ *   open, else the Premium banner — never both), "turn on notifications";
+ * - a Premium reader: today's 9 AM brief, then one research report's figure,
+ *   then "turn on notifications";
+ * - a brand-new account: after the portfolio slide, three beginner guides,
+ *   then "follow a share".
+ *
+ * "Turn on notifications" replaced the floating `PushOptInPrompt` card on the
+ * home page (it still floats on every other page): same rules, same keys — it
+ * shows while the browser can still ask, "Turn on" asks once, "Not now"
+ * snoozes it.
  */
 export default function OfferSlot({
   lang,
@@ -122,14 +153,22 @@ export default function OfferSlot({
   week,
   brief,
   research,
+  buyList,
+  holdings,
+  priceMap,
 }: {
   lang: Lang;
   brandNew: boolean;
   hasWatchlist: boolean;
   hasPortfolio: boolean;
+  /** The main portfolio: null while unknown, [] once we know there is none. */
+  holdings: PortfolioHolding[] | null;
+  priceMap: Map<string, ScoreItem>;
   week: WeekWatch | null | undefined;
   brief: MorningBrief | null | undefined;
   research: ResearchSummary | null | undefined;
+  /** The bundle's Buy List summary: its free pick of the day opens a free reader's slot. */
+  buyList?: BuyListHome | null;
 }) {
   const bn = lang === "bn";
   const pick = (b: Bi) => (bn ? b.bn : b.en);
@@ -145,6 +184,11 @@ export default function OfferSlot({
   const [isPhone, setIsPhone] = useState(false);
   const [offerClosed, setOfferClosed] = useState(false);
   const [starters, setStarters] = useState<StarterRow[]>([]);
+  // "prompt": the browser can still ask; "ios": an iPhone that must add the site
+  // to the home screen first; null: nothing to ask (or asked before).
+  const [pushMode, setPushMode] = useState<"prompt" | "ios" | null>(null);
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushFailed, setPushFailed] = useState(false);
   const offerSeen = useRef(false);
 
   const uid = user?.user_id ?? "";
@@ -165,6 +209,11 @@ export default function OfferSlot({
         readFlag(() => (sessionStorage.getItem(SETUP_SKIP_KEY) === "1" ? "1" : null)),
     );
     setInstallHidden(readFlag(() => localStorage.getItem(INSTALL_KEY)));
+    // The same gate as the floating PushOptInPrompt.
+    if (canShowPushPromptByHistory()) {
+      if (isPushSupported() && getPermission() === "default") setPushMode("prompt");
+      else if (isIOS() && !isStandalone()) setPushMode("ios");
+    }
     const mq = window.matchMedia("(max-width: 639px)");
     const sync = () => setIsPhone(mq.matches);
     sync();
@@ -188,6 +237,13 @@ export default function OfferSlot({
     };
   }, [brandNew, lang]);
 
+  // A free reader's portfolio check, counted from what the page already has.
+  const freeReader = isLoggedIn && !isPremium;
+  const glance = useMemo(
+    () => (freeReader && holdings && holdings.length > 0 ? portfolioGlance(holdings, priceMap) : null),
+    [freeReader, holdings, priceMap],
+  );
+
   // ── The slides ─────────────────────────────────────────────────────────
   const eyebrow = (icon: ReactNode, text: string) => (
     <p className="hm-sl-eye">
@@ -195,6 +251,87 @@ export default function OfferSlot({
       {text}
     </p>
   );
+
+  // Free reader: the portfolio check first (the most used Premium feature).
+  let portfolioSlide: Slide | null = null;
+  const pfEyebrow = eyebrow(<IconCrown size={14} />, bn ? "প্রিমিয়াম · আপনার পোর্টফোলিও যাচাই" : "Premium · your portfolio check");
+  if (freeReader && glance) {
+    const n = glance.findings.length;
+    const shares = glance.shares;
+    portfolioSlide = {
+      id: "portfolio",
+      tone: "gold",
+      onSeen: () => trackEvent("premium_lock_view", { area: "home", lock: "home-portfolio", findings: n }),
+      node: (
+        <>
+          {pfEyebrow}
+          <h3 className="hm-sl-title">
+            {bn
+              ? `আপনার ${shares}টি শেয়ার যাচাই করেছি: গ্রেড ${glance.grade}`
+              : `We checked your ${shares} ${shares === 1 ? "share" : "shares"}: grade ${glance.grade}`}
+          </h3>
+          {n > 0 ? (
+            <>
+              <ul className="hm-sl-list">
+                {glance.findings.map((f) => (
+                  <li key={f.en}>
+                    <IconAlert size={16} />
+                    <span>{pick(f)}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="hm-sl-small">
+                {bn
+                  ? "কোন শেয়ার, কেন, আর প্রতিটির বেলায় কী করবেন, প্রিমিয়াম দেখায়।"
+                  : "Premium shows you which shares, why, and what to do about each."}
+              </p>
+            </>
+          ) : (
+            <p className="hm-sl-body">
+              {bn
+                ? "এক নজরে চোখে পড়ার মতো কিছু নেই। পুরো যাচাই প্রতিটি শেয়ার দেখে বলে কোনটা রাখবেন, কোনটা ঠিক করবেন।"
+                : "Nothing stands out at a glance. The full check goes through every share and tells you what to keep and what to fix."}
+            </p>
+          )}
+          <div className="hm-sl-acts">
+            <Button
+              href="/portfolio?src=home-portfolio#pf-premium"
+              onClick={() => trackEvent("premium_lock_tap", { area: "home", lock: "home-portfolio", findings: n })}
+            >
+              {bn ? "পুরো যাচাই দেখুন" : "See my full check"}
+            </Button>
+          </div>
+        </>
+      ),
+    };
+  } else if (freeReader && holdings && holdings.length === 0) {
+    portfolioSlide = {
+      id: "portfolio",
+      tone: "gold",
+      onSeen: () => trackEvent("premium_lock_view", { area: "home", lock: "home-portfolio-add" }),
+      node: (
+        <>
+          {pfEyebrow}
+          <h3 className="hm-sl-title">
+            {bn ? "প্রতিদিন আপনার পোর্টফোলিও যাচাই করান" : "Get your portfolio checked every day"}
+          </h3>
+          <p className="hm-sl-body">
+            {bn
+              ? "আপনার শেয়ারগুলো যোগ করুন। পোর্টফোলিওর গ্রেড ফ্রি, আর কোন শেয়ার রাখবেন, ঠিক করবেন বা বদলাবেন, প্রিমিয়াম বলে।"
+              : "Add the shares you own. The grade is free, and Premium tells you which shares to keep, fix or switch."}
+          </p>
+          <div className="hm-sl-acts">
+            <Button
+              href="/portfolio?src=home-portfolio"
+              onClick={() => trackEvent("premium_lock_tap", { area: "home", lock: "home-portfolio-add" })}
+            >
+              {bn ? "আপনার শেয়ার যোগ করুন" : "Add your shares"}
+            </Button>
+          </div>
+        </>
+      ),
+    };
+  }
 
   // Free reader with shares: what the watcher noticed this week.
   let weekSlide: Slide | null = null;
@@ -487,7 +624,7 @@ export default function OfferSlot({
           </p>
           <div className="hm-sl-acts">
             <Button href="/watchlist">{bn ? "শেয়ার ফলো করুন" : "Follow a share"}</Button>
-            {!hasPortfolio && (
+            {!hasPortfolio && !portfolioSlide && (
               <Button href="/portfolio" variant="quiet">
                 {bn ? "পোর্টফোলিও যোগ করুন" : "Add my portfolio"}
               </Button>
@@ -549,13 +686,129 @@ export default function OfferSlot({
     };
   }
 
+  // Free reader: today's free pick from the Buy List — the same share the
+  // Buy List page opens for free, so the slot gives before it sells.
+  let pickSlide: Slide | null = null;
+  const freePick = !isPremium ? buyList?.free_pick ?? null : null;
+  if (freePick && buyList) {
+    const total = buyList.count;
+    pickSlide = {
+      id: "pick",
+      tone: "clay",
+      onSeen: () => trackEvent("home_free_pick_view", { code: freePick.code }),
+      node: (
+        <>
+          {eyebrow(<IconClipboardCheck size={14} />, bn ? "আজ ফ্রি, কেনার তালিকা থেকে" : "Free today, from the Buy List")}
+          <h3 className="hm-sl-title">
+            {bn
+              ? `আজকের কেনার তালিকার ${total}টির মধ্যে ${freePick.code} ${freePick.rank} নম্বরে`
+              : `${freePick.code} is No. ${freePick.rank} of ${total} on today's Buy List`}
+          </h3>
+          {(freePick.why?.en || freePick.why?.bn) && <p className="hm-sl-body">{pick(freePick.why)}</p>}
+          <div className="hm-sl-acts">
+            <Button
+              href={`/buy-list?src=home-pick#${BUY_LIST_ANCHOR}`}
+              onClick={() => trackEvent("home_free_pick_tap", { code: freePick.code })}
+            >
+              {bn ? "কেন, পড়ুন" : "Read why"}
+            </Button>
+          </div>
+        </>
+      ),
+    };
+  }
+
+  // Turn on notifications (replaced the floating card on this page).
+  const hidePush = () => {
+    snoozePushPrompt();
+    setPushMode(null);
+  };
+  const enablePush = async () => {
+    setPushBusy(true);
+    setPushFailed(false);
+    const ok = await subscribeToPush();
+    setPushBusy(false);
+    trackEvent("push_slide_tap", { ok: ok ? 1 : 0 });
+    if (ok) {
+      dismissPushPromptForever();
+      setPushMode(null);
+      toast({ message: bn ? "নোটিফিকেশন চালু হয়েছে।" : "Notifications are on." });
+    } else {
+      // Keep the slide so the reader can retry (a blocked browser, a failed save).
+      setPushFailed(true);
+    }
+  };
+  let pushSlide: Slide | null = null;
+  if (pushMode && isLoggedIn && (hasWatchlist || hasPortfolio)) {
+    pushSlide = {
+      id: "push",
+      tone: "plain",
+      onSeen: () => trackEvent("push_slide_view", { mode: pushMode }),
+      node:
+        pushMode === "ios" ? (
+          <>
+            {eyebrow(<IconBell size={14} />, bn ? "নোটিফিকেশন" : "Notifications")}
+            <h3 className="hm-sl-title">{bn ? "আইফোনে নোটিফিকেশন পান" : "Get notifications on your iPhone"}</h3>
+            <p className="hm-sl-body">
+              {bn
+                ? "Share, তারপর Add to Home Screen চাপুন। এরপর সেখান থেকে TopStockBD খুলে নোটিফিকেশন চালু করুন।"
+                : "Tap Share, then Add to Home Screen, and open TopStockBD from there. Then you can turn them on."}
+            </p>
+            <div className="hm-sl-acts">
+              <button type="button" className="hm-sl-link" onClick={hidePush}>
+                {bn ? "বুঝেছি" : "Got it"}
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            {eyebrow(<IconBell size={14} />, bn ? "এই ফোনে নোটিফিকেশন বন্ধ" : "Notifications are off on this phone")}
+            <h3 className="hm-sl-title">{bn ? "আপনার শেয়ারের নোটিফিকেশন চালু করুন" : "Turn on notifications for your shares"}</h3>
+            <p className="hm-sl-body">
+              {bn
+                ? "আপনার প্রাইস অ্যালার্ট, ডিভিডেন্ড আর শেয়ারে কী বদলাল, এই ফোনেই। চাইলে যেকোনো সময় বন্ধ করতে পারবেন।"
+                : "Your price alerts, dividends and what changed on your shares, on this phone. You can turn them off any time."}
+            </p>
+            {pushFailed && (
+              <p className="hm-sl-small text-negative">
+                {bn
+                  ? "চালু করা যায়নি। ব্রাউজার আটকে দিলে এই সাইটের নোটিফিকেশন চালু করে আবার চেষ্টা করুন।"
+                  : "We couldn't turn them on. If your browser blocked them, allow notifications for this site and try again."}
+              </p>
+            )}
+            <div className="hm-sl-acts">
+              <Button onClick={enablePush} disabled={pushBusy}>
+                {pushBusy
+                  ? bn
+                    ? "চালু হচ্ছে…"
+                    : "Turning on…"
+                  : pushFailed
+                    ? bn
+                      ? "আবার চেষ্টা করুন"
+                      : "Try again"
+                    : bn
+                      ? "চালু করুন"
+                      : "Turn on"}
+              </Button>
+              <button type="button" className="hm-sl-link" onClick={hidePush} disabled={pushBusy}>
+                {bn ? "এখন না" : "Not now"}
+              </button>
+            </div>
+          </>
+        ),
+    };
+  }
+
   const pitch = offerSlide ?? premSlide;
   const order: (Slide | null)[] = isPremium
-    ? [briefSlide, researchSlide, setupSlide, installSlide]
+    ? [briefSlide, researchSlide, pushSlide, setupSlide, installSlide]
     : brandNew
-      ? [startSlide, setupSlide, pitch, installSlide]
-      : [weekSlide, pitch, setupSlide, installSlide];
-  const slides = ready ? order.filter((s): s is Slide => s !== null) : [];
+      ? [portfolioSlide, startSlide, setupSlide, pickSlide, pitch, installSlide]
+      : [portfolioSlide, pickSlide, weekSlide, pitch, pushSlide, setupSlide, installSlide];
+  // A free reader's first slide depends on the portfolio: wait until it is
+  // known, so the portfolio slide never pops in ahead of the others.
+  const waiting = freeReader && holdings === null;
+  const slides = ready && !waiting ? order.filter((s): s is Slide => s !== null) : [];
 
   return <Carousel slides={slides} lang={lang} />;
 }
