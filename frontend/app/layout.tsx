@@ -141,6 +141,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang={DEFAULT_LANG}
       data-lang={DEFAULT_LANG}
       data-theme="light"
+      // globals.css sets smooth scrolling; this tells Next to keep turning it
+      // off during page changes (it warns without it, and will stop doing so).
+      data-scroll-behavior="smooth"
       suppressHydrationWarning
       className={`${inter.variable} ${hindSiliguri.variable}`}
     >

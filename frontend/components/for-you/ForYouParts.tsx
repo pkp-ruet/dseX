@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "@/components/ui/Link";
-import type { ForYou, ForYouGroup, ForYouPick, ForYouRel } from "@/lib/api";
+import type { ForYou, ForYouGroup, ForYouPick } from "@/lib/api";
 import { changePct, changeTone, formatDate, money } from "@/lib/formatters";
 import { bnDate, sectorBn } from "@/lib/bn";
 import { T } from "@/components/i18n/T";
@@ -11,133 +11,161 @@ import { IconArrowRight, IconCheck, IconEye, IconLock } from "@/components/ui/ic
 
 /**
  * The parts of "Based on your shares" (`/for-you`, was Discover until
- * 2026-11-18). The page is organised by the reader's own shares: each group
- * says which share it came from and why (free), and the companies sit under
- * it (Premium). Styles `fu-*` in `app/styles/picks.css`.
+ * 2026-11-18). Clean pass the same day (user: "the whole page is looking
+ * messy … make it simple, clean and premium looking"): one intro card, then
+ * one section per share of the reader's — its heading ("Because you own
+ * ACI") and reason on the page, then each company in its own card (user:
+ * "companies are mixing with each other. need more separation"). One
+ * accent (clay) for links, gold only for Premium, green only for "New" and
+ * ticks. No badges, tags or tinted bands. Styles `fu-*` in
+ * `app/styles/picks.css`.
  */
 
-/** The clarification the page opens with (user, 2026-11-18: "it's not a buy
- *  now list. its for them to explore more stocks based on their choices,
- *  more like recommendation to watch next"). Shown to every reader. */
-export function WatchNextNote() {
-  return (
-    <aside className="fu-note" aria-labelledby="fu-note-t">
-      <span className="fu-note-icon" aria-hidden="true">
-        <IconEye size={18} />
-      </span>
-      <div className="min-w-0">
-        <p id="fu-note-t" className="fu-note-title">
-          <T en="To watch next, not to buy now" bn="এখন কেনার জন্য নয়, পরে নজরে রাখার জন্য" />
-        </p>
-        <p className="fu-note-text">
-          <T
-            en="These are companies like the ones you chose, to read about and follow if you like them. This list doesn't say a share is worth buying today. For that, see its stock page or our "
-            bn="এগুলো আপনার বেছে নেওয়া শেয়ারের মতো কোম্পানি: পড়ে দেখুন, ভালো লাগলে ফলো করুন। আজ কোনো শেয়ার কেনার মতো কি না, এই তালিকা তা বলে না। সেটি জানতে শেয়ারটির পেজ বা আমাদের "
-          />
-          <Link prefetch={false} href="/buy-list" className="fu-link">
-            <T en="Buy List" bn="কেনার তালিকা" />
-          </Link>
-          <T en="." bn=" দেখুন।" />
-        </p>
-      </div>
-    </aside>
-  );
-}
-
-const REL_WORD: Record<ForYouRel, { en: string; bn: string }> = {
-  own: { en: "You own", bn: "আপনার কেনা" },
-  follow: { en: "You follow", bn: "আপনি ফলো করেন" },
-  read: { en: "You read about", bn: "আপনি দেখেছেন" },
-  gap: { en: "A gap in your money", bn: "আপনার টাকায় একটি ফাঁক" },
+/** The note every reader sees. Reworded the same day it was added: "To
+ *  watch next, not to buy now" read as "you can't buy this now", and a link
+ *  to the Buy List was confusing. */
+const NOTE = {
+  en: "These companies are like the shares you chose. Read about them and follow the ones you like.",
+  bn: "এগুলো আপনার বেছে নেওয়া শেয়ারের মতো কোম্পানি। পড়ে দেখুন, ভালো লাগলে ফলো করুন।",
 };
 
-/** The small badge on a group and an anchor chip. */
-export function RelBadge({ g }: { g: Pick<ForYouGroup, "rel" | "days"> }) {
-  const w = REL_WORD[g.rel];
-  const days = g.rel === "read" && g.days && g.days >= 2 ? g.days : null;
+/** "Worth watching · Updated after the close, 18 Nov 2026". */
+function IntroEyebrow({ asOf }: { asOf?: string | null }) {
   return (
-    <span className={`fu-rel fu-rel--${g.rel}`}>
-      <T en={days ? `${w.en} · ${days} days` : w.en} bn={days ? `${w.bn} · ${days} দিন` : w.bn} />
-    </span>
+    <p className="fu-eyebrow">
+      <IconEye size={15} />
+      <T en="Worth watching" bn="নজরে রাখার মতো" />
+      {asOf && (
+        <span className="fu-eyebrow-date">
+          <T en={` · Updated ${formatDate(asOf)}`} bn={` · হালনাগাদ ${bnDate(asOf)}`} />
+        </span>
+      )}
+    </p>
   );
 }
 
-/** The top card: how many we picked, from which of the reader's shares. */
-export function ForYouSummary({ data, linkGroups }: { data: ForYou; linkGroups: boolean }) {
-  const groups = data.groups ?? [];
-  const n = data.counts?.total ?? data.items.length;
+/** The top card: how many we picked, the note, and the reader's shares they
+ *  came from. Without `data` (guest, starter list) only the eyebrow and note. */
+export function ForYouIntro({
+  data,
+  linkGroups = false,
+  children,
+}: {
+  data?: ForYou | null;
+  linkGroups?: boolean;
+  children?: ReactNode;
+}) {
+  const groups = data?.groups ?? [];
+  const n = data ? (data.counts?.total ?? data.items.length) : 0;
   const anchors = groups.filter((g) => g.anchor).length;
-  const fresh = data.counts?.new ?? data.new ?? 0;
+  const fresh = data ? (data.counts?.new ?? data.new ?? 0) : 0;
+  const counted = groups.length > 0;
+
   return (
-    <section className="fu-sum soft-card" aria-labelledby="fu-sum-t">
-      <p className="fu-sum-date">
-        {data.as_of ? (
-          <T en={`Updated after the close, ${formatDate(data.as_of)}`} bn={`বাজার বন্ধের পর হালনাগাদ, ${bnDate(data.as_of)}`} />
-        ) : (
-          <T en="Updated after every close" bn="প্রতিদিন বাজার বন্ধের পর হালনাগাদ" />
-        )}
+    <section className="fu-intro soft-card" aria-labelledby="fu-intro-t">
+      <IntroEyebrow asOf={data?.as_of} />
+      {counted ? (
+        <h2 id="fu-intro-t" className="fu-intro-h">
+          <T
+            en={`${n} ${n === 1 ? "company" : "companies"} picked for you`}
+            bn={`আপনার জন্য বাছাই করা ${n}টি কোম্পানি`}
+          />
+        </h2>
+      ) : (
+        <h2 id="fu-intro-t" className="sr-only">
+          <T en="Worth watching" bn="নজরে রাখার মতো" />
+        </h2>
+      )}
+      <p className="fu-intro-note">
+        <T en={NOTE.en} bn={NOTE.bn} />
       </p>
-      <h2 id="fu-sum-t" className="fu-sum-big">
-        <span className="fu-sum-n nums">
-          {n}
-          <T en="" bn="টি" />
-        </span>
-        <span className="fu-sum-label">
-          <T en={n === 1 ? "company picked for you" : "companies picked for you"} bn="কোম্পানি, আপনার জন্য বাছাই করা" />
-        </span>
-      </h2>
-      {groups.length > 0 && (
-        <>
-          <p className="fu-sum-from">
+
+      {counted && (
+        <div className="fu-intro-from">
+          <p className="fu-intro-k">
             {anchors > 0 ? (
               <T
-                en={`From ${anchors} of your shares${groups.length > anchors ? ", and a gap in your money" : ""}:`}
-                bn={`আপনার ${anchors}টি শেয়ার থেকে${groups.length > anchors ? ", আর আপনার টাকার একটি ফাঁক থেকে" : ""}:`}
+                en={`From ${anchors} of your ${anchors === 1 ? "share" : "shares"}`}
+                bn={`আপনার ${anchors}টি শেয়ার থেকে`}
               />
             ) : (
-              <T en="From a gap in your money:" bn="আপনার টাকার একটি ফাঁক থেকে:" />
+              <T en="From your money" bn="আপনার টাকার হিসাব থেকে" />
+            )}
+            {fresh > 0 && (
+              <span className="fu-new-dot">
+                <T en={` · ${fresh} new today`} bn={` · আজ ${fresh}টি নতুন`} />
+              </span>
             )}
           </p>
-          <ul className="fu-anchors">
+          <ul className="fu-chips-row">
             {groups.map((g) => {
-              const label = g.anchor ?? null;
-              const inner = (
-                <>
-                  {label ? <b>{label}</b> : <b><T en="Gap" bn="ফাঁক" /></b>}
-                  <span>
-                    {g.rel === "own" ? (
-                      <T en="own" bn="কেনা" />
-                    ) : g.rel === "follow" ? (
-                      <T en="follow" bn="ফলো" />
-                    ) : g.rel === "read" ? (
-                      <T en="read" bn="দেখা" />
-                    ) : null}
-                    {g.rel !== "gap" && " · "}
-                    <span className="nums">{g.n}</span>
-                  </span>
-                </>
-              );
+              const label = g.anchor ? g.anchor : <T en="Your money" bn="আপনার টাকা" />;
               return (
                 <li key={g.key}>
                   {linkGroups ? (
-                    <a href={`#fu-g-${g.key}`} className="fu-anchor">
-                      {inner}
+                    <a href={`#fu-g-${g.key}`} className="fu-share">
+                      {label}
                     </a>
                   ) : (
-                    <span className="fu-anchor">{inner}</span>
+                    <span className="fu-share">{label}</span>
                   )}
                 </li>
               );
             })}
           </ul>
-        </>
+        </div>
       )}
-      {fresh > 0 && (
-        <p className="fu-sum-new">
-          <T en={`${fresh} new since yesterday`} bn={`গতকালের পর ${fresh}টি নতুন`} />
-        </p>
-      )}
+      {children}
     </section>
+  );
+}
+
+/** The section heading says why, in the reader's own terms. */
+function groupTitle(g: ForYouGroup): { en: string; bn: string } {
+  const a = g.anchor ?? "";
+  switch (g.rel) {
+    case "own":
+      return { en: `Because you own ${a}`, bn: `যেহেতু আপনার কাছে ${a} আছে` };
+    case "follow":
+      return { en: `Because you follow ${a}`, bn: `যেহেতু আপনি ${a} ফলো করেন` };
+    case "read":
+      return g.days && g.days >= 2
+        ? { en: `Because you looked at ${a} on ${g.days} days`, bn: `যেহেতু আপনি ${g.days} দিন ${a} দেখেছেন` }
+        : { en: `Because you looked at ${a}`, bn: `যেহেতু আপনি সম্প্রতি ${a} দেখেছেন` };
+    default:
+      return { en: "To fill a gap in your money", bn: "আপনার টাকার একটি ফাঁক পূরণে" };
+  }
+}
+
+/** A section's heading on the page: title, count, reason. */
+function SectionHead({
+  id,
+  title,
+  count,
+  line,
+  children,
+}: {
+  id: string;
+  title: ReactNode;
+  count?: number;
+  line: ReactNode;
+  children?: ReactNode;
+}) {
+  return (
+    <header className="fu-sec-head">
+      <div className="fu-sec-top">
+        <h2 id={id} className="fu-sec-title">
+          {title}
+        </h2>
+        {count != null && (
+          <span className="fu-sec-count nums">
+            <T en={`${count}`} bn={`${count}টি`} />
+          </span>
+        )}
+      </div>
+      <p className="fu-sec-line">{line}</p>
+      {children}
+    </header>
   );
 }
 
@@ -156,61 +184,63 @@ export function ForYouGroupCard({
   onHide?: (p: ForYouPick) => void;
   lockHref: string;
 }) {
+  const t = groupTitle(group);
+  const headId = `fu-g-${group.key}-t`;
   return (
-    <section id={`fu-g-${group.key}`} className="fu-group soft-card" aria-label={group.anchor ?? group.line.en}>
-      <header className="fu-g-head">
-        <div className="fu-g-top">
-          <RelBadge g={group} />
-          {group.anchor && (
-            <Link prefetch={false} href={`/stock/${group.anchor}`} className="fu-g-anchor">
-              {group.anchor}
-            </Link>
-          )}
-          <span className="fu-g-count nums">
-            <T en={`${group.n} ${group.n === 1 ? "company" : "companies"}`} bn={`${group.n}টি কোম্পানি`} />
-          </span>
-        </div>
-        <p className="fu-g-line">
-          <T en={group.line.en} bn={group.line.bn} />
-        </p>
-      </header>
+    <section id={`fu-g-${group.key}`} className="fu-sec" aria-labelledby={headId}>
+      <SectionHead
+        id={headId}
+        title={<T en={t.en} bn={t.bn} />}
+        count={group.n}
+        line={<T en={group.line.en} bn={group.line.bn} />}
+      />
       {open ? (
-        <ul className="fu-rows">
+        <ul className="fu-cards">
           {picks.map((p) => (
             <PickRow key={p.code} pick={p} onHide={onHide} />
           ))}
         </ul>
       ) : (
-        <ul className="fu-rows">
+        <ul className="fu-list soft-card">
           {group.sectors.map((s, i) => (
-            <li key={i}>
-              <a href={lockHref} className="fu-masked" aria-label="Premium">
-                <span className="fu-lock" aria-hidden="true">
-                  <IconLock size={13} />
-                </span>
-                <span className="fu-bar" style={{ width: `${[52, 38, 46][i % 3]}%` }} aria-hidden="true" />
-                <span className="fu-biz">
-                  <T en={s.en} bn={s.bn || sectorBn(s.en)} />
-                </span>
-              </a>
-            </li>
-          ))}
+              <li key={i}>
+                <a href={lockHref} className="fu-locked">
+                  <IconLock size={15} />
+                  <span className="min-w-0 flex-1">
+                    <T
+                      en={`A company in ${s.en}`}
+                      bn={`${s.bn || sectorBn(s.en)} সেক্টরের একটি কোম্পানি`}
+                    />
+                  </span>
+                  <span className="fu-locked-tag">
+                    <T en="Premium" bn="প্রিমিয়াম" />
+                  </span>
+                </a>
+              </li>
+            ))}
         </ul>
       )}
     </section>
   );
 }
 
-/** One company, as a Premium reader (or the starter list) sees it: why it
- *  fits them, what it shares, then read · follow · not for me. */
+/** One company: name and price, why it fits, what it shares, then read ·
+ *  follow · not for me. */
 export function PickRow({ pick, onHide }: { pick: ForYouPick; onHide?: (p: ForYouPick) => void }) {
   return (
-    <li id={`pick-${pick.code}`} className="fu-pick">
+    <li id={`pick-${pick.code}`} className="fu-pick soft-card">
       <div className="fu-pick-top">
-        <div className="min-w-0">
-          <Link prefetch={false} href={`/stock/${pick.code}`} className="fu-pick-name">
-            {pick.name || pick.code}
-          </Link>
+        <div className="min-w-0 flex-1">
+          <p className="fu-pick-name">
+            <Link prefetch={false} href={`/stock/${pick.code}`}>
+              {pick.name || pick.code}
+            </Link>
+            {pick.new && (
+              <span className="fu-new">
+                <T en="New" bn="নতুন" />
+              </span>
+            )}
+          </p>
           <p className="fu-pick-code">
             {pick.code}
             {pick.sector && (
@@ -228,49 +258,52 @@ export function PickRow({ pick, onHide }: { pick: ForYouPick; onHide?: (p: ForYo
           )}
         </p>
       </div>
-      <p className="fu-tags">
-        <span className={`fu-tag ${pick.kind === "starter" ? "fu-tag--quiet" : ""}`}>
-          <T en={pick.tag_en} bn={pick.tag_bn} />
-        </span>
-        {pick.new && (
-          <span className="fu-tag fu-tag--new">
-            <T en="New" bn="নতুন" />
-          </span>
-        )}
-      </p>
       <p className="fu-why">
         <T en={pick.why_en} bn={pick.why_bn} />
       </p>
       {pick.chips.length > 0 && (
-        <ul className="fu-chips">
-          {pick.chips.map((c) => (
-            <li key={c.en} className={`fu-chip ${c.tone === "neutral" ? "fu-chip--n" : ""}`}>
-              {c.tone !== "neutral" && <IconCheck size={12} />}
-              <T en={c.en} bn={c.bn} />
-            </li>
-          ))}
-        </ul>
+        <div className="fu-common">
+          {pick.chips_label && (
+            <p className="fu-common-k">
+              <T en={pick.chips_label.en} bn={pick.chips_label.bn} />
+            </p>
+          )}
+          <ul className="fu-traits">
+            {pick.chips.map((c) => (
+              <li key={c.en}>
+                {c.tone !== "neutral" && (
+                  <span className="fu-tick" aria-hidden="true">
+                    <IconCheck size={12} />
+                  </span>
+                )}
+                <T en={c.en} bn={c.bn} />
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
       <div className="fu-acts">
         <Link prefetch={false} href={`/stock/${pick.code}#ch-analysis`} className="fu-read" data-pick={pick.code}>
           <T en="Read our analysis" bn="বিশ্লেষণ পড়ুন" />
           <IconArrowRight size={14} />
         </Link>
-        <span className="fu-follow">
-          <T en="Follow" bn="ফলো" />
-          <StarButton code={pick.code} />
+        <span className="fu-acts-end">
+          {onHide && (
+            <button type="button" className="fu-hide" onClick={() => onHide(pick)}>
+              <T en="Not for me" bn="আমার জন্য নয়" />
+            </button>
+          )}
+          <span className="fu-follow">
+            <T en="Follow" bn="ফলো" />
+            <StarButton code={pick.code} />
+          </span>
         </span>
-        {onHide && (
-          <button type="button" className="fu-hide" onClick={() => onHide(pick)}>
-            <T en="Not for me" bn="আমার জন্য নয়" />
-          </button>
-        )}
       </div>
     </li>
   );
 }
 
-/** Strong, well-known companies to start with — free for every reader. */
+/** A list with its own heading (the starter list, the guest card's sample). */
 export function StarterList({
   picks,
   title,
@@ -286,15 +319,11 @@ export function StarterList({
 }) {
   if (picks.length === 0) return null;
   return (
-    <section className="fu-group soft-card" aria-labelledby="fu-start-t">
-      <header className="fu-g-head">
-        <h2 id="fu-start-t" className="fu-start-title">
-          {title}
-        </h2>
-        <p className="fu-g-line">{lead}</p>
+    <section className="fu-sec" aria-labelledby="fu-start-t">
+      <SectionHead id="fu-start-t" title={title} line={lead}>
         {actions}
-      </header>
-      <ul className="fu-rows">
+      </SectionHead>
+      <ul className="fu-cards">
         {picks.map((p) => (
           <PickRow key={p.code} pick={p} onHide={onHide} />
         ))}

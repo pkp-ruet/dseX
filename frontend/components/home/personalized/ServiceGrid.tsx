@@ -80,7 +80,7 @@ const FIRST: Service[] = [
   {
     key: "discover", href: "/for-you", Icon: IconCompass, premium: true,
     name: { en: "For you", bn: "আপনার জন্য" },
-    line: { en: "Companies to watch next, picked from your shares. Not a buy list.", bn: "আপনার শেয়ার দেখে বাছাই, পরে নজরে রাখার মতো কোম্পানি। কেনার তালিকা নয়।" },
+    line: { en: "Companies to watch next, picked from your shares.", bn: "আপনার শেয়ার দেখে বাছাই, পরে নজরে রাখার মতো কোম্পানি।" },
   },
 ];
 

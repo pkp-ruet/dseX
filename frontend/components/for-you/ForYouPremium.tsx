@@ -59,13 +59,9 @@ export default function ForYouPremium({ data }: { data: ForYou }) {
   };
 
   const ticks = [
-    {
-      en: "Every company's name and price, under the share of yours it came from",
-      bn: "প্রতিটি কোম্পানির নাম আর দাম, আপনার যে শেয়ার থেকে এসেছে তার নিচে",
-    },
-    { en: "Why it fits you, in words about your own share", bn: "কেন আপনার সাথে মেলে, আপনার নিজের শেয়ারের কথায়" },
-    { en: "What it shares with your share, and what is stronger", bn: "আপনার শেয়ারের সাথে কী মিল, আর কোথায় বেশি শক্তিশালী" },
-    { en: "New companies after every close, marked New", bn: "প্রতিদিন বাজার বন্ধের পর নতুন কোম্পানি, “নতুন” চিহ্নসহ" },
+    { en: "Every company's name, under the share it came from", bn: "প্রতিটি কোম্পানির নাম, যে শেয়ার থেকে এসেছে তার নিচে" },
+    { en: "Why each one fits you, and what it has in common with your share", bn: "কেন প্রতিটি আপনার সাথে মেলে, আর আপনার শেয়ারের সাথে কী মিল" },
+    { en: "New companies after every close", bn: "প্রতিদিন বাজার বন্ধের পর নতুন কোম্পানি" },
   ];
 
   return (

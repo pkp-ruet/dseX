@@ -82,7 +82,8 @@ _CHECK = {
 }
 
 # Strengths two companies can share, from the screener's six questions
-# (custom_lists.best_levels): (question, level, in a sentence en, bn, chip en, chip bn).
+# (custom_lists.best_levels): (key, question, level, sentence en, bn, chip en, chip bn).
+# Only the chip words are shown since 2026-11-18 (the sentence names the share).
 _TRAITS = [
     ("big", "trading", 2, "is a big company", "বড় কোম্পানি", "Big company", "বড় কোম্পানি"),
     ("high_cash", "dividends", 2, "pays 4% or more in cash every year", "প্রতি বছর 4% বা বেশি নগদ দেয়",
@@ -162,12 +163,6 @@ def shared_traits(a: Optional[dict], b: Optional[dict]) -> list[str]:
     """Strengths both have. One paying 4%+ and one paying every year still
     share "cash every year"."""
     return _ordered(_trait_set(a) & _trait_set(b))
-
-
-def _trait_clause(keys: list[str], bn: bool = False) -> str:
-    if bn:
-        return _join([_TRAIT_BY_KEY[k][4] for k in keys], True)
-    return _join([_TRAIT_BY_KEY[k][3] for k in keys])
 
 
 def _trait_chips(keys: list[str]) -> list[dict]:
@@ -367,13 +362,6 @@ def select(groups: list[dict], by_code: dict[str, dict], prof: dict, n: int = N_
 # 4. What each group and pick says
 # ---------------------------------------------------------------------------
 
-def _read_prefix(code: str, days: Optional[int]) -> tuple[str, str]:
-    d = days or 1
-    if d >= 2:
-        return f"You looked at {code} on {d} days this month. ", f"এ মাসে আপনি {d} দিন {code} দেখেছেন। "
-    return f"You looked at {code} recently. ", f"সম্প্রতি আপনি {code} দেখেছেন। "
-
-
 def group_line(g: dict, facts: dict[str, dict]) -> dict:
     """The reason a free reader sees: about their own share, never a pick's name."""
     kinds = [p["kind"] for p in g["picks"]]
@@ -396,7 +384,6 @@ def group_line(g: dict, facts: dict[str, dict]) -> dict:
 
     code = g["anchor"]
     a = facts.get(code) or {}
-    pre_en, pre_bn = _read_prefix(code, g.get("days")) if g["rel"] == "read" else ("", "")
     w_en, w_bn = _we_grade(code, a)
     if "stronger" in kinds:
         _strong, weak = _checks(a)
@@ -421,12 +408,20 @@ def group_line(g: dict, facts: dict[str, dict]) -> dict:
             found = (f"We found {total} {_companies(total)} like it in "
                      f"{'another business' if total == 1 else 'other businesses'}.",
                      f"অন্য ব্যবসায় এর মতো {total}টি কোম্পানি পেয়েছি।")
-    return _pt(pre_en + grade[0] + found[0], pre_bn + grade[1] + found[1])
+    # The page's heading already says which share and how ("Because you
+    # looked at RENATA on 3 days"); the line says what we found.
+    return _pt(grade[0] + found[0], grade[1] + found[1])
 
 
 def pick_words(t: dict, g: dict, c: dict, facts: dict[str, dict], lv: Optional[dict]) -> dict:
-    """{tag_en, tag_bn, why_en, why_bn, chips} for one pick."""
+    """{tag_en, tag_bn, why_en, why_bn, chips, chips_label} for one pick.
+
+    The sentence and the ticks never say the same thing (2026-11-18, user:
+    the cards read cluttered): a "like" sentence names the share and the
+    ticks say what they have in common; a "stronger" sentence says it all,
+    so it has no ticks."""
     code, kind = c["code"], t["kind"]
+    label = None
     p_en, p_bn = group_words(c) or ("graded", "গ্রেড করা")  # every pick is graded (the gate)
     if kind == "stronger":
         a = g["anchor"]
@@ -448,7 +443,7 @@ def pick_words(t: dict, g: dict, c: dict, facts: dict[str, dict], lv: Optional[d
             w_en, w_bn = _we_grade(a, a_f)
             why = (f"Same business as {a}. {w_en}; we grade {code} {p_en}.",
                    f"{a}-এর একই ব্যবসা। {w_bn}; আর {code} {p_bn}।")
-        chips = [_chip(_CHECK[k][3], _CHECK[k][4]) for k in (better or p_strong)][:3]
+        chips = []
     elif kind in ("like", "like_other"):
         a = g["anchor"]
         rel_en, rel_bn = REL[g["rel"]]
@@ -456,25 +451,27 @@ def pick_words(t: dict, g: dict, c: dict, facts: dict[str, dict], lv: Optional[d
         tag = (f"Like {a}", f"{a}-এর মতো")
         if kind == "like":
             if shared:
-                why = (f"Same business as {a}, {rel_en}. Like {a}, {code} {_trait_clause(shared)}.",
-                       f"{rel_bn} {a}-এর একই ব্যবসা। {a}-এর মতোই: {_trait_clause(shared, True)}।")
+                why = (f"Same business as {a}, {rel_en}.", f"{rel_bn} {a}-এর একই ব্যবসা।")
             else:
                 why = (f"Same business as {a}, {rel_en}, and we grade {code} {p_en}.",
                        f"{rel_bn} {a}-এর একই ব্যবসা, আর আমাদের গ্রেডে {code} {p_bn}।")
-            chips = _trait_chips(shared)[:3]
         else:
             sec = c.get("sector") or ""
             sec_bn = c.get("sector_bn") or rc._sector_bn_name(sec)
-            why = (f"Like {a}, {rel_en}: {code} {_trait_clause(shared)}. A different business: {sec}.",
-                   f"{rel_bn} {a}-এর মতো: {_trait_clause(shared, True)}। ভিন্ন ব্যবসা: {sec_bn}।")
-            chips = _trait_chips(shared)[:2] + [_chip(f"{sec}, new for you", f"{sec_bn}, আপনার জন্য নতুন", "neutral")]
+            why = (f"Like {a}, {rel_en}, in a different business: {sec}.",
+                   f"{rel_bn} {a}-এর মতো, তবে ভিন্ন ব্যবসা: {sec_bn}।")
+        chips = _trait_chips(shared)[:3]
+        if chips:
+            label = _pt(f"In common with {a}", f"{a}-এর সাথে মিল")
     elif kind == "new_business":
         sec = c.get("sector") or ""
         sec_bn = c.get("sector_bn") or rc._sector_bn_name(sec)
         tag = ("New business for you", "আপনার জন্য নতুন ব্যবসা")
         why = (f"A business none of your shares are in: {sec}. We grade {code} {p_en}.",
                f"এমন ব্যবসা, যেখানে আপনার কোনো শেয়ার নেই: {sec_bn}। আমাদের গ্রেডে {code} {p_bn}।")
-        chips = [_chip(*rc.group_words(c))] + _trait_chips(traits(lv))[:2]
+        chips = _trait_chips(traits(lv))[:3]
+        if chips:
+            label = _pt("What stands out", "যা চোখে পড়ে")
     else:  # steady_payer
         y = _n(c.get("div_yield_pct"))
         tag = ("Pays cash every year", "প্রতি বছর নগদ দেয়")
@@ -484,8 +481,9 @@ def pick_words(t: dict, g: dict, c: dict, facts: dict[str, dict], lv: Optional[d
         else:
             why = (f"{code} has paid a cash dividend in each of the last 5 years.",
                    f"{code} গত 5 বছরের প্রতি বছর নগদ ডিভিডেন্ড দিয়েছে।")
-        chips = [_chip("Cash every year", "প্রতি বছর নগদ")] + ([_chip(f"{_r(y)}% a year", f"বছরে {_r(y)}%")] if y else [])
-    return {"tag_en": tag[0], "tag_bn": tag[1], "why_en": why[0], "why_bn": why[1], "chips": chips}
+        chips = []
+    return {"tag_en": tag[0], "tag_bn": tag[1], "why_en": why[0], "why_bn": why[1], "chips": chips,
+            "chips_label": label}
 
 
 def pick_item(t: dict, g: dict, c: dict, facts: dict[str, dict], lv: Optional[dict]) -> dict:

@@ -2,154 +2,127 @@
    Based on your shares (/for-you, 2026-11-18; was Discover / Picked for you)
    — components/for-you/*.
 
-   Top to bottom: the "to watch next, not to buy now" note (`.fu-note`),
-   the count and the reader's shares (`.fu-sum`), one card per share of
-   theirs (`.fu-group`: a grey head with the reason, then the companies, or
-   for a free reader each company's business behind a lock), the one Premium
-   card (`.fu-promo`) after the second group, "How we pick" folded (`.fu-how`).
+   Clean pass the same day (user: "the whole page is looking messy … make it
+   simple, clean and premium looking"). Top to bottom: one intro card
+   (`.fu-intro`: "Worth watching", the count, the note, the reader's shares
+   as chips), then one section per share of theirs (`.fu-sec`: heading and
+   reason on the canvas, its companies in one card `.fu-list`), the one
+   Premium card (`.fu-promo`) after the second section, "How we pick" folded
+   (`.fu-how`). Colour: clay for links, gold only for Premium, green only for
+   "New" and ticks. No badges, tags or tinted bands.
    =================================================================== */
 
-.fu-groups { display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-4); }
+.fu-groups { display: flex; flex-direction: column; gap: var(--space-8); margin-top: var(--space-8); }
 
-/* ---------- Not a buy list ---------- */
-.fu-note {
-  display: flex; gap: var(--space-3); align-items: flex-start;
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--border); border-radius: var(--radius-md);
-  background: rgb(var(--info-rgb) / 0.07);
-}
-.fu-note-icon {
-  flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-sm);
-  background: rgb(var(--info-rgb) / 0.14); color: var(--info);
-}
-.fu-note-title { font-size: var(--fs-base); font-weight: 700; color: var(--text); line-height: 1.35; }
-.fu-note-text { margin-top: 2px; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); max-width: 68ch; }
-.fu-link { font-weight: 600; color: var(--primary-ink); text-decoration: underline; text-underline-offset: 2px; }
-
-/* ---------- Summary ---------- */
-.fu-sum { padding: var(--space-4); }
-.fu-sum-date { font-size: var(--fs-xs); font-weight: 600; color: var(--primary-ink); }
-.fu-sum-big { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; margin-top: var(--space-1); }
-.fu-sum-n { font-size: var(--fs-display); font-weight: 700; line-height: 1; color: var(--text); }
-.fu-sum-label { font-size: var(--fs-base); font-weight: 600; color: var(--text); }
-.fu-sum-from { margin-top: var(--space-3); font-size: var(--fs-sm); color: var(--text); }
-.fu-anchors { list-style: none; margin: var(--space-2) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2); }
-.fu-anchor {
-  display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px;
-  border: 1px solid var(--border); border-radius: 999px; background: var(--surface-2);
-  font-size: var(--fs-xs); color: var(--text);
-}
-.fu-anchor b { font-weight: 700; }
-a.fu-anchor:hover { border-color: rgb(var(--primary-rgb) / 0.5); }
-a.fu-anchor:active { background: var(--bg); }
-.fu-sum-new { margin-top: var(--space-3); font-size: var(--fs-sm); font-weight: 600; color: var(--positive); }
-
-/* ---------- A share of theirs and what it led to ---------- */
-.fu-group { overflow: hidden; scroll-margin-top: 88px; }
-.fu-g-head { padding: var(--space-3) var(--space-4); background: var(--surface-2); border-bottom: 1px solid var(--border); }
-.fu-g-top { display: flex; align-items: center; flex-wrap: wrap; gap: 6px var(--space-2); }
-.fu-g-anchor { font-size: var(--fs-base); font-weight: 700; color: var(--text); }
-.fu-g-anchor:hover { color: var(--primary-ink); text-decoration: underline; }
-.fu-g-count { margin-left: auto; font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
-.fu-g-line { margin-top: 6px; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); max-width: 70ch; }
-.fu-rel {
-  display: inline-flex; align-items: center; min-height: 24px; padding: 0 8px; border-radius: var(--radius-sm);
-  font-size: var(--fs-xs); font-weight: 600;
-  background: rgb(var(--primary-rgb) / 0.1); color: var(--primary-ink);
-}
-.fu-rel--read { background: rgb(var(--info-rgb) / 0.12); color: var(--info); }
-.fu-rel--gap { background: rgb(var(--gold-rgb) / 0.16); color: var(--gold-ink); }
-
-.fu-rows { list-style: none; margin: 0; padding: 0; }
-.fu-rows > li + li { border-top: 1px solid var(--cell-rule); }
-
-/* A free reader's company: its business, never its name. */
-.fu-masked {
-  display: flex; align-items: center; gap: var(--space-3); min-height: 52px; padding: var(--space-2) var(--space-4);
-}
-.fu-masked:active { background: var(--surface-2); }
-.fu-lock {
-  flex: none; display: grid; place-items: center; width: 24px; height: 24px; border-radius: var(--radius-sm);
-  background: rgb(var(--gold-rgb) / 0.16); color: var(--gold-ink);
-}
-.fu-bar { height: 12px; border-radius: var(--radius-sm); background: var(--surface-2); border: 1px solid var(--border); }
-.fu-biz {
-  margin-left: auto; min-width: 0; max-width: 45%;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  font-size: var(--fs-xs); font-weight: 600; color: var(--text);
-}
-
-/* A company (Premium, and the starter list). */
-.fu-pick { padding: var(--space-3) var(--space-4) var(--space-4); scroll-margin-top: 88px; }
-.fu-pick-top { display: flex; align-items: flex-start; gap: var(--space-3); }
-.fu-pick-top > .min-w-0 { flex: 1 1 auto; }
-.fu-pick-name { font-size: var(--fs-base); font-weight: 700; line-height: 1.35; color: var(--text); }
-.fu-pick-name:hover { color: var(--primary-ink); text-decoration: underline; }
-.fu-pick-code { margin-top: 1px; font-size: var(--fs-xs); color: var(--text); }
-.fu-pick-px { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 1px; font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
-.fu-pick-px span + span { font-size: var(--fs-xs); font-weight: 600; }
-.fu-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--space-2); }
-.fu-tag {
-  display: inline-flex; align-items: center; min-height: 24px; padding: 0 10px; border-radius: 999px;
-  font-size: var(--fs-xs); font-weight: 600; background: var(--primary); color: var(--on-fill);
-}
-.fu-tag--quiet { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
-.fu-tag--new { background: rgb(var(--positive-rgb) / 0.12); color: var(--positive); }
-.fu-why {
-  margin-top: var(--space-2); padding-left: var(--space-3); border-left: 2px solid var(--primary);
-  font-size: var(--fs-sm); line-height: 1.55; color: var(--text); max-width: 70ch;
-}
-.fu-chips { list-style: none; margin: var(--space-2) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
-.fu-chip {
-  display: inline-flex; align-items: center; gap: 4px; min-height: 26px; padding: 0 10px; border-radius: 999px;
-  font-size: var(--fs-xs); font-weight: 600; background: rgb(var(--positive-rgb) / 0.1); color: var(--positive);
-}
-.fu-chip--n { background: var(--surface-2); color: var(--text); }
-.fu-acts { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2) var(--space-4); margin-top: var(--space-3); }
-.fu-read {
-  display: inline-flex; align-items: center; gap: 4px; min-height: 40px;
+/* ---------- The intro card ---------- */
+.fu-intro { padding: var(--space-6) var(--space-4); }
+@media (min-width: 640px) { .fu-intro { padding: var(--space-6); } }
+.fu-eyebrow {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
   font-size: var(--fs-sm); font-weight: 600; color: var(--primary-ink);
 }
-.fu-read:hover { text-decoration: underline; }
-.fu-follow { display: inline-flex; align-items: center; gap: 2px; font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
-.fu-hide {
-  margin-left: auto; min-height: 40px; padding: 0 4px;
-  font-size: var(--fs-sm); color: var(--text); text-decoration: underline; text-underline-offset: 2px;
+.fu-eyebrow-date { font-weight: 400; color: var(--text); }
+.fu-intro-h {
+  margin-top: var(--space-2);
+  font-size: var(--fs-2xl); font-weight: 700; line-height: 1.2; letter-spacing: -0.01em;
+  color: var(--text); text-wrap: balance;
 }
-.fu-hide:hover { color: var(--primary-ink); }
+.fu-intro-note { margin-top: var(--space-2); max-width: 60ch; font-size: var(--fs-base); line-height: 1.55; color: var(--text); }
+.fu-intro-from { margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--cell-rule); }
+.fu-intro-k { font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
+.fu-new-dot { color: var(--positive); }
+.fu-chips-row { list-style: none; margin: var(--space-2) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.fu-share {
+  display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px;
+  border: 1px solid var(--border); border-radius: 999px; background: var(--surface);
+  font-size: var(--fs-sm); font-weight: 600; color: var(--text);
+}
+a.fu-share:hover { border-color: var(--primary); color: var(--primary-ink); }
+a.fu-share:active { background: var(--surface-2); }
+.fu-start-acts { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-4); }
 
-/* The starter list and the guest card. */
-.fu-start-title { font-size: var(--fs-lg); font-weight: 700; line-height: 1.3; color: var(--text); text-wrap: balance; }
-.fu-start-acts { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
-.fu-guest { margin-top: var(--space-4); padding: var(--space-4); }
+/* ---------- One section per share of theirs ---------- */
+.fu-sec { scroll-margin-top: 96px; }
+.fu-sec-head { padding: 0 var(--space-1) var(--space-3); }
+.fu-sec-top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
+.fu-sec-title { font-size: var(--fs-lg); font-weight: 700; line-height: 1.3; color: var(--text); text-wrap: balance; }
+.fu-sec-count { flex: none; font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
+.fu-sec-line { margin-top: 4px; max-width: 64ch; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
+
+/* A free reader's locked rows: one card, hairlines between. */
+.fu-list { list-style: none; margin: 0; padding: 0; overflow: hidden; }
+.fu-list > li + li { border-top: 1px solid var(--cell-rule); }
+/* The companies: each its own card, with space between (2026-11-18, user:
+   "companies are mixing with each other"). */
+.fu-cards { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+
+/* A free reader's company: its business, never its name. */
+.fu-locked {
+  display: flex; align-items: center; gap: var(--space-3); min-height: 56px; padding: var(--space-3) var(--space-4);
+  font-size: var(--fs-sm); color: var(--text);
+}
+.fu-locked > svg { flex: none; color: var(--gold-ink); }
+.fu-locked:hover .fu-locked-tag { text-decoration: underline; }
+.fu-locked:active { background: var(--surface-2); }
+.fu-locked-tag { flex: none; font-size: var(--fs-xs); font-weight: 700; color: var(--gold-ink); }
+
+/* A company (Premium, and the starter list). */
+.fu-pick { padding: var(--space-4); scroll-margin-top: 96px; }
+@media (min-width: 640px) { .fu-pick { padding: var(--space-4) var(--space-6); } }
+.fu-pick-top { display: flex; align-items: flex-start; gap: var(--space-3); }
+.fu-pick-name { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; font-size: var(--fs-base); font-weight: 700; line-height: 1.35; color: var(--text); }
+.fu-pick-name a:hover { color: var(--primary-ink); text-decoration: underline; }
+.fu-new { font-size: var(--fs-xs); font-weight: 700; color: var(--positive); }
+.fu-pick-code { margin-top: 2px; font-size: var(--fs-xs); color: var(--text); }
+.fu-pick-px { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: var(--fs-base); font-weight: 700; color: var(--text); }
+.fu-pick-px span + span { font-size: var(--fs-xs); font-weight: 600; }
+.fu-why { margin-top: var(--space-3); max-width: 64ch; font-size: var(--fs-base); line-height: 1.55; color: var(--text); }
+.fu-common { margin-top: var(--space-3); }
+.fu-common-k { font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
+.fu-traits {
+  list-style: none; margin: 6px 0 0; padding: 0;
+  display: flex; flex-wrap: wrap; gap: 6px var(--space-4);
+}
+.fu-traits li { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
+.fu-tick {
+  display: grid; place-items: center; width: 18px; height: 18px; border-radius: 999px;
+  background: rgb(var(--positive-rgb) / 0.12); color: var(--positive);
+}
+.fu-acts {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-2);
+  margin-top: var(--space-4); padding-top: var(--space-2); border-top: 1px solid var(--cell-rule);
+}
+.fu-read { display: inline-flex; align-items: center; gap: 4px; min-height: 40px; font-size: var(--fs-sm); font-weight: 600; color: var(--primary-ink); }
+.fu-read:hover { text-decoration: underline; }
+.fu-acts-end { display: inline-flex; align-items: center; gap: var(--space-4); }
+.fu-follow { display: inline-flex; align-items: center; gap: 2px; font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
+.fu-hide { min-height: 40px; padding: 0 2px; font-size: var(--fs-sm); color: var(--text); }
+.fu-hide:hover { color: var(--primary-ink); text-decoration: underline; }
 
 /* ---------- The Premium card (free readers) ---------- */
 .fu-promo {
-  overflow: hidden; scroll-margin-top: 88px;
-  border: 1px solid rgb(var(--gold-rgb) / 0.7); border-radius: var(--radius-md);
+  scroll-margin-top: 96px; padding: var(--space-6) var(--space-4);
+  border: 1px solid rgb(var(--gold-rgb) / 0.75); border-radius: var(--radius-lg);
   background: var(--surface); box-shadow: var(--shadow-soft);
 }
-.fu-promo-top { padding: var(--space-4); background: rgb(var(--gold-rgb) / 0.14); }
-.fu-promo-tag { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); font-weight: 700; color: var(--gold-ink); }
-.fu-promo-h { margin-top: var(--space-2); font-size: var(--fs-lg); font-weight: 700; line-height: 1.3; color: var(--text); text-wrap: balance; }
-.fu-promo-l { margin-top: 4px; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); max-width: 62ch; }
-.fu-promo-ticks { list-style: none; margin: 0; padding: var(--space-3) var(--space-4); display: grid; gap: var(--space-2); }
+@media (min-width: 640px) { .fu-promo { padding: var(--space-6); } }
+.fu-promo-top { padding: 0; }
+.fu-promo-tag { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-sm); font-weight: 700; color: var(--gold-ink); }
+.fu-promo-h { margin-top: var(--space-2); font-size: var(--fs-xl); font-weight: 700; line-height: 1.25; color: var(--text); text-wrap: balance; }
+.fu-promo-l { margin-top: var(--space-2); max-width: 60ch; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
+.fu-promo-ticks { list-style: none; margin: var(--space-4) 0 0; padding: 0; display: grid; gap: var(--space-2); }
 .fu-promo-ticks li { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
-.fu-promo-tick {
-  flex: none; display: grid; place-items: center; width: 20px; height: 20px; margin-top: 1px; border-radius: 999px;
-  background: rgb(var(--positive-rgb) / 0.12); color: var(--positive);
-}
-.fu-promo-foot { padding: var(--space-3) var(--space-4) var(--space-4); border-top: 1px solid var(--border); }
+.fu-promo-tick { flex: none; margin-top: 3px; color: var(--positive); }
+.fu-promo-foot { margin-top: var(--space-6); }
 .fu-promo-fine { margin-top: var(--space-2); font-size: var(--fs-xs); text-align: center; color: var(--text); }
 @media (min-width: 640px) {
-  .fu-promo-ticks { grid-template-columns: 1fr 1fr; column-gap: var(--space-6); }
   .fu-promo-foot { display: flex; align-items: center; gap: var(--space-4); }
   .fu-promo-foot > :first-child { flex: none; width: auto; min-width: 240px; }
   .fu-promo-fine { margin-top: 0; text-align: left; }
 }
 
 /* ---------- How we pick (folded) ---------- */
-.fu-how { margin-top: var(--space-4); }
+.fu-how { margin-top: var(--space-8); }
 .fu-how > summary {
   display: flex; align-items: center; gap: var(--space-3); min-height: 56px; padding: var(--space-3) var(--space-4);
   cursor: pointer; list-style: none;
@@ -168,9 +141,4 @@ a.fu-anchor:active { background: var(--bg); }
 .fu-advice {
   margin: 0 var(--space-4) var(--space-4); padding-top: var(--space-3); border-top: 1px solid var(--cell-rule);
   font-size: var(--fs-xs); line-height: 1.5; color: var(--text);
-}
-
-@media (max-width: 479px) {
-  .fu-hide { margin-left: 0; }
-  .fu-biz { max-width: 50%; }
 }

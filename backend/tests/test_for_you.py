@@ -61,7 +61,8 @@ def test_a_weak_share_leads_to_stronger_companies_in_its_business_said_in_the_fo
     assert it["kind"] == "stronger" and it["tag_en"] == "Stronger than ACI"
     assert it["why_en"] == "Same business as ACI. ACI is weak on profit and finances; BXPHARMA is strong on both."
     assert "দুটিতেই শক্তিশালী" in it["why_bn"]
-    assert [c["en"] for c in it["chips"]] == ["Strong profit", "Strong finances"]
+    # The sentence says it all, so no ticks repeat it.
+    assert it["chips"] == [] and it["chips_label"] is None
 
 
 def test_stronger_needs_ten_points_more():
@@ -79,9 +80,10 @@ def test_a_good_share_leads_to_the_most_alike_company_in_its_business_first():
     assert groups[0]["codes"] == ["TWIN", "SMALL"]
     twin_item = by_code(items)["TWIN"]
     assert twin_item["kind"] == "like" and twin_item["tag_en"] == "Like GP"
-    assert twin_item["why_en"] == ("Same business as GP, which you own. Like GP, TWIN is a big company, "
-                                   "has paid cash every year for 5 years and has almost no loans.")
+    # The sentence names the share; the ticks say what they share.
+    assert twin_item["why_en"] == "Same business as GP, which you own."
     assert [c["en"] for c in twin_item["chips"]] == ["Big company", "Cash every year", "Almost no loans"]
+    assert twin_item["chips_label"] == {"en": "In common with GP", "bn": "GP-এর সাথে মিল"}
 
 
 def test_a_company_like_yours_in_another_business_needs_two_shared_strengths():
@@ -94,8 +96,8 @@ def test_a_company_like_yours_in_another_business_needs_two_shared_strengths():
     assert [i["code"] for i in items if i["group_key"] == "GP"] == ["BATASHOE"]
     it = by_code(items)["BATASHOE"]
     assert it["kind"] == "like_other"
-    assert it["why_en"] == ("Like GP, which you own: BATASHOE has paid cash every year for 5 years and "
-                            "has almost no loans. A different business: Tannery Industries.")
+    assert it["why_en"] == "Like GP, which you own, in a different business: Tannery Industries."
+    assert [c["en"] for c in it["chips"]] == ["Cash every year", "Almost no loans"]
     assert groups[0]["line"]["en"].endswith("We found 1 company like it in another business.")
 
 
@@ -118,7 +120,8 @@ def test_a_share_they_read_about_leads_to_picks_and_says_how_often():
                         reads=[{"code": "RENATA", "rel": "read", "days": 3, "last": NOW}])
     [g] = groups
     assert g["rel"] == "read" and g["days"] == 3
-    assert g["line"]["en"].startswith("You looked at RENATA on 3 days this month. We grade RENATA mixed.")
+    # The heading says "Because you looked at RENATA on 3 days"; the line says what we found.
+    assert g["line"]["en"].startswith("We grade RENATA mixed.")
     assert items[0]["kind"] == "stronger"
 
 

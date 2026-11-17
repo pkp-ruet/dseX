@@ -12,7 +12,7 @@ import ErrorState from "@/components/ui/ErrorState";
 import Skeleton from "@/components/ui/Skeleton";
 import ForYouPremium, { FOR_YOU_PREMIUM_ANCHOR } from "@/components/for-you/ForYouPremium";
 import HowWePick from "@/components/for-you/HowWePick";
-import { ForYouGroupCard, ForYouSummary, StarterList, WatchNextNote } from "@/components/for-you/ForYouParts";
+import { ForYouGroupCard, ForYouIntro, StarterList } from "@/components/for-you/ForYouParts";
 
 /** The Premium card sits after this many groups, so a long list can't bury it. */
 const PROMO_AFTER = 2;
@@ -21,8 +21,8 @@ const PROMO_AFTER = 2;
  * "Based on your shares" (`/for-you`; Discover until 2026-11-18). One
  * `GET /api/user/for-you` — backend services/for_you.py.
  *
- * Every reader: the "to watch next, not to buy now" note, then the count and
- * the shares the picks came from. Premium: every group open, each company
+ * Every reader: one intro card ("Worth watching", the count, the note, the
+ * shares the picks came from), then one section per share. Premium: every group open, each company
  * with why it fits, what it shares, read · follow · not for me. Free: the
  * same groups with each share's reason and each pick's business, the names
  * locked, and one Premium card. No shares yet: a free starter list.
@@ -103,7 +103,6 @@ export default function ForYouClient() {
   if (!isLoggedIn) {
     return (
       <>
-        <WatchNextNote />
         <GuestCard />
         <HowWePick funnel={null} />
       </>
@@ -135,7 +134,7 @@ export default function ForYouClient() {
   if (data.mode === "generic") {
     return (
       <>
-        <WatchNextNote />
+        <ForYouIntro />
         <StarterList
           picks={starter.length > 0 ? starter : items}
           title={<T en="Strong companies to start with" bn="শুরু করার মতো শক্তিশালী কোম্পানি" />}
@@ -162,7 +161,7 @@ export default function ForYouClient() {
   if (groups.length === 0) {
     return (
       <>
-        <WatchNextNote />
+        <ForYouIntro />
         <StarterList
           picks={starter}
           title={<T en="Nothing tied to your shares today" bn="আজ আপনার শেয়ারের সাথে মেলে এমন কিছু নেই" />}
@@ -191,8 +190,7 @@ export default function ForYouClient() {
 
   return (
     <>
-      <WatchNextNote />
-      <ForYouSummary data={{ ...shown, groups: groups.map((x) => x.g) }} linkGroups />
+      <ForYouIntro data={{ ...shown, groups: groups.map((x) => x.g) }} linkGroups />
       <div className="fu-groups">
         {groups.map(({ g, picks }, i) => (
           <Fragment key={g.key}>
@@ -208,11 +206,11 @@ export default function ForYouClient() {
 
 function GuestCard() {
   return (
-    <div className="fu-guest soft-card">
-      <h2 className="fu-start-title">
+    <div className="fu-intro soft-card">
+      <h2 className="fu-intro-h">
         <T en="Companies to watch next, picked from your shares" bn="আপনার শেয়ার দেখে বাছাই করা, পরে নজরে রাখার মতো কোম্পানি" />
       </h2>
-      <p className="fu-g-line">
+      <p className="fu-intro-note">
         <T
           en="After every close we look at the shares you own, follow and read about, and find strong companies tied to each one: a stronger company beside a weak share of yours, one like a share you like, or a business you don't have yet. Open a free account to start."
           bn="প্রতিদিন বাজার বন্ধের পর আমরা আপনার কেনা, ফলো করা আর পড়ে দেখা শেয়ারগুলো দেখি, আর প্রতিটির সাথে যুক্ত শক্তিশালী কোম্পানি খুঁজি: আপনার দুর্বল শেয়ারের পাশে আরও শক্তিশালী একটি, আপনার পছন্দের শেয়ারের মতো একটি, বা এমন ব্যবসা যা আপনার এখনো নেই। শুরু করতে একটি ফ্রি অ্যাকাউন্ট খুলুন।"

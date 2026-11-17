@@ -2165,8 +2165,10 @@ export interface ForYouPick {
   /** Why it fits the reader, in words about their own share. */
   why_en: string;
   why_bn: string;
-  /** What it shares with their share, or what is stronger. */
+  /** What it has in common with their share (never a repeat of the sentence). */
   chips: (BiText & { tone: "good" | "neutral" })[];
+  /** The small line over the chips ("In common with GP"), null when none. */
+  chips_label?: BiText | null;
   conviction: number | null;
   /** Not in the reader's list on the previous day. */
   new: boolean;
