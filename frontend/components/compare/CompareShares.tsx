@@ -1,19 +1,25 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "@/components/ui/Link";
+import Button from "@/components/ui/Button";
 import TierPill from "@/components/ui/TierPill";
 import { T } from "@/components/i18n/T";
-import { IconClose, IconCrown, IconSearch, IconShare } from "@/components/ui/icons";
+import { IconClose, IconCrown, IconLock, IconSearch, IconShare } from "@/components/ui/icons";
+import { useAuth } from "@/context/AuthContext";
 import { useLang } from "@/context/LangContext";
 import { changePct, money } from "@/lib/formatters";
-import { PREMIUM_PATH } from "@/lib/premium";
+import { PREMIUM_PATH, usePremium } from "@/lib/premium";
+import { FROM_MONTH } from "@/lib/premium-plans";
+import { savePremiumContext } from "@/lib/premium-context";
 import { toast } from "@/lib/toast";
 import { trackEvent } from "@/lib/track";
 import {
   FREE_COMPARE,
   MAX_COMPARE,
   comparisonTitle,
+  joinBn,
+  joinEn,
   type Bi,
   type CompareQuestion,
   type CompareShare,
@@ -35,8 +41,10 @@ interface Props {
   isPremium: boolean;
   onAdd: (code: string) => void;
   onRemove: (code: string) => void;
-  /** At the limit: the free reader's limit popup, or a note for Premium. */
-  onLimit: () => void;
+  /** Shares a free reader picked past the limit: shown as locked rows with
+   *  the Premium banner; taking a share off swaps the first one in. */
+  pending: string[];
+  onDismissPending: () => void;
 }
 
 const MAX_RESULTS = 8;
@@ -56,6 +64,11 @@ function toneClass(v: number | null | undefined): string {
  * number, name, price, today's move, our group word and what it is ahead on
  * (each a jump to that question's card) — and ✕. It replaced the name chips,
  * the dashed "Add a share" button and "The short version" card.
+ *
+ * A free reader at the limit keeps the search (2026-11-18, user: "do not just
+ * say compare more than 2 with premium. let them choose stock then show the
+ * premium lock banner"): the share they pick shows as a locked row under
+ * theirs, with the Premium banner right under it.
  */
 export default function CompareShares({
   codes,
@@ -69,11 +82,13 @@ export default function CompareShares({
   isPremium,
   onAdd,
   onRemove,
-  onLimit,
+  pending,
+  onDismissPending,
 }: Props) {
   const { bn } = useLang();
   const [q, setQ] = useState("");
-  const full = codes.length >= limit;
+  // Only Premium's ceiling hides the search; a free reader may always pick.
+  const full = isPremium && codes.length >= limit;
 
   const hits = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -81,7 +96,7 @@ export default function CompareShares({
     const starts: PickOption[] = [];
     const contains: PickOption[] = [];
     for (const o of options) {
-      if (codes.includes(o.code)) continue;
+      if (codes.includes(o.code) || pending.includes(o.code)) continue;
       const c = o.code.toLowerCase();
       const n = o.name.toLowerCase();
       if (c.startsWith(s) || n.startsWith(s)) starts.push(o);
@@ -89,9 +104,9 @@ export default function CompareShares({
       if (starts.length >= MAX_RESULTS) break;
     }
     return [...starts, ...contains].slice(0, MAX_RESULTS);
-  }, [q, options, codes]);
+  }, [q, options, codes, pending]);
 
-  const suggestions = similar.filter((s) => !codes.includes(s.code)).slice(0, MAX_SIMILAR);
+  const suggestions = similar.filter((s) => !codes.includes(s.code) && !pending.includes(s.code)).slice(0, MAX_SIMILAR);
 
   function add(code: string) {
     onAdd(code);
@@ -148,24 +163,12 @@ export default function CompareShares({
       </div>
 
       {full ? (
-        isPremium ? (
-          <p className="cmp-full">
-            <T
-              en={`You are comparing ${MAX_COMPARE} shares, the most at once. Take one off to add another.`}
-              bn={`আপনি ${MAX_COMPARE}টি শেয়ার তুলনা করছেন, একসাথে এর বেশি নয়। আরেকটি যোগ করতে একটি বাদ দিন।`}
-            />
-          </p>
-        ) : (
-          <div className="cmp-full">
-            <button type="button" className="cmp-full-btn" onClick={onLimit}>
-              <IconCrown size={16} />
-              <T en={`Compare more than ${FREE_COMPARE} with Premium`} bn={`প্রিমিয়ামে ${FREE_COMPARE}টির বেশি তুলনা করুন`} />
-            </button>
-            <span>
-              <T en="Or take one off to swap it for another." bn="অথবা একটি বাদ দিয়ে অন্যটি যোগ করুন।" />
-            </span>
-          </div>
-        )
+        <p className="cmp-full">
+          <T
+            en={`You are comparing ${MAX_COMPARE} shares, the most at once. Take one off to add another.`}
+            bn={`আপনি ${MAX_COMPARE}টি শেয়ার তুলনা করছেন, একসাথে এর বেশি নয়। আরেকটি যোগ করতে একটি বাদ দিন।`}
+          />
+        </p>
       ) : (
         <div className="cmp-find">
           <label className="cmp-search-box" htmlFor="cmp-q">
@@ -297,30 +300,138 @@ export default function CompareShares({
               </li>
             );
           })}
+          {pending.map((c) => {
+            const name = names[c] ?? c;
+            return (
+              <li key={c} className="cmp-row cmp-row--locked">
+                <span className="cmp-num cmp-num--lock" aria-hidden="true">
+                  <IconLock size={13} />
+                </span>
+                <span className="cmp-row-co">
+                  <b>{name}</b>
+                  {name !== c && <span>{c}</span>}
+                </span>
+                <span className="cmp-lock-pill">
+                  <IconCrown size={12} />
+                  <T en="Premium" bn="প্রিমিয়াম" />
+                </span>
+                <button
+                  type="button"
+                  className="cmp-row-x"
+                  onClick={onDismissPending}
+                  aria-label={bn ? `${name} যোগ করবেন না` : `Don't add ${name}`}
+                >
+                  <IconClose size={15} />
+                </button>
+              </li>
+            );
+          })}
         </ol>
+      )}
+
+      {pending.length > 0 && (
+        <PendingLock pending={pending} codes={codes} names={names} onDismiss={onDismissPending} />
       )}
 
       <p className="cmp-sh-foot">
         {isPremium ? (
           <T en={`${codes.length} of up to ${limit} shares`} bn={`সর্বোচ্চ ${limit}টির মধ্যে ${codes.length}টি শেয়ার`} />
         ) : (
-          <>
-            <span>
-              <T en={`${codes.length} of ${limit} shares`} bn={`${limit}টির মধ্যে ${codes.length}টি শেয়ার`} />
-            </span>
-            {!full && (
-              <Link
-                href={PREMIUM_PATH}
-                className="cmp-gold-link"
-                onClick={() => trackEvent("compare_more_tap", { n: codes.length })}
-              >
-                <IconCrown size={14} />
-                <T en={`Compare up to ${MAX_COMPARE} with Premium`} bn={`প্রিমিয়ামে ${MAX_COMPARE}টি পর্যন্ত তুলনা করুন`} />
-              </Link>
-            )}
-          </>
+          <T en={`${codes.length} of ${limit} shares on a free account`} bn={`ফ্রি অ্যাকাউন্টে ${limit}টির মধ্যে ${codes.length}টি শেয়ার`} />
         )}
       </p>
     </section>
+  );
+}
+
+/**
+ * The Premium lock banner a free reader meets after picking a share past the
+ * limit: it names the share they picked, says what Premium does here, and
+ * offers the swap (take one off above and it takes that place). The card
+ * after "The company" (`#cmp-premium`) stays the place for our analysis;
+ * this one is only about adding the share.
+ */
+function PendingLock({
+  pending,
+  codes,
+  names,
+  onDismiss,
+}: {
+  pending: string[];
+  codes: string[];
+  names: Record<string, string>;
+  onDismiss: () => void;
+}) {
+  const { user } = useAuth();
+  const { state } = usePremium();
+  const { bn } = useLang();
+  const offer = user?.offer ?? null;
+  const href = offer
+    ? "/premium?plan=offer&src=compare-add#pay"
+    : user
+      ? `${PREMIUM_PATH}?src=compare-add#pay`
+      : `${PREMIUM_PATH}?src=compare-add`;
+  const picked = pending.map((c) => names[c] ?? c);
+  const mine = codes.map((c) => names[c] ?? c);
+  const key = pending.join(",");
+  const n = codes.length;
+
+  // One view per set of picked shares.
+  useEffect(() => {
+    trackEvent("premium_lock_view", { area: "compare-stocks", lock: "compare-add", state, code: key, n });
+  }, [key, state, n]);
+
+  const onTap = () => {
+    trackEvent("premium_lock_tap", { area: "compare-stocks", lock: "compare-add", state, code: key, n });
+    savePremiumContext({
+      from: "compare-stocks",
+      label: bn ? "শেয়ার তুলনা" : "Compare stocks",
+      stakes: [bn ? `${joinBn(mine)}-এর পাশে ${joinBn(picked)}` : `${joinEn(picked)} next to ${joinEn(mine)}`],
+    });
+  };
+
+  return (
+    <div className="cmp-lock" role="status">
+      <p className="cmp-lock-tag">
+        <IconCrown size={15} />
+        <T en="Premium" bn="প্রিমিয়াম" />
+      </p>
+      <p className="cmp-lock-h">
+        {mine.length ? (
+          <T en={`Put ${joinEn(picked)} next to ${joinEn(mine)}`} bn={`${joinBn(mine)}-এর পাশে ${joinBn(picked)} রাখুন`} />
+        ) : (
+          <T en={`Compare ${joinEn(picked)} too`} bn={`${joinBn(picked)}-ও তুলনা করুন`} />
+        )}
+      </p>
+      <p className="cmp-lock-line">
+        <T
+          en={`A free account compares ${FREE_COMPARE} shares at a time. Premium puts up to ${MAX_COMPARE} side by side, with our analysis of each.`}
+          bn={`ফ্রি অ্যাকাউন্টে একসাথে ${FREE_COMPARE}টি শেয়ার তুলনা করা যায়। প্রিমিয়ামে ${MAX_COMPARE}টি পর্যন্ত পাশাপাশি দেখা যায়, সাথে প্রতিটির ওপর আমাদের বিশ্লেষণ।`}
+        />
+      </p>
+      <div className="cmp-lock-acts">
+        <Button href={href} onClick={onTap}>
+          {offer ? (
+            <T en={`Get your first month for ৳${offer.amount}`} bn={`প্রথম মাস ৳${offer.amount}-এ নিন`} />
+          ) : (
+            <T en="Get Premium" bn="প্রিমিয়াম নিন" />
+          )}
+        </Button>
+        <button type="button" className="cmp-lock-later" onClick={onDismiss}>
+          <T en="Not now" bn="এখন না" />
+        </button>
+      </div>
+      <p className="cmp-lock-fine">
+        {offer ? (
+          <T en={`Instead of ৳${offer.list_amount}, once.`} bn={`৳${offer.list_amount}-এর বদলে, একবারই।`} />
+        ) : (
+          <T en={`About ৳${FROM_MONTH} a month on the yearly plan.`} bn={`বছরের প্ল্যানে মাসে প্রায় ৳${FROM_MONTH}।`} />
+        )}{" "}
+        <T
+          en={`Or take a share off above, and ${picked[0]} takes its place.`}
+          bn={`অথবা ওপরের একটি শেয়ার বাদ দিন, তার জায়গায় ${picked[0]} আসবে।`}
+        />
+      </p>
+    </div>
   );
 }

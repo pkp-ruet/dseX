@@ -8,7 +8,6 @@ import CompareStart from "@/components/compare/CompareStart";
 import CompareAnalysis from "@/components/compare/CompareAnalysis";
 import { CompareDates, PlainWords, QuestionCard } from "@/components/compare/CompareCards";
 import { dayShort } from "@/components/dividend-calendar/dates";
-import { showLimitNotice } from "@/components/premium/LimitNotice";
 import { getComparison } from "@/lib/api";
 import {
   FREE_COMPARE,
@@ -32,8 +31,10 @@ import { useUrlParams, useUrlSync } from "@/lib/use-url-state";
  * a comparison can be shared or bookmarked; the page reads them after mount
  * (no `useSearchParams`, which would blank the server render) and fetches
  * `/api/compare` for them. A free reader compares up to FREE_COMPARE shares,
- * Premium up to MAX_COMPARE; a link with more than the reader may see keeps
- * the first ones and says so.
+ * Premium up to MAX_COMPARE. A free reader may still pick past the limit:
+ * the extra shares wait as locked rows under the Premium banner (`pending`),
+ * and taking a share off swaps the first one in. A shared link with more
+ * than the reader may see keeps the first ones and puts the rest there too.
  *
  * Order (2026-11-18): the shares card (headline, search, one row per share
  * with what it is ahead on) → for Premium, "In plain words" → The company
@@ -46,7 +47,7 @@ export default function CompareClient({ options }: { options: PickOption[] }) {
   const limit = isPremium ? MAX_COMPARE : FREE_COMPARE;
 
   const [codes, setCodes] = useState<string[] | null>(null);
-  const [trimmed, setTrimmed] = useState<string[]>([]);
+  const [pending, setPending] = useState<string[]>([]);
   const [dropped, setDropped] = useState<string[]>([]);
   const [data, setData] = useState<ComparePayload | null>(null);
   const [loading, setLoading] = useState(false);
@@ -60,12 +61,23 @@ export default function CompareClient({ options }: { options: PickOption[] }) {
   }, [params, codes]);
 
   // A link with more shares than this reader may compare keeps the first ones
-  // (only once the plan is known, so a Premium reader's 5 aren't cut first).
+  // and puts the rest under the lock (only once the plan is known, so a
+  // Premium reader's 5 aren't cut first).
   useEffect(() => {
     if (!codes || isLoading || codes.length <= limit) return;
-    setTrimmed(codes.slice(limit));
+    setPending(codes.slice(limit));
     setCodes(codes.slice(0, limit));
   }, [codes, isLoading, limit]);
+
+  // Room again without a swap (the reader turned out to be Premium, or a
+  // share came off because it isn't graded): the waiting shares move in.
+  useEffect(() => {
+    if (!codes || isLoading || !pending.length || codes.length >= limit) return;
+    const room = limit - codes.length;
+    const moving = pending.filter((c) => !codes.includes(c)).slice(0, room);
+    setCodes([...codes, ...moving]);
+    setPending(pending.filter((c) => !moving.includes(c) && !codes.includes(c)));
+  }, [codes, pending, isLoading, limit]);
 
   useUrlSync({ s: codes && codes.length ? codes.join(",") : null }, codes !== null);
 
@@ -118,43 +130,50 @@ export default function CompareClient({ options }: { options: PickOption[] }) {
     return m;
   }, [data]);
 
-  const onLimit = useCallback(() => {
-    if (!isPremium) {
-      trackEvent("compare_limit", { state, n: codes?.length ?? 0 });
-      showLimitNotice("compare");
-    } else {
-      toast({
-        message: <T en={`You can compare up to ${MAX_COMPARE} shares at once.`} bn={`একসাথে ${MAX_COMPARE}টি পর্যন্ত শেয়ার তুলনা করা যায়।`} />,
-      });
-    }
-  }, [isPremium, state, codes]);
-
   const onAdd = useCallback(
     (code: string) => {
       if (!codes || !code || codes.includes(code)) return;
       if (codes.length >= limit) {
-        onLimit();
+        if (isPremium) {
+          toast({
+            message: <T en={`You can compare up to ${MAX_COMPARE} shares at once.`} bn={`একসাথে ${MAX_COMPARE}টি পর্যন্ত শেয়ার তুলনা করা যায়।`} />,
+          });
+          return;
+        }
+        // A free reader at the limit: let them pick, then show the lock.
+        setPending([code]);
+        setDropped([]);
+        trackEvent("compare_limit", { state, n: codes.length, code });
         return;
       }
-      setTrimmed([]);
+      setPending([]);
       setDropped([]);
       setCodes([...codes, code]);
       trackEvent("compare_add", { code, n: codes.length + 1, state });
     },
-    [codes, limit, onLimit, state],
+    [codes, limit, isPremium, state],
   );
 
   const onRemove = useCallback(
     (code: string) => {
       if (!codes) return;
-      setCodes(codes.filter((c) => c !== code));
-      trackEvent("compare_remove", { code, n: codes.length - 1, state });
+      const rest = codes.filter((c) => c !== code);
+      if (pending.length) {
+        // A share waiting under the lock takes the free place.
+        const [first, ...others] = pending.filter((c) => !rest.includes(c));
+        setCodes(first ? [...rest, first] : rest);
+        setPending(others);
+        trackEvent("compare_swap", { code, in: first ?? "", n: rest.length + (first ? 1 : 0), state });
+        return;
+      }
+      setCodes(rest);
+      trackEvent("compare_remove", { code, n: rest.length, state });
     },
-    [codes, state],
+    [codes, pending, state],
   );
 
   const onPick = (set: string[], mine: boolean) => {
-    setTrimmed([]);
+    setPending([]);
     setDropped([]);
     setCodes(set.slice(0, limit));
     trackEvent(mine ? "compare_mine" : "compare_preset", { codes: set.join(","), state });
@@ -193,20 +212,13 @@ export default function CompareClient({ options }: { options: PickOption[] }) {
         isPremium={isPremium}
         onAdd={onAdd}
         onRemove={onRemove}
-        onLimit={onLimit}
+        pending={pending}
+        onDismissPending={() => {
+          trackEvent("compare_lock_dismiss", { state, code: pending.join(",") });
+          setPending([]);
+        }}
       />
 
-      {trimmed.length > 0 && (
-        <p className="cmp-note" role="status">
-          <T
-            en={`A free account compares ${FREE_COMPARE} shares at a time, so we left out ${joinEn(trimmed)}.`}
-            bn={`ফ্রি অ্যাকাউন্টে একসাথে ${FREE_COMPARE}টি শেয়ার তুলনা করা যায়, তাই ${joinBn(trimmed)} বাদ রাখা হয়েছে।`}
-          />{" "}
-          <button type="button" className="cmp-note-link" onClick={() => showLimitNotice("compare")}>
-            <T en="Compare more with Premium" bn="প্রিমিয়ামে আরও তুলনা করুন" />
-          </button>
-        </p>
-      )}
       {dropped.length > 0 && (
         <p className="cmp-note" role="status">
           <T

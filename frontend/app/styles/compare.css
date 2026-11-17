@@ -62,13 +62,7 @@
 }
 .cmp-plus:hover, .cmp-plus:active { border-color: var(--primary); color: var(--primary-ink); }
 
-.cmp-full { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); font-size: var(--fs-sm); color: var(--text); }
-.cmp-full-btn {
-  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px;
-  border: 1px solid var(--gold-soft); border-radius: 999px; background: var(--gold-light);
-  font-size: var(--fs-sm); font-weight: 700; color: var(--gold-ink); cursor: pointer;
-}
-.cmp-full-btn:hover, .cmp-full-btn:active { border-color: var(--gold); }
+.cmp-full { font-size: var(--fs-sm); color: var(--text); }
 
 .cmp-rows { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--cell-rule); }
 .cmp-row {
@@ -100,11 +94,30 @@
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
   gap: 0 var(--space-4); font-size: var(--fs-xs); color: var(--text);
 }
-.cmp-gold-link { display: inline-flex; align-items: center; gap: 4px; min-height: 40px; font-weight: 700; color: var(--gold-ink); text-decoration: none; }
-.cmp-gold-link:hover { text-decoration: underline; }
+
+/* a share picked past the free limit: a locked row, then the Premium banner */
+.cmp-row--locked { border-bottom: 0; }
+.cmp-num--lock { background: var(--gold-light); color: var(--gold-ink); box-shadow: inset 0 0 0 1px var(--gold-soft); }
+.cmp-lock-pill {
+  display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px;
+  background: var(--gold-light); font-size: var(--fs-2xs); font-weight: 700; color: var(--gold-ink);
+}
+.cmp-lock {
+  display: grid; gap: var(--space-2); padding: var(--space-4);
+  border: 1px solid var(--gold-soft); border-radius: var(--radius-md); background: var(--gold-light);
+}
+.cmp-lock-tag { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-2xs); font-weight: 700; color: var(--gold-ink); }
+.cmp-lock-h { font-size: var(--fs-md); font-weight: 700; line-height: 1.35; color: var(--text); text-wrap: balance; }
+.cmp-lock-line { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+.cmp-lock-acts { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); margin-top: var(--space-1); }
+.cmp-lock-later {
+  min-height: 40px; padding: 0 var(--space-2); border: 0; background: transparent;
+  font-size: var(--fs-sm); font-weight: 600; color: var(--text); cursor: pointer;
+}
+.cmp-lock-later:hover { text-decoration: underline; }
+.cmp-lock-fine { font-size: var(--fs-xs); color: var(--text); }
 
 .cmp-note { padding: var(--space-3) var(--space-4); border-radius: var(--radius); background: var(--surface-2); font-size: var(--fs-sm); color: var(--text); }
-.cmp-note-link { padding: 0; border: 0; background: none; font: inherit; font-weight: 600; color: var(--gold-ink); text-decoration: underline; cursor: pointer; }
 .cmp-fail { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-4); }
 
 /* ---------- nothing picked yet ---------- */
