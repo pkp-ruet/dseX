@@ -270,7 +270,7 @@ export default function PersonalizedHome() {
         </div>
 
         <div className="hm-side">
-          <div data-card="stories">
+          <div className="hm-stories" data-card="stories">
             <StoriesRow
               stories={stories}
               loading={holdings === null || ((hasPortfolio || hasWatchlist) && priceMap.size === 0)}

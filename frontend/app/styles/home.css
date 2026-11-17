@@ -16,8 +16,9 @@
    row and the slot read localStorage first), so the rings never jump.
    One colour for every icon (clay); gold only marks Premium (crowns, rings,
    the Premium slides) and "new" counts. Phones: one column. From 1024px the
-   offer slot sits beside the stories + market line (dense flow pulls it up
-   into the row the stories start).
+   offer slot sits beside the market line + the story rings card (dense flow
+   pulls it up into the row the stories start); the two columns share a top
+   and a bottom line, and the slot's pager sits inside its card.
    =================================================================== */
 
 .hm { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-6); padding-top: var(--space-4); }
@@ -30,13 +31,30 @@
    the right edge of a phone (2026-11-17). */
 .hm-side { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); min-width: 0; }
 .hm-side > * { min-width: 0; }
+/* No stories to show: no empty card, no extra gap. */
+.hm-stories { min-width: 0; }
+.hm-stories:empty { display: none; }
 @media (min-width: 1024px) {
   .hm { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); grid-auto-flow: row dense; column-gap: var(--space-6); align-items: start; }
   .hm-top, .hm-today { grid-column: 1 / -1; }
-  .hm-slot { grid-column: 1; }
-  .hm-side { grid-column: 2; }
+  /* The slot and the stories column are one pair (2026-11-18, user: the side
+     by side "is not looking clean on desktop"): both stretch to the same
+     bottom line, the market line on top of the right one, the story rings in
+     a card that takes the rest of its height. */
+  .hm-slot { grid-column: 1; align-self: stretch; }
+  .hm-side { grid-column: 2; align-self: stretch; grid-template-rows: auto 1fr; }
   .hm-side .hm-mkt { order: -1; }
   .hm:not(:has(.hm-slot)) .hm-side { grid-column: 1 / -1; }
+  .hm-stories {
+    display: flex; flex-direction: column;
+    padding: var(--space-4) var(--space-4) var(--space-2);
+    border: 1px solid var(--border); border-radius: var(--radius-lg);
+    background: var(--surface);
+  }
+  .hm-stories > div { flex: 1 1 auto; display: flex; flex-direction: column; }
+  .hm-stories .hm-head { margin-bottom: var(--space-2); }
+  /* The rings sit in the middle of the space under the heading. */
+  .hm-stories .story-rail { margin-block: auto; }
 }
 
 /* ONE heading for every block (round 2, 2026-11-18): your shares today,
@@ -48,6 +66,23 @@
 }
 .hm-head-h { font-size: var(--fs-md); font-weight: 700; line-height: 1.3; color: var(--text); }
 .hm-head-note { font-size: var(--fs-2xs); font-weight: 600; color: var(--text); }
+.hm-head-end { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
+
+/* The story rings' arrows (mouse only; phones swipe). 32px with a 40px tap
+   area, so the heading stays one line. */
+.hm-rail-nav { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  .hm-rail-nav { display: flex; gap: var(--space-2); }
+}
+.hm-rail-btn {
+  position: relative; width: 32px; height: 32px; border-radius: 50%;
+  display: grid; place-items: center;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+}
+.hm-rail-btn::after { content: ""; position: absolute; inset: -4px; }
+.hm-rail-btn:hover:not(:disabled) { border-color: rgb(var(--primary-rgb) / 0.45); }
+.hm-rail-btn:disabled { opacity: 0.35; cursor: default; }
+.hm-rail-btn--prev svg { transform: rotate(180deg); }
 
 /* ---------- 1 · The band ---------- */
 .hm-band {
@@ -309,12 +344,26 @@
 .hm-arrow:hover { border-color: rgb(var(--primary-rgb) / 0.45); }
 .hm-arrow:disabled { visibility: hidden; }
 .hm-arrow--prev svg { transform: rotate(180deg); }
+.hm-count { min-width: 40px; text-align: center; font-size: var(--fs-xs); font-weight: 700; color: var(--text); }
 @media (min-width: 1024px) {
-  /* Beside the stories column the peek read as a cut-off card (2026-11-17):
-     one whole slide at a time, the arrows and dots move between them. */
+  /* One whole slide at a time (beside the stories the peek read as a cut-off
+     card, 2026-11-17). The slot fills its row, and the pager (‹ 1 / 4 ›)
+     sits inside the card's bottom-right corner, on the buttons' row, instead
+     of hanging under the card (2026-11-18). */
+  .hm-slot { position: relative; display: flex; flex-direction: column; }
+  .hm-track { flex: 1 1 auto; }
   .hm-slide { flex-basis: 100%; }
-  .hm-slot-foot { justify-content: flex-start; }
-  .hm-arrows { display: flex; gap: 6px; margin-left: auto; }
+  .hm-slot-foot {
+    position: absolute; right: calc(var(--space-4) + 1px); bottom: calc(var(--space-4) + 1px);
+    margin: 0; min-height: 0;
+  }
+  .hm-dots { display: none; }
+  .hm-arrows { display: flex; align-items: center; gap: 2px; }
+  .hm-arrow:disabled { visibility: visible; opacity: 0.35; cursor: default; }
+  .hm-arrow:disabled:hover { border-color: var(--border); }
+  /* Room for the pager (three 40px parts), so a button never runs under it. */
+  .hm-slot--multi .hm-sl-acts { padding-right: 140px; }
+  .hm-slot--multi .hm-slide:not(:has(> .hm-sl-acts)) { padding-bottom: calc(var(--space-4) + 48px); }
 }
 @media (prefers-reduced-motion: reduce) {
   .hm-dot, .hm-more svg { transition: none; }

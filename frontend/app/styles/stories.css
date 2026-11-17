@@ -14,10 +14,8 @@
   -webkit-overflow-scrolling: touch;
 }
 .story-rail::-webkit-scrollbar { display: none; }
-/* A hidden scrollbar can't be dragged with a mouse. */
-@media (hover: hover) and (pointer: fine) {
-  .story-rail { scrollbar-width: thin; }
-}
+/* No scrollbar for a mouse either (2026-11-18): the heading's two arrows
+   (`.hm-rail-nav`, home.css) move along the rings instead. */
 .story-rail > li { flex: 0 0 auto; }
 
 .story-bubble {

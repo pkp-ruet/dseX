@@ -813,7 +813,11 @@ export default function OfferSlot({
   return <Carousel slides={slides} lang={lang} />;
 }
 
-/** The swipeable row: scroll-snap, dots, arrows from 1024px, a "seen" event per slide. */
+/**
+ * The swipeable row: scroll-snap, dots on phones, a "seen" event per slide.
+ * From 1024px the dots give way to a pager (‹ 1 / 4 ›) inside the card's
+ * bottom-right corner, on the buttons' row.
+ */
 function Carousel({ slides, lang }: { slides: Slide[]; lang: Lang }) {
   const bn = lang === "bn";
   const trackRef = useRef<HTMLDivElement>(null);
@@ -875,7 +879,7 @@ function Carousel({ slides, lang }: { slides: Slide[]; lang: Lang }) {
   const n = slides.length;
   return (
     <section
-      className={`hm-slot ${bn ? "font-bn" : ""}`}
+      className={`hm-slot ${n > 1 ? "hm-slot--multi" : ""} ${bn ? "font-bn" : ""}`}
       lang={bn ? "bn" : undefined}
       aria-label={bn ? "অফার ও খবর" : "Offers and news"}
       data-card="slot"
@@ -911,6 +915,9 @@ function Carousel({ slides, lang }: { slides: Slide[]; lang: Lang }) {
             >
               <IconChevronRight size={18} />
             </button>
+            <span className="hm-count nums" aria-hidden>
+              {active + 1} / {n}
+            </span>
             <button
               type="button"
               className="hm-arrow"

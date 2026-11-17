@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useId, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { OwnerTag } from "@/components/home/personalized/OwnerMark";
 import StoryViewer, { StoryFace } from "@/components/home/personalized/StoryViewer";
+import { IconChevronRight } from "@/components/ui/icons";
 import type { Lang } from "@/context/LangContext";
 import type { Story } from "@/lib/dash-stories";
 import { t } from "@/lib/home-copy";
@@ -102,6 +103,34 @@ export default function StoriesRow({
     setOpen({ list: ordered, index: 0 });
   }, [autoOpened, loading, ordered]);
 
+  // Mouse users move along the rings with two small arrows in the heading
+  // (2026-11-18: the thin desktop scrollbar, with Windows' arrow ends, looked
+  // broken). They show only when the rings run past the edge; phones swipe.
+  const railRef = useRef<HTMLUListElement>(null);
+  const [edges, setEdges] = useState({ prev: false, next: false });
+  const syncEdges = useCallback(() => {
+    const el = railRef.current;
+    if (!el) return;
+    const prev = el.scrollLeft > 2;
+    const next = el.scrollLeft < el.scrollWidth - el.clientWidth - 2;
+    setEdges((e) => (e.prev === prev && e.next === next ? e : { prev, next }));
+  }, []);
+  useEffect(() => {
+    const el = railRef.current;
+    if (!el) return;
+    syncEdges();
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(syncEdges);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [syncEdges, loading, ordered.length, quiet]);
+  const scrollRail = (dir: 1 | -1) => {
+    const el = railRef.current;
+    if (!el) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollBy({ left: dir * Math.max(160, el.clientWidth * 0.8), behavior: reduce ? "auto" : "smooth" });
+  };
+
   // The label holds its place while the rings load, so nothing jumps. Same
   // heading as every other home block (`.hm-head`, round 2, 2026-11-18).
   const head = (
@@ -109,7 +138,31 @@ export default function StoriesRow({
       <h2 id={headId} className="hm-head-h">
         {t(lang, starter ? "storiesMarket" : "storiesTitle")}
       </h2>
-      <p className="hm-head-note">{t(lang, "storiesHint")}</p>
+      <div className="hm-head-end">
+        <p className="hm-head-note">{t(lang, "storiesHint")}</p>
+        {(edges.prev || edges.next) && (
+          <div className="hm-rail-nav">
+            <button
+              type="button"
+              className="hm-rail-btn hm-rail-btn--prev"
+              onClick={() => scrollRail(-1)}
+              disabled={!edges.prev}
+              aria-label={bn ? "আগের স্টোরি" : "Earlier stories"}
+            >
+              <IconChevronRight size={16} />
+            </button>
+            <button
+              type="button"
+              className="hm-rail-btn"
+              onClick={() => scrollRail(1)}
+              disabled={!edges.next}
+              aria-label={bn ? "পরের স্টোরি" : "More stories"}
+            >
+              <IconChevronRight size={16} />
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 
@@ -139,7 +192,7 @@ export default function StoriesRow({
   return (
     <div lang={bn ? "bn" : undefined} className={bn ? "font-bn" : undefined}>
       {head}
-      <ul className="story-rail" aria-labelledby={headId}>
+      <ul className="story-rail" aria-labelledby={headId} ref={railRef} onScroll={syncEdges}>
         {ordered.map((s, i) => {
           const done = isSeen(s);
           const n = s.frames.length;
