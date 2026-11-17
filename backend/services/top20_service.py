@@ -24,7 +24,7 @@ from backend.services.db_service import (
     get_db,
     load_52w_ranges,
     load_companies,
-    load_corporate_actions,
+    load_settled_actions,
 )
 
 
@@ -198,7 +198,7 @@ def _market_window_raw(as_of: Optional[str] = None) -> dict:
         # Record dates inside the year: range on adjusted prices (db_service).
         range_by_code.update(adjusted_52w_ranges(
             cutoff_365 if isinstance(cutoff_365, str) else _date_str(cutoff_365), latest_date_str))
-    actions_by_code = load_corporate_actions()
+    actions_by_code = load_settled_actions()
     ref_date_str = _date_str(ref_date)
 
     # --- 5. Per-code raw factors ---------------------------------------------
@@ -241,6 +241,10 @@ def _market_window_raw(as_of: Optional[str] = None) -> dict:
         avg_turnover_30d = (sum(turnovers30) / len(turnovers30)) if turnovers30 else avg_turnover_7d
         if avg_turnover_30d <= 0:
             avg_turnover_30d = avg_turnover_7d
+        # The middle day of the window (2026-11-18, the Buy List's trading
+        # floor): one block trade can lift a 7-day average far above a
+        # normal day; the median says what usually changes hands.
+        med_turnover_30d = _median_of(turnovers30) if turnovers30 else None
 
         # 7d return vs the reference close (falls back to oldest row in window)
         ref_row = day_map.get(_date_str(ref_date))
@@ -326,6 +330,7 @@ def _market_window_raw(as_of: Optional[str] = None) -> dict:
             "volume_ratio": volume_ratio,
             "vol_factor": vol_factor,
             "avg_turnover_7d": avg_turnover_7d,
+            "med_turnover_30d": med_turnover_30d,
             "up_days": up_days,
             "days_counted": days_counted,
             "trend_factor": trend_factor,
@@ -492,6 +497,14 @@ def compute_momentum_for_code(code: str) -> Optional[dict]:
     return _momentum_dict(raw) if raw else None
 
 
+def _median_of(xs: list) -> Optional[float]:
+    s = sorted(float(x) for x in xs)
+    if not s:
+        return None
+    n = len(s)
+    return s[n // 2] if n % 2 else (s[n // 2 - 1] + s[n // 2]) / 2
+
+
 def compute_momentum_all(as_of: Optional[str] = None) -> dict[str, dict]:
     """Momentum snapshots for every code with a usable price window.
 
@@ -514,6 +527,8 @@ def _momentum_dict(raw: dict) -> dict:
         "rs_vs_dsex_pct": round(raw["rs"], 2) if raw["rs"] is not None else None,
         "volume_ratio": round(raw["volume_ratio"], 2),
         "avg_turnover_7d_mn": round(raw["avg_turnover_7d"], 2),
+        "med_turnover_30d_mn": (round(raw["med_turnover_30d"], 2)
+                                if raw.get("med_turnover_30d") is not None else None),
         "up_days_7d": raw["up_days"],
         "days_counted": raw["days_counted"],
         "pct_in_52w_range": round(raw["pct_in_52w_range"], 1) if raw["pct_in_52w_range"] is not None else None,

@@ -35,10 +35,19 @@ export interface BuyListItem extends BuyListIdent {
   price: number | null;
   change_pct: number | null;
   price_word: PriceWordKey;
-  /** How far under our fair-price centre, in %. */
+  /** How far under its usual price (its own history), in %. */
   margin_pct: number | null;
+  /** Its usual price: the lower and higher of its own two measures (past
+   *  prices against its profit and its assets) and the weighted middle. */
   fair: { low: number; high: number; mid: number } | null;
+  /** The highest price at which it would join the list today. */
   buy_below: number | null;
+  /** On the list by its staying lines, but above the price it would join at. */
+  held?: boolean;
+  /** Missed one question at the last close; leaves if it misses again. */
+  grace?: BiText | null;
+  /** ৳ million that changes hands on a normal day (the middle day of 30). */
+  trading_mn?: number | null;
   why: BiText;
   profit: BiText & { tone: "good" | "neutral" | "watch" };
   facts: ForYouFact[];
@@ -50,7 +59,7 @@ export interface BuyListItem extends BuyListIdent {
 }
 
 export interface BuyListAlmost extends BuyListIdent {
-  question: 4 | 5 | 6;
+  question: 3 | 4 | 5 | 6;
   miss: BiText;
   fix: BiText & { date?: string | null };
 }
@@ -70,7 +79,18 @@ export interface BuyList {
     week_left: { code: string; name: string }[];
   };
   free_pick: string | null;
-  rules: { margin_pct: number; profit_pct: number; sector_cap: number; financial_cap: number; max_rows: number };
+  rules: {
+    margin_pct: number;
+    profit_pct: number;
+    quarter_pct?: number;
+    trade_lakh?: number;
+    bank_years?: number;
+    sector_cap: number;
+    financial_cap: number;
+    max_rows: number;
+  };
+  /** Served while DSE is trading: the list from the last close, today's prices. */
+  live_prices?: boolean;
 }
 
 /** One share on the dashboard's Buy List card. */
@@ -110,29 +130,29 @@ export const QUESTIONS: { title: BiText; line: BiText }[] = [
   {
     title: { en: "Is anything seriously wrong?", bn: "গুরুতর কোনো সমস্যা আছে কি?" },
     line: {
-      en: "It makes a profit, with no auditor, regulator or meeting warning in a year and no heavy loans. It isn't in category Z and trades enough to buy and sell.",
-      bn: "মুনাফায় আছে। এক বছরে নিরীক্ষক, নিয়ন্ত্রক বা সভা নিয়ে কোনো সতর্কতা নেই, ঋণও বেশি নয়। Z ক্যাটাগরিতে নয়, আর কেনাবেচার মতো যথেষ্ট লেনদেন হয়।",
+      en: "It makes a profit, with no auditor, regulator or meeting warning in a year and no heavy loans. It isn't in category Z, and at least ৳30 lakh of it changes hands on a normal day. A bank or finance company paid a cash dividend in each of its last 3 years.",
+      bn: "মুনাফায় আছে। এক বছরে নিরীক্ষক, নিয়ন্ত্রক বা সভা নিয়ে কোনো সতর্কতা নেই, ঋণও বেশি নয়। Z ক্যাটাগরিতে নয়, আর সাধারণ একটি দিনে অন্তত 30 লাখ টাকার লেনদেন হয়। ব্যাংক বা আর্থিক প্রতিষ্ঠান হলে গত 3 বছরের প্রতি বছর নগদ ডিভিডেন্ড দিয়েছে।",
     },
   },
   {
-    title: { en: "Is the price well under what it is worth?", bn: "দাম কি ন্যায্য দামের চেয়ে বেশ কম?" },
+    title: { en: "Is the price well under its usual price?", bn: "দাম কি এর স্বাভাবিক দামের চেয়ে বেশ কম?" },
     line: {
-      en: "At least 10% under our fair price, and our ways of working out that price agree.",
-      bn: "আমাদের ন্যায্য দামের চেয়ে অন্তত 10% কম, আর সেই দাম হিসাবের আমাদের পদ্ধতিগুলো একমত।",
+      en: "Its usual price comes from its own past: what it has traded at for its profit, and for what it owns. Today's price is at least 10% under it, and under both of the two.",
+      bn: "স্বাভাবিক দাম আসে এর নিজের অতীত থেকে: মুনাফার তুলনায় আর সম্পদের তুলনায় এটি কোন দামে কেনাবেচা হয়েছে। আজকের দাম তার চেয়ে অন্তত 10% কম, আর দুটির চেয়েই কম।",
     },
   },
   {
     title: { en: "Is the profit holding up?", bn: "মুনাফা কি টিকে আছে?" },
     line: {
-      en: "The latest results are not down more than 10% on the same months last year.",
-      bn: "সর্বশেষ আর্থিক ফলে মুনাফা আগের বছরের একই সময়ের চেয়ে 10%-এর বেশি কমেনি।",
+      en: "The latest results are not down more than 10% on the same months last year, and the latest quarter alone not more than 20%.",
+      bn: "সর্বশেষ আর্থিক ফলে মুনাফা আগের বছরের একই সময়ের চেয়ে 10%-এর বেশি কমেনি, আর শুধু সর্বশেষ প্রান্তিকে 20%-এর বেশি কমেনি।",
     },
   },
   {
     title: { en: "Has it passed on two closes in a row?", bn: "টানা দুই দিন পাস করেছে কি?" },
     line: {
-      en: "One good day isn't enough. It joins after passing at two closes in a row.",
-      bn: "এক দিনের ভালো দাম যথেষ্ট নয়। টানা দুই দিন বাজার বন্ধের পর পাস করলে তবেই তালিকায় আসে।",
+      en: "One good day isn't enough. It joins after passing at two closes in a row. A share on the list that misses on its price or trading gets one more close before it leaves; a serious problem takes it off at once.",
+      bn: "এক দিনের ভালো দাম যথেষ্ট নয়। টানা দুই দিন বাজার বন্ধের পর পাস করলে তবেই তালিকায় আসে। তালিকার কোনো শেয়ার দাম বা লেনদেনের কারণে আটকালে বাদ পড়ার আগে আরও এক দিন সময় পায়; গুরুতর সমস্যা হলে সঙ্গে সঙ্গে বাদ।",
     },
   },
 ];
@@ -142,4 +162,11 @@ export function cashWords(v: number | null | undefined): string {
   if (v == null || !Number.isFinite(v)) return "";
   if (v >= 10) return `৳${Number.isInteger(v) ? v : v.toFixed(2)}`;
   return `৳${v.toFixed(2)}`;
+}
+
+/** ৳ million → "৳22 lakh" / "৳1.2 crore" (and the Bengali "22 লাখ টাকা"). */
+export function tradeWords(mn: number): { en: string; bn: string } {
+  if (mn >= 10) return { en: `৳${(mn / 10).toFixed(1)} crore`, bn: `${(mn / 10).toFixed(1)} কোটি টাকা` };
+  const lakh = Math.max(1, Math.round(mn * 10));
+  return { en: `৳${lakh} lakh`, bn: `${lakh} লাখ টাকা` };
 }

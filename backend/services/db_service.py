@@ -2,6 +2,7 @@
 MongoDB query helpers — cached loaders for FastAPI routes.
 All functions return plain Python dicts/lists (JSON-serialisable).
 """
+import logging
 import threading
 import time
 from collections import OrderedDict
@@ -429,10 +430,59 @@ def load_corporate_actions(days: int = 400) -> dict[str, list[dict]]:
     return out
 
 
+@_ttl_cache(900, prices=True)
+def load_settled_actions(days: int = 400) -> dict[str, list[dict]]:
+    """``load_corporate_actions`` without the record dates the share hasn't
+    traded after yet — what price ranges, charts and returns adjust with. The
+    portfolio keeps the raw list (it shows an action as waiting for its trade)."""
+    acts = load_corporate_actions(days)
+    return _only_traded_since(acts, _last_trades(acts, datetime.utcnow().strftime("%Y-%m-%d")))
+
+
+# How far back a record date is checked for a trade after it. Older ones are
+# kept as they are (a share suspended for months keeps its old adjustment).
+ACTION_TRADE_CHECK_DAYS = 60
+
+
+def _last_trades(actions: dict[str, list[dict]], today: str) -> dict[str, str]:
+    """{code: its newest day with a trade} for codes with a record date in the
+    last ACTION_TRADE_CHECK_DAYS days — one small aggregation."""
+    since = (datetime.strptime(today, "%Y-%m-%d") - timedelta(days=ACTION_TRADE_CHECK_DAYS)).strftime("%Y-%m-%d")
+    recent = [c for c, acts in actions.items() if any(a["record_date"] >= since for a in acts)]
+    if not recent:
+        return {}
+    try:
+        agg = get_db().stock_prices.aggregate([
+            {"$match": {"trading_code": {"$in": recent}, "date": {"$gte": since}, "ltp": {"$gt": 0}}},
+            {"$group": {"_id": "$trading_code", "last": {"$max": "$date"}}},
+        ])
+        return {d["_id"]: str(d.get("last") or "")[:10] for d in agg}
+    except Exception:  # noqa: BLE001 — the actions then apply as before
+        logging.getLogger(__name__).exception("corporate actions: last trades failed")
+        return {}
+
+
+def _only_traded_since(actions: dict[str, list[dict]], last_trade: dict[str, str],
+                       today: Optional[str] = None) -> dict[str, list[dict]]:
+    """Drop a record date the share hasn't traded after yet. DSE halts trading
+    on the record date, so until the next trade the last price still carries
+    the dividend and bonus: adjusting the year's prices on that day moved the
+    yearly high under the price (SQURPHARMA read 102% of its range on its
+    16 Nov 2026 record date, lost its Buy and left the Buy List for a day).
+    Only codes in ``last_trade`` are checked (the recent record dates). Pure."""
+    out: dict[str, list[dict]] = {}
+    for code, acts in actions.items():
+        last = last_trade.get(code)
+        kept = [a for a in acts if last is None or a["record_date"] < last]
+        if kept:
+            out[code] = kept
+    return out
+
+
 def adjusted_52w_ranges(since: str, until: Optional[str] = None) -> dict[str, dict]:
     """{code: {"hi", "lo"}} on adjusted official closes, only for codes with a
     record date between `since` and `until` (the codes whose raw range is wrong)."""
-    acts = load_corporate_actions()
+    acts = load_settled_actions()
     codes = [c for c, a in acts.items()
              if any(x["record_date"] >= since and (until is None or x["record_date"] <= until) for x in a)]
     if not codes:

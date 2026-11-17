@@ -286,3 +286,13 @@
   background: rgb(var(--gold-rgb) / 0.1); font-size: var(--fs-sm); line-height: 1.5; color: var(--text);
 }
 @media (min-width: 640px) { .fbl-note { padding-inline: calc(var(--space-4) + var(--space-1)); } }
+
+/* 2026-11-18: a share kept by its staying lines or on grace says why, and a
+   dividend "At risk" reads in red. */
+.bl-note-line {
+  padding: 10px var(--space-3); border-radius: var(--radius); background: var(--surface-2);
+  font-size: var(--fs-sm); line-height: 1.5; color: var(--text);
+}
+.bl-note-line--watch { background: rgb(var(--watch-rgb) / 0.09); }
+.bl-watch--red { background: rgb(var(--negative-rgb) / 0.08); }
+.bl-watch--red .bl-watch-ic { background: var(--negative); }

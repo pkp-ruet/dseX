@@ -137,7 +137,7 @@ export function AlsoPassed({ data }: { data: BuyList }) {
               </Link>{" "}
               ({a.code}).
             </b>{" "}
-            <T en={`${a.margin_pct}% under our fair price. ${a.why.en}`} bn={`ন্যায্য দামের চেয়ে ${a.margin_pct}% কম। ${a.why.bn}`} />
+            <T en={`${a.margin_pct}% under its usual price. ${a.why.en}`} bn={`স্বাভাবিক দামের চেয়ে ${a.margin_pct}% কম। ${a.why.bn}`} />
           </span>
         </p>
       ))}

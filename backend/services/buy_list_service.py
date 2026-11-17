@@ -4,15 +4,20 @@ Buy List — the data side of ``buy_list.py`` (the rules).
 ``build()`` runs the six questions on the recommendation engine's pool
 (``recommend_service.pool()`` = questions 2 and 3 already answered), against
 the newest stored day before today (``buy_list_snapshots``: who was on the
-list, who passed, since when), and adds what each share's case shows: our
-buy-under price, the fair-price range, the next results and dividend dates,
-its one thing to watch. Cached 900s; cleared with every cache by the scores
-refresh.
+list, who passed, who is on grace, since when), and adds what each share's
+case shows: the price it would join under, its usual price, the next results
+and dividend dates, its one thing to watch. Cached 900s; cleared with every
+cache by the scores refresh.
+
+While DSE is trading (today's prices are in but the official close isn't),
+``build()`` serves the list stored at the last close with today's prices
+laid over it (2026-11-18): the page says "checked after the close", and the
+list was being re-worked every 15 minutes on half-day prices.
 
 ``store_snapshot()`` writes one row per trading day (unique ``date``) from
-compute-scores and scrape-all, after the stock-report and signal snapshots.
-No backfill: on the first day question 6 reads the previous signal day's
-Buys, and every share's "since" is that day.
+compute-scores and scrape-all, after the stock-report and signal snapshots,
+with the page's payload. No backfill: on the first day question 6 reads the
+previous signal day's Buys, and every share's "since" is that day.
 """
 from __future__ import annotations
 
@@ -31,6 +36,11 @@ COLLECTION = "buy_list_snapshots"
 
 _MONTHS = {"q1": 3, "q2": 6, "q3": 9, "annual": 12}
 
+# Today counts as "still trading" until this many shares traded and this
+# share of them carry DSE's official close (main._close_is_final's lines).
+CLOSE_MIN_TRADED = 200
+CLOSE_MIN_SHARE = 0.9
+
 
 def _today() -> str:
     from utils.market_hours import bst_today_iso
@@ -43,7 +53,7 @@ def _col():
 
 def _prev_snapshot(before: str) -> Optional[dict]:
     try:
-        return _col().find_one({"date": {"$lt": before}}, {"_id": 0}, sort=[("date", -1)])
+        return _col().find_one({"date": {"$lt": before}}, {"_id": 0, "payload": 0}, sort=[("date", -1)])
     except Exception:  # noqa: BLE001 — the list then starts fresh, question 6 on the signal days
         logger.exception("buy list: previous snapshot failed")
         return None
@@ -85,7 +95,7 @@ def _score_rows(codes: list[str]) -> dict[str, dict]:
     return out
 
 
-def _buy_below(c: dict, row: Optional[dict]) -> Optional[float]:
+def _signal_buy_price(c: dict, row: Optional[dict]) -> Optional[float]:
     """The stock page's buy price: the highest price at which the Buy rule
     still holds, never above the near-the-top line."""
     if not row:
@@ -97,9 +107,31 @@ def _buy_below(c: dict, row: Optional[dict]) -> Optional[float]:
 
         near = stop_line(c.get("hi52"), c.get("lo52"), NEAR_HIGH_PCT)
         return buy_price_for(row, rc._n(c.get("ltp")), near)
-    except Exception:  # noqa: BLE001 — the case then shows no buy-under line
+    except Exception:  # noqa: BLE001 — the line then comes from the usual price alone
         logger.warning("buy list: buy price failed for %s", c.get("code"), exc_info=True)
         return None
+
+
+def _add_cash_years(cands: list[dict]) -> None:
+    """Each bank's / finance company's last ``BANK_CASH_YEARS`` years of cash
+    dividends ([[year, cash %], …], the years we have a record of), on the
+    candidate (question 3)."""
+    lenders = [c for c in cands if (c.get("sector_class") or "") in bl._LENDERS]
+    if not lenders:
+        return
+    try:
+        from backend.services.research_reports_service import _dividend_years
+        years = _dividend_years()
+    except Exception:  # noqa: BLE001 — unknown years never count against a share
+        logger.exception("buy list: dividend years failed")
+        return
+    for c in lenders:
+        last = rc._n(c.get("last_reported_year"))
+        recs = years.get(c["code"]) or {}
+        if last is None or not recs:
+            continue
+        span = range(int(last), int(last) - bl.BANK_CASH_YEARS, -1)
+        c["cash_years"] = [[y, (recs[y] or {}).get("cash_pct")] for y in span if y in recs]
 
 
 def _meetings(codes: set[str]) -> dict[str, dict]:
@@ -151,11 +183,12 @@ def _next(code: str, meetings: dict, records: dict, today: str) -> list[dict]:
 
 
 def _fair(c: dict) -> Optional[dict]:
-    fv = c.get("fair_value") or {}
-    lo, hi, mid = rc._n(fv.get("low")), rc._n(fv.get("high")), bl.fair_mid(c)
-    if lo is None or hi is None or mid is None or lo <= 0 or hi < lo:
+    """Its usual price as the case's range: the lower and higher of its own
+    two measures, and the weighted middle."""
+    u = bl.usual_price(c)
+    if not u:
         return None
-    return {"low": round(lo, 1), "high": round(hi, 1), "mid": round(mid, 1)}
+    return {"low": bl.round_price(u["low"]), "high": bl.round_price(u["high"]), "mid": bl.round_price(u["mid"])}
 
 
 def _ident(c: dict) -> dict:
@@ -164,26 +197,48 @@ def _ident(c: dict) -> dict:
             "group": rc._pt(*rc.group_words(c)), "tier": tier_key(rc._n(c.get("score")))}
 
 
+def _watch(c: dict) -> Optional[dict]:
+    """Its one thing to watch: the stock report's first, unless its dividend
+    isn't "Looks steady" — an "At risk" dividend always leads, a "Worth a
+    check" one fills an empty spot."""
+    watch = c.get("risk") or None
+    dw = bl.dividend_watch(c)
+    if dw and (dw["level"] == "red" or not watch):
+        more = ((watch.get("more") or 0) + 1) if watch else 0
+        return {"en": dw["en"], "bn": dw["bn"], "level": dw["level"], "more": more}
+    return watch
+
+
 def _item(c: dict, rank: int, since: dict, was: set[str], fresh: bool, rows: dict,
           meetings: dict, records: dict, today: str) -> dict:
     m = bl.margin_pct(c)
+    px = rc._n(c.get("ltp"))
+    buy = bl.join_price(c, _signal_buy_price(c, rows.get(c["code"])))
+    trade = bl.trading_mn(c)
     return {
         **_ident(c),
         "rank": rank,
-        "price": rc._n(c.get("ltp")), "change_pct": rc._n(c.get("change_pct")),
+        "price": px, "change_pct": rc._n(c.get("change_pct")),
         "price_word": rc.pick_price_word(c),
         "margin_pct": round(m) if m is not None else None,
         "fair": _fair(c),
-        "buy_below": _buy_below(c, rows.get(c["code"])),
+        "buy_below": buy,
+        # On the list by its staying lines, but above the price it would join at.
+        "held": bool(buy and px and px > buy),
+        "grace": bl.grace_line(c.get("grace")),
+        "trading_mn": round(trade, 1) if trade is not None else None,
         "why": bl.why_line(c),
         "profit": bl.profit_chip(c),
         "facts": rc.case_rows(c),
-        "watch": c.get("risk") or None,
+        "watch": _watch(c),
         "next": _next(c["code"], meetings, records, today),
         "since": since.get(c["code"]),
         "new": fresh and c["code"] not in was,
         "conviction": rc._n(c.get("conviction")),
     }
+
+
+_ALMOST_KEYS = {"trading", "value", "profit", "quarter"}
 
 
 def _compute() -> tuple[dict, dict]:
@@ -194,31 +249,52 @@ def _compute() -> tuple[dict, dict]:
     as_of = p.get("as_of") or _today()
     as_of = str(as_of)[:10]
     today = _today()
-    cands, facts = p.get("cands") or [], p.get("facts") or {}
+    # Copies: the pool is a shared cache, and the list adds its own fields.
+    cands = [dict(c) for c in p.get("cands") or []]
+    facts = p.get("facts") or {}
 
     prev = _prev_snapshot(as_of)
     was = set((prev or {}).get("members") or [])
+    prev_grace = set((prev or {}).get("grace") or [])
+
+    # Yesterday's members that left the engine's pool: one that only lost its
+    # Buy on the price or trading gets a second close (``soft_fail``); the
+    # rest are kept for the line that says why they left.
+    pool_codes = {c["code"] for c in cands}
+    outside: dict[str, dict] = {}
+    missing = sorted(was - pool_codes)
+    if missing:
+        try:
+            outside = rs.candidates(missing)
+        except Exception:  # noqa: BLE001 — they then just leave, as before
+            logger.exception("buy list: members outside the pool failed")
+    for code, c in outside.items():
+        if bl.soft_signal_miss(c.get("failed") or [], c.get("reason_key")):
+            cands.append({**c, "soft_fail": True})
+    _add_cash_years(cands)
+
     res = bl.choose(cands, was, (prev or {}).get("passed") if prev else None,
-                    () if prev else _prev_buys(as_of))
+                    () if prev else _prev_buys(as_of), prev_grace)
     members = res["members"]
     codes = [c["code"] for c in members]
     since = bl.since_map(codes, was, (prev or {}).get("since"), as_of)
 
-    # Almost made it: gate passers that missed question 4 or 5, and those
-    # that passed for the first time today (question 6).
-    passed = set(res["passed"])
+    # Almost made it: gate passers (not on the list) that missed exactly one
+    # part of questions 3–5, and those that passed for the first time today
+    # (question 6).
+    passed = set(res["passed"]) | set(codes)
     almost_src = []
     for c in cands:
-        if c["code"] in passed:
+        if c["code"] in passed or c.get("soft_fail"):
             continue
-        q = bl.first_miss(c, c["code"] in was)
-        if q in (4, 5):
-            almost_src.append((c, q))
-    almost_src += [(c, 6) for c in res["unsettled"]]
+        keys = bl.miss_keys(c, c["code"] in was)
+        if len(keys) == 1 and keys[0] in _ALMOST_KEYS:
+            almost_src.append((c, bl.MISS_QUESTION[keys[0]], keys[0]))
+    almost_src += [(c, 6, None) for c in res["unsettled"]]
     almost_src.sort(key=lambda t: bl._order(t[0]))
     almost_src = almost_src[:bl.ALMOST_ROWS]
 
-    need = set(codes) | {c["code"] for c, q in almost_src if q == 5}
+    need = set(codes) | {c["code"] for c, q, _k in almost_src if q == 5}
     meetings = _meetings(need)
     records = _record_dates(set(codes), today)
     rows = _score_rows(codes)
@@ -226,8 +302,8 @@ def _compute() -> tuple[dict, dict]:
     items = [_item(c, i + 1, since, was, prev is not None, rows, meetings, records, today)
              for i, c in enumerate(members)]
     almost = []
-    for c, q in almost_src:
-        row = bl.almost_row(c, q, meetings.get(c["code"]))
+    for c, q, key in almost_src:
+        row = bl.almost_row(c, q, meetings.get(c["code"]), key)
         if row:
             almost.append({**_ident(c), **row})
     also = [{**_ident(c), "margin_pct": round(bl.margin_pct(c) or 0), "why": bl.also_line(c)}
@@ -237,11 +313,21 @@ def _compute() -> tuple[dict, dict]:
     by_code = {c["code"]: c for c in cands}
     left = []
     for code in sorted(was - set(codes)):
-        c = by_code.get(code)
         f = facts.get(code) or {}
-        q = bl.first_miss(c, True) if c else None
         sig = {"en": f.get("reason_en"), "bn": f.get("reason_bn")} if f.get("signal") != "buy" else None
-        left.append({"code": code, "name": f.get("name") or code, "reason": bl.left_reason(c, q, sig)})
+        if code not in by_code and code in outside:
+            # Left the engine's pool on a warning, a loss, loans, the grade …
+            o = outside[code]
+            sig = {"en": o.get("reason_en"), "bn": o.get("reason_bn")} if "buy" in (o.get("failed") or []) else None
+            reason = bl.left_reason(None, None, sig, [k for k in o.get("failed") or [] if k != "buy"])
+        else:
+            c = by_code.get(code)
+            keys = bl.miss_keys(c, True) if c else []
+            key = keys[0] if keys else None
+            if c is not None and c.get("soft_fail"):
+                sig = {"en": c.get("reason_en"), "bn": c.get("reason_bn")}
+            reason = bl.left_reason(c, key, sig, None, second=code in prev_grace and key in bl.SOFT_MISSES)
+        left.append({"code": code, "name": f.get("name") or code, "reason": reason})
     start = bl.week_start(as_of)
     week_left = sorted(_week_members(start, as_of) - set(codes))
     week_joined = [c for c in codes if (since.get(c) or "") >= start]
@@ -263,17 +349,72 @@ def _compute() -> tuple[dict, dict]:
         "free_pick": bl.free_pick(codes, as_of),
         "rules": {
             "margin_pct": bl.MARGIN_JOIN_PCT, "profit_pct": abs(bl.PROFIT_JOIN_PCT),
+            "quarter_pct": abs(bl.QUARTER_JOIN_PCT), "trade_lakh": round(bl.TRADE_JOIN_MN * 10),
+            "bank_years": bl.BANK_CASH_YEARS,
             "sector_cap": bl.SECTOR_CAP, "financial_cap": bl.FINANCIAL_CAP, "max_rows": bl.MAX_ROWS,
         },
     }
     state = {"date": as_of, "members": codes, "passed": res["passed"], "since": since,
-             "also": [c["code"] for c in res["also"]]}
+             "also": [c["code"] for c in res["also"]], "grace": res["grace"]}
     return payload, state
+
+
+# ---------------------------------------------------------------------------
+# While DSE is trading: the list from the last close, today's prices
+# ---------------------------------------------------------------------------
+
+def close_pending(prices: dict, today: str) -> bool:
+    """True while today's prices are in but DSE's official close isn't (the
+    after-close jobs' own test, ``main._close_is_final``). False on a day
+    with no prices for today (a holiday, the evening before a trading day).
+    Pure."""
+    traded = [p for p in prices.values()
+              if str(p.get("date") or "")[:10] == today and (p.get("ltp") or 0) > 0]
+    if not traded:
+        return False
+    closed = sum(1 for p in traded if (p.get("close_price") or 0) > 0)
+    return not (len(traded) >= CLOSE_MIN_TRADED and closed >= CLOSE_MIN_SHARE * len(traded))
+
+
+def with_prices(payload: dict, prices: dict) -> dict:
+    """The stored payload with each share's price, today's move, the gap to
+    its usual price and "held" brought up to the latest prices. Pure."""
+    for it in payload.get("items") or []:
+        p = prices.get(it.get("code")) or {}
+        px = rc._n(p.get("ltp"))
+        if not px or px <= 0:
+            continue
+        it["price"], it["change_pct"] = px, rc._n(p.get("change_pct"))
+        mid = rc._n((it.get("fair") or {}).get("mid"))
+        if mid and mid > 0:
+            it["margin_pct"] = round((1 - px / mid) * 100)
+        buy = rc._n(it.get("buy_below"))
+        it["held"] = bool(buy and px > buy)
+    payload["live_prices"] = True
+    return payload
+
+
+def _stored_while_trading() -> Optional[dict]:
+    from backend.services.db_service import load_latest_prices
+
+    try:
+        prices = load_latest_prices()
+        today = _today()
+        if not close_pending(prices, today):
+            return None
+        snap = _col().find_one({"date": {"$lt": today}, "payload": {"$exists": True}},
+                               {"_id": 0, "payload": 1}, sort=[("date", -1)])
+    except Exception:  # noqa: BLE001 — then the list is worked out as before
+        logger.exception("buy list: stored list failed")
+        return None
+    if not snap or not snap.get("payload"):
+        return None
+    return with_prices(snap["payload"], prices)
 
 
 @_ttl_cache(900, max_entries=2)
 def build() -> dict:
-    return _compute()[0]
+    return _stored_while_trading() or _compute()[0]
 
 
 _HOME_FIELDS = ("rank", "code", "name", "sector", "sector_bn", "price", "change_pct", "margin_pct",
@@ -305,10 +446,12 @@ def home_summary() -> dict:
 
 def store_snapshot() -> dict:
     """Upsert today's list (members in order, every code that passed 1–5,
-    since dates). Idempotent per day."""
-    _payload, state = _compute()
+    who is on grace, since dates, and the page's payload, which the page
+    serves while the next day is trading). Idempotent per day."""
+    payload, state = _compute()
     col = _col()
     col.create_index("date", unique=True)
     col.update_one({"date": state["date"]},
-                   {"$set": {**state, "created_at": datetime.now(timezone.utc)}}, upsert=True)
-    return {"date": state["date"], "members": len(state["members"]), "passed": len(state["passed"])}
+                   {"$set": {**state, "payload": payload, "created_at": datetime.now(timezone.utc)}}, upsert=True)
+    return {"date": state["date"], "members": len(state["members"]), "passed": len(state["passed"]),
+            "grace": len(state["grace"])}

@@ -20,7 +20,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com
 const URL = `${BASE_URL}${BUY_LIST_PATH}`;
 const TITLE = "Buy List: the best DSE shares to buy today";
 const DESCRIPTION =
-  "The few Dhaka Stock Exchange shares we would buy today: strong companies, priced well under what we think they are worth, with nothing seriously wrong. Checked after every close.";
+  "The few Dhaka Stock Exchange shares we would buy today: strong companies, priced well under their usual price, with nothing seriously wrong. Checked after every close.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -81,8 +81,8 @@ export default async function BuyListPage() {
         title={<T en="Today's Buy List" bn="আজকের কেনার তালিকা" />}
         lead={
           <T
-            en="The DSE shares we would buy today. Strong companies, priced well under what we think they are worth, with nothing seriously wrong."
-            bn="আজ যে শেয়ারগুলো আমরা কেনার মতো মনে করি। কোম্পানি শক্তিশালী, দাম আমাদের হিসাবের ন্যায্য দামের চেয়ে বেশ কম, আর গুরুতর কোনো সমস্যা নেই।"
+            en="The DSE shares we would buy today. Strong companies, priced well under their usual price, with nothing seriously wrong."
+            bn="আজ যে শেয়ারগুলো আমরা কেনার মতো মনে করি। কোম্পানি শক্তিশালী, দাম এর স্বাভাবিক দামের চেয়ে বেশ কম, আর গুরুতর কোনো সমস্যা নেই।"
           />
         }
       />

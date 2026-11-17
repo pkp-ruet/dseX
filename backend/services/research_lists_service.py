@@ -87,6 +87,7 @@ def facts_from(row: dict, comp: dict, price: dict, rng: dict, mom: dict,
         "change_pct": _n(price.get("change_pct")),
         "total_loan_mn": _n(comp.get("total_loan_mn")),
         "turnover_mn": _n(mom.get("avg_turnover_7d_mn")),
+        "turnover_med30_mn": _n(mom.get("med_turnover_30d_mn")),
         "paid_years": _PAID_YEARS.get(_n(f.get("p5_consist")) or 0.0),
     })
     # Cash a year on ৳10,000: the whole shares ৳10,000 buys × the year's cash a
@@ -217,4 +218,8 @@ def _fair_value(code: str) -> Optional[dict]:
         return None
     if not fv:
         return None
-    return {k: fv.get(k) for k in ("low", "high", "center", "today", "stance", "estimates_disagree")}
+    out = {k: fv.get(k) for k in ("low", "high", "center", "today", "stance", "estimates_disagree")}
+    # Each method's price (the Buy List works out "its usual price" from the
+    # company's own-history ones).
+    out["methods"] = {m["name"]: m.get("price") for m in fv.get("methods") or [] if m.get("name")}
+    return out

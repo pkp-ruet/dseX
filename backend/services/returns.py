@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
-from backend.services.db_service import CLOSE_EXPR, adjustment_factor_fn, load_corporate_actions
+from backend.services.db_service import CLOSE_EXPR, adjustment_factor_fn, load_settled_actions
 
 
 def one_year_returns(db, prices: dict) -> dict[str, float]:
@@ -27,7 +27,7 @@ def one_year_returns(db, prices: dict) -> dict[str, float]:
     ]):
         if d.get("close"):
             then[d["_id"]] = (str(d["date"])[:10], float(d["close"]))
-    actions = load_corporate_actions(days=400)
+    actions = load_settled_actions(days=400)
     out: dict[str, float] = {}
     for code, (day, close) in then.items():
         now = (prices.get(code) or {}).get("ltp")

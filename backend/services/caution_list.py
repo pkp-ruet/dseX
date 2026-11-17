@@ -101,7 +101,7 @@ def caution_list() -> dict:
     red first. Cached 900s."""
     from backend.services import stock_report as sr
     from backend.services.db_service import (
-        load_companies, load_company_news, load_corporate_actions, load_shareholdings,
+        load_companies, load_company_news, load_settled_actions, load_shareholdings,
     )
     from backend.services.notices import parse_query_response
 
@@ -112,7 +112,7 @@ def caution_list() -> dict:
     latest = max(r[-1][0] for r in (sorted(v) for v in rows.values()) if r)
     latest_d = _as_date(latest)
     companies = {c["trading_code"]: c for c in load_companies() if not c.get("is_mutual_fund")}
-    actions = load_corporate_actions(WINDOW_DAYS + 30)
+    actions = load_settled_actions(WINDOW_DAYS + 30)
 
     try:
         from backend.services.scoring_service import build_scores_df

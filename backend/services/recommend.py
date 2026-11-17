@@ -97,8 +97,21 @@ def _buy(f, ctx):
     return False, "Not at a good price today", "আজ দাম সুবিধার নয়"
 
 
+def completeness(f: dict) -> Optional[float]:
+    """How much of the figures we grade on are there (0–1). An insurer has no
+    usable sales line, so its business-strength part is not counted, the same
+    way the grade's thin-data rule reads it (scoring_service, DT6). Raw, every
+    insurer sat near 49% and none could pass the 60% check (2026-11-18: three
+    Buys, PEOPLESINS among them, stopped here)."""
+    if (f.get("sector_class") or "") == "INSURANCE":
+        p1, p2 = _n(f.get("p1_coverage")), _n(f.get("p2_coverage"))
+        if p1 is not None and p2 is not None:
+            return round((0.30 * p1 + 0.20 * p2) / 0.50, 3)
+    return _n(f.get("data_completeness"))
+
+
 def _enough_data(f, ctx):
-    dc = _n(f.get("data_completeness"))
+    dc = completeness(f)
     if dc is None:
         return False, "Too few figures to trust the grade", "গ্রেডে ভরসা করার মতো যথেষ্ট তথ্য নেই"
     pct = _r(dc * 100, 0)
@@ -181,7 +194,7 @@ def conviction(f: dict, levels: Optional[dict] = None, explore: bool = False) ->
         total = 45 * quality + 20 * price + 12 * profit + 8 * room + 15 * safety
         if f.get("strength") == "strong":
             total += 3
-    dc = _n(f.get("data_completeness"))
+    dc = completeness(f)
     if dc is not None and dc < 0.8:
         total -= 3
     nocf = _n(f.get("interim_nocfps"))

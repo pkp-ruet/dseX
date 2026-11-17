@@ -13,17 +13,23 @@ import { sectorBn } from "@/lib/bn";
 import { trackEvent } from "@/lib/track";
 import type { BuyListItem } from "@/lib/buy-list";
 
-/** The row's one-line summary: how far under our fair price, the company's
- *  group, the price word, profit, warnings and the nearest date. */
+/** The row's one-line summary: how far under its usual price, the company's
+ *  group, the price word, profit, warnings and the nearest date. A share on
+ *  grace says so first. */
 function Meta({ item }: { item: BuyListItem }) {
   const pw = PRICE_WORDS[item.price_word];
   const more = item.watch ? 1 + (item.watch.more ?? 0) : 0;
   const first = item.next[0];
   return (
     <>
-      {item.margin_pct != null && (
+      {item.grace && (
+        <span className="bl-chip bl-chip--watch">
+          <T en="Missed at the last close" bn="শেষ দিনে আটকেছে" />
+        </span>
+      )}
+      {item.margin_pct != null && item.margin_pct > 0 && (
         <span className="bl-gap nums">
-          <T en={`${item.margin_pct}% under our fair price`} bn={`ন্যায্য দামের চেয়ে ${item.margin_pct}% কম`} />
+          <T en={`${item.margin_pct}% under its usual price`} bn={`স্বাভাবিক দামের চেয়ে ${item.margin_pct}% কম`} />
         </span>
       )}
       <span className="bl-chip">

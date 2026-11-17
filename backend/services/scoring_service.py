@@ -2071,6 +2071,10 @@ def _compute_scores_df(
             "interim_eps_cum_prev": (ifacts or {}).get("eps_cum_prev"),
             "interim_eps_yoy_pct":  (ifacts or {}).get("eps_cum_yoy_pct"),
             "interim_q_yoy_pct":    (ifacts or {}).get("eps_q_yoy_pct"),
+            # The latest quarter alone, this year and last (the Buy List reads the
+            # change only when last year's quarter was big enough to compare).
+            "interim_eps_q":        (ifacts or {}).get("eps_q"),
+            "interim_eps_q_prev":   (ifacts or {}).get("eps_q_prev"),
             "interim_nocfps":       (ifacts or {}).get("nocfps_cum"),
             "interim_nocfps_prev":  (ifacts or {}).get("nocfps_cum_prev"),
             "interim_nav":          (ifacts or {}).get("nav"),

@@ -6,7 +6,7 @@ from backend.services.db_service import (
     load_financials, load_extended_financials, load_shareholdings,
     load_company_news, load_dividend_declarations, load_all_company_codes,
     compute_52w_range, compute_signal_flags, load_news_for_codes,
-    load_market_news, load_corporate_actions, adjust_price_rows,
+    load_market_news, load_settled_actions, adjust_price_rows,
 )
 from backend.services.stock_facts import (
     ownership_baseline,
@@ -91,7 +91,7 @@ def get_company_detail(code: str):
     price_history = load_price_history(trading_code)
     # 52-week range on prices adjusted for dividend / bonus record dates.
     w52_high, w52_low = compute_52w_range(
-        adjust_price_rows(price_history, load_corporate_actions().get(trading_code, [])))
+        adjust_price_rows(price_history, load_settled_actions().get(trading_code, [])))
 
     financials = load_financials(trading_code)
     ext_financials = load_extended_financials(trading_code)

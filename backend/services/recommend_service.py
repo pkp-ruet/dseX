@@ -73,7 +73,6 @@ def _build_pool(explore: bool) -> dict:
     from backend.services.research_lists_service import _as_of, _ctx, _fair_value, _risk, report_snapshots
     from backend.services.signal_service import build_signals
     from backend.services.tiers import tier_key
-    from utils.sector import sector_bn as _sector_bn
 
     facts = signal_facts()
     # Each company's strongest choice on the screener's six questions.
@@ -101,12 +100,7 @@ def _build_pool(explore: bool) -> dict:
 
     cands = []
     for f, (risk, fair) in zip(run["passed"], extras):
-        sig = sigs.get(f["code"]) or {}
-        c = {**f, "strength": sig.get("strength"), "reason_key": sig.get("reason_key"),
-             "reason_en": sig.get("reason_en"), "reason_bn": sig.get("reason_bn"),
-             "sector_bn": _sector_bn(f.get("sector")) or f.get("sector")}
-        c["conviction"] = rc.conviction(c, levels.get(f["code"]), explore)
-        c["risk"], c["fair_value"] = risk, fair
+        c = _candidate(f, sigs.get(f["code"]) or {}, levels.get(f["code"]), explore, risk, fair)
         # Each check it passed, with its own figure (the page's "Passed all 5
         # checks" fold). The governance news is already cached from the gate.
         try:
@@ -122,6 +116,50 @@ def _build_pool(explore: bool) -> dict:
         as_of = None
     return {"as_of": as_of, "funnel": rc.funnel_summary(run), "cands": cands,
             "facts": facts, "levels": levels}
+
+
+def _candidate(f: dict, sig: dict, levels: Optional[dict], explore: bool,
+               risk: Optional[dict], fair: Optional[dict]) -> dict:
+    """One company as the pool carries it: its facts, the signal's strength
+    and reason, conviction, its one watch-out and the fair-value range."""
+    from utils.sector import sector_bn as _sector_bn
+
+    c = {**f, "strength": sig.get("strength"), "reason_key": sig.get("reason_key"),
+         "reason_en": sig.get("reason_en"), "reason_bn": sig.get("reason_bn"),
+         "sector_bn": _sector_bn(f.get("sector")) or f.get("sector")}
+    c["conviction"] = rc.conviction(c, levels, explore)
+    c["risk"], c["fair_value"] = risk, fair
+    return c
+
+
+def candidates(codes: list[str]) -> dict[str, dict]:
+    """{code: the pool's candidate dict} for these codes whether or not they
+    pass the buy gate, each with ``failed`` = the gate checks it fails. The
+    Buy List reads it for yesterday's members that left the pool (2026-11-18:
+    one that only lost its Buy on the price gets a second close)."""
+    from backend.services.research_lists_service import _ctx, _fair_value, _risk, report_snapshots
+    from backend.services.signal_service import build_signals
+
+    p = pool()
+    facts, levels = p.get("facts") or {}, p.get("levels") or {}
+    codes = [c for c in codes if c in facts]
+    if not codes:
+        return {}
+    try:
+        sigs = build_signals()
+    except Exception:  # noqa: BLE001
+        logger.exception("recommend: signals failed")
+        sigs = {}
+    ctx = _ctx()
+    snaps = report_snapshots(codes)
+    out = {}
+    for code in codes:
+        f = facts[code]
+        failed = [ch.key for ch in rc.GATE if not rl.run_check(ch, f, ctx)[0]]
+        c = _candidate(f, sigs.get(code) or {}, levels.get(code), False, _risk(f, snaps), _fair_value(code))
+        c["failed"] = failed
+        out[code] = c
+    return out
 
 
 # ---------------------------------------------------------------------------

@@ -4,12 +4,13 @@ import { DateTile } from "@/components/dividend-calendar/DateGroup";
 import { dayShort } from "@/components/dividend-calendar/dates";
 import { IconAlert, IconArrowRight, IconCheck } from "@/components/ui/icons";
 import { money } from "@/lib/formatters";
-import { cashWords, type BuyListItem, type BuyListNext } from "@/lib/buy-list";
+import { cashWords, tradeWords, type BuyListItem, type BuyListNext } from "@/lib/buy-list";
 
 const TONE: Record<string, string> = { good: "text-positive", neutral: "text-text-main", watch: "text-watch" };
 
-/** Today's price on a line against our fair-price range and our buy-under
- *  price. The key under it carries the figures, so nothing overlaps. */
+/** Today's price on a line against its usual price (its own past prices for
+ *  its profit and for what it owns) and the price it would join the list
+ *  under. The key under it carries the figures, so nothing overlaps. */
 function PriceBar({ item }: { item: BuyListItem }) {
   const { price, buy_below: buy, fair } = item;
   if (!fair || price == null) return null;
@@ -19,7 +20,7 @@ function PriceBar({ item }: { item: BuyListItem }) {
   return (
     <div className="bl-pp">
       <p className="bl-k">
-        <T en="Today's price against what we think it is worth" bn="আজকের দাম বনাম আমাদের হিসাবের মূল্য" />
+        <T en="Today's price against its usual price" bn="আজকের দাম বনাম এর স্বাভাবিক দাম" />
       </p>
       <div className="bl-pp-track" aria-hidden="true">
         <span className="bl-pp-line" />
@@ -40,7 +41,11 @@ function PriceBar({ item }: { item: BuyListItem }) {
           <li>
             <span className="bl-key bl-key--buy" aria-hidden="true" />
             <span>
-              <T en="Worth buying under" bn="এর নিচে কেনার মতো" />
+              {item.held ? (
+                <T en="A new buy is better under" bn="নতুন করে কিনতে হলে এর নিচে ভালো" />
+              ) : (
+                <T en="Worth buying under" bn="এর নিচে কেনার মতো" />
+              )}
             </span>
             <b className="nums">{money(buy)}</b>
           </li>
@@ -48,7 +53,7 @@ function PriceBar({ item }: { item: BuyListItem }) {
         <li>
           <span className="bl-key bl-key--fair" aria-hidden="true" />
           <span>
-            <T en="Our fair price" bn="আমাদের ন্যায্য দাম" />
+            <T en="Its usual price" bn="এর স্বাভাবিক দাম" />
           </span>
           <b className="nums">
             <T en={`${money(fair.low)} to ${money(fair.high)}`} bn={`${money(fair.low)} থেকে ${money(fair.high)}`} />
@@ -97,11 +102,13 @@ function NextRow({ n }: { n: BuyListNext }) {
 }
 
 /**
- * One share's case on the Buy List: why it is here, today's price against
- * our fair price and buy-under price, the same four facts as Picked for you,
- * the results and dividend dates coming up, one thing to watch, since when it
- * is on the list and a link to its full analysis. No hooks, so the free
- * reader's example and the Premium list share it.
+ * One share's case on the Buy List: why it is here (and, for a share kept by
+ * its staying lines or on grace, why it is still here), today's price against
+ * its usual price and the price it would join under, the same four facts as
+ * Picked for you, how much trades on a normal day, the results and dividend
+ * dates coming up, one thing to watch, since when it is on the list and a
+ * link to its full analysis. No hooks, so the free reader's example and the
+ * Premium list share it.
  */
 export default function BuyCase({ item }: { item: BuyListItem }) {
   const since = item.since ? dayShort(item.since, false) : null;
@@ -111,6 +118,21 @@ export default function BuyCase({ item }: { item: BuyListItem }) {
       <p className="bl-why">
         <T en={item.why.en} bn={item.why.bn} />
       </p>
+      {item.grace ? (
+        <p className="bl-note-line bl-note-line--watch">
+          <T en={item.grace.en} bn={item.grace.bn} />
+        </p>
+      ) : (
+        item.held &&
+        item.buy_below != null && (
+          <p className="bl-note-line">
+            <T
+              en={`Its price is above ${money(item.buy_below)}, the price it would join the list at today. It stays on the list while it is at least 5% under its usual price, but a new buy is better under ${money(item.buy_below)}.`}
+              bn={`এর দাম ${money(item.buy_below)}-এর বেশি, যে দামে আজ এটি তালিকায় আসত। স্বাভাবিক দামের চেয়ে অন্তত 5% কম থাকা পর্যন্ত তালিকায় থাকবে, তবে নতুন করে কিনতে হলে ${money(item.buy_below)}-এর নিচে কেনা ভালো।`}
+            />
+          </p>
+        )
+      )}
 
       <div className="bl-case-grid">
         <PriceBar item={item} />
@@ -135,6 +157,18 @@ export default function BuyCase({ item }: { item: BuyListItem }) {
         </dl>
       </div>
 
+      {item.trading_mn != null && (
+        <p className="bl-quiet">
+          <b>
+            <T en="Trading: " bn="লেনদেন: " />
+          </b>
+          <T
+            en={`about ${tradeWords(item.trading_mn).en} of it changes hands on a normal day.`}
+            bn={`সাধারণ একটি দিনে প্রায় ${tradeWords(item.trading_mn).bn}র লেনদেন হয়।`}
+          />
+        </p>
+      )}
+
       {item.next.length > 0 ? (
         <div>
           <p className="bl-k">
@@ -156,7 +190,7 @@ export default function BuyCase({ item }: { item: BuyListItem }) {
       )}
 
       {item.watch ? (
-        <div className="bl-watch">
+        <div className={`bl-watch${item.watch.level === "red" ? " bl-watch--red" : ""}`}>
           <span className="bl-watch-ic" aria-hidden="true">
             <IconAlert size={14} />
           </span>
