@@ -325,6 +325,14 @@
   font-size: var(--fs-2xs); font-weight: 700;
 }
 .hm-sl-inline { font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+/* A row with a second line (the results slide: share · day, then what to look for). */
+.hm-sl-two { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; min-width: 0; }
+/* "After the close": good / worth a look / bad, as a dot in the icon's place. */
+.hm-sl-lvl { flex: none; width: 16px; height: 20px; display: grid; place-items: center; color: var(--text); }
+.hm-sl-lvl::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.hm-sl-lvl--good { color: var(--positive); }
+.hm-sl-lvl--watch { color: var(--watch); }
+.hm-sl-lvl--bad { color: var(--negative); }
 .hm-sl-acts { margin-top: auto; padding-top: var(--space-1); display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); }
 .hm-sl-link {
   min-height: 40px; padding: 0 6px;

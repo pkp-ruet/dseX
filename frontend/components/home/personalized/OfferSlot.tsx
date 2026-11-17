@@ -9,18 +9,24 @@ import { usePremium } from "@/lib/premium";
 import {
   apiDismissOffer,
   apiPremiumBannerEvent,
+  type LatestResultRow,
   type MorningBrief,
   type PortfolioHolding,
   type PortfolioWatchEvent,
   type PremiumBannerAction,
   type ScoreItem,
+  type ScreenerSaved,
+  type UpcomingResult,
   type WeekWatch,
 } from "@/lib/api";
 import { portfolioGlance } from "@/lib/home-portfolio";
-import { AUTH_USER_UPDATED_EVENT, setStoredUser } from "@/lib/auth";
+import { AUTH_USER_UPDATED_EVENT, setStoredUser, type AuthUser } from "@/lib/auth";
 import { BUY_LIST_ANCHOR, type BuyListHome } from "@/lib/buy-list";
-import { OWN_OFFER_PLAN, PAID_PLANS } from "@/lib/premium-plans";
-import { REPORTS, reportStat, type ReportSlug, type ResearchSummary } from "@/lib/research-reports";
+import { WATCH_ANCHOR } from "@/lib/dash-stories";
+import { bstDateStr } from "@/lib/market-hours";
+import { OWN_OFFER_PLAN, PAID_PLANS, planByKey } from "@/lib/premium-plans";
+import { REPORTS, reportStat, type ResearchSummary } from "@/lib/research-reports";
+import { dayShort } from "@/components/dividend-calendar/dates";
 import { useInstallPrompt, showInstallBanner } from "@/lib/install";
 import {
   canShowPushPromptByHistory,
@@ -40,15 +46,21 @@ import {
   IconAlert,
   IconBell,
   IconBook,
+  IconBriefcase,
+  IconBulb,
+  IconCalendar,
   IconCap,
   IconCheck,
   IconChevronRight,
   IconClipboardCheck,
+  IconCompare,
   IconCrown,
   IconDownload,
   IconGift,
+  IconMoon,
   IconStar,
   IconSun,
+  IconTune,
 } from "@/components/ui/icons";
 
 type Bi = { en: string; bn: string };
@@ -90,8 +102,106 @@ const WATCH_WORDS: Record<PortfolioWatchEvent["kind"], { en: [string, string]; b
   breakeven: { en: ["share back to your price", "shares back to your price"], bn: "কেনা দামে ফেরা" },
 };
 
-/** The research report a Premium reader's slide shows: the first with today's figure. */
-const RESEARCH_ORDER: ReportSlug[] = ["results-season", "risk-register", "dividends-you-can-count-on"];
+// ── Premium slides (2026-11-18) ───────────────────────────────────────────
+/** A member sees at most this many slides. */
+const MAX_PREMIUM_SLIDES = 5;
+/** "After the close" leaves out our answer and the Buy List: those are
+ *  signals, which stay on the stock page and the portfolio (2026-11-01). */
+const AFTER_CLOSE_SKIP = new Set<PortfolioWatchEvent["kind"]>(["answer", "buylist"]);
+/** A close older than this many calendar days is no longer news (Thu → Sun). */
+const AFTER_CLOSE_DAYS = 3;
+/** "Results to look for": meetings on the reader's shares in the next week. */
+const RESULTS_DAYS = 7;
+/** "Get more from Premium" shows in a member's first month. */
+const NEW_MEMBER_DAYS = 30;
+/** The tips a member has tapped or skipped, per account. */
+const tipsKey = (uid: string) => `dsex.premiumTips.${uid}`;
+
+type TipId = "screen" | "reminder" | "compare" | "portfolio";
+/** One Premium tool a new member hasn't used yet, one at a time, in this order. */
+const TIPS: { id: TipId; Icon: typeof IconTune; title: Bi; body: Bi; href: string; cta: Bi }[] = [
+  {
+    id: "screen",
+    Icon: IconTune,
+    title: { en: "Save a screen, and we watch it for you", bn: "একটি স্ক্রিন সেভ করুন, আমরা নজর রাখব" },
+    body: {
+      en: "Pick a list or your own filters in the screener and save it. When a share joins after a close, we tell you the same evening.",
+      bn: "স্ক্রিনারে একটি তালিকা বা নিজের ফিল্টার বেছে সেভ করুন। বাজার বন্ধের পর নতুন কোনো শেয়ার যোগ হলে সেদিন সন্ধ্যায়ই জানাব।",
+    },
+    href: "/screener",
+    cta: { en: "Open the screener", bn: "স্ক্রিনার খুলুন" },
+  },
+  {
+    id: "reminder",
+    Icon: IconBell,
+    title: { en: "Never miss a last day to buy", bn: "কেনার শেষ দিন আর মিস হবে না" },
+    body: {
+      en: "Open a company in the dividend calendar and tap “Remind me on the last day to buy”. That morning, it is in your 9 AM brief.",
+      bn: "ডিভিডেন্ড ক্যালেন্ডারে কোনো কোম্পানি খুলে “কেনার শেষ দিনে মনে করিয়ে দিন” চাপুন। সেদিন সকাল 9টার ব্রিফে এটি থাকবে।",
+    },
+    href: "/dividend-calendar#record-dates",
+    cta: { en: "Open the dividend calendar", bn: "ডিভিডেন্ড ক্যালেন্ডার খুলুন" },
+  },
+  {
+    id: "compare",
+    Icon: IconCompare,
+    title: { en: "Compare up to 10 shares side by side", bn: "পাশাপাশি 10টি পর্যন্ত শেয়ার তুলনা করুন" },
+    body: {
+      en: "Put the shares you are choosing between on one page, with our analysis of each one next to the others.",
+      bn: "যেসব শেয়ারের মধ্যে বাছাই করছেন, সেগুলো এক পেজে রাখুন, পাশাপাশি প্রতিটির ওপর আমাদের বিশ্লেষণসহ।",
+    },
+    href: "/compare-stocks",
+    cta: { en: "Compare shares", bn: "শেয়ার তুলনা করুন" },
+  },
+  {
+    id: "portfolio",
+    Icon: IconBriefcase,
+    title: { en: "Keep more than one portfolio", bn: "একাধিক পোর্টফোলিও রাখুন" },
+    body: {
+      en: "Keep a family member's shares or a second account apart from your own, up to 6 portfolios in all.",
+      bn: "পরিবারের কারও শেয়ার বা আরেকটি অ্যাকাউন্ট নিজেরটা থেকে আলাদা রাখুন, সব মিলিয়ে 6টি পর্যন্ত পোর্টফোলিও।",
+    },
+    href: "/portfolio",
+    cta: { en: "Open your portfolio", bn: "পোর্টফোলিও খুলুন" },
+  },
+];
+
+/** Days from ISO date `b` to ISO date `a` (both YYYY-MM-DD). */
+function isoDays(a: string, b: string): number {
+  const at = (s: string) => Date.UTC(Number(s.slice(0, 4)), Number(s.slice(5, 7)) - 1, Number(s.slice(8, 10)));
+  return Math.round((at(a) - at(b)) / DAY_MS);
+}
+
+/** In the member's first month? Worked out from the plan they bought (no
+ *  start date is stored), so a renewal bought early counts a little longer.
+ *  Premium given by an admin, and admins, always count. */
+function inFirstMonth(user: AuthUser | null | undefined): boolean {
+  if (!user) return false;
+  if (user.is_admin) return true;
+  if (!user.premium_until) return false;
+  const plan = planByKey(user.paid_plan);
+  if (!plan) return true;
+  const start = Date.parse(user.premium_until) - plan.days * DAY_MS;
+  return Number.isFinite(start) && Date.now() - start < NEW_MEMBER_DAYS * DAY_MS;
+}
+
+/** What to look for in one coming report, as one plain sentence. */
+function lookFor(m: UpcomingResult): Bi | null {
+  if (m.better_above != null && m.weaker_below != null) {
+    const b = `৳${m.better_above.toFixed(2)}`;
+    const w = `৳${m.weaker_below.toFixed(2)}`;
+    return {
+      en: `Better if it earns ${b} a share or more, weaker under ${w}.`,
+      bn: `শেয়ারপ্রতি আয় ${b} বা বেশি হলে ভালো, ${w}-এর কম হলে দুর্বল।`,
+    };
+  }
+  const en = m.expect_en[m.expect_en.length - 1];
+  if (!en) return null;
+  return { en, bn: m.expect_bn[m.expect_bn.length - 1] || en };
+}
+
+const whenWords = (m: UpcomingResult): Bi =>
+  m.days === 0 ? { en: "today", bn: "আজ" } : m.days === 1 ? { en: "tomorrow", bn: "আগামীকাল" } : dayShort(m.date);
 
 type StarterRow = { href: string; title: string };
 type Source = { slug: string; title: string; categoryId?: string };
@@ -135,10 +245,14 @@ function readFlag(get: () => string | null): boolean {
  *   gives), what the watcher noticed on their shares this week (counts and
  *   kinds, never the meaning), one Premium pitch (the ৳99 month while it is
  *   open, else the Premium banner — never both), "turn on notifications";
- * - a Premium reader: today's 9 AM brief, then one research report's figure,
- *   then "turn on notifications";
- * - a brand-new account: after the portfolio slide, three beginner guides,
- *   then "follow a share".
+ * - a Premium reader (2026-11-18, at most 5): today's 9 AM brief and "After
+ *   the close" (what the watcher found on their shares at the last close;
+ *   it leads once today's close is in), what to look for in their results
+ *   this week, one research report's figure (a different report each day),
+ *   one Premium tool they haven't used yet in their first month, then
+ *   "turn on notifications" / "follow a share";
+ * - a brand-new account, free or Premium: three beginner guides, then
+ *   "follow a share" (a free reader gets the portfolio slide first).
  *
  * "Turn on notifications" replaced the floating `PushOptInPrompt` card on the
  * home page (it still floats on every other page): same rules, same keys — it
@@ -156,6 +270,9 @@ export default function OfferSlot({
   buyList,
   holdings,
   priceMap,
+  resultsSoon,
+  newResults,
+  savedScreens,
 }: {
   lang: Lang;
   brandNew: boolean;
@@ -169,6 +286,12 @@ export default function OfferSlot({
   research: ResearchSummary | null | undefined;
   /** The bundle's Buy List summary: its free pick of the day opens a free reader's slot. */
   buyList?: BuyListHome | null;
+  /** Results meetings on the reader's shares (Premium: what to look for). */
+  resultsSoon?: UpcomingResult[];
+  /** Reports already out on the reader's shares: a meeting with one is done. */
+  newResults?: LatestResultRow[];
+  /** Saved screens: undefined while the bundle loads, null when unknown. */
+  savedScreens?: ScreenerSaved[] | null;
 }) {
   const bn = lang === "bn";
   const pick = (b: Bi) => (bn ? b.bn : b.en);
@@ -189,7 +312,10 @@ export default function OfferSlot({
   const [pushMode, setPushMode] = useState<"prompt" | "ios" | null>(null);
   const [pushBusy, setPushBusy] = useState(false);
   const [pushFailed, setPushFailed] = useState(false);
+  // Premium tips already tapped or skipped (null until read).
+  const [tipsDone, setTipsDone] = useState<TipId[] | null>(null);
   const offerSeen = useRef(false);
+  const todayIso = bstDateStr();
 
   const uid = user?.user_id ?? "";
   const offer = isLoggedIn && !isPremium ? user?.offer ?? null : null;
@@ -209,6 +335,13 @@ export default function OfferSlot({
         readFlag(() => (sessionStorage.getItem(SETUP_SKIP_KEY) === "1" ? "1" : null)),
     );
     setInstallHidden(readFlag(() => localStorage.getItem(INSTALL_KEY)));
+    try {
+      const raw = uid ? localStorage.getItem(tipsKey(uid)) : null;
+      const list = raw ? (JSON.parse(raw) as unknown) : [];
+      setTipsDone(Array.isArray(list) ? (list.filter((x) => typeof x === "string") as TipId[]) : []);
+    } catch {
+      setTipsDone([]);
+    }
     // The same gate as the floating PushOptInPrompt.
     if (canShowPushPromptByHistory()) {
       if (isPushSupported() && getPermission() === "default") setPushMode("prompt");
@@ -510,9 +643,9 @@ export default function OfferSlot({
     };
   }
 
-  // Premium reader: today's 9 AM brief.
+  // Premium reader: today's 9 AM brief (never an older day's).
   let briefSlide: Slide | null = null;
-  const briefItems = isPremium ? brief?.items ?? [] : [];
+  const briefItems = isPremium && brief?.day === todayIso ? brief.items ?? [] : [];
   if (briefItems.length > 0) {
     const n = briefItems.length;
     briefSlide = {
@@ -548,13 +681,129 @@ export default function OfferSlot({
     };
   }
 
-  // Premium reader: one research report's figure.
+  // Premium reader: what the watcher found on their shares at the last close
+  // (the evening twin of the brief, and of the "After the close" push).
+  let afterSlide: Slide | null = null;
+  let afterToday = false;
+  if (isPremium && week?.items?.length) {
+    const items = week.items.filter((e) => !AFTER_CLOSE_SKIP.has(e.kind) && /^\d{4}-\d{2}-\d{2}/.test(e.day ?? ""));
+    const latest = items.reduce((m, e) => (e.day.slice(0, 10) > m ? e.day.slice(0, 10) : m), "");
+    const age = latest ? isoDays(todayIso, latest) : Infinity;
+    if (latest && age >= 0 && age <= AFTER_CLOSE_DAYS) {
+      // Already worst first.
+      const rows = items.filter((e) => e.day.slice(0, 10) === latest);
+      const n = rows.length;
+      const when = dayShort(latest);
+      afterToday = age === 0;
+      afterSlide = {
+        id: "after-close",
+        tone: "clay",
+        node: (
+          <>
+            {eyebrow(
+              <IconMoon size={14} />,
+              afterToday
+                ? bn
+                  ? "আজ বাজার বন্ধের পর"
+                  : "After today's close"
+                : bn
+                  ? `বাজার বন্ধের পর · ${when.bn}`
+                  : `After the close · ${when.en}`,
+            )}
+            <h3 className="hm-sl-title">
+              {bn ? `আপনার শেয়ারে ${n}টি বিষয়` : `${n} ${n === 1 ? "thing" : "things"} on your shares`}
+            </h3>
+            <ul className="hm-sl-list">
+              {rows.slice(0, 3).map((e) => (
+                <li key={e.id}>
+                  <span className={`hm-sl-lvl hm-sl-lvl--${e.level}`} aria-hidden />
+                  <Link
+                    href={`/stock/${encodeURIComponent(e.code)}${WATCH_ANCHOR[e.kind] ?? ""}`}
+                    className="hm-sl-inline"
+                  >
+                    {bn ? e.title_bn : e.title_en}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            {n > 3 && (
+              <div className="hm-sl-acts">
+                <Button href="/notifications" variant="quiet">
+                  {bn ? `সব ${n}টি দেখুন` : `See all ${n}`}
+                </Button>
+              </div>
+            )}
+          </>
+        ),
+      };
+    }
+  }
+
+  // Premium reader: what to look for in this week's results on their shares.
+  let resultsSlide: Slide | null = null;
+  if (isPremium && resultsSoon?.length) {
+    const out = (m: UpcomingResult) =>
+      (newResults ?? []).some((r) => r.code.toUpperCase() === m.code.toUpperCase() && r.post_date >= m.date);
+    const rows = resultsSoon
+      .filter((m) => m.days >= 0 && m.days <= RESULTS_DAYS && !out(m))
+      .map((m) => ({ m, line: lookFor(m) }))
+      .filter((x): x is { m: UpcomingResult; line: Bi } => x.line !== null)
+      .sort((a, b) => a.m.days - b.m.days);
+    const n = rows.length;
+    if (n > 0) {
+      resultsSlide = {
+        id: "results",
+        tone: "plain",
+        node: (
+          <>
+            {eyebrow(
+              <IconCalendar size={14} />,
+              bn ? `ফল আসছে · আপনার ${n}টি শেয়ার` : `Results coming · ${n} of your shares`,
+            )}
+            <h3 className="hm-sl-title">
+              {n === 1
+                ? bn
+                  ? `${rows[0].m.code}-এর ফলে কী দেখবেন`
+                  : `What to look for in ${rows[0].m.code}'s results`
+                : bn
+                  ? "এ সপ্তাহের ফলে কী দেখবেন"
+                  : "What to look for in this week's results"}
+            </h3>
+            <ul className="hm-sl-list">
+              {rows.slice(0, 3).map(({ m, line }) => (
+                <li key={`${m.code}-${m.date}`}>
+                  <IconCalendar size={16} />
+                  <span className="hm-sl-two">
+                    <span>
+                      <Link href={`/stock/${encodeURIComponent(m.code)}`} className="hm-sl-inline">
+                        {m.code}
+                      </Link>
+                      {` · ${pick(whenWords(m))} · ${bn ? m.label_bn : m.label_en}`}
+                    </span>
+                    <span className="hm-sl-small">{pick(line)}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <div className="hm-sl-acts">
+              <Button href="/results#coming" variant="quiet">
+                {n > 3 ? (bn ? `সব ${n}টি দেখুন` : `See all ${n}`) : bn ? "যেসব ফল আসছে" : "All results coming up"}
+              </Button>
+            </div>
+          </>
+        ),
+      };
+    }
+  }
+
+  // Premium reader: one research report's figure, a different report each day.
   let researchSlide: Slide | null = null;
   if (isPremium && research) {
-    for (const slug of RESEARCH_ORDER) {
-      const stat = reportStat(slug, research);
-      const def = REPORTS.find((r) => r.slug === slug);
-      if (!stat || !def) continue;
+    const first = Math.max(0, isoDays(todayIso, "2026-01-01")) % REPORTS.length;
+    for (let k = 0; k < REPORTS.length; k++) {
+      const def = REPORTS[(first + k) % REPORTS.length];
+      const stat = reportStat(def.slug, research);
+      if (!stat) continue;
       researchSlide = {
         id: "research",
         tone: "plain",
@@ -562,16 +811,57 @@ export default function OfferSlot({
           <>
             {eyebrow(<IconBook size={14} />, bn ? "প্রিমিয়াম গবেষণা" : "Premium research")}
             <h3 className="hm-sl-title">{pick(def.title)}</h3>
+            <p className="hm-sl-small">{pick(def.question)}</p>
             <p className="hm-sl-body">
               <b className="nums">{pick(stat.value)}</b> {pick(stat.label)}
             </p>
             <div className="hm-sl-acts">
-              <Button href={`/stock-insights/${slug}`}>{bn ? "রিপোর্ট পড়ুন" : "Read the report"}</Button>
+              <Button href={`/stock-insights/${def.slug}`}>{bn ? "রিপোর্ট পড়ুন" : "Read the report"}</Button>
             </div>
           </>
         ),
       };
       break;
+    }
+  }
+
+  // Premium reader, first month: one tool they haven't used yet. Tapping it
+  // or skipping it moves on to the next tip on the next visit.
+  let tipSlide: Slide | null = null;
+  if (isPremium && tipsDone && savedScreens !== undefined && inFirstMonth(user)) {
+    const tip = TIPS.find(
+      (t) => !tipsDone.includes(t.id) && !(t.id === "screen" && (savedScreens === null || savedScreens.length > 0)),
+    );
+    if (tip) {
+      const doneTip = (action: "open" | "skip") => {
+        trackEvent("premium_tip_tap", { tip: tip.id, action });
+        const next = [...tipsDone, tip.id];
+        setTipsDone(next);
+        try {
+          localStorage.setItem(tipsKey(uid), JSON.stringify(next));
+        } catch {}
+      };
+      tipSlide = {
+        id: "tip",
+        tone: "plain",
+        onSeen: () => trackEvent("premium_tip_view", { tip: tip.id }),
+        node: (
+          <>
+            {eyebrow(<IconBulb size={14} />, bn ? "প্রিমিয়ামের আরও সুবিধা" : "Get more from Premium")}
+            <h3 className="hm-sl-title">{pick(tip.title)}</h3>
+            <p className="hm-sl-body">{pick(tip.body)}</p>
+            <div className="hm-sl-acts">
+              <Button href={tip.href} onClick={() => doneTip("open")}>
+                <tip.Icon size={16} />
+                {pick(tip.cta)}
+              </Button>
+              <button type="button" className="hm-sl-link" onClick={() => doneTip("skip")}>
+                {bn ? "এটা বাদ দিন" : "Skip this tip"}
+              </button>
+            </div>
+          </>
+        ),
+      };
     }
   }
 
@@ -800,15 +1090,23 @@ export default function OfferSlot({
   }
 
   const pitch = offerSlide ?? premSlide;
+  // A member's day: the 9 AM brief leads until today's close is in, then the
+  // after-close note does.
+  const lead = afterToday ? [afterSlide, briefSlide] : [briefSlide, afterSlide];
   const order: (Slide | null)[] = isPremium
-    ? [briefSlide, researchSlide, pushSlide, setupSlide, installSlide]
+    ? brandNew
+      ? [...lead, startSlide, setupSlide, tipSlide, researchSlide, pushSlide, installSlide]
+      : [...lead, resultsSlide, researchSlide, tipSlide, pushSlide, setupSlide, installSlide]
     : brandNew
       ? [portfolioSlide, startSlide, setupSlide, pickSlide, pitch, installSlide]
       : [portfolioSlide, pickSlide, weekSlide, pitch, pushSlide, setupSlide, installSlide];
   // A free reader's first slide depends on the portfolio: wait until it is
   // known, so the portfolio slide never pops in ahead of the others.
   const waiting = freeReader && holdings === null;
-  const slides = ready && !waiting ? order.filter((s): s is Slide => s !== null) : [];
+  const slides =
+    ready && !waiting
+      ? order.filter((s): s is Slide => s !== null).slice(0, isPremium ? MAX_PREMIUM_SLIDES : undefined)
+      : [];
 
   return <Carousel slides={slides} lang={lang} />;
 }

@@ -182,8 +182,9 @@ const WATCH_LABEL: Record<PortfolioWatchEvent["kind"], [string, string]> = {
   buylist: ["Buy list", "কেনার তালিকা"],
 };
 
-// Where one watcher event opens on the stock page (same as its push).
-const WATCH_ANCHOR: Partial<Record<PortfolioWatchEvent["kind"], string>> = {
+// Where one watcher event opens on the stock page (same as its push; the
+// home's "After the close" slide uses it too).
+export const WATCH_ANCHOR: Partial<Record<PortfolioWatchEvent["kind"], string>> = {
   results: "#results",
   grade: "#score-history",
   record: "#dividends",

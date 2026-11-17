@@ -303,6 +303,9 @@ export default function PersonalizedHome() {
           buyList={bundle?.buy_list ?? null}
           holdings={holdings}
           priceMap={priceMap}
+          resultsSoon={bundle?.results_soon ?? []}
+          newResults={newResults}
+          savedScreens={bundle ? bundle.screener?.saved ?? null : bundleSettled ? null : undefined}
         />
 
         <TodayForYou
