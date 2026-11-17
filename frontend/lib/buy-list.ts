@@ -111,45 +111,84 @@ export interface BuyListHome {
   almost: number;
 }
 
-/** The six questions, in order. Every share on the list says yes to all six. */
-export const QUESTIONS: { title: BiText; line: BiText }[] = [
+/** The six questions, in order. Every share on the list says yes to all six.
+ *  `short` = the name on the strip at the top of the page; `plain` = the one
+ *  line under the question in "How we choose"; `line` = the full rule, folded
+ *  under it; `miss` = the tag on an "Almost made it" row that missed it. */
+export const QUESTIONS: { short: BiText; title: BiText; plain: BiText; line: BiText; miss: BiText }[] = [
   {
+    short: { en: "Strong company", bn: "শক্তিশালী কোম্পানি" },
     title: { en: "Is it a strong company?", bn: "কোম্পানি কি শক্তিশালী?" },
+    plain: {
+      en: "Mostly strong or strong all round on our four business checks.",
+      bn: "ব্যবসার চারটি যাচাইয়ে বেশিরভাগ দিকে বা সব দিকে শক্তিশালী।",
+    },
+    miss: { en: "a strong company", bn: "শক্তিশালী কোম্পানি" },
     line: {
       en: "Mostly strong or strong all round on our four business checks, on today's own figures.",
       bn: "ব্যবসার চারটি যাচাইয়ে আজকের হিসাবেই বেশিরভাগ দিকে বা সব দিকে শক্তিশালী।",
     },
   },
   {
+    short: { en: "Good price today", bn: "আজকের দাম ভালো" },
     title: { en: "Is today's price good?", bn: "আজকের দাম কি ভালো?" },
+    plain: {
+      en: "Our price check says the price is good, and it isn't near its high of the year.",
+      bn: "আমাদের দাম যাচাইয়ে দাম ভালো, আর বছরের সর্বোচ্চ দামের কাছে নয়।",
+    },
+    miss: { en: "today's price", bn: "আজকের দাম" },
     line: {
       en: "Our price check says low, or fair for a company strong all round, and the price isn't near its highest of the year.",
       bn: "আমাদের দাম যাচাইয়ে দাম কম, বা সব দিকে শক্তিশালী কোম্পানির জন্য ন্যায্য। আর দাম বছরের সর্বোচ্চের কাছে নয়।",
     },
   },
   {
+    short: { en: "Nothing seriously wrong", bn: "গুরুতর সমস্যা নেই" },
     title: { en: "Is anything seriously wrong?", bn: "গুরুতর কোনো সমস্যা আছে কি?" },
+    plain: {
+      en: "It makes a profit, with no warnings, no heavy loans and enough trading.",
+      bn: "মুনাফায় আছে, কোনো সতর্কতা নেই, ঋণ বেশি নয়, আর যথেষ্ট লেনদেন হয়।",
+    },
+    miss: { en: "our safety checks", bn: "নিরাপত্তা যাচাই" },
     line: {
       en: "It makes a profit, with no auditor, regulator or meeting warning in a year and no heavy loans. It isn't in category Z, and at least ৳30 lakh of it changes hands on a normal day. A bank or finance company paid a cash dividend in each of its last 3 years.",
       bn: "মুনাফায় আছে। এক বছরে নিরীক্ষক, নিয়ন্ত্রক বা সভা নিয়ে কোনো সতর্কতা নেই, ঋণও বেশি নয়। Z ক্যাটাগরিতে নয়, আর সাধারণ একটি দিনে অন্তত 30 লাখ টাকার লেনদেন হয়। ব্যাংক বা আর্থিক প্রতিষ্ঠান হলে গত 3 বছরের প্রতি বছর নগদ ডিভিডেন্ড দিয়েছে।",
     },
   },
   {
+    short: { en: "Well under its usual price", bn: "স্বাভাবিক দামের চেয়ে বেশ কম" },
     title: { en: "Is the price well under its usual price?", bn: "দাম কি এর স্বাভাবিক দামের চেয়ে বেশ কম?" },
+    plain: {
+      en: "At least 10% under the price it usually trades at.",
+      bn: "সাধারণত যে দামে কেনাবেচা হয়, তার চেয়ে অন্তত 10% কম।",
+    },
+    miss: { en: "its usual price", bn: "স্বাভাবিক দাম" },
     line: {
       en: "Its usual price comes from its own past: what it has traded at for its profit, and for what it owns. Today's price is at least 10% under it, and under both of the two.",
       bn: "স্বাভাবিক দাম আসে এর নিজের অতীত থেকে: মুনাফার তুলনায় আর সম্পদের তুলনায় এটি কোন দামে কেনাবেচা হয়েছে। আজকের দাম তার চেয়ে অন্তত 10% কম, আর দুটির চেয়েই কম।",
     },
   },
   {
+    short: { en: "Profit holding up", bn: "মুনাফা টিকে আছে" },
     title: { en: "Is the profit holding up?", bn: "মুনাফা কি টিকে আছে?" },
+    plain: {
+      en: "Profit in its latest results hasn't fallen much.",
+      bn: "সর্বশেষ আর্থিক ফলে মুনাফা তেমন কমেনি।",
+    },
+    miss: { en: "profit", bn: "মুনাফা" },
     line: {
       en: "The latest results are not down more than 10% on the same months last year, and the latest quarter alone not more than 20%.",
       bn: "সর্বশেষ আর্থিক ফলে মুনাফা আগের বছরের একই সময়ের চেয়ে 10%-এর বেশি কমেনি, আর শুধু সর্বশেষ প্রান্তিকে 20%-এর বেশি কমেনি।",
     },
   },
   {
+    short: { en: "Passed two days in a row", bn: "টানা দুই দিন পাস" },
     title: { en: "Has it passed on two closes in a row?", bn: "টানা দুই দিন পাস করেছে কি?" },
+    plain: {
+      en: "It joins only after passing at two closes in a row.",
+      bn: "টানা দুই দিন বাজার বন্ধের পর পাস করলে তবেই তালিকায় আসে।",
+    },
+    miss: { en: "two days in a row", bn: "টানা দুই দিন" },
     line: {
       en: "One good day isn't enough. It joins after passing at two closes in a row. A share on the list that misses on its price or trading gets one more close before it leaves; a serious problem takes it off at once.",
       bn: "এক দিনের ভালো দাম যথেষ্ট নয়। টানা দুই দিন বাজার বন্ধের পর পাস করলে তবেই তালিকায় আসে। তালিকার কোনো শেয়ার দাম বা লেনদেনের কারণে আটকালে বাদ পড়ার আগে আরও এক দিন সময় পায়; গুরুতর সমস্যা হলে সঙ্গে সঙ্গে বাদ।",

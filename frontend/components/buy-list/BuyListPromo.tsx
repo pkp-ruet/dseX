@@ -16,16 +16,15 @@ import { BUY_LIST_ANCHOR, type BuyList } from "@/lib/buy-list";
 
 const GETS = [
   { en: "Every share on the list, and why it is there", bn: "তালিকার প্রতিটি শেয়ার, আর কেন তালিকায় আছে" },
-  { en: "The price it is worth buying under", bn: "কোন দামের নিচে কেনার মতো" },
-  { en: "Results and dividend dates coming up on each", bn: "প্রতিটির সামনের আর্থিক ফল আর ডিভিডেন্ডের তারিখ" },
+  { en: "The price each is worth buying under, and its dates coming up", bn: "প্রতিটি কোন দামের নিচে কেনার মতো, আর এর সামনের তারিখ" },
   { en: "The strong companies that just missed, and what would bring them in", bn: "যে শক্তিশালী কোম্পানিগুলো অল্পের জন্য বাদ, আর কী হলে আসবে" },
 ];
 
 /**
- * The Buy List's one Premium card, for a reader without Premium: how many
- * shares passed today, ONE share's full case open (a different one each day,
- * `free_pick`), the rest as numbered locked rows, what Premium shows, the
- * price and one button. Never a hidden share's name.
+ * The Buy List's one Premium card, for a reader without Premium: today's
+ * list in order, every row locked except ONE share open in its own place (a
+ * different one each day, `free_pick`), what Premium shows, the price and one
+ * button. The count is in the page's lead. Never a hidden share's name.
  */
 export default function BuyListPromo({ data }: { data: BuyList }) {
   const { user } = useAuth();
@@ -36,7 +35,6 @@ export default function BuyListPromo({ data }: { data: BuyList }) {
 
   const n = data.count;
   const example = data.items.find((i) => i.code === data.free_pick) ?? null;
-  const rest = data.items.filter((i) => i !== example);
   const offer = user?.offer ?? null;
   const href = offer ? `/premium?plan=offer&src=buy-list#pay` : user ? `${PREMIUM_PATH}#pay` : PREMIUM_PATH;
 
@@ -75,61 +73,59 @@ export default function BuyListPromo({ data }: { data: BuyList }) {
           <T en="Premium · Buy List" bn="প্রিমিয়াম · কেনার তালিকা" />
         </p>
         <h2 id="bl-promo-t" className="sp-title">
-          {n > 0 ? (
-            <T
-              en={`${n} share${n > 1 ? "s" : ""} pass${n > 1 ? "" : "es"} all six of our questions today.`}
-              bn={`আজ ${n}টি শেয়ার আমাদের ছয়টি প্রশ্নেই পাস করেছে।`}
-            />
+          {n > 1 ? (
+            <T en={`See all ${n} shares on today's list`} bn={`আজকের তালিকার ${n}টি শেয়ারই দেখুন`} />
+          ) : n === 1 ? (
+            <T en="Today's list has one share" bn="আজকের তালিকায় একটি শেয়ার আছে" />
           ) : (
             <T en="No share passes all six of our questions today." bn="আজ কোনো শেয়ার আমাদের ছয়টি প্রশ্নে পাস করেনি।" />
           )}
         </h2>
         <p className="sp-lead">
-          <T
-            en={`We check ${data.universe} companies after every close. These are the few we would buy now, each with its reasons, the price it is worth buying under and the dates coming up.`}
-            bn={`প্রতিদিন বাজার বন্ধের পর আমরা ${data.universe}টি কোম্পানি যাচাই করি। এগুলো সেই অল্প কয়েকটি শেয়ার, যা এখন কেনার মতো মনে করি। প্রতিটির সাথে আছে কারণ, কোন দামের নিচে কেনার মতো, আর সামনের তারিখ।`}
-          />
+          {n > 0 ? (
+            <T
+              en="One share opens free every day. Premium opens them all: why each is on the list and the price it is worth buying under."
+              bn="প্রতিদিন একটি শেয়ার ফ্রি খোলা থাকে। প্রিমিয়ামে সবগুলো খোলা: প্রতিটি কেন তালিকায় আছে, আর কোন দামের নিচে কেনার মতো।"
+            />
+          ) : (
+            <T
+              en={`We check ${data.universe} companies after every close. When shares pass, Premium shows each one, why it is there and the price it is worth buying under.`}
+              bn={`প্রতিদিন বাজার বন্ধের পর আমরা ${data.universe}টি কোম্পানি যাচাই করি। কোনো শেয়ার পাস করলে প্রিমিয়ামে দেখবেন সেটি কোনটি, কেন তালিকায়, আর কোন দামের নিচে কেনার মতো।`}
+            />
+          )}
         </p>
       </div>
 
       <div className="sp-body">
-        {example && (
-          <div className="bl-ex">
-            <p className="bl-ex-tag">
-              <T
-                en={`Free example today · No. ${example.rank} of ${n}`}
-                bn={`আজকের ফ্রি উদাহরণ · ${n}টির মধ্যে ${example.rank} নম্বর`}
-              />
+        {n > 0 && (
+          <>
+            <p className="sp-k bl-pr-k">
+              <T en="Today's list" bn="আজকের তালিকা" />
             </p>
-            <p className="bl-ex-note">
-              <T en="A different share from the list opens here every day." bn="প্রতিদিন তালিকার আলাদা একটি শেয়ার এখানে খোলা থাকে।" />
-            </p>
-            <div className="bl-rows bl-ex-box">
-              <BuyRowOpen item={example} />
-            </div>
-          </div>
-        )}
-
-        {rest.length > 0 && (
-          <div className="bl-masked">
-            <p className="sp-k">
-              <T en={`The other ${rest.length} on today's list`} bn={`আজকের তালিকার বাকি ${rest.length}টি`} />
-            </p>
-            <ol className="bl-mk-list">
-              {rest.map((i) => (
-                <li key={i.rank} className="bl-mk">
-                  <StockRank n={i.rank} solid={i.rank <= 3} />
-                  <span className="bl-mk-bar" style={{ width: `${40 + ((i.rank * 13) % 40)}%` }} aria-hidden="true" />
-                  <span className="bl-mk-lock" aria-hidden="true">
-                    <IconLock size={16} />
-                  </span>
-                  <span className="sr-only">
-                    <T en="Hidden with Premium" bn="প্রিমিয়ামে দেখা যাবে" />
-                  </span>
-                </li>
-              ))}
+            <ol className="bl-pr-list">
+              {data.items.map((i) =>
+                i === example ? (
+                  <li key={i.code} className="bl-pr-free">
+                    <span className="bl-ex-tag">
+                      <T en="Free today · a different share opens every day" bn="আজ ফ্রি · প্রতিদিন আলাদা একটি শেয়ার খোলা থাকে" />
+                    </span>
+                    <BuyRowOpen item={i} />
+                  </li>
+                ) : (
+                  <li key={i.rank} className="bl-mk">
+                    <StockRank n={i.rank} solid={i.rank <= 3} />
+                    <span className="bl-mk-bar" style={{ width: `${40 + ((i.rank * 13) % 40)}%` }} aria-hidden="true" />
+                    <span className="bl-mk-lock" aria-hidden="true">
+                      <IconLock size={16} />
+                    </span>
+                    <span className="sr-only">
+                      <T en="Hidden with Premium" bn="প্রিমিয়ামে দেখা যাবে" />
+                    </span>
+                  </li>
+                ),
+              )}
             </ol>
-          </div>
+          </>
         )}
 
         <p className="sp-k rr-gets-k">

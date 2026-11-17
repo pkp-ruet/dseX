@@ -4,7 +4,7 @@ import EmptyState from "@/components/ui/EmptyState";
 import PageGate from "@/components/premium/PageGate";
 import BuyListRows from "@/components/buy-list/BuyListRows";
 import BuyListPromo from "@/components/buy-list/BuyListPromo";
-import { AlmostList, AlsoPassed, HowWeChoose, ListChanges } from "@/components/buy-list/BuyListParts";
+import { AlmostList, HowWeChoose, ListChanges, SixChecks } from "@/components/buy-list/BuyListParts";
 import { PersonalCodesProvider } from "@/components/market-analysis/PersonalCodes";
 import { dayShort } from "@/components/dividend-calendar/dates";
 import { IconCrown } from "@/components/ui/icons";
@@ -75,31 +75,32 @@ export default async function BuyListPage() {
               <IconCrown size={14} />
               <T en="Premium" bn="প্রিমিয়াম" />
             </span>
-            <T en={`Checked after the close, ${day.en}`} bn={`বাজার বন্ধের পর যাচাই, ${day.bn}`} />
+            {data.live_prices ? (
+              <T
+                en={`List from the close on ${day.en} · Prices from today's trading`}
+                bn={`${day.bn} বাজার বন্ধের পরের তালিকা · দাম আজকের লেনদেনের`}
+              />
+            ) : (
+              <T en={`Checked after the close, ${day.en}`} bn={`বাজার বন্ধের পর যাচাই, ${day.bn}`} />
+            )}
           </span>
         }
         title={<T en="Today's Buy List" bn="আজকের কেনার তালিকা" />}
         lead={
-          <T
-            en="The DSE shares we would buy today. Strong companies, priced well under their usual price, with nothing seriously wrong."
-            bn="আজ যে শেয়ারগুলো আমরা কেনার মতো মনে করি। কোম্পানি শক্তিশালী, দাম এর স্বাভাবিক দামের চেয়ে বেশ কম, আর গুরুতর কোনো সমস্যা নেই।"
-          />
+          data.count > 0 ? (
+            <T
+              en={`The DSE shares we would buy today. Of the ${data.universe} companies we check, ${data.count} passed all six of our questions.`}
+              bn={`আজ যে শেয়ারগুলো আমরা কেনার মতো মনে করি। আমরা যে ${data.universe}টি কোম্পানি যাচাই করি, তার ${data.count}টি আমাদের ছয়টি প্রশ্নেই পাস করেছে।`}
+            />
+          ) : (
+            <T
+              en={`The DSE shares we would buy today. Of the ${data.universe} companies we check, none passes all six of our questions today.`}
+              bn={`আজ যে শেয়ারগুলো আমরা কেনার মতো মনে করি। আমরা যে ${data.universe}টি কোম্পানি যাচাই করি, আজ তার কোনোটিই আমাদের ছয়টি প্রশ্নে পাস করেনি।`}
+            />
+          )
         }
       />
-      <ul className="bl-facts-row">
-        <li>
-          <T
-            en={`${data.count} of ${data.universe} companies`}
-            bn={`${data.universe}টির মধ্যে ${data.count}টি কোম্পানি`}
-          />
-        </li>
-        <li>
-          <T en="6 questions, every one a yes" bn="6টি প্রশ্ন, সবগুলোর উত্তর হ্যাঁ" />
-        </li>
-        <li>
-          <T en="The same list for every reader" bn="সব পাঠকের জন্য একই তালিকা" />
-        </li>
-      </ul>
+      <SixChecks />
 
       <div className="bl-layout">
         <div className="bl-main">
@@ -108,12 +109,12 @@ export default async function BuyListPage() {
               <div className="bl-list-head">
                 <div>
                   <h2 id="bl-list-t" className="bl-h2 bl-h2--lg">
-                    <T en={`Today's ${data.count}`} bn={`আজকের ${data.count}টি`} />
+                    <T en={`Today's ${data.count} shares`} bn={`আজকের ${data.count}টি শেয়ার`} />
                   </h2>
                   <p className="bl-note">
                     <T
-                      en="Ordered by how strong the case is. Tap a share to see why it's here."
-                      bn="যার কারণ যত জোরালো, সে তত আগে। কেন তালিকায় আছে দেখতে শেয়ারে চাপুন।"
+                      en="Strongest first. Tap a share for its price and what to know."
+                      bn="সবচেয়ে জোরালোটি আগে। দাম আর জানার মতো বিষয় দেখতে শেয়ারে চাপুন।"
                     />
                   </p>
                 </div>
@@ -123,7 +124,7 @@ export default async function BuyListPage() {
                 <BuyListRows items={data.items} />
               ) : (
                 <EmptyState
-                  title={<T en="No share passes all six questions today" bn="আজ কোনো শেয়ার ছয়টি প্রশ্নেই পাস করেনি" />}
+                  title={<T en="No share passes all six questions today" bn="আজ কোনো শেয়ার ছয়টি প্রশ্নে পাস করেনি" />}
                   message={
                     <T
                       en="We never lower the bar to fill the list. The strong companies that came closest are below."
@@ -132,7 +133,6 @@ export default async function BuyListPage() {
                   }
                 />
               )}
-              <AlsoPassed data={data} />
               <AlmostList data={data} />
             </section>
           </PageGate>

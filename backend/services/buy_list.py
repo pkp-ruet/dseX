@@ -486,16 +486,18 @@ def results_base(meeting: Optional[dict]) -> Optional[float]:
 
 
 def also_line(c: dict) -> dict:
-    """Why a share that passed every question isn't in the list."""
+    """Why a share that passed every question isn't in the list. The page
+    shows it under "Passed all six, left out to keep the list spread", so the
+    line gives only the reason."""
     cap = c.get("cap")
     if cap == "financial":
-        return _bi("Passed every question. Left out because 3 banks, finance companies or insurers are already on the list.",
-                   "সব প্রশ্নে পাস করেছে। তালিকায় এর মধ্যেই 3টি ব্যাংক, আর্থিক প্রতিষ্ঠান বা বিমা কোম্পানি আছে, তাই বাদ।")
+        return _bi("Left out because 3 banks, finance companies or insurers are already on the list.",
+                   "তালিকায় এর মধ্যেই 3টি ব্যাংক, আর্থিক প্রতিষ্ঠান বা বিমা কোম্পানি আছে, তাই বাদ।")
     if cap == "full":
-        return _bi(f"Passed every question. Left out to keep the list to {MAX_ROWS}.",
-                   f"সব প্রশ্নে পাস করেছে। তালিকা {MAX_ROWS}টিতে রাখতে বাদ।")
-    return _bi(f"Passed every question. Left out because {SECTOR_CAP} companies from its sector are already on the list.",
-               f"সব প্রশ্নে পাস করেছে। তালিকায় এর সেক্টরের {SECTOR_CAP}টি কোম্পানি এর মধ্যেই আছে, তাই বাদ।")
+        return _bi(f"Left out to keep the list to {MAX_ROWS}.",
+                   f"তালিকা {MAX_ROWS}টিতে রাখতে বাদ।")
+    return _bi(f"Left out because {SECTOR_CAP} companies from its sector are already on the list.",
+               f"তালিকায় এর সেক্টরের {SECTOR_CAP}টি কোম্পানি এর মধ্যেই আছে, তাই বাদ।")
 
 
 _MONTHS_EN = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")

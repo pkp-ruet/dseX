@@ -6,68 +6,60 @@ import { T } from "@/components/i18n/T";
 import { dayShort } from "@/components/dividend-calendar/dates";
 import { PersonalMark } from "@/components/market-analysis/PersonalCodes";
 import { StockRank } from "@/components/ui/StockRow";
-import { IconCalendar, IconChevronDown } from "@/components/ui/icons";
-import { PRICE_WORDS } from "@/lib/constants";
+import { IconAlert, IconCalendar, IconChevronDown } from "@/components/ui/icons";
 import { changePct, changeTone, companyShort, money } from "@/lib/formatters";
 import { sectorBn } from "@/lib/bn";
 import { trackEvent } from "@/lib/track";
 import type { BuyListItem } from "@/lib/buy-list";
 
-/** The row's one-line summary: how far under its usual price, the company's
- *  group, the price word, profit, warnings and the nearest date. A share on
- *  grace says so first. */
-function Meta({ item }: { item: BuyListItem }) {
-  const pw = PRICE_WORDS[item.price_word];
-  const more = item.watch ? 1 + (item.watch.more ?? 0) : 0;
-  const first = item.next[0];
-  return (
-    <>
-      {item.grace && (
-        <span className="bl-chip bl-chip--watch">
-          <T en="Missed at the last close" bn="শেষ দিনে আটকেছে" />
-        </span>
-      )}
-      {item.margin_pct != null && item.margin_pct > 0 && (
-        <span className="bl-gap nums">
-          <T en={`${item.margin_pct}% under its usual price`} bn={`স্বাভাবিক দামের চেয়ে ${item.margin_pct}% কম`} />
-        </span>
-      )}
-      <span className="bl-chip">
-        <T en={item.group.en} bn={item.group.bn} />
+/**
+ * The row's one tag, or none. Only what changes a reader's next step:
+ * missed at the last close › a serious thing to watch › a dividend's last
+ * day to buy › a smaller thing to watch › results coming. A row with nothing
+ * to say stays quiet: no "No warnings" chip.
+ */
+function Tag({ item }: { item: BuyListItem }) {
+  if (item.grace) {
+    return (
+      <span className="bl-tag bl-tag--watch">
+        <IconAlert size={13} />
+        <T en="Missed at the last close" bn="শেষ দিনে আটকেছে" />
       </span>
-      <span className="bl-chip">
-        <T en={pw.en} bn={pw.bn} />
+    );
+  }
+  const watch = item.watch ? (
+    <span className={`bl-tag ${item.watch.level === "red" ? "bl-tag--red" : "bl-tag--watch"}`}>
+      <IconAlert size={13} />
+      <T en="Something to watch" bn="খেয়াল রাখার বিষয় আছে" />
+    </span>
+  ) : null;
+  if (item.watch?.level === "red") return watch;
+  const record = item.next.find((n) => n.kind === "record");
+  if (record) {
+    const d = dayShort(record.date);
+    return (
+      <span className="bl-tag bl-tag--date">
+        <IconCalendar size={13} />
+        <T en={`Dividend: last day to buy ${d.en}`} bn={`ডিভিডেন্ড: কেনার শেষ দিন ${d.bn}`} />
       </span>
-      <span className={`bl-chip bl-chip--${item.profit.tone}`}>
-        <T en={item.profit.en} bn={item.profit.bn} />
+    );
+  }
+  if (watch) return watch;
+  const results = item.next.find((n) => n.kind === "results");
+  if (results) {
+    const d = dayShort(results.date);
+    return (
+      <span className="bl-tag bl-tag--date">
+        <IconCalendar size={13} />
+        <T en={`Results due ${d.en}`} bn={`আর্থিক ফল আসবে ${d.bn}`} />
       </span>
-      {more > 0 ? (
-        <span className="bl-chip bl-chip--watch">
-          <T
-            en={`${more} thing${more > 1 ? "s" : ""} to watch`}
-            bn={`খেয়াল রাখার ${more}টি বিষয়`}
-          />
-        </span>
-      ) : (
-        <span className="bl-chip">
-          <T en="No warnings" bn="কোনো সতর্কতা নেই" />
-        </span>
-      )}
-      {first && (
-        <span className="bl-date">
-          <IconCalendar size={13} />
-          {first.kind === "results" ? (
-            <T en={`Results ${dayShort(first.date).en}`} bn={`আর্থিক ফল ${dayShort(first.date).bn}`} />
-          ) : (
-            <T en={`Buy by ${dayShort(first.date).en}`} bn={`কেনার শেষ দিন ${dayShort(first.date).bn}`} />
-          )}
-        </span>
-      )}
-    </>
-  );
+    );
+  }
+  return null;
 }
 
-function Ident({ item }: { item: BuyListItem }) {
+/** Rank · company · price, then the one sentence on why it is here and its tag. */
+function Head({ item }: { item: BuyListItem }) {
   return (
     <>
       <StockRank n={item.rank} solid={item.rank <= 3} />
@@ -95,29 +87,32 @@ function Ident({ item }: { item: BuyListItem }) {
         <span className="nums">{money(item.price)}</span>
         <span className={`nums ${changeTone(item.change_pct)}`}>{changePct(item.change_pct, 1)}</span>
       </span>
+      <span className="bl-line">
+        <T en={item.why.en} bn={item.why.bn} />
+      </span>
+      <span className="bl-meta">
+        <Tag item={item} />
+      </span>
     </>
   );
 }
 
-/** One share opened, with no toggle: the free reader's example of the day. */
+/** One share opened, with no toggle: the free reader's share of the day. */
 export function BuyRowOpen({ item }: { item: BuyListItem }) {
   return (
-    <article className="bl-row" data-open="">
+    <>
       <div className="bl-head bl-head--static">
-        <Ident item={item} />
-        <span className="bl-meta">
-          <Meta item={item} />
-        </span>
+        <Head item={item} />
       </div>
       <BuyCase item={item} />
-    </article>
+    </>
   );
 }
 
 /**
- * The list: one row per share, the first open. A tap opens a share's case in
- * place and closes the one that was open. `#bl-CODE` in the address opens
- * that share (a notification can link to it).
+ * The list: one row per share, the first open. A tap opens a share's price
+ * and what to know in place and closes the one that was open. `#bl-CODE` in
+ * the address opens that share (a notification can link to it).
  */
 export default function BuyListRows({ items }: { items: BuyListItem[] }) {
   const [open, setOpen] = useState<string | null>(items[0]?.code ?? null);
@@ -129,11 +124,17 @@ export default function BuyListRows({ items }: { items: BuyListItem[] }) {
     requestAnimationFrame(() => document.getElementById(`bl-${code}`)?.scrollIntoView({ block: "start" }));
   }, [items]);
 
-  const toggle = (code: string) => {
-    setOpen((cur) => {
-      const next = cur === code ? null : code;
-      if (next) trackEvent("buy_list_open", { code: next });
-      return next;
+  // When the open share above closes, everything under it moves up by its
+  // height. Hold the tapped row where it was on screen (the portfolio's rows
+  // do the same), or the reader lands near the bottom of the list.
+  const toggle = (code: string, el: HTMLElement) => {
+    const before = el.getBoundingClientRect().top;
+    const next = open === code ? null : code;
+    if (next) trackEvent("buy_list_open", { code: next });
+    setOpen(next);
+    requestAnimationFrame(() => {
+      const shift = el.getBoundingClientRect().top - before;
+      if (Math.abs(shift) > 1) window.scrollBy({ top: shift, behavior: "instant" });
     });
   };
 
@@ -148,14 +149,11 @@ export default function BuyListRows({ items }: { items: BuyListItem[] }) {
               className="bl-head"
               aria-expanded={isOpen}
               aria-controls={`bl-case-${item.code}`}
-              onClick={() => toggle(item.code)}
+              onClick={(e) => toggle(item.code, e.currentTarget)}
             >
-              <Ident item={item} />
-              <span className="bl-meta">
-                <Meta item={item} />
-                <span className="bl-chev" aria-hidden="true">
-                  <IconChevronDown size={14} />
-                </span>
+              <Head item={item} />
+              <span className="bl-chev" aria-hidden="true">
+                <IconChevronDown size={14} />
               </span>
             </button>
             <div id={`bl-case-${item.code}`} hidden={!isOpen}>
