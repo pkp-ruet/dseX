@@ -374,3 +374,16 @@ export function buildNotices(items: NewsLike[] | null | undefined): NoticeDigest
   );
   return out;
 }
+
+/**
+ * One notice on its own — the home's "Latest on your shares" (2026-11-18):
+ * its kind and its sentence (a grouped kind reads as its one-company line), or
+ * null for a fund's NAV post and for a title we can't read. Unlike the market
+ * page, the home never shows DSE's own wording.
+ */
+export function readNotice(title: string, code: string): { kind: NoticeKind; text: Bi; sev?: number } | null {
+  const r = readTitle(bareTitle(title || "", code));
+  if ("skip" in r) return null;
+  const text = r.text ?? (r.group ? GROUP_TEXT[r.group]?.one : undefined);
+  return text ? { kind: r.kind, text, sev: r.sev } : null;
+}

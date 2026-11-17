@@ -9,9 +9,12 @@ import {
   type ForYou,
   type HomeBundle,
   type LatestResultRow,
+  type PortfolioHolding,
   type UpcomingResult,
 } from "@/lib/api";
 import type { BuyListHome } from "@/lib/buy-list";
+import { bdGroup } from "@/lib/formatters";
+import { useMoneyShown } from "@/lib/home-money";
 import { dayShort } from "@/components/dividend-calendar/dates";
 import { DateTile } from "@/components/dividend-calendar/DateGroup";
 import {
@@ -19,6 +22,7 @@ import {
   IconChevronRight,
   IconClipboardCheck,
   IconCalendar,
+  IconCoin,
   IconCompass,
   IconCrown,
   IconFileText,
@@ -30,6 +34,10 @@ type Bi = { en: string; bn: string };
 const DATE_DAYS = 7;
 /** Dates listed before "+N more". */
 const DATE_ROWS = 4;
+/** "Dividends coming to you" counts record dates this many days ahead. */
+const INCOME_DAYS = 60;
+/** Tax taken from a cash dividend (the portfolio's default; 15% without a TIN). */
+const DIV_TAX_PCT = 10;
 
 interface DateItem {
   iso: string;
@@ -131,6 +139,48 @@ function whenWord(todayIso: string, iso: string): Bi {
   return { en: s.en.split(" ")[0], bn: s.bn.split(",")[0] };
 }
 
+interface IncomeItem {
+  code: string;
+  iso: string;
+  /** Cash on the shares held today, after tax. */
+  cash: number;
+}
+
+/**
+ * "Dividends coming to you" (round 3, 2026-11-18): cash dividends already
+ * declared on the shares the reader owns (main portfolio), whose record date
+ * is in the next 60 days — the shares held today × the cash a share, less
+ * 10% tax. Bonus shares aren't money, so they don't count. Soonest first.
+ */
+function buildIncome(todayIso: string, holdings: PortfolioHolding[], own: CorporateActionEvent[]): IncomeItem[] {
+  const qty = new Map<string, number>();
+  for (const h of holdings) {
+    const c = h.trading_code.toUpperCase();
+    qty.set(c, (qty.get(c) ?? 0) + (h.qty || 0));
+  }
+  const seen = new Set<string>();
+  const out: IncomeItem[] = [];
+  for (const e of own) {
+    const code = e.trading_code.toUpperCase();
+    const q = qty.get(code) ?? 0;
+    const cash = e.cash_per_share ?? 0;
+    if (q <= 0 || cash <= 0 || !e.record_date) continue;
+    const d = daysFrom(todayIso, e.record_date);
+    if (d < 0 || d > INCOME_DAYS) continue;
+    const key = `${code}|${e.record_date.slice(0, 10)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ code, iso: e.record_date.slice(0, 10), cash: q * cash * (1 - DIV_TAX_PCT / 100) });
+  }
+  return out.sort((a, b) => (a.iso === b.iso ? a.code.localeCompare(b.code) : a.iso < b.iso ? -1 : 1));
+}
+
+/** "24 Nov" / "24 নভেম্বর" (the weekday left out). */
+function dayMonth(iso: string): Bi {
+  const s = dayShort(iso);
+  return { en: s.en.split(" ").slice(1).join(" "), bn: s.bn.split(", ").slice(1).join(", ") || s.bn };
+}
+
 /** "SQURPHARMA, EBL, NCCBANK +7". */
 function names(codes: string[], total: number, n = 3): string {
   const shown = codes.slice(0, n);
@@ -148,8 +198,8 @@ interface SumRow {
   premiumPage: boolean;
   /** "2 new" beside the title; 0 = none. */
   fresh: number;
-  /** The big number on the right, and what it counts. */
-  value: number;
+  /** The big number on the right, and what it counts ("৳4,073" for money). */
+  value: number | string;
   unit: Bi;
   /** One plain line (two at most): the names, or what Premium adds. */
   caption: Bi;
@@ -166,9 +216,12 @@ interface SumRow {
  * 2. **Summary rows**, identical parts: icon (crown on a Premium page for a
  *    reader without Premium) · title (+ a gold "N new") · one caption · a big
  *    number with what it counts · chevron. Buy List · Record dates (next two
- *    weeks) · Results this week (free, round 2, 2026-11-18: the reader's own
- *    shares named) · Discover. A free reader's caption says what is free and
- *    that the rest is Premium, in words; a Premium reader's names the shares.
+ *    weeks) · Dividends coming to you (free, round 3, 2026-11-18: cash declared
+ *    on the shares they own, record dates in 60 days, after 10% tax — taka
+ *    only while the band shows their money, else how many) · Results this
+ *    week (free, round 2, 2026-11-18: the reader's own shares named) ·
+ *    Discover. A free reader's caption says what is free and that the rest is
+ *    Premium, in words; a Premium reader's names the shares.
  *
  * No chips, no lock lines, no sub-lines. From 1024px the two cards sit side by
  * side; without the dates card the rows sit side by side (four: two by two).
@@ -186,6 +239,7 @@ export default function TodayForYou({
   ownDividends,
   resultsWeek,
   ownResults,
+  holdings,
 }: {
   lang: Lang;
   premium: boolean;
@@ -207,8 +261,12 @@ export default function TodayForYou({
   resultsWeek?: HomeBundle["results_week"];
   /** Results on the reader's own shares, last three weeks (bundle `new_results`). */
   ownResults?: LatestResultRow[];
+  /** The main portfolio's holdings (null while unknown): Dividends coming to you. */
+  holdings?: PortfolioHolding[] | null;
 }) {
   const [allDates, setAllDates] = useState(false);
+  // The band's eye: taka only once the reader has chosen to see their money.
+  const [moneyShown] = useMoneyShown();
   const bn = lang === "bn";
   const pick = (b: Bi) => (bn ? b.bn : b.en);
   const dates = mine.size > 0 && !loading ? buildDates(todayIso, resultsSoon, ownDividends) : null;
@@ -269,7 +327,31 @@ export default function TodayForYou({
     });
   }
 
-  // 3 · Results posted this week (free; the reader's own shares named first)
+  // 3 · Dividends coming to you (free; their own shares, money hidden until the eye says)
+  const income = holdings && holdings.length > 0 && !loading ? buildIncome(todayIso, holdings, ownDividends) : [];
+  if (income.length > 0) {
+    const total = income.reduce((s, x) => s + x.cash, 0);
+    const n = income.length;
+    const listed = income.slice(0, 2);
+    const rest = n - listed.length;
+    const list = (lng: "en" | "bn") =>
+      listed.map((x) => `${x.code} ${dayMonth(x.iso)[lng]}`).join(", ") + (rest > 0 ? ` +${rest}` : "");
+    rows.push({
+      key: "income",
+      href: "/portfolio#dividends",
+      Icon: IconCoin,
+      title: { en: "Dividends coming to you", bn: "আপনার যে ডিভিডেন্ড আসছে" },
+      premiumPage: false,
+      fresh: 0,
+      value: moneyShown ? `৳${bdGroup(total)}` : n,
+      unit: moneyShown
+        ? { en: "after tax", bn: "কর বাদে" }
+        : { en: n === 1 ? "dividend" : "dividends", bn: "ডিভিডেন্ড" },
+      caption: { en: `Record dates: ${list("en")}`, bn: `রেকর্ড ডেট: ${list("bn")}` },
+    });
+  }
+
+  // 4 · Results posted this week (free; the reader's own shares named first)
   if (resultsWeek && resultsWeek.recent > 0) {
     const cutoff = daysBefore(todayIso, resultsWeek.days || 7);
     const own = Array.from(
@@ -299,7 +381,7 @@ export default function TodayForYou({
     });
   }
 
-  // 4 · Companies to discover (the top three are free)
+  // 5 · Companies to discover (the top three are free)
   if (forYou && forYou.items.length > 0) {
     const c = forYouCounts(forYou);
     const list = names(forYou.items.map((x) => x.code), c.total);

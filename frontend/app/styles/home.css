@@ -8,7 +8,9 @@
      3 your shares today (the story rings) + the market line    (.hm-side)
      4 continue where you left off                              (.hm-recent)
      5 one offer slot, swipe only                               (.hm-slot)
-     6 today for you: your dates + four rows with counts        (.hm-today)
+     6 today for you: your dates + five rows with counts        (.hm-today)
+     7 latest on your shares: notices to DSE (round 3)          (.hm-notes)
+     8 strongest companies this week: ranking top five          (.hm-rank)
 
    Nothing above the story rings appears after the page loads (the recent
    row and the slot read localStorage first), so the rings never jump.
@@ -434,6 +436,46 @@ a.hm-srow:hover, a.hm-srow:active { background: var(--surface-2); }
   }
   .hm-today-grid:not(:has(> .hm-dcard)) .hm-sum:has(> li:nth-child(4)) > li:nth-child(odd) { border-left: 0; }
   .hm-today-grid:not(:has(> .hm-dcard)) .hm-sum:has(> li:nth-child(4)) > li:nth-child(n + 3) { border-top: 1px solid var(--border); }
+}
+
+/* ---------- 7 · Latest on your shares (round 3, 2026-11-18) ----------
+   The newest notices the reader's companies sent to DSE, one plain sentence
+   each: kind word · company · H / ★ · day, then the sentence. */
+.hm-notes, .hm-rank { min-width: 0; }
+.hm-nlist { list-style: none; margin: 0; padding: 0; }
+.hm-nlist > li + li { border-top: 1px solid var(--border); }
+.hm-nrow {
+  display: grid; grid-template-columns: minmax(0, 1fr) 16px; gap: var(--space-3); align-items: center;
+  padding: var(--space-3) var(--space-4); color: var(--text);
+}
+.hm-nrow:hover, .hm-nrow:active { background: var(--surface-2); }
+.hm-nrow-txt { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); min-width: 0; }
+.hm-nrow-top { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.hm-kind {
+  flex: none; display: inline-flex; align-items: center; min-height: 20px; padding: 0 var(--space-2);
+  border-radius: var(--radius-sm); background: var(--surface-2);
+  font-size: var(--fs-2xs); font-weight: 700; color: var(--text);
+}
+/* The auditor's words are a warning. */
+.hm-kind--warn { background: rgb(var(--watch-rgb) / 0.12); color: var(--watch); }
+.hm-nrow-co {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: var(--fs-xs); font-weight: 700;
+}
+.hm-nrow-day { flex: none; margin-left: auto; padding-left: var(--space-2); font-size: var(--fs-2xs); font-weight: 600; }
+.hm-nrow-text { font-size: var(--fs-sm); line-height: 1.45; }
+
+/* ---------- 8 · Strongest companies this week (round 3, 2026-11-18) ----------
+   The ranking page's rows (`.rk-*` in ranking.css) inside the home's card. */
+.hm-rank-lead { padding: var(--space-3) var(--space-4); font-size: var(--fs-xs); line-height: 1.45; color: var(--text); }
+.hm-rank .rk-list { border-top: 1px solid var(--border); }
+.hm-rank .hm-dmore { text-decoration: none; }
+
+/* From 1024px the two sit side by side; alone, either takes the full width. */
+@media (min-width: 1024px) {
+  .hm-notes { grid-column: 1; }
+  .hm-rank { grid-column: 2; }
+  .hm:not(:has(.hm-rank)) .hm-notes, .hm:not(:has(.hm-notes)) .hm-rank { grid-column: 1 / -1; }
 }
 
 /* ---------- The review block (end of the signed-in home, 2026-11-18) ----------

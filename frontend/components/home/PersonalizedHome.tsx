@@ -32,6 +32,8 @@ import OfferSlot from "@/components/home/personalized/OfferSlot";
 import MarketLine from "@/components/home/personalized/MarketLine";
 import TodayForYou from "@/components/home/personalized/TodayForYou";
 import RecentStrip from "@/components/home/personalized/RecentStrip";
+import ShareNotices from "@/components/home/personalized/ShareNotices";
+import RankingTop from "@/components/home/personalized/RankingTop";
 
 function flatten(scores: ScoresResponse | null): Map<string, ScoreItem> {
   if (!scores) return new Map();
@@ -148,6 +150,8 @@ export default function PersonalizedHome() {
     [holdings],
   );
   const watchedSet = useMemo(() => (codes.length ? new Set(codes.map((c) => c.toUpperCase())) : EMPTY_SET), [codes]);
+  // Every scored company, for the ranking block.
+  const allStocks = useMemo(() => Array.from(priceMap.values()), [priceMap]);
 
   const isoToday = bstDateStr();
   const dateStr = bn
@@ -236,10 +240,15 @@ export default function PersonalizedHome() {
   //     then the free Buy List pick, the ৳99 month or the Premium banner,
   //     notifications, the setup step and install)
   //   6 today for you: your dates this week, then Buy List · record dates ·
-  //     results this week · Discover, counts for a free reader, names for
-  //     Premium (replaced the Buy List, dividend and Picked for you cards)
+  //     dividends coming to you · results this week · Discover, counts for a
+  //     free reader, names for Premium (replaced the Buy List, dividend and
+  //     Picked for you cards)
+  //   7 latest on your shares: notices to DSE as plain sentences (round 3,
+  //     2026-11-18, https://claude.ai/artifact/Bncp1qkKjyYs6ChfZpqV2e)
+  //   8 strongest companies this week: the ranking's top five (round 3)
   // 4 and 5 show only after reading localStorage, so they sit below 3: the
-  // rings never move once painted.
+  // rings never move once painted. 7 and 8 sit below everything the reader
+  // taps first; both are free and come from data already loaded.
   return (
     <PullToRefresh onRefresh={() => runFetches()}>
       <div className="hm pb-4" onClickCapture={onTap}>
@@ -309,6 +318,26 @@ export default function PersonalizedHome() {
           ownDividends={dividendCash}
           resultsWeek={bundle?.results_week ?? null}
           ownResults={newResults}
+          holdings={holdings}
+        />
+
+        {!isBrandNew && (
+          <ShareNotices
+            news={news}
+            priceMap={priceMap}
+            held={heldSet}
+            watched={watchedSet}
+            todayIso={isoToday}
+            lang={lang}
+          />
+        )}
+
+        <RankingTop
+          stocks={allStocks}
+          moves={bundle?.rank_moves ?? null}
+          held={heldSet}
+          watched={watchedSet}
+          lang={lang}
         />
       </div>
     </PullToRefresh>

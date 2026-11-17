@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "@/components/ui/Link";
 import type { Lang } from "@/context/LangContext";
 import type { PortfolioHolding, ScoreItem } from "@/lib/api";
@@ -12,20 +12,10 @@ import { bstHour } from "@/lib/market-hours";
 import { daysToEnd, inRenewWindow, renewStage } from "@/lib/renewal";
 import { t } from "@/lib/home-copy";
 import { trackEvent } from "@/lib/track";
+import { useMoneyShown } from "@/lib/home-money";
 import MarketStatusPill from "@/components/home/personalized/MarketStatusPill";
 import { openGlobalSearch } from "@/components/layout/GlobalSearch";
 import { IconBook, IconChevronRight, IconCrown, IconEye, IconEyeOff, IconPlus, IconSearch } from "@/components/ui/icons";
-
-/** "1" once the reader chose to show the value on this device; anything else = hidden. */
-const SHOW_KEY = "dsex.home.showMoney";
-
-function readShown(): boolean {
-  try {
-    return localStorage.getItem(SHOW_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
 
 function greetingForHour(h: number, lang: Lang): string {
   if (h < 12) return t(lang, "goodMorning");
@@ -124,8 +114,8 @@ export default function HomeHeader({
   lang: Lang;
 }) {
   const bn = lang === "bn";
-  const [shown, setShown] = useState(false);
-  useEffect(() => setShown(readShown()), []);
+  // Shared with "Dividends coming to you" (lib/home-money.ts): one switch for the page's money.
+  const [shown, setShown] = useMoneyShown();
 
   const greeting = isNew ? t(lang, "welcome") : greetingForHour(bstHour(), lang);
   // Premium readers see the chip only in their last 10 days, as a reminder.
@@ -147,9 +137,6 @@ export default function HomeHeader({
   const toggle = () => {
     const next = !shown;
     setShown(next);
-    try {
-      localStorage.setItem(SHOW_KEY, next ? "1" : "0");
-    } catch {}
     trackEvent("home_money_toggle", { shown: next ? 1 : 0 });
   };
 
