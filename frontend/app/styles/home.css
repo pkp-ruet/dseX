@@ -87,8 +87,9 @@
 /* ---------- 1 · The band ---------- */
 .hm-band {
   padding: var(--space-4) var(--space-4) calc(var(--space-8) + var(--space-3));
+  border: 1px solid rgb(var(--border-rgb) / 0.7);
   border-radius: var(--radius-xl);
-  background: rgb(var(--primary-rgb) / 0.12);
+  background: var(--surface-warm);
 }
 .hm-band-in {
   display: grid; grid-template-columns: 52px minmax(0, 1fr);

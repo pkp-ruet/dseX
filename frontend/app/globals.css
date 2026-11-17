@@ -86,6 +86,7 @@
   --surface: #FCFBF8;     /* cards — off-white since 2026-11-06 (pure #FFFFFF was the main glare) */
   --surface-2: #EFEADF;   /* inset panel — kept light enough that emerald/red text stay AA on it */
   --cell-rule: #EFE8DA;   /* table cell hairline (lighter than --border) */
+  --surface-warm: #F9F6F0; /* warm ivory panel, between the canvas and a card — the home page's top band (2026-11-18, was clay at 12%) */
 
   /* RGB triplets of the tokens above, so Tailwind opacity modifiers work
      (`bg-primary/10`, `border-border/60`). Keep in step with the hex values. */
@@ -153,6 +154,7 @@
   --surface: #1F1C19;
   --surface-2: #2A2622;
   --cell-rule: #2C2824;
+  --surface-warm: #1B1815;  /* between the canvas and a card, like light */
   --on-fill: #17130F;
   --bg-rgb: 22 20 18;
   --surface-rgb: 31 28 25;
