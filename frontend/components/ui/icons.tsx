@@ -301,3 +301,81 @@ export const IconCompare = (p: { size?: number }) => (
     <path d="M17 17H5l3.5 3.5" />
   </I>
 );
+
+// ── The home page's icon grid (2026-11-17) ──
+/** A pulse line — "the market today". */
+export const IconActivity = (p: { size?: number }) => (
+  <I {...p}>
+    <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+  </I>
+);
+/** A clipboard with a tick — the Buy List. */
+export const IconClipboardCheck = (p: { size?: number }) => (
+  <I {...p}>
+    <rect x="8" y="2" width="8" height="4" rx="1" />
+    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+    <path d="m9 14 2 2 4-4" />
+  </I>
+);
+/** A page of text — results reports. */
+export const IconFileText = (p: { size?: number }) => (
+  <I {...p}>
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <path d="M14 2v6h6M16 13H8M16 17H8" />
+  </I>
+);
+export const IconCompass = (p: { size?: number }) => (
+  <I {...p}>
+    <circle cx="12" cy="12" r="9.5" />
+    <path d="m15.8 8.2-2 5.6-5.6 2 2-5.6z" />
+  </I>
+);
+/** A pie slice — sectors. */
+export const IconPie = (p: { size?: number }) => (
+  <I {...p}>
+    <path d="M21.2 15.9A10 10 0 1 1 8 2.8" />
+    <path d="M22 12A10 10 0 0 0 12 2v10z" />
+  </I>
+);
+/** A graduation cap — beginner guides. */
+export const IconCap = (p: { size?: number }) => (
+  <I {...p}>
+    <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+    <path d="M6 12v5c3 3 9 3 12 0v-5" />
+  </I>
+);
+/** A pen — the Bangla blog. */
+export const IconPen = (p: { size?: number }) => (
+  <I {...p}>
+    <path d="M12 20h9" />
+    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+  </I>
+);
+/** A speech bubble — TopStock AI. */
+export const IconChat = (p: { size?: number }) => (
+  <I {...p}>
+    <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+    <path d="M8 12h.01M12 12h.01M16 12h.01" />
+  </I>
+);
+export const IconEye = (p: { size?: number }) => (
+  <I {...p}>
+    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+    <circle cx="12" cy="12" r="3" />
+  </I>
+);
+export const IconEyeOff = (p: { size?: number }) => (
+  <I {...p}>
+    <path d="M9.9 9.9a3 3 0 1 0 4.2 4.2" />
+    <path d="M10.7 5.1A10.4 10.4 0 0 1 12 5c7 0 10 7 10 7a13.2 13.2 0 0 1-1.7 2.7" />
+    <path d="M6.6 6.6A13.5 13.5 0 0 0 2 12s3 7 10 7a9.7 9.7 0 0 0 5.4-1.6" />
+    <path d="M2 2l20 20" />
+  </I>
+);
+export const IconGift = (p: { size?: number }) => (
+  <I {...p}>
+    <rect x="3" y="8" width="18" height="4" rx="1" />
+    <path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" />
+    <path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5" />
+  </I>
+);

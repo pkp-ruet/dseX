@@ -28,7 +28,7 @@ import "./styles/screener.css";
 import "./styles/compare.css";
 import "./styles/picks.css";
 import "./styles/buy-list.css";
-import "./styles/find.css";
+import "./styles/home.css";
 import "./styles/notifications.css";
 
 // One Latin family, three weights (2026-10 redesign): regular, semibold, bold.

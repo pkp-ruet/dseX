@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type MouseEvent } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { useLang, type Lang } from "@/context/LangContext";
+import { useLang } from "@/context/LangContext";
 import { usePremium } from "@/lib/premium";
 import {
   getScores,
@@ -22,42 +22,22 @@ import { portfolioTodayMove } from "@/lib/portfolio-analysis";
 import { buildStories, buildStarterStories } from "@/lib/dash-stories";
 import { marketSession, isTradingDay, bstDateStr } from "@/lib/market-hours";
 import { bnDate } from "@/lib/bn";
-import { t } from "@/lib/home-copy";
 import { trackHomeTap } from "@/lib/track";
 
-import DailyBriefing from "@/components/home/personalized/DailyBriefing";
-import HeroGreeting from "@/components/home/personalized/HeroGreeting";
-import MoneyHero, { MoneyHeroSkeleton } from "@/components/home/personalized/MoneyHero";
-import MoneyHeroGhost from "@/components/home/personalized/MoneyHeroGhost";
 import PullToRefresh from "@/components/home/personalized/PullToRefresh";
 import StoriesRow from "@/components/home/personalized/StoriesRow";
-import MarketTodayCard from "@/components/home/personalized/MarketTodayCard";
-import BuyListCard from "@/components/home/personalized/BuyListCard";
-import RankingTop from "@/components/home/personalized/RankingTop";
-import ScreenerFeature from "@/components/home/personalized/ScreenerFeature";
-import CompareFeature from "@/components/home/personalized/CompareFeature";
-import ResearchShelf from "@/components/home/personalized/ResearchShelf";
-import ForYouCard from "@/components/home/personalized/ForYouCard";
-import DividendBoardCard from "@/components/home/personalized/DividendBoardCard";
-import LearnCard from "@/components/home/personalized/LearnCard";
-import ExploreLinks from "@/components/home/personalized/ExploreLinks";
-import InstallHomeBanner from "@/components/pwa/InstallHomeBanner";
+import HomeHeader from "@/components/home/personalized/HomeHeader";
+import ServiceGrid from "@/components/home/personalized/ServiceGrid";
+import OfferSlot from "@/components/home/personalized/OfferSlot";
+import MarketLine from "@/components/home/personalized/MarketLine";
+import TodayForYou from "@/components/home/personalized/TodayForYou";
+import RecentStrip from "@/components/home/personalized/RecentStrip";
 
 function flatten(scores: ScoresResponse | null): Map<string, ScoreItem> {
   if (!scores) return new Map();
   const all = Object.values(scores.tiers).flat();
   return new Map(all.map((s) => [s.trading_code.toUpperCase(), s]));
 }
-
-/** Two cards side by side from `md:` up; a lone card takes the full width.
- *  `grid-cols-1` is load-bearing on a phone: without it the implicit column is
- *  `auto`, which cannot shrink below a card's min-content, so one over-wide
- *  row would widen the whole page instead of being contained. `.dash-pair`
- *  stretches both cards to the taller one's height so a pair ends on one line.
- *  Every card on the page sits 24px from the next (`gap-6`, `space-y-6`). */
-const PAIR = "dash-pair grid grid-cols-1 gap-6 md:grid-cols-2 [&>*:only-child]:md:col-span-2";
-/** Space between the blocks inside one chapter. */
-const CHAPTER = "dash-section space-y-6";
 
 const EMPTY_DIVIDENDS = { upcoming_declarations: [], upcoming_record_dates: [] };
 const EMPTY_SET = new Set<string>();
@@ -158,7 +138,6 @@ export default function PersonalizedHome() {
   const dividendCash = bundle?.dividend_cash ?? [];
   const movers = bundle?.movers ?? null;
   const calendarRows = bundle?.calendar?.record_dates ?? [];
-  const declared = bundle?.calendar?.recent_declarations ?? [];
 
   const hasWatchlist = codes.length > 0;
   const hasPortfolio = (holdings?.length ?? 0) > 0;
@@ -175,11 +154,10 @@ export default function PersonalizedHome() {
     ? bnDate(isoToday, true)
     : new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
 
-  const allStocks = useMemo(() => Array.from(priceMap.values()), [priceMap]);
+  // The reader's own codes: Today for you names their record dates for free.
+  const mineSet = useMemo(() => new Set([...heldSet, ...watchedSet]), [heldSet, watchedSet]);
 
-
-
-  // Portfolio move today (the money card shows it, and the Today story's first frame).
+  // Portfolio move today (the portfolio button shows it, and the Today story's first frame).
   const todayMove = hasPortfolio ? portfolioTodayMove(holdings!, priceMap, bundle?.ex_moves) : null;
 
   // Before the open (or on a non-trading day) the prices are the previous
@@ -230,8 +208,9 @@ export default function PersonalizedHome() {
     : ownStories;
   const quietStories = !isBrandNew && (hasPortfolio || hasWatchlist) && ownStories.every((st) => st.kind === "today");
 
-
-  const hasDividends = calendarRows.length > 0 || declared.length > 0;
+  // Gold counts on the icons: the Buy List's joiners this week, Discover's new picks today.
+  const forYouNew = bundle?.for_you && !isBrandNew ? (bundle.for_you.counts?.new ?? bundle.for_you.new ?? 0) : 0;
+  const badges = { buylist: bundle?.buy_list?.week_joined ?? 0, discover: forYouNew };
 
   // One delegated listener: any link tapped inside a `[data-card]` wrapper
   // records which card it came from. No per-component wiring.
@@ -243,167 +222,82 @@ export default function PersonalizedHome() {
     if (card) trackHomeTap(card, link.getAttribute("href") ?? undefined);
   }
 
-  // ── Chapter 4: Money coming — every record date in the next two weeks,
-  //    market-wide, plus the latest declarations. ──
-  const dividendsChapter = hasDividends ? (
-    <section id="dividends" className={CHAPTER}>
-      <div data-card="dividends">
-        <DividendBoardCard recordDates={calendarRows} declared={declared} held={heldSet} watched={watchedSet} lang={lang} />
-      </div>
-    </section>
-  ) : null;
-
-  // ── Chapter 2: Market today — ONE card since 2026-11-05 (user: "keep only
-  //    1 card"): the mood, the index, value + shares traded and a link to
-  //    /dse-today. The movers card and the link tiles (market page · the
-  //    week's results) left with that change. ──
-  const marketChapter = (
-    <section id="market" className={CHAPTER}>
-      <div data-card="market">
-        <MarketTodayCard
-          index={marketIndex}
-          mood={marketState?.mood ?? null}
-          history={marketState?.history ?? null}
-          lang={lang}
-        />
-      </div>
-    </section>
-  );
-
-  // The Buy List (2026-11-08, user: "a featured card like others … after
-  // market today"): today's top three for Premium, the free example + locked
-  // places for a free reader. From the bundle; nothing without it.
-  const buyListCard = bundle?.buy_list ? (
-    <div data-card="buy-list">
-      <BuyListCard
-        data={bundle.buy_list}
-        premium={planState === "premium"}
-        held={heldSet}
-        watched={watchedSet}
-        lang={lang}
-      />
-    </div>
-  ) : null;
-
-  // ── Chapter 3: Find stocks (redone 2026-11-06, user: "section wise …
-  //    clean, easy to understand and premium"). Four blocks, one shape
-  //    (eyebrow · title · lead · body · one link out), nothing else:
-  //    1 Stock screener — one featured card and a link, no screener here;
-  //    1b Compare stocks — what it does, one question card in miniature on
-  //      the reader's own shares, comparisons to start from (2026-11-12);
-  //    2 Company ranking — the top five + a link (trending left this chapter);
-  //    3 Picked for you — three companies to explore + a link (Premium;
-  //      locked tiles for a free reader). Moved down from first place
-  //      2026-11-08 so it no longer sits under the Buy List card: the Buy
-  //      List (with the market) says what we would buy today, this card is
-  //      for exploring, and the two never share a company;
-  //    4 Premium research — all six reports, each with today's number. ──
-  const ideasChapter = (
-    <section id="ideas" className="dash-section">
-      <div className="space-y-6">
-        <div data-card="screener">
-          <ScreenerFeature ready={bundle?.screener?.ready} saved={bundle?.screener?.saved} />
-        </div>
-        <div data-card="compare">
-          <CompareFeature holdings={holdings} watchlist={codes} priceMap={priceMap} premium={planState === "premium"} />
-        </div>
-        <div data-card="ranking">
-          <RankingTop
-            stocks={allStocks}
-            moves={bundle?.rank_moves ?? null}
-            held={heldSet}
-            watched={watchedSet}
-            lang={lang}
-          />
-        </div>
-        <div data-card="for-you">
-          <ForYouCard
-            data={bundle?.for_you}
-            loading={!bundleSettled}
-            premium={planState === "premium"}
-            name={user?.display_name}
-            held={heldSet}
-            watched={watchedSet}
-            lang={lang}
-          />
-        </div>
-        <div data-card="research">
-          <ResearchShelf summary={bundle?.research} premium={planState === "premium"} />
-        </div>
-      </div>
-    </section>
-  );
-
-  // Onboarding checklist — build a watchlist. Sits below
-  // the money chapter so a returning user never meets "Finish setting up"
-  // before their own money. Renders nothing once done.
-  const setup = (
-    <div data-card="setup">
-      <DailyBriefing hasWatchlist={hasWatchlist} />
-    </div>
-  );
-
-  // ── Chapter 5: Learn — two short reads that rotate daily (three Bengali
-  //    beginner guides for a brand-new account) + the way out to every other
-  //    page. ──
-  const learnChapter = (
-    <section id="learn" className={CHAPTER}>
-      <div className={PAIR}>
-        <div data-card="learn">
-          <LearnCard brandNew={isBrandNew} lang={lang} />
-        </div>
-        <div data-card="explore">
-          <ExploreLinks lang={lang} />
-        </div>
-      </div>
-    </section>
-  );
-
+  // The bKash-style home (2026-11-17, mockup
+  // https://claude.ai/artifact/PzbGUGyZQpwFEpCTTo5jDJ). Six blocks, one job
+  // each; the page behind every icon / row does the explaining and the selling:
+  //   1 the band: greeting + ONE button for the reader's money (hidden until
+  //     tapped on a new device, then remembered)
+  //   2 what you can do: 8 icons + See more (replaced the screener, compare,
+  //     ranking, research, learn and explore cards)
+  //   3 one offer slot, swipe only (the ৳99 month, the Premium banner, the
+  //     install card and the setup step share it)
+  //   4 the story rings, unchanged, beside 5 the market in one line
+  //   6 today for you: Buy List · record dates · Discover, counts for a free
+  //     reader, names for Premium (replaced the Buy List, dividend and Picked
+  //     for you cards)
   return (
     <PullToRefresh onRefresh={() => runFetches()}>
-    <div className="pb-4" onClickCapture={onTap}>
-      {/* ── Chapter 1: the greeting open on the canvas, the story rings
-          (2026-10-28 — they replaced "Your stocks today" and "This week on
-          your stocks"), then the money card. The four-number glance strip
-          (GlanceStrip) was removed 2026-10-27 (user decision). ── */}
-      <section id="money" className="dash-section mt-5 space-y-4" data-card="money">
-        <HeroGreeting name={user?.display_name} dateStr={dateStr} isNew={isNewUser} lang={lang} />
-        <div data-card="stories">
-          <StoriesRow
-            stories={stories}
-            loading={holdings === null || ((hasPortfolio || hasWatchlist) && priceMap.size === 0)}
-            quiet={quietStories}
-            starter={isBrandNew}
-            userId={userId}
+      <div className="hm pb-4" onClickCapture={onTap}>
+        <div className="hm-top">
+          <HomeHeader
+            name={user?.display_name}
+            dateStr={dateStr}
+            isNew={isNewUser}
+            premium={premium}
+            holdings={holdings}
+            priceMap={priceMap}
+            todayMove={todayMove}
+            when={when}
+            lang={lang}
+          />
+          <ServiceGrid lang={lang} premium={premium} badges={badges} />
+        </div>
+
+        {/* The last shares opened on this device, one tap back (+ the free analyses left). */}
+        <RecentStrip lang={lang} premium={premium} priceMap={priceMap} reportKeys={user?.report_keys ?? null} />
+
+        <OfferSlot
+          lang={lang}
+          brandNew={isBrandNew}
+          hasWatchlist={hasWatchlist}
+          hasPortfolio={hasPortfolio}
+          week={bundle?.week_watch ?? null}
+          brief={premium ? bundle?.brief ?? null : null}
+          research={bundle?.research ?? null}
+        />
+
+        <div className="hm-side">
+          <div data-card="stories">
+            <StoriesRow
+              stories={stories}
+              loading={holdings === null || ((hasPortfolio || hasWatchlist) && priceMap.size === 0)}
+              quiet={quietStories}
+              starter={isBrandNew}
+              userId={userId}
+              lang={lang}
+            />
+          </div>
+          <MarketLine
+            index={marketIndex}
+            mood={marketState?.mood ?? null}
+            history={marketState?.history ?? null}
             lang={lang}
           />
         </div>
-        {holdings === null ? (
-          // Portfolio not known yet → hold the card's space so nothing below
-          // jumps when it resolves (kills the ghost↔MoneyHero shift).
-          <MoneyHeroSkeleton />
-        ) : hasPortfolio ? (
-          <MoneyHero holdings={holdings} priceMap={priceMap} marketIndex={marketIndex} lang={lang} />
-        ) : (
-          <MoneyHeroGhost lang={lang} />
-        )}
-      </section>
 
-      {/* No chapter titles and no sticky chapter chips (2026-11-06, user:
-          "only cards are enough"): the cards follow each other with one
-          even gap; each card's own title says what it is. */}
-      <div className="mt-6 space-y-6">
-        {marketChapter}
-        {/* The Buy List, right under the market card (2026-11-08, user decision). */}
-        {buyListCard}
-        {ideasChapter}
-        {dividendsChapter}
-        {setup}
-        {learnChapter}
-        {/* Mobile-only install CTA — auto-hides once installed / dismissed. */}
-        <InstallHomeBanner />
+        <TodayForYou
+          lang={lang}
+          premium={premium}
+          loading={!bundle && !bundleSettled}
+          buyList={bundle?.buy_list ?? null}
+          recordDates={calendarRows}
+          forYou={bundle?.for_you ?? null}
+          mine={mineSet}
+          todayIso={isoToday}
+          resultsSoon={bundle?.results_soon ?? []}
+          ownDividends={dividendCash}
+        />
       </div>
-    </div>
     </PullToRefresh>
   );
 }
