@@ -1,11 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType } from "react";
 import Button from "@/components/ui/Button";
 import Sheet from "@/components/ui/Sheet";
 import EmptyState from "@/components/ui/EmptyState";
 import Skeleton from "@/components/ui/Skeleton";
-import { IconBell, IconCheck, IconClose, IconPlus } from "@/components/ui/icons";
+import {
+  IconBell, IconBriefcase, IconCalendar, IconCheck, IconClose, IconCoin, IconList, IconPlus, IconTag,
+  IconTrendDown, IconTrendUp,
+} from "@/components/ui/icons";
 import PageGate from "@/components/premium/PageGate";
 import { PageLockScope } from "@/components/premium/LockScope";
 import { showLimitNotice } from "@/components/premium/LimitNotice";
@@ -34,37 +37,52 @@ import {
 } from "@/lib/api";
 
 type Order = { sort: string; dir: "asc" | "desc" };
-/** Filters offered as one-tap shortcuts under the lists. */
-const QUICK = ["sector", "price"] as const;
+/** Which shares a screen runs over: the safety rules on (the default),
+ *  category A only (and the trading rule), or every share. */
+type Scope = "safe" | "a" | "all";
+
+/** Shortcuts under "Narrow it down": our own analysis first (2026-11-18). */
+const QUICK = ["grade", "price_word", "sector", "yield"] as const;
+
+/** One icon per list, so the six tiles can be told apart at a glance. */
+const LIST_ICON: Record<string, ComponentType<{ size?: number }>> = {
+  strong_cheap: IconTag,
+  steady_dividends: IconCoin,
+  dividend_soon: IconCalendar,
+  profit_growing: IconTrendUp,
+  owners_buying: IconBriefcase,
+  strong_near_low: IconTrendDown,
+};
+
+const isAOnly = (f: ScreenerFilter) => f.key === "category" && f.in?.join() === "A";
 
 /** Visible copy as both languages, so the server HTML needs no re-render to switch. */
 const tt = (en: string, bn: string) => <T en={en} bn={bn} />;
 
 /**
- * The stock screener (`/screener`; Premium since 2026-11-14). One page,
- * top to bottom (the same day, user: "make your own is nearly invisible …
- * everything should be on 1 page"; picking several lists at once was tried
- * and taken out: "remove the multiple selection of list. its confusing"):
+ * The stock screener (`/screener`; Premium since 2026-11-14). Simplified
+ * 2026-11-18 (user: "more simple, easy to understand and use, clean and
+ * premium look", all eleven suggestions on
+ * https://claude.ai/artifact/VmcqfZo8MjRp3MsDUkQx2Y):
  *
- * 1. **What are you looking for?** — six lists as radio rows, one at a time;
- *    tapping the picked one again clears it. Each row shows how many shares
- *    it has with the reader's own filters on, so nobody taps into 0.
- *    "How we pick each list" folds the rules; they never show as chips.
- * 2. **Add your own filters** — the reader's own filters as chips, with
- *    one-tap shortcuts (sector, share price, category A only) and "More
- *    filters" (the 12-filter menu). The safety line sits here: no Z shares,
- *    ৳10 lakh a day or more, with "Show them too".
- * 3. **The result** — how many shares fit (free), then the shares + "Almost
- *    there" inside one `PageGate`; a reader without Premium gets the Premium
- *    card there. Premium: an order menu and "Save and watch".
- * While the result is below the screen, a count bar sits at the bottom
- * ("22 shares match · See them"), and a filter sheet's "Show 22 shares"
- * scrolls there (2026-11-14, user: "after selecting a filter it just shows
- * on bottom. user need scrolling"). A picked list folds its six rows into
- * one line with "Change", so the filters and the result move up.
- * 4. **Your saved screens** (`#saved`) — signed-in readers who have some, or
- *    Premium. A saved screen keeps its lists, own filters and switch
- *    (`spec.lists` / `own` / `safe`) and reopens as it was made.
+ * - **Your screens** (Premium readers with saved screens): one strip on top,
+ *   name · today's count · "1 new"; a tap opens the screen.
+ * - **One card** (`.scr-builder`) holds the choice:
+ *   1. *Start with a list* — six tiles (icon, name, count), one at a time; a
+ *      tap on the picked one or "Clear" takes it off. The picked list's line
+ *      sits under the tiles with "How we pick" (a sheet with its rules).
+ *   2. *Narrow it down* — the reader's filters as chips, then shortcuts (our
+ *      grade and price check first, then sector and yield) and "All filters".
+ *   3. *Which shares* — Safer shares (no Z, ৳10 lakh a day; the default) ·
+ *      Category A · Every share, a count on each.
+ *   Its foot (`.scr-foot`) is sticky to the bottom of the screen while the card
+ *   is in view: "22 of 362 fit · See them". It replaced the floating count bar.
+ * - **The result** shows only once a list or a filter is on (2026-11-18: a free
+ *   reader's first answer used to be "All N shares, get Premium" for shares
+ *   that are free on /stocks). A Premium reader can still "Browse all" from
+ *   the foot, and a link with `?sort=` opens it. The shares + "Almost there"
+ *   sit inside one `PageGate`; a reader without Premium gets the Premium card.
+ * - **Your saved screens** (`#saved`) at the bottom, for editing.
  *
  * Every company's figures arrive with the page (`GET /api/screener`), so
  * filtering, counting and sorting happen here with no request.
@@ -82,14 +100,17 @@ export default function ScreenerClient({ data }: { data: ScreenerUniverse }) {
   const orders = useMemo(() => ranges.filter((f) => f.menu !== false || f.key === "score"), [ranges]);
   const goals = useMemo(() => goalScreens(data.ready), [data.ready]);
   const goalById = useMemo(() => new Map(goals.map((g) => [g.id, g] as const)), [goals]);
+  const menuCount = useMemo(() => data.filters.filter((f) => f.menu !== false).length, [data.filters]);
 
   const [picked, setPicked] = useState<string[]>([]);
   const [own, setOwn] = useState<ScreenerFilter[]>([]);
   const [order, setOrder] = useState<Order | null>(null);
   const [safe, setSafe] = useState(true);
+  const [browse, setBrowse] = useState(false);
   const [limit, setLimit] = useState(PAGE);
   const [sheet, setSheet] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [howOpen, setHowOpen] = useState(false);
 
   const [saved, setSaved] = useState<SavedCustomList[] | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -100,20 +121,7 @@ export default function ScreenerClient({ data }: { data: ScreenerUniverse }) {
   const topRef = useRef<HTMLDivElement>(null);
   const savedRef = useRef<HTMLElement>(null);
   const resultRef = useRef<HTMLElement>(null);
-  const [listsOpen, setListsOpen] = useState(false);
-  const [resultBelow, setResultBelow] = useState(false);
 
-  // The count bar: on while the result is still below the screen.
-  useEffect(() => {
-    const el = resultRef.current;
-    if (!el || typeof IntersectionObserver === "undefined") return;
-    const io = new IntersectionObserver(
-      ([e]) => setResultBelow(!e.isIntersecting && e.boundingClientRect.top > 0),
-      { rootMargin: "0px 0px -96px 0px" },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
   const toResult = useCallback(() => {
     const el = resultRef.current;
     if (!el) return;
@@ -128,10 +136,11 @@ export default function ScreenerClient({ data }: { data: ScreenerUniverse }) {
     }, 320);
   };
 
-  // URL → state, once after mount. `ready` = the lists picked (comma list);
-  // a ready-made screen from before 2026-11-14 loads as own filters; `f` =
-  // own filters; `safe=0` turns the safety rules off; `tab=saved` scrolls to
-  // the saved screens; `list=<id>` (the daily push) opens one.
+  // URL → state, once after mount. `ready` = the list picked (a ready-made
+  // screen from before 2026-11-14 loads as own filters); `f` = own filters
+  // (`category:A` = the Category A choice); `safe=0` = Every share; `sort` /
+  // `dir` = the order (and opens the result); `tab=saved` scrolls to the
+  // saved screens; `list=<id>` (the daily push) opens one.
   const params = useUrlParams();
   useEffect(() => {
     if (!params) return;
@@ -149,6 +158,7 @@ export default function ScreenerClient({ data }: { data: ScreenerUniverse }) {
     const sort = params.get("sort");
     if (sort && (sort === "name" || ranges.some((r) => r.key === sort))) {
       setOrder({ sort, dir: params.get("dir") === "asc" ? "asc" : "desc" });
+      setBrowse(true);
     }
     if (params.get("tab") === "saved") {
       window.setTimeout(() => savedRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
@@ -208,8 +218,8 @@ export default function ScreenerClient({ data }: { data: ScreenerUniverse }) {
     [rows, effective, shownFilters.length],
   );
   const countOf = useCallback(
-    (ids: string[], ownFilters: ScreenerFilter[]) =>
-      applyScreen(rows, { v: 2, filters: withSafety(mergeFilters([...listRules(ids), ...ownFilters]), safe), sort: "name", dir: "asc" }).length,
+    (ids: string[], ownFilters: ScreenerFilter[], safeOn: boolean = safe) =>
+      applyScreen(rows, { v: 2, filters: withSafety(mergeFilters([...listRules(ids), ...ownFilters]), safeOn), sort: "name", dir: "asc" }).length,
     [rows, listRules, safe],
   );
   /** Each list: how many shares it has with the reader's own filters on. */
@@ -217,17 +227,29 @@ export default function ScreenerClient({ data }: { data: ScreenerUniverse }) {
     () => new Map(goals.map((g) => [g.id, countOf([g.id], own)] as const)),
     [goals, own, countOf],
   );
-  const aOnlyCount = useMemo(
-    () => countOf(picked, [...own.filter((f) => f.key !== "category"), A_ONLY]),
-    [countOf, picked, own],
+
+  // "Which shares": Category A lives in `own` as `category: A` (so links and
+  // saved screens keep it); the switch shows it, never a chip.
+  const hasAOnly = own.some(isAOnly);
+  const ownRest = useMemo(() => own.filter((f) => !isAOnly(f)), [own]);
+  const scope: Scope = hasAOnly ? "a" : safe ? "safe" : "all";
+  const scopeCounts = useMemo(
+    () => ({
+      safe: countOf(picked, ownRest, true),
+      a: countOf(picked, [...ownRest.filter((f) => f.key !== "category"), A_ONLY], true),
+      all: countOf(picked, ownRest, false),
+    }),
+    [countOf, picked, ownRest],
   );
+  /** A list or a filter of the reader's own is on: there is a shortlist to show. */
+  const chosen = picked.length > 0 || ownRest.length > 0;
+  const showResult = chosen || browse;
 
   const resetPaging = () => setLimit(PAGE);
   /** One list at a time: a tap picks it, a tap on the picked one clears it. */
   const togglePick = (id: string) => {
     const on = picked.includes(id);
     setPicked(on ? [] : [id]);
-    setListsOpen(false);
     setOrder(null);
     resetPaging();
     if (!on) trackEvent("screener_list", { id });
@@ -242,6 +264,11 @@ export default function ScreenerClient({ data }: { data: ScreenerUniverse }) {
     setSheet(null);
     resetPaging();
   };
+  const setScope = (s: Scope) => {
+    setOwn((xs) => (s === "a" ? [...xs.filter((f) => f.key !== "category"), A_ONLY] : xs.filter((f) => !isAOnly(f))));
+    setSafe(s !== "all");
+    resetPaging();
+  };
   const sortBy = (key: string) => {
     const d = defs.get(key);
     const first: "asc" | "desc" = key === "name" ? "asc" : d && !d.high_good ? "asc" : "desc";
@@ -251,9 +278,15 @@ export default function ScreenerClient({ data }: { data: ScreenerUniverse }) {
   const clearAll = () => {
     setPicked([]);
     setOwn([]);
+    setSafe(true);
     setOrder(null);
+    setBrowse(false);
     setEditingId(null);
     resetPaging();
+  };
+  const browseAll = () => {
+    setBrowse(true);
+    window.setTimeout(toResult, 60);
   };
 
   function edit(l: SavedCustomList) {
@@ -295,8 +328,6 @@ export default function ScreenerClient({ data }: { data: ScreenerUniverse }) {
   }
 
   const pickedGoals = picked.map((id) => goalById.get(id)).filter((g): g is ScreenerReady => !!g);
-  /** The six rows show with nothing picked, or after "Change". */
-  const rowsShown = !pickedGoals.length || listsOpen;
   const pickedTitle = pickedGoals.length
     ? { en: pickedGoals.map((g) => g.title_en).join(" + "), bn: pickedGoals.map((g) => g.title_bn).join(" + ") }
     : null;
@@ -379,265 +410,306 @@ export default function ScreenerClient({ data }: { data: ScreenerUniverse }) {
   const total = rows.length;
   const n = result.length;
   const ownKeys = new Set(own.map((f) => f.key));
-  const hasAOnly = own.some((f) => f.key === "category" && f.in?.join() === "A");
-  const anything = picked.length > 0 || own.length > 0;
+
+  const SCOPES: { key: Scope; en: string; bn: string }[] = [
+    { key: "safe", en: "Safer shares", bn: "তুলনামূলক নিরাপদ" },
+    { key: "a", en: "Category A", bn: "শুধু A ক্যাটাগরি" },
+    { key: "all", en: "Every share", bn: "সব শেয়ার" },
+  ];
+  const scopeNote =
+    scope === "safe"
+      ? tt("Leaves out Z-category shares and shares that trade under ৳10 lakh a day.",
+           "Z ক্যাটাগরির শেয়ার আর দিনে ৳10 লাখের কম লেনদেন হওয়া শেয়ার বাদ থাকে।")
+      : scope === "a"
+        ? safe
+          ? tt("Only DSE category A shares that trade ৳10 lakh a day or more.",
+               "শুধু ডিএসইর A ক্যাটাগরির শেয়ার, যেগুলোর দিনে ৳10 লাখ বা বেশি লেনদেন হয়।")
+          : tt("Only DSE category A shares.", "শুধু ডিএসইর A ক্যাটাগরির শেয়ার।")
+        : tt("Every share, Z-category and thinly traded ones too.",
+             "সব শেয়ার, Z ক্যাটাগরি আর কম লেনদেনের শেয়ারও।");
 
   return (
     <PageLockScope anchor={SCREENER_ANCHOR}>
       <div ref={topRef} className="scroll-mt-24 space-y-8">
-        {/* 1 · The lists */}
-        <section aria-labelledby="scr-q">
-          <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
-            <div>
-              <h2 id="scr-q" className="text-lg font-bold text-text-main">
-                {tt("What are you looking for?", "আপনি কী খুঁজছেন?")}
-              </h2>
-              {rowsShown && (
-                <p className="text-sm text-text-main">
-                  {tt("Pick one. Tap it again to clear it.", "একটি বাছুন। আবার চাপলে বাছাই উঠে যাবে।")}
-                </p>
-              )}
-            </div>
-            {anything && (
-              <button type="button" className="scr-link" onClick={clearAll}>
-                {tt("Start again", "আবার শুরু করুন")}
+        {/* Your screens: a member's saved screens, one tap each */}
+        {isPremium && lists.length > 0 && (
+          <nav className="scr-strip" aria-labelledby="scr-mine">
+            <div className="scr-strip-head">
+              <h2 id="scr-mine" className="scr-label">{tt("Your screens", "আপনার স্ক্রিন")}</h2>
+              <button
+                type="button"
+                className="scr-link"
+                onClick={() => savedRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+              >
+                {tt("Manage", "সাজান")}
               </button>
-            )}
-          </div>
-          {rowsShown ? (
-          <div id="scr-lists" className="scr-lists" role="radiogroup" aria-labelledby="scr-q">
-            {goals.map((g) => {
-              const on = picked.includes(g.id);
-              const c = listCounts.get(g.id) ?? 0;
-              return (
-                <button
-                  key={g.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={on}
-                  className="scr-list"
-                  onClick={() => togglePick(g.id)}
-                >
-                  <span className={`scr-check scr-radio${on ? " is-on" : ""}`} aria-hidden="true">{on && <IconCheck size={14} />}</span>
-                  <span className="scr-list-text">
-                    <span className="scr-list-name">{tt(g.title_en, g.title_bn)}</span>
-                    <span className="scr-list-line">{tt(g.blurb_en, g.blurb_bn)}</span>
-                  </span>
-                  <span className={`scr-list-n nums${c === 0 ? " is-zero" : ""}`}>
-                    <b>{c}</b>
-                    <span>{tt(c === 1 ? "share" : "shares", "শেয়ার")}</span>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          ) : (
-            pickedGoals[0] && (
-              <div className="scr-picked">
-                <span className="scr-check scr-radio is-on" aria-hidden="true"><IconCheck size={14} /></span>
-                <span className="scr-list-text">
-                  <span className="scr-list-name">{tt(pickedGoals[0].title_en, pickedGoals[0].title_bn)}</span>
-                  <span className="scr-list-line">{tt(pickedGoals[0].blurb_en, pickedGoals[0].blurb_bn)}</span>
-                </span>
-                <Button variant="quiet" size="sm" onClick={() => setListsOpen(true)} aria-expanded={false} aria-controls="scr-lists">
-                  {tt("Change", "বদলান")}
-                </Button>
-              </div>
-            )
-          )}
-          <details className="scr-how">
-            <summary>
-              {rowsShown
-                ? tt("How we pick each list", "প্রতিটি তালিকা আমরা কীভাবে বাছাই করি")
-                : tt("How we pick this list", "এই তালিকা আমরা কীভাবে বাছাই করি")}
-            </summary>
-            <dl className="scr-how-list">
-              {(rowsShown ? goals : pickedGoals).map((g) => (
-                <div key={g.id}>
-                  <dt>{tt(g.title_en, g.title_bn)}</dt>
-                  <dd>
-                    {g.spec.filters.map((f) => {
-                      const d = defs.get(f.key);
-                      if (!d) return null;
-                      const w = valueWords(f, d);
-                      return <span key={f.key}>{tt(`${d.name_en}: ${w.en}`, `${d.name_bn}: ${w.bn}`)}</span>;
-                    })}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </details>
-        </section>
-
-        {/* 2 · The reader's own filters */}
-        <section className="scr-filters" aria-labelledby="scr-own">
-          <h2 id="scr-own" className="text-base font-bold text-text-main">
-            {picked.length
-              ? tt("Narrow it down with your own filters", "নিজের ফিল্টার দিয়ে আরও বাছাই করুন")
-              : tt("Or make your own with filters", "অথবা ফিল্টার দিয়ে নিজে বানান")}
-          </h2>
-          <p className="mt-1 text-sm text-text-main">
-            {tt("Each choice shows how many shares you would get.", "প্রতিটি বিকল্প দেখায় কতগুলো শেয়ার পাবেন।")}
-          </p>
-          <ul className="mt-3 flex flex-wrap gap-2">
-            {own.map((f) => {
-              const d = defs.get(f.key);
-              if (!d) return null;
-              const w = valueWords(f, d);
-              const aOnly = f.key === "category" && f.in?.join() === "A";
-              return (
-                <li key={f.key} className={d.ours ? "scr-chip scr-chip--ours" : "scr-chip"}>
+            </div>
+            <ul className="scr-strip-row">
+              {lists.map((l) => (
+                <li key={l.id}>
                   <button
                     type="button"
-                    className="scr-chip-main"
-                    onClick={() => (aOnly ? setOwnFilter("category", null) : setSheet(f.key))}
+                    className="scr-strip-item"
+                    aria-current={editingId === l.id ? "true" : undefined}
+                    onClick={() => edit(l)}
                   >
-                    {d.ours && <span className="scr-own-dot" aria-hidden="true" />}
-                    {aOnly ? (
-                      <span>{tt("Category A only", "শুধু A ক্যাটাগরি")}</span>
-                    ) : (
-                      <>
-                        <span className="font-normal">{tt(d.short_en, d.short_bn)}:</span>
-                        <span>{tt(w.en, w.bn)}</span>
-                      </>
+                    <span className="scr-strip-name">{l.name}</span>
+                    {l.passed != null && <span className="scr-strip-n nums">{l.passed}</span>}
+                    {l.joined.length > 0 && (
+                      <span className="scr-strip-new nums">
+                        {tt(`${l.joined.length} new`, `${l.joined.length}টি নতুন`)}
+                      </span>
                     )}
                   </button>
-                  <button
-                    type="button"
-                    className="scr-chip-x"
-                    onClick={() => setOwnFilter(f.key, null)}
-                    aria-label={t(`Remove ${d.short_en}`, `${d.short_bn} বাদ দিন`)}
-                  >
-                    <IconClose size={14} />
-                  </button>
                 </li>
-              );
-            })}
-            {QUICK.filter((k) => !ownKeys.has(k)).map((k) => {
-              const d = defs.get(k);
-              if (!d) return null;
-              return (
-                <li key={k}>
-                  <button type="button" className="scr-add" onClick={() => setSheet(k)}>
-                    <IconPlus size={16} />
-                    {tt(d.short_en, d.short_bn)}
-                  </button>
-                </li>
-              );
-            })}
-            {!hasAOnly && !ownKeys.has("category") && (
-              <li>
-                <button type="button" className="scr-add" onClick={() => setOwnFilter("category", A_ONLY)}>
-                  <IconPlus size={16} />
-                  {tt(`Category A only · ${aOnlyCount}`, `শুধু A ক্যাটাগরি · ${aOnlyCount}`)}
-                </button>
-              </li>
-            )}
-            <li>
-              <button type="button" className="scr-add scr-add--more" onClick={() => setAddOpen(true)}
-                disabled={own.length >= data.max_filters}>
-                <IconPlus size={16} />
-                {tt("More filters", "আরও ফিল্টার")}
-              </button>
-            </li>
-          </ul>
-          {own.some((f) => defs.get(f.key)?.ours) && (
-            <p className="scr-own-key">
-              <span className="scr-own-dot" aria-hidden="true" />
-              {tt("Gold filters are our own analysis. No other DSE site has them.",
-                 "সোনালি ফিল্টারগুলো আমাদের নিজের বিশ্লেষণ। ডিএসইর আর কোনো সাইটে এগুলো নেই।")}
-            </p>
-          )}
-          <p className="scr-safe mt-3">
-            <span>
-              {safe
-                ? tt("We leave out Z-category shares and shares that trade less than ৳10 lakh a day.",
-                     "Z ক্যাটাগরির শেয়ার আর দিনে ৳10 লাখের কম লেনদেন হওয়া শেয়ার আমরা বাদ রাখি।")
-                : tt("Showing every share, Z-category and thinly traded ones too.",
-                     "সব শেয়ার দেখানো হচ্ছে, Z ক্যাটাগরি আর কম লেনদেনের শেয়ারও।")}
-            </span>
-            <button type="button" className="scr-link" onClick={() => { setSafe((x) => !x); resetPaging(); }}>
-              {safe ? tt("Show them too", "ওগুলোও দেখান") : tt("Leave them out", "ওগুলো বাদ দিন")}
-            </button>
-          </p>
-        </section>
+              ))}
+            </ul>
+          </nav>
+        )}
 
-        {/* 3 · The result */}
-        <section ref={resultRef} aria-labelledby="scr-result" className="scroll-mt-24 space-y-3">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <h2 id="scr-result" className="scr-count nums">
-                {anything
-                  ? tt(`${n} of ${total} shares fit`, `${total}টির মধ্যে ${n}টি শেয়ার মিলেছে`)
-                  : tt(`All ${n} shares`, `সব ${n}টি শেয়ার`)}
-              </h2>
-              {pickedTitle && <p className="text-sm font-semibold text-text-main">{tt(pickedTitle.en, pickedTitle.bn)}</p>}
-              {editingId && (
-                <p className="text-sm text-text-main">
-                  {tt(`You are changing your saved screen "${name}".`, `আপনি সেভ করা স্ক্রিন "${name}" বদলাচ্ছেন।`)}
-                </p>
-              )}
-              {data.as_of && (
-                <p className="text-sm text-text-main">
-                  {tt(`After the close on ${formatDate(data.as_of)}.`, `${formatDate(data.as_of)}-এর ক্লোজিংয়ের পর।`)}
-                </p>
+        {/* The one card: lists, own filters, which shares, and the count */}
+        <section className="scr-builder" aria-label={t("Build your screen", "আপনার স্ক্রিন বানান")}>
+          <div className="scr-part">
+            <div className="scr-part-head">
+              <h2 id="scr-q" className="scr-label">{tt("Start with a list", "একটি তালিকা দিয়ে শুরু করুন")}</h2>
+              {picked.length > 0 && ownRest.length > 0 && (
+                <button type="button" className="scr-link" onClick={clearAll}>
+                  {tt("Start again", "আবার শুরু করুন")}
+                </button>
               )}
             </div>
-            {isPremium && n > 0 && (
-              <div className="flex flex-wrap items-center gap-2">
-                <label htmlFor="scr-sort" className="sr-only">{t("Order", "ক্রম")}</label>
-                <select id="scr-sort" className="scr-select" value={sortNow.sort} onChange={(e) => sortBy(e.target.value)}>
-                  <option value="name">{t("Company, A to Z", "কোম্পানি, নাম অনুযায়ী")}</option>
-                  {orders.map((r) => (
-                    <option key={r.key} value={r.key}>{t(r.short_en, r.short_bn)}</option>
-                  ))}
-                </select>
-                {anything && (
-                  <Button variant="quiet" onClick={openSave}>
-                    <IconBell size={16} />
-                    {editingId ? tt("Save changes", "বদল সেভ করুন") : tt("Save and watch", "সেভ করে নজর রাখুন")}
-                  </Button>
-                )}
+            <div className="scr-tiles" role="radiogroup" aria-labelledby="scr-q">
+              {goals.map((g) => {
+                const on = picked.includes(g.id);
+                const c = listCounts.get(g.id) ?? 0;
+                const Icon = LIST_ICON[g.id] ?? IconList;
+                return (
+                  <button
+                    key={g.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={on}
+                    className="scr-tile"
+                    onClick={() => togglePick(g.id)}
+                  >
+                    <span className="scr-tile-ic" aria-hidden="true"><Icon size={18} /></span>
+                    {on && <span className="scr-tile-tick" aria-hidden="true"><IconCheck size={12} /></span>}
+                    <span className="scr-tile-name">{tt(g.title_en, g.title_bn)}</span>
+                    <span className={`scr-tile-n nums${c === 0 ? " is-zero" : ""}`}>
+                      <b>{c}</b>
+                      {tt(c === 1 ? " share" : " shares", "টি শেয়ার")}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            {pickedGoals[0] ? (
+              <div className="scr-pickline">
+                <p>{tt(pickedGoals[0].blurb_en, pickedGoals[0].blurb_bn)}</p>
+                <div className="scr-pickline-acts">
+                  <button type="button" className="scr-link" onClick={() => setHowOpen(true)}>
+                    {tt("How we pick", "কীভাবে বাছাই করি")}
+                  </button>
+                  <button type="button" className="scr-link" onClick={() => togglePick(pickedGoals[0].id)}>
+                    {tt("Clear", "বাদ দিন")}
+                  </button>
+                </div>
               </div>
+            ) : (
+              <button type="button" className="scr-link justify-self-start" onClick={() => setHowOpen(true)}>
+                {tt("How we pick each list", "প্রতিটি তালিকা কীভাবে বাছাই করি")}
+              </button>
             )}
           </div>
 
-          {n === 0 ? (
-            <EmptyState
-              title={tt("No share fits right now", "এই মুহূর্তে কোনো শেয়ার মেলেনি")}
-              message={tt("Pick another list, take a filter off, or show the shares we leave out. The numbers beside each list and choice show what you would get.",
-                         "অন্য তালিকা বাছুন, একটি ফিল্টার বাদ দিন, বা যে শেয়ারগুলো বাদ রাখি সেগুলোও দেখুন। প্রতিটি তালিকা আর বিকল্পের পাশের সংখ্যা দেখায় কতগুলো পাবেন।")}
-            />
-          ) : (
-            <PageGate
-              anchor={SCREENER_ANCHOR}
-              anchorClass="scroll-mt-24"
-              promo={
-                <ScreenerPremium count={n} goal={picked[0] ?? null} />
-              }
-            >
-              <div className="space-y-6">
-                <ScreenerTable
-                  rows={result}
-                  columns={columns}
-                  defs={defs}
-                  spec={effective}
-                  limit={limit}
-                  onSort={sortBy}
-                  onMore={() => setLimit((x) => x + PAGE)}
-                  bn={bn}
-                />
-                <AlmostThere near={near} defs={defs} />
-              </div>
-            </PageGate>
-          )}
-          <p className="text-sm text-text-main">
-            {tt("A list is a starting point for your own research, not advice to buy.",
-               "তালিকা আপনার নিজের যাচাইয়ের শুরু মাত্র, কেনার পরামর্শ নয়।")}
-          </p>
+          <div className="scr-part">
+            <h2 className="scr-label">
+              {picked.length ? tt("Narrow it down", "আরও বাছাই করুন") : tt("Or set your own filters", "অথবা নিজের ফিল্টার দিন")}
+            </h2>
+            <ul className="scr-chips">
+              {ownRest.map((f) => {
+                const d = defs.get(f.key);
+                if (!d) return null;
+                const w = valueWords(f, d);
+                return (
+                  <li key={f.key} className={d.ours ? "scr-chip scr-chip--ours" : "scr-chip"}>
+                    <button type="button" className="scr-chip-main" onClick={() => setSheet(f.key)}>
+                      {d.ours && <span className="scr-own-dot" aria-hidden="true" />}
+                      <span className="font-normal">{tt(d.short_en, d.short_bn)}:</span>
+                      <span>{tt(w.en, w.bn)}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="scr-chip-x"
+                      onClick={() => setOwnFilter(f.key, null)}
+                      aria-label={t(`Remove ${d.short_en}`, `${d.short_bn} বাদ দিন`)}
+                    >
+                      <IconClose size={14} />
+                    </button>
+                  </li>
+                );
+              })}
+              {QUICK.filter((k) => !ownKeys.has(k)).map((k) => {
+                const d = defs.get(k);
+                if (!d) return null;
+                return (
+                  <li key={k}>
+                    <button
+                      type="button"
+                      className={d.ours ? "scr-add scr-add--ours" : "scr-add"}
+                      onClick={() => setSheet(k)}
+                      disabled={own.length >= data.max_filters}
+                    >
+                      {d.ours && <span className="scr-own-dot" aria-hidden="true" />}
+                      {tt(d.short_en, d.short_bn)}
+                      <IconPlus size={14} />
+                    </button>
+                  </li>
+                );
+              })}
+              <li>
+                <button
+                  type="button"
+                  className="scr-add scr-add--more"
+                  onClick={() => setAddOpen(true)}
+                  disabled={own.length >= data.max_filters}
+                >
+                  {tt(`All filters · ${menuCount}`, `সব ফিল্টার · ${menuCount}`)}
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <div className="scr-part">
+            <h2 id="scr-scope" className="scr-label">{tt("Which shares", "কোন শেয়ার")}</h2>
+            <div className="scr-seg" role="radiogroup" aria-labelledby="scr-scope">
+              {SCOPES.map((s) => {
+                const c = scopeCounts[s.key];
+                return (
+                  <button
+                    key={s.key}
+                    type="button"
+                    role="radio"
+                    aria-checked={scope === s.key}
+                    className="scr-seg-item"
+                    onClick={() => setScope(s.key)}
+                  >
+                    <b className={`nums${c === 0 ? " is-zero" : ""}`}>{c}</b>
+                    <span>{tt(s.en, s.bn)}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="scr-note">{scopeNote}</p>
+          </div>
+
+          {/* The foot: sticky to the screen's bottom while the card is in view */}
+          <div className="scr-foot" role="status">
+            {chosen || browse ? (
+              n > 0 ? (
+                <>
+                  <p className="scr-foot-n nums">
+                    {chosen
+                      ? tt(`${n} of ${total} fit`, `${total}টির মধ্যে ${n}টি মিলেছে`)
+                      : tt(`All ${n} shares`, `সব ${n}টি শেয়ার`)}
+                  </p>
+                  <Button size="sm" onClick={toResult}>{tt("See them", "দেখুন")}</Button>
+                </>
+              ) : (
+                <p className="scr-foot-note">
+                  {tt("No share fits. Try another list, take a filter off or choose Every share.",
+                      "কোনো শেয়ার মেলেনি। অন্য তালিকা বাছুন, একটি ফিল্টার বাদ দিন বা সব শেয়ার বাছুন।")}
+                </p>
+              )
+            ) : (
+              <>
+                <p className="scr-foot-note">{tt("Pick a list or add a filter to start.", "শুরু করতে একটি তালিকা বা ফিল্টার বাছুন।")}</p>
+                {isPremium && (
+                  <Button variant="quiet" size="sm" onClick={browseAll}>
+                    {tt(`Browse all ${n}`, `সব ${n}টি দেখুন`)}
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
         </section>
 
-        {/* 4 · Saved screens */}
+        {/* The result: once there is a shortlist (or a member browses) */}
+        {showResult && (
+          <section ref={resultRef} aria-labelledby="scr-result" className="scroll-mt-24 space-y-3">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div className="min-w-0">
+                <h2 id="scr-result" className="text-lg font-bold text-text-main">
+                  {pickedTitle
+                    ? tt(pickedTitle.en, pickedTitle.bn)
+                    : chosen ? tt("Your filters", "আপনার ফিল্টার") : tt("Every share", "সব শেয়ার")}
+                </h2>
+                <p className="text-sm text-text-main nums">
+                  {data.as_of
+                    ? tt(`${n} ${n === 1 ? "share" : "shares"} · after the close on ${formatDate(data.as_of)}`,
+                         `${n}টি শেয়ার · ${formatDate(data.as_of)}-এর ক্লোজিংয়ের পর`)
+                    : tt(`${n} ${n === 1 ? "share" : "shares"}`, `${n}টি শেয়ার`)}
+                </p>
+                {editingId && (
+                  <p className="text-sm text-text-main">
+                    {tt(`You are changing your saved screen "${name}".`, `আপনি সেভ করা স্ক্রিন "${name}" বদলাচ্ছেন।`)}
+                  </p>
+                )}
+              </div>
+              {isPremium && n > 0 && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <label htmlFor="scr-sort" className="sr-only">{t("Order", "ক্রম")}</label>
+                  <select id="scr-sort" className="scr-select" value={sortNow.sort} onChange={(e) => sortBy(e.target.value)}>
+                    <option value="name">{t("Company, A to Z", "কোম্পানি, নাম অনুযায়ী")}</option>
+                    {orders.map((r) => (
+                      <option key={r.key} value={r.key}>{t(r.short_en, r.short_bn)}</option>
+                    ))}
+                  </select>
+                  {chosen && (
+                    <Button variant="quiet" onClick={openSave}>
+                      <IconBell size={16} />
+                      {editingId ? tt("Save changes", "বদল সেভ করুন") : tt("Save and watch", "সেভ করে নজর রাখুন")}
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {n === 0 ? (
+              <EmptyState
+                title={tt("No share fits right now", "এই মুহূর্তে কোনো শেয়ার মেলেনি")}
+                message={tt("Pick another list, take a filter off, or choose Every share under Which shares.",
+                           "অন্য তালিকা বাছুন, একটি ফিল্টার বাদ দিন, বা \"কোন শেয়ার\"-এ সব শেয়ার বাছুন।")}
+              />
+            ) : (
+              <PageGate
+                anchor={SCREENER_ANCHOR}
+                anchorClass="scroll-mt-24"
+                promo={<ScreenerPremium count={n} goal={picked[0] ?? null} />}
+              >
+                <div className="space-y-6">
+                  <ScreenerTable
+                    rows={result}
+                    columns={columns}
+                    defs={defs}
+                    spec={effective}
+                    limit={limit}
+                    onSort={sortBy}
+                    onMore={() => setLimit((x) => x + PAGE)}
+                    bn={bn}
+                  />
+                  <AlmostThere near={near} defs={defs} />
+                </div>
+              </PageGate>
+            )}
+            <p className="text-sm text-text-main">
+              {tt("A list is a starting point for your own research, not advice to buy.",
+                 "তালিকা আপনার নিজের যাচাইয়ের শুরু মাত্র, কেনার পরামর্শ নয়।")}
+            </p>
+          </section>
+        )}
+
+        {/* Saved screens, for editing */}
         {isLoggedIn && (isPremium || lists.length > 0) && (
           <section id="saved" ref={savedRef} aria-labelledby="scr-saved" className="scroll-mt-24 space-y-4">
             <h2 id="scr-saved" className="text-lg font-bold text-text-main">
@@ -692,19 +764,36 @@ export default function ScreenerClient({ data }: { data: ScreenerUniverse }) {
           t={t}
         />
 
-        {/* The count bar: while the result is below the screen. */}
-        {resultBelow && (
-          <div data-bottom-card className="scr-countbar above-bottom-bar" role="status">
-            <span className="scr-countbar-n nums">
-              {anything
-                ? tt(`${n} ${n === 1 ? "share matches" : "shares match"}`, `${n}টি শেয়ার মিলেছে`)
-                : tt(`All ${n} shares`, `সব ${n}টি শেয়ার`)}
-            </span>
-            <Button variant="primary" size="sm" onClick={toResult}>
-              {tt("See them", "দেখুন")}
-            </Button>
+        {/* How we pick: the picked list's rules, or every list's */}
+        <Sheet
+          open={howOpen}
+          onClose={() => setHowOpen(false)}
+          title={pickedTitle
+            ? tt(`How we pick “${pickedTitle.en}”`, `“${pickedTitle.bn}” কীভাবে বাছাই করি`)
+            : tt("How we pick each list", "প্রতিটি তালিকা কীভাবে বাছাই করি")}
+        >
+          <div className="space-y-4">
+            <dl className="scr-how-list">
+              {(pickedGoals.length ? pickedGoals : goals).map((g) => (
+                <div key={g.id}>
+                  {!pickedGoals.length && <dt>{tt(g.title_en, g.title_bn)}</dt>}
+                  <dd>
+                    {g.spec.filters.map((f) => {
+                      const d = defs.get(f.key);
+                      if (!d) return null;
+                      const w = valueWords(f, d);
+                      return <span key={f.key}>{tt(`${d.name_en}: ${w.en}`, `${d.name_bn}: ${w.bn}`)}</span>;
+                    })}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            <p className="text-sm text-text-main">
+              {tt("Every list also leaves out Z-category shares and shares that trade under ৳10 lakh a day, unless you choose Every share under Which shares.",
+                  "প্রতিটি তালিকা থেকে Z ক্যাটাগরির শেয়ার আর দিনে ৳10 লাখের কম লেনদেন হওয়া শেয়ারও বাদ থাকে, যদি না \"কোন শেয়ার\"-এ সব শেয়ার বাছেন।")}
+            </p>
           </div>
-        )}
+        </Sheet>
 
         {/* Save (the buttons only show for Premium readers) */}
         <Sheet

@@ -5,11 +5,13 @@ import { IconCheck } from "@/components/ui/icons";
 import type { ScreenerFilterDef, ScreenerUniverse } from "@/lib/api";
 
 /**
- * "Add a filter": every figure the screener knows, by group, each with its
- * plain name, its market word small and one line on what it is. Figures
- * already on the screen show a tick (a tap opens them to change). The first
- * group, our own analysis, wears a gold dot. Filters off the menu (today's
- * change, our score) only sort.
+ * "All filters": every figure the screener offers, by group, as a grid of
+ * names (two a row, the market word small under the name), so the whole menu
+ * fits about one phone screen (2026-11-18; it was 12 rows with a two-line help
+ * sentence each). The help sentence lives at the top of each filter's own
+ * sheet. Our own analysis comes first with a gold dot; a filter that is on
+ * says so (a tap opens it to change). Filters off the menu (today's change,
+ * our score …) only sort.
  */
 export default function AddFilterSheet({
   open,
@@ -30,26 +32,20 @@ export default function AddFilterSheet({
   t: (en: string, bn: string) => string;
 }) {
   return (
-    <Sheet open={open} onClose={onClose} title={t("Add a filter", "ফিল্টার যোগ করুন")} size="lg">
-      <div className="space-y-6">
+    <Sheet open={open} onClose={onClose} title={t("All filters", "সব ফিল্টার")} size="lg">
+      <div className="space-y-5">
         {groups.map((g) => {
           const items = filters.filter((f) => f.group === g.key && f.menu !== false);
           if (!items.length) return null;
           const view = items.every((f) => f.ours);
           return (
             <section key={g.key} aria-label={t(g.en, g.bn)}>
-              <h3 className="mb-1 flex items-center gap-1.5 text-sm font-semibold text-text-muted">
+              <h3 className="scr-menu-head">
                 {view && <span className="scr-own-dot" aria-hidden="true" />}
                 {t(g.en, g.bn)}
                 {view && <span className="font-normal">· {t("only on TopStockBD", "শুধু টপস্টকবিডিতে")}</span>}
               </h3>
-              {view && (
-                <p className="mb-1 text-sm text-text-main">
-                  {t("Our own reading of each company. No other DSE site has these.",
-                     "প্রতিটি কোম্পানি নিয়ে আমাদের নিজের মূল্যায়ন। ডিএসইর আর কোনো সাইটে এগুলো নেই।")}
-                </p>
-              )}
-              <ul className="divide-y divide-border">
+              <ul className="scr-menu">
                 {items.map((f) => {
                   const on = active.includes(f.key);
                   return (
@@ -57,16 +53,20 @@ export default function AddFilterSheet({
                       <button
                         type="button"
                         onClick={() => onPick(f)}
-                        className="flex min-h-14 w-full items-start gap-3 py-3 text-left active:bg-surface-2"
+                        className={`scr-menu-item${f.ours ? " scr-menu-item--ours" : ""}${on ? " is-on" : ""}`}
                       >
-                        <span className="min-w-0 flex-1">
-                          <span className="block text-base font-semibold text-text-main">
-                            {t(f.name_en, f.name_bn)}
-                            {f.term && <span className="ml-1.5 text-sm font-normal text-text-muted">{f.term}</span>}
+                        <span className="scr-menu-name">{t(f.name_en, f.name_bn)}</span>
+                        {(f.term || on) && (
+                          <span className="scr-menu-sub">
+                            {on && (
+                              <span className="scr-menu-on">
+                                <IconCheck size={12} />
+                                {t("On", "চালু")}
+                              </span>
+                            )}
+                            {f.term && <span>{f.term}</span>}
                           </span>
-                          <span className="mt-0.5 block text-sm text-text-muted">{t(f.help_en, f.help_bn)}</span>
-                        </span>
-                        {on && <span className="mt-1 shrink-0 text-primary" aria-label={t("On", "চালু")}><IconCheck size={18} /></span>}
+                        )}
                       </button>
                     </li>
                   );

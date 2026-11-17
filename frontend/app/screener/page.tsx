@@ -82,8 +82,8 @@ export default async function ScreenerPage() {
         title={<T en="Find the shares that fit what you want" bn="আপনার চাওয়ার সাথে মেলে এমন শেয়ার খুঁজুন" />}
         lead={
           <T
-            en={`Pick what you are looking for, or make your own screen. Anyone can see how many of the ${data.rows.length} DSE shares fit; which ones they are is Premium.`}
-            bn={`কী খুঁজছেন বাছুন, বা নিজের স্ক্রিন বানান। ডিএসইর ${data.rows.length}টি শেয়ারের কতগুলো মেলে তা সবাই দেখতে পারেন; কোনগুলো, তা প্রিমিয়ামে।`}
+            en={`Pick a list or set your own filters. We check all ${data.rows.length} DSE shares after every close.`}
+            bn={`একটি তালিকা বাছুন বা নিজের ফিল্টার দিন। প্রতিদিন বাজার বন্ধের পর আমরা ডিএসইর ${data.rows.length}টি শেয়ারই যাচাই করি।`}
           />
         }
       />

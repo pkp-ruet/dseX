@@ -3,9 +3,15 @@
 import { DataTable, SortTh, StockIdent, Price, Change, Th } from "@/components/ui/Table";
 import StarButton from "@/components/ui/StarButton";
 import Button from "@/components/ui/Button";
+import TierPill from "@/components/ui/TierPill";
 import { T } from "@/components/i18n/T";
 import type { ScreenerFilterDef, ScreenerSpec } from "@/lib/api";
+import { TIER_LABELS, type TierKey } from "@/lib/constants";
 import { cell, headUnit, type ScreenerRow } from "@/lib/screener";
+
+/** Our group word for a row's grade figure, when it has one. */
+const tierOf = (v: unknown): TierKey | null =>
+  typeof v === "string" && v in TIER_LABELS ? (v as TierKey) : null;
 
 /** Phones show this many figure lines on a card; the rest stay on wider screens. */
 const PHONE_FIGURES = 3;
@@ -17,8 +23,9 @@ const colClass = (i: number) => (i >= 4 ? "scr-wider" : i >= 2 ? "scr-wide" : i 
 export const PAGE = 50;
 
 /**
- * The screen's result: one row per share — company, price, today's change,
- * then the order's figure and every figure the screen filters on (then P/E,
+ * The screen's result: one row per share — company (with our group word
+ * beside its code, 2026-11-18: the one figure no other DSE site has), price,
+ * today's change, then the order's figure and every figure the screen filters on (then P/E,
  * yield and size until there are four, at most five). Every header sorts.
  * Below 640px each row is a card (`.data-table`), the figures as captioned
  * lines. `limit` rows, then "Show more".
@@ -68,11 +75,13 @@ export default function ScreenerTable({
           </tr>
         </thead>
         <tbody>
-          {shown.map((r) => (
+          {shown.map((r) => {
+            const tier = tierOf(r.v.grade);
+            return (
             <tr key={r.code}>
               <td data-cell="star"><StarButton code={r.code} /></td>
               <td data-cell="ident">
-                <StockIdent code={r.code} name={r.name}>
+                <StockIdent code={r.code} name={r.name} after={tier ? <TierPill tier={tier} /> : null}>
                   {r.v.sector ? <span className="dt-name">{String(r.v.sector)}</span> : null}
                 </StockIdent>
               </td>
@@ -95,7 +104,8 @@ export default function ScreenerTable({
                 );
               })}
             </tr>
-          ))}
+            );
+          })}
         </tbody>
       </DataTable>
       {left > 0 && (
