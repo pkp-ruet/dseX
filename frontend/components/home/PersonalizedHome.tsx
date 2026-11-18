@@ -338,8 +338,6 @@ export default function PersonalizedHome() {
         <RankingTop
           stocks={allStocks}
           moves={bundle?.rank_moves ?? null}
-          held={heldSet}
-          watched={watchedSet}
           lang={lang}
         />
       </div>

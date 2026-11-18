@@ -4,20 +4,55 @@ import { useMemo } from "react";
 import Link from "@/components/ui/Link";
 import type { RankingsToday, ScoreItem } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
-import { changePct, changeTone, companyShort, money } from "@/lib/formatters";
-import OwnerMark from "@/components/home/personalized/OwnerMark";
+import { companyShort } from "@/lib/formatters";
+import { profitChange } from "@/lib/portfolio-analysis";
 import { Move } from "@/components/ranking/RankList";
-import { IconChevron, IconChevronRight } from "@/components/ui/icons";
+import { IconChevron, IconChevronRight, IconCoin, IconTrendUp } from "@/components/ui/icons";
 
 const ROWS = 5;
+
+/** One decimal, "6.0" read as "6". */
+const pct1 = (v: number) => v.toFixed(1).replace(/\.0$/, "");
+
+type Fact = { kind: "cash" | "profit"; en: string; bn: string };
+
+/**
+ * The one free figure that best says why a company ranks high, in the
+ * recommendation engine's order (`recommend.keywords`): a cash yield of 4%+,
+ * else profit up 15%+, else any profit rise of 3%+ (under that the results
+ * page calls it "about the same"), else any cash yield. None → no line.
+ */
+export function standoutFact(s: ScoreItem): Fact | null {
+  const y = s.div_yield_pct;
+  const p = profitChange(s);
+  const cash = (v: number): Fact => ({
+    kind: "cash",
+    en: `Pays ${pct1(v)}% a year in cash`,
+    bn: `দামের ওপর বছরে ${pct1(v)}% নগদ ডিভিডেন্ড`,
+  });
+  const profit = (v: number): Fact => ({
+    kind: "profit",
+    en: `Profit up ${Math.round(v)}% on last year`,
+    bn: `মুনাফা গত বছরের চেয়ে ${Math.round(v)}% বেশি`,
+  });
+  const yieldOk = y != null && y > 0 && y < 30;
+  if (yieldOk && y >= 4) return cash(y);
+  if (p != null && p >= 15) return profit(p);
+  if (p != null && p >= 3) return profit(p);
+  if (yieldOk) return cash(y);
+  return null;
+}
 
 /**
  * "Strongest companies this week" on the signed-in home (round 3, 2026-11-18,
  * mockup https://claude.ai/artifact/Bncp1qkKjyYs6ChfZpqV2e; first built
  * 2026-11-06 as a `FindCard`, off the home 2026-11-17 → 11-18): the ranking
  * page's own rows — rank chip (gold / silver / bronze for the top three),
- * this week's move, company with the reader's H / ★, latest price and today's
- * change — for the first five, then one link to `/dsestockranking`. Order =
+ * this week's move, company name + code and one standout fact (`standoutFact`:
+ * its cash yield or profit rise) — for the first five, then one link to
+ * `/dsestockranking`. No H / ★ marks, price or today's change since
+ * 2026-11-18 (user decision: the block is about the business, not the
+ * price). Order =
  * the page's: score high to low, ties by code. Free. Data: `/api/scores` and
  * the bundle's `rank_moves`; no request of its own. No moves on a rule-change
  * day (every pill reads "–").
@@ -25,16 +60,12 @@ const ROWS = 5;
 export default function RankingTop({
   stocks,
   moves = null,
-  held,
-  watched,
   lang,
 }: {
   /** Every scored company from `/api/scores`. */
   stocks: ScoreItem[];
   /** This week's rank change (`/api/user/home` `rank_moves`); no pills without it. */
   moves?: RankingsToday["moves"] | null;
-  held: Set<string>;
-  watched: Set<string>;
   lang: Lang;
 }) {
   const bn = lang === "bn";
@@ -67,6 +98,8 @@ export default function RankingTop({
           {top.map((s, i) => {
             const rank = i + 1;
             const code = s.trading_code;
+            const fact = standoutFact(s);
+            const FactIcon = fact?.kind === "cash" ? IconCoin : IconTrendUp;
             return (
               <li key={code}>
                 <Link href={`/stock/${encodeURIComponent(code)}`} className="rk-line">
@@ -77,15 +110,12 @@ export default function RankingTop({
                   <Move move={moveOf(code)} />
                   <span className="rk-co">
                     <span className="rk-co-name">{companyShort(s.company_name) || s.company_name || code}</span>
-                    <span className="rk-co-code">
-                      {code}
-                      <OwnerMark code={code} held={held} watched={watched} lang={lang} />
-                    </span>
-                  </span>
-                  <span className="rk-price">
-                    <span className="rk-price-now">{money(s.ltp)}</span>
-                    {s.change_pct != null && (
-                      <span className={`rk-price-chg ${changeTone(s.change_pct)}`}>{changePct(s.change_pct)}</span>
+                    <span className="rk-co-code">{code}</span>
+                    {fact && (
+                      <span className="rk-co-fact">
+                        <FactIcon size={14} />
+                        <span>{bn ? fact.bn : fact.en}</span>
+                      </span>
                     )}
                   </span>
                   <span className="rk-go" aria-hidden="true">

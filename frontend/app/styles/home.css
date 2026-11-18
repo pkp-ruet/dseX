@@ -528,6 +528,14 @@ a.hm-srow:hover, a.hm-srow:active { background: var(--surface-2); }
 .hm-rank-lead { padding: var(--space-3) var(--space-4); font-size: var(--fs-xs); line-height: 1.45; color: var(--text); }
 .hm-rank .rk-list { border-top: 1px solid var(--border); }
 .hm-rank .hm-dmore { text-decoration: none; }
+/* No price column on the home (2026-11-18): rank · move · company · chevron,
+   the chevron shown at every width so the row still reads as a link */
+.hm-rank .rk-line { grid-template-columns: 40px 52px minmax(0, 1fr) auto; }
+@media (min-width: 480px) { .hm-rank .rk-line { grid-template-columns: 40px 56px minmax(0, 1fr) auto; } }
+.hm-rank .rk-go { display: inline-flex; }
+/* The one fact that says why it ranks high: a green icon, ink words */
+.hm-rank .rk-co-fact { display: flex; align-items: flex-start; gap: 6px; margin-top: 2px; font-size: var(--fs-xs); line-height: 1.4; color: var(--text); }
+.hm-rank .rk-co-fact svg { flex: none; margin-top: 1px; color: var(--positive); }
 
 /* From 1024px the two sit side by side; alone, either takes the full width. */
 @media (min-width: 1024px) {
