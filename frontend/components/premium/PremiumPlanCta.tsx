@@ -103,14 +103,8 @@ export default function PremiumPlanCta({
   return (
     <div className={`flex flex-col gap-2 ${justify}`}>
       <Button href={payHref} size="lg">
-        <T en={`Choose a plan from ৳${LOWEST_PRICE}`} bn={`৳${LOWEST_PRICE} থেকে প্ল্যান বেছে নিন`} />
+        <T en="Get Premium" bn="প্রিমিয়াম নিন" />
       </Button>
-      <p className="text-sm text-text-muted">
-        <T
-          en="Pay by bKash or Nagad. Premium starts straight away."
-          bn="বিকাশ বা নগদে পেমেন্ট করুন। প্রিমিয়াম সঙ্গে সঙ্গে চালু হবে।"
-        />
-      </p>
     </div>
   );
 }

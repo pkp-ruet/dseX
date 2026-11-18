@@ -67,11 +67,12 @@
 }
 
 
-/* /premium page (components/premium/PremiumBody.tsx + PayBox.tsx), redesigned
-   clean 2026-10-27: the hero open on the canvas, ONE card per block, hairlines
-   instead of boxes in boxes, clay only where you act, the crown in gold (the
-   navbar member badge's colour). Spacing tokens are 1 2 3 4 6 8 12 only —
-   there is no --space-5. */
+/* /premium page (components/premium/PremiumBody.tsx + PayBox.tsx). Made
+   simple 2026-11-18 (user: "everything sounds abstract … give a simple
+   list"): the price and one button, ONE list of what Premium gives (two
+   columns from 768px; each row an icon tile, the name, one line and what the
+   free plan gets), the plans, three questions. Clay only where you act, the
+   crown in gold. Spacing tokens are 1 2 3 4 6 8 12 only — no --space-5. */
 .pm-page { padding-bottom: var(--space-8); }
 .pm-section { margin-top: var(--space-12); }
 @media (min-width: 640px) { .pm-section { margin-top: calc(var(--space-12) + var(--space-4)); } }
@@ -90,25 +91,29 @@
 }
 .pm-hero .page-lead { font-size: var(--fs-md); max-width: 36rem; }
 
-.pm-price { margin-top: var(--space-6); }
-.pm-price-from,
-.pm-price-per { font-size: var(--fs-sm); color: var(--text-muted); }
+.pm-price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-2);
+  margin-top: var(--space-6);
+}
 .pm-price-num {
   font-size: var(--fs-2xl);
   font-weight: 700;
+  line-height: 1;
   letter-spacing: -0.02em;
   color: var(--text);
   font-variant-numeric: tabular-nums;
 }
-.pm-price-alt { margin-top: 2px; font-size: var(--fs-sm); color: var(--text-muted); }
+.pm-price-per { font-size: var(--fs-md); font-weight: 600; color: var(--text); }
+.pm-price-alt { margin-top: var(--space-1); font-size: var(--fs-sm); color: var(--text-muted); }
 
 .pm-promises {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-3) var(--space-6);
-  margin-top: var(--space-8);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--border);
+  gap: var(--space-2) var(--space-6);
+  margin-top: var(--space-4);
 }
 .pm-promises li {
   display: flex;
@@ -130,185 +135,52 @@
   background: rgb(var(--positive-rgb) / 0.1);
 }
 
-/* What you get (2026-11-04): an index card (five rows, each a link to its
-   group), then one card per group built the same way — head (icon tile, the
-   job, the name), the question + lead, what you get (ticked, two columns from
-   640px), a gold-tinted example, and a footer with what stays free. */
-.pm-index {
+/* What's in Premium: one card, one row per feature, split by hairlines. */
+.pm-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   overflow: hidden;
-  margin-top: var(--space-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--shadow-soft);
 }
-.pm-index li + li { border-top: 1px solid var(--border); }
-.pm-index-row {
+@media (min-width: 768px) { .pm-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.pm-feat {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-3);
-  min-height: 56px;
-  padding: var(--space-3) var(--space-4);
-  transition: background-color 0.15s ease;
+  padding: var(--space-4);
+  border-top: 1px solid var(--border);
 }
-.pm-index-row:hover { background: var(--surface-2); }
-.pm-index-row:active { background: var(--surface-2); }
-.pm-index-row:focus-visible { outline: none; box-shadow: inset var(--ring); }
-@media (min-width: 640px) { .pm-index-row { padding: var(--space-3) var(--space-6); } }
-.pm-index-icon,
-.pm-group-icon {
+.pm-feat:first-child { border-top: 0; }
+@media (min-width: 640px) { .pm-feat { gap: var(--space-4); padding: var(--space-4) var(--space-6); } }
+@media (min-width: 768px) {
+  .pm-feat:nth-child(2) { border-top: 0; }
+  .pm-feat:nth-child(even) { border-left: 1px solid var(--border); }
+}
+.pm-feat-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex: none;
   width: 40px;
   height: 40px;
-  border-radius: var(--radius);
-  color: var(--text);
-  background: var(--surface-2);
-}
-.pm-index-chev { flex: none; color: var(--text-muted); }
-
-.pm-groups { display: flex; flex-direction: column; gap: var(--space-6); margin-top: var(--space-4); }
-.pm-group {
-  padding: var(--space-6) var(--space-4);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  box-shadow: var(--shadow-soft);
-}
-@media (min-width: 640px) { .pm-group { padding: var(--space-8) var(--space-6) var(--space-6); } }
-.pm-group-head { display: flex; align-items: flex-start; gap: var(--space-3); }
-.pm-group-head .ans-job { display: flex; width: fit-content; }
-.pm-group-lead { margin-top: var(--space-3); font-size: var(--fs-md); line-height: 1.55; color: var(--text); }
-
-.pm-items {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-4);
-  margin-top: var(--space-6);
-  padding-top: var(--space-6);
-  border-top: 1px solid var(--border);
-}
-@media (min-width: 640px) { .pm-items { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-6); } }
-.pm-items li { display: flex; align-items: flex-start; gap: var(--space-3); }
-.pm-items-tick {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-  width: 22px;
-  height: 22px;
-  margin-top: 1px;
-  border-radius: 999px;
+  border-radius: var(--radius-md);
   color: var(--primary-ink);
-  background: rgb(var(--primary-rgb) / 0.12);
+  background: var(--primary-soft);
 }
-
-/* No limits: four tiles, what you have free and what Premium gives. */
-.pm-limits {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
-  margin-top: var(--space-6);
-}
-@media (min-width: 640px) { .pm-limits { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-.pm-limit {
-  display: flex;
-  flex-direction: column;
-  padding: var(--space-4);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-}
-.pm-limit-pm {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin-top: auto;
-  padding-top: var(--space-1);
-  font-weight: 700;
-  color: var(--gold-ink);
-}
-
-/* A made-up example of what a Premium reader sees: gold = Premium. */
-.pm-example {
-  margin: var(--space-6) 0 0;
-  padding: var(--space-4);
-  border: 1px solid rgb(var(--gold-rgb) / 0.45);
-  border-radius: var(--radius-md);
-  background: var(--gold-light);
-}
-.pm-example-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: var(--space-2);
+.pm-feat-name { font-size: var(--fs-md); font-weight: 700; line-height: 1.35; color: var(--text); }
+.pm-feat-line { margin-top: 2px; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
+.pm-feat-free {
+  display: inline-block;
+  margin-top: var(--space-2);
+  padding: 2px 10px;
   font-size: var(--fs-2xs);
-  font-weight: 700;
-  color: var(--gold-ink);
-}
-
-/* What stays free, and one link to see it for yourself. */
-.pm-group-free {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  margin-top: var(--space-6);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--border);
-}
-@media (min-width: 640px) {
-  .pm-group-free { flex-direction: row; align-items: center; justify-content: space-between; gap: var(--space-6); }
-}
-.pm-free-chip {
-  display: inline-flex;
-  align-items: center;
-  margin-right: var(--space-1);
-  padding: 1px 8px;
-  border-radius: 999px;
-  font-size: var(--fs-2xs);
-  font-weight: 700;
-  color: var(--text);
-  background: var(--surface-2);
-}
-.pm-group-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  min-height: 40px;
-  font-size: var(--fs-sm);
   font-weight: 600;
-  color: var(--primary-ink);
-}
-@media (min-width: 640px) { .pm-group-link { flex: none; } }
-.pm-group-link:hover { text-decoration: underline; }
-.pm-group-link:active { opacity: 0.7; }
-.pm-note { margin-top: var(--space-4); font-size: var(--fs-sm); color: var(--text-muted); }
-
-/* The three pay steps — a slim guide row above the plan cards */
-.pm-steps {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-3);
-  margin: var(--space-2) 0 var(--space-6);
-}
-@media (min-width: 640px) {
-  .pm-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
-}
-.pm-steps li { display: flex; align-items: center; gap: var(--space-3); }
-.pm-step-n {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  font-size: var(--fs-sm);
-  font-weight: 700;
   color: var(--text);
-  border: 1.5px solid var(--border);
-  background: var(--surface);
+  background: var(--surface-2);
+  border-radius: 999px;
 }
 
 /* Plan picker (PayBox) */
@@ -467,7 +339,7 @@
   background: var(--primary);
 }
 
-/* Folding rows: comparison, FAQ, payment help */
+/* Folding rows: FAQ, payment help */
 .pm-fold-summary {
   display: flex;
   align-items: center;
@@ -484,7 +356,6 @@
 details[open] > .pm-fold-summary .pm-fold-chev { transform: rotate(180deg); }
 @media (min-width: 640px) { .pm-fold-summary { padding: var(--space-4) var(--space-6); } }
 
-.pm-table-card,
 .pm-faq,
 .pm-help {
   overflow: hidden;
@@ -494,65 +365,12 @@ details[open] > .pm-fold-summary .pm-fold-chev { transform: rotate(180deg); }
   box-shadow: var(--shadow-soft);
 }
 
-/* Free | Premium: one short table, always open (user decision 2026-10-27),
-   rows grouped like the cards above. Three columns at every width — every
-   cell is a few words. The Premium column wears the gold tint. */
-.pm-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: var(--fs-sm); color: var(--text); }
-.pm-table th,
-.pm-table td { padding: var(--space-3); text-align: left; vertical-align: top; overflow-wrap: anywhere; }
-@media (min-width: 640px) {
-  .pm-table th,
-  .pm-table td { padding: var(--space-3) var(--space-4); }
-  .pm-table th:first-child { padding-left: var(--space-6); }
-}
-.pm-table thead th {
-  font-size: var(--fs-2xs);
-  font-weight: 700;
-  background: var(--surface-2);
-}
-.pm-table thead th:nth-child(1) { width: 42%; }
-.pm-table thead th:nth-child(2) { width: 27%; }
-.pm-table thead th:nth-child(3) { width: 31%; }
-.pm-table thead .pm-table-pm { color: var(--gold-ink); }
-.pm-table tbody tr { border-top: 1px solid var(--border); }
-.pm-table tbody th { font-weight: 400; }
-.pm-table td.pm-table-pm { font-weight: 600; background: rgb(var(--gold-rgb) / 0.1); }
-.pm-table-group th {
-  padding-top: var(--space-4);
-  padding-bottom: var(--space-2);
-  font-size: var(--fs-2xs);
-  font-weight: 700;
-}
-.pm-table-group a:hover { text-decoration: underline; }
-.pm-table tbody .pm-table-group + tr { border-top: 0; }
-.pm-yes { display: inline-flex; color: var(--positive); }
-.pm-no { color: var(--text-muted); }
-
 .pm-faq-item + .pm-faq-item { border-top: 1px solid var(--border); }
 .pm-faq-body { padding: 0 var(--space-4) var(--space-4); }
 @media (min-width: 640px) { .pm-faq-body { padding: 0 var(--space-6) var(--space-6); } }
 
 .pm-help-body { padding: var(--space-4); border-top: 1px solid var(--border); }
 @media (min-width: 640px) { .pm-help-body { padding: var(--space-6); } }
-
-/* Closing ask */
-.pm-close {
-  margin-top: var(--space-12);
-  padding: var(--space-8) var(--space-4);
-  text-align: center;
-  border-top: 1px solid var(--border);
-}
-.pm-close-crown {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 999px;
-  color: var(--gold-ink);
-  background: var(--gold-light);
-}
-.pm-foot { margin-top: var(--space-6); font-size: var(--fs-sm); color: var(--text-muted); }
 
 /* Placeholder bars (the locked story frames in StoryViewer; PremiumMask was
    deleted 2026-10-29). Originally the stock page's full verdict: the answer is
