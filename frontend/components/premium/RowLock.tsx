@@ -39,8 +39,12 @@ export default function RowLock({
           {children}
         </div>
       </div>
-      {locked && preview}
-      {locked && panel}
+      {locked && (
+        <div className="pl-free">
+          {preview}
+          {panel}
+        </div>
+      )}
     </div>
   );
 }

@@ -102,7 +102,7 @@
   .story-backdrop {
     align-items: center;
     padding: var(--space-6);
-    background: rgb(var(--text-rgb) / 0.6);
+    background: rgb(var(--scrim-rgb) / 0.6);
   }
   .story-panel {
     width: 400px;

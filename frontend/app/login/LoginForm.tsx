@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { authHref, safeNext } from "@/lib/next-path";
+import { SUPPORT_EMAIL } from "@/lib/support";
 import Link from "@/components/ui/Link";
 import { useAuth } from "@/context/AuthContext";
 import { apiLogin, type AuthApiResponse } from "@/lib/api";
@@ -16,6 +18,8 @@ type Mode = "email" | "phone";
 
 export default function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = safeNext(searchParams.get("next"));
   const { login } = useAuth();
   const { lang } = useLang();
   const L = (en: string, bn: string) => (lang === "bn" ? bn : en);
@@ -39,7 +43,7 @@ export default function LoginForm() {
       const data = await apiLogin(payload);
       login(data.access_token, data.user);
       await loadWatchlist();
-      router.push("/");
+      router.push(next ?? "/");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "";
       const status = (err as { status?: number } | null)?.status;
@@ -69,7 +73,7 @@ export default function LoginForm() {
   async function handleGoogleSuccess(data: AuthApiResponse) {
     login(data.access_token, data.user);
     await loadWatchlist();
-    router.push("/");
+    router.push(next ?? "/");
   }
 
   return (
@@ -161,6 +165,21 @@ export default function LoginForm() {
             </div>
           </div>
 
+          <details className="text-sm text-text-main">
+            <summary className="cursor-pointer font-medium text-primary">
+              <T en="Forgot your password?" bn="পাসওয়ার্ড ভুলে গেছেন?" />
+            </summary>
+            <p className="mt-2">
+              <T
+                en="Email us from the address or phone number on your account and we will help you back in, usually the same day: "
+                bn="আপনার অ্যাকাউন্টের ইমেইল বা ফোন নম্বর জানিয়ে আমাদের ইমেইল করুন; সাধারণত সেদিনই আমরা আবার ঢুকতে সাহায্য করি: "
+              />
+              <a href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Forgot my password")}`} className="font-semibold text-primary underline">
+                {SUPPORT_EMAIL}
+              </a>
+            </p>
+          </details>
+
           {error && (
             <p className="form-error" role="alert">
               {error}
@@ -178,7 +197,7 @@ export default function LoginForm() {
 
         <p className="mt-5 text-sm text-center text-text-muted">
           <T en="No account yet?" bn="এখনো অ্যাকাউন্ট নেই?" />{" "}
-          <Link href="/register" className="text-primary hover:underline font-medium">
+          <Link href={authHref("/register", next)} className="text-primary hover:underline font-medium">
             <T en="Create one" bn="অ্যাকাউন্ট খুলুন" />
           </Link>
         </p>

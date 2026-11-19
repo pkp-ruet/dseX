@@ -52,6 +52,7 @@ const hindSiliguri = Hind_Siliguri({
 });
 
 import Navbar from "@/components/layout/Navbar";
+import NavProgress from "@/components/layout/NavProgress";
 import Footer from "@/components/layout/Footer";
 import MobileBottomBar from "@/components/layout/MobileBottomBar";
 import GlobalSearch from "@/components/layout/GlobalSearch";
@@ -61,6 +62,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { LangProvider } from "@/context/LangContext";
 import { DEFAULT_LANG, LANG_BOOT_SCRIPT } from "@/lib/lang";
 import { THEME_BOOT_SCRIPT, THEME_CHROME } from "@/lib/theme";
+import { PLAN_BOOT_SCRIPT } from "@/lib/plan-boot";
 import GoogleAuthProvider from "@/components/auth/GoogleAuthProvider";
 import { T } from "@/components/i18n/T";
 import Toaster from "@/components/ui/Toaster";
@@ -68,7 +70,6 @@ import LimitSheet from "@/components/premium/LimitSheet";
 import PingTracker from "@/components/analytics/PingTracker";
 import FeedbackPrompt from "@/components/feedback/FeedbackPrompt";
 import PushOptInPrompt from "@/components/push/PushOptInPrompt";
-import PushAlertBanner from "@/components/push/PushAlertBanner";
 import RenewBanner from "@/components/premium/RenewBanner";
 import InstallPrompt from "@/components/pwa/InstallPrompt";
 
@@ -150,6 +151,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: LANG_BOOT_SCRIPT }} />
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: PLAN_BOOT_SCRIPT }} />
       </head>
       <body className="min-h-screen flex flex-col">
         <a href="#main" className="skip-link">
@@ -163,12 +165,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <LangProvider>
           <GoogleAuthProvider>
             <PingTracker />
+            <NavProgress />
             <Navbar />
             {/* Spacer occupies the fixed navbar's 56px so the banner sits just below it */}
             <div aria-hidden="true" className="h-14 shrink-0" />
             <MarketDataBanner />
             <RenewBanner />
-            <PushAlertBanner />
             {/* Bottom-bar clearance lives on the Footer (it is the last thing on the page) */}
             <main id="main" tabIndex={-1} className="flex-1 max-w-5xl mx-auto w-full min-w-0 px-4 sm:px-6 pb-8 md:pb-10">
               {children}

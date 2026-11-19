@@ -140,6 +140,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isAdmin = user?.is_admin === true;
 
+  // Keep the head boot script's marks (lib/plan-boot.ts) true once we know
+  // the reader: a saved token that turns out stale must not keep the
+  // signed-out landing hidden, and a lapsed Premium must lock again.
+  useEffect(() => {
+    const d = document.documentElement;
+    if (user) d.setAttribute("data-signed-in", "1");
+    else if (!isLoading) d.removeAttribute("data-signed-in");
+    const premium =
+      !!user &&
+      (user.is_admin || (!!user.is_premium && (!user.premium_until || Date.parse(user.premium_until) > Date.now())));
+    if (premium) d.setAttribute("data-plan", "premium");
+    else if (user || !isLoading) d.removeAttribute("data-plan");
+  }, [user, isLoading]);
+
   return (
     <AuthContext.Provider
       value={{ user, isLoading, isLoggedIn: !!user, isAdmin, login, logout, refreshUser }}

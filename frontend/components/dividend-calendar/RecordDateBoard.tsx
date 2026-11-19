@@ -23,8 +23,8 @@ export default function RecordDateBoard({ events }: { events: CorporateActionEve
       title={<T en="Upcoming record dates" bn="আসন্ন রেকর্ড ডেট" />}
       lead={
         <T
-          en="Soonest first, with the last day to buy on each date. Tap a company to see whether its dividend looks safe."
-          bn="সবচেয়ে কাছের তারিখ আগে, প্রতিটি তারিখে কেনার শেষ দিনসহ। ডিভিডেন্ডটি নিরাপদ কি না দেখতে কোম্পানিতে ট্যাপ করুন।"
+          en="Soonest first, with the last day to buy on each date. Tap a company to get a reminder on its last day to buy."
+          bn="সবচেয়ে কাছের তারিখ আগে, প্রতিটি তারিখে কেনার শেষ দিনসহ। কেনার শেষ দিনে মনে করিয়ে দিতে কোম্পানিতে ট্যাপ করুন।"
         />
       }
     />

@@ -9,7 +9,9 @@ import { apiSubmitFeedback } from "@/lib/api";
 import { toast } from "@/lib/toast";
 import { trackEvent } from "@/lib/track";
 
-export const SUPPORT_EMAIL = "topstockbd@gmail.com";
+import { SUPPORT_EMAIL } from "@/lib/support";
+
+export { SUPPORT_EMAIL };
 const MAX_LEN = 2000;
 
 /**

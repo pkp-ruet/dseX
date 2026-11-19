@@ -28,7 +28,7 @@ export default function PageGate({
   const open = usePremiumOpen();
   return (
     <>
-      {open ? <span id={anchor} className={`block ${anchorClass}`.trim()} aria-hidden="true" /> : promo}
+      {open ? <span id={anchor} className={`block ${anchorClass}`.trim()} aria-hidden="true" /> : <div className="pl-free">{promo}</div>}
       <Locked>
         <OpenScope>{children}</OpenScope>
       </Locked>

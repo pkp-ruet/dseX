@@ -62,8 +62,15 @@ export default function GradeMedal({
             <T en="See our analysis" bn="আমাদের বিশ্লেষণ দেখুন" />
           ) : (
             <>
-              <IconCrown size={14} />
-              <T en="See why · Premium" bn="কেন, দেখুন · প্রিমিয়াম" />
+              {/* Both words ship; the head boot script shows the open one to a
+                  Premium reader before React knows them (no "Premium" flash). */}
+              <span className="pl-free inline-flex items-center gap-1">
+                <IconCrown size={14} />
+                <T en="See why · Premium" bn="কেন, দেখুন · প্রিমিয়াম" />
+              </span>
+              <span className="pl-open">
+                <T en="See our analysis" bn="আমাদের বিশ্লেষণ দেখুন" />
+              </span>
             </>
           )}
           <IconChevronDown size={14} />

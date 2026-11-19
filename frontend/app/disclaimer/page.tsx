@@ -81,7 +81,7 @@ export default function DisclaimerPage() {
         <PageHeader
           eyebrow={<T en="Disclaimer" bn="দায়মুক্তি" />}
           title={<T en="Disclaimer" bn="দায়মুক্তি" />}
-          lead={<T en="Last updated: May 2025" bn="সর্বশেষ হালনাগাদ: মে 2025" />}
+          lead={<T en="Last updated: 19 Nov 2026" bn="সর্বশেষ হালনাগাদ: 19 নভেম্বর 2026" />}
         />
 
         {/* Primary disclaimer — most prominent */}
@@ -94,15 +94,19 @@ export default function DisclaimerPage() {
               en={
                 <>
                   TopStockBD is <strong className={B}>not a financial advisor</strong>, investment advisor,
-                  broker or dealer. Nothing on this website, including stock scores, rankings, signals or any
-                  other content, is financial, investment or trading advice, or advice of any other kind.
+                  broker or dealer. Nothing on this website, including our grades, scores, rankings, the Buy List,
+                  our analysis, our answer on whether to buy and the price we would buy under, the companies we
+                  pick for you, TopStock AI&apos;s replies or any other content, is financial, investment or trading
+                  advice, or advice of any other kind.
                 </>
               }
               bn={
                 <>
                   TopStockBD কোনো <strong className={B}>আর্থিক পরামর্শদাতা নয়</strong>, বিনিয়োগ পরামর্শদাতা,
-                  ব্রোকার বা ডিলারও নয়। এই ওয়েবসাইটের কোনো কিছুই, শেয়ারের স্কোর, র‍্যাঙ্কিং, সংকেত বা অন্য
-                  যেকোনো বিষয়বস্তুসহ, আর্থিক, বিনিয়োগ বা ট্রেডিং পরামর্শ নয়, অন্য কোনো ধরনের পরামর্শও নয়।
+                  ব্রোকার বা ডিলারও নয়। এই ওয়েবসাইটের কোনো কিছুই, আমাদের গ্রেড, স্কোর, র‍্যাঙ্কিং, কেনার তালিকা,
+                  আমাদের বিশ্লেষণ, কেনা যায় কি না সেই উত্তর ও যে দামের নিচে আমরা কিনতাম, আপনার জন্য বাছাই করা
+                  কোম্পানি, টপস্টক এআইয়ের উত্তর বা অন্য যেকোনো বিষয়বস্তুসহ, আর্থিক, বিনিয়োগ বা ট্রেডিং পরামর্শ নয়, অন্য
+                  কোনো ধরনের পরামর্শও নয়।
                 </>
               }
             />
@@ -143,6 +147,24 @@ export default function DisclaimerPage() {
             <T
               en="Past financial performance is not a reliable guide to future price performance."
               bn="অতীতের আর্থিক ফলাফল ভবিষ্যতের দামের নির্ভরযোগ্য ইঙ্গিত নয়।"
+            />
+          </p>
+        </section>
+
+        <section className="space-y-3.5">
+          <h2 className={H2}>
+            <T en="Our grades, lists and answers" bn="আমাদের গ্রেড, তালিকা আর উত্তর" />
+          </h2>
+          <p className={P}>
+            <T
+              en="Our grades, the Buy List, the answer on each stock page, the buy-under price, the portfolio check and the companies we pick for you all come from fixed rules applied to published figures. They are our reading of those figures, the same for everyone who sees them. They do not know your money, your goals or how much risk you can take, and they can be wrong."
+              bn="আমাদের গ্রেড, কেনার তালিকা, প্রতিটি স্টক পেজের উত্তর, যে দামের নিচে কেনা যায়, পোর্টফোলিও যাচাই আর আপনার জন্য বাছাই করা কোম্পানি, সবই প্রকাশিত সংখ্যার ওপর নির্দিষ্ট নিয়ম খাটিয়ে তৈরি। এগুলো ওই সংখ্যা নিয়ে আমাদের পড়া, যে-ই দেখুক সবার জন্য একই। এগুলো আপনার টাকা, লক্ষ্য বা কতটা ঝুঁকি নিতে পারেন তা জানে না, আর ভুলও হতে পারে।"
+            />
+          </p>
+          <p className={P}>
+            <T
+              en="Paying for Premium does not make any of it advice. Premium opens more of our reading; it does not change what it is."
+              bn="প্রিমিয়ামের জন্য টাকা দিলেও এর কোনোটি পরামর্শ হয়ে যায় না। প্রিমিয়াম আমাদের পড়ার আরও বেশি অংশ খুলে দেয়; এর ধরন বদলায় না।"
             />
           </p>
         </section>

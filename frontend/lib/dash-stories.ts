@@ -22,7 +22,7 @@ import { bdGroup, changePct, companyShort, formatDate, money } from "@/lib/forma
 import { bnDate } from "@/lib/bn";
 import { recordDateInfo } from "@/lib/dividend-dates";
 import { RESULT_LEVEL } from "@/lib/results";
-import { classifyNews } from "@/lib/news-kind";
+import { KIND_WORD, readNotice } from "@/lib/market-notices";
 import { getTier, TIER_LABELS, TIER_PILL_BN, TIER_THRESHOLDS } from "@/lib/constants";
 
 /**
@@ -256,13 +256,6 @@ function gradeText(score: number | null | undefined, lang: Lang): string {
 /** Codes as one short line: "GP, BATBC, SQURPHARMA…". */
 function codeList(codes: string[], max = 4): string {
   return codes.slice(0, max).join(", ") + (codes.length > max ? "…" : "");
-}
-
-function trimBody(body: string, max = 170): string {
-  const s = body.replace(/\s+/g, " ").trim();
-  if (s.length <= max) return s;
-  const cut = s.slice(0, max);
-  return `${cut.slice(0, Math.max(cut.lastIndexOf(" "), max - 20))}…`;
 }
 
 /** The watcher's titles start with the code; inside that stock's story the
@@ -726,17 +719,20 @@ export function buildStories(i: StoryInput): Story[] {
     if (!universe.has(code) || newsCodes.has(code)) continue;
     const ts = Date.parse(n.post_date);
     if (!Number.isNaN(ts) && ts < cutoff) continue;
-    const kind = classifyNews(n.title);
-    if (kind.key === "earnings" && has(code, "results")) continue;
-    if ((kind.key === "dividend" || kind.key === "record") && has(code, "dividend")) continue;
+    // DSE's own titles are English shorthand; the market page's reader turns
+    // them into one plain sentence in either language. A notice it can't
+    // read (fund NAV posts, odd titles) gets no frame.
+    const read = readNotice(n.title, code);
+    if (!read) continue;
+    if (read.kind === "results" && has(code, "results")) continue;
+    if ((read.kind === "dividend" || read.kind === "record") && has(code, "dividend")) continue;
     newsCodes.add(code);
     newsN += 1;
     add(code, {
       id: `nw:${code}:${n.post_date}:${n.title.slice(0, 40)}`,
       kind: "news",
-      label: `${L("News", "খবর")} · ${lang === "bn" ? kind.labelBn : kind.label}`,
-      headline: n.title,
-      sentence: n.body ? trimBody(n.body) : undefined,
+      label: `${L("News", "খবর")} · ${lang === "bn" ? KIND_WORD[read.kind].bn : KIND_WORD[read.kind].en}`,
+      headline: lang === "bn" ? read.text.bn : read.text.en,
       cta: { label: L("Read the news", "খবরটি পড়ুন"), href: `/stock/${encodeURIComponent(code)}#news` },
       when: Number.isNaN(ts) ? undefined : day(n.post_date),
       tone: "neutral",

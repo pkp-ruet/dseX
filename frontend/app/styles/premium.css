@@ -7,6 +7,16 @@
 .premium-locked { position: relative; }
 .premium-locked[data-locked="true"] > .premium-locked-body { display: none; }
 
+/* Before React knows the reader (lib/plan-boot.ts sets these on <html> in the
+   head): a Premium reader sees locked parts open and no free-only part
+   (`.pl-free`: promo cards, lock lines, masked previews) from the first
+   paint, instead of the "Get Premium" card flashing and the page jumping. */
+html[data-plan="premium"] .premium-locked[data-locked="true"] > .premium-locked-body { display: revert; }
+html[data-plan="premium"] .pl-free { display: none !important; }
+/* The open twin of a free-only label, shown only by the boot mark. */
+.pl-open { display: none; }
+html[data-plan="premium"] .pl-open { display: inline; }
+
 .premium-card {
   display: flex;
   align-items: flex-start;
@@ -435,7 +445,7 @@ details[open] > .pm-fold-summary .pm-fold-chev { transform: rotate(180deg); }
 .lk-panel--inset.lk-panel--gutter { padding: 18px 16px; }
 @media (min-width: 640px) { .lk-panel--inset.lk-panel--gutter { padding: 20px 20px; } }
 /* A panel right under a list of cards or a table. */
-.lk-lock > .lk-panel, .lk-lock > .lk-line--card { margin-top: var(--space-3); }
+.lk-lock > .pl-free > .lk-panel, .lk-lock > .pl-free > .lk-line--card { margin-top: var(--space-3); }
 
 /* ===================================================================
    AnswerLock (2026-10-29, the Free vs Premium plan): THE lock for an

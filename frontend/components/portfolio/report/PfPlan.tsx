@@ -58,7 +58,7 @@ export default function PfPlan({
         </p>
       </header>
       {wayBack && <WayBack wayBack={wayBack} />}
-      {path ? <PathCard path={path} feePct={feePct} /> : <NoPath grade={grade} />}
+      {path ? <PathCard path={path} feePct={feePct} whatIf={children != null} /> : <NoPath grade={grade} />}
       <EachShare each={each} />
       {children}
     </section>
@@ -206,7 +206,7 @@ function GradeBox({ g, size = "md" }: { g: Grade; size?: "sm" | "md" }) {
   );
 }
 
-function PathCard({ path, feePct }: { path: PfPathView; feePct: number }) {
+function PathCard({ path, feePct, whatIf }: { path: PfPathView; feePct: number; whatIf: boolean }) {
   const t = path.totals;
   return (
     <section id="pf-path" className="soft-card pfpath dash-section" aria-labelledby="pfpath-t">
@@ -286,11 +286,15 @@ function PathCard({ path, feePct }: { path: PfPathView; feePct: number }) {
         </p>
       )}
 
-      <div className="pfpath-acts">
-        <Button href="#pf-whatif" variant="quiet" size="sm">
-          <T en="Try a change yourself" bn="নিজে একটি বদল চেষ্টা করুন" />
-        </Button>
-      </div>
+      {/* The what-if card is the plan's child; sample pages render none, so
+          the link only shows where it lands somewhere. */}
+      {whatIf && (
+        <div className="pfpath-acts">
+          <Button href="#pf-whatif" variant="quiet" size="sm">
+            <T en="Try a change yourself" bn="নিজে একটি বদল চেষ্টা করুন" />
+          </Button>
+        </div>
+      )}
 
       {path.more.length > 0 && (
         <details className="pf-fold">

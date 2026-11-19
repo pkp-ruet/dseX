@@ -172,8 +172,8 @@ export default async function StockInsightsPage() {
 
       <p className="rr-hub-foot">
         <T
-          en="Looking for a list of shares instead? The free screener has ready-made screens: high dividend, biggest companies, most traded and more."
-          bn="শেয়ারের তালিকা খুঁজছেন? ফ্রি স্ক্রিনারে তৈরি করা স্ক্রিন আছে: বেশি ডিভিডেন্ড, সবচেয়ে বড় কোম্পানি, সবচেয়ে বেশি লেনদেন আর আরও।"
+          en="Want to pick shares yourself? The stock screener has ready-made lists: high dividend, biggest companies, most traded and more. It shows free how many shares match; the shares themselves come with Premium."
+          bn="নিজে শেয়ার বাছতে চান? স্টক স্ক্রিনারে তৈরি তালিকা আছে: বেশি ডিভিডেন্ড, সবচেয়ে বড় কোম্পানি, সবচেয়ে বেশি লেনদেন আর আরও। কতগুলো শেয়ার মেলে তা ফ্রি দেখা যায়; শেয়ারগুলোর নাম প্রিমিয়ামে।"
         />{" "}
         <Link href="/screener" prefetch={false} className="rr-hub-link">
           <T en="Open the screener" bn="স্ক্রিনার খুলুন" />

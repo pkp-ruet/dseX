@@ -28,6 +28,23 @@ interface PageShortcut {
 
 const PAGES: PageShortcut[] = [
   {
+    href: "/premium",
+    label: "Premium",
+    labelBn: "প্রিমিয়াম",
+    sub: "What Premium adds, and the plans",
+    subBn: "প্রিমিয়ামে কী আছে, আর প্ল্যান",
+    keys: ["premium", "plan", "plans", "price", "pay", "bkash", "nagad", "subscribe", "upgrade", "প্রিমিয়াম", "প্ল্যান", "বিকাশ", "নগদ"],
+  },
+  {
+    href: "/results",
+    label: "Results",
+    labelBn: "আর্থিক ফল",
+    sub: "Every company's latest results against a year ago",
+    subBn: "প্রতিটি কোম্পানির সর্বশেষ ফল, এক বছর আগের তুলনায়",
+    keys: ["result", "results", "quarter", "quarterly", "earnings", "eps", "profit", "q1", "q2", "q3", "annual",
+      "ফল", "আর্থিক ফল", "প্রান্তিক", "মুনাফা"],
+  },
+  {
     href: "/dse-today",
     label: "Market today",
     labelBn: "আজকের শেয়ার বাজার",
@@ -111,9 +128,9 @@ const PAGES: PageShortcut[] = [
     href: "/stock-insights",
     label: "Premium research",
     labelBn: "প্রিমিয়াম গবেষণা",
-    sub: "Serious problems, auditors, results season, lists",
-    subBn: "গুরুতর সমস্যা, নিরীক্ষক, ফলের মৌসুম, তালিকা",
-    keys: ["list", "lists", "insights", "research", "risk", "auditor", "qualified", "going concern", "results season", "তালিকা", "গবেষণা", "ঝুঁকি", "নিরীক্ষক"],
+    sub: "Six reports: trouble, auditors, results, owners, cash, dividends",
+    subBn: "ছয়টি রিপোর্ট: সমস্যা, নিরীক্ষক, ফল, মালিক, নগদ, ডিভিডেন্ড",
+    keys: ["insights", "research", "report", "reports", "risk", "auditor", "qualified", "going concern", "results season", "তালিকা", "গবেষণা", "ঝুঁকি", "নিরীক্ষক"],
   },
   {
     href: "/watchlist",
@@ -131,6 +148,62 @@ const PAGES: PageShortcut[] = [
     subBn: "আপনার কেনা শেয়ার",
     keys: ["portfolio", "holdings", "my stocks", "পোর্টফোলিও"],
   },
+  {
+    href: "/alerts",
+    label: "Price alerts",
+    labelBn: "প্রাইস অ্যালার্ট",
+    sub: "The target prices you set",
+    subBn: "আপনার রাখা লক্ষ্য দাম",
+    keys: ["alert", "alerts", "price alert", "target", "অ্যালার্ট", "প্রাইস অ্যালার্ট"],
+  },
+  {
+    href: "/notifications",
+    label: "Notifications",
+    labelBn: "নোটিফিকেশন",
+    sub: "Everything we noticed on your shares",
+    subBn: "আপনার শেয়ারে যা যা ঘটেছে",
+    keys: ["notification", "notifications", "inbox", "bell", "updates", "নোটিফিকেশন", "আপডেট"],
+  },
+  {
+    href: "/stocks",
+    label: "All stocks",
+    labelBn: "সব শেয়ার",
+    sub: "Every share's latest price in one table",
+    subBn: "সব শেয়ারের সর্বশেষ দাম এক টেবিলে",
+    keys: ["all stocks", "all shares", "share price", "prices", "price list", "শেয়ারের দাম", "সব শেয়ার", "শেয়ারদর"],
+  },
+  {
+    href: "/assistant",
+    label: "TopStock AI",
+    labelBn: "টপস্টক এআই",
+    sub: "Ask about the market or any share",
+    subBn: "বাজার বা যেকোনো শেয়ার নিয়ে প্রশ্ন করুন",
+    keys: ["ai", "assistant", "chat", "ask", "help", "এআই", "প্রশ্ন"],
+  },
+  {
+    href: "/blog",
+    label: "Bangla blog",
+    labelBn: "বাংলা গাইড",
+    sub: "Beginner guides in Bengali",
+    subBn: "নতুনদের জন্য বাংলায় গাইড",
+    keys: ["blog", "guide", "guides", "learn", "beginner", "bangla", "শিখুন", "গাইড", "ব্লগ", "নতুন"],
+  },
+  {
+    href: "/learn",
+    label: "Guides in English",
+    labelBn: "ইংরেজি গাইড",
+    sub: "Beginner guides in English",
+    subBn: "নতুনদের জন্য ইংরেজিতে গাইড",
+    keys: ["learn", "guide", "guides", "beginner", "how to", "tutorial"],
+  },
+  {
+    href: "/about",
+    label: "How we score",
+    labelBn: "আমরা কীভাবে স্কোর করি",
+    sub: "The four checks behind every grade",
+    subBn: "প্রতিটি গ্রেডের পেছনের চারটি যাচাই",
+    keys: ["about", "how we score", "method", "grade", "score", "methodology", "পদ্ধতি", "গ্রেড", "আমাদের সম্পর্কে"],
+  },
 ];
 
 const MAX_PAGES = 3;
@@ -140,9 +213,11 @@ function pageMatches(q: string): PageShortcut[] {
   if (lower.length < 2) return [];
   return PAGES.filter(
     (p) =>
-      p.label.toLowerCase().includes(lower) ||
-      p.labelBn.includes(lower) ||
-      p.keys.some((k) => k.includes(lower) || (k.length >= 3 && lower.includes(k))),
+      (lower.length >= 3 ? p.label.toLowerCase().includes(lower) : p.label.toLowerCase().startsWith(lower)) ||
+      (lower.length >= 3 ? p.labelBn.includes(lower) : p.labelBn.startsWith(lower)) ||
+      // Two letters (a code like "GP" or "RE…") only match a whole keyword,
+      // so short codes still lead with shares, not pages.
+      p.keys.some((k) => k === lower || (lower.length >= 3 && k.includes(lower)) || (k.length >= 3 && lower.includes(k))),
   ).slice(0, MAX_PAGES);
 }
 
@@ -306,7 +381,10 @@ export default function GlobalSearch() {
         go(items[activeIndex]);
       } else if (items.length > 0) {
         go(items[0]);
-      } else if (query.trim()) {
+      } else if (companies.length === 0 && /^[A-Za-z0-9&.-]{2,15}$/.test(query.trim())) {
+        // The company list didn't load: a typed code is the reader's best
+        // guess, so open it. With the list loaded, no match means no such
+        // share, and Enter stays put instead of opening a 404.
         go({ kind: "stock", code: query.trim().toUpperCase(), name: null });
       }
     } else if (e.key === "Escape") {
@@ -443,8 +521,8 @@ export default function GlobalSearch() {
               <T en="Loading companies…" bn="কোম্পানির তালিকা আনা হচ্ছে…" />
             ) : (
               <T
-                en="Nothing matches yet. Press Enter to open this code."
-                bn="কিছু মেলেনি। এই কোডটি খুলতে Enter চাপুন।"
+                en="No share or page matches that. Try the trading code (for example GP) or the company's name in English."
+                bn="এ নামে কোনো শেয়ার বা পেজ পাওয়া যায়নি। ট্রেডিং কোড (যেমন GP) বা কোম্পানির ইংরেজি নাম লিখে দেখুন।"
               />
             )}
           </div>
@@ -459,7 +537,7 @@ export default function GlobalSearch() {
               }
               bn={
                 <>
-                  কোড (যেমন <strong>GP</strong> বা <strong>BATBC</strong>), কোম্পানির নাম, অথবা{" "}
+                  কোড (যেমন <strong>GP</strong> বা <strong>BATBC</strong>), কোম্পানির ইংরেজি নাম, অথবা{" "}
                   <strong>বাজার</strong> বা <strong>ডিভিডেন্ড</strong>-এর মতো পেজের নাম লিখুন।
                 </>
               }

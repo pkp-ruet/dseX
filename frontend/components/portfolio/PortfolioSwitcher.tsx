@@ -43,6 +43,7 @@ export default function PortfolioSwitcher({
   const [name, setName] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const current = portfolios.find((p) => p.id === active);
 
   const openNew = () => {
@@ -71,7 +72,7 @@ export default function PortfolioSwitcher({
         setSheet(null);
         showLimitNotice("portfolios");
       } else {
-        setError(err instanceof Error ? err.message : "Couldn't save.");
+        setError(L("We couldn't save it. Please try again.", "সেভ করা যায়নি। আবার চেষ্টা করুন।"));
       }
     } finally {
       setSaving(false);
@@ -109,6 +110,7 @@ export default function PortfolioSwitcher({
             onClick={() => {
               setName(current.name);
               setError("");
+              setConfirmDelete(false);
               setSheet({ mode: "edit", item: current });
             }}
           >
@@ -126,12 +128,28 @@ export default function PortfolioSwitcher({
         footer={
           <div className="flex flex-col gap-2">
             <Button type="button" variant="primary" block disabled={saving || !name.trim()} onClick={save}>
-              {saving ? "Saving…" : L("Save", "সেভ")}
+              {saving ? L("Saving…", "সেভ হচ্ছে…") : L("Save", "সেভ")}
             </Button>
-            {sheet?.mode === "edit" && (
-              <Button type="button" variant="danger" block disabled={saving} onClick={() => remove(sheet.item)}>
+            {sheet?.mode === "edit" && !confirmDelete && (
+              <Button type="button" variant="danger" block disabled={saving} onClick={() => setConfirmDelete(true)}>
                 {L("Delete this portfolio", "এই পোর্টফোলিও মুছুন")}
               </Button>
+            )}
+            {sheet?.mode === "edit" && confirmDelete && (
+              <div className="flex flex-col gap-2" role="alert">
+                <p className="text-sm font-semibold text-text-main">
+                  {L(
+                    `Delete ${sheet.item.name}? Its ${sheet.item.count} shares and their history go for good.`,
+                    `${sheet.item.name} মুছবেন? এর ${sheet.item.count}টি শেয়ার আর তাদের হিসাব চিরতরে মুছে যাবে।`,
+                  )}
+                </p>
+                <Button type="button" variant="danger" block disabled={saving} onClick={() => remove(sheet.item)}>
+                  {L("Yes, delete it", "হ্যাঁ, মুছুন")}
+                </Button>
+                <Button type="button" variant="quiet" block disabled={saving} onClick={() => setConfirmDelete(false)}>
+                  {L("Cancel", "বাতিল")}
+                </Button>
+              </div>
             )}
           </div>
         }

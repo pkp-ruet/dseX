@@ -21,7 +21,7 @@ import type {
 } from "@/lib/api";
 import { TIER_LABELS, TIER_LABELS_BN, type TierKey } from "@/lib/constants";
 import { companyShort, money } from "@/lib/formatters";
-import { classifyNews } from "@/lib/news-kind";
+import { KIND_WORD, readNotice } from "@/lib/market-notices";
 import { RESULT_LEVEL, resultMove } from "@/lib/results";
 import { daysBetween, isoLocal, recordDateInfo, toDate, todayDhaka } from "@/lib/dividend-dates";
 import { dayShort, type Pair } from "@/components/dividend-calendar/dates";
@@ -334,13 +334,16 @@ export function buildWatchUpdates({
     if (!codes.has(code) || newsSeen.has(code)) continue;
     const days = ago(n.post_date);
     if (days == null || days > NEWS_DAYS) continue;
-    const k = classifyNews(n.title);
-    if (said.has(code) && (k.key === "dividend" || k.key === "earnings")) continue;
+    // One plain sentence from the market page's notice reader; a notice it
+    // can't read (fund NAV posts, odd titles) isn't an update worth a row.
+    const read = readNotice(n.title, code);
+    if (!read) continue;
+    if (said.has(code) && (read.kind === "dividend" || read.kind === "results" || read.kind === "record")) continue;
     newsSeen.add(code);
     add({
       code, kind: "news", side: "past", date: n.post_date.slice(0, 10), tone: "muted", rank: 10,
-      label: pair(k.label, k.labelBn),
-      title: pair(n.title, n.title),
+      label: pair(KIND_WORD[read.kind].en, KIND_WORD[read.kind].bn),
+      title: pair(read.text.en, read.text.bn),
       short: days === 0 ? pair("News today", "আজ খবর") : pair("New notice", "নতুন খবর"),
       href: "#wl-news",
     });

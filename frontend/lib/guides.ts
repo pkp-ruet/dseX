@@ -309,7 +309,7 @@ export const GUIDES: Guide[] = [
       },
       {
         heading: "What TopStockBD does for you",
-        body: "Our stock score (0–100) brings all these numbers together — profit growth, returns, debt levels, price value, and dividend history — into one easy number. Instead of doing the maths yourself for 300+ companies, you can open the ranking page and instantly see which companies look strongest. Think of it as a helpful starting point, not the final word — always look into a company yourself before you invest.",
+        body: "Our stock score (0–100) brings these numbers together into one easy number, from four checks: profit, finances, how strong the business is, and dividend history. The price is not part of the score; we judge it on its own. Instead of doing the maths yourself for 300+ companies, you can open the ranking page and instantly see which companies look strongest. Think of it as a helpful starting point, not the final word — always look into a company yourself before you invest.",
       },
     ],
   },

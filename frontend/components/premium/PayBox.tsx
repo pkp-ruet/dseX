@@ -1,5 +1,6 @@
 "use client";
 
+import { authHref } from "@/lib/next-path";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import Button from "@/components/ui/Button";
 import { T } from "@/components/i18n/T";
@@ -287,7 +288,7 @@ export default function PayBox() {
 
       {isLoading ? null : !isLoggedIn ? (
         <div className="flex flex-col items-start gap-2">
-          <Button href="/register" size="lg">
+          <Button href={authHref("/register", `/premium?plan=${chosen.key}#pay`)} size="lg">
             <T en="Sign up free to buy" bn="কিনতে ফ্রি অ্যাকাউন্ট খুলুন" />
           </Button>
           <p className="text-sm text-text-muted">

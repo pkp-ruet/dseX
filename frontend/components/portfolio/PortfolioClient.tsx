@@ -1,5 +1,6 @@
 "use client";
 
+import { authHref } from "@/lib/next-path";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "@/components/ui/Link";
 import { useAuth } from "@/context/AuthContext";
@@ -1023,10 +1024,10 @@ export default function PortfolioClient() {
           />
         </p>
         <div className="pf-empty-actions">
-          <Button href="/login" variant="primary">
+          <Button href={authHref("/login", "/portfolio")} variant="primary">
             <T en="Sign in" bn="সাইন ইন" />
           </Button>
-          <Button href="/register" variant="quiet">
+          <Button href={authHref("/register", "/portfolio")} variant="quiet">
             <T en="Create an account" bn="অ্যাকাউন্ট খুলুন" />
           </Button>
         </div>
@@ -1449,12 +1450,14 @@ export default function PortfolioClient() {
           {reportOpen ? (
             <span id="pf-premium" className="dash-section block" aria-hidden="true" />
           ) : (
-            <PortfolioPromo
-              findings={report.findings}
-              promo={report.promo}
-              outline={report.outline}
-              sampleHref={`/sample-portfolio/${SAMPLE_PORTFOLIOS.diversified.slug}`}
-            />
+            <div className="pl-free">
+              <PortfolioPromo
+                findings={report.findings}
+                promo={report.promo}
+                outline={report.outline}
+                sampleHref={`/sample-portfolio/${SAMPLE_PORTFOLIOS.diversified.slug}`}
+              />
+            </div>
           )}
 
           <Locked>

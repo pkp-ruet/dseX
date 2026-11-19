@@ -533,7 +533,7 @@
     align-items: flex-start;
     justify-content: center;
     padding: 72px var(--space-6) var(--space-6);
-    background: rgb(var(--text-rgb) / 0.32);
+    background: rgb(var(--scrim-rgb) / 0.32);
     opacity: 0;
     transition: opacity 0.2s ease, visibility 0s linear 0.2s;
   }
@@ -956,3 +956,17 @@ html[data-theme-pref="auto"] .theme-switch-opts [data-opt="auto"] {
 html[data-theme="dark"] .theme-toggle-moon { display: none; }
 html[data-theme="dark"] .theme-toggle-sun { display: inline-flex; }
 .theme-toggle-moon { display: inline-flex; }
+
+/* ---------- page-load line (components/layout/NavProgress.tsx) ----------
+   2px clay line along the top edge while a tapped page loads. */
+.nav-progress {
+  position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 70;
+  background: var(--primary); transform-origin: left; transform: scaleX(0); opacity: 0;
+  pointer-events: none;
+}
+.nav-progress[data-state="busy"] { opacity: 1; transform: scaleX(0.8); transition: transform 8s cubic-bezier(.1, .7, .2, 1), opacity .15s; }
+.nav-progress[data-state="done"] { opacity: 0; transform: scaleX(1); transition: transform .2s ease-out, opacity .25s .15s; }
+@media (prefers-reduced-motion: reduce) {
+  .nav-progress[data-state="busy"] { transform: scaleX(1); transition: none; opacity: .6; }
+  .nav-progress[data-state="done"] { transition: none; }
+}

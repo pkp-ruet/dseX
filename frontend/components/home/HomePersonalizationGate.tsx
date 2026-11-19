@@ -21,5 +21,15 @@ const PersonalizedHome = dynamic(() => import("@/components/home/PersonalizedHom
 export default function HomePersonalizationGate({ children }: { children: ReactNode }) {
   const { isLoggedIn } = useAuth();
   if (isLoggedIn) return <PersonalizedHome />;
-  return <>{children}</>;
+  // A signed-in reader's browser marks <html data-signed-in> before the first
+  // paint (lib/plan-boot.ts): CSS then shows the placeholder instead of the
+  // sign-up landing while the dashboard loads. Crawlers get the landing.
+  return (
+    <>
+      <div className="home-boot" aria-hidden="true">
+        <PageSkeleton variant="cards" />
+      </div>
+      <div className="home-landing">{children}</div>
+    </>
+  );
 }

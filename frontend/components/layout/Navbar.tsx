@@ -1,5 +1,6 @@
 "use client";
 
+import { authHref } from "@/lib/next-path";
 import Link from "@/components/ui/Link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -307,7 +308,7 @@ export default function Navbar() {
                 }
               >
                 <span className="navbar-profile-avatar">
-                  {(user?.display_name ?? "U")[0].toUpperCase()}
+                  {(user?.display_name?.trim() || "U")[0].toUpperCase()}
                   {/* Members see their membership on every page. */}
                   {premium && (
                     <span className="navbar-premium-badge" aria-hidden="true">
@@ -316,19 +317,19 @@ export default function Navbar() {
                   )}
                 </span>
                 <span className="navbar-profile-name">
-                  {user?.display_name ?? <T en="Profile" bn="প্রোফাইল" />}
+                  {user?.display_name?.trim() || <T en="Profile" bn="প্রোফাইল" />}
                 </span>
               </Link>
             ) : (
               <>
                 <Link
-                  href="/login"
+                  href={authHref("/login", pathname)}
                   className="navbar-link"
                   aria-current={pathname === "/login" ? "page" : undefined}
                 >
                   <T en="Sign in" bn="সাইন ইন" />
                 </Link>
-                <Link href="/register" className="navbar-signup-btn">
+                <Link href={authHref("/register", pathname)} className="navbar-signup-btn">
                   <T en="Sign up" bn="অ্যাকাউন্ট খুলুন" />
                 </Link>
               </>
@@ -438,7 +439,7 @@ export default function Navbar() {
                 onClick={closeMenu}
               >
                 <span className="mobile-menu-account-avatar" aria-hidden="true">
-                  {(user?.display_name ?? "U")[0].toUpperCase()}
+                  {(user?.display_name?.trim() || "U")[0].toUpperCase()}
                   {premium && (
                     <span className="navbar-premium-badge">
                       <IconCrown size={10} />
@@ -447,7 +448,7 @@ export default function Navbar() {
                 </span>
                 <span className="mobile-menu-account-text">
                   <span className="mobile-menu-account-name">
-                    {user?.display_name ?? <T en="My profile" bn="আমার প্রোফাইল" />}
+                    {user?.display_name?.trim() || <T en="My profile" bn="আমার প্রোফাইল" />}
                   </span>
                   <span className="mobile-menu-account-sub">
                     {premium ? (
@@ -461,10 +462,10 @@ export default function Navbar() {
               </Link>
             ) : (
               <div className="mobile-menu-auth">
-                <Button href="/login" variant="quiet" size="lg" block onClick={closeMenu}>
+                <Button href={authHref("/login", pathname)} variant="quiet" size="lg" block onClick={closeMenu}>
                   <T en="Sign in" bn="সাইন ইন" />
                 </Button>
-                <Button href="/register" variant="primary" size="lg" block onClick={closeMenu}>
+                <Button href={authHref("/register", pathname)} variant="primary" size="lg" block onClick={closeMenu}>
                   <T en="Sign up" bn="অ্যাকাউন্ট খুলুন" />
                 </Button>
               </div>

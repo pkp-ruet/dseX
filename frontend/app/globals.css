@@ -95,6 +95,7 @@
   --surface-2-rgb: 239 234 223;
   --border-rgb: 222 214 195;
   --text-rgb: 46 43 38;
+  --scrim-rgb: 46 43 38;   /* the veil behind sheets and overlays: ink in light, black in dark (a --text veil turned cream in dark mode) */
   --text-muted-rgb: 46 43 38;
   --primary-rgb: 158 95 64;
   --navy-rgb: 42 54 68;
@@ -161,6 +162,7 @@
   --surface-2-rgb: 42 38 34;
   --border-rgb: 59 54 48;
   --text-rgb: 236 229 218;
+  --scrim-rgb: 0 0 0;
   --text-muted-rgb: 236 229 218;
   --primary-rgb: 211 139 104;
   --navy-rgb: 30 38 48;
@@ -1337,7 +1339,7 @@ a:hover .ticker-tag,
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  background: rgb(var(--text-rgb) / 0.45);
+  background: rgb(var(--scrim-rgb) / 0.45);
   animation: sheet-fade 0.15s ease-out;
 }
 .sheet-panel {

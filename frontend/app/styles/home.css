@@ -596,3 +596,11 @@ a.hm-srow:hover, a.hm-srow:active { background: var(--surface-2); }
 @media (min-width: 1024px) {
   .hm-recent { grid-column: 1 / -1; }
 }
+
+/* ---------- before sign-in loads (lib/plan-boot.ts) ----------
+   The server always sends the signed-out landing. A browser with a saved
+   sign-in hides it from the first paint and shows the placeholder until the
+   dashboard arrives. */
+.home-boot { display: none; }
+html[data-signed-in="1"] .home-boot { display: block; }
+html[data-signed-in="1"] .home-landing { display: none; }

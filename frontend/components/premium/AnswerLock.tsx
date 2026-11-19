@@ -256,7 +256,7 @@ export default function AnswerLock({
     return (
       <div className={className || undefined}>
         <Locked>{children}</Locked>
-        <div ref={ref} className={`lk-line lk-line--answer ${boxClassName}`.trim()}>
+        <div ref={ref} className={`lk-line lk-line--answer pl-free ${boxClassName}`.trim()}>
           <span className="lk-line-icon" aria-hidden="true">
             <IconLock size={16} />
           </span>
@@ -293,7 +293,7 @@ export default function AnswerLock({
         job={job}
         lines={shown}
         brief={brief}
-        className={boxClassName}
+        className={`pl-free ${boxClassName}`.trim()}
         foot={
           <>
             {isAnchor ? (

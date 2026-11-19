@@ -1,5 +1,6 @@
 "use client";
 
+import { authHref } from "@/lib/next-path";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { apiGetForYou, apiHideForYou, type ForYou, type ForYouPick } from "@/lib/api";
@@ -217,10 +218,10 @@ function GuestCard() {
         />
       </p>
       <div className="fu-start-acts">
-        <Button href="/register">
+        <Button href={authHref("/register", "/for-you")}>
           <T en="Create a free account" bn="ফ্রি অ্যাকাউন্ট খুলুন" />
         </Button>
-        <Button href="/login" variant="quiet">
+        <Button href={authHref("/login", "/for-you")} variant="quiet">
           <T en="Sign in" bn="সাইন ইন" />
         </Button>
       </div>

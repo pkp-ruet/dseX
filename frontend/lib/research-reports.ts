@@ -351,7 +351,7 @@ export const REPORTS: ReportDef[] = [
   },
   {
     slug: "results-season",
-    title: { en: "Latest results", bn: "সর্বশেষ আর্থিক ফল" },
+    title: { en: "Results season", bn: "ফলের মৌসুম" },
     question: {
       en: "Which companies made more profit than last year, and which made less.",
       bn: "কোন কোম্পানির মুনাফা গত বছরের চেয়ে বেড়েছে, আর কোনটির কমেছে।",

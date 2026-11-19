@@ -152,7 +152,7 @@ function Panel({
 
   if (variant === "line") {
     return (
-      <div ref={ref} className={`lk-line ${card ? "soft-card lk-line--card" : ""}`.trim()}>
+      <div ref={ref} className={`lk-line pl-free ${card ? "soft-card lk-line--card" : ""}`.trim()}>
         <span className="lk-line-icon" aria-hidden="true">
           <IconLock size={16} />
         </span>
@@ -177,7 +177,7 @@ function Panel({
 
   const button = cta ?? { en: `See all ${count} with Premium`, bn: `প্রিমিয়ামে সব ${count}টি দেখুন` };
   return (
-    <div ref={ref} className={inset ? `lk-panel lk-panel--inset ${gutter ? "lk-panel--gutter" : ""}`.trim() : "soft-card lk-panel"}>
+    <div ref={ref} className={`pl-free ${inset ? `lk-panel lk-panel--inset ${gutter ? "lk-panel--gutter" : ""}`.trim() : "soft-card lk-panel"}`}>
       <JobTag job={job} className="lk-tag" />
       <p className="lk-head">
         <T en={title.en} bn={title.bn} />

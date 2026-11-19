@@ -47,7 +47,7 @@ export default function ProfileClient() {
 
   useEffect(() => {
     if (!isLoading && !isLoggedIn) {
-      router.push("/login");
+      router.push("/login?next=%2Fprofile");
     }
   }, [isLoading, isLoggedIn, router]);
 
@@ -63,9 +63,14 @@ export default function ProfileClient() {
 
   async function handleSaveName() {
     setSaveError("");
+    const name = nameInput.trim();
+    if (!name) {
+      setSaveError(L("Please type a name.", "একটি নাম লিখুন।"));
+      return;
+    }
     setSaving(true);
     try {
-      await updateProfile(nameInput);
+      await updateProfile(name);
       await refreshUser();
       setEditingName(false);
     } catch {

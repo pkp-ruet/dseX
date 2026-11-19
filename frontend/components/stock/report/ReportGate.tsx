@@ -74,7 +74,11 @@ export default function ReportGate({ promo = null, children }: { promo?: ReactNo
         </p>
       )}
       {/* Old `#ch-premium` links still land somewhere once the report is open. */}
-      {open || opening ? promo && <span id="ch-premium" className="stock-anchor block" aria-hidden="true" /> : promo}
+      {open || opening ? (
+        promo && <span id="ch-premium" className="stock-anchor block" aria-hidden="true" />
+      ) : (
+        <div className="pl-free">{promo}</div>
+      )}
       <Locked>
         <OpenScope>{children}</OpenScope>
       </Locked>

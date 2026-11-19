@@ -113,7 +113,7 @@ export default async function StocksPage() {
             &ldquo;which bank trades cheapest against its earnings&rdquo;.
           </>,
           <>
-            Each company code opens its own page with the price chart, five-pillar health check, dividend
+            Each company code opens its own page with the price chart, our grade from four checks, dividend
             history and news. For the market as a whole, see{" "}
             <Link href="/dse-today">Market today</Link>: the index, the mood, top gainers and losers, in plain words.
           </>,
@@ -133,7 +133,7 @@ export default async function StocksPage() {
             &ldquo;কোনটি সবচেয়ে বেশি ডিভিডেন্ড দেয়&rdquo; বা &ldquo;মুনাফার তুলনায় কোন ব্যাংকের দাম সবচেয়ে কম&rdquo;।
           </>,
           <>
-            প্রতিটি কোম্পানির কোডে চাপ দিলে খুলবে তার নিজের পেজ, সেখানে দামের চার্ট, পাঁচটি যাচাই, ডিভিডেন্ডের ইতিহাস
+            প্রতিটি কোম্পানির কোডে চাপ দিলে খুলবে তার নিজের পেজ, সেখানে দামের চার্ট, চারটি যাচাই থেকে আমাদের গ্রেড, ডিভিডেন্ডের ইতিহাস
             আর খবর। পুরো বাজারের জন্য দেখুন <Link href="/dse-today">আজকের শেয়ার বাজার</Link>: সূচক, বাজারের অবস্থা,
             আর কোন শেয়ারের দাম সবচেয়ে বেড়েছে বা কমেছে, সহজ ভাষায়।
           </>,
@@ -153,9 +153,9 @@ export default async function StocksPage() {
           },
           {
             q: "What does the score column mean?",
-            a: "It is TopStockBD's fundamental score out of 100, built from four checks on the company's published accounts: earnings quality, financial health, competitive strength and dividend record. The share price is judged separately, so a cheaper share never reads as a stronger company. It describes business strength, not whether to buy today.",
+            a: "It is TopStockBD's fundamental score out of 100, built from four checks on the company's published accounts: profit, finances, business strength and dividend record. The share price is judged separately, so a cheaper share never reads as a stronger company. It describes business strength, not whether to buy today.",
             qBn: "স্কোরের কলাম কী বোঝায়?",
-            aBn: "এটি 100-এর মধ্যে TopStockBD-এর স্কোর, কোম্পানির প্রকাশিত হিসাবের চারটি যাচাই থেকে তৈরি: মুনাফার মান, আর্থিক অবস্থা, প্রতিযোগিতায় শক্তি আর ডিভিডেন্ডের ধারা। শেয়ারের দাম আলাদাভাবে বিচার করা হয়, তাই দাম কমলে কোম্পানিকে বেশি শক্তিশালী মনে হয় না। এটি ব্যবসা কতটা শক্তিশালী তা বলে, আজ কেনা উচিত কি না তা নয়।",
+            aBn: "এটি 100-এর মধ্যে TopStockBD-এর স্কোর, কোম্পানির প্রকাশিত হিসাবের চারটি যাচাই থেকে তৈরি: মুনাফা, আর্থিক অবস্থা, ব্যবসার শক্তি আর ডিভিডেন্ডের ধারা। শেয়ারের দাম আলাদাভাবে বিচার করা হয়, তাই দাম কমলে কোম্পানিকে বেশি শক্তিশালী মনে হয় না। এটি ব্যবসা কতটা শক্তিশালী তা বলে, আজ কেনা উচিত কি না তা নয়।",
           },
           {
             q: "Why are some listed names missing from the list?",

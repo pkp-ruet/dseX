@@ -180,7 +180,8 @@ def open_report_key(code: str, current_user: dict = Depends(get_current_user)):
 def update_profile(body: ProfileUpdateBody, current_user: dict = Depends(get_current_user)):
     updates: dict = {"updated_at": datetime.now(timezone.utc)}
     if body.display_name is not None:
-        updates["display_name"] = body.display_name.strip()
+        # A blank name is stored as no name (the navbar falls back to "Profile").
+        updates["display_name"] = body.display_name.strip() or None
     doc = get_db()["users"].find_one_and_update(
         {"user_id": current_user["user_id"]},
         {"$set": updates},

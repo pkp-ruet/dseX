@@ -1,5 +1,6 @@
 "use client";
 
+import { authHref } from "@/lib/next-path";
 import Button from "@/components/ui/Button";
 import { T } from "@/components/i18n/T";
 import { formatDate } from "@/lib/formatters";
@@ -62,7 +63,7 @@ export default function PremiumPlanCta({
     return (
       <div className={`flex flex-col gap-2 ${justify}`}>
         <div className="flex flex-wrap gap-2">
-          <Button href="/register" size="lg">
+          <Button href={authHref("/register", "/premium#pay")} size="lg">
             <T en="Sign up free" bn="ফ্রি অ্যাকাউন্ট খুলুন" />
           </Button>
           {!linkOnly && (

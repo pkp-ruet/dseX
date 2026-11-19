@@ -47,7 +47,7 @@ export default async function ResultsSeasonPage() {
           <ResearchPromo
             anchor={RESEARCH_ANCHOR}
             lock="research-season"
-            name={{ en: "Latest results", bn: "সর্বশেষ আর্থিক ফল" }}
+            name={{ en: "Results season", bn: "ফলের মৌসুম" }}
             title={{
               en: `${n} companies have posted their results. See how each sector really did.`,
               bn: `${n}টি কোম্পানি ফল দিয়েছে। প্রতিটি সেক্টর আসলে কেমন করল, দেখুন।`,

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { authHref, safeNext } from "@/lib/next-path";
 import Link from "@/components/ui/Link";
 import { useAuth } from "@/context/AuthContext";
 import { apiRegister, type AuthApiResponse } from "@/lib/api";
@@ -72,7 +73,7 @@ export default function RegisterForm() {
         await addToWatchlist(saveCode).catch(() => {});
       }
       const next = searchParams.get("next");
-      router.push(next && next.startsWith("/") ? next : "/");
+      router.push(safeNext(next) ?? "/");
     } catch (err) {
       const msg = err instanceof Error ? err.message : L("We couldn't create your account.", "অ্যাকাউন্ট খোলা যায়নি।");
       setError(msg);
@@ -91,7 +92,7 @@ export default function RegisterForm() {
       await addToWatchlist(saveCode).catch(() => {});
     }
     const next = searchParams.get("next");
-    router.push(next && next.startsWith("/") ? next : "/");
+    router.push(safeNext(next) ?? "/");
   }
 
   return (
@@ -253,7 +254,7 @@ export default function RegisterForm() {
 
         <p className="mt-5 text-sm text-center text-text-muted">
           <T en="Already have an account?" bn="অ্যাকাউন্ট আছে?" />{" "}
-          <Link href="/login" className="text-primary hover:underline font-medium">
+          <Link href={authHref("/login", searchParams.get("next"))} className="text-primary hover:underline font-medium">
             <T en="Sign in" bn="সাইন ইন" />
           </Link>
         </p>

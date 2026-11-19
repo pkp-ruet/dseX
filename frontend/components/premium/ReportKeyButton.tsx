@@ -1,5 +1,6 @@
 "use client";
 
+import { authHref } from "@/lib/next-path";
 import { useState } from "react";
 import Button from "@/components/ui/Button";
 import { T } from "@/components/i18n/T";
@@ -40,7 +41,7 @@ export default function ReportKeyButton({ code, className = "" }: { code: string
   if (state === "guest") {
     return (
       <div className={className}>
-        <Button href="/register" variant="quiet" block>
+        <Button href={authHref("/register", `/stock/${code}`)} variant="quiet" block>
           <T en="Sign up free and read 10 full analyses a month" bn="ফ্রি সাইন আপ করে মাসে 10টি পূর্ণ বিশ্লেষণ পড়ুন" />
         </Button>
       </div>

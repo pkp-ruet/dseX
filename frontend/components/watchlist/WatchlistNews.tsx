@@ -9,6 +9,7 @@ import Button from "@/components/ui/Button";
 import SectionHeader from "@/components/ui/SectionHeader";
 import Skeleton from "@/components/ui/Skeleton";
 import { T } from "@/components/i18n/T";
+import { KIND_WORD, readNotice } from "@/lib/market-notices";
 
 interface Props {
   codes: string[];
@@ -24,30 +25,26 @@ interface Props {
 const FIRST_ROWS = 6;
 
 function NewsItem({ item }: { item: WatchlistNewsItem }) {
-  const [expanded, setExpanded] = useState(false);
-
+  // DSE writes its notices in English shorthand. The market page's reader
+  // turns each into one plain sentence in both languages; one it can't read
+  // says so and points to the share's news, instead of printing the raw post.
+  const read = readNotice(item.title, item.trading_code);
   return (
     <li className="wl-news-item">
       <div className="wl-news-top">
-        <Link prefetch={false} href={`/stock/${item.trading_code}`} className="wl-news-code">
+        <Link prefetch={false} href={`/stock/${item.trading_code}#news`} className="wl-news-code">
           {item.trading_code}
         </Link>
         <span className="wl-news-date">{formatDate(item.post_date)}</span>
       </div>
-      <p className="wl-news-title">{item.title}</p>
-      {item.body && (
-        <>
-          <p className={`wl-news-body ${expanded ? "" : "line-clamp-2"}`}>{item.body}</p>
-          {!expanded && (
-            <button
-              type="button"
-              onClick={() => setExpanded(true)}
-              className="btn-link btn-sm -ml-2"
-            >
-              <T en="Read more" bn="আরও পড়ুন" />
-            </button>
-          )}
-        </>
+      {read ? (
+        <p className="wl-news-title">
+          <T en={`${KIND_WORD[read.kind].en}: ${read.text.en}`} bn={`${KIND_WORD[read.kind].bn}: ${read.text.bn}`} />
+        </p>
+      ) : (
+        <p className="wl-news-title">
+          <T en={item.title} bn="ডিএসইতে একটি বিজ্ঞপ্তি এসেছে। পুরোটা শেয়ারের খবরে পড়ুন।" />
+        </p>
       )}
     </li>
   );

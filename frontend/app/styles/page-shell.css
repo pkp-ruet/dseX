@@ -90,10 +90,20 @@
     font-size: var(--fs-xl);
   }
 }
-/* Bengali titles need more leading than Latin ones. */
+/* Bengali titles need more leading than Latin ones, and no tightened
+   letter-spacing (the vowel signs sit above and below the line and touched
+   the next line). The site's language is on <html data-lang> (lib/lang.ts);
+   the old `.page-h1[lang="bn"]` never matched, since the h1 itself carries no
+   lang (design review 2026-11-19). */
 .font-bn .page-h1,
-.page-h1[lang="bn"] {
-  line-height: 1.35;
+.page-h1[lang="bn"],
+html[data-lang="bn"] .page-h1 {
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+html[data-lang="bn"] :is(h1, h2, h3) {
+  line-height: 1.4;
+  letter-spacing: 0;
 }
 
 .page-lead {

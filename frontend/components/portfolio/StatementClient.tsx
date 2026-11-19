@@ -1,5 +1,6 @@
 "use client";
 
+import { authHref } from "@/lib/next-path";
 import { useEffect, useMemo, useState } from "react";
 import Link from "@/components/ui/Link";
 import Card from "@/components/ui/Card";
@@ -91,10 +92,10 @@ export default function StatementClient() {
           <T en="Sign in to see your statement" bn="আপনার বার্ষিক হিসাব দেখতে সাইন ইন করুন" />
         </p>
         <div className="mt-4 flex justify-center gap-3">
-          <Button href="/login" size="sm">
+          <Button href={authHref("/login", "/portfolio/statement")} size="sm">
             <T en="Sign in" bn="সাইন ইন" />
           </Button>
-          <Button href="/register" variant="quiet" size="sm">
+          <Button href={authHref("/register", "/portfolio/statement")} variant="quiet" size="sm">
             <T en="Create an account" bn="অ্যাকাউন্ট খুলুন" />
           </Button>
         </div>
