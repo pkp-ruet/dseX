@@ -354,3 +354,7 @@
 .wl-news-more > button:hover { background: var(--surface-2); }
 
 .wl-footnote { margin: var(--space-8) 0 0; text-align: center; font-size: var(--fs-2xs); color: var(--text-muted); }
+
+/* One line to Updates (2026-11-20, the app map), where the update cards went. */
+.wl-to-updates { display: block; margin-top: var(--space-6); color: var(--text); text-decoration: none; }
+.wl-to-updates:hover .text-primary { text-decoration: underline; }

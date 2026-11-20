@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import { getDividendCalendar } from "@/lib/api";
+import { getDividendCalendar, getUpcomingResults } from "@/lib/api";
+import ResultsComing from "@/components/results/ResultsComing";
+import { PersonalCodesProvider } from "@/components/market-analysis/PersonalCodes";
 import { recountCalendar } from "@/lib/dividend-dates";
 import { formatDate } from "@/lib/formatters";
 import CalendarSummary from "@/components/dividend-calendar/CalendarSummary";
@@ -69,7 +71,13 @@ export const metadata: Metadata = {
 export default async function DividendCalendarPage() {
   // A failed fetch throws (no catch): ISR then keeps serving the last good
   // page, where a rendered error state was cached as the page for a day.
-  const data = recountCalendar(await getDividendCalendar());
+  const [raw, meetings] = await Promise.all([
+    getDividendCalendar(),
+    // Secondary (2026-11-20, the app map): results meetings, free dates. A
+    // failure drops that section, not the page.
+    getUpcomingResults().catch(() => null),
+  ]);
+  const data = recountCalendar(raw);
 
   const lead = data.settlement.normal_buy_lead_trading_days;
   const forecast = data.forecast ?? [];
@@ -219,8 +227,8 @@ export default async function DividendCalendarPage() {
         title={<T en="Dividend calendar" bn="ডিভিডেন্ড ক্যালেন্ডার" />}
         lead={
           <T
-            en="Every DSE dividend coming up: how much it pays, and the last day to buy to get it."
-            bn="ডিএসইর সামনের সব ডিভিডেন্ড: কত টাকা দেবে, আর পেতে হলে কবের মধ্যে কিনতে হবে।"
+            en="Every DSE dividend coming up: how much it pays, and the last day to buy to get it. And which companies report their results next."
+            bn="ডিএসইর সামনের সব ডিভিডেন্ড: কত টাকা দেবে, আর পেতে হলে কবের মধ্যে কিনতে হবে। সঙ্গে এরপর কোন কোম্পানির আর্থিক ফল আসছে।"
           />
         }
         actions={
@@ -248,6 +256,16 @@ export default async function DividendCalendarPage() {
         {/* The lists as tabs; tap a company to open it. */}
         <CalendarTabs panels={panels} yours={yours} />
       </PageGate>
+
+      {/* Results meetings (2026-11-20, the app map): every company that called
+          a board meeting on its results in the next two weeks. The dates are
+          free for everyone; what each report must show is Premium. Moved here
+          from /results so every date has one home. */}
+      {meetings && meetings.meetings.length > 0 && (
+        <PersonalCodesProvider>
+          <ResultsComing rows={meetings.meetings} />
+        </PersonalCodesProvider>
+      )}
 
       <HowDividendsWork data={data} />
 

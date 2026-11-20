@@ -4,15 +4,14 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Link from "@/components/ui/Link";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
+  apiVisitWatchlist,
   getScores,
   getNearExtremes,
-  getDividendsUpcoming,
   getWatchlistNews,
   getWatchlistUpdates,
   type ScoreItem,
   type ScoresResponse,
   type NearExtremeItem,
-  type DividendsUpcoming,
   type NearExtremesData,
   type WatchlistNewsItem,
   type WatchlistMeta,
@@ -45,9 +44,7 @@ import WatchlistAnalysis from "./WatchlistAnalysis";
 import PriceAlertTip from "./PriceAlertTip";
 import EmptyStateActions from "./EmptyStateActions";
 import ShareWatchlistButton from "./ShareWatchlistButton";
-import SinceLastVisit from "./SinceLastVisit";
 import WatchTable, { sinceFollowed, type WatchRow } from "./WatchTable";
-import WatchUpdates from "./WatchUpdates";
 import { toast } from "@/lib/toast";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
 
@@ -318,22 +315,6 @@ function extremesToMap(data: NearExtremesData): Map<string, ExtremeInfo> {
   return map;
 }
 
-function dividendsToSet(data: DividendsUpcoming): Set<string> {
-  const set = new Set<string>();
-  const horizon = Date.now() + 14 * 24 * 3600 * 1000;
-  const soon = (date: string | null) => {
-    if (!date) return false;
-    const t = Date.parse(date);
-    return t >= Date.now() && t <= horizon;
-  };
-  for (const item of data.upcoming_declarations) {
-    if (soon(item.projected_date)) set.add(item.trading_code.toUpperCase());
-  }
-  for (const item of data.upcoming_record_dates) {
-    if (soon(item.record_date)) set.add(item.trading_code.toUpperCase());
-  }
-  return set;
-}
 
 function WatchlistTableInner() {
   const { isLoggedIn, isLoading } = useAuth();
@@ -350,16 +331,9 @@ function WatchlistTableInner() {
   const [extremesData, setExtremesData] = useState<NearExtremesData | null>(
     () => readCache<NearExtremesData>(cacheKeys.extremes),
   );
-  const [dividendsData, setDividendsData] = useState<DividendsUpcoming | null>(
-    () => readCache<DividendsUpcoming>(cacheKeys.dividends),
-  );
   const extremes = useMemo(
     () => (extremesData ? extremesToMap(extremesData) : new Map<string, ExtremeInfo>()),
     [extremesData],
-  );
-  const dividends = useMemo(
-    () => (dividendsData ? dividendsToSet(dividendsData) : new Set<string>()),
-    [dividendsData],
   );
   const [codes, setCodes] = useState<string[]>([]);
   const [meta, setMeta] = useState<WatchlistMeta>({});
@@ -404,8 +378,8 @@ function WatchlistTableInner() {
     let cancelled = false;
     setError(null);
     if (retryKey > 0) setLoading(true);
-    Promise.allSettled([getScores(), getNearExtremes(), getDividendsUpcoming()])
-      .then(([s, e, d]) => {
+    Promise.allSettled([getScores(), getNearExtremes()])
+      .then(([s, e]) => {
         if (cancelled) return;
         if (s.status === "fulfilled") {
           setScores(s.value);
@@ -415,16 +389,8 @@ function WatchlistTableInner() {
           setExtremesData(e.value);
           writeCache(cacheKeys.extremes, e.value);
         }
-        if (d.status === "fulfilled") {
-          setDividendsData(d.value);
-          writeCache(cacheKeys.dividends, d.value);
-        }
         // Only surface an error when no cache served the first paint.
-        if (
-          s.status === "rejected" &&
-          e.status === "rejected" &&
-          d.status === "rejected"
-        ) {
+        if (s.status === "rejected" && e.status === "rejected") {
           // Logged to the console; the user sees ErrorState, never the raw message.
           console.error("Watchlist data failed to load:", s.reason);
           setError("failed");
@@ -438,7 +404,17 @@ function WatchlistTableInner() {
     };
   }, [retryKey]);
 
-  // News — fires as soon as codes are known, parallel to scores/extremes/dividends.
+  // Record the visit (2026-11-20: it was SinceLastVisit's job, whose line
+  // left with the move to Updates). The navbar's new-news dot compares news
+  // against this timestamp, so opening the page clears it.
+  const visited = useRef(false);
+  useEffect(() => {
+    if (visited.current || codes.length === 0 || !isLoggedIn) return;
+    visited.current = true;
+    apiVisitWatchlist().catch(() => {});
+  }, [codes.length, isLoggedIn]);
+
+  // News — fires as soon as codes are known, parallel to scores/extremes.
   useEffect(() => {
     if (!codes.length) {
       setNews([]);
@@ -747,14 +723,28 @@ function WatchlistTableInner() {
         </div>
       )}
 
+      {/* What's new on these shares lives on Updates (2026-11-20, the app
+          map: one feed for news on your shares); the watchlist keeps one
+          line to it. */}
+      {ready && (view.happened.length > 0 || view.coming.length > 0) && (
+        <Link href="/notifications" className="soft-card wl-note wl-to-updates" data-card="watchlist-updates">
+          <span className="wl-note-text">
+            <T
+              en={`${view.happened.length} new and ${view.coming.length} coming up on your shares.`}
+              bn={`আপনার শেয়ারে ${view.happened.length}টি নতুন আর ${view.coming.length}টি সামনে আসছে।`}
+            />{" "}
+            <span className="font-semibold text-primary">
+              <T en="See them in Updates ›" bn="আপডেটে দেখুন ›" />
+            </span>
+          </span>
+        </Link>
+      )}
+
       {ready && (
         <div className="wl-stack mt-6 empty:hidden">
-          <SinceLastVisit codes={codes} rows={scoreRows} news={news} dividendSoon={dividends} />
           <PriceAlertTip />
         </div>
       )}
-
-      {ready && <WatchUpdates view={view} loading={updatesLoading} />}
 
       {codes.length > 0 && !error && (
         <WatchlistNews codes={codes} news={news} loading={newsLoading} />

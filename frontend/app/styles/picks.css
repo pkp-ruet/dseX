@@ -7,7 +7,7 @@
    (`.fu-intro`: "Worth watching", the count, the note, the reader's shares
    as chips), then one section per share of theirs (`.fu-sec`: heading and
    reason on the canvas, its companies in one card `.fu-list`), the one
-   Premium card (`.fu-promo`) after the second section, "How we pick" folded
+   Premium card (PremiumCard) after the second section, "How we pick" folded
    (`.fu-how`). Colour: clay for links, gold only for Premium, green only for
    "New" and ticks. No badges, tags or tinted bands.
    =================================================================== */
@@ -100,26 +100,6 @@ a.fu-share:active { background: var(--surface-2); }
 .fu-hide:hover { color: var(--primary-ink); text-decoration: underline; }
 
 /* ---------- The Premium card (free readers) ---------- */
-.fu-promo {
-  scroll-margin-top: 96px; padding: var(--space-6) var(--space-4);
-  border: 1px solid rgb(var(--gold-rgb) / 0.75); border-radius: var(--radius-lg);
-  background: var(--surface); box-shadow: var(--shadow-soft);
-}
-@media (min-width: 640px) { .fu-promo { padding: var(--space-6); } }
-.fu-promo-top { padding: 0; }
-.fu-promo-tag { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-sm); font-weight: 700; color: var(--gold-ink); }
-.fu-promo-h { margin-top: var(--space-2); font-size: var(--fs-xl); font-weight: 700; line-height: 1.25; color: var(--text); text-wrap: balance; }
-.fu-promo-l { margin-top: var(--space-2); max-width: 60ch; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
-.fu-promo-ticks { list-style: none; margin: var(--space-4) 0 0; padding: 0; display: grid; gap: var(--space-2); }
-.fu-promo-ticks li { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
-.fu-promo-tick { flex: none; margin-top: 3px; color: var(--positive); }
-.fu-promo-foot { margin-top: var(--space-6); }
-.fu-promo-fine { margin-top: var(--space-2); font-size: var(--fs-xs); text-align: center; color: var(--text); }
-@media (min-width: 640px) {
-  .fu-promo-foot { display: flex; align-items: center; gap: var(--space-4); }
-  .fu-promo-foot > :first-child { flex: none; width: auto; min-width: 240px; }
-  .fu-promo-fine { margin-top: 0; text-align: left; }
-}
 
 /* ---------- How we pick (folded) ---------- */
 .fu-how { margin-top: var(--space-8); }

@@ -21,6 +21,7 @@ import { Locked } from "@/components/premium/AnswerLock";
 import { dayShort } from "@/components/dividend-calendar/dates";
 import { NOTIFICATIONS_SEEN_EVENT } from "@/components/notifications/NotificationBell";
 import { trackEvent } from "@/lib/track";
+import ComingUp from "@/components/notifications/ComingUp";
 
 type Pair = { en: string; bn: string };
 
@@ -68,7 +69,10 @@ function dayHead(day: string): Pair {
 }
 
 /**
- * Notifications (`/notifications`, 2026-11-06 — replaced Your Desk): everything
+ * Updates (`/notifications`, named "Updates" since 2026-11-20, the app map —
+ * the one feed of news on the reader's shares; it took in the watchlist's
+ * "Coming up" card and the Price alerts page). Coming up first, then
+ * everything
  * we noticed on the reader's shares in the last 30 days, newest first, grouped
  * by day — results, grade changes, warnings, record dates, big falls, price
  * alerts that hit, the 9 AM brief (Premium) and the Friday letter. Rows that
@@ -144,6 +148,8 @@ export default function NotificationsClient() {
 
   if (feed.items.length === 0) {
     return feed.has_shares ? (
+      <div className="nt">
+      <ComingUp />
       <EmptyState
         title={<T en="Nothing in the last 30 days" bn="গত 30 দিনে কিছু নেই" />}
         message={
@@ -153,6 +159,7 @@ export default function NotificationsClient() {
           />
         }
       />
+      </div>
     ) : (
       <EmptyState
         title={<T en="Add your shares to get notifications" bn="নোটিফিকেশন পেতে আপনার শেয়ার যোগ করুন" />}
@@ -191,6 +198,8 @@ export default function NotificationsClient() {
           <T en="Nothing new since your last visit." bn="আগের ভিজিটের পর নতুন কিছু নেই।" />
         )}
       </p>
+
+      <ComingUp />
 
       {groups.map((g) => {
         const head = dayHead(g.day);

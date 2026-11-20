@@ -71,7 +71,6 @@ async function legacyBundle(): Promise<HomeBundle> {
       recent_declarations: (calendar?.recent_declarations ?? []).slice(0, 5),
     },
     new_results: [],
-    results_week: null,
     week_watch: null,
     // The ready-made screens come only with the bundle; the card hides without them.
     screener: null,

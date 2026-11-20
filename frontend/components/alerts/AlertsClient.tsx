@@ -142,6 +142,11 @@ function AlertCard({
   );
 }
 
+/**
+ * The reader's price alerts — a section of the Updates page (`#alerts`)
+ * since 2026-11-20; the old /alerts page 301s there. The Updates page asks a
+ * signed-out reader to sign in once, so this section then shows nothing.
+ */
 export default function AlertsClient() {
   const { isLoggedIn, isLoading } = useAuth();
   const { lang } = useLang();
@@ -198,29 +203,7 @@ export default function AlertsClient() {
     );
   }
 
-  if (!isLoggedIn) {
-    return (
-      <div className="watchlist-empty">
-        <h2>
-          <T en="Sign in to set price alerts" bn="প্রাইস অ্যালার্ট দিতে সাইন ইন করুন" />
-        </h2>
-        <p>
-          <T
-            en="Choose a target price on any share, and we will tell you on the day it is reached, by notification and in your alerts bell."
-            bn="যেকোনো শেয়ারে একটি দাম ঠিক করে দিন। দাম সেখানে পৌঁছালে সেদিনই নোটিফিকেশন আর অ্যালার্ট বেলে জানাব।"
-          />
-        </p>
-        <div className="mt-4 flex gap-2 justify-center">
-          <Button href="/login?next=%2Falerts" variant="primary" size="sm">
-            <T en="Sign in" bn="সাইন ইন" />
-          </Button>
-          <Button href="/register?next=%2Falerts" variant="quiet" size="sm">
-            <T en="Create an account" bn="অ্যাকাউন্ট খুলুন" />
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  if (!isLoggedIn) return null;
 
   if (alerts.length === 0) {
     return (
@@ -233,8 +216,7 @@ export default function AlertsClient() {
           />
         }
         actions={[
-          { href: "/dsestockranking", label: <T en="See the top-ranked shares" bn="শীর্ষ র‍্যাঙ্কের শেয়ার দেখুন" /> },
-          { href: "/stocks", label: <T en="Browse all shares" bn="সব শেয়ার দেখুন" /> },
+          { href: "/dsestockranking", label: <T en="See all companies" bn="সব কোম্পানি দেখুন" /> },
         ]}
       />
     );
@@ -244,12 +226,12 @@ export default function AlertsClient() {
     <>
       {active.length > 0 && (
         <section className="mb-6">
-          <h2 className="mb-2 text-xs font-bold   text-text-muted">
+          <h3 className="mb-2 text-xs font-bold text-text-muted">
             <T
               en={`Active (${active.length}${alertLimit !== null ? ` of ${alertLimit}` : ""})`}
               bn={`চালু (${alertLimit !== null ? `${alertLimit}টির মধ্যে ` : ""}${active.length}টি)`}
             />
-          </h2>
+          </h3>
           <div className="flex flex-col gap-2.5">
             {active.map((a) => (
               <AlertCard key={a.id} alert={a} ltp={ltpMap.get(a.trading_code) ?? null} onEdit={setEditing} />
@@ -260,9 +242,9 @@ export default function AlertsClient() {
 
       {triggered.length > 0 && (
         <section>
-          <h2 className="mb-2 text-xs font-bold   text-text-muted">
+          <h3 className="mb-2 text-xs font-bold text-text-muted">
             <T en="Recently reached" bn="সম্প্রতি পৌঁছেছে" />
-          </h2>
+          </h3>
           <div className="flex flex-col gap-2.5">
             {triggered.map((a) => (
               <AlertCard key={a.id} alert={a} ltp={ltpMap.get(a.trading_code) ?? null} onEdit={setEditing} />

@@ -786,7 +786,7 @@ export default function OfferSlot({
               ))}
             </ul>
             <div className="hm-sl-acts">
-              <Button href="/results#coming" variant="quiet">
+              <Button href="/dividend-calendar#results-meetings" variant="quiet">
                 {n > 3 ? (bn ? `সব ${n}টি দেখুন` : `See all ${n}`) : bn ? "যেসব ফল আসছে" : "All results coming up"}
               </Button>
             </div>

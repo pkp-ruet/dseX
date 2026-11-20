@@ -15,13 +15,15 @@ import { dayParts, daysWords } from "@/components/dividend-calendar/dates";
 const FIRST = 8;
 
 /**
- * "Coming up" on /results (2026-10-29): every results meeting in the next two
+ * "Results meetings" on the Calendar (`#results-meetings`; it was "Coming up"
+ * on /results 2026-10-29 → 2026-11-20, moved so dates have one home). Every
+ * results meeting in the next two
  * weeks, read from DSE's board-meeting notices — one card per date (the
  * dividend calendar's date tile), the reader's own stocks first in each.
  * The date is free. What each report will be measured against — last year's
  * figure, the year so far, and the EPS where our Better / Weaker lines sit —
  * is Premium (`expect_*`, a screen-only `Locked` under each row, named by the
- * page's question card `#rs-premium`). Must render inside the page's `PersonalCodesProvider`.
+ * page's Premium card). Must render inside the page's `PersonalCodesProvider`.
  */
 export default function ResultsComing({ rows }: { rows: UpcomingResult[] }) {
   const { portfolio, watchlist } = usePersonalCodesCtx();
@@ -58,10 +60,10 @@ export default function ResultsComing({ rows }: { rows: UpcomingResult[] }) {
   const hidden = rows.length - visible.reduce((n, g) => n + g.items.length, 0);
 
   return (
-    <section id="coming" className="rs-coming" aria-labelledby="coming-title">
+    <section id="results-meetings" className="rs-coming stock-anchor" aria-labelledby="results-meetings-title">
       <SectionHeader
-        id="coming-title"
-        title={<T en="Results coming up" bn="যেসব ফল আসছে" />}
+        id="results-meetings-title"
+        title={<T en="Results meetings" bn="আর্থিক ফলের সভা" />}
         lead={
           <T
             en={`${rows.length} companies have called a board meeting on their results in the next two weeks${mounted && myCount ? `, ${myCount} of them your stocks` : ""}. Results usually come out the same evening.`}

@@ -84,7 +84,7 @@ a.rs-row:active { background: var(--surface-2); opacity: 0.85; }
 
 /* ---- Coming up (2026-10-29): results meetings in the next two weeks ----
    One card per date, the dividend calendar's date tile + head (dc-*). */
-.rs-coming { margin-bottom: var(--space-12); }
+.rs-coming { margin-top: var(--space-8); margin-bottom: var(--space-12); }
 .rs-coming-days { display: grid; gap: var(--space-4); margin-top: var(--space-4); }
 .rs-coming .dc-day-head + .rs-list { border-top: 1px solid var(--cell-rule); }
 /* Better or worse than the year's own pace (2026-10-31, Premium): a toned
@@ -96,3 +96,6 @@ a.rs-row:active { background: var(--surface-2); opacity: 0.85; }
 .rs-pace--above::before { background: var(--positive); }
 .rs-pace--below::before { background: var(--negative); }
 .rs-pace--in_line::before { background: var(--text-muted); }
+
+/* One line to the Calendar's results meetings (2026-11-20, the app map). */
+.rs-coming-link { margin: 0 0 var(--space-4); font-size: var(--fs-sm); }

@@ -34,7 +34,7 @@ from backend.services import custom_lists_service
 from backend.services import screener_service
 from backend.services.rank_today_service import week_rank_moves
 from backend.services.db_service import load_ex_day_moves
-from backend.services.results_explainer import results_for, results_summary
+from backend.services.results_explainer import results_for
 from backend.services.db_service import (
     load_market_index,
     load_market_movers,
@@ -136,8 +136,6 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
     # Quarterly results on the reader's own stocks, posted in the last three
     # weeks — headline + profit line (the rest is on the stock page).
     new_results = _safe("new_results", lambda: results_for(mine), [])
-    # The market's week of results — the dashboard promotes /results with it.
-    results_week = _safe("results_week", results_summary, None)
     # The day's move on the reader's stocks when a record date fell in between,
     # with the dividend / bonus taken out (audit EL3): {code: change %}.
     ex_moves = _safe("ex_moves", lambda: {c: m["change_pct"] for c, m in load_ex_day_moves().items()
@@ -173,7 +171,6 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
         "calendar": calendar,
         "rank_moves": rank_moves,
         "new_results": new_results,
-        "results_week": results_week,
         "ex_moves": ex_moves,
         "results_soon": results_soon,
         "brief": brief,

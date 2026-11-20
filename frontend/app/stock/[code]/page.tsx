@@ -6,6 +6,7 @@ import {
 } from "@/lib/api";
 import { getTier, TIER_LABELS } from "@/lib/constants";
 import HeroSection from "@/components/stock/HeroSection";
+import PlaceTrail from "@/components/places/PlaceTrail";
 import PriceChart from "@/components/stock/PriceChart";
 import ValuationPanel from "@/components/stock/ValuationPanel";
 import CompanyFacts from "@/components/stock/CompanyFacts";
@@ -405,6 +406,8 @@ export default async function StockDetailPage({ params }: PageProps) {
       )}
 
       <StockVisitTracker code={profile.trading_code} />
+      {/* Back to the place the reader came from (2026-11-20, the app map). */}
+      <PlaceTrail />
 
       {/* A signed-in free reader's first 10 shares a month open the whole
           report by themselves (`auto`, 2026-11-08) — only when there is an

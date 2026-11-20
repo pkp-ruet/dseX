@@ -30,6 +30,7 @@ import "./styles/picks.css";
 import "./styles/buy-list.css";
 import "./styles/home.css";
 import "./styles/notifications.css";
+import "./styles/places.css";
 
 // One Latin family, three weights (2026-10 redesign): regular, semibold, bold.
 // font-medium renders as regular and font-extrabold/black as bold — fewer font

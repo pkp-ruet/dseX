@@ -181,3 +181,7 @@ button.nt-row:active { background: var(--surface-2); }
   font-size: var(--fs-sm);
   line-height: 1.5;
 }
+
+/* Updates (2026-11-20): "Coming up" heads the feed; the reader's price
+   alerts (the old /alerts page) close the page at #alerts. */
+.nt-alerts { display: grid; gap: var(--space-3); margin-top: var(--space-8); }

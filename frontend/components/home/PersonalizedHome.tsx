@@ -31,9 +31,7 @@ import ServiceGrid from "@/components/home/personalized/ServiceGrid";
 import OfferSlot from "@/components/home/personalized/OfferSlot";
 import MarketLine from "@/components/home/personalized/MarketLine";
 import TodayForYou from "@/components/home/personalized/TodayForYou";
-import RecentStrip from "@/components/home/personalized/RecentStrip";
-import ShareNotices from "@/components/home/personalized/ShareNotices";
-import RankingTop from "@/components/home/personalized/RankingTop";
+import OnYourShares from "@/components/home/personalized/OnYourShares";
 
 function flatten(scores: ScoresResponse | null): Map<string, ScoreItem> {
   if (!scores) return new Map();
@@ -226,29 +224,22 @@ export default function PersonalizedHome() {
     if (card) trackHomeTap(card, link.getAttribute("href") ?? undefined);
   }
 
-  // The bKash-style home (2026-11-17, mockup
-  // https://claude.ai/artifact/PzbGUGyZQpwFEpCTTo5jDJ; round 2 2026-11-18,
-  // https://claude.ai/artifact/VjM6tbPk1kKo3BJjCD3Frk). One job per block;
-  // the page behind every icon / row does the explaining and the selling:
-  //   1 the band: greeting, the plan chip, ONE button for the reader's money
-  //     (hidden until tapped on a new device, then remembered), search
-  //   2 what you can do: 8 icons + See more + What is each one? (replaced the
-  //     screener, compare, ranking, research, learn and explore cards)
-  //   3 the story rings ("Your shares today") + the market in one line
-  //   4 continue where you left off (shares opened on this device)
-  //   5 one offer slot, swipe only (a free reader's portfolio check first,
-  //     then the free Buy List pick, the ৳99 month or the Premium banner,
-  //     notifications, the setup step and install)
-  //   6 today for you: your dates this week, then Buy List · record dates ·
-  //     dividends coming to you · results this week · For you, counts for a
-  //     free reader, names for Premium (replaced the Buy List, dividend and
-  //     Picked for you cards)
-  //   7 latest on your shares: notices to DSE as plain sentences (round 3,
-  //     2026-11-18, https://claude.ai/artifact/Bncp1qkKjyYs6ChfZpqV2e)
-  //   8 strongest companies this week: the ranking's top five (round 3)
-  // 4 and 5 show only after reading localStorage, so they sit below 3: the
-  // rings never move once painted. 7 and 8 sit below everything the reader
-  // taps first; both are free and come from data already loaded.
+  // The six-block home (2026-11-20, the app map
+  // https://claude.ai/artifact/MUgUUziXftVp1gmXDQoMUm; the bKash-style home of
+  // 2026-11-17 cut to six blocks, about four screens). Home owns nothing:
+  // every block is a window into one of the four places and ends in a link.
+  //   1 the band: greeting, the plan chip, ONE button for the reader's money,
+  //     search (→ Portfolio, Premium)
+  //   2 eight shortcuts + "See more" + "What is each one?" (the whole map,
+  //     grouped by place, the menu's names)
+  //   3 the story rings + the market in one line (→ Market today)
+  //   4 On your shares: the newest three things and this week's dates
+  //     (→ Updates). Replaced "Your dates this week", "Latest on your shares",
+  //     "Results this week" and "Dividends coming to you".
+  //   5 one offer slot, swipe only
+  //   6 Today for you: Buy List · For you · Strongest companies (→ Find,
+  //     My shares). Replaced the ranking block and the record-dates row.
+  // "Continue where you left off" left the home the same day (six blocks).
   return (
     <PullToRefresh onRefresh={() => runFetches()}>
       <div className="hm pb-4" onClickCapture={onTap}>
@@ -288,10 +279,23 @@ export default function PersonalizedHome() {
           />
         </div>
 
-        {/* Both read localStorage before they show, so they sit below the story
-            rings: above them, they pushed the rings down mid-tap. */}
-        <RecentStrip lang={lang} premium={premium} priceMap={priceMap} reportKeys={user?.report_keys ?? null} />
+        {/* 4 · On your shares: a window into Updates (2026-11-20, the app map). */}
+        {!isBrandNew && (
+          <OnYourShares
+            lang={lang}
+            mine={mineSet}
+            todayIso={isoToday}
+            news={news}
+            results={newResults}
+            resultsSoon={bundle?.results_soon ?? []}
+            ownDividends={dividendCash}
+            priceMap={priceMap}
+            loading={!bundle && !bundleSettled}
+          />
+        )}
 
+        {/* 5 · One slide at a time (reads localStorage before it shows, so it
+            sits below the story rings). */}
         <OfferSlot
           lang={lang}
           brandNew={isBrandNew}
@@ -308,37 +312,15 @@ export default function PersonalizedHome() {
           savedScreens={bundle ? bundle.screener?.saved ?? null : bundleSettled ? null : undefined}
         />
 
+        {/* 6 · Today for you: Buy List · For you · Strongest companies. */}
         <TodayForYou
           lang={lang}
           premium={premium}
           loading={!bundle && !bundleSettled}
           buyList={bundle?.buy_list ?? null}
-          recordDates={calendarRows}
           forYou={bundle?.for_you ?? null}
-          mine={mineSet}
-          todayIso={isoToday}
-          resultsSoon={bundle?.results_soon ?? []}
-          ownDividends={dividendCash}
-          resultsWeek={bundle?.results_week ?? null}
-          ownResults={newResults}
-          holdings={holdings}
-        />
-
-        {!isBrandNew && (
-          <ShareNotices
-            news={news}
-            priceMap={priceMap}
-            held={heldSet}
-            watched={watchedSet}
-            todayIso={isoToday}
-            lang={lang}
-          />
-        )}
-
-        <RankingTop
           stocks={allStocks}
           moves={bundle?.rank_moves ?? null}
-          lang={lang}
         />
       </div>
     </PullToRefresh>

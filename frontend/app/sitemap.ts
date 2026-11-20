@@ -73,6 +73,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     data("", "daily", 1.0),
+    // The place pages (2026-11-20, lib/places.ts); /my is personal and noindex.
+    data("/market", "daily", 0.85),
+    data("/find", "daily", 0.85),
     data("/dsestockranking", "daily", 0.9),
     data("/buy-list", "daily", 0.9),
     data("/stocks", "daily", 0.85),

@@ -1,15 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import Button from "@/components/ui/Button";
-import { IconCrown } from "@/components/ui/icons";
-import { T } from "@/components/i18n/T";
 import { ToneChip, tx } from "@/components/report/chip";
-import { useLang } from "@/context/LangContext";
-import { PREMIUM_PATH, usePremium } from "@/lib/premium";
-import { LOWEST_PRICE } from "@/lib/premium-plans";
-import { savePremiumContext } from "@/lib/premium-context";
-import { trackEvent } from "@/lib/track";
+import PremiumCard from "@/components/premium/PremiumCard";
+import { usePremium } from "@/lib/premium";
 import type { Bi, Tone } from "@/lib/stock-report";
 
 /**
@@ -26,6 +19,8 @@ export type PageQuestion = { key: string; fact: Bi; tone?: Tone; ask: Bi; hint?:
  * of them with the questions they leave, and a Premium reader sees the answers
  * in place on the page instead (the card renders only its anchor for them).
  * One per page; it replaces the row locks and lock lines the market pages had.
+ * On the one Premium card shell since 2026-11-20 (`PremiumCard`): the facts
+ * and their questions are its body.
  */
 export default function PageQuestions({
   id,
@@ -47,47 +42,25 @@ export default function PageQuestions({
   label: Bi;
   className?: string;
 }) {
-  const { state, isPremium } = usePremium();
-  const { bn } = useLang();
-  const ref = useRef<HTMLDivElement>(null);
-  const seen = useRef(false);
+  const { isPremium } = usePremium();
   const shown = rows.slice(0, 4);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || isPremium || typeof IntersectionObserver === "undefined") return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (seen.current || !entries.some((e) => e.isIntersecting)) return;
-        seen.current = true;
-        trackEvent("premium_lock_view", { area, lock: `${area}-questions`, state, stakes: shown.length });
-        io.disconnect();
-      },
-      { threshold: 0.4 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [isPremium, area, state, shown.length]);
 
   if (isPremium || shown.length === 0) return <span id={id} className="pq-anchor" aria-hidden="true" />;
 
-  const onTap = () => {
-    trackEvent("premium_lock_tap", { area, lock: `${area}-questions`, state, stakes: shown.length });
-    savePremiumContext({
-      from: area,
-      label: bn ? label.bn || label.en : label.en,
-      stakes: shown.slice(0, 3).map((r) => (bn ? r.ask.bn || r.ask.en : r.ask.en)),
-    });
-  };
-
   return (
-    <section ref={ref} id={id} className={`pq ${className}`.trim()} aria-labelledby={`${id}-title`}>
-      <p className="pq-tag">
-        <IconCrown size={14} />
-        <T en="Premium" bn="প্রিমিয়াম" />
-      </p>
-      <h2 id={`${id}-title`} className="pq-title">{tx(title)}</h2>
-      {lead && <p className="pq-lead">{tx(lead)}</p>}
+    <PremiumCard
+      anchor={id}
+      area={area}
+      lock={`${area}-questions`}
+      src={area}
+      track={{ stakes: shown.length }}
+      className={`pq-card ${className}`.trim()}
+      tag={label}
+      title={tx(title)}
+      lead={lead ? tx(lead) : undefined}
+      cta={{ en: "Get Premium", bn: "প্রিমিয়াম নিন" }}
+      context={{ label, stakes: shown.map((r) => r.ask) }}
+    >
       <ul className="pq-rows">
         {shown.map((r) => (
           <li key={r.key} className="pq-row">
@@ -99,14 +72,6 @@ export default function PageQuestions({
           </li>
         ))}
       </ul>
-      <div className="pq-actions">
-        <Button href={PREMIUM_PATH} onClick={onTap} size="lg">
-          <T en={`Get Premium · ৳${LOWEST_PRICE} a month`} bn={`প্রিমিয়াম নিন · মাসে ৳${LOWEST_PRICE}`} />
-        </Button>
-        <p className="pq-fine">
-          <T en="bKash, Nagad or bank. Nothing renews by itself." bn="bKash, Nagad বা ব্যাংক। নিজে থেকে নবায়ন হয় না।" />
-        </p>
-      </div>
-    </section>
+    </PremiumCard>
   );
 }

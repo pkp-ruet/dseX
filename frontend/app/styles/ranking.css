@@ -201,3 +201,57 @@
 @media (prefers-reduced-motion: reduce) {
   .rk-go svg { transition: none; }
 }
+
+/* ---- All companies (2026-11-20, the app map): order switch + search ---- */
+.rk-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-3);
+}
+.rk-order {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.rk-order button {
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.rk-order button[aria-pressed="true"] { background: var(--primary); color: var(--on-fill); }
+.rk-order button:focus-visible { outline: none; box-shadow: var(--ring); }
+.rk-search {
+  flex: 1 1 12rem;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 46px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--primary);
+}
+.rk-search:focus-within { box-shadow: var(--ring); }
+.rk-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-base);
+  outline: none;
+}
+.rk-none { margin: 0; padding: var(--space-4); font-size: var(--fs-sm); }

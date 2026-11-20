@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getInsightScores } from "@/lib/api";
 import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
+import { ALL_PAGES } from "@/lib/places";
 
 interface Company {
   trading_code: string;
@@ -26,151 +27,59 @@ interface PageShortcut {
   keys: string[];
 }
 
+/**
+ * Names and lines come from the map (lib/places.ts, 2026-11-20) so a page is
+ * called the same thing here as in the menu. Only the keywords live here.
+ * Folded pages (trending, today's news, all stocks, price alerts) are found
+ * through their owner's keywords.
+ */
+const PAGE_KEYS: Record<string, string[]> = {
+  today: [
+    "market", "today", "dse today", "analysis", "mood", "up or down", "dsex", "index", "movers", "gainers",
+    "losers", "news", "notices", "trending", "hot", "popular", "share bazar", "bazar",
+    "বাজার", "বিশ্লেষণ", "আজ", "আজকের", "শেয়ার বাজার", "খবর", "আলোচিত",
+  ],
+  results: ["result", "results", "quarter", "quarterly", "earnings", "eps", "profit", "q1", "q2", "q3", "annual",
+    "ফল", "আর্থিক ফল", "প্রান্তিক", "মুনাফা"],
+  calendar: ["dividend", "record date", "agm", "cash", "calendar", "dates", "board meeting", "results meeting",
+    "ডিভিডেন্ড", "রেকর্ড ডেট", "ক্যালেন্ডার", "তারিখ", "এজিএম"],
+  sectors: ["sector", "industry", "industries", "সেক্টর"],
+  buylist: ["buy", "buy list", "buy signal", "signals", "what to buy", "best shares", "best stocks", "undervalued",
+    "কেনার তালিকা", "কী কিনব", "কোন শেয়ার কিনব", "সিগন্যাল"],
+  companies: ["ranking", "rank", "top stocks", "strongest", "score", "all stocks", "all shares", "all companies",
+    "share price", "prices", "price list", "a to z", "র‍্যাঙ্কিং", "স্কোর", "সব শেয়ার", "সব কোম্পানি", "শেয়ারের দাম", "শেয়ারদর"],
+  screener: ["screener", "screen", "filter", "find", "cheap", "low pe", "pe", "pb", "book value",
+    "high dividend", "yield", "market cap", "growing", "বাছাই", "স্ক্রিনার", "সস্তা", "লভ্যাংশ"],
+  compare: ["compare", "comparison", "vs", "versus", "side by side", "which is better", "better share",
+    "তুলনা", "পাশাপাশি", "কোনটা ভালো"],
+  research: ["insights", "research", "report", "reports", "risk", "auditor", "qualified", "going concern",
+    "results season", "owners", "গবেষণা", "ঝুঁকি", "নিরীক্ষক", "রিপোর্ট"],
+  portfolio: ["portfolio", "holdings", "my stocks", "my shares", "profit", "loss", "পোর্টফোলিও", "আমার শেয়ার"],
+  watchlist: ["watchlist", "watch", "follow", "ওয়াচলিস্ট"],
+  updates: ["notification", "notifications", "inbox", "bell", "updates", "alert", "alerts", "price alert", "target",
+    "নোটিফিকেশন", "আপডেট", "অ্যালার্ট", "প্রাইস অ্যালার্ট"],
+  foryou: ["for you", "based on", "picked", "picks", "similar", "like my shares", "discover", "explore",
+    "recommend", "recommendation", "suggest", "watch next", "ideas", "আপনার জন্য", "বাছাই", "মতো শেয়ার", "পরামর্শ"],
+  guides: ["learn", "guide", "guides", "beginner", "how to", "tutorial", "blog", "শিখুন", "গাইড", "নতুন"],
+  about: ["about", "how we score", "method", "grade", "methodology", "পদ্ধতি", "গ্রেড", "আমাদের সম্পর্কে"],
+};
+
 const PAGES: PageShortcut[] = [
+  ...ALL_PAGES.map((p) => ({
+    href: p.href,
+    label: p.name.en,
+    labelBn: p.name.bn,
+    sub: p.line.en,
+    subBn: p.line.bn,
+    keys: PAGE_KEYS[p.key] ?? [],
+  })),
   {
-    href: "/premium",
-    label: "Premium",
-    labelBn: "প্রিমিয়াম",
-    sub: "What Premium adds, and the plans",
-    subBn: "প্রিমিয়ামে কী আছে, আর প্ল্যান",
-    keys: ["premium", "plan", "plans", "price", "pay", "bkash", "nagad", "subscribe", "upgrade", "প্রিমিয়াম", "প্ল্যান", "বিকাশ", "নগদ"],
-  },
-  {
-    href: "/results",
-    label: "Results",
-    labelBn: "আর্থিক ফল",
-    sub: "Every company's latest results against a year ago",
-    subBn: "প্রতিটি কোম্পানির সর্বশেষ ফল, এক বছর আগের তুলনায়",
-    keys: ["result", "results", "quarter", "quarterly", "earnings", "eps", "profit", "q1", "q2", "q3", "annual",
-      "ফল", "আর্থিক ফল", "প্রান্তিক", "মুনাফা"],
-  },
-  {
-    href: "/dse-today",
-    label: "Market today",
-    labelBn: "আজকের শেয়ার বাজার",
-    sub: "How the market did today, in plain words",
-    subBn: "আজ বাজার কেমন গেল, সহজ ভাষায়",
-    keys: [
-      "market", "today", "dse today", "analysis", "mood", "up or down", "cheap", "expensive", "dsex", "index",
-      "movers", "gainers", "losers", "news", "share bazar", "bazar",
-      "বাজার", "বিশ্লেষণ", "আজ", "আজকের", "শেয়ার বাজার",
-    ],
-  },
-  {
-    href: "/dividend-calendar",
-    label: "Dividend calendar",
-    labelBn: "ডিভিডেন্ড ক্যালেন্ডার",
-    sub: "Record dates, AGMs and cash dividends",
-    subBn: "রেকর্ড ডেট, এজিএম আর নগদ ডিভিডেন্ড",
-    keys: ["dividend", "record date", "agm", "cash", "calendar", "ডিভিডেন্ড", "রেকর্ড ডেট"],
-  },
-  {
-    href: "/buy-list",
-    label: "Buy List",
-    labelBn: "কেনার তালিকা",
-    sub: "What we would buy today, the same for everyone",
-    subBn: "আজ যা কেনার মতো, সবার জন্য একই",
-    keys: ["buy", "buy list", "buy signal", "signals", "what to buy", "best shares", "best stocks", "undervalued",
-      "কেনার তালিকা", "কী কিনব", "কোন শেয়ার কিনব", "সিগন্যাল"],
-  },
-  {
-    href: "/for-you",
-    label: "Based on your shares",
-    labelBn: "আপনার শেয়ার দেখে বাছাই",
-    sub: "Companies to watch next, picked from your shares",
-    subBn: "আপনার শেয়ার দেখে বাছাই, পরে নজরে রাখার মতো কোম্পানি",
-    keys: ["for you", "based on", "picked", "picks", "similar", "like my shares", "discover", "explore", "recommend",
-      "recommendation", "suggest", "watch next", "ideas", "আপনার জন্য", "বাছাই", "মতো শেয়ার", "পরামর্শ"],
-  },
-  {
-    href: "/dsestockranking",
-    label: "Company ranking",
-    labelBn: "কোম্পানির র‍্যাঙ্কিং",
-    sub: "The strongest companies on the DSE",
-    subBn: "ডিএসইর সবচেয়ে শক্তিশালী কোম্পানি",
-    keys: ["ranking", "rank", "best stocks", "top stocks", "strongest", "score", "র‍্যাঙ্কিং", "স্কোর"],
-  },
-  {
-    href: "/screener",
-    label: "Stock screener",
-    labelBn: "স্টক স্ক্রিনার",
-    sub: "Find stocks by dividend, price, profit or sector",
-    subBn: "ডিভিডেন্ড, দাম, মুনাফা বা সেক্টর দিয়ে শেয়ার খুঁজুন",
-    keys: ["screener", "screen", "filter", "find", "cheap", "low pe", "pe", "pb", "book value", "dividend",
-      "high dividend", "yield", "market cap", "eps", "growing", "বাছাই", "স্ক্রিনার", "খুঁজুন", "সস্তা", "লভ্যাংশ"],
-  },
-  {
-    href: "/compare-stocks",
-    label: "Compare stocks",
-    labelBn: "শেয়ার তুলনা",
-    sub: "Put shares side by side",
-    subBn: "শেয়ার পাশাপাশি মিলিয়ে দেখুন",
-    keys: ["compare", "comparison", "vs", "versus", "side by side", "which is better", "better share",
-      "তুলনা", "পাশাপাশি", "কোনটা ভালো"],
-  },
-  {
-    href: "/sectors",
-    label: "Sectors",
-    labelBn: "সেক্টর",
-    sub: "Compare whole industries",
-    subBn: "পুরো সেক্টর মিলিয়ে দেখুন",
-    keys: ["sector", "industry", "industries", "সেক্টর"],
-  },
-  {
-    href: "/dse-trending-stocks",
-    label: "Trending stocks",
-    labelBn: "আলোচিত শেয়ার",
-    sub: "This week's biggest movers",
-    subBn: "এ সপ্তাহে যেগুলোর দাম সবচেয়ে বেশি নড়েছে",
-    keys: ["trending", "hot", "momentum", "আলোচিত"],
-  },
-  {
-    href: "/stock-insights",
-    label: "Premium research",
-    labelBn: "প্রিমিয়াম গবেষণা",
-    sub: "Six reports: trouble, auditors, results, owners, cash, dividends",
-    subBn: "ছয়টি রিপোর্ট: সমস্যা, নিরীক্ষক, ফল, মালিক, নগদ, ডিভিডেন্ড",
-    keys: ["insights", "research", "report", "reports", "risk", "auditor", "qualified", "going concern", "results season", "তালিকা", "গবেষণা", "ঝুঁকি", "নিরীক্ষক"],
-  },
-  {
-    href: "/watchlist",
-    label: "Watchlist",
-    labelBn: "ওয়াচলিস্ট",
-    sub: "Stocks you follow",
-    subBn: "আপনি যেগুলো নজরে রাখছেন",
-    keys: ["watchlist", "watch", "follow", "ওয়াচলিস্ট"],
-  },
-  {
-    href: "/portfolio",
-    label: "Portfolio",
-    labelBn: "পোর্টফোলিও",
-    sub: "The shares you own",
-    subBn: "আপনার কেনা শেয়ার",
-    keys: ["portfolio", "holdings", "my stocks", "পোর্টফোলিও"],
-  },
-  {
-    href: "/alerts",
-    label: "Price alerts",
-    labelBn: "প্রাইস অ্যালার্ট",
-    sub: "The target prices you set",
-    subBn: "আপনার রাখা লক্ষ্য দাম",
-    keys: ["alert", "alerts", "price alert", "target", "অ্যালার্ট", "প্রাইস অ্যালার্ট"],
-  },
-  {
-    href: "/notifications",
-    label: "Notifications",
-    labelBn: "নোটিফিকেশন",
-    sub: "Everything we noticed on your shares",
-    subBn: "আপনার শেয়ারে যা যা ঘটেছে",
-    keys: ["notification", "notifications", "inbox", "bell", "updates", "নোটিফিকেশন", "আপডেট"],
-  },
-  {
-    href: "/stocks",
-    label: "All stocks",
-    labelBn: "সব শেয়ার",
-    sub: "Every share's latest price in one table",
-    subBn: "সব শেয়ারের সর্বশেষ দাম এক টেবিলে",
-    keys: ["all stocks", "all shares", "share price", "prices", "price list", "শেয়ারের দাম", "সব শেয়ার", "শেয়ারদর"],
+    href: "/blog",
+    label: "Bangla blog",
+    labelBn: "বাংলা ব্লগ",
+    sub: "Beginner guides in Bengali",
+    subBn: "নতুনদের জন্য বাংলায় গাইড",
+    keys: ["bangla", "blog", "ব্লগ", "বাংলা"],
   },
   {
     href: "/assistant",
@@ -181,28 +90,12 @@ const PAGES: PageShortcut[] = [
     keys: ["ai", "assistant", "chat", "ask", "help", "এআই", "প্রশ্ন"],
   },
   {
-    href: "/blog",
-    label: "Bangla blog",
-    labelBn: "বাংলা গাইড",
-    sub: "Beginner guides in Bengali",
-    subBn: "নতুনদের জন্য বাংলায় গাইড",
-    keys: ["blog", "guide", "guides", "learn", "beginner", "bangla", "শিখুন", "গাইড", "ব্লগ", "নতুন"],
-  },
-  {
-    href: "/learn",
-    label: "Guides in English",
-    labelBn: "ইংরেজি গাইড",
-    sub: "Beginner guides in English",
-    subBn: "নতুনদের জন্য ইংরেজিতে গাইড",
-    keys: ["learn", "guide", "guides", "beginner", "how to", "tutorial"],
-  },
-  {
-    href: "/about",
-    label: "How we score",
-    labelBn: "আমরা কীভাবে স্কোর করি",
-    sub: "The four checks behind every grade",
-    subBn: "প্রতিটি গ্রেডের পেছনের চারটি যাচাই",
-    keys: ["about", "how we score", "method", "grade", "score", "methodology", "পদ্ধতি", "গ্রেড", "আমাদের সম্পর্কে"],
+    href: "/premium",
+    label: "Premium",
+    labelBn: "প্রিমিয়াম",
+    sub: "What Premium adds, and the plans",
+    subBn: "প্রিমিয়ামে কী আছে, আর প্ল্যান",
+    keys: ["premium", "plan", "plans", "price", "pay", "bkash", "nagad", "subscribe", "upgrade", "প্রিমিয়াম", "প্ল্যান", "বিকাশ", "নগদ"],
   },
 ];
 

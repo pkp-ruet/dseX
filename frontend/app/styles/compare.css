@@ -286,30 +286,16 @@
   .cmp-plain { padding: 18px 20px; }
 }
 
-/* the one Premium card (free readers): what we found, counted */
-.cmp-promo {
-  overflow: hidden; scroll-margin-top: 88px;
-  background: var(--surface); border: 1px solid var(--gold-soft); border-radius: var(--radius-md); box-shadow: var(--shadow-soft);
-}
-.cmp-promo-top { display: grid; gap: 6px; padding: var(--space-4); background: var(--gold-light); }
-.cmp-promo-tag { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-2xs); font-weight: 700; color: var(--gold-ink); }
-.cmp-promo-h { font-size: var(--fs-title); font-weight: 700; line-height: 1.3; color: var(--text); text-wrap: balance; }
-.cmp-finds { list-style: none; margin: 0; padding: var(--space-1) var(--space-4); }
+/* the one Premium card (free readers, `PremiumCard` since 2026-11-20): what
+   we found, counted */
+.cmp-finds { list-style: none; margin: 0; padding: 0; }
 .cmp-finds li {
   display: grid; grid-template-columns: minmax(4.2rem, auto) minmax(0, 1fr); gap: var(--space-3); align-items: baseline;
   padding: var(--space-3) 0; border-bottom: 1px solid var(--cell-rule); font-size: var(--fs-sm); color: var(--text);
 }
+.cmp-finds li:first-child { padding-top: 0; }
 .cmp-finds li:last-child { border-bottom: 0; }
 .cmp-finds b { font-size: var(--fs-title); font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.cmp-promo-foot { display: grid; gap: var(--space-2); padding: var(--space-3) var(--space-4) var(--space-4); border-top: 1px solid var(--cell-rule); }
-.cmp-promo-foot > p:first-child { font-size: var(--fs-sm); color: var(--text); }
-.cmp-promo-price { text-align: center; font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
-.cmp-promo-fine { text-align: center; font-size: var(--fs-2xs); color: var(--text); }
-@media (min-width: 640px) {
-  .cmp-promo-top { padding: 18px 20px; }
-  .cmp-finds { padding: var(--space-1) 20px; }
-  .cmp-promo-foot { padding: var(--space-3) 20px 18px; }
-}
 
 /* The dashboard's Compare stocks card (home/personalized/CompareFeature.tsx):
    one question card's bars in miniature, inside the screener card's

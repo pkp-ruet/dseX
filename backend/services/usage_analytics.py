@@ -51,11 +51,13 @@ def plan_of(premium_until, premium_source, now: datetime) -> str:
 # `area_switch()`, so keep the patterns plain (PCRE and Python agree on them).
 AREAS: list[tuple[str, str, str]] = [
     ("home", "Home / dashboard", r"^/$"),
+    # The place pages the bottom bar opens (2026-11-20, frontend lib/places.ts).
+    ("places", "Place pages (Market, Find, My shares)", r"^/(market|find|my)/?$"),
     ("stock", "Stock pages", r"^/stock/"),
     ("statement", "Yearly statement", r"^/portfolio/statement"),
     ("portfolio", "Portfolio", r"^/portfolio(/|$)"),
     ("watchlist", "Watchlist", r"^/watchlist"),
-    ("notifications", "Notifications", r"^/(notifications|desk)"),
+    ("notifications", "Updates (notifications)", r"^/(notifications|desk)"),
     ("alerts", "Price alerts", r"^/alerts"),
     ("assistant", "TopStock AI", r"^/assistant"),
     ("ranking", "Company ranking", r"^/dsestockranking"),

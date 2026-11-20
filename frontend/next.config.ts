@@ -34,6 +34,8 @@ const nextConfig: NextConfig = {
     return [
       // Your Desk became Notifications (2026-11-06); old push links keep working.
       { source: "/desk", destination: "/notifications", permanent: true },
+      // Price alerts became a section of Updates (2026-11-20, the app map).
+      { source: "/alerts", destination: "/notifications#alerts", permanent: true },
       {
         source: "/dse-top-20",
         destination: "/dse-trending-stocks",

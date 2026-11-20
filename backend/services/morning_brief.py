@@ -377,7 +377,7 @@ def build_brief(held: dict[str, int], watched: Iterable[str], *, today: date,
             "kind": "board_week", "code": None, "level": "info",
             "title_en": "Results due this week: " + ", ".join(parts_en) + (f" and {more} more" if more > 0 else ""),
             "title_bn": "এই সপ্তাহে ফল আসবে: " + ", ".join(parts_bn) + (f" আরও {more}টি" if more > 0 else ""),
-            "url": "/results#coming",
+            "url": "/dividend-calendar#results-meetings",
         })
 
     items.sort(key=lambda i: _ORDER.get(i["kind"], 9))

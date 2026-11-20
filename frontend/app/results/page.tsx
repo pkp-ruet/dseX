@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "@/components/ui/Link";
-import { getLatestResults, getUpcomingResults } from "@/lib/api";
+import { getLatestResults } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 import PageHeader from "@/components/ui/PageHeader";
 import { T } from "@/components/i18n/T";
 import ResultsFeed from "@/components/results/ResultsFeed";
 import PageGuide from "@/components/seo/PageGuide";
-import HubLinks from "@/components/layout/HubLinks";
+import PlaceNext from "@/components/places/PlaceNext";
 import { bnDate } from "@/lib/bn";
 
 export const revalidate = 900;
@@ -57,11 +57,7 @@ export const metadata: Metadata = {
 export default async function ResultsPage() {
   // No catch on the main fetch: a throw lets ISR keep serving the last good
   // page; a rendered error state was cached as the page until the next purge.
-  const [data, coming] = await Promise.all([
-    getLatestResults(),
-    // Secondary: the results calendar. A failure drops the section, not the page.
-    getUpcomingResults().catch(() => null),
-  ]);
+  const data = await getLatestResults();
 
   const rows = data.results;
 
@@ -112,7 +108,15 @@ export default async function ResultsPage() {
         }
       />
 
-      <ResultsFeed rows={rows} counts={data.counts} coming={coming?.meetings ?? []} />
+      {/* Results meetings coming up live in the Calendar (2026-11-20, the app map). */}
+      <p className="rs-coming-link">
+        <T en="Which companies report next?" bn="এরপর কোন কোম্পানির ফল আসছে?" />{" "}
+        <Link href="/dividend-calendar#results-meetings" className="font-semibold text-primary hover:underline">
+          <T en="See the results meetings in the Calendar" bn="ক্যালেন্ডারে আর্থিক ফলের সভা দেখুন" />
+        </Link>
+      </p>
+
+      <ResultsFeed rows={rows} counts={data.counts} />
 
       <PageGuide
         title="About these results"
@@ -183,7 +187,7 @@ export default async function ResultsPage() {
           },
         ]}
       />
-      <HubLinks group="today" exclude={[PATH]} />
+      <PlaceNext place="find" />
     </>
   );
 }

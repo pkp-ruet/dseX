@@ -1,157 +1,94 @@
 "use client";
 import Link from "@/components/ui/Link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { getCachedWatchlist, subscribeWatchlist, loadWatchlist } from "@/lib/watchlist";
-import { isLoggedIn } from "@/lib/auth";
-import { openMobileDrawer } from "@/components/layout/Navbar";
 import { openGlobalSearch } from "@/components/layout/GlobalSearch";
+import WatchlistDot from "@/components/watchlist/WatchlistDot";
 import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
+import { placeByKey, placeOf, type PlaceKey } from "@/lib/places";
 
 /**
- * FIVE tabs: Home · Explore · Search · Watchlist · Portfolio.
- * "Explore" opens the ONE drawer (Navbar's menu) — the separate ExploreSheet
- * launcher and the sixth "Menu" tab were retired 2026-09-22 (two buttons opened
- * two different menus with the same title).
+ * FIVE tabs = the map (2026-11-20, lib/places.ts): Home · Market · Search ·
+ * Find · My shares. Each place tab opens its one-screen place page
+ * (/market, /find, /my) and stays lit on every page inside that place.
+ * Learn, Premium and the account live in the navbar's menu. The Explore tab
+ * (which opened a 20-row menu) is gone; never add a sixth tab.
  */
-
-// The Explore tab stays highlighted on any destination the drawer lists.
-const EXPLORE_PATHS = [
-  "/dse-today",
-  "/dividend-calendar",
-  "/sectors",
-  "/sector",
-  "/buy-list",
-  "/for-you",
-  "/dsestockranking",
-  "/stocks",
-  "/compare-stocks",
-  "/stock-insights",
-  "/assistant",
-  "/learn",
-  "/blog",
-  "/about",
-];
-const matches = (pathname: string, paths: string[]) =>
-  paths.some((p) => pathname === p || pathname.startsWith(p + "/"));
-
-type BarItem = {
-  href: string;
-  label: string;
-  labelBn: string;
-  active: boolean;
-  badge: number | null;
-  icon: React.ReactNode;
-};
 
 const HomeIcon = (
   <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
     <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
   </svg>
 );
-const ExploreIcon = (
+const MarketIcon = (
+  <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M3 17l6-6 4 4 8-8" />
+    <path d="M15 7h6v6" />
+  </svg>
+);
+const FindIcon = (
   <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
     <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16z" />
     <path d="M15.6 8.4l-2 5.2-5.2 2 2-5.2 5.2-2z" />
   </svg>
 );
-const WatchIcon = (
-  <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-  </svg>
-);
-const PortfolioIcon = (
+const MineIcon = (
   <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
     <path d="M9 4a2 2 0 0 0-2 2v1H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-3V6a2 2 0 0 0-2-2H9zm0 2h6v1H9V6z" />
   </svg>
 );
 
+const ICONS: Record<Exclude<PlaceKey, "learn">, React.ReactNode> = {
+  market: MarketIcon,
+  find: FindIcon,
+  mine: MineIcon,
+};
+
 export default function MobileBottomBar() {
   const pathname = usePathname();
-  const [watchCount, setWatchCount] = useState(0);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    const update = () => setWatchCount(getCachedWatchlist().length);
-    if (isLoggedIn()) {
-      loadWatchlist().then(update);
-    } else {
-      update();
-    }
-    return subscribeWatchlist(update);
-  }, []);
-
   const { bn } = useLang();
+  const here = placeOf(pathname)?.place.key;
 
-  const leftItems: BarItem[] = [
-    { href: "/", label: "Home", labelBn: "হোম", active: pathname === "/", badge: null, icon: HomeIcon },
-  ];
-
-  const exploreActive = matches(pathname, EXPLORE_PATHS);
-
-  const rightItems: BarItem[] = [
-    {
-      href: "/watchlist",
-      label: "Watchlist",
-      labelBn: "ওয়াচলিস্ট",
-      active: pathname === "/watchlist",
-      badge: mounted && watchCount > 0 ? watchCount : null,
-      icon: WatchIcon,
-    },
-    {
-      href: "/portfolio",
-      label: "Portfolio",
-      labelBn: "পোর্টফোলিও",
-      active: pathname === "/portfolio" || pathname.startsWith("/portfolio/"),
-      badge: null,
-      icon: PortfolioIcon,
-    },
-  ];
-
-  const renderItem = (item: BarItem) => (
-    <Link
-      key={item.href}
-      href={item.href}
-      className={`mobile-bottom-bar-item${item.active ? " active" : ""}`}
-    >
-      <span className="mobile-bottom-bar-icon">
-        <span className="mobile-bottom-bar-glyph">
-          {item.icon}
-          {item.badge !== null && (
-            <span className="mobile-bottom-bar-badge">{item.badge}</span>
-          )}
+  const tab = (key: Exclude<PlaceKey, "learn">) => {
+    const place = placeByKey(key);
+    return (
+      <Link
+        key={key}
+        href={place.href}
+        className={`mobile-bottom-bar-item${here === key ? " active" : ""}`}
+        aria-current={here === key ? "page" : undefined}
+      >
+        <span className="mobile-bottom-bar-icon">
+          <span className="mobile-bottom-bar-glyph">
+            {ICONS[key]}
+            {key === "mine" && <WatchlistDot />}
+          </span>
         </span>
-      </span>
-      <span className="mobile-bottom-bar-label">
-        <T en={item.label} bn={item.labelBn} />
-      </span>
-    </Link>
-  );
+        <span className="mobile-bottom-bar-label">
+          <T en={place.name.en} bn={place.name.bn} />
+        </span>
+      </Link>
+    );
+  };
 
   return (
     <nav className="mobile-bottom-bar" aria-label={bn ? "নিচের মেনু" : "Mobile navigation"}>
-      {leftItems.map(renderItem)}
-
-      {/* Explore — opens the one drawer (Markets · Find stocks · Learn) */}
-      <button
-        type="button"
-        onClick={openMobileDrawer}
-        className={`mobile-bottom-bar-item${exploreActive ? " active" : ""}`}
-        aria-label={bn ? "মেনু খুলুন" : "Explore — open the menu"}
-        aria-haspopup="dialog"
-        aria-controls="mobile-menu"
+      <Link
+        href="/"
+        className={`mobile-bottom-bar-item${pathname === "/" ? " active" : ""}`}
+        aria-current={pathname === "/" ? "page" : undefined}
       >
         <span className="mobile-bottom-bar-icon">
-          <span className="mobile-bottom-bar-glyph">{ExploreIcon}</span>
+          <span className="mobile-bottom-bar-glyph">{HomeIcon}</span>
         </span>
         <span className="mobile-bottom-bar-label">
-          <T en="Explore" bn="মেনু" />
+          <T en="Home" bn="হোম" />
         </span>
-      </button>
+      </Link>
 
-      {/* Accented primary action — search any stock */}
+      {tab("market")}
+
+      {/* Accented primary action — search any stock or page */}
       <button
         type="button"
         onClick={openGlobalSearch}
@@ -169,7 +106,8 @@ export default function MobileBottomBar() {
         </span>
       </button>
 
-      {rightItems.map(renderItem)}
+      {tab("find")}
+      {tab("mine")}
     </nav>
   );
 }

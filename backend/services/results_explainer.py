@@ -556,18 +556,3 @@ def results_for(codes, days: int = 21, limit: int = 6, today: Optional[date] = N
     return [r for r in all_results() if r["code"] in want and (r.get("post_date") or "") >= cutoff][:limit]
 
 
-def results_summary(days: int = 7, top: int = 3, today: Optional[date] = None) -> dict:
-    """The dashboard's promotion for /results: how many companies posted
-    results in the last ``days`` and how they read, plus the newest ``top``
-    reports whatever their date (a quiet week still shows something)."""
-    from datetime import timedelta
-    from utils.market_hours import bst_today_iso
-
-    rows = all_results()
-    cutoff = ((today or date.fromisoformat(bst_today_iso())) - timedelta(days=days)).isoformat()
-    recent = [r for r in rows if (r.get("post_date") or "") >= cutoff]
-    counts = {"good": 0, "watch": 0, "bad": 0, "neutral": 0}
-    for r in recent:
-        counts[r["level"]] = counts.get(r["level"], 0) + 1
-    return {"days": days, "recent": len(recent), "counts": counts, "total": len(rows),
-            "latest": rows[:top]}

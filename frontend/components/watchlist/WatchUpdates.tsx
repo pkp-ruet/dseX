@@ -4,14 +4,14 @@ import { useState } from "react";
 import Link from "@/components/ui/Link";
 import { T } from "@/components/i18n/T";
 import Card from "@/components/ui/Card";
-import SectionHeader from "@/components/ui/SectionHeader";
 import Skeleton from "@/components/ui/Skeleton";
-import { whenWords, type WatchUpdate, type WatchUpdatesView } from "@/lib/watch-updates";
+import { whenWords, type WatchUpdate } from "@/lib/watch-updates";
 
 /*
- * "What's new on your shares" (2026-10-30): every update on the followed
- * shares in two cards — what happened (newest first) and what's coming
- * (soonest first). Each row: the kind word and when, the company, one plain
+ * The update row and list (2026-10-30). The watchlist's two cards ("What
+ * happened" · "Coming up") moved to the Updates page on 2026-11-20 (the app
+ * map: one feed for news on your shares); `UpdateList` renders its "Coming
+ * up" and `UpdateRow` the watchlist table's open rows. Each row: the kind word and when, the company, one plain
  * sentence, the figures; the row opens the right place. The same for every
  * reader. Data: lib/watch-updates.ts. Styles: app/styles/watchlist.css →
  * "Updates".
@@ -53,7 +53,7 @@ export function UpdateRow({ u, showName = true }: { u: WatchUpdate; showName?: b
   );
 }
 
-function UpdateList({
+export function UpdateList({
   id,
   title,
   note,
@@ -104,50 +104,5 @@ function UpdateList({
         </div>
       )}
     </Card>
-  );
-}
-
-export default function WatchUpdates({ view, loading }: { view: WatchUpdatesView; loading: boolean }) {
-  return (
-    <section className="wl-section" aria-labelledby="wl-updates">
-      <SectionHeader
-        id="wl-updates"
-        title={<T en="What's new on your shares" bn="আপনার শেয়ারে নতুন কী" />}
-        lead={
-          <T
-            en="Results, dividends, grade changes, big price moves, your price alerts and the dates ahead, all in one place."
-            bn="আর্থিক ফল, ডিভিডেন্ড, গ্রেড বদল, দামের বড় ওঠানামা, আপনার দামের অ্যালার্ট আর সামনের তারিখ, সব এক জায়গায়।"
-          />
-        }
-      />
-      <div className="wl-ups-grid">
-        <UpdateList
-          id="wl-happened"
-          title={<T en="What happened" bn="যা ঘটেছে" />}
-          note={<T en="The last few weeks, newest first." bn="গত কয়েক সপ্তাহ, নতুনগুলো আগে।" />}
-          items={view.happened}
-          loading={loading}
-          empty={
-            <T
-              en="Nothing new on your shares lately. Quiet days are normal."
-              bn="সম্প্রতি আপনার শেয়ারে নতুন কিছু ঘটেনি। চুপচাপ দিন স্বাভাবিক।"
-            />
-          }
-        />
-        <UpdateList
-          id="wl-coming"
-          title={<T en="Coming up" bn="সামনে যা আছে" />}
-          note={<T en="Dates ahead, soonest first." bn="সামনের তারিখ, কাছেরগুলো আগে।" />}
-          items={view.coming}
-          loading={loading}
-          empty={
-            <T
-              en="No record date, AGM or results date ahead on your shares yet."
-              bn="আপনার শেয়ারগুলোর সামনে এখনো কোনো রেকর্ড ডেট, এজিএম বা ফলের তারিখ নেই।"
-            />
-          }
-        />
-      </div>
-    </section>
   );
 }

@@ -1,19 +1,12 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import Button from "@/components/ui/Button";
-import { IconCalendar, IconCheck, IconCrown } from "@/components/ui/icons";
+import PremiumCard, { PremiumTicks } from "@/components/premium/PremiumCard";
+import { IconCalendar } from "@/components/ui/icons";
 import { T } from "@/components/i18n/T";
 import { dayShort, daysWords } from "@/components/dividend-calendar/dates";
 import DividendDays from "@/components/dividend-calendar/DividendDays";
 import { perShareTk } from "@/components/dividend-calendar/DividendRow";
 import { CALENDAR_PREMIUM_ANCHOR } from "@/components/dividend-calendar/RemindButton";
-import { useAuth } from "@/context/AuthContext";
-import { useLang } from "@/context/LangContext";
-import { PREMIUM_PATH, usePremium } from "@/lib/premium";
-import { FROM_MONTH, LOWEST_PRICE } from "@/lib/premium-plans";
-import { savePremiumContext } from "@/lib/premium-context";
-import { trackEvent } from "@/lib/track";
 import { SOON_DAYS, type CalendarPromo } from "@/lib/dividend-promo";
 
 const DAYS_SHOWN = 3;
@@ -43,159 +36,62 @@ const s = (n: number, one: string, many: string) => (n === 1 ? one : many);
  *  4. what Premium shows, four ticks, then the price and one button.
  */
 export default function DividendPromo({ promo }: { promo: CalendarPromo }) {
-  const { user } = useAuth();
-  const { state } = usePremium();
-  const { bn } = useLang();
-  const ref = useRef<HTMLElement>(null);
-  const seen = useRef(false);
-
-  const offer = user?.offer ?? null;
-  const href = offer ? "/premium?plan=offer&src=dividend-calendar#pay" : user ? `${PREMIUM_PATH}#pay` : PREMIUM_PATH;
-
   const ex = promo.sample;
   const dayTotal = promo.days.reduce((a, d) => a + d.n, 0);
 
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || typeof IntersectionObserver === "undefined") return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (seen.current || !entries.some((e) => e.isIntersecting)) return;
-        seen.current = true;
-        trackEvent("premium_lock_view", {
-          area: "dividend-calendar", lock: "dc-promo", variant: "v3", state, soon: promo.soon, days: promo.days.length,
-        });
-        io.disconnect();
-      },
-      { threshold: 0.3 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [state, promo.soon, promo.days.length]);
-
-  const onTap = () => {
-    trackEvent("premium_lock_tap", { area: "dividend-calendar", lock: "dc-promo", variant: "v3", state });
-    savePremiumContext({
-      from: "dividend-calendar",
-      label: bn ? "পুরো ডিভিডেন্ড ক্যালেন্ডার" : "The full dividend calendar",
-      stakes: GETS.slice(0, 3).map((g) => (bn ? g.bn : g.en)),
-    });
-  };
-
   return (
-    <section ref={ref} id={CALENDAR_PREMIUM_ANCHOR} className="sp dc-promo" aria-labelledby="dcp-t">
-      <div className="sp-top">
-        <p className="sp-tag">
-          <span className="sp-medal" aria-hidden="true">
-            <IconCrown size={16} />
-          </span>
-          <T en="Premium · Dividend calendar" bn="প্রিমিয়াম · ডিভিডেন্ড ক্যালেন্ডার" />
-        </p>
-        <h2 id="dcp-t" className="sp-title">
-          <T en="Never miss a dividend." bn="কোনো ডিভিডেন্ড আর মিস করবেন না।" />
-        </h2>
-        <p className="sp-lead">
-          {promo.soon > 0 ? (
-            <T
-              en={`${promo.soon} DSE compan${s(promo.soon, "y pays", "ies pay")} a cash dividend in the next ${SOON_DAYS} days. See every one, how much it pays, and the last day to buy to get it.`}
-              bn={`আগামী ${SOON_DAYS} দিনে ডিএসইর ${promo.soon}টি কোম্পানি নগদ ডিভিডেন্ড দেবে। প্রতিটি, কত দেবে, আর পেতে হলে কবের মধ্যে কিনতে হবে, সব এক জায়গায়।`}
-            />
-          ) : (
-            <T
-              en="Every DSE dividend coming up in one calendar: how much it pays, and the last day to buy to get it."
-              bn="ডিএসইর সামনের সব ডিভিডেন্ড এক ক্যালেন্ডারে: কত দেবে, আর পেতে হলে কবের মধ্যে কিনতে হবে।"
-            />
-          )}
-        </p>
-      </div>
-
-      <div className="sp-body">
-        {/* ── One free example: the next record date, in full ── */}
-        {ex && <Sample ex={ex} />}
-
-        {/* ── The next two weeks, by day: counts only ── */}
-        {promo.days.length > 0 && (
-          <div className="dcp-days">
-            <p className="sp-k">
-              <T
-                en={`${dayTotal} cash dividend${s(dayTotal, "", "s")} in the next 2 weeks`}
-                bn={`আগামী 2 সপ্তাহে ${dayTotal}টি নগদ ডিভিডেন্ড`}
-              />
-            </p>
-            <DividendDays days={promo.days} shown={DAYS_SHOWN} />
-            {promo.days.length > DAYS_SHOWN && (
-              <p className="spx-days-more">
-                <T
-                  en={`And ${promo.days.length - DAYS_SHOWN} more day${s(promo.days.length - DAYS_SHOWN, "", "s")}.`}
-                  bn={`আরও ${promo.days.length - DAYS_SHOWN} দিন।`}
-                />
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* ── What Premium shows ── */}
-        <p className="sp-k dcp-gets-k">
-          <T en="With Premium you see" bn="প্রিমিয়ামে দেখবেন" />
-        </p>
-        <ul className="dcp-gets">
-          {GETS.map((g) => (
-            <li key={g.en}>
-              <span className="dcp-tick" aria-hidden="true">
-                <IconCheck size={16} />
-              </span>
-              <span className="min-w-0">
-                <T en={g.en} bn={g.bn} />
-              </span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="sp-foot">
-        <div className="sp-price">
-          {offer ? (
-            <>
-              <b>
-                <T en={`Your first month: ৳${offer.amount}`} bn={`আপনার প্রথম মাস: ৳${offer.amount}`} />
-              </b>
-              <span>
-                <T en={`Instead of ৳${offer.list_amount}, once.`} bn={`৳${offer.list_amount}-এর বদলে, একবারই।`} />
-              </span>
-            </>
-          ) : (
-            <>
-              <b>
-                <T en={`৳${LOWEST_PRICE} a month`} bn={`মাসে ৳${LOWEST_PRICE}`} />
-              </b>
-              <span>
-                <T en={`About ৳${FROM_MONTH} a month on the yearly plan.`} bn={`বছরের প্ল্যানে মাসে প্রায় ৳${FROM_MONTH}।`} />
-              </span>
-            </>
-          )}
-        </div>
-        <div className="sp-cta">
-          <Button href={href} onClick={onTap} size="lg" block>
-            {offer ? (
-              <T en={`Get your first month for ৳${offer.amount}`} bn={`প্রথম মাস ৳${offer.amount}-এ নিন`} />
-            ) : (
-              <T en="Get Premium" bn="প্রিমিয়াম নিন" />
-            )}
-          </Button>
-        </div>
-      </div>
-
-      <p className="sp-fine">
-        {state === "guest" ? (
+    <PremiumCard
+      anchor={CALENDAR_PREMIUM_ANCHOR}
+      area="dividend-calendar"
+      lock="dc-promo"
+      src="dividend-calendar"
+      track={{ variant: "v3", soon: promo.soon, days: promo.days.length }}
+      className="dc-promo"
+      tag={{ en: "Dividend calendar", bn: "ডিভিডেন্ড ক্যালেন্ডার" }}
+      title={<T en="Never miss a dividend." bn="কোনো ডিভিডেন্ড আর মিস করবেন না।" />}
+      lead={
+        promo.soon > 0 ? (
           <T
-            en="Create a free account, then pay by bKash, Nagad or bank transfer. Nothing renews by itself."
-            bn="একটি ফ্রি অ্যাকাউন্ট খুলুন, তারপর bKash, Nagad বা ব্যাংক ট্রান্সফারে টাকা দিন। মেয়াদ শেষে নিজে থেকে নবায়ন হয় না।"
+            en={`${promo.soon} DSE compan${s(promo.soon, "y pays", "ies pay")} a cash dividend in the next ${SOON_DAYS} days. See every one, how much it pays, and the last day to buy to get it.`}
+            bn={`আগামী ${SOON_DAYS} দিনে ডিএসইর ${promo.soon}টি কোম্পানি নগদ ডিভিডেন্ড দেবে। প্রতিটি, কত দেবে, আর পেতে হলে কবের মধ্যে কিনতে হবে, সব এক জায়গায়।`}
           />
         ) : (
-          <T en="Pay by bKash, Nagad or bank transfer. Nothing renews by itself." bn="bKash, Nagad বা ব্যাংক ট্রান্সফারে টাকা দিতে পারবেন। মেয়াদ শেষে নিজে থেকে নবায়ন হয় না।" />
-        )}
-      </p>
-    </section>
+          <T
+            en="Every DSE dividend coming up in one calendar: how much it pays, and the last day to buy to get it."
+            bn="ডিএসইর সামনের সব ডিভিডেন্ড এক ক্যালেন্ডারে: কত দেবে, আর পেতে হলে কবের মধ্যে কিনতে হবে।"
+          />
+        )
+      }
+      cta={{ en: "Get Premium", bn: "প্রিমিয়াম নিন" }}
+      context={{ label: { en: "The full dividend calendar", bn: "পুরো ডিভিডেন্ড ক্যালেন্ডার" }, stakes: GETS.slice(0, 3) }}
+    >
+      {/* ── One free example: the next record date, in full ── */}
+      {ex && <Sample ex={ex} />}
+
+      {/* ── The next two weeks, by day: counts only ── */}
+      {promo.days.length > 0 && (
+        <div className="dcp-days">
+          <p className="sp-k">
+            <T
+              en={`${dayTotal} cash dividend${s(dayTotal, "", "s")} in the next 2 weeks`}
+              bn={`আগামী 2 সপ্তাহে ${dayTotal}টি নগদ ডিভিডেন্ড`}
+            />
+          </p>
+          <DividendDays days={promo.days} shown={DAYS_SHOWN} />
+          {promo.days.length > DAYS_SHOWN && (
+            <p className="spx-days-more">
+              <T
+                en={`And ${promo.days.length - DAYS_SHOWN} more day${s(promo.days.length - DAYS_SHOWN, "", "s")}.`}
+                bn={`আরও ${promo.days.length - DAYS_SHOWN} দিন।`}
+              />
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* ── What Premium shows ── */}
+      <PremiumTicks items={GETS} />
+    </PremiumCard>
   );
 }
 

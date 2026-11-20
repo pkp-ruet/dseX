@@ -445,7 +445,7 @@ export function buildStories(i: StoryInput): Story[] {
               "ফল সাধারণত সেদিন সন্ধ্যায় আসে, এলে আমরা এখানে ব্যাখ্যা করি।",
             ),
       rows: rows.length ? rows : undefined,
-      cta: { label: L("All results coming up", "যেসব ফল আসছে"), href: "/results#coming" },
+      cta: { label: L("All results coming up", "যেসব ফল আসছে"), href: "/dividend-calendar#results-meetings" },
       when: day(m.date),
       tone: "neutral",
     });

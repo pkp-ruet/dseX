@@ -3,66 +3,39 @@ import Link from "@/components/ui/Link";
 import { T } from "@/components/i18n/T";
 import FooterFold from "@/components/layout/FooterFold";
 import { PREMIUM_RULE } from "@/lib/premium-jobs";
+import { PLACES } from "@/lib/places";
 
 /**
- * Footer groups mirror the drawer (components/layout/Navbar.tsx NAV_GROUPS)
- * exactly: same three groups, same labels, one label per URL, plus Account.
- * Secondary pages live on the hub pages' HubLinks strip, not here. Kept as its
- * own list because this is a server component and NAV_GROUPS lives in a
- * client file.
+ * The footer lists the map (2026-11-20, `lib/places.ts`): the same four
+ * places and the same page names as the menu, plus Account. Learn's first
+ * row opens the guides in English and the Bangla blog in Bengali.
  *
- * Redone 2026-11-18 (user: "make the … footer match with current design. the
- * footer is very long on mobile"): a light card like the rest of the site
- * (it was a navy panel), and on phones each group is one row that opens in
- * place (`FooterFold`) — about 1,300px of stacked links became about 600px.
- * The company links (contact, privacy, disclaimer, refund) sit in the bottom
- * line at every width. Styles `ft-*` in app/styles/nav.css.
+ * Redone 2026-11-18: a light card like the rest of the site, and on phones
+ * each group is one row that opens in place (`FooterFold`). The company links
+ * (contact, privacy, disclaimer, refund) sit in the bottom line at every
+ * width. Styles `ft-*` in app/styles/nav.css.
  */
-type FootLink = { href: string; en: string; bn: string };
-
-const marketsLinks: FootLink[] = [
-  { href: "/dse-today", en: "Market today", bn: "আজকের শেয়ার বাজার" },
-  { href: "/dividend-calendar", en: "Dividend calendar", bn: "ডিভিডেন্ড ক্যালেন্ডার" },
-  { href: "/results", en: "Quarterly results", bn: "প্রান্তিকের ফল" },
-  { href: "/sectors", en: "Sectors", bn: "সেক্টর" },
-  { href: "/stock-insights", en: "Premium research", bn: "প্রিমিয়াম গবেষণা" },
-];
-
-const findLinks: FootLink[] = [
-  { href: "/buy-list", en: "Buy List", bn: "কেনার তালিকা" },
-  { href: "/screener", en: "Stock screener", bn: "স্টক স্ক্রিনার" },
-  { href: "/compare-stocks", en: "Compare stocks", bn: "শেয়ার তুলনা" },
-  { href: "/for-you", en: "Based on your shares", bn: "আপনার শেয়ার দেখে বাছাই" },
-  { href: "/dsestockranking", en: "Company ranking", bn: "কোম্পানির র‍্যাঙ্কিং" },
-  { href: "/stocks", en: "All stocks", bn: "সব শেয়ার" },
-  { href: "/assistant", en: "TopStock AI", bn: "TopStock AI" },
-];
-
-const learnLinks: FootLink[] = [
-  { href: "/learn", en: "Guides", bn: "ইংরেজি গাইড" },
-  { href: "/blog", en: "Bangla blog", bn: "বাংলা ব্লগ" },
-  { href: "/about", en: "How we score", bn: "আমরা কীভাবে স্কোর করি" },
-];
+type FootLink = { key: string; href: string; hrefBn?: string; en: string; bn: string };
 
 const accountLinks: FootLink[] = [
-  { href: "/watchlist", en: "Watchlist", bn: "ওয়াচলিস্ট" },
-  { href: "/portfolio", en: "Portfolio", bn: "পোর্টফোলিও" },
-  { href: "/alerts", en: "Price alerts", bn: "প্রাইস অ্যালার্ট" },
-  { href: "/premium", en: "Premium", bn: "প্রিমিয়াম" },
+  { key: "premium", href: "/premium", en: "Premium", bn: "প্রিমিয়াম" },
+  { key: "profile", href: "/profile", en: "Profile", bn: "প্রোফাইল" },
 ];
 
 // /about is already "How we score" under Learn — one label per URL.
 const legalLinks: FootLink[] = [
-  { href: "/contact", en: "Contact", bn: "যোগাযোগ" },
-  { href: "/privacy-policy", en: "Privacy policy", bn: "গোপনীয়তা নীতি" },
-  { href: "/disclaimer", en: "Disclaimer", bn: "দায়মুক্তি" },
-  { href: "/refund-policy", en: "Refund policy", bn: "টাকা ফেরতের নীতি" },
+  { key: "contact", href: "/contact", en: "Contact", bn: "যোগাযোগ" },
+  { key: "privacy", href: "/privacy-policy", en: "Privacy policy", bn: "গোপনীয়তা নীতি" },
+  { key: "disclaimer", href: "/disclaimer", en: "Disclaimer", bn: "দায়মুক্তি" },
+  { key: "refund", href: "/refund-policy", en: "Refund policy", bn: "টাকা ফেরতের নীতি" },
 ];
 
 const GROUPS: { id: string; title: { en: string; bn: string }; links: FootLink[] }[] = [
-  { id: "ft-markets", title: { en: "Markets", bn: "বাজার" }, links: marketsLinks },
-  { id: "ft-find", title: { en: "Find stocks", bn: "শেয়ার খুঁজুন" }, links: findLinks },
-  { id: "ft-learn", title: { en: "Learn", bn: "শিখুন" }, links: learnLinks },
+  ...PLACES.map((pl) => ({
+    id: `ft-${pl.key}`,
+    title: pl.name,
+    links: pl.pages.map((p) => ({ key: p.key, href: p.href, hrefBn: p.hrefBn, en: p.name.en, bn: p.name.bn })),
+  })),
   { id: "ft-account", title: { en: "Account", bn: "অ্যাকাউন্ট" }, links: accountLinks },
 ];
 
@@ -114,10 +87,21 @@ export default function Footer() {
                 <FooterFold key={g.id} id={g.id} title={g.title}>
                   <ul className="ft-list">
                     {g.links.map((l) => (
-                      <li key={l.href}>
-                        <Link href={l.href} className="ft-link">
-                          <T en={l.en} bn={l.bn} />
-                        </Link>
+                      <li key={l.key}>
+                        {l.hrefBn ? (
+                          <>
+                            <Link href={l.href} data-l="en" lang="en" className="ft-link">
+                              {l.en}
+                            </Link>
+                            <Link href={l.hrefBn} data-l="bn" lang="bn" className="ft-link">
+                              {l.bn}
+                            </Link>
+                          </>
+                        ) : (
+                          <Link href={l.href} className="ft-link">
+                            <T en={l.en} bn={l.bn} />
+                          </Link>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -156,7 +140,7 @@ export default function Footer() {
           <div className="ft-bottom">
             <ul className="ft-legal">
               {legalLinks.map((l) => (
-                <li key={l.href}>
+                <li key={l.key}>
                   <Link href={l.href}>
                     <T en={l.en} bn={l.bn} />
                   </Link>

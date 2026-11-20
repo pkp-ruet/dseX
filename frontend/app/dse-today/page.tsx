@@ -12,7 +12,7 @@ import FourAnswers from "@/components/market-today/FourAnswers";
 import SectorsCard from "@/components/market-today/SectorsCard";
 import TopMovers from "@/components/market-today/TopMovers";
 import CompanyNotices from "@/components/market-today/CompanyNotices";
-import LookForShares from "@/components/market-today/LookForShares";
+import PlaceNext from "@/components/places/PlaceNext";
 
 /**
  * Market today — THE market page (2026-11-05). It merged DSE today,
@@ -165,7 +165,8 @@ export default async function MarketTodayPage() {
         <CompanyNotices digest={notices} />
       </div>
 
-      <LookForShares />
+      {/* Looking for shares? The Find place holds the doors (2026-11-20). */}
+      <PlaceNext place="find" />
 
       <PageGuide
         title="About this page"

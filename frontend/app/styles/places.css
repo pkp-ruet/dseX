@@ -1,0 +1,151 @@
+/* places — the app map (2026-11-20, lib/places.ts): the place pages
+   (/market, /find, /my), their doors, and the "‹ Market" back link above every
+   page inside a place. Tokens only. */
+
+/* ---------- The back link above inner pages (components/places/PlaceTrail.tsx) ---------- */
+.pl-trail {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 40px;
+  align-self: flex-start;
+  margin-left: calc(-1 * var(--space-1));
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-sm);
+  color: var(--primary);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+.pl-trail:hover { text-decoration: underline; }
+.pl-trail:focus-visible { outline: none; box-shadow: var(--ring); }
+
+/* ---------- A place page ---------- */
+.pl-page { display: flex; flex-direction: column; gap: var(--space-4); }
+.pl-line {
+  margin: 0;
+  font-size: var(--fs-base);
+  line-height: 1.55;
+}
+.pl-line strong { font-weight: 700; }
+
+/* The doors: one card, one row a page. */
+.pl-doors {
+  list-style: none;
+  margin: 0;
+  padding: 0 var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+.pl-doors li + li .pl-door { border-top: 1px solid var(--border); }
+.pl-door {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto 16px;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 64px;
+  padding: var(--space-3) 0;
+  color: var(--text);
+  text-decoration: none;
+}
+.pl-door:hover .pl-door-name { text-decoration: underline; }
+.pl-door:active { opacity: 0.85; }
+.pl-door:focus-visible { outline: none; box-shadow: var(--ring); border-radius: var(--radius-sm); }
+.pl-door-ic {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: rgb(var(--primary-rgb) / 0.12);
+  color: var(--primary);
+}
+.pl-door-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pl-door-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-base);
+  font-weight: 700;
+  line-height: 1.3;
+}
+.pl-door-ask { font-size: var(--fs-sm); line-height: 1.4; }
+.pl-crown {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--gold-light);
+  color: var(--gold-ink);
+  flex: none;
+}
+.pl-door-fig {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  max-width: 7.5rem;
+}
+.pl-door-val { font-size: var(--fs-base); font-weight: 700; line-height: 1.2; white-space: nowrap; }
+.pl-door-unit { font-size: var(--fs-xs); line-height: 1.3; }
+.pl-door-fig[data-tone="up"] .pl-door-val { color: var(--positive); }
+.pl-door-fig[data-tone="down"] .pl-door-val { color: var(--negative); }
+.pl-door-go { color: var(--primary); display: inline-flex; }
+
+/* A short note under the doors (sign-in, helper links). */
+.pl-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  font-size: var(--fs-sm);
+}
+
+/* The Find page's search box: a button that opens the site search. */
+.pl-search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 48px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-base);
+  text-align: left;
+  cursor: pointer;
+}
+.pl-search:hover { border-color: rgb(var(--primary-rgb) / 0.45); }
+.pl-search:focus-visible { outline: none; box-shadow: var(--ring); }
+.pl-search svg { color: var(--primary); flex: none; }
+
+@media (min-width: 640px) {
+  .pl-doors { padding: 0 var(--space-6); }
+}
+
+/* ---------- The next place, at the end of a page (components/places/PlaceNext.tsx) ---------- */
+.pl-next {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  min-height: 56px;
+  margin-top: var(--space-8);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+}
+.pl-next:hover .pl-next-go { text-decoration: underline; }
+.pl-next:focus-visible { outline: none; box-shadow: var(--ring); }
+.pl-next-q { font-size: var(--fs-base); font-weight: 700; }
+.pl-next-go { display: inline-flex; align-items: center; gap: var(--space-1); color: var(--primary); font-size: var(--fs-sm); font-weight: 600; }

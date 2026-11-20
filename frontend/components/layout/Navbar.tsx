@@ -10,16 +10,12 @@ import WatchlistDot from "@/components/watchlist/WatchlistDot";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import InstallAppButton from "@/components/pwa/InstallAppButton";
 import {
-  IconBell,
-  IconBriefcase,
   IconChevron,
   IconClose,
   IconCrown,
   IconDownload,
   IconGrid,
   IconSearch,
-  IconStar,
-  IconTarget,
 } from "@/components/ui/icons";
 import Button from "@/components/ui/Button";
 import { userIsPremium } from "@/lib/premium";
@@ -27,92 +23,23 @@ import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
 import LangSwitch from "@/components/layout/LangSwitch";
 import ThemeSwitch, { ThemeToggleButton } from "@/components/layout/ThemeSwitch";
+import { PLACES, TAB_PLACES, placeOf, type PlacePage } from "@/lib/places";
 
 const OPEN_DRAWER_EVENT = "dsex:open-drawer";
 
-/** Open the nav drawer from anywhere (the bottom-bar Explore tab). */
+/** Open the menu from anywhere. */
 export function openMobileDrawer() {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new CustomEvent(OPEN_DRAWER_EVENT));
 }
 
-export type NavItem = {
-  href: string;
-  label: string;
-  labelBn: string;
-  sub?: string;
-  subBn?: string;
-  icon?: string;
-  /** Most of the page's value is Premium (2026-10-29): a small gold crown after the label. */
-  premium?: boolean;
-};
-export type NavGroup = { id: string; label: string; labelBn: string; items: NavItem[] };
-
 /**
- * The ONE menu (mobile drawer = desktop panel; the footer mirrors it). Three
- * groups + quick access; nothing else is in the global navigation. Secondary
- * discovery pages are reached through `components/layout/HubLinks.tsx` on the
- * hub pages instead (2026-09-22). Every label is a pair: the menu follows the
- * navbar language switch like everything else.
+ * The ONE menu (mobile drawer = desktop panel) is the map of the app
+ * (2026-11-20, `lib/places.ts`): Market · Find · My shares · Learn, each
+ * group headed by a link to its place page, then Premium and Install app.
+ * The footer, the bottom bar and search read the same file, so a page has
+ * one name everywhere. A new page goes into `lib/places.ts`, never here.
  */
-export const NAV_GROUPS: NavGroup[] = [
-  {
-    id: "markets",
-    label: "Markets",
-    labelBn: "বাজার",
-    items: [
-      { href: "/dse-today", label: "Market today", labelBn: "আজকের শেয়ার বাজার", sub: "How the market did today, in plain words", subBn: "আজ বাজার কেমন গেল, সহজ ভাষায়", icon: "today" },
-      { href: "/dividend-calendar", label: "Dividend calendar", labelBn: "ডিভিডেন্ড ক্যালেন্ডার", sub: "Record dates and AGMs", subBn: "রেকর্ড ডেট আর এজিএম", icon: "dividend", premium: true },
-      { href: "/results", label: "Quarterly results", labelBn: "প্রান্তিকের ফল", sub: "Each company's latest profit", subBn: "প্রতিটি কোম্পানির সর্বশেষ মুনাফা", icon: "results" },
-      { href: "/sectors", label: "Sectors", labelBn: "সেক্টর", sub: "Compare whole industries", subBn: "পুরো সেক্টর মিলিয়ে দেখুন", icon: "sectors" },
-      { href: "/stock-insights", label: "Premium research", labelBn: "প্রিমিয়াম গবেষণা", sub: "Risks, auditors, results and lists", subBn: "ঝুঁকি, নিরীক্ষক, আর্থিক ফল আর তালিকা", icon: "lists", premium: true },
-    ],
-  },
-  {
-    id: "find",
-    label: "Find stocks",
-    labelBn: "শেয়ার খুঁজুন",
-    items: [
-      { href: "/buy-list", label: "Buy List", labelBn: "কেনার তালিকা", sub: "What we would buy today, the same for everyone", subBn: "আজ যা কেনার মতো, সবার জন্য একই", icon: "buylist", premium: true },
-      { href: "/screener", label: "Stock screener", labelBn: "স্টক স্ক্রিনার", sub: "Find stocks that fit what you want", subBn: "আপনার চাওয়া অনুযায়ী শেয়ার খুঁজুন", icon: "find", premium: true },
-      { href: "/compare-stocks", label: "Compare stocks", labelBn: "শেয়ার তুলনা", sub: "Put shares side by side", subBn: "শেয়ার পাশাপাশি মিলিয়ে দেখুন", icon: "compare" },
-      { href: "/for-you", label: "Based on your shares", labelBn: "আপনার শেয়ার দেখে বাছাই", sub: "Companies to watch next, picked from your shares", subBn: "আপনার শেয়ার দেখে বাছাই, পরে নজরে রাখার মতো কোম্পানি", icon: "picks", premium: true },
-      { href: "/dsestockranking", label: "Company ranking", labelBn: "কোম্পানির র‍্যাঙ্কিং", sub: "The strongest companies on the DSE", subBn: "ডিএসইর সবচেয়ে শক্তিশালী কোম্পানি", icon: "rankings" },
-      { href: "/stocks", label: "All stocks", labelBn: "সব শেয়ার", sub: "The full A–Z list", subBn: "A থেকে Z পুরো তালিকা", icon: "browse" },
-      { href: "/assistant", label: "TopStock AI", labelBn: "TopStock AI", sub: "Ask in plain words", subBn: "সহজ ভাষায় প্রশ্ন করুন", icon: "ai" },
-    ],
-  },
-  {
-    id: "learn",
-    label: "Learn",
-    labelBn: "শিখুন",
-    items: [
-      { href: "/learn", label: "Guides", labelBn: "ইংরেজি গাইড", sub: "Step-by-step guides in English", subBn: "ইংরেজিতে ধাপে ধাপে গাইড", icon: "blog" },
-      { href: "/blog", label: "Bangla blog", labelBn: "বাংলা ব্লগ", sub: "Beginner guides in Bengali", subBn: "নতুনদের জন্য সহজ গাইড", icon: "bangla" },
-      { href: "/about", label: "How we score", labelBn: "আমরা কীভাবে স্কোর করি", sub: "The checks behind the grade, explained", subBn: "গ্রেডের পেছনের যাচাই, সহজ করে বলা", icon: "about" },
-    ],
-  },
-];
-
-/** The menu's quick-access shortcuts (the personal pages). */
-const QUICK: {
-  href: string;
-  en: string;
-  bn: string;
-  subEn: string;
-  subBn: string;
-  Icon: (p: { size?: number }) => ReactNode;
-  /** Shown only to signed-in readers. */
-  signedIn?: boolean;
-}[] = [
-  { href: "/watchlist", en: "Watchlist", bn: "ওয়াচলিস্ট", subEn: "Stocks you follow", subBn: "যে শেয়ারগুলো আপনি দেখছেন", Icon: IconStar },
-  { href: "/portfolio", en: "Portfolio", bn: "পোর্টফোলিও", subEn: "Your shares and profit", subBn: "আপনার শেয়ার আর মুনাফা", Icon: IconBriefcase },
-  // Notifications (2026-11-06, replaced Your Desk): every push opens it.
-  { href: "/notifications", en: "Notifications", bn: "নোটিফিকেশন", subEn: "What we noticed on your shares", subBn: "আপনার শেয়ারে আমরা যা দেখেছি", Icon: IconBell, signedIn: true },
-  { href: "/alerts", en: "Price alerts", bn: "প্রাইস অ্যালার্ট", subEn: "A message when a price is hit", subBn: "দাম ছুঁলেই বার্তা পাবেন", Icon: IconTarget },
-  { href: "/premium", en: "Premium", bn: "প্রিমিয়াম", subEn: "The reasons behind every number", subBn: "প্রতিটি সংখ্যার পেছনের কারণ", Icon: IconCrown },
-];
-
 /**
  * Page icons for the menu rows — drawn on the ui/icons grid (24 units,
  * `currentColor`, 2px stroke); kept here because only the menu uses them.
@@ -164,6 +91,12 @@ function MenuIcon({ name }: { name?: string }) {
       return <svg {...p}><circle cx="12" cy="12" r="9" /><path d="M3 12h18" /><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z" /></svg>;
     case "about":
       return <svg {...p}><circle cx="12" cy="12" r="9" /><path d="M12 16v-4M12 8h.01" /></svg>;
+    case "portfolio":
+      return <svg {...p}><rect x="3" y="7" width="18" height="13" rx="2" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>;
+    case "watchlist":
+      return <svg {...p}><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z" /></svg>;
+    case "updates":
+      return <svg {...p}><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0" /></svg>;
     default:
       return <svg {...p}><circle cx="12" cy="12" r="9" /></svg>;
   }
@@ -176,14 +109,31 @@ export default function Navbar() {
   const { bn } = useLang();
 
   const [menuOpen, setMenuOpen] = useState(false);
-
-  const isWatchlist = pathname === "/watchlist";
-  const isPortfolio = pathname === "/portfolio";
   const searchRef = useRef<HTMLButtonElement>(null);
 
-  const isItemActive = (href: string) =>
-    pathname === href || (href !== "/" && pathname.startsWith(href + "/"));
+  const here = placeOf(pathname);
+  const isItemActive = (page: PlacePage) => here?.page?.key === page.key;
   const closeMenu = () => setMenuOpen(false);
+  const learn = PLACES.find((p) => p.key === "learn")!.pages[0];
+
+  /** One door, or two when the Bengali reader's door differs (Learn → the blog). */
+  const pageLink = (page: PlacePage, className: string, children: ReactNode) => {
+    const current = isItemActive(page) ? ("page" as const) : undefined;
+    return page.hrefBn ? (
+      <>
+        <Link href={page.href} data-l="en" lang="en" className={className} aria-current={current} onClick={closeMenu}>
+          {children}
+        </Link>
+        <Link href={page.hrefBn} data-l="bn" lang="bn" className={className} aria-current={current} onClick={closeMenu}>
+          {children}
+        </Link>
+      </>
+    ) : (
+      <Link href={page.href} className={className} aria-current={current} onClick={closeMenu}>
+        {children}
+      </Link>
+    );
+  };
 
   // Close the menu on route change
   useEffect(() => {
@@ -238,23 +188,42 @@ export default function Navbar() {
               radius, 16px icons from ui/icons, a fill only on hover / the page
               you are on. Sign up is the one clay button. */}
           <nav className="navbar-nav">
-            {/* Explore launcher — opens the full tile menu (desktop mega-panel) */}
-            <button
-              type="button"
+            {/* The four places (2026-11-20, lib/places.ts). Learn opens the
+                guides in English and the Bangla blog in Bengali. */}
+            {TAB_PLACES.map((place) => (
+              <Link
+                key={place.key}
+                href={place.href}
+                className="navbar-link"
+                aria-current={here?.place.key === place.key ? "page" : undefined}
+              >
+                <span className="navbar-link-icon">
+                  <T en={place.name.en} bn={place.name.bn} />
+                  {place.key === "mine" && <WatchlistDot />}
+                </span>
+              </Link>
+            ))}
+            <Link
+              href={learn.href}
+              data-l="en"
+              lang="en"
               className="navbar-link"
-              data-current={menuOpen || undefined}
-              aria-haspopup="dialog"
-              aria-expanded={menuOpen}
-              aria-controls="mobile-menu"
-              onClick={() => setMenuOpen(true)}
+              aria-current={here?.place.key === "learn" ? "page" : undefined}
             >
-              <IconGrid size={16} />
-              <T en="Explore" bn="মেনু" />
-            </button>
+              Learn
+            </Link>
+            <Link
+              href={learn.hrefBn ?? learn.href}
+              data-l="bn"
+              lang="bn"
+              className="navbar-link"
+              aria-current={here?.place.key === "learn" ? "page" : undefined}
+            >
+              শিখুন
+            </Link>
 
             <span className="navbar-nav-divider" aria-hidden="true" />
 
-            {/* Utility + personal cluster */}
             <button
               type="button"
               onClick={openGlobalSearch}
@@ -268,30 +237,22 @@ export default function Navbar() {
               </span>
               <kbd className="kbd-hint" aria-hidden="true">/</kbd>
             </button>
-            <Link
-              href="/watchlist"
+            <button
+              type="button"
               className="navbar-link"
-              aria-current={isWatchlist ? "page" : undefined}
-              aria-label={bn ? "আমার ওয়াচলিস্ট" : "My watchlist"}
+              data-current={menuOpen || undefined}
+              aria-haspopup="dialog"
+              aria-expanded={menuOpen}
+              aria-controls="mobile-menu"
+              aria-label={bn ? "মেনু খুলুন" : "Open the menu"}
+              onClick={() => setMenuOpen(true)}
             >
-              {/* The new-news dot sits on the star, not the button's corner. */}
-              <span className="navbar-link-icon">
-                <IconStar size={16} />
-                <WatchlistDot />
+              <IconGrid size={16} />
+              <span className="navbar-menu-label">
+                <T en="Menu" bn="মেনু" />
               </span>
-              <T en="Watchlist" bn="ওয়াচলিস্ট" />
-            </Link>
-            <Link
-              href="/portfolio"
-              className="navbar-link"
-              aria-current={isPortfolio ? "page" : undefined}
-            >
-              <IconBriefcase size={16} />
-              <T en="Portfolio" bn="পোর্টফোলিও" />
-            </Link>
+            </button>
             <NotificationBell variant="desktop" />
-            {/* Price Alerts + Install app moved into the Explore drawer's "Quick access"
-                row (2026-09-22) — the bar carries five items, not eight. */}
             {isLoggedIn ? (
               <Link
                 href="/profile"
@@ -342,19 +303,10 @@ export default function Navbar() {
           <div className="navbar-mobile-controls">
             <LangSwitch />
             <NotificationBell variant="mobile" />
-            <button
-              type="button"
-              onClick={openGlobalSearch}
-              className="navbar-search-mobile-btn"
-              aria-label={bn ? "শেয়ার খুঁজুন" : "Search stocks"}
-            >
-              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.8" />
-                <path d="M13.5 13.5L17 17" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-              </svg>
-            </button>
+            {/* Search is the bottom bar's middle tab on phones. */}
             <button
               className="navbar-hamburger"
+              aria-controls="mobile-menu"
               aria-label={bn ? (menuOpen ? "মেনু বন্ধ করুন" : "মেনু খুলুন") : menuOpen ? "Close menu" : "Open menu"}
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen(!menuOpen)}
@@ -471,39 +423,83 @@ export default function Navbar() {
               </div>
             )}
 
-            {/* Light / dark / like my phone (2026-11-06). */}
-            <ThemeSwitch />
+            {/* The four places = the map (2026-11-20, lib/places.ts). A place
+                with a place page heads its group with a link to it. */}
+            {PLACES.map((place) => (
+              <section
+                className="mobile-menu-section"
+                data-group={place.key}
+                key={place.key}
+                aria-labelledby={`mm-${place.key}`}
+              >
+                <h2 id={`mm-${place.key}`} className="mobile-menu-section-label">
+                  {place.key === "learn" ? (
+                    <T en={place.name.en} bn={place.name.bn} />
+                  ) : (
+                    <Link href={place.href} className="mobile-menu-place" onClick={closeMenu}>
+                      <T en={place.name.en} bn={place.name.bn} />
+                      <IconChevron size={14} />
+                    </Link>
+                  )}
+                </h2>
+                <ul className="mobile-menu-list">
+                  {place.pages.map((it) => (
+                    <li key={it.key}>
+                      {pageLink(
+                        it,
+                        "mobile-menu-item",
+                        <>
+                          <span className="mobile-menu-item-icon">
+                            <MenuIcon name={it.icon} />
+                            {it.key === "watchlist" && <WatchlistDot />}
+                          </span>
+                          <span className="mobile-menu-item-text">
+                            <span className="mobile-menu-item-label">
+                              <T en={it.name.en} bn={it.name.bn} />
+                              {it.premium && (
+                                <span className="menu-premium" title="Premium">
+                                  <IconCrown size={12} />
+                                  <span className="sr-only">Premium</span>
+                                </span>
+                              )}
+                            </span>
+                            <span className="mobile-menu-item-sub">
+                              <T en={it.line.en} bn={it.line.bn} />
+                            </span>
+                          </span>
+                        </>,
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
 
-            {/* Quick access — the personal pages. Phones: four app-style
-                shortcuts; desktop: one row of chips. */}
+            {/* Premium and the app, after the map. */}
             <section className="mobile-menu-section" data-group="quick" aria-labelledby="mm-quick">
               <h2 id="mm-quick" className="mobile-menu-section-label">
-                <T en="Quick access" bn="দ্রুত যান" />
+                <T en="More" bn="আরও" />
               </h2>
               <div className="mobile-menu-quick">
-                {QUICK.filter((q) => !q.signedIn || isLoggedIn).map(({ href, en, bn: labelBn, subEn, subBn, Icon }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    className="mobile-menu-shortcut"
-                    data-premium={href === "/premium" || undefined}
-                    aria-current={isItemActive(href) ? "page" : undefined}
-                    onClick={closeMenu}
-                  >
-                    <span className="mobile-menu-shortcut-icon">
-                      <Icon size={20} />
-                      {href === "/watchlist" && <WatchlistDot />}
+                <Link
+                  href="/premium"
+                  className="mobile-menu-shortcut"
+                  data-premium
+                  aria-current={pathname === "/premium" ? "page" : undefined}
+                  onClick={closeMenu}
+                >
+                  <span className="mobile-menu-shortcut-icon">
+                    <IconCrown size={20} />
+                  </span>
+                  <span className="mobile-menu-shortcut-text">
+                    <span className="mobile-menu-shortcut-label">
+                      <T en="Premium" bn="প্রিমিয়াম" />
                     </span>
-                    <span className="mobile-menu-shortcut-text">
-                      <span className="mobile-menu-shortcut-label">
-                        <T en={en} bn={labelBn} />
-                      </span>
-                      <span className="mobile-menu-shortcut-sub">
-                        <T en={subEn} bn={subBn} />
-                      </span>
+                    <span className="mobile-menu-shortcut-sub">
+                      <T en="Everything you get with Premium" bn="প্রিমিয়ামে যা যা পাবেন" />
                     </span>
-                  </Link>
-                ))}
+                  </span>
+                </Link>
                 <InstallAppButton
                   className="mobile-menu-shortcut mobile-menu-install"
                   label={bn ? "অ্যাপ ইনস্টল করুন" : "Install app"}
@@ -524,51 +520,8 @@ export default function Navbar() {
               </div>
             </section>
 
-            {/* Markets · Find stocks · Learn — the whole global IA */}
-            {NAV_GROUPS.map((g) => (
-              <section
-                className="mobile-menu-section"
-                data-group={g.id}
-                key={g.id}
-                aria-labelledby={`mm-${g.id}`}
-              >
-                <h2 id={`mm-${g.id}`} className="mobile-menu-section-label">
-                  <T en={g.label} bn={g.labelBn} />
-                </h2>
-                <ul className="mobile-menu-list">
-                  {g.items.map((it) => (
-                    <li key={it.href}>
-                      <Link
-                        href={it.href}
-                        className="mobile-menu-item"
-                        aria-current={isItemActive(it.href) ? "page" : undefined}
-                        onClick={closeMenu}
-                      >
-                        <span className="mobile-menu-item-icon">
-                          <MenuIcon name={it.icon} />
-                        </span>
-                        <span className="mobile-menu-item-text">
-                          <span className="mobile-menu-item-label">
-                            <T en={it.label} bn={it.labelBn} />
-                            {it.premium && (
-                              <span className="menu-premium" title="Premium">
-                                <IconCrown size={12} />
-                                <span className="sr-only">Premium</span>
-                              </span>
-                            )}
-                          </span>
-                          {it.sub && (
-                            <span className="mobile-menu-item-sub">
-                              <T en={it.sub} bn={it.subBn ?? it.sub} />
-                            </span>
-                          )}
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ))}
+            {/* Light / dark / like my phone (2026-11-06). */}
+            <ThemeSwitch />
           </div>
         </div>
       </div>

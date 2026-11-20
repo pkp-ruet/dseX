@@ -2502,15 +2502,6 @@ export interface HomeBundle {
   /** The day's move on the reader's stocks whose record date fell since the
    *  previous close, with the dividend / bonus taken out (2026-11-04). */
   ex_moves?: Record<string, number>;
-  /** The market's week of quarterly results: the home's "Results this week"
-   *  row (2026-11-18; shown nowhere 2026-11-05 → 11-18). */
-  results_week?: {
-    days: number;
-    recent: number;
-    counts: Record<LatestResultRow["level"], number>;
-    total: number;
-    latest: LatestResultRow[];
-  } | null;
   /** Results meetings on the reader's stocks in the next two weeks (2026-10-29). */
   results_soon?: UpcomingResult[];
   /** Today's before-the-bell brief — Premium readers, once the morning job has run. */

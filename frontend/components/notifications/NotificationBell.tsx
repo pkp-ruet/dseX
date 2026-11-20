@@ -69,11 +69,11 @@ export default function NotificationBell({ variant }: { variant: "desktop" | "mo
 
   const label = bn
     ? n > 0
-      ? `নোটিফিকেশন, ${n}টি নতুন`
-      : "নোটিফিকেশন"
+      ? `আপডেট, ${n}টি নতুন`
+      : "আপডেট"
     : n > 0
-      ? `Notifications, ${n} new`
-      : "Notifications";
+      ? `Updates, ${n} new`
+      : "Updates";
   const badge = n > 0 ? <span className="nt-badge" aria-hidden="true">{n > 9 ? "9+" : n}</span> : null;
 
   if (variant === "mobile") {

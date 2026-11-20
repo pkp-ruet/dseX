@@ -6,8 +6,7 @@ import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import PageQuestions, { type PageQuestion } from "@/components/premium/PageQuestions";
 import { PersonalCodesProvider, usePersonalCodesCtx } from "@/components/market-analysis/PersonalCodes";
-import type { LatestResultRow, UpcomingResult } from "@/lib/api";
-import SectionHeader from "@/components/ui/SectionHeader";
+import type { LatestResultRow } from "@/lib/api";
 import { RESULT_LEVEL, RESULT_LEVEL_ORDER } from "@/lib/results";
 import { usePremium } from "@/lib/premium";
 import { useLang } from "@/context/LangContext";
@@ -15,7 +14,6 @@ import { T } from "@/components/i18n/T";
 import { bnDate } from "@/lib/bn";
 import { useUrlParams, useUrlSync } from "@/lib/use-url-state";
 import ResultRow from "./ResultRow";
-import ResultsComing from "./ResultsComing";
 
 const PAGE = 50;
 type Level = LatestResultRow["level"];
@@ -56,26 +54,18 @@ function byDay(rows: LatestResultRow[]): { day: string; items: LatestResultRow[]
  * the My stocks filter too since 2026-10-31 (the Premium Desk plan). Premium
  * adds what each report means (one sentence under every row, a screen-only
  * `Locked` in `ResultRow`), named by the page's question card (`#rs-premium`).
+ * Results meetings coming up moved to the Calendar (2026-11-20, the app map:
+ * dates have one home there).
  */
-export default function ResultsFeed({
-  coming = [],
-  ...props
-}: { rows: LatestResultRow[]; counts: Record<Level, number>; coming?: UpcomingResult[] }) {
+export default function ResultsFeed(props: { rows: LatestResultRow[]; counts: Record<Level, number> }) {
   return (
     <PersonalCodesProvider>
-      {coming.length > 0 && <ResultsComing rows={coming} />}
-      {coming.length > 0 && (
-        <SectionHeader
-          title={<T en="Latest reports" bn="সর্বশেষ প্রতিবেদন" />}
-          lead={<T en="What came out, newest first." bn="যা প্রকাশ হয়েছে, নতুনগুলো আগে।" />}
-        />
-      )}
-      <Feed {...props} coming={coming} />
+      <Feed {...props} />
     </PersonalCodesProvider>
   );
 }
 
-function Feed({ rows, counts, coming }: { rows: LatestResultRow[]; counts: Record<Level, number>; coming: UpcomingResult[] }) {
+function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level, number> }) {
   const { bn } = useLang();
   const t = (en: string, b: string) => (bn ? b : en);
   const { isLoading, state } = usePremium();
@@ -207,7 +197,7 @@ function Feed({ rows, counts, coming }: { rows: LatestResultRow[]; counts: Recor
     );
   }
 
-  const questions = resultQuestions(rows, counts, coming);
+  const questions = resultQuestions(rows, counts);
 
   return (
     <div>
@@ -256,8 +246,8 @@ function Feed({ rows, counts, coming }: { rows: LatestResultRow[]; counts: Recor
         className="mt-8"
         title={{ en: "Every report is free. Here is what it leaves open.", bn: "প্রতিটি প্রতিবেদন ফ্রি। তবু কিছু প্রশ্ন থেকে যায়।" }}
         lead={{
-          en: "Premium answers these in place: one plain sentence under every company, and what to expect before each meeting.",
-          bn: "প্রিমিয়ামে এর উত্তর জায়গাতেই: প্রতিটি কোম্পানির নিচে এক লাইনে মানে, আর প্রতিটি সভার আগে কী আশা করা যায়।",
+          en: "Premium answers these in place: one plain sentence under every company on what its report means.",
+          bn: "প্রিমিয়ামে এর উত্তর জায়গাতেই: প্রতিটি কোম্পানির নিচে এক লাইনে তার প্রতিবেদনের মানে।",
         }}
         rows={questions}
         label={{ en: "What each report means", bn: "প্রতিটি প্রতিবেদনের মানে" }}
@@ -267,7 +257,7 @@ function Feed({ rows, counts, coming }: { rows: LatestResultRow[]; counts: Recor
 }
 
 /** The page's question card rows, from today's counts. */
-function resultQuestions(rows: LatestResultRow[], counts: Record<Level, number>, coming: UpcomingResult[]): PageQuestion[] {
+function resultQuestions(rows: LatestResultRow[], counts: Record<Level, number>): PageQuestion[] {
   const out: PageQuestion[] = [];
   if (rows.length > 0) {
     out.push({
@@ -294,17 +284,6 @@ function resultQuestions(rows: LatestResultRow[], counts: Record<Level, number>,
       tone: "bad",
       ask: { en: "A bad quarter, or the start of a slide?", bn: "একটি খারাপ প্রান্তিক, নাকি পতনের শুরু?" },
       hint: { en: "What the profit, the cash and the latest quarter say together.", bn: "মুনাফা, নগদ আর সর্বশেষ প্রান্তিক মিলিয়ে কী বলে।" },
-    });
-  }
-  const withExpect = coming.filter((c) => c.better_above != null || c.weaker_below != null).length;
-  if (coming.length > 0) {
-    out.push({
-      key: "coming",
-      fact: { en: `${coming.length} meetings in 2 weeks`, bn: `2 সপ্তাহে ${coming.length}টি সভা` },
-      ask: { en: "What must each company show?", bn: "প্রতিটি কোম্পানিকে কী দেখাতে হবে?" },
-      hint: withExpect
-        ? { en: `The profit line for Better or Weaker, on ${withExpect} of them.`, bn: `${withExpect}টির ভালো বা দুর্বল হওয়ার মুনাফার সীমা।` }
-        : undefined,
     });
   }
   return out;

@@ -3,7 +3,7 @@
    var(--radius*), var(--shadow-*), colour vars. The page is: "Your screens"
    strip (members with saved screens) → ONE card (.scr-builder: list tiles,
    own filters, which shares, and a sticky foot with the count) → the result
-   (.data-table + "Almost there" for Premium, the Premium card .scr-promo for
+   (.data-table + "Almost there" for Premium, the Premium card (PremiumCard) for
    everyone else) → saved screens. */
 
 /* --- Your screens: a member's saved screens, one tap each --- */
@@ -425,19 +425,3 @@
 .scr-near-join { margin-top: 2px; font-size: var(--fs-sm); font-weight: 700; color: var(--positive); }
 
 /* --- The Premium card: the count and one button (2026-11-14, "make it simple") --- */
-.scr-promo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-6) var(--space-4);
-  border: 1px solid var(--gold-ink);
-  border-radius: var(--radius-lg);
-  background: var(--gold-light);
-  text-align: center;
-}
-.scr-promo-tag { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--gold-ink); }
-.scr-promo-title { margin: 0; font-size: var(--fs-2xl); font-weight: 700; line-height: 1.2; color: var(--text); }
-.scr-promo-line { margin: 0; font-size: var(--fs-base); color: var(--text); }
-.scr-promo-cta { margin-top: var(--space-2); min-width: 220px; }
-.scr-promo-price { margin: 0; font-size: var(--fs-sm); color: var(--text); }

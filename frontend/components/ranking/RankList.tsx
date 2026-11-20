@@ -1,10 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "@/components/ui/Link";
 import { T } from "@/components/i18n/T";
-import { IconArrowDown, IconArrowUp, IconChevron } from "@/components/ui/icons";
+import { IconArrowDown, IconArrowUp, IconChevron, IconSearch } from "@/components/ui/icons";
 import { changePct, changeTone, money } from "@/lib/formatters";
+import { useLang } from "@/context/LangContext";
+import { useUrlParams, useUrlSync } from "@/lib/use-url-state";
+
+type Order = "rank" | "az";
 
 /** One place on the leaderboard. `move`: places climbed (+) or fell (−) since
  *  the comparison day, 0 = same place, "new" = not ranked then, null = no
@@ -24,25 +28,80 @@ const SHOW_TO_RANK = 50;
 
 /** The FIFA-style ranking (2026-11-01): rank, how far it
  *  moved, the company, its latest price. Every row is in the HTML; rows past rank 50 wait
- *  behind one button. */
+ *  behind one button.
+ *
+ *  "All companies" since 2026-11-20 (the app map: the ranking and the A–Z
+ *  list of all stocks became one list): an order switch — Strongest first or
+ *  A to Z (`?order=az`) — and a search field by name or code. The rank
+ *  number is always the company's real place. */
 export default function RankList({ rows, total }: { rows: RankRow[]; total: number }) {
+  const { bn } = useLang();
   const [all, setAll] = useState(false);
-  const hiddenCount = rows.filter((r) => r.rank > SHOW_TO_RANK).length;
+  const [order, setOrder] = useState<Order>("rank");
+  const [q, setQ] = useState("");
+  const params = useUrlParams();
+  useEffect(() => {
+    if (params?.get("order") === "az") setOrder("az");
+    const query = params?.get("q");
+    if (query) setQ(query);
+  }, [params]);
+  useUrlSync({ order: order === "az" ? "az" : null, q: q.trim() || null }, params !== null);
+
+  const shown = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    const hit = needle
+      ? rows.filter((r) => r.code.toLowerCase().includes(needle) || r.name.toLowerCase().includes(needle))
+      : rows;
+    return order === "az" ? [...hit].sort((a, b) => a.name.localeCompare(b.name)) : hit;
+  }, [rows, order, q]);
+  const searching = q.trim().length > 0;
+  const hiddenCount = searching ? 0 : Math.max(0, shown.length - SHOW_TO_RANK);
 
   return (
     <section className="rk-board" aria-labelledby="rk-board-title">
       <div className="rk-board-top">
         <h2 id="rk-board-title" className="rk-board-title">
-          <T en="Full ranking" bn="পুরো র‍্যাঙ্কিং" />
+          <T en="All companies" bn="সব কোম্পানি" />
         </h2>
         <span className="rk-board-count">
-          <T en={`${total} companies`} bn={`${total}টি কোম্পানি`} />
+          {searching ? (
+            <T en={`${shown.length} of ${total}`} bn={`${total}টির মধ্যে ${shown.length}টি`} />
+          ) : (
+            <T en={`${total} companies`} bn={`${total}টি কোম্পানি`} />
+          )}
         </span>
       </div>
+      <div className="rk-tools">
+        <div className="rk-order" role="group" aria-label={bn ? "সাজানোর ক্রম" : "Order"}>
+          <button type="button" aria-pressed={order === "rank"} onClick={() => setOrder("rank")}>
+            <T en="Strongest first" bn="শক্তিশালী আগে" />
+          </button>
+          <button type="button" aria-pressed={order === "az"} onClick={() => setOrder("az")}>
+            <T en="A to Z" bn="A থেকে Z" />
+          </button>
+        </div>
+        <label className="rk-search" htmlFor="rk-search">
+          <IconSearch size={16} />
+          <span className="sr-only">{bn ? "কোম্পানি খুঁজুন" : "Find a company"}</span>
+          <input
+            id="rk-search"
+            type="search"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder={bn ? "নাম বা কোড" : "Name or code"}
+            autoComplete="off"
+          />
+        </label>
+      </div>
       <div className="rk-card">
+        {shown.length === 0 && (
+          <p className="rk-none">
+            <T en={`No company matches “${q.trim()}”.`} bn={`“${q.trim()}” নামে কোনো কোম্পানি নেই।`} />
+          </p>
+        )}
         <ol className="rk-list">
-          {rows.map((r) => (
-            <li key={r.code} hidden={(!all && r.rank > SHOW_TO_RANK) || undefined}>
+          {shown.map((r, i) => (
+            <li key={r.code} hidden={(!all && !searching && i >= SHOW_TO_RANK) || undefined}>
               <Link href={`/stock/${r.code}`} className="rk-line">
                 <span className={`rk-pos${r.rank <= 3 ? ` rk-pos--${r.rank}` : ""}`}>
                   <span className="sr-only">
@@ -75,7 +134,7 @@ export default function RankList({ rows, total }: { rows: RankRow[]; total: numb
           <div className="rk-more-wrap">
             <button type="button" className="rk-more" onClick={() => setAll((v) => !v)} aria-expanded={all}>
               {all ? (
-                <T en="Show the top 50 only" bn="শুধু প্রথম 50টি দেখুন" />
+                <T en="Show the first 50 only" bn="শুধু প্রথম 50টি দেখুন" />
               ) : (
                 <T en={`Show all ${total} companies`} bn={`সব ${total}টি কোম্পানি দেখুন`} />
               )}
