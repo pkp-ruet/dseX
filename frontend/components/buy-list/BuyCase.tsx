@@ -1,4 +1,5 @@
 import Link from "@/components/ui/Link";
+import BuyBelowAlert from "@/components/stock/report/BuyBelowAlert";
 import { T } from "@/components/i18n/T";
 import { DateTile } from "@/components/dividend-calendar/DateGroup";
 import { dayShort } from "@/components/dividend-calendar/dates";
@@ -77,9 +78,9 @@ function PriceLadder({ item }: { item: BuyListItem }) {
   );
 }
 
-/** What to know besides the price: the company, profit, cash dividend and
- *  how much trades on a normal day. The price row of the shared four facts is
- *  left out: the ladder says it. */
+/** Four plain numbers besides the price: the company, profit, cash dividend
+ *  and how much trades on a normal day. Numbers only (2026-11-22): the
+ *  sentences under each live on the stock page's analysis. */
 function GoodToKnow({ item }: { item: BuyListItem }) {
   const facts = item.facts.filter((f) => f.key !== "price");
   const trade = item.trading_mn != null ? tradeWords(item.trading_mn) : null;
@@ -95,28 +96,18 @@ function GoodToKnow({ item }: { item: BuyListItem }) {
             <dt>
               <T en={f.label.en} bn={f.label.bn} />
             </dt>
-            <dd>
-              <span className={TONE[f.tone] ?? ""}>
-                <T en={f.value.en} bn={f.value.bn} />
-              </span>
-              {f.note && (
-                <small>
-                  <T en={f.note.en} bn={f.note.bn} />
-                </small>
-              )}
+            <dd className={TONE[f.tone] ?? ""}>
+              <T en={f.value.en} bn={f.value.bn} />
             </dd>
           </div>
         ))}
         {trade && (
           <div className="bl-fact">
             <dt>
-              <T en="Trading" bn="লেনদেন" />
+              <T en="Trades a day" bn="দিনে লেনদেন" />
             </dt>
             <dd>
-              <T en={`About ${trade.en} a day`} bn={`দিনে প্রায় ${trade.bn}`} />
-              <small>
-                <T en="What changes hands on a normal day." bn="সাধারণ একটি দিনে যত টাকার কেনাবেচা হয়।" />
-              </small>
+              <T en={trade.en} bn={trade.bn} />
             </dd>
           </div>
         )}
@@ -163,16 +154,17 @@ function NextRow({ n }: { n: BuyListNext }) {
 }
 
 /**
- * One share opened on the Buy List. The row above it already says why it is
- * here, so this holds the rest: a note when it missed at the last close, the
- * price ladder, what to know (company, profit, cash dividend, trading), the
- * dates coming up, the thing to watch, since when it is on the list and a
- * link to its full analysis. No hooks, so the free reader's share of the day
- * and the Premium list share it.
+ * One share opened on the Buy List (shortened 2026-11-22): a note when it
+ * missed at the last close, why it is here (the backend's sentence), the
+ * price ladder beside four plain numbers, the dates coming up, ONE line on
+ * the thing to watch, then the full analysis and a price alert at the price
+ * it is worth buying under. No hooks of its own, so the free reader's share
+ * of the day and the Premium list share it.
  */
 export default function BuyCase({ item }: { item: BuyListItem }) {
   const since = item.since ? dayShort(item.since, false) : null;
   const more = item.watch?.more ?? 0;
+  const tone = item.watch?.level === "red" ? " bl-watch--red" : item.watch?.level === "note" ? " bl-watch--note" : "";
   return (
     <div className="bl-case">
       {item.grace && (
@@ -180,6 +172,15 @@ export default function BuyCase({ item }: { item: BuyListItem }) {
           <T en={item.grace.en} bn={item.grace.bn} />
         </p>
       )}
+
+      <div>
+        <p className="bl-k">
+          <T en="Why it's here" bn="কেন তালিকায়" />
+        </p>
+        <p className="bl-why">
+          <T en={item.why.en} bn={item.why.bn} />
+        </p>
+      </div>
 
       <div className="bl-case-grid">
         <PriceLadder item={item} />
@@ -200,14 +201,11 @@ export default function BuyCase({ item }: { item: BuyListItem }) {
       )}
 
       {item.watch ? (
-        <div className={`bl-watch${item.watch.level === "red" ? " bl-watch--red" : ""}`}>
+        <p className={`bl-watch${tone}`}>
           <span className="bl-watch-ic" aria-hidden="true">
-            <IconAlert size={14} />
+            <IconAlert size={13} />
           </span>
-          <p>
-            <b>
-              <T en="Something to watch. " bn="খেয়াল রাখার বিষয়। " />
-            </b>
+          <span>
             <T en={item.watch.en} bn={item.watch.bn} />
             {more > 0 && (
               <T
@@ -215,29 +213,38 @@ export default function BuyCase({ item }: { item: BuyListItem }) {
                 bn={` এর স্টক পেজে আরও ${more}টি ছোট বিষয় আছে।`}
               />
             )}
-          </p>
-        </div>
-      ) : (
-        <div className="bl-watch bl-watch--ok">
-          <span className="bl-watch-ic" aria-hidden="true">
-            <IconCheck size={14} />
           </span>
-          <p>
-            <b>
-              <T en="No warnings. " bn="কোনো সতর্কতা নেই। " />
-            </b>
-            <T en="Its stock page shows nothing to watch today." bn="আজ এর স্টক পেজে খেয়াল রাখার মতো কিছু নেই।" />
-          </p>
-        </div>
+        </p>
+      ) : (
+        <p className="bl-watch bl-watch--ok">
+          <span className="bl-watch-ic" aria-hidden="true">
+            <IconCheck size={13} />
+          </span>
+          <span>
+            <T en="No warnings on its stock page today." bn="আজ এর স্টক পেজে কোনো সতর্কতা নেই।" />
+          </span>
+        </p>
       )}
 
-      <div className="bl-foot">
-        {since && <T en={`On the list since ${since.en}`} bn={`তালিকায় আছে ${since.bn} থেকে`} />}
-        <Link prefetch={false} href={`/stock/${item.code}#ch-analysis`} className="bl-read">
+      <div className="bl-acts">
+        <Link prefetch={false} href={`/stock/${item.code}#ch-analysis`} className="btn-primary bl-read">
           <T en="Read our full analysis" bn="আমাদের পুরো বিশ্লেষণ পড়ুন" />
           <IconArrowRight size={16} />
         </Link>
+        {item.buy_below != null && (
+          <BuyBelowAlert
+            code={item.code}
+            target={item.buy_below}
+            ltp={item.price}
+            label={<T en={`Alert under ${money(item.buy_below)}`} bn={`${money(item.buy_below)}-এর নিচে এলে জানান`} />}
+          />
+        )}
       </div>
+      {since && (
+        <p className="bl-since">
+          <T en={`On the list since ${since.en}`} bn={`তালিকায় আছে ${since.bn} থেকে`} />
+        </p>
+      )}
     </div>
   );
 }

@@ -252,6 +252,26 @@ def test_why_line_names_the_gap_and_one_standout():
     assert "7.8%" not in risky["en"]
 
 
+def test_why_short_is_the_one_figure_that_stands_out():
+    assert bl.why_short(C("A", ltp=78.0, div_yield_pct=5.9, **STEADY))["en"] == "Pays 5.9% a year in cash"
+    assert bl.why_short(C("B", div_yield_pct=2.0, eps_yoy_pct=26.0))["en"] == "Profit up 26%"
+    assert bl.why_short(C("L", div_yield_pct=2.0, eps_yoy_pct=1.0, pct_in_range=20.0))["en"] ==         "Price near the low of its year"
+    assert bl.why_short(C("N", div_yield_pct=0.0, eps_yoy_pct=0.0, pct_in_range=60.0)) is None
+    w = bl.why_short(C("A", ltp=78.0, div_yield_pct=5.9, **STEADY))
+    assert w["bn"] and not w["en"].endswith(".")
+
+
+def test_watch_labels_name_the_thing_and_quiet_the_auditor_note():
+    assert bl.watch_label("audit", "amber") == {"en": "Auditor's note", "bn": "নিরীক্ষকের নোট", "level": "note"}
+    assert bl.watch_label("audit", "red")["level"] == "red"
+    assert bl.watch_label("payout", "amber")["en"] == "Paid more than it earned"
+    assert bl.watch_label("dividend", "red")["en"] == "Dividend at risk"
+    assert bl.watch_label("dividend", "amber")["level"] == "amber"
+    assert bl.watch_label("no_such_key", "amber") is None and bl.watch_label(None, None) is None
+    for en, bn in bl.WATCH_LABELS.values():
+        assert bn and len(en.split()) <= 5 and not en.endswith(".")
+
+
 def test_dividend_watch_follows_the_calendar():
     risk = bl.dividend_watch(C("A", div_yield_pct=7.8, eps=5.0, payout_latest_pct=101.0))
     assert risk["level"] == "red" and risk["en"].startswith("Its dividend: at risk.")
@@ -262,7 +282,7 @@ def test_dividend_watch_follows_the_calendar():
 def test_almost_rows_say_what_would_bring_it_in():
     above = bl.almost_row(C("A", ltp=104.0), 4)
     assert above["miss"]["en"] == "Its price, ৳104, is above its usual price of ৳100."
-    assert above["fix"]["en"] == "It comes in under ৳90.0."
+    assert above["fix"]["en"] == "It comes in under ৳90.0." and above["fix"]["price"] == 90.0
     near = bl.almost_row(C("B", ltp=97.0), 4)
     assert near["miss"]["en"].startswith("Only 3% under")
     split = bl.almost_row(C("C", fair_value={"center": 100, "methods": {"own_history_pe": 100.0}}), 4)
@@ -271,6 +291,7 @@ def test_almost_rows_say_what_would_bring_it_in():
     assert "not under its usual price for what it owns (৳70.0)" in both["miss"]["en"]
     assert both["fix"]["en"] == "It comes in under ৳70.0."
     thin = bl.almost_row(C("T", turnover_med30_mn=2.2), 3, None, "trading")
+    assert "price" not in thin["fix"]
     assert "৳22 lakh" in thin["miss"]["en"] and "৳30 lakh" in thin["miss"]["en"]
     qtr = bl.almost_row(C("Q", interim_q_yoy_pct=-22.5, interim_eps_q_prev=1.2,
                           interim_period_end="2026-09-30"), 5, {"date": "2026-11-25"}, "quarter")

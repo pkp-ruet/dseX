@@ -429,7 +429,51 @@ def dividend_watch(c: dict) -> Optional[dict]:
         return None
     return {"en": f"Its dividend: {s['word_en'].lower()}. {s['line_en']}",
             "bn": f"এর ডিভিডেন্ড: {s['word_bn']}। {s['line_bn']}",
-            "level": "red" if s["level"] == "risk" else "amber"}
+            "level": "red" if s["level"] == "risk" else "amber", "key": "dividend"}
+
+
+# The row's tag: the thing to watch in two to four words (2026-11-22). The
+# stock report's red-flag keys, plus "dividend" from ``dividend_watch``. A
+# smaller auditor note ("worth reading") is quiet, not amber: on a list of
+# shares we would buy, an amber tag on half the rows read as a warning.
+WATCH_LABELS: dict[str, tuple[str, str]] = {
+    "audit": ("Auditor's note", "নিরীক্ষকের নোট"),
+    "cash": ("Less cash came in", "নগদ কম এসেছে"),
+    "category": ("Category B", "B ক্যাটাগরি"),
+    "core": ("Profit not from its business", "মুনাফা ব্যবসার বাইরে থেকে"),
+    "dse_query": ("DSE asked about its price", "দাম নিয়ে ডিএসইর প্রশ্ন"),
+    "factory": ("Factory found closed", "কারখানা বন্ধ পাওয়া গেছে"),
+    "investors": ("Big investors sold", "বড় বিনিয়োগকারীরা বিক্রি করেছেন"),
+    "late": ("Results overdue", "আর্থিক ফল দেরিতে"),
+    "loans": ("Large loans", "ঋণ বেশি"),
+    "loss": ("Made a loss", "লোকসান হয়েছে"),
+    "losses": ("Large past losses", "আগের লোকসান বড়"),
+    "meetings": ("Meeting postponed", "সভা স্থগিত"),
+    "owner_selling": ("Insider selling", "উদ্যোক্তার বিক্রি"),
+    "owners_30": ("Owners hold under 30%", "উদ্যোক্তাদের অংশ 30%-এর কম"),
+    "payout": ("Paid more than it earned", "আয়ের চেয়ে বেশি ডিভিডেন্ড"),
+    "rally": ("Price ran up without news", "খবর ছাড়াই দাম বেড়েছে"),
+    "rating": ("Weak credit rating", "দুর্বল ক্রেডিট রেটিং"),
+    "regulator": ("Regulator stepped in", "নিয়ন্ত্রকের পদক্ষেপ"),
+    "stale": ("Old accounts", "পুরোনো হিসাব"),
+    "trading": ("Thin trading", "লেনদেন কম"),
+}
+_DIVIDEND_LABELS = {"red": ("Dividend at risk", "ডিভিডেন্ড ঝুঁকিতে"),
+                    "amber": ("Dividend worth a check", "ডিভিডেন্ড দেখে নিন")}
+
+
+def watch_label(key: Optional[str], level: Optional[str]) -> Optional[dict]:
+    """``{en, bn, level}`` for the row's tag, or None for a key we have no
+    name for (the page then says "Something to watch"). ``level``: ``red`` ·
+    ``amber`` · ``note`` (a smaller auditor note, shown quiet)."""
+    if key == "dividend":
+        w = _DIVIDEND_LABELS.get(level or "amber")
+        return {**_bi(*w), "level": level or "amber"} if w else None
+    w = WATCH_LABELS.get(key or "")
+    if not w:
+        return None
+    lv = "note" if key == "audit" and level != "red" else (level or "amber")
+    return {**_bi(*w), "level": lv}
 
 
 def why_line(c: dict) -> dict:
@@ -464,6 +508,28 @@ def why_line(c: dict) -> dict:
     en = f"{lead_en}, priced {mp}% under its usual price" + (f", {extra_en}." if extra_en else ".")
     bn = f"{lead_bn}। দাম এর স্বাভাবিক দামের চেয়ে {mp}% কম" + (f", {extra_bn}।" if extra_bn else "।")
     return _bi(en, bn)
+
+
+def why_short(c: dict) -> Optional[dict]:
+    """The row's one short reason (2026-11-22): the figure that stands out,
+    picked the way ``why_line`` picks its last clause. The group and the gap
+    are shown on the row on their own, so they are left out here."""
+    y = _n(c.get("div_yield_pct"))
+    trend, _t_en, _t_bn = rl.profit_trend(c)
+    pos = _n(c.get("pct_in_range"))
+    if y is not None and y >= 4 and _steady_dividend(c):
+        return _bi(f"Pays {_r(y)}% a year in cash", f"বছরে {_r(y)}% নগদ ডিভিডেন্ড দেয়")
+    if trend is not None and trend >= 15:
+        return _bi(f"Profit up {_r(trend, 0)}%", f"মুনাফা {_r(trend, 0)}% বেড়েছে")
+    if pos is not None and pos <= 30:
+        return _bi("Price near the low of its year", "দাম বছরের সর্বনিম্নের কাছাকাছি")
+    if c.get("paid_years") == 5:
+        return _bi("Paid cash in each of the last 5 years", "গত 5 বছর প্রতি বছর নগদ দিয়েছে")
+    if trend is not None and trend >= 3:
+        return _bi(f"Profit up {_r(trend, 0)}%", f"মুনাফা {_r(trend, 0)}% বেড়েছে")
+    if y is not None and y > 0:
+        return _bi(f"Pays {_r(y)}% a year in cash", f"বছরে {_r(y)}% নগদ ডিভিডেন্ড দেয়")
+    return None
 
 
 def profit_chip(c: dict) -> dict:
@@ -568,6 +634,8 @@ def almost_row(c: dict, question: int, meeting: Optional[dict] = None, key: Opti
             miss = _bi(f"Only {round(m)}% under its usual price of {_money(mid)}.",
                        f"এর স্বাভাবিক দাম {_money(mid)}-এর চেয়ে মাত্র {round(m)}% কম।")
         fix = _bi(f"It comes in under {_money(line)}.", f"দাম {_money(line)}-এর নিচে এলে তালিকায় আসবে।")
+        if line:
+            fix["price"] = line  # the page's figure and its price-alert bell
         return {"question": 4, "miss": miss, "fix": fix}
     if question == 5 and key == "quarter":
         q = quarter_change(c)

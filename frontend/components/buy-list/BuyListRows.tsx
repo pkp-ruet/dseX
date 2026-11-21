@@ -6,17 +6,22 @@ import { T } from "@/components/i18n/T";
 import { dayShort } from "@/components/dividend-calendar/dates";
 import { PersonalMark } from "@/components/market-analysis/PersonalCodes";
 import { StockRank } from "@/components/ui/StockRow";
-import { IconAlert, IconCalendar, IconChevronDown } from "@/components/ui/icons";
-import { changePct, changeTone, companyShort, money } from "@/lib/formatters";
+import { IconAlert, IconCalendar, IconCheck, IconChevronDown } from "@/components/ui/icons";
+import { companyShort, money } from "@/lib/formatters";
 import { sectorBn } from "@/lib/bn";
 import { trackEvent } from "@/lib/track";
 import type { BuyListItem } from "@/lib/buy-list";
 
+/** The thing to watch, named ("Auditor's note"), else the old words. */
+function watchWords(item: BuyListItem) {
+  return item.watch?.short ?? { en: "Something to watch", bn: "খেয়াল রাখার বিষয় আছে" };
+}
+
 /**
- * The row's one tag, or none. Only what changes a reader's next step:
- * missed at the last close › a serious thing to watch › a dividend's last
- * day to buy › a smaller thing to watch › results coming. A row with nothing
- * to say stays quiet: no "No warnings" chip.
+ * The row's one tag, or none: missed at the last close › a serious thing to
+ * watch › a dividend's last day to buy › a smaller thing to watch (amber) ›
+ * results coming › a quiet note (a smaller auditor note). Each says what it
+ * is; colour only for what matters (2026-11-22).
  */
 function Tag({ item }: { item: BuyListItem }) {
   if (item.grace) {
@@ -27,13 +32,15 @@ function Tag({ item }: { item: BuyListItem }) {
       </span>
     );
   }
-  const watch = item.watch ? (
-    <span className={`bl-tag ${item.watch.level === "red" ? "bl-tag--red" : "bl-tag--watch"}`}>
-      <IconAlert size={13} />
-      <T en="Something to watch" bn="খেয়াল রাখার বিষয় আছে" />
+  const level = item.watch?.level;
+  const w = watchWords(item);
+  const watch = (cls: string) => (
+    <span className={`bl-tag ${cls}`}>
+      {cls !== "bl-tag--note" && <IconAlert size={13} />}
+      <T en={w.en} bn={w.bn} />
     </span>
-  ) : null;
-  if (item.watch?.level === "red") return watch;
+  );
+  if (item.watch && level === "red") return watch("bl-tag--red");
   const record = item.next.find((n) => n.kind === "record");
   if (record) {
     const d = dayShort(record.date);
@@ -44,7 +51,7 @@ function Tag({ item }: { item: BuyListItem }) {
       </span>
     );
   }
-  if (watch) return watch;
+  if (item.watch && level !== "note") return watch("bl-tag--watch");
   const results = item.next.find((n) => n.kind === "results");
   if (results) {
     const d = dayShort(results.date);
@@ -55,11 +62,48 @@ function Tag({ item }: { item: BuyListItem }) {
       </span>
     );
   }
+  if (item.watch) return watch("bl-tag--note");
   return null;
 }
 
-/** Rank · company · price, then the one sentence on why it is here and its tag. */
+/** Buy now or wait: today's price against the price it is worth buying
+ *  under. A share kept on the list above that price says what to wait for. */
+function Status({ item }: { item: BuyListItem }) {
+  const { price, buy_below: buy } = item;
+  if (price == null) return null;
+  if (buy == null) {
+    return (
+      <span className="bl-st">
+        <T en={`${money(price)} today`} bn={`আজ ${money(price)}`} />
+      </span>
+    );
+  }
+  if (price > buy) {
+    return (
+      <span className="bl-st bl-st--wait nums">
+        <T
+          en={`Wait for ${money(buy)} · today ${money(price)}`}
+          bn={`${money(buy)} বা কমে কেনা ভালো · আজ ${money(price)}`}
+        />
+      </span>
+    );
+  }
+  return (
+    <span className="bl-st bl-st--ok nums">
+      <IconCheck size={13} />
+      <T
+        en={`${money(price)} · under our buy price ${money(buy)}`}
+        bn={`${money(price)} · আমাদের কেনার দাম ${money(buy)}-এর নিচে`}
+      />
+    </span>
+  );
+}
+
+/** Rank · company · how far under its usual price, then buy-now-or-wait,
+ *  then one short reason and its tag. */
 function Head({ item }: { item: BuyListItem }) {
+  const reason = item.why_short ?? (item.why_short === undefined ? item.why : null);
+  const gap = item.margin_pct != null && item.margin_pct >= 1 ? item.margin_pct : null;
   return (
     <>
       <StockRank n={item.rank} solid={item.rank <= 3} />
@@ -83,14 +127,28 @@ function Head({ item }: { item: BuyListItem }) {
           <PersonalMark code={item.code} />
         </span>
       </span>
-      <span className="bl-px">
-        <span className="nums">{money(item.price)}</span>
-        <span className={`nums ${changeTone(item.change_pct)}`}>{changePct(item.change_pct, 1)}</span>
+      <span className="bl-gap nums">
+        {gap != null ? (
+          <>
+            <b>{gap}%</b>
+            <T en="under its usual price" bn="স্বাভাবিক দামের চেয়ে কম" />
+          </>
+        ) : (
+          <>
+            <b className="bl-gap-px">{money(item.price)}</b>
+            <T en="about its usual price" bn="প্রায় স্বাভাবিক দামে" />
+          </>
+        )}
       </span>
-      <span className="bl-line">
-        <T en={item.why.en} bn={item.why.bn} />
+      <span className="bl-status">
+        <Status item={item} />
       </span>
-      <span className="bl-meta">
+      <span className="bl-reason">
+        {reason && (
+          <span>
+            <T en={reason.en} bn={reason.bn} />
+          </span>
+        )}
         <Tag item={item} />
       </span>
     </>

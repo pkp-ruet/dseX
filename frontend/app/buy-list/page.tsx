@@ -4,7 +4,14 @@ import EmptyState from "@/components/ui/EmptyState";
 import PageGate from "@/components/premium/PageGate";
 import BuyListRows from "@/components/buy-list/BuyListRows";
 import BuyListPromo from "@/components/buy-list/BuyListPromo";
-import { AlmostList, HowWeChoose, ListChanges, SixChecks } from "@/components/buy-list/BuyListParts";
+import {
+  AlsoPassed,
+  ChecksLine,
+  CloseNotYet,
+  GlanceCard,
+  HowWeChoose,
+  ListChanges,
+} from "@/components/buy-list/BuyListParts";
 import { PersonalCodesProvider } from "@/components/market-analysis/PersonalCodes";
 import { dayShort } from "@/components/dividend-calendar/dates";
 import { IconCrown } from "@/components/ui/icons";
@@ -89,8 +96,8 @@ export default async function BuyListPage() {
         lead={
           data.count > 0 ? (
             <T
-              en={`The DSE shares we would buy today. Of the ${data.universe} companies we check, ${data.count} passed all six of our questions.`}
-              bn={`আজ যে শেয়ারগুলো আমরা কেনার মতো মনে করি। আমরা যে ${data.universe}টি কোম্পানি যাচাই করি, তার ${data.count}টি আমাদের ছয়টি প্রশ্নেই পাস করেছে।`}
+              en={`The DSE shares we would buy today: ${data.count} of the ${data.universe} companies we check passed all six of our checks.`}
+              bn={`আজ যে শেয়ারগুলো আমরা কেনার মতো মনে করি: আমরা যে ${data.universe}টি কোম্পানি যাচাই করি, তার ${data.count}টি আমাদের ছয়টি যাচাইয়েই পাস করেছে।`}
             />
           ) : (
             <T
@@ -100,24 +107,16 @@ export default async function BuyListPage() {
           )
         }
       />
-      <SixChecks />
+      <ChecksLine />
 
       <div className="bl-layout">
         <div className="bl-main">
           <PageGate promo={<BuyListPromo data={data} />} anchor={BUY_LIST_ANCHOR}>
             <section className="bl-list" aria-labelledby="bl-list-t">
               <div className="bl-list-head">
-                <div>
-                  <h2 id="bl-list-t" className="bl-h2 bl-h2--lg">
-                    <T en={`Today's ${data.count} shares`} bn={`আজকের ${data.count}টি শেয়ার`} />
-                  </h2>
-                  <p className="bl-note">
-                    <T
-                      en="Strongest first. Tap a share for its price and what to know."
-                      bn="সবচেয়ে জোরালোটি আগে। দাম আর জানার মতো বিষয় দেখতে শেয়ারে চাপুন।"
-                    />
-                  </p>
-                </div>
+                <h2 id="bl-list-t" className="bl-h2 bl-h2--lg">
+                  <T en={`Today's ${data.count} shares`} bn={`আজকের ${data.count}টি শেয়ার`} />
+                </h2>
                 <ListChanges data={data} />
               </div>
               {data.items.length > 0 ? (
@@ -133,14 +132,17 @@ export default async function BuyListPage() {
                   }
                 />
               )}
-              <AlmostList data={data} />
+              <AlsoPassed data={data} />
+              <CloseNotYet data={data} />
             </section>
           </PageGate>
         </div>
         <aside className="bl-side">
-          <HowWeChoose rules={data.rules} />
+          <GlanceCard data={data} />
         </aside>
       </div>
+
+      <HowWeChoose rules={data.rules} />
 
       <p className="bl-advice">
         <T

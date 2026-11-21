@@ -205,8 +205,16 @@ def _watch(c: dict) -> Optional[dict]:
     dw = bl.dividend_watch(c)
     if dw and (dw["level"] == "red" or not watch):
         more = ((watch.get("more") or 0) + 1) if watch else 0
-        return {"en": dw["en"], "bn": dw["bn"], "level": dw["level"], "more": more}
-    return watch
+        watch = {"en": dw["en"], "bn": dw["bn"], "level": dw["level"], "more": more, "key": "dividend"}
+    if not watch:
+        return None
+    # The row's tag names it (2026-11-22); a smaller auditor note is quiet.
+    label = bl.watch_label(watch.get("key"), watch.get("level"))
+    out = {k: v for k, v in watch.items() if k != "key"}
+    if label:
+        out["short"] = {"en": label["en"], "bn": label["bn"]}
+        out["level"] = label["level"]
+    return out
 
 
 def _item(c: dict, rank: int, since: dict, was: set[str], fresh: bool, rows: dict,
@@ -228,6 +236,7 @@ def _item(c: dict, rank: int, since: dict, was: set[str], fresh: bool, rows: dic
         "grace": bl.grace_line(c.get("grace")),
         "trading_mn": round(trade, 1) if trade is not None else None,
         "why": bl.why_line(c),
+        "why_short": bl.why_short(c),
         "profit": bl.profit_chip(c),
         "facts": rc.case_rows(c),
         "watch": _watch(c),

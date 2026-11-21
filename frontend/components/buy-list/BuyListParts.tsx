@@ -1,43 +1,83 @@
 import Link from "@/components/ui/Link";
+import BuyBelowAlert from "@/components/stock/report/BuyBelowAlert";
 import { T } from "@/components/i18n/T";
 import { dayShort } from "@/components/dividend-calendar/dates";
 import { IconCheck, IconChevronDown, IconChevronRight } from "@/components/ui/icons";
-import { companyShort } from "@/lib/formatters";
+import { companyShort, money } from "@/lib/formatters";
 import { QUESTIONS, type BuyList } from "@/lib/buy-list";
 
 export const HOW_ANCHOR = "bl-how";
 
-/** The six questions at a glance, under the header: every share on the list
- *  passed all six. Free for every reader; "How we check" jumps to the rules. */
-export function SixChecks() {
+function HowLink() {
   return (
-    <section className="bl-checks" aria-labelledby="bl-checks-t">
-      <div className="bl-checks-head">
-        <p id="bl-checks-t">
-          <T en="Every share on the list passed all six of our questions" bn="তালিকার প্রতিটি শেয়ার আমাদের ছয়টি প্রশ্নেই পাস করেছে" />
-        </p>
-        <a href={`#${HOW_ANCHOR}`}>
-          <T en="How we check" bn="কীভাবে যাচাই করি" />
-          <IconChevronRight size={14} />
-        </a>
-      </div>
-      <ol>
+    <a href={`#${HOW_ANCHOR}`} className="bl-howlink">
+      <T en="How we check" bn="কীভাবে যাচাই করি" />
+      <IconChevronRight size={14} />
+    </a>
+  );
+}
+
+/** The six checks as one line of ticks under the header, no box (phones and
+ *  tablets; from 1024px the side card says it). Free for every reader. */
+export function ChecksLine() {
+  return (
+    <div className="bl-checks-line">
+      <ol aria-label="The six checks every share on the list passed">
         {QUESTIONS.map((q) => (
           <li key={q.short.en}>
             <span className="bl-tick" aria-hidden="true">
-              <IconCheck size={12} />
+              <IconCheck size={10} />
             </span>
             <T en={q.short.en} bn={q.short.bn} />
           </li>
         ))}
       </ol>
+      <HowLink />
+    </div>
+  );
+}
+
+/** From 1024px, beside the list and in view while it scrolls: how many
+ *  passed, the six checks and the link to the rules. Counts only, so it is
+ *  free for every reader. */
+export function GlanceCard({ data }: { data: BuyList }) {
+  const close = data.also.length + data.almost.length;
+  return (
+    <section className="bl-glance soft-card" aria-labelledby="bl-glance-t">
+      <h2 id="bl-glance-t" className="bl-k">
+        <T en="Today, at a glance" bn="এক নজরে আজ" />
+      </h2>
+      <p className="bl-glance-n nums">
+        <b>{data.count}</b>
+        <T en={`of ${data.universe} companies passed all six`} bn={`${data.universe}টি কোম্পানির মধ্যে ছয়টিতেই পাস`} />
+      </p>
+      <ol className="bl-glance-checks">
+        {QUESTIONS.map((q) => (
+          <li key={q.short.en}>
+            <span className="bl-tick" aria-hidden="true">
+              <IconCheck size={10} />
+            </span>
+            <T en={q.short.en} bn={q.short.bn} />
+          </li>
+        ))}
+      </ol>
+      {close > 0 && (
+        <p className="bl-glance-close">
+          <T
+            en={`${close} more strong ${close === 1 ? "company is" : "companies are"} close to joining.`}
+            bn={`আরও ${close}টি শক্তিশালী কোম্পানি তালিকার কাছাকাছি।`}
+          />
+        </p>
+      )}
+      <HowLink />
     </section>
   );
 }
 
-/** "How we choose": each question with one plain line, the full rule folded
- *  under it, then one line on the limits and order, one on what we never do,
- *  and "Based on your shares". Free for every reader. */
+/** "How we choose", at the bottom of the page: each question with one plain
+ *  line, the full rule folded under it (two columns from 900px), then one
+ *  line on the limits and order, one on what we never do, and "Based on
+ *  your shares". Free for every reader. */
 export function HowWeChoose({ rules }: { rules: BuyList["rules"] }) {
   return (
     <section id={HOW_ANCHOR} className="bl-how soft-card" aria-labelledby="bl-how-t">
@@ -45,10 +85,7 @@ export function HowWeChoose({ rules }: { rules: BuyList["rules"] }) {
         <T en="How we choose" bn="আমরা কীভাবে বাছাই করি" />
       </h2>
       <p className="bl-note">
-        <T
-          en="Every share on the list says yes to all six. Tap a question for the full rule."
-          bn="তালিকার প্রতিটি শেয়ার ছয়টি প্রশ্নেরই উত্তরে হ্যাঁ। পুরো নিয়ম দেখতে প্রশ্নে চাপুন।"
-        />
+        <T en="Tap a question for the full rule." bn="পুরো নিয়ম দেখতে প্রশ্নে চাপুন।" />
       </p>
       <ol className="bl-qs">
         {QUESTIONS.map((q, i) => (
@@ -99,14 +136,13 @@ export function HowWeChoose({ rules }: { rules: BuyList["rules"] }) {
   );
 }
 
-/** One line on what changed this week, with company names, and why each
- *  share left at the last close. */
+/** This week's changes as two chips (who joined, who left), and why each
+ *  share left at the last close. Inside the Premium gate: it names companies. */
 export function ListChanges({ data }: { data: BuyList }) {
   const ch = data.changes;
   if (ch.first_day) {
     return (
-      <p className="bl-change">
-        <span className="bl-change-dot" aria-hidden="true" />
+      <p className="bl-week">
         <T en="We start counting what joins and leaves from today." bn="আজ থেকে কোন শেয়ার এল আর গেল, তার হিসাব শুরু।" />
       </p>
     );
@@ -114,28 +150,34 @@ export function ListChanges({ data }: { data: BuyList }) {
   const names = new Map<string, string>();
   for (const i of [...data.items, ...data.also, ...data.almost]) names.set(i.code, companyShort(i.name) || i.code);
   for (const l of [...ch.week_left, ...ch.left]) names.set(l.code, companyShort(l.name) || l.code);
-  const list = (codes: string[]) => codes.map((c) => names.get(c) || c).join(", ");
-  const joined = ch.week_joined;
-  const left = ch.week_left.map((l) => l.code);
-  const en = [
-    joined.length ? `This week ${list(joined)} joined.` : "No share joined this week.",
-    left.length ? `${list(left)} left.` : "None left.",
-  ].join(" ");
-  const bn = [
-    joined.length ? `এই সপ্তাহে এসেছে ${list(joined)}।` : "এই সপ্তাহে নতুন কেউ আসেনি।",
-    left.length ? `বাদ পড়েছে ${list(left)}।` : "কেউ বাদ পড়েনি।",
-  ].join(" ");
+  const name = (c: string) => names.get(c) || c;
+  if (!ch.week_joined.length && !ch.week_left.length) {
+    return (
+      <p className="bl-week">
+        <T en="No change this week." bn="এই সপ্তাহে কোনো বদল নেই।" />
+      </p>
+    );
+  }
   return (
-    <div className="bl-change-wrap">
-      <p className="bl-change">
-        <span className="bl-change-dot" aria-hidden="true" />
-        <T en={en} bn={bn} />
+    <div className="bl-week-wrap">
+      <p className="bl-week">
+        <T en="This week" bn="এই সপ্তাহে" />
+        {ch.week_joined.map((c) => (
+          <span key={`in-${c}`} className="bl-wchip bl-wchip--in">
+            + {name(c)}
+          </span>
+        ))}
+        {ch.week_left.map((l) => (
+          <span key={`out-${l.code}`} className="bl-wchip">
+            − {name(l.code)}
+          </span>
+        ))}
       </p>
       {ch.left.length > 0 && (
         <ul className="bl-left">
           {ch.left.map((l) => (
             <li key={l.code}>
-              <b>{names.get(l.code) || l.code}</b>{" "}
+              <b>{name(l.code)}</b>{" "}
               <T en={`left at the last close. ${l.reason.en}`} bn={`শেষ লেনদেনের দিনে বাদ পড়েছে। ${l.reason.bn}`} />
             </li>
           ))}
@@ -145,96 +187,121 @@ export function ListChanges({ data }: { data: BuyList }) {
   );
 }
 
-/**
- * "Almost made it", in two groups: shares that passed all six but were left
- * out to keep the list spread (one sector, the banks and finance cap, the
- * size), then strong companies that missed one question, named by the
- * question they missed, and what would bring them in.
- */
-export function AlmostList({ data }: { data: BuyList }) {
-  if (!data.also.length && !data.almost.length) return null;
+function names(list: { code: string; name: string | null }[], lang: "en" | "bn") {
+  const n = list.map((a) => companyShort(a.name) || a.code);
+  if (n.length < 2) return n[0] ?? "";
+  return `${n.slice(0, -1).join(", ")} ${lang === "en" ? "and" : "ও"} ${n[n.length - 1]}`;
+}
+
+/** "Also passed today": shares that passed all six but were left out to keep
+ *  the list spread. As good as the list, so right under it, in one line when
+ *  they share the reason. */
+export function AlsoPassed({ data }: { data: BuyList }) {
+  if (!data.also.length) return null;
+  const reasons = Array.from(new Set(data.also.map((a) => a.why.en)));
   return (
-    <section className="bl-almost soft-card" aria-labelledby="bl-almost-t">
-      <div className="bl-almost-head">
-        <h2 id="bl-almost-t" className="bl-h2">
-          <T en="Almost made it" bn="অল্পের জন্য বাদ" />
+    <section className="bl-also soft-card" aria-labelledby="bl-also-t">
+      <h2 id="bl-also-t" className="bl-h3">
+        <T en="Also passed today" bn="আজ আরও যারা পাস করেছে" />
+      </h2>
+      {reasons.length === 1 ? (
+        <p className="bl-note">
+          <T
+            en={`${names(data.also, "en")} passed all six. ${data.also[0].why.en}`}
+            bn={`${names(data.also, "bn")} ছয়টিতেই পাস করেছে। ${data.also[0].why.bn}`}
+          />
+        </p>
+      ) : (
+        <ul className="bl-also-list">
+          {data.also.map((a) => (
+            <li key={a.code}>
+              <Link prefetch={false} href={`/stock/${a.code}#ch-analysis`} className="bl-al-name">
+                {companyShort(a.name) || a.code}
+              </Link>{" "}
+              <T en={a.why.en} bn={a.why.bn} />
+            </li>
+          ))}
+        </ul>
+      )}
+      {reasons.length === 1 && (
+        <p className="bl-also-links">
+          {data.also.map((a) => (
+            <Link key={a.code} prefetch={false} href={`/stock/${a.code}#ch-analysis`} className="bl-al-link">
+              {a.code} ›
+            </Link>
+          ))}
+        </p>
+      )}
+    </section>
+  );
+}
+
+/**
+ * "Close, not yet": strong companies that missed one question. The price that
+ * brings one in is its figure, with a bell that sets a price alert there;
+ * one waiting on its results shows the day.
+ */
+export function CloseNotYet({ data }: { data: BuyList }) {
+  if (!data.almost.length) return null;
+  return (
+    <section className="bl-close soft-card" aria-labelledby="bl-close-t">
+      <div className="bl-close-head">
+        <h2 id="bl-close-t" className="bl-h3">
+          <T en="Close, not yet" bn="কাছাকাছি, এখনো নয়" />
         </h2>
         <p className="bl-note">
           <T
-            en="Strong companies that came close, and what would bring them in."
-            bn="যে শক্তিশালী কোম্পানিগুলো কাছে এসেছিল, আর কী হলে তালিকায় আসবে।"
+            en="Strong companies one step away, and what would bring them in."
+            bn="এক ধাপ দূরের শক্তিশালী কোম্পানি, আর কী হলে তালিকায় আসবে।"
           />
         </p>
       </div>
-
-      {data.also.length > 0 && (
-        <div className="bl-al-group">
-          <p className="bl-al-gh">
-            <T en="Passed all six, left out to keep the list spread" bn="ছয়টিতেই পাস, তালিকা ছড়িয়ে রাখতে বাদ" />
-          </p>
-          <ul className="bl-al-list">
-            {data.also.map((a) => (
-              <li key={a.code} className="bl-al">
-                <div className="bl-al-top">
-                  <Link prefetch={false} href={`/stock/${a.code}#ch-analysis`} className="bl-al-name">
-                    {companyShort(a.name) || a.code}
-                  </Link>
-                </div>
-                <p className="bl-al-sub">
-                  {a.code} · <T en={a.group.en} bn={a.group.bn} />
-                  {a.margin_pct > 0 && (
+      <ul className="bl-close-list">
+        {data.almost.map((a) => {
+          const d = a.fix.date ? dayShort(a.fix.date) : null;
+          const price = a.fix.price ?? null;
+          return (
+            <li key={a.code} className="bl-cl">
+              <div className="bl-cl-id">
+                <Link prefetch={false} href={`/stock/${a.code}#ch-analysis`} className="bl-al-name">
+                  {companyShort(a.name) || a.code}
+                </Link>
+                <p className="bl-cl-miss">
+                  <T en={a.miss.en} bn={a.miss.bn} />
+                  {price == null && (
                     <>
-                      {" · "}
-                      <T en={`${a.margin_pct}% under its usual price`} bn={`স্বাভাবিক দামের চেয়ে ${a.margin_pct}% কম`} />
+                      {" "}
+                      <T en={a.fix.en} bn={a.fix.bn} />
                     </>
                   )}
                 </p>
-                <p className="bl-al-miss">
-                  <T en={a.why.en} bn={a.why.bn} />
-                </p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {data.almost.length > 0 && (
-        <div className="bl-al-group">
-          <p className="bl-al-gh">
-            <T en="Missed one question" bn="একটি প্রশ্নে আটকেছে" />
-          </p>
-          <ul className="bl-al-list">
-            {data.almost.map((a) => {
-              const d = a.fix.date ? dayShort(a.fix.date) : null;
-              const q = QUESTIONS[a.question - 1];
-              return (
-                <li key={a.code} className="bl-al">
-                  <div className="bl-al-top">
-                    <Link prefetch={false} href={`/stock/${a.code}#ch-analysis`} className="bl-al-name">
-                      {companyShort(a.name) || a.code}
-                    </Link>
-                    {q && (
-                      <span className="bl-qtag">
-                        <T en={`Missed: ${q.miss.en}`} bn={`আটকেছে: ${q.miss.bn}`} />
-                      </span>
-                    )}
-                  </div>
-                  <p className="bl-al-sub">
-                    {a.code} · <T en={a.group.en} bn={a.group.bn} />
-                  </p>
-                  <p className="bl-al-miss">
-                    <T en={a.miss.en} bn={a.miss.bn} />
-                  </p>
-                  <p className="bl-al-fix">
-                    {d && <T en={`Its results are due ${d.en}. `} bn={`আর্থিক ফল আসবে ${d.bn}। `} />}
-                    <T en={a.fix.en} bn={a.fix.bn} />
-                  </p>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
+              </div>
+              {price != null ? (
+                <div className="bl-cl-trig nums">
+                  <span>
+                    <small>
+                      <T en="Comes in under" bn="এর নিচে এলে আসবে" />
+                    </small>
+                    <b>{money(price)}</b>
+                  </span>
+                  <BuyBelowAlert code={a.code} target={price} ltp={null} compact />
+                </div>
+              ) : d ? (
+                <div className="bl-cl-trig nums">
+                  <span>
+                    <small>
+                      <T en="Results" bn="আর্থিক ফল" />
+                    </small>
+                    <b>
+                      <T en={d.en} bn={d.bn} />
+                    </b>
+                  </span>
+                </div>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 }

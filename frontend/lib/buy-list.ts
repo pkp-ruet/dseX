@@ -49,9 +49,14 @@ export interface BuyListItem extends BuyListIdent {
   /** ৳ million that changes hands on a normal day (the middle day of 30). */
   trading_mn?: number | null;
   why: BiText;
+  /** The row's one short reason: the figure that stands out ("Pays 6.2% a
+   *  year in cash"). Absent from an older backend: the row then uses `why`. */
+  why_short?: BiText | null;
   profit: BiText & { tone: "good" | "neutral" | "watch" };
   facts: ForYouFact[];
-  watch: (BiText & { more?: number; level?: "red" | "amber" }) | null;
+  /** The one thing to watch. `short` names it for the row's tag ("Auditor's
+   *  note"); `note` = a smaller thing shown quiet, not amber. */
+  watch: (BiText & { more?: number; level?: "red" | "amber" | "note"; short?: BiText }) | null;
   next: BuyListNext[];
   since: string | null;
   new: boolean;
@@ -61,7 +66,9 @@ export interface BuyListItem extends BuyListIdent {
 export interface BuyListAlmost extends BuyListIdent {
   question: 3 | 4 | 5 | 6;
   miss: BiText;
-  fix: BiText & { date?: string | null };
+  /** `price`: the price that brings it in (question 4), for the row's figure
+   *  and its price-alert bell. */
+  fix: BiText & { date?: string | null; price?: number | null };
 }
 
 export interface BuyList {

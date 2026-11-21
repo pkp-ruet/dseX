@@ -173,11 +173,11 @@ def snapshot_risk(snap: Optional[dict]) -> Optional[dict]:
         for k in snap.get(keys) or []:
             t = (snap.get(texts) or {}).get(k) or {}
             if t.get("en") and t.get("bn"):
-                lines.append((t, level))
+                lines.append((t, level, k))
     if not lines:
         return None
-    (t, level) = lines[0]
-    return {"en": t["en"], "bn": t["bn"], "more": len(lines) - 1, "level": level}
+    (t, level, key) = lines[0]
+    return {"en": t["en"], "bn": t["bn"], "more": len(lines) - 1, "level": level, "key": key}
 
 
 def report_snapshots(codes) -> dict[str, dict]:
