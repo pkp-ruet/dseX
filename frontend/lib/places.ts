@@ -5,7 +5,7 @@
  *
  *   Market     "What happened?"        Market today · Results · Calendar · Sectors
  *   Find       "What should I look at?" Buy List · All companies · Screener · Compare · Research
- *   My shares  "How are my shares?"    Portfolio · Watchlist · Updates · For you
+ *   My shares  "How are my shares?"    Portfolio · Watchlist · Updates · Watch rules · For you
  *   Learn                              Guides and blog · How we score
  *
  * The menu (Navbar), the footer, the bottom bar, the place pages
@@ -169,9 +169,17 @@ export const PLACES: Place[] = [
         key: "updates",
         href: "/notifications",
         name: { en: "Updates", bn: "আপডেট" },
-        line: { en: "News, dates and price alerts on your shares", bn: "আপনার শেয়ারের খবর, তারিখ আর প্রাইস অ্যালার্ট" },
+        line: { en: "News and dates on your shares", bn: "আপনার শেয়ারের খবর আর তারিখ" },
         ask: { en: "What's new on my shares?", bn: "আমার শেয়ারে নতুন কী?" },
         icon: "updates",
+      },
+      {
+        key: "rules",
+        href: "/watch-rules",
+        name: { en: "Watch rules", bn: "নজরের নিয়ম" },
+        line: { en: "Choose what we tell you, and your price alerts", bn: "কী জানাব তা বেছে নিন, আর আপনার প্রাইস অ্যালার্ট" },
+        ask: { en: "What do I want to hear about?", bn: "কোন খবর জানতে চাই?" },
+        icon: "rules",
         paths: ["/alerts"],
       },
       {

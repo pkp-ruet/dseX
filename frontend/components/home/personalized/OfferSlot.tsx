@@ -5,7 +5,7 @@ import Button from "@/components/ui/Button";
 import Link from "@/components/ui/Link";
 import type { Lang } from "@/context/LangContext";
 import { useAuth } from "@/context/AuthContext";
-import { usePremium } from "@/lib/premium";
+import { FREE_LIMITS, usePremium } from "@/lib/premium";
 import {
   apiDismissOffer,
   apiPremiumBannerEvent,
@@ -42,6 +42,7 @@ import { BLOG_TO_LEARN } from "@/lib/i18n-pairs";
 import { savePremiumContext } from "@/lib/premium-context";
 import { toast } from "@/lib/toast";
 import { trackEvent } from "@/lib/track";
+import { loadWatchRules } from "@/components/watch-rules/store";
 import {
   IconAlert,
   IconBell,
@@ -59,6 +60,7 @@ import {
   IconGift,
   IconMoon,
   IconStar,
+  IconEye,
   IconSun,
   IconTune,
 } from "@/components/ui/icons";
@@ -85,6 +87,9 @@ const SETUP_SKIP_KEY = "dsex.setup.skip";
 const SETUP_HIDE_KEY = "dsex.setup.hidden";
 /** The old install card on the home page. */
 const INSTALL_KEY = "dsex.install.home.dismissed";
+// "Not now" on the watch-rules slide: back after 14 days.
+const RULES_KEY = "dsex.home.rulesSlide";
+const RULES_SNOOZE_MS = 14 * 86400000;
 
 const YEAR = PAID_PLANS.find((p) => p.key === "yearly") ?? PAID_PLANS[PAID_PLANS.length - 1];
 
@@ -304,6 +309,9 @@ export default function OfferSlot({
   const [premHidden, setPremHidden] = useState(true);
   const [setupHidden, setSetupHidden] = useState(true);
   const [installHidden, setInstallHidden] = useState(true);
+  const [rulesHidden, setRulesHidden] = useState(true);
+  // How many rules the reader has (null until read).
+  const [ruleCount, setRuleCount] = useState<number | null>(null);
   const [isPhone, setIsPhone] = useState(false);
   const [offerClosed, setOfferClosed] = useState(false);
   const [starters, setStarters] = useState<StarterRow[]>([]);
@@ -336,6 +344,12 @@ export default function OfferSlot({
     );
     setInstallHidden(readFlag(() => localStorage.getItem(INSTALL_KEY)));
     try {
+      const at = Number(localStorage.getItem(RULES_KEY) || 0);
+      setRulesHidden(at > 0 && Date.now() - at < RULES_SNOOZE_MS);
+    } catch {
+      setRulesHidden(false);
+    }
+    try {
       const raw = uid ? localStorage.getItem(tipsKey(uid)) : null;
       const list = raw ? (JSON.parse(raw) as unknown) : [];
       setTipsDone(Array.isArray(list) ? (list.filter((x) => typeof x === "string") as TipId[]) : []);
@@ -354,6 +368,15 @@ export default function OfferSlot({
     setReady(true);
     return () => mq.removeEventListener("change", sync);
   }, [uid]);
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    let alive = true;
+    loadWatchRules().then((st) => alive && st && setRuleCount(st.rules.length));
+    return () => {
+      alive = false;
+    };
+  }, [isLoggedIn]);
 
   // The beginner reads carry every article body (~260 KB): load them only for
   // a brand-new account, on demand, like the old Learn card did.
@@ -937,6 +960,50 @@ export default function OfferSlot({
     };
   }
 
+  // A reader with shares and no watch rules: say the feature exists.
+  let rulesSlide: Slide | null = null;
+  if (ruleCount === 0 && !rulesHidden && (hasWatchlist || hasPortfolio)) {
+    rulesSlide = {
+      id: "rules",
+      tone: "plain",
+      onSeen: () => trackEvent("watch_rules_slide_view", { premium: isPremium ? 1 : 0 }),
+      node: (
+        <>
+          {eyebrow(<IconEye size={14} />, bn ? "নজরের নিয়ম" : "Watch rules")}
+          <h3 className="hm-sl-title">
+            {bn ? "আপনার শেয়ার নিয়ে কী জানাব, আপনি বেছে নিন" : "Choose what we tell you about your shares"}
+          </h3>
+          <p className="hm-sl-body">
+            {isPremium
+              ? bn
+                ? "গ্রেড নামলে, আর্থিক ফল এলে, ডিভিডেন্ড ঘোষণা হলে বা দাম বেশি পড়লে, সেদিন সন্ধ্যায়ই জানাই।"
+                : "Its grade drops, results come out, a dividend is declared, a big fall: we tell you the same evening."
+              : bn
+                ? `গ্রেড নামলে, আর্থিক ফল এলে, ডিভিডেন্ড ঘোষণা হলে বা দাম বেশি পড়লে জানাই। ${FREE_LIMITS.alerts ?? 3}টি নিয়ম ফ্রি।`
+                : `Its grade drops, results come out, a dividend is declared, a big fall: we tell you. ${FREE_LIMITS.alerts ?? 3} rules are free.`}
+          </p>
+          <div className="hm-sl-acts">
+            <Button href="/watch-rules?src=home" onClick={() => trackEvent("watch_rules_prompt_tap", { from: "home-slide" })}>
+              {bn ? "নিয়ম বেছে নিন" : "Set my rules"}
+            </Button>
+            <button
+              type="button"
+              className="hm-sl-link"
+              onClick={() => {
+                try {
+                  localStorage.setItem(RULES_KEY, String(Date.now()));
+                } catch {}
+                setRulesHidden(true);
+              }}
+            >
+              {bn ? "এখন না" : "Not now"}
+            </button>
+          </div>
+        </>
+      ),
+    };
+  }
+
   // Phones that can install the app (desktop has the navbar's Install button).
   let installSlide: Slide | null = null;
   if (isPhone && !installed && (canInstall || ios) && !installHidden) {
@@ -1095,11 +1162,11 @@ export default function OfferSlot({
   const lead = afterToday ? [afterSlide, briefSlide] : [briefSlide, afterSlide];
   const order: (Slide | null)[] = isPremium
     ? brandNew
-      ? [...lead, startSlide, setupSlide, tipSlide, researchSlide, pushSlide, installSlide]
-      : [...lead, resultsSlide, researchSlide, tipSlide, pushSlide, setupSlide, installSlide]
+      ? [...lead, startSlide, setupSlide, rulesSlide, tipSlide, researchSlide, pushSlide, installSlide]
+      : [...lead, resultsSlide, rulesSlide, researchSlide, tipSlide, pushSlide, setupSlide, installSlide]
     : brandNew
-      ? [portfolioSlide, startSlide, setupSlide, pickSlide, pitch, installSlide]
-      : [portfolioSlide, pickSlide, weekSlide, pitch, pushSlide, setupSlide, installSlide];
+      ? [portfolioSlide, startSlide, setupSlide, rulesSlide, pickSlide, pitch, installSlide]
+      : [portfolioSlide, pickSlide, weekSlide, rulesSlide, pitch, pushSlide, setupSlide, installSlide];
   // A free reader's first slide depends on the portfolio: wait until it is
   // known, so the portfolio slide never pops in ahead of the others.
   const waiting = freeReader && holdings === null;

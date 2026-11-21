@@ -143,11 +143,11 @@ function AlertCard({
 }
 
 /**
- * The reader's price alerts — a section of the Updates page (`#alerts`)
- * since 2026-11-20; the old /alerts page 301s there. The Updates page asks a
+ * The reader's price alerts — a section of the Watch rules page (`#alerts`)
+ * since 2026-11-22 (Updates 2026-11-20 → 11-22); /alerts 301s there. The Updates page asks a
  * signed-out reader to sign in once, so this section then shows nothing.
  */
-export default function AlertsClient() {
+export default function AlertsClient({ shared = false }: { shared?: boolean }) {
   const { isLoggedIn, isLoading } = useAuth();
   const { lang } = useLang();
   const [alerts, setAlerts] = useState<PriceAlert[]>([]);
@@ -183,7 +183,9 @@ export default function AlertsClient() {
     return m;
   }, [scores]);
 
-  const alertLimit = usePremium().limits.alerts;
+  // On the rules page the cap is shared with rules and said once at the top.
+  const ownLimit = usePremium().limits.alerts;
+  const alertLimit = shared ? null : ownLimit;
   const active = alerts.filter((a) => a.is_active);
   const triggered = alerts.filter((a) => !a.is_active);
 

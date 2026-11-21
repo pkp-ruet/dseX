@@ -7,6 +7,10 @@ import Button from "@/components/ui/Button";
 import Sheet from "@/components/ui/Sheet";
 import type { AnalysisLang } from "@/lib/portfolio-analysis";
 import BeforeYouSave from "./BeforeYouSave";
+import { toast } from "@/lib/toast";
+import { T } from "@/components/i18n/T";
+import { watchItAction } from "@/components/watch-rules/watchItAction";
+import { loadWatchRules } from "@/components/watch-rules/store";
 
 interface Props {
   allCodes: string[];
@@ -89,10 +93,20 @@ export default function AddHoldingModal({ allCodes, priceMap, existingCodes, hol
     if (isNaN(price) || price <= 0) return setError(L("Enter the price you paid.", "কেনার দাম লিখুন।"));
     if (isNaN(qty) || qty <= 0) return setError(L("Enter how many shares.", "কয়টি শেয়ার লিখুন।"));
     setSaving(true);
+    loadWatchRules();
     try {
       const res = await apiAddHolding({ trading_code: code, buy_price: price, qty }, pid);
       onAdded(res.holdings, res.log);
       onClose();
+      // A new share: offer its rules while the reader is thinking about it.
+      const watch = isHeld ? undefined : watchItAction(code, null, "buy");
+      if (watch) {
+        toast({
+          message: <T en={`${code} is now in your portfolio`} bn={`${code} আপনার পোর্টফোলিওতে যোগ হয়েছে`} />,
+          tone: "success",
+          action: watch,
+        });
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : L("We couldn't add it. Please try again.", "যোগ করা যায়নি। আবার চেষ্টা করুন।"));
       setSaving(false);

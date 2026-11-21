@@ -152,7 +152,7 @@ RULES: list[Rule] = [
     _rule("payment", "POST", r"^/api/user/premium/payments$", 10 * PER_HOUR, 5),
     _rule("rank-alerts", "POST", r"^/api/user/rank-alerts", 30, 15),
     _rule("div-reminders", "POST", r"^/api/user/dividend-reminders", 30, 15),
-    _rule("watch-rules", "PUT", r"^/api/user/watch-rules/", 30, 15),
+    _rule("watch-rules", "PUT POST", r"^/api/user/watch-rules/", 30, 15),
     _rule("notifications-seen", "POST", r"^/api/user/notifications/seen$", 30, 15),
     _rule("for-you-hide", "POST DELETE", r"^/api/user/for-you/hide/", 30, 15),
     _rule("refresh", "POST", r"^/api/scores/refresh$", 10, 5, by_ip=True),

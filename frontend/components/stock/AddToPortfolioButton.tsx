@@ -9,6 +9,8 @@ import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
 import Button from "@/components/ui/Button";
 import Sheet from "@/components/ui/Sheet";
+import { watchItAction } from "@/components/watch-rules/watchItAction";
+import { loadWatchRules } from "@/components/watch-rules/store";
 
 interface Props {
   code: string;
@@ -50,11 +52,13 @@ export default function AddToPortfolioButton({ code, ltp }: Props) {
     if (isNaN(p) || p <= 0) return setError(bn ? "সঠিক কেনার দাম লিখুন।" : "Please enter the price you paid.");
     if (isNaN(q) || q <= 0) return setError(bn ? "সঠিক শেয়ার সংখ্যা লিখুন।" : "Please enter how many shares you bought.");
     setSubmitting(true);
+    loadWatchRules();
     try {
       await apiAddHolding({ trading_code: code, buy_price: p, qty: q });
       toast({
         message: <T en={`${code} is now in your portfolio`} bn={`${code} আপনার পোর্টফোলিওতে যোগ হয়েছে`} />,
         tone: "success",
+        action: watchItAction(code, null, "buy"),
       });
       router.push("/portfolio");
     } catch (err: unknown) {

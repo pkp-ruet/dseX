@@ -69,6 +69,7 @@ import GoogleAuthProvider from "@/components/auth/GoogleAuthProvider";
 import { T } from "@/components/i18n/T";
 import Toaster from "@/components/ui/Toaster";
 import LimitSheet from "@/components/premium/LimitSheet";
+import WatchRulesHost from "@/components/watch-rules/WatchRulesHost";
 import PingTracker from "@/components/analytics/PingTracker";
 import FeedbackPrompt from "@/components/feedback/FeedbackPrompt";
 import PushOptInPrompt from "@/components/push/PushOptInPrompt";
@@ -182,6 +183,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <GlobalSearch />
             <Toaster />
             <LimitSheet />
+            <WatchRulesHost />
             <FeedbackPrompt />
             <PushOptInPrompt />
             <InstallPrompt />

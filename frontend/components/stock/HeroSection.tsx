@@ -3,6 +3,7 @@ import WatchlistButton from "@/components/stock/WatchlistButton";
 import AddToPortfolioButton from "@/components/stock/AddToPortfolioButton";
 import PriceAlertButton from "@/components/stock/PriceAlertButton";
 import WatchRulesButton from "@/components/watch-rules/WatchRulesButton";
+import WatchRulesHint from "@/components/watch-rules/WatchRulesHint";
 import ShareButton from "@/components/stock/ShareButton";
 import CompareButton from "@/components/stock/CompareButton";
 import CategoryChip from "@/components/stock/CategoryChip";
@@ -251,6 +252,8 @@ export default function HeroSection({ detail }: Props) {
             <ShareButton code={code} companyName={profile.company_name} score={score} ltp={ltp} />
           </div>
         </div>
+
+        <WatchRulesHint code={code} name={name} />
 
         <div className="cv-main">
           <div className="min-w-0">

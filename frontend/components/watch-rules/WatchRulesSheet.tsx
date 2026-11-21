@@ -7,7 +7,8 @@ import Link from "@/components/ui/Link";
 import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
 import { apiSetWatchRules, type WatchRulesState } from "@/lib/api";
-import { isLimitError, PREMIUM_PATH, usePremium } from "@/lib/premium";
+import { FREE_LIMITS, isLimitError, PREMIUM_PATH, usePremium } from "@/lib/premium";
+import { dhakaDay, shortDayWords } from "@/lib/renewal";
 import { showLimitNotice } from "@/components/premium/LimitNotice";
 import { toast } from "@/lib/toast";
 import { trackEvent } from "@/lib/track";
@@ -37,7 +38,7 @@ export default function WatchRulesSheet({
   onClose: () => void;
 }) {
   const { bn } = useLang();
-  const { isPremium } = usePremium();
+  const { isPremium, taste } = usePremium();
   const mine = useMemo(() => (state?.rules ?? []).filter((r) => r.code === code), [state, code]);
   const fresh = mine.length === 0;
   const [pick, setPick] = useState<Pick>({});
@@ -58,6 +59,9 @@ export default function WatchRulesSheet({
   const total = othersUsed + chosen.length;
   const limit = isPremium ? null : state?.limit ?? null;
   const over = limit != null && total > limit && chosen.length > mine.length;
+  // The 7-day taste lifts the cap; say so, and what happens when it ends.
+  const tasteEnd = !isPremium && limit == null && taste?.active && taste.until ? shortDayWords(dhakaDay(taste.until)) : null;
+  const freeCap = FREE_LIMITS.alerts ?? 3;
 
   async function save() {
     setSaving(true);
@@ -169,6 +173,28 @@ export default function WatchRulesSheet({
               href={`${PREMIUM_PATH}?src=watch-rules#pay`}
               className="font-semibold text-primary-ink hover:underline"
               onClick={() => trackEvent("premium_lock_tap", { area: "watch-rules", lock: "watch-rules", code })}
+            >
+              <T en="See Premium" bn="প্রিমিয়াম দেখুন" />
+            </Link>
+          </p>
+        </div>
+      ) : tasteEnd ? (
+        <div className="wr-count">
+          <p>
+            <T
+              en={`No limit during your free week, until ${tasteEnd.en}. We check these after every close and tell you the same evening.`}
+              bn={`আপনার ফ্রি সপ্তাহে কোনো সীমা নেই, ${tasteEnd.bn} পর্যন্ত। প্রতিদিন বাজার বন্ধের পর আমরা এগুলো দেখি, আর সেদিন সন্ধ্যায়ই জানাই।`}
+            />
+          </p>
+          <p>
+            <T
+              en={`After that, your first ${freeCap} rules stay on, price alerts included, and the rest pause. Premium keeps them all on.`}
+              bn={`এরপর প্রথম ${freeCap}টি নিয়ম চালু থাকবে, প্রাইস অ্যালার্টসহ, বাকিগুলো থেমে যাবে। প্রিমিয়ামে সবগুলোই চালু থাকে।`}
+            />{" "}
+            <Link
+              href={`${PREMIUM_PATH}?src=watch-rules-taste#pay`}
+              className="font-semibold text-primary-ink hover:underline"
+              onClick={() => trackEvent("premium_lock_tap", { area: "watch-rules", lock: "watch-rules-taste", code })}
             >
               <T en="See Premium" bn="প্রিমিয়াম দেখুন" />
             </Link>

@@ -94,17 +94,40 @@ def replace_code(rules: list[dict], code: str, new: list[dict], now: Any) -> lis
     code = code.upper()
     old = {r["kind"]: r for r in rules if r.get("code") == code}
     others = [r for r in rules if r.get("code") != code]
-    mine = [{**{"code": code, "created_at": old.get(r["kind"], {}).get("created_at") or now}, **r} for r in new]
+    mine = []
+    for r in new:
+        was = old.get(r["kind"], {})
+        rule = {"code": code, "created_at": was.get("created_at") or now, **r}
+        if was.get("keep"):
+            rule["keep"] = True
+        mine.append(rule)
     return others + mine
+
+
+def set_keep(rules: list[dict], code: str, kind: str, keep: bool) -> Optional[list[dict]]:
+    """The stored list with one rule marked "keep on" (or not), None when the
+    reader has no such rule. A kept rule stays on before older ones when a
+    free reader is past the cap (`active_rules`)."""
+    code = code.upper()
+    out, found = [], False
+    for r in rules:
+        if r.get("code") == code and r.get("kind") == kind:
+            found = True
+            r = {k: v for k, v in r.items() if k != "keep"}
+            if keep:
+                r["keep"] = True
+        out.append(r)
+    return out if found else None
 
 
 def active_rules(rules: list[dict], limit: Optional[int], armed_alerts: int) -> tuple[list[dict], list[dict]]:
     """(active, paused). Without a cap every rule is active; with one, the
-    oldest rules up to the cap less the armed price alerts are."""
+    rules the reader marked "keep on" first, then the oldest, up to the cap
+    less the armed price alerts."""
     if limit is None:
         return list(rules), []
     room = max(0, limit - armed_alerts)
-    ordered = sorted(rules, key=lambda r: str(r.get("created_at") or ""))
+    ordered = sorted(rules, key=lambda r: (not r.get("keep"), str(r.get("created_at") or "")))
     return ordered[:room], ordered[room:]
 
 

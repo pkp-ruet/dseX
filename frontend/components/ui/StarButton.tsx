@@ -11,6 +11,8 @@ import {
 import { isLoggedIn } from "@/lib/auth";
 import { toast } from "@/lib/toast";
 import { T } from "@/components/i18n/T";
+import { watchItAction } from "@/components/watch-rules/watchItAction";
+import { loadWatchRules } from "@/components/watch-rules/store";
 import { useLang } from "@/context/LangContext";
 
 interface Props {
@@ -49,6 +51,7 @@ export default function StarButton({ code, size = "sm", className = "" }: Props)
       router.push(`/register?save=${code.toUpperCase()}&next=${next}`);
       return;
     }
+    loadWatchRules();
     toggleWatchlist(code).then((nowWatched) => {
       if (nowWatched === "limit") return; // free cap — the limit notice is already up
       setWatched(nowWatched);
@@ -61,7 +64,7 @@ export default function StarButton({ code, size = "sm", className = "" }: Props)
         ),
         tone: nowWatched ? "success" : "neutral",
         action: nowWatched
-          ? { label: <T en="View" bn="দেখুন" />, onClick: () => router.push("/watchlist") }
+          ? watchItAction(c, null, "follow") ?? { label: <T en="View" bn="দেখুন" />, onClick: () => router.push("/watchlist") }
           : undefined,
       });
     });

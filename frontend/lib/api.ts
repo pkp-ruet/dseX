@@ -1010,6 +1010,8 @@ export interface WatchRule {
   value?: number;
   /** Past the reader's cap (shared with armed price alerts): kept, not checked. */
   paused?: boolean;
+  /** "Keep on": stays on before older rules when a free reader is past the cap. */
+  keep?: boolean;
 }
 
 export interface WatchRulesState {
@@ -1030,6 +1032,15 @@ export async function apiSetWatchRules(code: string, rules: { kind: string; valu
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ rules }),
+  });
+}
+
+/** Mark one rule "keep on" (or not). Never adds a rule, so never hits the cap. */
+export async function apiKeepWatchRule(code: string, kind: string, keep: boolean): Promise<WatchRulesState> {
+  return apiAuthFetch<WatchRulesState>("/api/user/watch-rules/keep", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code, kind, keep }),
   });
 }
 

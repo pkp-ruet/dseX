@@ -44,6 +44,19 @@ def test_the_cap_is_shared_with_price_alerts_and_oldest_rules_stay_on():
     assert wr.over_limit(2, 4, 3) and not wr.over_limit(5, 4, 3) and not wr.over_limit(1, 9, None)
 
 
+def test_kept_rules_stay_on_before_older_ones_and_survive_a_save():
+    rules = [{"code": "A", "kind": "results", "created_at": "1"}, {"code": "B", "kind": "results", "created_at": "2"},
+             {"code": "C", "kind": "dividend", "created_at": "3"}]
+    kept = wr.set_keep(rules, "c", "dividend", True)
+    active, paused = wr.active_rules(kept, 3, armed_alerts=1)
+    assert [r["code"] for r in active] == ["C", "A"] and [r["code"] for r in paused] == ["B"]
+    assert wr.set_keep(rules, "C", "results", True) is None
+    assert "keep" not in wr.set_keep(kept, "C", "dividend", False)[2]
+    saved = wr.replace_code(kept, "C", [{"kind": "dividend"}, {"kind": "results"}], "now")
+    c = {r["kind"]: r for r in saved if r["code"] == "C"}
+    assert c["dividend"].get("keep") is True and "keep" not in c["results"]
+
+
 def test_next_trading_day_skips_friday_and_saturday():
     assert wr.next_trading_day(date(2026, 11, 26)) == date(2026, 11, 29)  # Thu -> Sun
     assert wr.next_trading_day(TODAY) == date(2026, 11, 23)

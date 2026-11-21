@@ -28,6 +28,12 @@ class RuleIn(BaseModel):
     value: float | None = Field(default=None, ge=0, le=100, allow_inf_nan=False)
 
 
+class KeepIn(BaseModel):
+    code: str = Field(max_length=20)
+    kind: str = Field(max_length=30)
+    keep: bool
+
+
 class RulesIn(BaseModel):
     rules: list[RuleIn] = Field(default_factory=list, max_length=len(wr.KINDS))
 
@@ -53,6 +59,7 @@ def _out(rules: list[dict], user: dict, armed: int) -> dict:
     paused_keys = {(r["code"], r["kind"]) for r in paused}
     return {
         "rules": [{"code": r["code"], "kind": r["kind"], **({"value": r["value"]} if "value" in r else {}),
+                   "keep": bool(r.get("keep")),
                    "paused": (r["code"], r["kind"]) in paused_keys} for r in rules],
         "limit": limit,
         "used": len(rules) + armed,
@@ -63,6 +70,20 @@ def _out(rules: list[dict], user: dict, armed: int) -> dict:
 @router.get("")
 def list_rules(current_user: dict = Depends(get_current_user)):
     return _out(_stored(current_user), current_user, _armed(current_user["user_id"]))
+
+
+@router.post("/keep")
+def keep_rule(body: KeepIn, current_user: dict = Depends(get_current_user)):
+    """Mark one rule "keep on": past a free reader's cap, kept rules stay on
+    before older ones. It never adds a rule, so it needs no limit check."""
+    code = _clean(body.code)
+    if body.kind not in wr.KINDS:
+        raise HTTPException(status_code=400, detail="bad_kind")
+    rules = wr.set_keep(_stored(current_user), code, body.kind, body.keep)
+    if rules is None:
+        raise HTTPException(status_code=404, detail="no_rule")
+    get_db().users.update_one({"user_id": current_user["user_id"]}, {"$set": {"watch_rules": rules}})
+    return _out(rules, current_user, _armed(current_user["user_id"]))
 
 
 @router.put("/{code}")
