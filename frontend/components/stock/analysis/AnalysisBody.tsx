@@ -42,6 +42,7 @@ export default function AnalysisBody({
           code={code}
           answer={report.answer}
           view={report.view ?? null}
+          split={report.split ?? null}
           alternatives={report.sections.alternatives}
           ltp={ltp}
           w52High={latest_price.w52_high}

@@ -6,8 +6,44 @@ import { ToneChip, money, tx } from "@/components/stock/report/fmt";
 import { AnalysisList } from "@/components/stock/analysis/AnalysisPart";
 import {
   CONCLUSION_ALIASES, CONCLUSION_ID,
-  type AlternativesSection, type ReportView, type StockAnswer,
+  type AlternativesSection, type BuySellSplit, type ReportView, type StockAnswer,
 } from "@/lib/stock-report";
+
+const SIDE_MARK = { for: "✓", against: "✕", even: "–" } as const;
+
+/** Buy / Sell split: one bar, what weighs on each side, what it is not. */
+function SplitBar({ split }: { split: BuySellSplit }) {
+  const { buy, sell } = split;
+  return (
+    <div className="an-split">
+      <div className="an-split-nums nums">
+        <span className="an-split-buy"><T en={`Buy ${buy}`} bn={`কেনা ${buy}`} /></span>
+        <span className="an-split-sell"><T en={`Sell ${sell}`} bn={`বিক্রি ${sell}`} /></span>
+      </div>
+      <div className="an-split-bar" role="img" aria-label={`Buy ${buy}, Sell ${sell}`}>
+        <span className="an-split-fill" style={{ width: `${buy}%` }} />
+      </div>
+      <p className="an-split-line">{tx(split.line)}</p>
+      {split.factors.length > 0 && (
+        <ul className="an-split-parts">
+          {split.factors.map((f) => (
+            <li key={f.key} className="an-split-part" data-side={f.side}>
+              <span aria-hidden="true" className="an-split-mark">{SIDE_MARK[f.side]}</span>
+              <span className="an-split-name">{tx(f.name)}</span>
+              <span className="an-split-word">{tx(f.word)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="an-split-note">
+        <T
+          en="How our analysis weighs today, kept in line with our answer: the company counts half, the price under a third, safety the rest. It is not the chance of making a profit."
+          bn="আজ আমাদের বিশ্লেষণ কোন দিকে কতটা ঝুঁকছে, আমাদের উত্তরের সঙ্গে মিলিয়ে: কোম্পানির ওজন অর্ধেক, দামের এক-তৃতীয়াংশের কম, বাকিটা নিরাপত্তার। এটি মুনাফা হওয়ার সম্ভাবনা নয়।"
+        />
+      </p>
+    </div>
+  );
+}
 
 /**
  * Our conclusion (2026-11-05, user: the analysis must not open with "Should
@@ -21,6 +57,7 @@ export default function ConclusionCard({
   code,
   answer,
   view,
+  split,
   alternatives,
   ltp,
   w52High,
@@ -29,6 +66,7 @@ export default function ConclusionCard({
   code: string;
   answer: StockAnswer;
   view: ReportView | null;
+  split?: BuySellSplit | null;
   alternatives?: AlternativesSection;
   ltp: number | null;
   w52High?: number | null;
@@ -56,6 +94,7 @@ export default function ConclusionCard({
       </div>
       <p className="an-concl-line">{tx(answer.line)}</p>
       {answer.history && <p className="an-concl-since">{tx(answer.history.line)}</p>}
+      {split && <SplitBar split={split} />}
 
       {view && (view.for.length > 0 || view.against.length > 0) && (
         <div className="an-cases">

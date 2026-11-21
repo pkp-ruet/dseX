@@ -4637,6 +4637,9 @@ def build_report(inp: dict) -> dict:
     # built from the sections while they still carry their working fields.
     from backend.services.stock_analysis import build_analysis
     analysis = build_analysis(inp, work, answer)
+    # Buy / Sell split (2026-11-22): the analysis weighed, inside the answer's band.
+    from backend.services.buy_sell_split import build_split
+    split = build_split(inp, work, answer, analysis)
     summary = build_summary(work, inp)
     offer = build_offer(work)
     events = build_events(inp)
@@ -4652,6 +4655,7 @@ def build_report(inp: dict) -> dict:
                             "একটি শক্তির দিক, দাম নিয়ে একটি মত আর একটি সতর্কতা, এই শেয়ারের জন্য লেখা।"),
         "answer": answer,
         "analysis": analysis,
+        "split": split,
         "reads": reads,
         "view": view,
         "scorecard": scorecard,

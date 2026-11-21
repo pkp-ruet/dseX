@@ -503,6 +503,29 @@ export interface StockAnalysis {
   parts: AnalysisPart[];
 }
 
+/**
+ * Buy / Sell split (2026-11-22, backend `services/buy_sell_split.py`): the six
+ * parts of our analysis weighed (company 50 · price 30 · safety 20), placed
+ * inside our answer's band so it never disagrees with it (Buy 70–95 · Not yet
+ * 45–65 · No reason to buy 30–40 · Avoid 5–25, steps of 5). Premium, in the
+ * conclusion card. Never a chance of a gain.
+ */
+export interface BuySellSplit {
+  buy: number;
+  sell: number;
+  factors: {
+    key: PartKey;
+    name: Bi;
+    word: Bi;
+    tone: Tone;
+    /** Its weight out of 100. */
+    weight: number;
+    side: "for" | "against" | "even";
+  }[];
+  /** "For buying: price, safety and profit. Against it: dividend record." */
+  line: Bi;
+}
+
 /** The analysis's anchors (and the old ones that land there — pushes, the
  *  results feed, stories and old bookmarks link to them). */
 export const ANALYSIS_ID = "ch-analysis";
@@ -528,6 +551,8 @@ export interface StockReport {
   /** Our analysis (2026-11-05): the grade, a few sentences, six parts. The
    *  page's report is built from it; older backends send none. */
   analysis?: StockAnalysis | null;
+  /** Buy / Sell split for the conclusion card (Premium); older backends send none. */
+  split?: BuySellSplit | null;
   /** One written read per chapter: its answers put together, 2–3 plain
    *  sentences (Premium). */
   reads?: Partial<Record<ReadChapter, Bi>>;
