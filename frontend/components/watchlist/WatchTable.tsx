@@ -14,6 +14,7 @@ import Button from "@/components/ui/Button";
 import TierPill from "@/components/ui/TierPill";
 import { IconArrowRight, IconChevronDown } from "@/components/ui/icons";
 import WatchlistAlertCell from "./WatchlistAlertCell";
+import WatchRulesButton from "@/components/watch-rules/WatchRulesButton";
 import { UpdateRow } from "./WatchUpdates";
 
 /*
@@ -167,6 +168,7 @@ function Drawer({ row, bn, onRemove }: { row: WatchRow; bn: boolean; onRemove: (
         </Link>
         <span className="wl-spacer" />
         <WatchlistAlertCell code={code} ltp={item.ltp} w52High={hi} w52Low={lo} />
+        <WatchRulesButton code={code} name={companyShort(item.company_name) || code} />
         <Button
           type="button"
           variant="quiet"

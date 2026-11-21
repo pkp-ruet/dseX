@@ -123,7 +123,10 @@ def shares_part(held: dict[str, int], watched: set[str], moves: dict[str, float]
             anchor = watch._STOCK_ANCHOR.get(e.get("kind"))
             url = f"/stock/{code}" + (f"#{anchor}" if anchor else "") if code else None
             tone = "bad" if e.get("level") == "bad" else "good" if e.get("level") == "good" else "neutral"
-            lines.append(line(e.get("title_en") or "", e.get("title_bn") or e.get("title_en") or "", url, tone, code or None))
+            # Which share and what happened is Premium (THE Premium line, step
+            # 3); the count line above stays free.
+            lines.append({**line(e.get("title_en") or "", e.get("title_bn") or e.get("title_en") or "", url, tone,
+                                 code or None), "premium": True})
     elif mine:
         lines.append(line("Nothing new from the companies themselves this week.",
                           "এ সপ্তাহে কোম্পানিগুলোর দিক থেকে নতুন কিছু আসেনি।"))
@@ -309,8 +312,16 @@ def push_payload(letter: dict, lang: str = "bn", premium: bool = False) -> Optio
         return None
     bn = lang != "en"
     k = "bn" if bn else "en"
-    body = " ".join(ln[k] for ln in shares["lines"][:2])
+    lines = [ln for ln in shares["lines"] if premium or not ln.get("premium")]
+    if not lines:
+        return None
+    body = " ".join(ln[k] for ln in lines[:2])
     if not premium:
-        body += " " + ("আরও 3টি অংশ প্রিমিয়ামে।" if bn else "3 more parts with Premium.")
+        # A free reader's one push a week (THE Premium line, step 3).
+        if any(ln.get("premium") for ln in shares["lines"]):
+            body += " " + ("কোন শেয়ারে কী হয়েছে, আর সেদিনই জানতে, প্রিমিয়াম।" if bn
+                           else "Which shares, what each means, and hearing it the same evening: Premium.")
+        else:
+            body += " " + ("আরও 3টি অংশ প্রিমিয়ামে।" if bn else "3 more parts with Premium.")
     return {"title": "আপনার সাপ্তাহিক চিঠি" if bn else "Your weekly letter",
             "body": body[:300], "url": "/notifications?src=letter#letter", "tag": "letter"}

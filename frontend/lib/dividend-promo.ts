@@ -1,15 +1,24 @@
 /**
  * What the dividend calendar's Premium card says (2026-11-04; made simple
- * 2026-11-05, user: the card should be about finding the dividends coming
- * next, "more simple and easy to understand", no risk check). Pure: built on
- * the server from the calendar the page already fetched, so the card is in
- * the first paint.
- *
- * Counts and dates, plus ONE free example: the next cash record date in full
- * (company, cash a share, last day to buy) so a free reader sees exactly what
- * the calendar is.
+ * 2026-11-05; THE Premium line step 2, 2026-11-22: the next 7 days of record
+ * dates are free for everyone above the card, so the card no longer carries a
+ * free example — it counts what lies past the week, and the reader's own
+ * dividends are worked out in the browser). Pure: built on the server from
+ * the calendar the page already fetched, so the card is in the first paint.
  */
-import type { DividendCalendarData } from "@/lib/api";
+import type { CorporateActionEvent, DividendCalendarData } from "@/lib/api";
+import { freeN } from "@/lib/premium-line";
+
+/** Days of record dates a free reader sees in full (THE Premium line: the
+ *  calendar's `week` shape). */
+export const FREE_WEEK_DAYS = freeN("dividend_calendar") || 7;
+
+/** The free week: dividend-paying record dates from today to `FREE_WEEK_DAYS` ahead. */
+export function weekEvents(events: CorporateActionEvent[]): CorporateActionEvent[] {
+  return events.filter(
+    (e) => !e.is_no_dividend && e.record_days_left != null && e.record_days_left >= 0 && e.record_days_left <= FREE_WEEK_DAYS,
+  );
+}
 
 /** How many declarations the calendar's "Just declared" tab shows. */
 export const RECENT_LIMIT = 12;
@@ -44,19 +53,6 @@ export function groupDays(rows: DayInput[]): PromoDay[] {
   return [...byDay.values()].sort((a, b) => a.date.localeCompare(b.date));
 }
 
-/** The card's free example: the next cash record date, in full. */
-export type PromoSample = {
-  code: string;
-  name: string;
-  date: string;
-  daysLeft: number | null;
-  buyBy: string | null;
-  buyDaysLeft: number | null;
-  cash: number;
-  yieldPct: number | null;
-  type: string | null;
-};
-
 export type CalendarPromo = {
   today: string;
   /** Cash record dates ahead (the backend looks 120 days out). */
@@ -70,7 +66,8 @@ export type CalendarPromo = {
   comingNext: number;
   bestYield: number | null;
   days: PromoDay[];
-  sample: PromoSample | null;
+  /** Dividend-paying record dates after the free week. */
+  after: number;
 };
 
 export function buildCalendarPromo(data: DividendCalendarData): CalendarPromo {
@@ -82,11 +79,6 @@ export function buildCalendarPromo(data: DividendCalendarData): CalendarPromo {
       .filter((e) => e.record_days_left != null && e.record_days_left <= PROMO_DAYS)
       .map((e) => ({ date: e.record_date as string, cash: e.cash_per_share ?? 0 })),
   );
-
-  // The example: the soonest record date whose last day to buy is still open,
-  // else the soonest one ahead.
-  const byDate = [...ahead].sort((a, b) => (a.record_date as string).localeCompare(b.record_date as string));
-  const pick = byDate.find((e) => e.buy_days_left != null && e.buy_days_left >= 0) ?? byDate[0] ?? null;
 
   return {
     today: data.today,
@@ -101,18 +93,8 @@ export function buildCalendarPromo(data: DividendCalendarData): CalendarPromo {
     comingNext: (data.forecast ?? []).length,
     bestYield: data.stats.top_yield_pct,
     days,
-    sample: pick
-      ? {
-          code: pick.trading_code.toUpperCase(),
-          name: pick.company_name || pick.trading_code,
-          date: pick.record_date as string,
-          daysLeft: pick.record_days_left,
-          buyBy: pick.buy_by,
-          buyDaysLeft: pick.buy_days_left,
-          cash: pick.cash_per_share as number,
-          yieldPct: pick.yield_pct,
-          type: pick.dividend_type,
-        }
-      : null,
+    after: data.record_dates.filter(
+      (e) => !e.is_no_dividend && e.record_days_left != null && e.record_days_left > FREE_WEEK_DAYS,
+    ).length,
   };
 }

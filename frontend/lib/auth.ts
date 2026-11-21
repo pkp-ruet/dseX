@@ -5,6 +5,16 @@ const USER_KEY = "dsex.auth.user";
  *  AuthContext, the watchlist and the alert store listen. */
 export const AUTH_LOGOUT_EVENT = "dsex:auth-logout";
 
+/** THE Premium line, step 6: once per account, the "your shares" layer opens
+ *  for 7 days (backend `taste.state`). */
+export interface TasteState {
+  started: string;
+  until: string;
+  active: boolean;
+  /** 7 on the first day, 1 on the last, 0 once it ended. */
+  days_left: number;
+}
+
 export interface AuthUser {
   user_id: string;
   email: string | null;
@@ -28,6 +38,10 @@ export interface AuthUser {
   paid_plan?: string | null;
   /** null = unlimited. */
   limits?: { watchlist: number | null; holdings?: number | null; alerts: number | null; ai_daily: number | null; portfolios?: number | null; custom_lists?: number | null; compare?: number | null };
+  /** The 7-day taste of the "your shares" layer (backend/services/taste.py), or null. */
+  taste?: TasteState | null;
+  /** Premium or the taste: Updates in full, same-evening pushes, the brief, watch rules past 3. */
+  shares_open?: boolean;
   /** Ten full stock analyses a month for a free reader, opened by the stock page itself (backend/services/report_keys.py). */
   report_keys?: ReportKeys;
   /** The reader's own ৳99 month (backend `payments.offer_state`), or null

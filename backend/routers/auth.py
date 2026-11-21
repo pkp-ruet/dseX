@@ -228,7 +228,9 @@ def google_sign_in(body: GoogleAuthRequest):
 
 @router.get("/me")
 def get_me(current_user: dict = Depends(get_current_user)):
-    return {"user": public_user(current_user)}
+    from backend.services.taste_service import maybe_start
+
+    return {"user": public_user(maybe_start(current_user))}
 
 
 @router.post("/ping")
@@ -240,6 +242,9 @@ def ping(
     now = datetime.now(timezone.utc)
     uid = current_user["user_id"]
     db = get_db()
+    # THE Premium line, step 6: a reader with shares starts their 7-day taste.
+    from backend.services.taste_service import maybe_start
+    maybe_start(current_user)
     # Critical path first: liveness counter + last-seen timestamp.
     db["users"].update_one(
         {"user_id": uid},

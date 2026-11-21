@@ -21,6 +21,7 @@ import StickySummaryBar from "@/components/stock/StickySummaryBar";
 import { type NavSection } from "@/components/stock/StockSectionNav";
 import StockVisitTracker from "@/components/analytics/StockVisitTracker";
 import StockLockScope from "@/components/premium/LockScope";
+import { isShowcase } from "@/lib/premium-line";
 import ReportGate from "@/components/stock/report/ReportGate";
 import PremiumPromo from "@/components/stock/report/PremiumPromo";
 import RallyBanner from "@/components/stock/report/RallyBanner";
@@ -168,12 +169,17 @@ export default async function StockDetailPage({ params }: PageProps) {
     "@type": "WebPage",
     name: `${name} (${profile.trading_code}) share price and analysis`,
     url: `${BASE}/stock/${code}`,
-    isAccessibleForFree: false,
-    hasPart: {
-      "@type": "WebPageElement",
-      isAccessibleForFree: false,
-      cssSelector: ".premium-locked",
-    },
+    // The five showcase shares are free to read in full (step 6).
+    ...(isShowcase(profile.trading_code)
+      ? { isAccessibleForFree: true }
+      : {
+          isAccessibleForFree: false,
+          hasPart: {
+            "@type": "WebPageElement",
+            isAccessibleForFree: false,
+            cssSelector: ".premium-locked",
+          },
+        }),
   };
 
   const breadcrumbLd = {
@@ -412,7 +418,12 @@ export default async function StockDetailPage({ params }: PageProps) {
       {/* A signed-in free reader's first 10 shares a month open the whole
           report by themselves (`auto`, 2026-11-08) — only when there is an
           analysis. */}
-      <StockLockScope code={profile.trading_code} anchor="ch-premium" auto={!!(report && analysis)}>
+      <StockLockScope
+        code={profile.trading_code}
+        anchor="ch-premium"
+        auto={!!(report && analysis)}
+        showcase={isShowcase(profile.trading_code)}
+      >
       {/* The cover (free): name, price, our grade, quick facts. Then OUR
           ANALYSIS in one card for a reader with the report, or the one
           Premium card for a reader without it (2026-11-05: above the chart). */}

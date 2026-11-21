@@ -13,12 +13,22 @@
 import { useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { type AuthUser, getStoredUser } from "@/lib/auth";
+import { freeN } from "@/lib/premium-line";
 
-/** Mirrors backend `FREE_LIMITS` — used only when a cached user predates the
- *  plan fields; the server value always wins once /me has refreshed.
- *  Watchlist 5 since 2026-10-30. Holdings (shares in one portfolio): no free
- *  cap since 2026-11-02 (was 7), only `MAX_HOLDINGS` for everyone. */
-export const FREE_LIMITS = { watchlist: 5, holdings: null, alerts: 3, ai_daily: 10, portfolios: 1, custom_lists: 0, compare: 2 } as const;
+/** Mirrors backend `FREE_LIMITS`, read from THE Premium line
+ *  (`lib/premium-line.ts`) — used only when a cached user predates the plan
+ *  fields; the server value always wins once /me has refreshed. Holdings
+ *  (shares in one portfolio): no free cap since 2026-11-02, only
+ *  `MAX_HOLDINGS` for everyone. Alerts = the line's watch rules. */
+export const FREE_LIMITS = {
+  watchlist: freeN("watchlist"),
+  holdings: null,
+  alerts: freeN("watch_rules"),
+  ai_daily: freeN("ai"),
+  portfolios: freeN("portfolios"),
+  custom_lists: freeN("saved_screens"),
+  compare: freeN("compare"),
+} satisfies Record<string, number | null>;
 
 export type LimitKind = keyof typeof FREE_LIMITS;
 
@@ -37,9 +47,19 @@ export function userIsPremium(user: AuthUser | null | undefined): boolean {
   return new Date(user.premium_until).getTime() > Date.now();
 }
 
+/** THE Premium line's "your shares" layer is open: Premium, or the 7-day
+ *  taste (recomputed from its end date so it closes without a reload). */
+export function userSharesOpen(user: AuthUser | null | undefined): boolean {
+  if (userIsPremium(user)) return true;
+  const until = user?.taste?.until;
+  return !!until && new Date(until).getTime() > Date.now();
+}
+
 export function limitFor(user: AuthUser | null | undefined, kind: LimitKind): number | null {
   if (userIsPremium(user)) return null;
-  return user?.limits?.[kind] ?? FREE_LIMITS[kind];
+  // A null from the server means no cap (the 7-day taste lifts the rule cap).
+  const lim = user?.limits;
+  return lim && kind in lim ? (lim[kind] ?? null) : FREE_LIMITS[kind];
 }
 
 /** Same read for code outside React (lib/watchlist.ts, lib/price-alerts.ts). */
@@ -84,6 +104,9 @@ export function usePremium() {
     isLoading,
     state,
     premiumUntil: user?.premium_until ?? null,
+    /** Premium or the 7-day taste: the "your shares" layer is open. */
+    sharesOpen: userSharesOpen(user),
+    taste: user?.taste ?? null,
     premiumSource: user?.premium_source ?? null,
     paidPlan: user?.paid_plan ?? null,
     daysLeft: daysLeft(user),

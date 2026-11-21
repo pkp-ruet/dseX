@@ -23,6 +23,8 @@ export default function AnalysisBadge() {
       <IconCrown size={13} />
       {isPremium ? (
         <T en="Premium" bn="প্রিমিয়াম" />
+      ) : scope?.reason === "showcase" ? (
+        <T en="Free to read for everyone" bn="সবার জন্য ফ্রি" />
       ) : keys && keys.used > 0 ? (
           <T
             en={`Free analysis · ${Math.min(keys.used, keys.per_month)} of ${keys.per_month} this month`}

@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/icons";
 import PremiumPlanCta from "@/components/premium/PremiumPlanCta";
 import PremiumContextCard from "@/components/premium/PremiumContextCard";
+import PremiumPromises from "@/components/premium/PremiumPromises";
 import PayBox from "@/components/premium/PayBox";
 import PaymentHelp from "@/components/premium/PaymentHelp";
 import { useLang } from "@/context/LangContext";
@@ -93,6 +94,9 @@ export default function PremiumBody() {
       </section>
 
       <PremiumContextCard />
+
+      {/* 2 · The three promises, in the reader's own figures (step 7) */}
+      <PremiumPromises />
 
       {/* 2 · The list: one row per feature, with what the free plan gets */}
       <section aria-labelledby="list-h" id="what" className="pm-section scroll-mt-24">

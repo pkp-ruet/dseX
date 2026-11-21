@@ -186,23 +186,30 @@ def _grade_changes() -> dict[str, dict]:
     return changes
 
 
-def _facts(held_codes: set[str], today, followed_codes: Optional[set[str]] = None) -> dict:
+def _facts(held_codes: set[str], today, followed_codes: Optional[set[str]] = None,
+           rule_codes: Optional[set[str]] = None) -> dict:
     """Everything the watcher needs. `held_codes` = stocks someone holds;
-    `followed_codes` = held ∪ watched (results + grade changes cover both)."""
+    `followed_codes` = held ∪ watched (results + grade changes cover both);
+    `rule_codes` = shares someone has a watch rule on (THE Premium line,
+    step 4) — they join the followed set and get the rule-only facts."""
     from backend.services.corporate_actions_service import build_dividend_calendar
     from backend.services.db_service import load_52w_ranges, load_companies, load_latest_prices
     from utils.sector import normalize_sector
 
-    followed_codes = set(followed_codes or ()) | set(held_codes)
+    rule_codes = set(rule_codes or ())
+    followed_codes = set(followed_codes or ()) | set(held_codes) | rule_codes
 
     prices = load_latest_prices()
     trade_day = _trade_day(prices)
     record = {}
+    buy_rows: dict[str, list] = {}
     try:
         for row in build_dividend_calendar().get("record_dates") or []:
             code = row.get("trading_code")
             if code in held_codes and code not in record:
                 record[code] = row
+            if code in rule_codes:
+                buy_rows.setdefault(code, []).append(row)
     except Exception:  # noqa: BLE001 — one source failing drops one kind of event
         log.warning("calendar read failed", exc_info=True)
     results, rows, before, sector_class = {}, {}, {}, {}
@@ -249,7 +256,7 @@ def _facts(held_codes: set[str], today, followed_codes: Optional[set[str]] = Non
         lows = {}
     try:
         from backend.services.db_service import load_ex_day_moves
-        ex_moves = {c: m for c, m in load_ex_day_moves().items() if c in held_codes}
+        ex_moves = {c: m for c, m in load_ex_day_moves().items() if c in held_codes or c in rule_codes}
     except Exception:  # noqa: BLE001
         log.warning("ex-day moves read failed", exc_info=True)
         ex_moves = {}
@@ -277,7 +284,53 @@ def _facts(held_codes: set[str], today, followed_codes: Optional[set[str]] = Non
     return {"prices": prices, "trade_day": trade_day, "record": record, "results": results, "rows": rows,
             "score_before": before, "sector_class": sector_class, "grades": grades,
             "category": category, "lows": lows, "red_flags": red_flags,
-            "answers": answers, "buylist": buylist, "prior": prior, "ex_moves": ex_moves}
+            "answers": answers, "buylist": buylist, "prior": prior, "ex_moves": ex_moves,
+            **_rule_facts(rule_codes, today), "buy_rows": buy_rows}
+
+
+def _rule_facts(codes: set[str], today) -> dict:
+    """What only watch rules read: dividends declared in the last few days
+    (with the same kind of dividend before it, for "cut or skipped") and
+    founder / director sale announcements."""
+    from backend.services import watch_rules as wr
+
+    declared: dict = {}
+    prev: dict = {}
+    sells: dict = {}
+    out = {"declared": declared, "dividend_prev": prev, "insider_sells": sells}
+    if not codes:
+        return out
+    since = datetime.combine(today - timedelta(days=wr.FRESH_DAYS), datetime.min.time())
+    try:
+        from backend.services.db_service import OWN_DIVIDENDS
+        col = get_db()["dividend_declarations"]
+        query = {**OWN_DIVIDENDS, "trading_code": {"$in": sorted(codes)}, "declaration_date": {"$gte": since}}
+        for d in col.find(query, {"_id": 0}).sort("declaration_date", -1):
+            code = d.get("trading_code")
+            if code in declared:
+                continue
+            declared[code] = d
+            before = col.find_one(
+                {**OWN_DIVIDENDS, "trading_code": code, "dividend_type": d.get("dividend_type"),
+                 "declaration_date": {"$lt": d.get("declaration_date")}},
+                {"_id": 0, "cash_pct": 1}, sort=[("declaration_date", -1)])
+            if before:
+                prev[code] = before
+    except Exception:  # noqa: BLE001
+        log.warning("rule dividend read failed", exc_info=True)
+    try:
+        from backend.services.notices import load_company_notices
+        cutoff = today - timedelta(days=wr.FRESH_DAYS)
+        for code in sorted(codes):
+            for r in load_company_notices(code).get("insider_raw") or []:
+                pd = r.get("post_date")
+                pd = pd.date() if isinstance(pd, datetime) else pd
+                if r.get("side") == "sell" and r.get("kind") == "declaration" and pd and pd >= cutoff:
+                    sells[code] = {**r, "post_date": pd.isoformat()}
+                    break
+    except Exception:  # noqa: BLE001
+        log.warning("rule insider read failed", exc_info=True)
+    return out
 
 
 def _prior_closes(held_codes: set[str], trade_day: str,
@@ -430,10 +483,11 @@ def run_portfolio_daily(not_before_dhaka_hour: Optional[int] = None) -> dict:
     users_col = get_db()["users"]
     fields = {"_id": 0, "user_id": 1, "email": 1, "portfolio": 1, "portfolio_log": 1,
               "extra_portfolios": 1, "premium_until": 1, "push_enabled": 1,
-              "notification_prefs": 1, "watchlist": 1, "portfolio_settings": 1}
+              "notification_prefs": 1, "watchlist": 1, "portfolio_settings": 1, "watch_rules": 1,
+              "email_verified": 1, "created_at": 1, "taste_started_at": 1, "trial_started_at": 1}
     users = list(users_col.find(
         {"$or": [{"portfolio.0": {"$exists": True}}, {"extra_portfolios.holdings.0": {"$exists": True}},
-                 {"watchlist.0": {"$exists": True}}]},
+                 {"watchlist.0": {"$exists": True}}, {"watch_rules.0": {"$exists": True}}]},
         fields,
     ))
     counts = {"users": len(users), "actions": 0, "snapshots": 0, "events": 0,
@@ -508,7 +562,24 @@ def run_portfolio_daily(not_before_dhaka_hour: Optional[int] = None) -> dict:
         per_user_watched[uid] = watched
         followed_all.update(watched)
 
-    facts = _facts(held_all, today, held_all | followed_all)
+    # Watch rules (THE Premium line, step 4): each reader's own, the active
+    # ones up to their cap (shared with armed price alerts), the rest paused.
+    from backend.services import watch_rules as wr
+    armed_by_user = {d["_id"]: d["n"] for d in get_db()["price_alerts"].aggregate([
+        {"$match": {"is_active": True}}, {"$group": {"_id": "$user_id", "n": {"$sum": 1}}}])}
+    per_user_rules: dict[str, tuple[list, list]] = {}
+    rule_all: set[str] = set()
+    for u in users:
+        uid = u.get("user_id")
+        rules = [r for r in u.get("watch_rules") or []
+                 if isinstance(r, dict) and r.get("code") and r.get("kind") in wr.KINDS]
+        if not uid or not rules:
+            continue
+        limit = entitlements.limits_for(u, now)["alerts"]
+        per_user_rules[uid] = wr.active_rules(rules, limit, armed_by_user.get(uid, 0))
+        rule_all.update(str(r["code"]).upper() for r in rules)
+
+    facts = _facts(held_all, today, held_all | followed_all, rule_all)
     push_ok = push_service.is_configured()
     sends = get_db()["push_sends"]
 
@@ -518,11 +589,17 @@ def run_portfolio_daily(not_before_dhaka_hour: Optional[int] = None) -> dict:
             continue
         held = per_user_held.get(uid) or {}
         watched = per_user_watched.get(uid) or set()
-        if not held and not watched:
+        active, paused = per_user_rules.get(uid) or ([], [])
+        if not held and not watched and not active and not paused:
             continue
+        built = watch.build_events(held, facts, day, watched, per_user_cost.get(uid),
+                                   per_user_since.get(uid), per_user_fee.get(uid))
+        fired = wr.evaluate(active, facts, day, today, built, paused)
+        # A rule that says what the watcher would say replaces its event.
+        cov = wr.covered(fired)
+        built = [e for e in built if (e.get("code"), e.get("kind")) not in cov]
         fresh = []
-        for e in watch.build_events(held, facts, day, watched, per_user_cost.get(uid),
-                                    per_user_since.get(uid), per_user_fee.get(uid)):
+        for e in built + fired:
             res = _events().update_one(
                 {"user_id": uid, "id": e["id"]},
                 {"$setOnInsert": {**e, "user_id": uid, "created_at": now}},
@@ -531,7 +608,12 @@ def run_portfolio_daily(not_before_dhaka_hour: Optional[int] = None) -> dict:
             if res.upserted_id is not None:
                 fresh.append(e)
         counts["events"] += len(fresh)
-        free = _mark_free(uid, fresh, day) if fresh else None
+        counts["rules"] = counts.get("rules", 0) + sum(1 for e in fresh if e.get("kind") == "rule")
+        # The week's free event is one of the watcher's: a rule is already open.
+        watcher_fresh = [e for e in fresh if e.get("kind") != "rule"]
+        free = _mark_free(uid, watcher_fresh, day) if watcher_fresh else None
+        # A paused rule never pushes (it is told only in Updates).
+        fresh = [e for e in fresh if not e.get("paused")]
 
         if not (fresh and push_ok):
             continue
@@ -539,8 +621,8 @@ def run_portfolio_daily(not_before_dhaka_hour: Optional[int] = None) -> dict:
         if not (u.get("push_enabled") and prefs.get("portfolio_watch", True)):
             continue
         lang = prefs.get("language", "bn")
-        if entitlements.is_premium(u, now):
-            # The after-close note: several things open the notifications list;
+        if entitlements.shares_open(u, now):
+            # Premium or the 7-day taste (taste.py). The after-close note: several things open the notifications list;
             # a lone result / grade change still opens its card on the stock page.
             campaign_id = f"pwatch-{uid}-{day}"
             payload = after_close_payload(fresh, lang)
@@ -565,6 +647,7 @@ def run_portfolio_daily(not_before_dhaka_hour: Optional[int] = None) -> dict:
         )
 
     counts["recaps"] = _send_trial_recaps(now, day, push_ok)
+    counts["taste_recaps"] = _send_taste_recaps(now, day, push_ok)
     from backend.services.payments import send_renewal_reminders
 
     counts["renewals"] = send_renewal_reminders(now, day, push_ok)
@@ -580,6 +663,44 @@ def run_portfolio_daily(not_before_dhaka_hour: Optional[int] = None) -> dict:
         log.warning("rank alerts failed", exc_info=True)
     log.info("portfolio daily done: %s", counts)
     return counts
+
+
+def _send_taste_recaps(now: datetime, day: str, push_ok: bool) -> int:
+    """Day 6 of the 7-day taste: one push on what it told the reader, and
+    that it closes tomorrow (taste.py)."""
+    from backend.services import push_service, taste
+
+    users_col = get_db()["users"]
+    sent = 0
+    since = now - timedelta(days=taste.TASTE_DAYS)
+    for u in users_col.find(
+        {"taste_started_at": {"$gte": since}, "taste_recap_sent_at": {"$exists": False}},
+        {"_id": 0, "user_id": 1, "taste_started_at": 1, "taste_recap_sent_at": 1,
+         "push_enabled": 1, "notification_prefs": 1, "premium_until": 1},
+    ):
+        if not taste.recap_due(u, now) or u.get("premium_until"):
+            continue
+        uid = u["user_id"]
+        started = u["taste_started_at"]
+        users_col.update_one({"user_id": uid}, {"$set": {"taste_recap_sent_at": now}})
+        prefs = {**push_service.DEFAULT_PREFS, **(u.get("notification_prefs") or {})}
+        if not (push_ok and u.get("push_enabled")):
+            continue
+        events = list(_events().find({"user_id": uid, "created_at": {"$gte": started},
+                                      "kind": {"$nin": list(watch.PREMIUM_ONLY_KINDS)}}, {"_id": 0, "kind": 1}))
+        lang = prefs.get("language", "bn")
+        kinds = watch.digest(events).get("kinds") or []
+        payload = taste.recap_payload(watch.kinds_phrase(kinds, lang), len(events), lang)
+        result = push_service.send_to_user(uid, payload)
+        get_db()["push_sends"].update_one(
+            {"campaign_id": f"taste-{uid}-{day}", "user_id": uid},
+            {"$set": {"campaign_id": f"taste-{uid}-{day}", "user_id": uid,
+                      "status": "sent" if result["sent"] else "failed", "result": result, "sent_at": now}},
+            upsert=True,
+        )
+        if result["sent"]:
+            sent += 1
+    return sent
 
 
 def _send_trial_recaps(now: datetime, day: str, push_ok: bool) -> int:

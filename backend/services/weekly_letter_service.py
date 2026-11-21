@@ -166,7 +166,8 @@ def _email_html(letter: dict, lang: str, user_id: str, premium: bool) -> tuple[s
     bn = lang != "en"
     k = "bn" if bn else "en"
     subject = "আপনার সাপ্তাহিক চিঠি" if bn else "Your weekly letter"
-    parts = [p for p in letter["parts"] if premium or p.get("free")]
+    parts = [p if premium else {**p, "lines": [ln for ln in p.get("lines") or [] if not ln.get("premium")]}
+             for p in letter["parts"] if premium or p.get("free")]
     blocks = []
     for p in parts:
         rows = "".join(
@@ -217,7 +218,7 @@ def wl_tag(url: str) -> str:
 
 _USER_FIELDS = {"_id": 0, "user_id": 1, "email": 1, "name": 1, "portfolio": 1, "extra_portfolios": 1,
                 "watchlist": 1, "premium_until": 1, "email_verified": 1, "created_at": 1,
-                "push_enabled": 1, "notification_prefs": 1, "email_opt_out": 1}
+                "push_enabled": 1, "notification_prefs": 1, "email_opt_out": 1, "taste_started_at": 1}
 
 
 def _readers(email: Optional[str] = None) -> list[dict]:
@@ -294,7 +295,7 @@ def run_letter(force: bool = False, send: bool = True, email: Optional[str] = No
         if prefs.get("weekly_letter", True) is False:
             continue
         lang = prefs.get("language", "bn")
-        premium = entitlements.is_premium(u, now)
+        premium = entitlements.shares_open(u, now)  # Premium or the 7-day taste
         has_device = bool(u.get("push_enabled")) and db["push_subscriptions"].find_one({"user_id": uid}, {"_id": 1})
         if push_ok and has_device:
             if push_sends.find_one({"campaign_id": campaign, "user_id": uid}, {"_id": 1}):

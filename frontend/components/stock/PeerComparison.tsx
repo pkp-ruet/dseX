@@ -11,6 +11,8 @@ import Button from "@/components/ui/Button";
 import { IconCompare } from "@/components/ui/icons";
 import { compareHref, FREE_COMPARE } from "@/lib/compare";
 
+const PEERS_TO_COMPARE = 4;
+
 export interface PeerRow {
   trading_code: string;
   company_name: string | null;
@@ -104,10 +106,10 @@ export default function PeerComparison({ current, peers, sector, note = null }: 
   ] as Col[]).filter((c) => c.show);
   const cell = (c: Col) => `px-2 sm:px-3 ${c.wide ? "hidden sm:table-cell" : ""}`;
 
-  // This share and its first peers, as many as a free account compares.
+  // This share and its first peers: four side by side reads well on a phone.
   const compareCodes = [current.trading_code, ...peers.map((p) => p.trading_code)]
     .filter((c, i, all) => all.indexOf(c) === i)
-    .slice(0, FREE_COMPARE);
+    .slice(0, Math.min(PEERS_TO_COMPARE, FREE_COMPARE));
 
   return (
     <section id="peers" className="mb-8 stock-anchor">

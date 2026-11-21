@@ -63,3 +63,14 @@ def test_a_saved_screen_change_is_one_row_with_its_reasons():
     assert row["url"] == "/screener?tab=saved&list=x1"
     assert [i["level"] for i in row["items"]] == ["good", "watch"]
     assert nt.screen_row({"id": "x1", "joined": [], "left": []}) is None
+
+
+def test_event_row_carries_the_weeks_free_mark():
+    assert event_row({**EV, "free": True})["free"] is True
+    assert event_row(EV)["free"] is False
+
+
+def test_a_fired_rule_opens_where_its_news_is():
+    r = event_row({**EV, "kind": "rule", "rule": "dividend", "paused": True})
+    assert r["url"] == "/stock/GP#dividends" and r["rule"] == "dividend" and r["paused"] is True
+    assert event_row(EV)["rule"] is None

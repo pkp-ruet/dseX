@@ -317,7 +317,7 @@ export default function PremiumPromo({
             {offer ? (
               <T en={`Get your first month for ৳${offer.amount}`} bn={`প্রথম মাস ৳${offer.amount}-এ নিন`} />
             ) : (
-              <T en="Get Premium" bn="প্রিমিয়াম নিন" />
+              <T en="Read our analysis" bn="আমাদের বিশ্লেষণ পড়ুন" />
             )}
           </Button>
         </div>

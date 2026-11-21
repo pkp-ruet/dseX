@@ -38,7 +38,8 @@ def list_reminders(current_user: dict = Depends(get_current_user)):
 @router.post("/{code}")
 def add_reminder(code: str, current_user: dict = Depends(get_current_user)):
     code = _clean(code)
-    if not entitlements.is_premium(current_user):
+    # A "your shares" thing: Premium or the 7-day taste.
+    if not entitlements.shares_open(current_user):
         raise HTTPException(status_code=403, detail=entitlements.LIMIT_DIVIDEND_REMINDERS)
     have = _codes(current_user)
     if code in have:

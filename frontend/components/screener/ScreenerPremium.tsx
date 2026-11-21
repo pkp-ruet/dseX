@@ -40,7 +40,10 @@ export default function ScreenerPremium({
           bn={`${count === 1 ? "এটি" : `সবগুলো`} দেখতে প্রিমিয়াম নিন।`}
         />
       }
-      cta={{ en: "Get Premium", bn: "প্রিমিয়াম নিন" }}
+      cta={{
+        en: count === 1 ? "See the share" : `See the ${count} shares`,
+        bn: count === 1 ? "শেয়ারটি দেখুন" : `${count}টি শেয়ার দেখুন`,
+      }}
       context={{
         label: { en: "The stock screener", bn: "স্টক স্ক্রিনার" },
         stakes: [{ en: `${count} shares match`, bn: `${count}টি শেয়ার মিলেছে` }],

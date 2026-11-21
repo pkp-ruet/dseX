@@ -58,7 +58,7 @@ export default function PageQuestions({
       tag={label}
       title={tx(title)}
       lead={lead ? tx(lead) : undefined}
-      cta={{ en: "Get Premium", bn: "প্রিমিয়াম নিন" }}
+      cta={{ en: "See the answers", bn: "উত্তরগুলো দেখুন" }}
       context={{ label, stakes: shown.map((r) => r.ask) }}
     >
       <ul className="pq-rows">

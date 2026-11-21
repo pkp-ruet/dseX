@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type MouseEvent } from "reac
 import { useAuth } from "@/context/AuthContext";
 import { useLang } from "@/context/LangContext";
 import { usePremium } from "@/lib/premium";
+import TasteNote from "@/components/premium/TasteNote";
 import {
   getScores,
   getMarketState,
@@ -45,7 +46,7 @@ const EMPTY_SET = new Set<string>();
 export default function PersonalizedHome() {
   const { user } = useAuth();
   const { lang } = useLang();
-  const { state: planState } = usePremium();
+  const { state: planState, sharesOpen, taste } = usePremium();
   const bn = lang === "bn";
 
   // SWR hydrate from localStorage for an instant first paint. Background
@@ -168,13 +169,14 @@ export default function PersonalizedHome() {
 
   // Stories (2026-10-28, replaced "Your stocks today" + "This week on your
   // stocks"): a Today ring, then one ring per stock with something to say,
-  // all built from data already loaded. Every story is open to every reader
-  // (2026-10-31; the 3-story cap and its Premium ring are gone). A reader with
-  // no stocks gets market stories ending in "add your stocks".
+  // all built from data already loaded. A free reader gets Today and one
+  // story open, the rest as one crown ring (THE Premium line, step 3,
+  // `capStories`). A reader with no stocks gets market stories ending in
+  // "add your stocks".
   const premium = planState === "premium";
   const ownStories = buildStories({
     lang,
-    premium,
+    premium: sharesOpen,
     when,
     todayIso: isoToday,
     holdings: holdings ?? [],
@@ -192,8 +194,9 @@ export default function PersonalizedHome() {
     week: bundle?.week_watch ?? null,
     // Saved screens are re-checked only while Premium — a lapsed plan's news is stale.
     savedScreens: premium ? bundle?.screener?.saved ?? [] : [],
+    // Stories are the "your shares" layer: open in the 7-day taste too.
     resultsSoon: bundle?.results_soon ?? [],
-    brief: premium ? bundle?.brief ?? null : null,
+    brief: sharesOpen ? bundle?.brief ?? null : null,
     exMoves: bundle?.ex_moves ?? {},
   });
   const stories = isBrandNew
@@ -260,6 +263,9 @@ export default function PersonalizedHome() {
           <ServiceGrid lang={lang} premium={premium} badges={badges} />
         </div>
 
+        {/* The 7-day taste of the "your shares" layer (THE Premium line, step 6). */}
+        <TasteNote taste={taste} lang={lang} />
+
         <div className="hm-side">
           <div className="hm-stories" data-card="stories">
             <StoriesRow
@@ -291,6 +297,7 @@ export default function PersonalizedHome() {
             ownDividends={dividendCash}
             priceMap={priceMap}
             loading={!bundle && !bundleSettled}
+            premium={sharesOpen}
           />
         )}
 
@@ -302,7 +309,7 @@ export default function PersonalizedHome() {
           hasWatchlist={hasWatchlist}
           hasPortfolio={hasPortfolio}
           week={bundle?.week_watch ?? null}
-          brief={premium ? bundle?.brief ?? null : null}
+          brief={sharesOpen ? bundle?.brief ?? null : null}
           research={bundle?.research ?? null}
           buyList={bundle?.buy_list ?? null}
           holdings={holdings}

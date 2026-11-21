@@ -19,7 +19,9 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-REPORT_KEYS_PER_MONTH = 10
+from backend.services.premium_line import free_n
+
+REPORT_KEYS_PER_MONTH = free_n("analysis")  # THE Premium line: 10 a month
 REPORT_KEY_DAYS = 7
 # How many past keys the user document keeps (several months' worth).
 KEEP = 60

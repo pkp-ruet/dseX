@@ -24,6 +24,7 @@ import { recordDateInfo } from "@/lib/dividend-dates";
 import { RESULT_LEVEL } from "@/lib/results";
 import { KIND_WORD, readNotice } from "@/lib/market-notices";
 import { getTier, TIER_LABELS, TIER_PILL_BN, TIER_THRESHOLDS } from "@/lib/constants";
+import { freeN } from "@/lib/premium-line";
 
 /**
  * The dashboard's stories (2026-10-28, user decision: "replace Your stocks
@@ -304,10 +305,10 @@ export interface StoryInput {
  * get no ring.
  *
  * What the weekly watcher caught goes into the same stock's story (skipped
- * when today's frames already say it). Every story and every frame on the
- * reader's own shares is open to every reader since 2026-10-31 (the Premium
- * Desk plan: the watchlist shows the same facts free); Premium adds frames
- * that explain (what to expect from coming results) and the same-day push.
+ * when today's frames already say it). Since THE Premium line step 3
+ * (2026-11-22) a free reader gets "Today" and the first story open, the rest
+ * as one crown ring of counts (`capStories`); Premium also adds frames that
+ * explain (what to expect from coming results) and the same-day push.
  */
 export function buildStories(i: StoryInput): Story[] {
   const { lang, priceMap } = i;
@@ -811,8 +812,75 @@ export function buildStories(i: StoryInput): Story[] {
   });
 
   const todayStory = buildTodayStory(i, { held, watchOnly, universe, L, dayWord, has });
-  const out = stories.slice(0, MAX_STOCK_STORIES);
+  const top = stories.slice(0, MAX_STOCK_STORIES);
+  const out = i.premium ? top : capStories(top, freeN("stories"), L);
   return todayStory ? [todayStory, ...out] : out;
+}
+
+/**
+ * THE Premium line, step 3 (2026-11-22): what happens on the reader's own
+ * shares is Premium. A free reader keeps "Today" (their money) and the first
+ * `n` stories on their shares open — the most important, ranked before this —
+ * and the rest fold into one crown ring: how many shares have news, and of
+ * what kind, never which. `n` null = no cap.
+ */
+export function capStories(stories: Story[], n: number | null, L: L): Story[] {
+  if (n == null || stories.length <= n) return stories;
+  const open = stories.slice(0, n);
+  const hidden = stories.slice(n);
+  const byLabel = new Map<string, number>();
+  let frames = 0;
+  for (const st of hidden) {
+    for (const f of st.frames) {
+      if (f.locked) continue;
+      frames += 1;
+      const label = f.label.split(" · ")[0];
+      byLabel.set(label, (byLabel.get(label) ?? 0) + 1);
+    }
+  }
+  const shares = hidden.filter((st) => st.kind === "stock").length;
+  const headline =
+    shares > 0
+      ? L(
+          `${shares} more of your shares ${shares === 1 ? "has" : "have"} news today`,
+          `আপনার আরও ${shares}টি শেয়ারে আজ খবর আছে`,
+        )
+      : L("More on your shares today", "আজ আপনার শেয়ারে আরও খবর");
+  const frame: StoryFrame = {
+    id: `more:${hidden.map((st) => st.id).join(",")}`,
+    kind: "more",
+    label: L("Premium", "প্রিমিয়াম"),
+    headline,
+    big: { text: `${frames}`, caption: L(frames === 1 ? "update" : "updates", "টি খবর") },
+    rows: [...byLabel.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([label, count]) => ({ label, value: `${count}` })),
+    sentence: L(
+      "Premium shows which shares, what each one means for you, and sends it to your phone the same evening.",
+      "কোন শেয়ারে, আপনার জন্য প্রতিটির মানে কী, প্রিমিয়াম দেখায়, আর সেদিন সন্ধ্যায়ই ফোনে পাঠায়।",
+    ),
+    cta: { label: L("See which shares", "কোন শেয়ার, দেখুন"), href: "/premium?src=stories#pay" },
+    tone: "neutral",
+    locked: true,
+    stakes: [headline],
+    lockedKinds: Array.from(new Set(hidden.flatMap((st) => st.frames.map((f) => f.kind)))),
+    lock: { name: "stories-more", label: L("Every story on your shares", "আপনার শেয়ারের সব খবর") },
+  };
+  return [
+    ...open,
+    {
+      id: "more",
+      kind: "more",
+      name: L("More on your shares", "আপনার শেয়ারে আরও"),
+      sub: L("With Premium", "প্রিমিয়ামে"),
+      icon: "crown",
+      label: L(`${hidden.length} more`, `আরও ${hidden.length}টি`),
+      tone: "neutral",
+      rank: 999,
+      frames: [frame],
+    },
+  ];
 }
 
 interface DayStats {

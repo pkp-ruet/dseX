@@ -536,8 +536,14 @@ def dismiss_offer(user_id: str, action: str) -> None:
 
 def _grant(doc: dict, now: datetime) -> None:
     users = _db()["users"]
-    u = users.find_one({"user_id": doc["user_id"]}, {"premium_until": 1})
-    until = extend_until((u or {}).get("premium_until"), doc["days"], now)
+    u = users.find_one({"user_id": doc["user_id"]}, {"premium_until": 1, "taste_started_at": 1})
+    # A plan bought during the 7-day taste starts after it ends (taste.py).
+    from backend.services import taste
+    base = (u or {}).get("premium_until")
+    taste_end = taste.until(u)
+    if taste_end and taste_end > now and not (base and _as_utc(base) and _as_utc(base) > taste_end):
+        base = taste_end
+    until = extend_until(base, doc["days"], now)
     users.update_one(
         {"user_id": doc["user_id"]},
         {"$set": {"premium_until": until, "premium_source": "paid",

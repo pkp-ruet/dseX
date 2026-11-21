@@ -17,17 +17,17 @@
  */
 import { LOWEST_PRICE, PAID_PLANS } from "@/lib/premium-plans";
 import { FREE_COMPARE, MAX_COMPARE } from "@/lib/compare";
+import { freeN } from "@/lib/premium-line";
 
 export type Bi = { en: string; bn: string };
 
 const YEARLY = PAID_PLANS.find((p) => p.key === "yearly");
 export const PER_MONTH = YEARLY ? Math.round(YEARLY.amount / 12) : LOWEST_PRICE;
 
-// The free plan's numbers. They mirror FREE_LIMITS in lib/premium.ts (client
-// only, so it can't be imported here) and the backend's report keys.
-const FREE_ANALYSES = 10;
-const FREE_WATCHLIST = 5;
-const FREE_ALERTS = 3;
+// The free plan's numbers, from THE Premium line (lib/premium-line.ts, the
+// mirror of the backend's premium_line.py).
+const FREE_ANALYSES = freeN("analysis");
+const FREE_ALERTS = freeN("watch_rules");
 const MAX_PORTFOLIOS = 6;
 
 export const HERO = {
@@ -40,6 +40,35 @@ export const HERO = {
   perMonth: { en: "a month on the 1-year plan", bn: "মাসে, 1 বছরের প্ল্যানে" },
   orMonthly: { en: `Or ৳${LOWEST_PRICE} for one month.`, bn: `অথবা এক মাসের জন্য ৳${LOWEST_PRICE}।` },
 } as const;
+
+/** THE Premium line, step 7 (2026-11-22): the three promises the Premium page
+ *  leads with (`PremiumPromises`, the reader's own figures under each). */
+export const THREE_PROMISES: { key: string; title: Bi; line: Bi }[] = [
+  {
+    key: "shares",
+    title: { en: "Never miss what's coming to your shares", bn: "আপনার শেয়ারে যা আসছে, কিছুই মিস করবেন না" },
+    line: {
+      en: "Every result, warning, dividend and date on your shares, with what it means, sent the same evening. A short brief at 9 AM, and your own watch rules.",
+      bn: "আপনার শেয়ারের প্রতিটি আর্থিক ফল, সতর্কতা, ডিভিডেন্ড আর তারিখ, এর মানে সহ, সেদিন সন্ধ্যায়ই। সকাল 9টায় ছোট ব্রিফ, আর আপনার নিজের নজরের নিয়ম।",
+    },
+  },
+  {
+    key: "own",
+    title: { en: "Know what to do with what you own", bn: "যা কিনেছেন, তা নিয়ে কী করবেন জানুন" },
+    line: {
+      en: "A check on your whole portfolio: a verdict, a plan, and what to do with each share.",
+      bn: "পুরো পোর্টফোলিওর যাচাই: একটি রায়, একটি পরিকল্পনা, আর প্রতিটি শেয়ার নিয়ে কী করবেন।",
+    },
+  },
+  {
+    key: "buy",
+    title: { en: "Know before you buy", bn: "কেনার আগে জানুন" },
+    line: {
+      en: "Our analysis of every DSE share, today's Buy List, the screener's lists and our research.",
+      bn: "ডিএসইর প্রতিটি শেয়ারের বিশ্লেষণ, আজকের কেনার তালিকা, স্ক্রিনারের তালিকা আর আমাদের গবেষণা।",
+    },
+  },
+];
 
 export const PROMISES: Bi[] = [
   { en: "Never renews by itself", bn: "নিজে থেকে নবায়ন হয় না" },
@@ -78,19 +107,13 @@ export const FEATURES: Feature[] = [
     free: { en: "your money, shares and grade", bn: "টাকার হিসাব, শেয়ার আর গ্রেড" },
   },
   {
-    key: "watchlist",
-    name: { en: "Watchlist", bn: "ওয়াচলিস্ট" },
-    line: { en: "Follow as many shares as you want.", bn: "যত খুশি শেয়ার অনুসরণ করুন।" },
-    free: { en: `${FREE_WATCHLIST} shares`, bn: `${FREE_WATCHLIST}টি শেয়ার` },
-  },
-  {
     key: "dividends",
     name: { en: "Dividend calendar", bn: "ডিভিডেন্ড ক্যালেন্ডার" },
     line: {
-      en: "Every dividend coming up, how much it pays, and the last day to buy.",
-      bn: "আসন্ন সব ডিভিডেন্ড, কত দেবে, আর কেনার শেষ দিন।",
+      en: "Every dividend coming up, the ones coming to your own shares in taka, and a reminder on the last day to buy.",
+      bn: "আসন্ন সব ডিভিডেন্ড, আপনার নিজের শেয়ারে কত টাকা আসছে, আর কেনার শেষ দিনে মনে করিয়ে দেওয়া।",
     },
-    free: { en: "one example", bn: "একটি উদাহরণ" },
+    free: { en: "this week's record dates", bn: "এই সপ্তাহের রেকর্ড ডেট" },
   },
   {
     key: "buylist",
@@ -102,10 +125,10 @@ export const FEATURES: Feature[] = [
     key: "screener",
     name: { en: "Stock screener", bn: "স্টক স্ক্রিনার" },
     line: {
-      en: "Find shares with your own filters, see every match, and save your screens.",
-      bn: "নিজের ফিল্টারে শেয়ার খুঁজুন, সব মিল দেখুন, স্ক্রিন সেভ করুন।",
+      en: "Our six lists, filters on our own analysis, and screens saved with a daily alert.",
+      bn: "আমাদের ছয়টি তালিকা, আমাদের বিশ্লেষণের ফিল্টার, আর প্রতিদিনের অ্যালার্টসহ সেভ করা স্ক্রিন।",
     },
-    free: { en: "only how many match", bn: "শুধু কয়টি মিলল" },
+    free: { en: "your own filters, with the shares", bn: "নিজের ফিল্টার, শেয়ারসহ" },
   },
   {
     key: "compare",
@@ -114,22 +137,25 @@ export const FEATURES: Feature[] = [
       en: `Put up to ${MAX_COMPARE} shares side by side, with our analysis of each.`,
       bn: `${MAX_COMPARE}টি পর্যন্ত শেয়ার পাশাপাশি, প্রতিটির বিশ্লেষণসহ।`,
     },
-    free: { en: `${FREE_COMPARE} shares, no analysis`, bn: `${FREE_COMPARE}টি শেয়ার, বিশ্লেষণ ছাড়া` },
+    free: { en: "every figure, no analysis", bn: "সব সংখ্যা, বিশ্লেষণ ছাড়া" },
   },
   {
     key: "alerts",
-    name: { en: "Price alerts", bn: "দামের অ্যালার্ট" },
-    line: { en: "Set as many price alerts as you need.", bn: "যত দরকার দামের অ্যালার্ট দিন।" },
-    free: { en: `${FREE_ALERTS} alerts`, bn: `${FREE_ALERTS}টি অ্যালার্ট` },
+    name: { en: "Watch rules and price alerts", bn: "নজরের নিয়ম আর দামের অ্যালার্ট" },
+    line: {
+      en: "Tell us what matters on each share: a grade drop, a 5% fall, a dividend cut, the last day to buy. We tell you the same evening.",
+      bn: "প্রতিটি শেয়ারে কী জানতে চান বলুন: গ্রেড নামা, 5% দরপতন, ডিভিডেন্ড কমা, কেনার শেষ দিন। আমরা সেদিন সন্ধ্যায়ই জানাই।",
+    },
+    free: { en: `${FREE_ALERTS} in all, seen in Updates`, bn: `সব মিলিয়ে ${FREE_ALERTS}টি, আপডেটে দেখা যায়` },
   },
   {
     key: "news",
-    name: { en: "News on your phone", bn: "ফোনে খবর" },
+    name: { en: "Updates on your shares", bn: "আপনার শেয়ারের খবর" },
     line: {
-      en: "Results, warnings and record dates on your shares, the same day. A short brief at 9 AM.",
-      bn: "আপনার শেয়ারের আর্থিক ফল, সতর্কতা আর রেকর্ড ডেট সেদিনই। সকাল 9টায় ছোট একটি ব্রিফ।",
+      en: "Which of your shares had results, a warning or a record date, what it means, and a push the same evening. A short brief at 9 AM.",
+      bn: "আপনার কোন শেয়ারে আর্থিক ফল, সতর্কতা বা রেকর্ড ডেট এল, এর মানে কী, আর সেদিন সন্ধ্যায় ফোনে খবর। সকাল 9টায় ছোট একটি ব্রিফ।",
     },
-    free: { en: "up to 3 a week", bn: "সপ্তাহে 3টি পর্যন্ত" },
+    free: { en: "how many, one a week, a Friday push", bn: "কয়টি, সপ্তাহে একটি, শুক্রবারে একটি খবর" },
   },
   {
     key: "foryou",

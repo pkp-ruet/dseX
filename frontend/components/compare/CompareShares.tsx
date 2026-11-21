@@ -128,9 +128,7 @@ export default function CompareShares({
     ? comparisonTitle(codes.map((c) => names[c] ?? c))
     : codes.length === 1
       ? { en: "Add one more share", bn: "আরও একটি শেয়ার যোগ করুন" }
-      : isPremium
-        ? { en: "Pick 2 or more shares to compare", bn: "তুলনা করতে 2 বা তার বেশি শেয়ার বেছে নিন" }
-        : { en: `Pick ${FREE_COMPARE} shares to compare`, bn: `তুলনা করতে ${FREE_COMPARE}টি শেয়ার বেছে নিন` };
+      : { en: "Pick 2 or more shares to compare", bn: "তুলনা করতে 2 বা তার বেশি শেয়ার বেছে নিন" };
 
   return (
     <section className="cmp-shares cmp-card" aria-labelledby="cmp-shares-t">

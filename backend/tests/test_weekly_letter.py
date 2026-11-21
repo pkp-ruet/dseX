@@ -100,3 +100,17 @@ def test_free_reader_push_points_at_the_notifications():
     assert free["url"].startswith("/notifications")
     assert wl.push_payload(letter, "en", premium=True)["body"] == "One."
     assert wl.worth_sending(letter)
+
+
+def test_free_reader_never_sees_which_share_the_watcher_caught():
+    """THE Premium line, step 3: the count line is free, each event is Premium."""
+    part = wl.shares_part({}, {"GP"}, {}, {"total": 1, "kinds": [{"kind": "results", "count": 1}],
+                                         "items": [{"code": "GP", "kind": "results", "level": "good",
+                                                    "title_en": "GP: profit up 20%.", "title_bn": "জিপি"}]}, {})
+    assert [bool(ln.get("premium")) for ln in part["lines"]] == [False, True]
+    letter = wl.build_letter("2026-11-22", [part])
+    free = wl.push_payload(letter, "en", premium=False)
+    assert "GP" not in free["body"]
+    assert free["body"].startswith("We spotted 1 results report on your shares.")
+    assert free["body"].endswith("Premium.")
+    assert "GP: profit up 20%." in wl.push_payload(letter, "en", premium=True)["body"]

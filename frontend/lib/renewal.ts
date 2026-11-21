@@ -91,7 +91,7 @@ const s = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
 /** What this reader set up that a free account limits — at most three lines,
  *  only where it applies. */
-export function personalLosses(have: RenewalHave | null | undefined, free: { watchlist: number; alerts: number }): Line[] {
+export function personalLosses(have: RenewalHave | null | undefined, free: { watchlist: number | null; alerts: number | null }): Line[] {
   if (!have) return [];
   const out: Line[] = [];
   if (have.extra_portfolios > 0) {
@@ -101,7 +101,7 @@ export function personalLosses(have: RenewalHave | null | undefined, free: { wat
       bn: `আপনার আরও ${n}টি পোর্টফোলিও শুধু দেখা যাবে, বদলানো যাবে না।`,
     });
   }
-  if (have.watchlist > free.watchlist) {
+  if (free.watchlist != null && have.watchlist > free.watchlist) {
     out.push({
       en: `You follow ${have.watchlist} shares. A free account follows ${free.watchlist}, so you can't add more.`,
       bn: `আপনি ${have.watchlist}টি শেয়ার ফলো করছেন। ফ্রি অ্যাকাউন্টে ${free.watchlist}টি, তাই নতুন যোগ করতে পারবেন না।`,
@@ -121,7 +121,7 @@ export function personalLosses(have: RenewalHave | null | undefined, free: { wat
       bn: `আপনার ${n}টি ডিভিডেন্ড রিমাইন্ডার বন্ধ হয়ে যাবে।`,
     });
   }
-  if (have.alerts > free.alerts) {
+  if (free.alerts != null && have.alerts > free.alerts) {
     out.push({
       en: `You have ${have.alerts} price alerts on. A free account can set only ${free.alerts}.`,
       bn: `আপনার ${have.alerts}টি প্রাইস অ্যালার্ট চালু আছে। ফ্রি অ্যাকাউন্টে মাত্র ${free.alerts}টি রাখা যায়।`,

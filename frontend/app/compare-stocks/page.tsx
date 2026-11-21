@@ -50,9 +50,9 @@ const FAQ = [
   },
   {
     q: "How many shares can I compare?",
-    a: `${FREE_COMPARE} at a time on a free account, and up to ${MAX_COMPARE} with Premium. Premium also puts our analysis of each company side by side.`,
+    a: `Up to ${MAX_COMPARE} at a time, on every account. Every figure is free; Premium adds our analysis of each company side by side.`,
     qBn: "কতগুলো শেয়ার তুলনা করা যায়?",
-    aBn: `ফ্রি অ্যাকাউন্টে একসাথে ${FREE_COMPARE}টি, প্রিমিয়ামে ${MAX_COMPARE}টি পর্যন্ত। প্রিমিয়ামে প্রতিটি কোম্পানির ওপর আমাদের বিশ্লেষণও পাশাপাশি দেখা যায়।`,
+    aBn: `যেকোনো অ্যাকাউন্টে একসাথে ${MAX_COMPARE}টি পর্যন্ত। সব সংখ্যা ফ্রি; প্রিমিয়ামে প্রতিটি কোম্পানির ওপর আমাদের বিশ্লেষণও পাশাপাশি দেখা যায়।`,
   },
   {
     q: "Where do the numbers come from?",

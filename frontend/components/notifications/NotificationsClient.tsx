@@ -16,7 +16,7 @@ import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
 import Skeleton from "@/components/ui/Skeleton";
-import { IconChevronDown } from "@/components/ui/icons";
+import { IconChevronDown, IconLock } from "@/components/ui/icons";
 import { Locked } from "@/components/premium/AnswerLock";
 import { dayShort } from "@/components/dividend-calendar/dates";
 import { NOTIFICATIONS_SEEN_EVENT } from "@/components/notifications/NotificationBell";
@@ -39,7 +39,35 @@ const KIND: Record<string, Pair> = {
   brief: { en: "9 AM brief", bn: "সকাল 9টার খবর" },
   letter: { en: "Friday letter", bn: "শুক্রবারের চিঠি" },
   screen: { en: "Saved screen", bn: "সেভ করা স্ক্রিন" },
+  rule: { en: "Your rule", bn: "আপনার নিয়ম" },
 };
+
+/** The watcher's kinds: the "your shares" layer of THE Premium line. A free
+ *  reader sees the week's one marked `free`; the rest are counted. */
+const WATCH_KINDS = new Set(["results", "grade", "red_flag", "record", "category", "drop", "low52", "breakeven"]);
+
+/** Counted words: [one, many, Bengali]. */
+const COUNT_WORDS: Record<string, [string, string, string]> = {
+  results: ["results report", "results reports", "আর্থিক ফল"],
+  grade: ["grade change", "grade changes", "গ্রেড বদল"],
+  red_flag: ["warning", "warnings", "সতর্কতা"],
+  record: ["record date", "record dates", "রেকর্ড ডেট"],
+  category: ["category change", "category changes", "ক্যাটাগরি বদল"],
+  drop: ["big fall", "big falls", "বড় দরপতন"],
+  low52: ["yearly low", "yearly lows", "বছরের সর্বনিম্ন দাম"],
+  breakeven: ["return to your price", "returns to your price", "কেনা দামে ফেরা"],
+};
+
+/** "2 results reports, 1 warning and 1 big fall" in both languages. */
+function kindsPhrase(items: NotificationItem[]): Pair {
+  const by = new Map<string, number>();
+  for (const i of items) by.set(i.kind, (by.get(i.kind) ?? 0) + 1);
+  const top = [...by.entries()].sort((a, b) => b[1] - a[1]);
+  const en = top.map(([k, n]) => `${n} ${(COUNT_WORDS[k] ?? ["update", "updates"])[n === 1 ? 0 : 1]}`);
+  const bn = top.map(([k, n]) => `${n}টি ${(COUNT_WORDS[k] ?? ["", "", "খবর"])[2]}`);
+  const join = (xs: string[], and: string) => (xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} ${and} ${xs[xs.length - 1]}`);
+  return { en: join(en, "and"), bn: join(bn, "ও") };
+}
 
 const DHAKA_DAY = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dhaka" });
 const DHAKA_TIME = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Dhaka", hour: "numeric", minute: "2-digit" });
@@ -81,7 +109,7 @@ function dayHead(day: string): Pair {
  */
 export default function NotificationsClient() {
   const { isLoggedIn, isLoading } = useAuth();
-  const { isPremium } = usePremium();
+  const { isPremium, sharesOpen } = usePremium();
   const [feed, setFeed] = useState<NotificationsFeed | null>(null);
   const [failed, setFailed] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
@@ -144,7 +172,24 @@ export default function NotificationsClient() {
     );
   }
 
-  const premium = isPremium || feed.premium;
+  const premium = isPremium || sharesOpen || feed.premium;
+  // THE Premium line, step 3 (2026-11-22): what the watcher caught on a free
+  // reader's shares is counted by kind; the week's one marked `free` stays
+  // open. Screen-only, like every lock (the API still sends every row).
+  const hidden = premium ? [] : feed.items.filter((i) => WATCH_KINDS.has(i.kind) && !i.free);
+  const hiddenIds = new Set(hidden.map((i) => i.id));
+  // A paused rule that fires is told once a day at most (step 6): the
+  // first one each day stays, the rest are left out.
+  const pausedDays = new Set<string>();
+  const shown = feed.items.filter((i) => {
+    if (hiddenIds.has(i.id)) return false;
+    if (!premium && i.kind === "rule" && i.paused) {
+      const d = dhakaDay(i.at);
+      if (pausedDays.has(d)) return false;
+      pausedDays.add(d);
+    }
+    return true;
+  });
 
   if (feed.items.length === 0) {
     return feed.has_shares ? (
@@ -178,7 +223,7 @@ export default function NotificationsClient() {
   }
 
   const groups: { day: string; items: NotificationItem[] }[] = [];
-  for (const it of feed.items) {
+  for (const it of shown) {
     const day = dhakaDay(it.at);
     const last = groups[groups.length - 1];
     if (last && last.day === day) last.items.push(it);
@@ -200,6 +245,8 @@ export default function NotificationsClient() {
       </p>
 
       <ComingUp />
+
+      {hidden.length > 0 && <LockedUpdates items={hidden} />}
 
       {groups.map((g) => {
         const head = dayHead(g.day);
@@ -223,7 +270,7 @@ export default function NotificationsClient() {
         );
       })}
 
-      {!premium && (
+      {!premium && hidden.length === 0 && (
         <p className="nt-premium">
           <T
             en="Premium sends each of these to your phone the same day, and adds a 9 AM brief on the mornings something is about your shares, and the whole Friday letter."
@@ -239,6 +286,47 @@ export default function NotificationsClient() {
         </p>
       )}
     </div>
+  );
+}
+
+/** A free reader's count of what the watcher caught (THE Premium line, step 3). */
+function LockedUpdates({ items }: { items: NotificationItem[] }) {
+  const n = items.length;
+  const kinds = kindsPhrase(items);
+  const fresh = items.filter((i) => i.new).length;
+  useEffect(() => {
+    trackEvent("premium_lock_view", { area: "notifications", lock: "updates-count", n });
+  }, [n]);
+  return (
+    <section className="nt-lock" aria-labelledby="nt-lock-h">
+      <p className="nt-lock-k">
+        <IconLock size={14} />
+        <T en="Premium" bn="প্রিমিয়াম" />
+      </p>
+      <h2 id="nt-lock-h" className="nt-lock-h">
+        <T
+          en={`${n} more ${n === 1 ? "update" : "updates"} on your shares in the last 30 days`}
+          bn={`গত 30 দিনে আপনার শেয়ারে আরও ${n}টি খবর`}
+        />
+      </h2>
+      <p className="nt-lock-kinds">
+        <T en={`${kinds.en}.`} bn={`${kinds.bn}।`} />
+        {fresh > 0 && <T en={` ${fresh} since your last visit.`} bn={` আগের ভিজিটের পর ${fresh}টি।`} />}
+      </p>
+      <p className="nt-lock-line">
+        <T
+          en="Premium shows which shares, what each one means for you, and sends it to your phone the same evening. Below is this week's one, free."
+          bn="কোন শেয়ারে, আপনার জন্য প্রতিটির মানে কী, প্রিমিয়াম দেখায়, আর সেদিন সন্ধ্যায়ই ফোনে পাঠায়। নিচে এ সপ্তাহের একটি, ফ্রি।"
+        />
+      </p>
+      <Button
+        href={`${PREMIUM_PATH}?src=updates#pay`}
+        size="sm"
+        onClick={() => trackEvent("premium_lock_tap", { area: "notifications", lock: "updates-count", n })}
+      >
+        <T en="See which shares" bn="কোন শেয়ার, দেখুন" />
+      </Button>
+    </section>
   );
 }
 
@@ -276,22 +364,50 @@ function Row({
   open: boolean;
   onToggle: () => void;
 }) {
+  // A paused rule (past a free reader's cap): only that it fired (THE
+  // Premium line, step 4). Screen-only, like every lock.
+  const paused = i.kind === "rule" && i.paused && !premium;
   const body = (
     <>
-      <span className={`nt-dot ${DOT[i.level] ?? ""}`} aria-hidden="true" />
+      <span className={`nt-dot ${paused ? "" : DOT[i.level] ?? ""}`} aria-hidden="true" />
       <span className="nt-text">
         <Meta i={i} />
-        <span className="nt-title">
-          <T en={i.title_en} bn={i.title_bn || i.title_en} />
-        </span>
-        {i.body_en && (
-          <span className="nt-body">
-            <T en={i.body_en} bn={i.body_bn || i.body_en} />
-          </span>
+        {paused ? (
+          <>
+            <span className="nt-title">
+              <T en={`A rule you set on ${i.code} fired`} bn={`${i.code}-এ আপনার দেওয়া একটি নিয়ম কাজ করেছে`} />
+            </span>
+            <span className="nt-body">
+              <T
+                en="This rule is paused on a free account. Premium shows what happened, and tells you the same evening."
+                bn="ফ্রি অ্যাকাউন্টে এই নিয়মটি বন্ধ আছে। কী হয়েছে, প্রিমিয়াম দেখায়, আর সেদিন সন্ধ্যায়ই জানায়।"
+              />
+            </span>
+          </>
+        ) : (
+          <>
+            <span className="nt-title">
+              <T en={i.title_en} bn={i.title_bn || i.title_en} />
+            </span>
+            {i.body_en && (
+              <span className="nt-body">
+                <T en={i.body_en} bn={i.body_bn || i.body_en} />
+              </span>
+            )}
+          </>
         )}
       </span>
     </>
   );
+  if (paused) {
+    return (
+      <li id={i.id} className="nt-item" data-new={i.new || undefined}>
+        <Link href={`${PREMIUM_PATH}?src=paused-rule#pay`} prefetch={false} className="nt-row">
+          {body}
+        </Link>
+      </li>
+    );
+  }
 
   if (i.kind === "letter" && i.parts?.length) {
     return (
@@ -343,9 +459,11 @@ function Letter({ parts, premium }: { parts: LetterPart[]; premium: boolean }) {
   return (
     <div className="nt-letter">
       {parts.map((p) => {
+        // Which share the watcher caught is Premium (THE Premium line, step 3).
+        const shownLines = premium ? p.lines : p.lines.filter((ln) => !ln.premium);
         const lines = (
           <ul className="nt-letter-lines">
-            {p.lines.map((ln, k) => (
+            {shownLines.map((ln, k) => (
               <li
                 key={k}
                 className={ln.tone === "good" ? "nt-line--good" : ln.tone === "bad" ? "nt-line--bad" : undefined}

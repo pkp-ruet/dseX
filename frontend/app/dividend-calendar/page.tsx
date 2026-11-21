@@ -8,6 +8,7 @@ import CalendarSummary from "@/components/dividend-calendar/CalendarSummary";
 import ComingNext from "@/components/dividend-calendar/ComingNext";
 import PageGate from "@/components/premium/PageGate";
 import DividendPromo from "@/components/dividend-calendar/DividendPromo";
+import ThisWeek from "@/components/dividend-calendar/ThisWeek";
 import { CALENDAR_PREMIUM_ANCHOR } from "@/components/dividend-calendar/RemindButton";
 import { buildCalendarPromo } from "@/lib/dividend-promo";
 import RecordDateBoard from "@/components/dividend-calendar/RecordDateBoard";
@@ -142,8 +143,8 @@ export default async function DividendCalendarPage() {
         inLanguage: "en",
         isPartOf: { "@id": BASE_URL },
         dateModified: data.today,
-        // Paywall markup: the whole calendar is Premium since 2026-11-04 (one
-        // gate, under .premium-locked); the explainer and the guide are free.
+        // Paywall markup: the calendar past this week is Premium (one gate,
+        // under .premium-locked); this week, the explainer and the guide are free.
         isAccessibleForFree: false,
         hasPart: {
           "@type": "WebPageElement",
@@ -241,14 +242,20 @@ export default async function DividendCalendarPage() {
         }
       />
 
-      {/* The whole calendar is Premium (2026-11-04, user: "make the whole
-          dividend calendar page premium. free user will see a promo card like
-          stock and portfolio page"). A free reader gets the page's one card
-          (#dc-premium), then the explainer and the guide below; the calendar
-          is in the HTML, open, under one lock. */}
+      {/* THE Premium line, step 2 (2026-11-22): the next week of record dates
+          is free for every reader and for Google; the rest of the calendar,
+          Coming next, the reader's own dividends and the reminders are
+          Premium. A free reader gets the week, then the page's one card
+          (#dc-premium); the full calendar is in the HTML, open, under one
+          lock, and a Premium reader sees only it (the week is in its tab). */}
       <PageGate
         anchor={CALENDAR_PREMIUM_ANCHOR}
-        promo={<DividendPromo promo={promo} />}
+        promo={
+          <>
+            <ThisWeek events={data.record_dates} />
+            <DividendPromo promo={promo} yours={yours} />
+          </>
+        }
       >
         {/* What's ahead, in one card. */}
         <CalendarSummary data={data} promo={promo} />

@@ -457,7 +457,13 @@ def push_payload(events: list[dict], lang: str = "bn", url: str = "/portfolio?sr
 # --------------------------------------------------------------------------- #
 
 # Teaser pushes a free reader gets in any 7 days, however busy their stocks are.
-TEASER_WEEKLY_CAP = 3
+# THE Premium line's "pushes" area: since step 3 (2026-11-22) a free reader's
+# one push a week is the Friday letter, so the daily teaser takes what is
+# left of it (0 at 1 a week). Their events are still stored, and the week's
+# free one still marked, for Updates.
+from backend.services.premium_line import free_n as _line_free_n  # noqa: E402
+
+TEASER_WEEKLY_CAP = max(0, (_line_free_n("pushes") or 0) - 1)
 
 
 def week_start(day: str) -> str:

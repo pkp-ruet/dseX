@@ -73,7 +73,8 @@ def _user(uid: str) -> dict:
     return get_db()["users"].find_one(
         {"user_id": uid},
         {"_id": 0, "notifications_seen_at": 1, "portfolio": 1, "extra_portfolios": 1, "watchlist": 1,
-         "premium_until": 1, "email": 1, "email_verified": 1, "created_at": 1, "screen_log": 1},
+         "premium_until": 1, "email": 1, "email_verified": 1, "created_at": 1, "screen_log": 1,
+         "taste_started_at": 1},
     ) or {}
 
 
@@ -125,7 +126,8 @@ def feed(uid: str) -> dict:
     out, u = _build(uid)
     _remember(uid, out["unread"])
     return {**out, "seen_at": _seen_iso(u), "has_shares": _has_shares(u),
-            "premium": bool(_safe("is_premium", lambda: entitlements.is_premium(u), False))}
+            # The "your shares" layer: Premium or the 7-day taste.
+            "premium": bool(_safe("is_premium", lambda: entitlements.shares_open(u), False))}
 
 
 def _remember(uid: str, n: int) -> None:

@@ -16,16 +16,23 @@ ships, the UI hides it (see CLAUDE.md "Premium").
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-# Watchlist 5 since 2026-10-30 (was 10). An account already past it keeps
-# what it has; it just can't add a new code. Holdings: no free cap since
-# 2026-11-02 (user: "remove the free user portfolio stock cap"; it was 7 from
-# 2026-10-30) — None here; HARD_LIMITS["holdings"] (100) applies to everyone.
+from backend.services.premium_line import free_n
+
+# The numbers come from THE Premium line (`premium_line.AREAS`, 2026-11-22);
+# change them there, together with their pages. Watchlist 5 since 2026-10-30
+# (was 10); an account already past it keeps what it has, it just can't add a
+# new code. Holdings: no free cap since 2026-11-02 — None here;
+# HARD_LIMITS["holdings"] (100) applies to everyone. Compare is screen-only (the
+# page caps it; the API sends up to HARD_LIMITS["compare"] to anyone). Alerts =
+# the line's watch rules (price alerts today).
 FREE_LIMITS = {
-    "watchlist": 5, "holdings": None, "alerts": 3, "ai_daily": 10, "portfolios": 1, "custom_lists": 0,
-    # Shares side by side on /compare-stocks (screen-only: the page caps it; the
-    # API sends up to HARD_LIMITS["compare"] to anyone). 2026-11-12; 3 → 2 on
-    # 2026-11-18 (user: "make free user can compare at most 2 stocks").
-    "compare": 2,
+    "watchlist": free_n("watchlist"),
+    "holdings": None,
+    "alerts": free_n("watch_rules"),
+    "ai_daily": free_n("ai"),
+    "portfolios": free_n("portfolios"),
+    "custom_lists": free_n("saved_screens"),
+    "compare": free_n("compare"),
 }
 
 # Ceilings for every account, Premium included. Not a plan feature — a size cap
@@ -89,11 +96,24 @@ def is_premium(user: Optional[dict], now: Optional[datetime] = None) -> bool:
     return bool(until and until > (now or datetime.now(timezone.utc)))
 
 
+def shares_open(user: Optional[dict], now: Optional[datetime] = None) -> bool:
+    """THE Premium line's "your shares" layer is open: Premium, or the 7-day
+    taste (`taste.py`). Updates in full, same-evening pushes, the 9 AM brief,
+    the whole Friday letter, dividend reminders and watch rules past 3."""
+    from backend.services import taste
+
+    return is_premium(user, now) or taste.active(user, now)
+
+
 def limits_for(user: Optional[dict], now: Optional[datetime] = None) -> dict:
     """{limit: max} — None means unlimited."""
     if is_premium(user, now):
         return {k: None for k in FREE_LIMITS}
-    return dict(FREE_LIMITS)
+    out = dict(FREE_LIMITS)
+    if shares_open(user, now):
+        # The taste: watch rules (and price alerts) are a "your shares" thing.
+        out["alerts"] = None
+    return out
 
 
 def watchlist_add_blocked(current: list[str], new: list[str], limit: Optional[int]) -> bool:
@@ -134,11 +154,20 @@ def plan_fields(user: dict) -> dict:
         "premium_source": user.get("premium_source"),
         "paid_plan": user.get("paid_plan"),
         "limits": limits_for(user),
+        # The 7-day taste of the "your shares" layer (taste.py), or None.
+        "taste": _taste_state(user, now),
+        "shares_open": shares_open(user, now),
         # Ten full stock analyses a month for a free reader, opened by the page (report_keys.py).
         "report_keys": keys_state(user.get("report_keys"), now),
         # The reader's own ৳99 month (payments.offer_state), or None.
         "offer": offer_state(user, now, is_premium(user), offer_open()),
     }
+
+
+def _taste_state(user: dict, now: datetime) -> Optional[dict]:
+    from backend.services import taste
+
+    return taste.state(user, now)
 
 
 # ---------------------------------------------------------------------------

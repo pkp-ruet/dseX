@@ -511,6 +511,14 @@ a.hm-srow:hover, a.hm-srow:active { background: var(--surface-2); }
 .hm-ours-dates { border-top: 1px solid var(--border); }
 .hm-ours .hm-nlist + .hm-ours-dates { border-top: 1px solid var(--border); }
 .hm-ours-all { text-decoration: none; color: var(--primary); font-weight: 600; }
+/* A free reader's count of the rest (THE Premium line, step 3). */
+.hm-ours-lock {
+  display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 10px 14px;
+  border-top: 1px dashed rgb(var(--gold-rgb) / 0.7); background: rgb(var(--gold-rgb) / 0.08);
+  font-size: var(--fs-sm); font-weight: 600; line-height: 1.4; color: var(--text); text-decoration: none;
+}
+.hm-ours-lock svg { flex: none; color: var(--gold-ink); }
+.hm-ours-lock:hover, .hm-ours-lock:active { background: rgb(var(--gold-rgb) / 0.14); }
 .hm-ours-quiet {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-3);
   padding: var(--space-4); color: var(--text); font-size: var(--fs-sm); text-decoration: none;
@@ -575,3 +583,17 @@ a.hm-srow:hover, a.hm-srow:active { background: var(--surface-2); }
 .home-boot { display: none; }
 html[data-signed-in="1"] .home-boot { display: block; }
 html[data-signed-in="1"] .home-landing { display: none; }
+
+/* The 7-day taste (THE Premium line, step 6): one calm note under the icon
+   grid while Premium is open on the reader's shares. */
+.taste-note {
+  display: grid; gap: var(--space-2); padding: 16px;
+  border: 1px solid rgb(var(--gold-rgb) / 0.6); border-radius: var(--radius-md);
+  background: rgb(var(--gold-rgb) / 0.08);
+}
+.taste-k { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-size: var(--fs-xs); font-weight: 700; color: var(--gold-ink); }
+.taste-h { margin: 0; font-size: var(--fs-title); font-weight: 700; line-height: 1.3; color: var(--text); text-wrap: balance; }
+.taste-list { display: grid; gap: 4px; margin: 0; padding-left: 18px; font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
+.taste-foot { margin: 0; font-size: var(--fs-xs); line-height: 1.5; color: var(--text); }
+.taste-acts { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+@media (min-width: 1024px) { .taste-note { grid-column: 1 / -1; } }

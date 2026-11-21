@@ -5,7 +5,9 @@ One list, newest first, of everything we noticed for the reader in the last
 
 - the watcher's events on their shares (`portfolio_watch_events`: results, a
   grade change, a red flag, a record date, a category change, a big fall, a
-  yearly low, back to their price) — free facts, every reader;
+  yearly low, back to their price) — since THE Premium line step 3
+  (2026-11-22) a free reader sees these counted by kind, plus the week's
+  one event marked `free` in full; the page hides the rest (screen-only);
 - price alerts that hit (`price_alerts.triggered_at`);
 - the 9 AM brief (`morning_briefs`, Premium readers only — the job builds it
   for nobody else), one row with its items;
@@ -32,6 +34,11 @@ SKIP_KINDS = {"answer", "buylist"}
 STOCK_ANCHOR = {"results": "results", "grade": "ch-analysis", "red_flag": "an-safety",
                 "breakeven": "ch-conclusion", "record": "dividends", "category": "an-safety",
                 "drop": "", "low52": ""}
+# A fired watch rule opens where its news is (THE Premium line, step 4).
+RULE_ANCHOR = {"results": "results", "profit_drop": "results", "grade_down": "ch-analysis",
+               "grade_up": "ch-analysis", "red_flag": "an-safety", "z_category": "an-safety",
+               "dividend": "dividends", "dividend_cut": "dividends", "last_day": "dividends",
+               "breakeven": "ch-conclusion", "day_drop": "", "owners_selling": "news"}
 
 
 def _iso(v: Any) -> Optional[str]:
@@ -60,7 +67,7 @@ def event_row(e: dict) -> Optional[dict]:
     if not kind or kind in SKIP_KINDS:
         return None
     code = (e.get("code") or "").upper() or None
-    anchor = STOCK_ANCHOR.get(kind, "")
+    anchor = RULE_ANCHOR.get(e.get("rule"), "") if kind == "rule" else STOCK_ANCHOR.get(kind, "")
     url = (f"/stock/{code}" + (f"#{anchor}" if anchor else "")) if code else "/portfolio"
     return {
         "id": f"ev-{e.get('id')}",
@@ -73,6 +80,13 @@ def event_row(e: dict) -> Optional[dict]:
         "body_en": e.get("body_en") or None,
         "body_bn": e.get("body_bn") or e.get("body_en") or None,
         "url": url,
+        # The week's one event a free reader sees in full (THE Premium line,
+        # step 3: the rest are counted by kind; screen-only lock).
+        "free": bool(e.get("free")),
+        # A watch rule: which one, and whether it was past the reader's cap
+        # (then the page says only that it fired).
+        "rule": e.get("rule") if kind == "rule" else None,
+        "paused": bool(e.get("paused")),
     }
 
 

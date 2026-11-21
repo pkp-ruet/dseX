@@ -81,7 +81,8 @@ const tt = (en: string, bn: string) => <T en={en} bn={bn} />;
  *   reader's first answer used to be "All N shares, get Premium" for shares
  *   that are free on /stocks). A Premium reader can still "Browse all" from
  *   the foot, and a link with `?sort=` opens it. The shares + "Almost there"
- *   sit inside one `PageGate`; a reader without Premium gets the Premium card.
+ *   sit inside one `PageGate` when a list or one of our own checks is on; a
+ *   result on public figures alone is open to everyone (THE Premium line, step 5).
  * - **Your saved screens** (`#saved`) at the bottom, for editing.
  *
  * Every company's figures arrive with the page (`GET /api/screener`), so
@@ -243,6 +244,10 @@ export default function ScreenerClient({ data }: { data: ScreenerUniverse }) {
   );
   /** A list or a filter of the reader's own is on: there is a shortlist to show. */
   const chosen = picked.length > 0 || ownRest.length > 0;
+  // THE Premium line, step 5 (2026-11-22): a result built only on public
+  // figures (your own filters, not one of our lists or our own checks) is the
+  // market, free to look at. Our lists and our-analysis filters stay Premium.
+  const judged = picked.length > 0 || own.some((f) => defs.get(f.key)?.ours);
   const showResult = chosen || browse;
 
   const resetPaging = () => setLimit(PAGE);
@@ -682,6 +687,21 @@ export default function ScreenerClient({ data }: { data: ScreenerUniverse }) {
                            "অন্য তালিকা বাছুন, একটি ফিল্টার বাদ দিন, বা \"কোন শেয়ার\"-এ সব শেয়ার বাছুন।")}
               />
             ) : (
+              !judged ? (
+                <div className="space-y-6">
+                  <ScreenerTable
+                    rows={result}
+                    columns={columns}
+                    defs={defs}
+                    spec={effective}
+                    limit={limit}
+                    onSort={sortBy}
+                    onMore={() => setLimit((x) => x + PAGE)}
+                    bn={bn}
+                  />
+                  {isPremium && <AlmostThere near={near} defs={defs} />}
+                </div>
+              ) : (
               <PageGate
                 anchor={SCREENER_ANCHOR}
                 anchorClass="scroll-mt-24"
@@ -701,6 +721,7 @@ export default function ScreenerClient({ data }: { data: ScreenerUniverse }) {
                   <AlmostThere near={near} defs={defs} />
                 </div>
               </PageGate>
+              )
             )}
             <p className="text-sm text-text-main">
               {tt("A list is a starting point for your own research, not advice to buy.",

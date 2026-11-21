@@ -7,7 +7,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com
 
 export const metadata: Metadata = {
   title: "Premium — The Full Analysis on Every DSE Stock",
-  description: `TopStockBD Premium: full analysis of every DSE stock, portfolio analysis with a plan, the Buy List, the stock screener, the dividend calendar, stock compare, research reports, same-day news on your shares, and as many shares on your watchlist as you want. From ৳${LOWEST_PRICE}, paid by bKash, Nagad or bank transfer. No auto-renewal.`,
+  description: `TopStockBD Premium: full analysis of every DSE stock, portfolio analysis with a plan, the Buy List, the stock screener, the dividend calendar, stock compare, research reports, watch rules and same-day news on your shares. From ৳${LOWEST_PRICE}, paid by bKash, Nagad or bank transfer. No auto-renewal.`,
   keywords: [
     "TopStockBD Premium",
     "DSE stock analysis",

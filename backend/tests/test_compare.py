@@ -68,7 +68,7 @@ def test_parse_codes_upper_cases_drops_repeats_and_caps():
 
 def test_limits_match_entitlements():
     from backend.services.entitlements import FREE_LIMITS, HARD_LIMITS
-    assert cp.FREE_CODES == FREE_LIMITS["compare"] == 2
+    assert cp.FREE_CODES == FREE_LIMITS["compare"] == 10  # THE Premium line step 5: figures for 10
     assert cp.MAX_CODES == HARD_LIMITS["compare"] == 10
 
 

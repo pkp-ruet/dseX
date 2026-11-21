@@ -152,7 +152,8 @@ def today_brief(user_id: str) -> Optional[dict]:
 
 _USER_FIELDS = {"_id": 0, "user_id": 1, "email": 1, "name": 1, "portfolio": 1, "extra_portfolios": 1,
                 "watchlist": 1, "premium_until": 1, "email_verified": 1, "created_at": 1,
-                "push_enabled": 1, "notification_prefs": 1, "email_opt_out": 1, "dividend_reminders": 1}
+                "push_enabled": 1, "notification_prefs": 1, "email_opt_out": 1, "dividend_reminders": 1,
+                "taste_started_at": 1, "trial_started_at": 1}
 
 
 def _readers(now: datetime) -> list[dict]:
@@ -165,7 +166,8 @@ def _readers(now: datetime) -> list[dict]:
                  {"watchlist.0": {"$exists": True}}, {"dividend_reminders.0": {"$exists": True}}]},
         _USER_FIELDS,
     )
-    return [u for u in users if u.get("user_id") and entitlements.is_premium(u, now)]
+    # Premium, or the 7-day taste of the "your shares" layer (taste.py).
+    return [u for u in users if u.get("user_id") and entitlements.shares_open(u, now)]
 
 
 def _codes_of(u: dict) -> tuple[dict[str, int], set[str]]:

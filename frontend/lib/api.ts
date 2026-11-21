@@ -1003,6 +1003,36 @@ export async function apiRemoveDividendReminder(code: string): Promise<{ codes: 
   return apiAuthFetch<{ codes: string[] }>(`/api/user/dividend-reminders/${encodeURIComponent(code)}`, { method: "DELETE" });
 }
 
+/** Watch rules (THE Premium line, step 4; backend routers/watch_rules.py). */
+export interface WatchRule {
+  code: string;
+  kind: string;
+  value?: number;
+  /** Past the reader's cap (shared with armed price alerts): kept, not checked. */
+  paused?: boolean;
+}
+
+export interface WatchRulesState {
+  rules: WatchRule[];
+  /** The cap (rules + armed price alerts); null = no cap. */
+  limit: number | null;
+  used: number;
+  armed_alerts: number;
+}
+
+export async function apiGetWatchRules(): Promise<WatchRulesState> {
+  return apiAuthFetch<WatchRulesState>("/api/user/watch-rules");
+}
+
+/** Replace one share's rules (a 403 `limit_reached:alerts` past the cap). */
+export async function apiSetWatchRules(code: string, rules: { kind: string; value?: number }[]): Promise<WatchRulesState> {
+  return apiAuthFetch<WatchRulesState>(`/api/user/watch-rules/${encodeURIComponent(code)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ rules }),
+  });
+}
+
 /** One company's latest quarterly report — the free part of the explainer
  *  (backend services/results_explainer.py `feed_row`). */
 export interface LatestResultRow {
@@ -2549,6 +2579,9 @@ export interface LetterLine {
   tone: "good" | "bad" | "neutral";
   url?: string;
   code?: string;
+  /** Which share the watcher caught, and what (THE Premium line, step 3):
+   *  hidden from a free reader; the count line beside it is free. */
+  premium?: boolean;
 }
 
 export interface LetterPart {
@@ -2565,7 +2598,7 @@ export interface NotificationItem {
   id: string;
   /** A watcher kind, or `alert` (a price alert hit), `brief` (9 AM), `letter` (Friday),
    *  `screen` (a saved screen changed: who joined or left and why, Premium). */
-  kind: PortfolioWatchEvent["kind"] | "alert" | "brief" | "letter" | "screen";
+  kind: PortfolioWatchEvent["kind"] | "alert" | "brief" | "letter" | "screen" | "rule";
   code: string | null;
   level: "good" | "watch" | "bad" | "neutral" | "info";
   /** When it came (ISO). */
@@ -2575,6 +2608,13 @@ export interface NotificationItem {
   body_en: string | null;
   body_bn: string | null;
   url: string;
+  /** The week's one watcher event a free reader sees in full (THE Premium
+   *  line, step 3); the others are counted by kind. */
+  free?: boolean;
+  /** A fired watch rule (kind `rule`): which rule (THE Premium line, step 4). */
+  rule?: string | null;
+  /** The rule was past the reader's cap: the page says only that it fired. */
+  paused?: boolean;
   /** Came after the reader last opened the list. */
   new: boolean;
   /** A brief with several items. */

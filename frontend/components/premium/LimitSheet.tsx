@@ -30,12 +30,15 @@ const COPY: Partial<Record<LimitKind, (n: number) => { title: Bi; line: Bi; gets
     gets: { en: "Follow as many shares as you like", bn: "যত খুশি শেয়ার অনুসরণ" },
   }),
   alerts: (n) => ({
-    title: { en: `${n} price alerts are on, the most a free account can`, bn: `${n}টি প্রাইস অ্যালার্ট চালু আছে, ফ্রি অ্যাকাউন্টে এর বেশি যায় না` },
-    line: {
-      en: "Turn one off to set a new one. With Premium you can set as many as you like.",
-      bn: "নতুন অ্যালার্ট দিতে একটি বন্ধ করুন। প্রিমিয়ামে যত খুশি অ্যালার্ট দিতে পারবেন।",
+    title: {
+      en: `You have ${n} rules and price alerts on, the most a free account can`,
+      bn: `আপনার ${n}টি নিয়ম ও প্রাইস অ্যালার্ট চালু আছে, ফ্রি অ্যাকাউন্টে এর বেশি যায় না`,
     },
-    gets: { en: "As many price alerts as you like", bn: "যত খুশি প্রাইস অ্যালার্ট" },
+    line: {
+      en: "Turn one off to set a new one. With Premium you can watch as many as you need, and hear the same evening.",
+      bn: "নতুন দিতে একটি বন্ধ করুন। প্রিমিয়ামে যত দরকার তত নিয়মে নজর রাখতে পারবেন, আর সেদিন সন্ধ্যায়ই জানবেন।",
+    },
+    gets: { en: "As many watch rules and price alerts as you need", bn: "যত দরকার তত নিয়ম আর প্রাইস অ্যালার্ট" },
   }),
   ai_daily: (n) => ({
     title: { en: `You have asked ${n} questions today`, bn: `আজ আপনি ${n}টি প্রশ্ন করেছেন` },

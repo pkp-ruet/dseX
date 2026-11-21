@@ -197,17 +197,43 @@ def test_frontend_price_words_follow_the_buy_list():
     assert price_word({"signal": "none"}) is None
 
 
+def test_frontend_premium_line_matches_the_backend():
+    """THE Premium line (2026-11-22): the frontend's table is the backend's."""
+    from backend.services import premium_line as pl
+
+    src = _front("lib/premium-line.ts")
+    m = re.search(r"export const AREAS = (\{.*?\n\}) satisfies", src, re.S)
+    assert m, "AREAS literal not found"
+    assert json.loads(m.group(1)) == pl.AREAS
+    words = re.search(r"export const LAYER_WORDS[^=]*= (\{.*?\n\});", src, re.S).group(1)
+    for layer, w in pl.LAYER_WORDS.items():
+        assert f'{layer}: {{ en: "{w["en"]}", bn: "{w["bn"]}" }}' in words, layer
+
+
+def test_frontend_showcase_matches_the_backend():
+    from backend.services import premium_line as pl
+
+    src = _front("lib/premium-line.ts")
+    m = re.search(r"export const SHOWCASE = (\[.*?\]);", src)
+    assert json.loads(m.group(1)) == list(pl.SHOWCASE)
+
+
 def test_frontend_limits_and_plans_match_the_backend():
     from backend.services.entitlements import FREE_LIMITS, HARD_LIMITS
     from backend.services.payments import PAID_PLANS
 
     src = _front("lib/premium.ts")
-    m = re.search(r"export const FREE_LIMITS = (\{.*?\}) as const;", src)
-    front = json.loads(re.sub(r"(\w+):", r'"\1":', m.group(1)))
-    assert front == FREE_LIMITS
+    m = re.search(r"export const FREE_LIMITS = (\{.*?\}) satisfies", src, re.S)
+    # Each limit reads the same area of the line on both sides.
+    front = dict(re.findall(r'(\w+): (?:freeN\("(\w+)"\)|null)', m.group(1)))
+    ent = (ROOT / "backend/services/entitlements.py").read_text(encoding="utf-8")
+    block = re.search(r"FREE_LIMITS = \{(.*?)\n\}", ent, re.S).group(1)
+    back = dict(re.findall(r'"(\w+)": (?:free_n\("(\w+)"\)|None)', block))
+    assert front == back
+    assert set(front) == set(FREE_LIMITS)
     assert int(re.search(r"export const MAX_HOLDINGS = (\d+);", src).group(1)) == HARD_LIMITS["holdings"]
     cmp_src = _front("lib/compare.ts")
-    assert int(re.search(r"export const FREE_COMPARE = (\d+);", cmp_src).group(1)) == FREE_LIMITS["compare"]
+    assert re.search(r'export const FREE_COMPARE = freeN\("compare"\)', cmp_src)
     assert int(re.search(r"export const MAX_COMPARE = (\d+);", cmp_src).group(1)) == HARD_LIMITS["compare"]
 
     plans = _front("lib/premium-plans.ts")
@@ -229,3 +255,22 @@ def test_frontend_portfolio_lines_match_the_backend():
     assert num("BUY_MORE_MAX_PCT") == ss.BUY_MORE_MAX_WEIGHT_PCT
     assert num("SECTOR_FAIR_PCT") == ss.HEAVY_SECTOR_PCT == recommend.HEAVY_PCT
     assert num("FIN_HEAVY_PCT") == ss.FIN_HEAVY_PCT == recommend.FIN_HEAVY_PCT
+
+
+def test_frontend_watch_rules_match_the_backend():
+    """Watch rules (THE Premium line, step 4): the sheet's kinds, their order,
+    values, words and the suggested set are the backend's."""
+    from backend.services import watch_rules as wr
+
+    src = _front("lib/watch-rules.ts")
+    rows = re.findall(r'\{ key: "(\w+)", label: \{ en: "([^"]+)", bn: "([^"]+)" \}(?:, value: (\d+), values: \[([\d, ]+)\])?', src)
+    assert [r[0] for r in rows] == list(wr.KINDS)
+    for key, en, bn, value, values in rows:
+        k = wr.KINDS[key]
+        assert (en, bn) == (k["en"], k["bn"]), key
+        if "values" in k:
+            assert int(value) == k["value"] and [int(v) for v in values.split(",")] == k["values"], key
+        else:
+            assert not value, key
+    sugg = re.search(r"export const SUGGESTED = \[(.*?)\];", src).group(1)
+    assert [s.strip().strip('"') for s in sugg.split(",")] == list(wr.SUGGESTED)

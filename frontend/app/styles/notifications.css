@@ -185,3 +185,17 @@ button.nt-row:active { background: var(--surface-2); }
 /* Updates (2026-11-20): "Coming up" heads the feed; the reader's price
    alerts (the old /alerts page) close the page at #alerts. */
 .nt-alerts { display: grid; gap: var(--space-3); margin-top: var(--space-8); }
+
+/* A free reader's count of what the watcher caught (THE Premium line, step 3,
+   2026-11-22): one gold-edged box above the list, the week's free one below. */
+.nt-lock {
+  display: grid; gap: var(--space-2); margin-top: var(--space-4); padding: 16px;
+  border: 1px solid rgb(var(--gold-rgb) / 0.55); border-radius: var(--radius-md);
+  background: rgb(var(--gold-rgb) / 0.08);
+}
+.nt-lock-k { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-size: var(--fs-xs); font-weight: 700; color: var(--gold-ink); }
+.nt-lock-h { margin: 0; font-size: var(--fs-title); font-weight: 700; line-height: 1.3; color: var(--text); text-wrap: balance; }
+.nt-lock-kinds { margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
+.nt-lock-line { margin: 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+.nt-lock .btn-primary { justify-self: start; margin-top: var(--space-1); }
+@media (min-width: 640px) { .nt-lock { padding: 18px 20px; } }

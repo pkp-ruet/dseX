@@ -1,0 +1,22 @@
+/* Watch rules (THE Premium line, step 4, 2026-11-22): the "Watch this share"
+   sheet — one row a rule, a tick on the left, a percent choice on the right. */
+.wr-lead { margin: 0 0 var(--space-3); font-size: var(--fs-base); font-weight: 600; color: var(--text); }
+.wr-suggest { font-weight: 400; }
+.wr-list { display: grid; margin: 0; padding: 0; list-style: none; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); }
+.wr-row {
+  display: flex; align-items: center; gap: var(--space-3); min-height: 48px; padding: 8px 14px;
+  border-top: 1px solid var(--cell-rule);
+}
+.wr-row:first-child { border-top: 0; }
+.wr-row[data-on] { background: rgb(var(--primary-rgb) / 0.05); }
+.wr-check { flex: none; width: 20px; height: 20px; accent-color: var(--primary); }
+.wr-label { flex: 1 1 auto; min-width: 0; font-size: var(--fs-sm); line-height: 1.4; color: var(--text); cursor: pointer; }
+.wr-note { font-size: var(--fs-xs); }
+.wr-value {
+  flex: none; min-height: 36px; padding: 4px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--text); font-size: var(--fs-sm); font-variant-numeric: tabular-nums;
+}
+.wr-count { display: grid; gap: 4px; margin: var(--space-3) 0 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+.wr-count p { margin: 0; }
+.wr-count--over { padding: 10px 12px; border: 1px solid rgb(var(--gold-rgb) / 0.6); border-radius: var(--radius-md); background: rgb(var(--gold-rgb) / 0.08); }
+.wr-foot { display: flex; justify-content: flex-end; gap: var(--space-2); }

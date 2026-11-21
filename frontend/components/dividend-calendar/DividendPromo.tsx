@@ -1,43 +1,79 @@
 "use client";
 
+import { useMemo } from "react";
+import { usePremium } from "@/lib/premium";
 import PremiumCard, { PremiumTicks } from "@/components/premium/PremiumCard";
-import { IconCalendar } from "@/components/ui/icons";
+import MaskedName from "@/components/premium/MaskedName";
 import { T } from "@/components/i18n/T";
-import { dayShort, daysWords } from "@/components/dividend-calendar/dates";
-import DividendDays from "@/components/dividend-calendar/DividendDays";
-import { perShareTk } from "@/components/dividend-calendar/DividendRow";
+import { dayShort } from "@/components/dividend-calendar/dates";
 import { CALENDAR_PREMIUM_ANCHOR } from "@/components/dividend-calendar/RemindButton";
-import { SOON_DAYS, type CalendarPromo } from "@/lib/dividend-promo";
-
-const DAYS_SHOWN = 3;
-
-const TYPE_BN: Record<string, string> = { Final: "চূড়ান্ত", Interim: "অন্তর্বর্তী" };
+import { DIVIDEND_TAX, useMainQty } from "@/components/dividend-calendar/IncomeCard";
+import type { YoursInput } from "@/components/dividend-calendar/CalendarTabs";
+import { money } from "@/lib/formatters";
+import type { CalendarPromo } from "@/lib/dividend-promo";
 
 /** What a Premium reader sees, in four plain lines. */
 const GETS: { en: string; bn: string }[] = [
-  { en: "Every company paying a dividend, and how much a share", bn: "কোন কোম্পানি ডিভিডেন্ড দিচ্ছে, আর শেয়ারপ্রতি কত" },
-  { en: "The last day to buy to get it", bn: "পেতে হলে কেনার শেষ দিন" },
-  { en: "Who will declare next, and roughly when", bn: "এরপর কে ঘোষণা দেবে, আর মোটামুটি কবে" },
-  { en: "A reminder before the last day to buy", bn: "কেনার শেষ দিনের আগে মনে করিয়ে দেওয়া" },
+  { en: "Every record date ahead, not only this week", bn: "শুধু এই সপ্তাহ নয়, সামনের সব রেকর্ড ডেট" },
+  { en: "Who declares next, and roughly when", bn: "এরপর কে ঘোষণা দেবে, আর মোটামুটি কবে" },
+  { en: "Your own dividends in taka, month by month", bn: "আপনার নিজের ডিভিডেন্ড, মাসে মাসে টাকায়" },
+  { en: "A reminder on each last day to buy", bn: "কেনার প্রতিটি শেষ দিনে মনে করিয়ে দেওয়া" },
 ];
+
+const ROWS_SHOWN = 4;
 
 const s = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
+type Mine = {
+  total: number;
+  shares: number;
+  rows: { code: string; date: string }[];
+  /** Shares we expect to pay (they paid last year, nothing declared yet). */
+  expected: number;
+};
+
+/** The reader's own dividends, from their main portfolio: declared cash
+ *  after tax, and how many more of their shares we expect to pay. */
+function useMine(yours: YoursInput | undefined): Mine | null {
+  const qty = useMainQty();
+  return useMemo(() => {
+    if (!yours || !qty || qty.size === 0) return null;
+    let total = 0;
+    const rows: Mine["rows"] = [];
+    const declared = new Set<string>();
+    for (const e of yours.records) {
+      const code = e.trading_code.toUpperCase();
+      const q = qty.get(code);
+      if (!q || !e.record_date || !e.cash_per_share || e.record_date < yours.today) continue;
+      total += q * e.cash_per_share * (1 - DIVIDEND_TAX);
+      declared.add(code);
+      rows.push({ code, date: e.record_date });
+    }
+    const expected = new Set(
+      yours.forecast
+        .map((f) => f.trading_code.toUpperCase())
+        .filter((c) => qty.has(c) && !declared.has(c)),
+    ).size;
+    rows.sort((a, b) => a.date.localeCompare(b.date));
+    return { total, shares: declared.size, rows, expected };
+  }, [yours, qty]);
+}
+
 /**
- * THE Premium card on the dividend calendar (`#dc-premium`). Made simple
- * 2026-11-05 (user: the old card was "mainly telling personalized things",
- * the page is for "finding dividends that are coming next", "more simple and
- * easy to understand"; no risk check). Four parts, nothing personal:
- *  1. the promise ("Never miss a dividend.") and how many companies pay cash
- *     in the next 30 days;
- *  2. ONE free example — the next cash record date in full (company, cash a
- *     share, yield, last day to buy), so the reader sees what the calendar is;
- *  3. the next two weeks as counts by day (`DividendDays`);
- *  4. what Premium shows, four ticks, then the price and one button.
+ * THE Premium card on the dividend calendar (`#dc-premium`). Since THE Premium
+ * line, step 2 (2026-11-22): the next week of record dates is free above it,
+ * so the card sells what lies past the week and, above all, the reader's own
+ * dividends — the part nobody else works out for them. Three parts:
+ *  1. the promise, and what lies past the free week (counts);
+ *  2. for a reader with shares: the taka coming to them after tax (free, a
+ *     total), with which shares and the dates behind a mask;
+ *  3. four ticks, then the price and one button.
+ * The headline never changes after the portfolio loads; the personal box
+ * appears inside the card.
  */
-export default function DividendPromo({ promo }: { promo: CalendarPromo }) {
-  const ex = promo.sample;
-  const dayTotal = promo.days.reduce((a, d) => a + d.n, 0);
+export default function DividendPromo({ promo, yours }: { promo: CalendarPromo; yours?: YoursInput }) {
+  const mine = useMine(yours);
+  const personal = mine != null && (mine.shares > 0 || mine.expected > 0);
 
   return (
     <PremiumCard
@@ -45,125 +81,72 @@ export default function DividendPromo({ promo }: { promo: CalendarPromo }) {
       area="dividend-calendar"
       lock="dc-promo"
       src="dividend-calendar"
-      track={{ variant: "v3", soon: promo.soon, days: promo.days.length }}
+      track={{ variant: "v4", after: promo.after, next: promo.comingNext }}
       className="dc-promo"
       tag={{ en: "Dividend calendar", bn: "ডিভিডেন্ড ক্যালেন্ডার" }}
       title={<T en="Never miss a dividend." bn="কোনো ডিভিডেন্ড আর মিস করবেন না।" />}
       lead={
-        promo.soon > 0 ? (
-          <T
-            en={`${promo.soon} DSE compan${s(promo.soon, "y pays", "ies pay")} a cash dividend in the next ${SOON_DAYS} days. See every one, how much it pays, and the last day to buy to get it.`}
-            bn={`আগামী ${SOON_DAYS} দিনে ডিএসইর ${promo.soon}টি কোম্পানি নগদ ডিভিডেন্ড দেবে। প্রতিটি, কত দেবে, আর পেতে হলে কবের মধ্যে কিনতে হবে, সব এক জায়গায়।`}
-          />
-        ) : (
-          <T
-            en="Every DSE dividend coming up in one calendar: how much it pays, and the last day to buy to get it."
-            bn="ডিএসইর সামনের সব ডিভিডেন্ড এক ক্যালেন্ডারে: কত দেবে, আর পেতে হলে কবের মধ্যে কিনতে হবে।"
-          />
-        )
+        <T
+          en={`This week is free above. After it come ${promo.after} more record date${s(promo.after, "", "s")}, and ${promo.comingNext} compan${s(promo.comingNext, "y", "ies")} we expect to declare next. Premium shows every one, and works out the dividends coming to your own shares.`}
+          bn={`এই সপ্তাহেরগুলো ওপরে ফ্রি। এরপর আরও ${promo.after}টি রেকর্ড ডেট, আর ${promo.comingNext}টি কোম্পানি এরপর ঘোষণা দিতে পারে। প্রিমিয়াম সবগুলো দেখায়, আর আপনার নিজের শেয়ারে কত ডিভিডেন্ড আসছে তা হিসাব করে দেয়।`}
+        />
       }
-      cta={{ en: "Get Premium", bn: "প্রিমিয়াম নিন" }}
+      cta={personal ? { en: "See which shares, and remind me", bn: "কোন শেয়ার দেখুন, মনে করিয়ে দিন" } : { en: "See every dividend ahead", bn: "সামনের সব ডিভিডেন্ড দেখুন" }}
       context={{ label: { en: "The full dividend calendar", bn: "পুরো ডিভিডেন্ড ক্যালেন্ডার" }, stakes: GETS.slice(0, 3) }}
     >
-      {/* ── One free example: the next record date, in full ── */}
-      {ex && <Sample ex={ex} />}
-
-      {/* ── The next two weeks, by day: counts only ── */}
-      {promo.days.length > 0 && (
-        <div className="dcp-days">
-          <p className="sp-k">
-            <T
-              en={`${dayTotal} cash dividend${s(dayTotal, "", "s")} in the next 2 weeks`}
-              bn={`আগামী 2 সপ্তাহে ${dayTotal}টি নগদ ডিভিডেন্ড`}
-            />
-          </p>
-          <DividendDays days={promo.days} shown={DAYS_SHOWN} />
-          {promo.days.length > DAYS_SHOWN && (
-            <p className="spx-days-more">
-              <T
-                en={`And ${promo.days.length - DAYS_SHOWN} more day${s(promo.days.length - DAYS_SHOWN, "", "s")}.`}
-                bn={`আরও ${promo.days.length - DAYS_SHOWN} দিন।`}
-              />
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* ── What Premium shows ── */}
+      {personal && mine && <YourDividends mine={mine} />}
       <PremiumTicks items={GETS} />
     </PremiumCard>
   );
 }
 
-/** The free example: one record date as the calendar shows it. */
-function Sample({ ex }: { ex: NonNullable<CalendarPromo["sample"]> }) {
-  const rec = dayShort(ex.date);
-  const recIn = daysWords(ex.daysLeft);
-  const buy = ex.buyBy ? dayShort(ex.buyBy) : null;
-  const buyIn = daysWords(ex.buyDaysLeft);
-  const open = ex.buyDaysLeft == null || ex.buyDaysLeft >= 0;
-  const y = ex.yieldPct != null ? ex.yieldPct.toFixed(1) : null;
+/** The reader's own total, free; which shares and when, masked. */
+function YourDividends({ mine }: { mine: Mine }) {
+  // The 7-day taste opens the reader's own dividends by name (step 6).
+  const { sharesOpen } = usePremium();
+  const rest = mine.rows.length - ROWS_SHOWN;
   return (
-    <div className="dcp-sample">
-      <p className="dcp-sample-k">
-        <T en="Next up · a free example" bn="সামনে যা আসছে · একটি ফ্রি উদাহরণ" />
+    <div className="dcp-you">
+      <p className="dcp-you-k">
+        <T en="Your dividends" bn="আপনার ডিভিডেন্ড" />
       </p>
-      <div className="dcp-sample-row">
-        <span className="min-w-0">
-          <span className="dc-name">{ex.name}</span>
-          <span className="dc-meta">
-            <span className="dc-code">{ex.code}</span>
-            {ex.type && (
-              <>
-                <span className="dc-sep" aria-hidden="true">·</span>
-                <T en={ex.type} bn={TYPE_BN[ex.type] ?? ex.type} />
-              </>
-            )}
-          </span>
-        </span>
-        <span className="dc-fig">
-          <span className="dc-amt">{perShareTk(ex.cash)}</span>
-          <span className="dc-amt-x">
+      {mine.shares > 0 ? (
+        <>
+          <p className="dcp-you-big pv">{money(mine.total)}</p>
+          <p className="dcp-you-line">
             <T
-              en={y != null ? `a share · ${y}% yield` : "a share"}
-              bn={y != null ? `শেয়ারপ্রতি · ${y}% ইল্ড` : "শেয়ারপ্রতি"}
+              en={`is coming to ${mine.shares} of your shares from dividends already declared, after 10% tax.`}
+              bn={`ইতিমধ্যে ঘোষিত ডিভিডেন্ড থেকে আপনার ${mine.shares}টি শেয়ারে আসছে, 10% কর কাটার পর।`}
             />
-          </span>
-        </span>
-      </div>
-      <dl className="dcp-sample-dates">
-        <div>
-          <dt>
-            <T en="Record date" bn="রেকর্ড ডেট" />
-          </dt>
-          <dd>
-            <T en={rec.en} bn={rec.bn} />
-            {recIn && (
-              <span className="dcp-in">
-                {" "}
-                <T en={`(${recIn.en})`} bn={`(${recIn.bn})`} />
-              </span>
-            )}
-          </dd>
-        </div>
-        {buy && (
-          <div>
-            <dt>
-              <IconCalendar size={14} />
-              <T en="Last day to buy" bn="কেনার শেষ দিন" />
-            </dt>
-            <dd className={open ? "dcp-buy" : undefined}>
-              <T en={buy.en} bn={buy.bn} />
-              {open && buyIn && (
-                <span className="dcp-in">
-                  {" "}
-                  <T en={`(${buyIn.en})`} bn={`(${buyIn.bn})`} />
-                </span>
-              )}
-            </dd>
-          </div>
-        )}
-      </dl>
+          </p>
+          <ul className="dcp-you-rows">
+            {mine.rows.slice(0, ROWS_SHOWN).map((r) => {
+              const d = dayShort(r.date);
+              return (
+                <li key={`${r.code}-${r.date}`}>
+                  {sharesOpen ? <b className="dcp-you-code">{r.code}</b> : <MaskedName name={r.code} />}
+                  <span className="dcp-you-date">
+                    <T en={`Record date ${d.en}`} bn={`রেকর্ড ডেট ${d.bn}`} />
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+          {rest > 0 && (
+            <p className="dcp-you-more">
+              <T en={`And ${rest} more.`} bn={`আরও ${rest}টি।`} />
+            </p>
+          )}
+        </>
+      ) : null}
+      {mine.expected > 0 && (
+        <p className="dcp-you-line">
+          <T
+            en={`${mine.expected} more of your shares paid last year and haven't declared yet. Premium shows which, and roughly when.`}
+            bn={`আপনার আরও ${mine.expected}টি শেয়ার গত বছর ডিভিডেন্ড দিয়েছিল, এবার এখনো ঘোষণা দেয়নি। কোনগুলো আর মোটামুটি কবে, প্রিমিয়াম দেখায়।`}
+          />
+        </p>
+      )}
     </div>
   );
 }

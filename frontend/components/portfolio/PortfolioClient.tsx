@@ -44,7 +44,7 @@ import {
   type GlanceRow,
   type UpcomingResult,
 } from "@/lib/api";
-import { taka, takaCompact, takaGroup } from "@/lib/formatters";
+import { companyShort, taka, takaCompact, takaGroup } from "@/lib/formatters";
 import {
   signalInfoFromApi,
   portfolioTodayMove,
@@ -106,6 +106,7 @@ import { buildNextMove, gradeLifts, gradePath } from "@/lib/portfolio-next";
 import { buildPortfolioReport } from "@/lib/portfolio-report";
 import { SAMPLE_PORTFOLIOS } from "@/lib/sample-portfolios";
 import { isoLocal, todayDhaka } from "@/lib/dividend-dates";
+import WatchRulesButton from "@/components/watch-rules/WatchRulesButton";
 import WatchlistAlertCell from "@/components/watchlist/WatchlistAlertCell";
 import ErrorState from "@/components/ui/ErrorState";
 import { T } from "@/components/i18n/T";
@@ -1407,6 +1408,7 @@ export default function PortfolioClient() {
                             </Button>
                             <span className="pf-spacer" />
                             <WatchlistAlertCell code={code} ltp={row.ltp} w52High={row.w52_high} w52Low={row.w52_low} />
+                            <WatchRulesButton code={code} name={companyShort(row.company_name) || code} />
                             <Button type="button" variant="link" size="sm" iconOnly onClick={() => startEdit(row.holding)} aria-label={`${L("Edit", "বদলান")} ${code}`}>
                               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                                 <path d="M12 20h9" />

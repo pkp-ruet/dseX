@@ -258,33 +258,25 @@ button.dc-row:focus-visible { outline: 2px solid var(--primary); outline-offset:
 .dc-income-amt { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; text-align: right; font-size: var(--fs-sm); font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
 .dc-income-exp { font-size: var(--fs-xs); font-weight: 600; }
 
-/* THE Premium card (#dc-premium, `DividendPromo`, simple since 2026-11-05):
-   the stock page's `.sp` card. One free example row, the next two weeks as
-   counts, four ticks. */
-.dcp-sample { border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); overflow: hidden; }
-.dcp-sample-k {
-  margin: 0; padding: 8px 14px; background: var(--surface-2); border-bottom: 1px solid var(--cell-rule);
-  font-size: var(--fs-xs); font-weight: 700; color: var(--text);
+/* The free week (THE Premium line step 2, 2026-11-22): the next 7 days of
+   record dates, above the Premium card, for every reader. */
+.dc-week { margin-bottom: var(--space-6); }
+
+/* THE Premium card (#dc-premium, `DividendPromo`, since 2026-11-22): what
+   lies past the free week, and the reader's own dividends — the total free,
+   which shares and when masked. */
+.dcp-you { border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); padding: 14px; }
+.dcp-you-k { margin: 0; font-size: var(--fs-xs); font-weight: 700; color: var(--text); }
+.dcp-you-big { margin: 4px 0 0; font-size: var(--fs-xl); font-weight: 700; line-height: 1.2; color: var(--text); font-variant-numeric: tabular-nums; }
+.dcp-you-line { margin: 4px 0 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+.dcp-you-rows { display: grid; gap: 0; margin: var(--space-3) 0 0; padding: 0; list-style: none; }
+.dcp-you-rows li {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+  padding: 8px 0; border-top: 1px solid var(--cell-rule);
 }
-.dcp-sample-row {
-  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 16px; padding: 12px 14px;
-}
-.dcp-sample-dates {
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; margin: 0;
-  background: var(--cell-rule); border-top: 1px solid var(--cell-rule);
-}
-.dcp-sample-dates > div { padding: 10px 14px; background: var(--surface); }
-.dcp-sample-dates dt {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-size: var(--fs-xs); font-weight: 600; color: var(--text);
-}
-.dcp-sample-dates dd { margin: 2px 0 0; font-size: var(--fs-sm); font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
-.dcp-sample-dates .dcp-in { font-weight: 600; }
-.dcp-buy { color: var(--primary); }
-@media (min-width: 640px) {
-  .dcp-sample-k, .dcp-sample-row, .dcp-sample-dates > div { padding-inline: 18px; }
-}
-.dcp-days { margin-top: var(--space-6); }
+.dcp-you-date { flex: none; font-size: var(--fs-xs); font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+.dcp-you-more { margin: 4px 0 0; font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
+@media (min-width: 640px) { .dcp-you { padding: 16px 18px; } }
 .dcp-gets-k { margin-top: var(--space-6); }
 .dcp-gets { display: grid; gap: var(--space-2); margin: var(--space-3) 0 0; padding: 0; list-style: none; }
 .dcp-gets li { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--fs-base); line-height: 1.45; color: var(--text); }
@@ -349,3 +341,4 @@ button.dc-row:focus-visible { outline: 2px solid var(--primary); outline-offset:
 }
 .dc-more:hover { background: var(--surface-2); }
 .dc-more:active { background: var(--surface-2); opacity: 0.85; }
+.dcp-you-code { font-size: var(--fs-sm); font-weight: 700; color: var(--text); }

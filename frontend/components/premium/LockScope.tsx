@@ -23,7 +23,7 @@ import { trackEvent } from "@/lib/track";
  * `opening` — the stock page is spending one of the reader's free analyses
  * right now (`auto`); the Premium card stays out of the way meanwhile.
  */
-type Scope = { anchor?: string; unlocked?: boolean; reason?: "key"; forced?: boolean; opening?: boolean };
+type Scope = { anchor?: string; unlocked?: boolean; reason?: "key" | "showcase"; forced?: boolean; opening?: boolean };
 
 const Ctx = createContext<Scope | null>(null);
 
@@ -61,11 +61,15 @@ export default function StockLockScope({
   code,
   anchor,
   auto = false,
+  showcase = false,
   children,
 }: {
   code: string;
   anchor?: string;
   auto?: boolean;
+  /** One of the five showcase shares (THE Premium line, step 6): open to
+   *  everyone from the first paint, search engines included; no key spent. */
+  showcase?: boolean;
   children: ReactNode;
 }) {
   const { user, isLoading, refreshUser } = useAuth();
@@ -75,7 +79,7 @@ export default function StockLockScope({
 
   const isPaid = userIsPremium(user);
   const left = keys?.left ?? 0;
-  const want = auto && !isLoading && !!user && !isPaid && !keyed && left > 0;
+  const want = !showcase && auto && !isLoading && !!user && !isPaid && !keyed && left > 0;
   useEffect(() => {
     const c = code.toUpperCase();
     if (!want || asked.has(c)) return;
@@ -88,6 +92,9 @@ export default function StockLockScope({
       .finally(() => setOpening(false));
   }, [want, code, left, refreshUser]);
 
+  if (showcase) {
+    return <Ctx.Provider value={{ anchor, unlocked: true, reason: "showcase", forced: true }}>{children}</Ctx.Provider>;
+  }
   const reason = keyed ? "key" : undefined;
   // Pending from the render that decides to open (no frame of the Premium
   // card first) until the reply; a failed call shows the card again.

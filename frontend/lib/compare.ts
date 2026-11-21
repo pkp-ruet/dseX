@@ -9,6 +9,8 @@
  * number (its place in the URL) beside its name in every card, so a reader
  * can follow it as the order changes from card to card (2026-11-18).
  */
+import { freeN } from "@/lib/premium-line";
+
 export const COMPARE_PATH = "/compare-stocks";
 export const COMPARE_ANCHOR = "cmp-premium";
 /** A free reader puts this many shares side by side (= lib/premium.ts
@@ -17,8 +19,8 @@ export const COMPARE_ANCHOR = "cmp-premium";
  *  included, up to MAX_COMPARE (backend `HARD_LIMITS["compare"]`). Kept here,
  *  not imported from lib/premium.ts, because that file is client-only and the
  *  server page reads these. backend/tests/test_agreement.py checks all four. */
-export const FREE_COMPARE = 2;
 export const MAX_COMPARE = 10;
+export const FREE_COMPARE = freeN("compare") ?? MAX_COMPARE;
 
 export type Bi = { en: string; bn: string };
 export type Tone = "good" | "fair" | "bad" | "neutral";

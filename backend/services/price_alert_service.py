@@ -131,6 +131,10 @@ def _check_alert_limit(user_id: str, limit: Optional[int]) -> None:
     if limit is None:
         return
     active = _alerts().count_documents({"user_id": user_id, "is_active": True})
+    # The cap is shared with the reader's watch rules (THE Premium line, step 4).
+    from backend.services.db_service import get_db
+    doc = get_db().users.find_one({"user_id": user_id}, {"_id": 0, "watch_rules": 1}) or {}
+    active += len(doc.get("watch_rules") or [])
     if alerts_blocked(active, limit):
         raise AlertLimitReached()
 

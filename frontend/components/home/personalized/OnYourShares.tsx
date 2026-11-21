@@ -8,10 +8,13 @@ import { KIND_WORD, readNotice, shortName, type NoticeKind } from "@/lib/market-
 import { RESULT_LEVEL } from "@/lib/results";
 import { buildDates, daysFrom, whenWord, type Bi, type DateItem } from "@/lib/home-dates";
 import { DateTile } from "@/components/dividend-calendar/DateGroup";
-import { IconChevronRight } from "@/components/ui/icons";
+import { IconChevronRight, IconLock } from "@/components/ui/icons";
+import { freeN } from "@/lib/premium-line";
 
 /** Newest updates shown before the link to Updates. */
 const NEWS_ROWS = 3;
+/** Updates a free reader sees open (THE Premium line: the "updates" area). */
+const FREE_ROWS = freeN("updates") ?? NEWS_ROWS;
 /** Dates shown before the link to Updates. */
 const DATE_ROWS = 3;
 /** A result counts as news for this many days. */
@@ -41,7 +44,10 @@ interface NewsItem {
  * this week's dates (results meetings, last day to buy, record dates, AGMs),
  * then one link to Updates for everything. It replaced four blocks: "Your
  * dates this week", "Latest on your shares", "Results this week" and
- * "Dividends coming to you" (that one lives on the portfolio). Free. Data from
+ * "Dividends coming to you" (that one lives on the portfolio). Since THE
+ * Premium line step 3 (2026-11-22) a free reader sees the newest update open
+ * and the rest counted in one gold line; the dates stay free (they are this
+ * week's dates, free on the calendar too). Data from
  * the home bundle — no request of its own. Renders nothing for a reader with
  * no shares and no watchlist.
  */
@@ -55,6 +61,7 @@ export default function OnYourShares({
   ownDividends,
   priceMap,
   loading,
+  premium,
 }: {
   lang: Lang;
   /** Holdings ∪ watchlist, upper-case. */
@@ -67,6 +74,7 @@ export default function OnYourShares({
   ownDividends: CorporateActionEvent[];
   priceMap: Map<string, ScoreItem>;
   loading: boolean;
+  premium: boolean;
 }) {
   const bn = lang === "bn";
   const pick = (b: Bi) => (bn ? b.bn : b.en);
@@ -147,7 +155,7 @@ export default function OnYourShares({
       <div className="hm-tcard">
         {items.length > 0 && (
           <ul className="hm-nlist">
-            {items.slice(0, NEWS_ROWS).map((r) => (
+            {items.slice(0, premium ? NEWS_ROWS : FREE_ROWS).map((r) => (
               <li key={r.key}>
                 <Link href={r.href} className="hm-nrow">
                   <span className="hm-nrow-txt">
@@ -165,6 +173,16 @@ export default function OnYourShares({
               </li>
             ))}
           </ul>
+        )}
+        {!premium && items.length > FREE_ROWS && (
+          <Link href="/premium?src=home-ours#pay" className="hm-ours-lock" data-card="ours-premium">
+            <IconLock size={14} />
+            <span>
+              {bn
+                ? `আপনার শেয়ারে আরও ${items.length - FREE_ROWS}টি খবর। কোন শেয়ারে, প্রিমিয়ামে দেখুন।`
+                : `${items.length - FREE_ROWS} more ${items.length - FREE_ROWS === 1 ? "update" : "updates"} on your shares. See which with Premium.`}
+            </span>
+          </Link>
         )}
         {dates.length > 0 && (
           <ul className="hm-dlist hm-ours-dates">

@@ -32,7 +32,10 @@ export default function ReportOffer({
   const { bn } = useLang();
   const { state, isPremium } = usePremium();
   // Opened with one of the reader's free analyses (report keys).
-  const keyed = useLockScope()?.reason === "key";
+  const reason = useLockScope()?.reason;
+  const keyed = reason === "key";
+  // One of the five showcase shares, open to everyone (step 6).
+  const showcase = reason === "showcase";
   const keys = useAuth().user?.report_keys;
   const left = keys?.left ?? null;
 
@@ -52,10 +55,14 @@ export default function ReportOffer({
     <div id="ch-premium-end" className="rp-offer stock-anchor my-8">
       <p className="flex items-center gap-2 text-sm font-semibold text-gold-ink">
         <IconCrown size={16} />
-        <T en="Your free analysis" bn="আপনার ফ্রি বিশ্লেষণ" />
+        {showcase ? <T en="Free to read for everyone" bn="সবার জন্য ফ্রি" /> : <T en="Your free analysis" bn="আপনার ফ্রি বিশ্লেষণ" />}
       </p>
       <h3 className="mt-1 text-xl font-bold leading-tight text-text-main sm:text-2xl">
-        <T en={`Our analysis of ${name} is open for you until the end of the month`} bn={`${name}-এর বিশ্লেষণটি এ মাসের শেষ পর্যন্ত আপনার জন্য খোলা আছে`} />
+        {showcase ? (
+          <T en={`Our analysis of ${name} is open to everyone`} bn={`${name}-এর বিশ্লেষণটি সবার জন্য খোলা`} />
+        ) : (
+          <T en={`Our analysis of ${name} is open for you until the end of the month`} bn={`${name}-এর বিশ্লেষণটি এ মাসের শেষ পর্যন্ত আপনার জন্য খোলা আছে`} />
+        )}
       </h3>
       <p className="mt-2 text-sm text-text-main">
         <T en="With Premium, the same analysis is open on every DSE share, every day." bn="প্রিমিয়াম নিলে ডিএসইর প্রতিটি শেয়ারের এমন বিশ্লেষণ প্রতিদিন পড়তে পারবেন।" />
