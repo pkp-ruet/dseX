@@ -1226,6 +1226,33 @@ def compute_52w_range(price_history: list[dict]) -> tuple[Optional[float], Optio
     return float(max(vals)), float(min(vals))
 
 
+def compute_52w_traded(price_history: list[dict]) -> tuple[Optional[float], Optional[float]]:
+    """(high, low) of the last 365 days as DSE's own page shows it: the day's
+    highest and lowest trades, never adjusted for dividends or bonus shares.
+
+    Only the stock page's year bar shows this (user decision 2026-11-22: it
+    should match DSE). Every check of ours (near the top, the Buy rule, alerts)
+    keeps the adjusted `compute_52w_range` — after UTTARABANK's 25% bonus on
+    20 May 2026 the as-traded low (৳20.3) put a share at its yearly low that is
+    ৳16.6 on today's footing. Falls back to the day's price when a row has no
+    high / low. Pure."""
+    cutoff = (datetime.now() - timedelta(days=365)).isoformat()
+    highs: list[float] = []
+    lows: list[float] = []
+    for d in price_history:
+        if str(d.get("date") or "") < cutoff:
+            continue
+        p = d.get("ltp")
+        if p is None or p <= 0:
+            continue
+        hi, lo = d.get("high"), d.get("low")
+        highs.append(float(hi) if isinstance(hi, (int, float)) and hi > 0 else float(p))
+        lows.append(float(lo) if isinstance(lo, (int, float)) and lo > 0 else float(p))
+    if not highs:
+        return None, None
+    return max(highs), min(lows)
+
+
 # ---------------------------------------------------------------------------
 # Signal flags (extracted from views/detail.py:247-297)
 # ---------------------------------------------------------------------------

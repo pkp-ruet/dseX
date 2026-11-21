@@ -110,6 +110,10 @@ class LatestPrice(BaseModel):
     ycp: Optional[float] = None
     w52_high: Optional[float] = None
     w52_low: Optional[float] = None
+    # The year's highest / lowest trade as DSE shows it (no dividend / bonus
+    # adjustment) — the stock page's year bar only; w52_* stay adjusted.
+    w52_high_traded: Optional[float] = None
+    w52_low_traded: Optional[float] = None
     value_mn: Optional[float] = None      # day's turnover in millions of BDT
     trade_count: Optional[int] = None     # number of trades that day
     # 2026-11-04 (audit SP4): False while DSE's official close isn't out yet

@@ -143,6 +143,10 @@ export interface LatestPrice {
   ycp: number | null;
   w52_high: number | null;
   w52_low: number | null;
+  /** The year's highest / lowest trade as DSE shows it, not adjusted for
+   *  dividends or bonus shares. Only the hero's year bar reads these. */
+  w52_high_traded?: number | null;
+  w52_low_traded?: number | null;
   /** Day's turnover in millions of BDT. */
   value_mn?: number | null;
   /** Number of trades that day. */

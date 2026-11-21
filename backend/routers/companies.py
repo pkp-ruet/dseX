@@ -5,7 +5,7 @@ from backend.services.db_service import (
     get_company, load_latest_prices, load_price_history,
     load_financials, load_extended_financials, load_shareholdings,
     load_company_news, load_dividend_declarations, load_all_company_codes,
-    compute_52w_range, compute_signal_flags, load_news_for_codes,
+    compute_52w_range, compute_52w_traded, compute_signal_flags, load_news_for_codes,
     load_market_news, load_settled_actions, adjust_price_rows,
 )
 from backend.services.stock_facts import (
@@ -92,6 +92,8 @@ def get_company_detail(code: str):
     # 52-week range on prices adjusted for dividend / bonus record dates.
     w52_high, w52_low = compute_52w_range(
         adjust_price_rows(price_history, load_settled_actions().get(trading_code, [])))
+    # As traded, like DSE's own page: only the stock page's year bar shows it.
+    traded_high, traded_low = compute_52w_traded(price_history)
 
     financials = load_financials(trading_code)
     ext_financials = load_extended_financials(trading_code)
@@ -342,6 +344,8 @@ def get_company_detail(code: str):
             ycp=latest.get("ycp"),
             w52_high=w52_high,
             w52_low=w52_low,
+            w52_high_traded=traded_high,
+            w52_low_traded=traded_low,
             value_mn=latest.get("value_mn"),
             trade_count=_int_or_none(latest.get("trade_count")),
             official=(latest.get("close_price") is not None) if latest else None,

@@ -131,7 +131,12 @@ export default function HeroSection({ detail }: Props) {
   const isPositive = chg != null && chg > 0;
   const isNegative = chg != null && chg < 0;
 
-  const range = range52wInfo(ltp, latest_price.w52_high, latest_price.w52_low);
+  // The year bar shows the range as traded, like DSE's own page (user decision
+  // 2026-11-22); an older backend without it falls back to the adjusted range.
+  const traded = latest_price.w52_high_traded != null && latest_price.w52_low_traded != null;
+  const yearHigh = traded ? latest_price.w52_high_traded! : latest_price.w52_high;
+  const yearLow = traded ? latest_price.w52_low_traded! : latest_price.w52_low;
+  const range = range52wInfo(ltp, yearHigh, yearLow);
   const rangeTextCls =
     range?.tone === "high" ? "text-positive" : range?.tone === "low" ? "text-negative" : "text-info";
   const rangeDotCls =
@@ -279,19 +284,19 @@ export default function HeroSection({ detail }: Props) {
                 )}
               </span>
             </div>
-            {range && latest_price.w52_high != null && latest_price.w52_low != null && (
+            {range && yearHigh != null && yearLow != null && (
               <div className="mt-4 max-w-md">
                 {/* Grid, not justify-between: at 360px the caption wraps in the middle
                     cell while Low / High stay pinned to the bar's two ends. */}
                 <div className="mb-2 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 text-xs font-semibold text-text-muted">
                   <span className="nums whitespace-nowrap">
-                    <T en="Year low" bn="বছরের সর্বনিম্ন" /> {taka(latest_price.w52_low, 1)}
+                    <T en="Year low" bn="বছরের সর্বনিম্ন" /> {taka(yearLow, 1)}
                   </span>
                   <span className={`text-center font-bold leading-tight ${rangeTextCls}`}>
                     <T en={range.caption.en} bn={range.caption.bn} />
                   </span>
                   <span className="nums whitespace-nowrap">
-                    <T en="Year high" bn="বছরের সর্বোচ্চ" /> {taka(latest_price.w52_high, 1)}
+                    <T en="Year high" bn="বছরের সর্বোচ্চ" /> {taka(yearHigh, 1)}
                   </span>
                 </div>
                 <div className="relative h-1.5 rounded-full bg-surface-2">
