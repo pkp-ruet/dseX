@@ -597,3 +597,137 @@ html[data-signed-in="1"] .home-landing { display: none; }
 .taste-foot { margin: 0; font-size: var(--fs-xs); line-height: 1.5; color: var(--text); }
 .taste-acts { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 @media (min-width: 1024px) { .taste-note { grid-column: 1 / -1; } }
+
+/* ===================================================================
+   The guest home (2026-11-23, mockup v2
+   https://claude.ai/artifact/2rXAyT319sXtJXWBjE6rMG): a visitor who is not
+   signed in gets the six blocks above, in the same places, through
+   components/home/guest/*. Only what differs is styled here (`hm-g-*`):
+   the band's words and example money card, the example tags, the
+   "On your shares" foot, and the "New here?" half under the home.
+   Blocks that render once per language sit in a `[data-l]` wrapper; the
+   rules below keep the layout reading through it.
+   =================================================================== */
+
+/* The wrappers TBlock adds must not break the signed-in layout rules. */
+.hm-stories > [data-l] { min-width: 0; }
+@media (min-width: 1024px) {
+  .hm-stories > [data-l] > div { flex: 1 1 auto; display: flex; flex-direction: column; }
+  .hm-side > .hm-g-mkt { order: -1; }
+}
+
+/* 1 · The band: what TopStockBD is, the ask, the example money card. */
+.hm-g-band { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+@media (min-width: 900px) {
+  .hm-g-band { grid-template-columns: minmax(0, 1fr) minmax(0, 300px); column-gap: var(--space-8); align-items: end; }
+}
+.hm-g-band .hm-search { grid-column: 1 / -1; }
+.hm-g-h1 {
+  margin-top: var(--space-2); font-size: var(--fs-2xl); font-weight: 700; line-height: 1.15;
+  letter-spacing: -0.01em; color: var(--text); text-wrap: balance;
+}
+@media (min-width: 640px) { .hm-g-h1 { font-size: var(--fs-display); } }
+.hm-g-line { margin-top: var(--space-3); max-width: 60ch; font-size: var(--fs-md); line-height: 1.55; color: var(--text); }
+.hm-g-ask { margin-top: var(--space-4); }
+.hm-g-ask-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.hm-g-small { margin-top: var(--space-2); font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
+
+.hm-g-money {
+  display: grid; gap: 6px; min-width: 0; padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  background: var(--surface); box-shadow: var(--shadow-soft); color: var(--text);
+}
+.hm-g-money:hover { border-color: rgb(var(--primary-rgb) / 0.45); }
+.hm-g-money-top {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-2);
+  font-size: var(--fs-xs); font-weight: 600;
+}
+.hm-g-money-go {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-2);
+  margin-top: var(--space-1); padding-top: var(--space-2); border-top: 1px solid var(--border);
+  font-size: var(--fs-xs); font-weight: 700; color: var(--primary-ink);
+}
+
+/* "Example": a dashed grey tag, so a guest never takes a row for their own. */
+.hm-g-ex {
+  flex: none; display: inline-flex; align-items: center; min-height: 22px; padding: 0 var(--space-2);
+  border: 1px dashed var(--border); border-radius: 999px; background: var(--surface-2);
+  font-size: var(--fs-2xs); font-weight: 700; color: var(--text); white-space: nowrap;
+}
+
+/* 4 · On your shares: the example rows' kind words, then the ask. */
+.hm-kind--good { background: rgb(var(--positive-rgb) / 0.12); color: var(--positive); }
+.hm-kind--watch { background: rgb(var(--watch-rgb) / 0.12); color: var(--watch); }
+.hm-kind--bad { background: rgb(var(--negative-rgb) / 0.12); color: var(--negative); }
+.hm-g-ours-foot {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3);
+  padding: var(--space-3) var(--space-4); border-top: 1px solid var(--border);
+  background: rgb(var(--primary-rgb) / 0.07);
+}
+.hm-g-ours-foot p { display: grid; gap: 2px; min-width: 0; flex: 1 1 16rem; font-size: var(--fs-xs); line-height: 1.45; color: var(--text); }
+.hm-g-ours-foot b { font-size: var(--fs-sm); }
+
+/* ---------- New here? (under the guest home) ---------- */
+.hm-g-eyebrow { font-size: var(--fs-xs); font-weight: 600; color: var(--primary-ink); }
+.hm-g-h2 { margin-top: 2px; font-size: var(--fs-xl); font-weight: 700; line-height: 1.25; color: var(--text); text-wrap: balance; }
+@media (min-width: 640px) { .hm-g-h2 { font-size: var(--fs-2xl); } }
+.hm-g-gap { margin-top: var(--space-12); }
+.hm-g-sub { margin-top: var(--space-2); max-width: 64ch; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
+
+.hm-g-places { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); margin-top: var(--space-4); }
+@media (min-width: 700px) { .hm-g-places { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1100px) { .hm-g-places { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.hm-g-place { align-self: start; }
+.hm-g-place-h {
+  display: grid; grid-template-columns: 36px minmax(0, 1fr) 16px; gap: var(--space-3); align-items: center;
+  padding: var(--space-3) var(--space-4); color: var(--text);
+}
+.hm-g-place-h:hover { background: var(--surface-2); }
+.hm-g-place-h > svg { color: var(--primary-ink); }
+.hm-g-place-ic {
+  width: 36px; height: 36px; border-radius: var(--radius-md); display: grid; place-items: center;
+  background: rgb(var(--primary-rgb) / 0.12); color: var(--primary);
+}
+.hm-g-place-name { display: block; font-size: var(--fs-md); font-weight: 700; }
+.hm-g-place-q { display: block; font-size: var(--fs-xs); line-height: 1.4; }
+.hm-g-pages { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--border); }
+.hm-g-pages > li + li { border-top: 1px solid var(--border); }
+.hm-g-page {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3);
+  min-height: 52px; padding: var(--space-2) var(--space-4); color: var(--text);
+}
+.hm-g-page:hover, .hm-g-page:active { background: var(--surface-2); }
+.hm-g-page-name { display: block; font-size: var(--fs-sm); font-weight: 700; }
+.hm-g-page-line { display: block; font-size: var(--fs-xs); line-height: 1.4; }
+.hm-g-tag {
+  flex: none; display: inline-flex; align-items: center; gap: 3px; margin-top: 2px;
+  font-size: var(--fs-2xs); font-weight: 700; color: var(--positive); white-space: nowrap;
+}
+.hm-g-tag--prem { color: var(--gold-ink); }
+
+.hm-g-rule {
+  margin-top: var(--space-3); max-width: 72ch; padding: var(--space-3) var(--space-4);
+  border-left: 3px solid var(--primary); border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  background: var(--surface); font-size: var(--fs-md); font-weight: 600; line-height: 1.45; color: var(--text);
+}
+.hm-g-fp { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); margin-top: var(--space-4); }
+@media (min-width: 820px) { .hm-g-fp { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.hm-g-fp-card { padding: var(--space-4); }
+.hm-g-fp-card--prem { border-color: rgb(var(--gold-rgb) / 0.7); }
+.hm-g-fp-h { display: flex; align-items: center; gap: var(--space-2); font-size: var(--fs-md); font-weight: 700; color: var(--text); }
+.hm-g-fp-card--prem .hm-g-fp-h svg { color: var(--gold-ink); }
+.hm-g-fp-list { list-style: none; margin: var(--space-3) 0 0; padding: 0; display: grid; gap: var(--space-2); }
+.hm-g-fp-list li { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
+.hm-g-fp-list svg { flex: none; margin-top: 3px; }
+.hm-g-fp-list--free svg { color: var(--positive); }
+.hm-g-fp-list--prem svg { color: var(--gold-ink); }
+.hm-g-taste {
+  margin-top: var(--space-3); padding: var(--space-2) var(--space-3); border-radius: var(--radius-md);
+  background: rgb(var(--positive-rgb) / 0.1); font-size: var(--fs-sm); font-weight: 600; color: var(--text);
+}
+
+/* 5 · The slot fills its column from 1024px through the language wrapper. */
+@media (min-width: 1024px) {
+  .hm-g-slot > [data-l] { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; }
+  .hm-g-slot > [data-l] > .hm-slot { flex: 1 1 auto; }
+}

@@ -108,9 +108,12 @@ export default function ServiceGrid({
   lang,
   premium,
   badges,
+  listId = "hm-grid-list",
 }: {
   lang: Lang;
   premium: boolean;
+  /** The list's id (the guest home renders one grid per language). */
+  listId?: string;
   /** service key → how many new things to flag (0 / missing = no badge). */
   badges: Partial<Record<string, number>>;
 }) {
@@ -126,7 +129,7 @@ export default function ServiceGrid({
       lang={bn ? "bn" : undefined}
       aria-label={bn ? "যা করতে পারেন" : "What you can do"}
     >
-      <ul className="hm-grid-list" id="hm-grid-list">
+      <ul className="hm-grid-list" id={listId}>
         {shown.map((s) => {
           const n = badges[s.key] ?? 0;
           return (
@@ -162,7 +165,7 @@ export default function ServiceGrid({
           className="hm-more"
           onClick={() => setMore((v) => !v)}
           aria-expanded={more}
-          aria-controls="hm-grid-list"
+          aria-controls={listId}
         >
           {more ? (bn ? "কম দেখুন" : "See less") : bn ? "আরও দেখুন" : "See more"}
           <IconChevronDown size={16} />

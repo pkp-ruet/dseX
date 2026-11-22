@@ -1146,8 +1146,8 @@ export interface MorningBrief {
 }
 
 /** Every company's latest quarterly results, newest first (`/results`). */
-export async function getLatestResults(): Promise<LatestResults> {
-  return apiFetch<LatestResults>("/api/results", 900);
+export async function getLatestResults(revalidate = 900): Promise<LatestResults> {
+  return apiFetch<LatestResults>("/api/results", revalidate);
 }
 
 /** Every declaration stored for one company, newest first (raw ledger rows —
@@ -1262,8 +1262,8 @@ export async function getResearchSummary(): Promise<ResearchSummary> {
 }
 
 /** `GET /api/buy-list` — the Buy List page in one bundle (2026-11-08). */
-export async function getBuyList(): Promise<BuyList> {
-  return apiFetch("/api/buy-list", 900);
+export async function getBuyList(revalidate = 900): Promise<BuyList> {
+  return apiFetch("/api/buy-list", revalidate);
 }
 
 export async function getRiskRegister(): Promise<RiskRegister> {

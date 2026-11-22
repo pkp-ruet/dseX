@@ -5,27 +5,32 @@ import {
   getTrust,
   getMarketState,
   getMarketMovers,
-  type ScoresResponse,
-  type ScoreItem,
+  getMarketIndex,
+  getLatestResults,
+  getBuyList,
+  getRiskRegister,
   type TrustStats,
-  type MarketStateData,
-  type MarketMoversData,
 } from "@/lib/api";
-import { toLandingStock, pickHeroCode, pickQuickCodes, type LandingStock } from "@/lib/landing";
 import { buildLandingPortfolios, type SampleView } from "@/lib/landing-portfolio";
+import {
+  exampleRows,
+  guestWhen,
+  sampleMoney,
+  showcasePick,
+  todayRows,
+} from "@/lib/guest-home";
+import { guestStories } from "@/lib/guest-stories";
+import { bstDateStr } from "@/lib/market-hours";
 import HomePersonalizationGate from "@/components/home/HomePersonalizationGate";
-import LandingHero, { type HeroDividend } from "@/components/landing/LandingHero";
-import TrustStrip from "@/components/landing/TrustStrip";
-import WhatWeDo from "@/components/landing/WhatWeDo";
-import MarketPulse from "@/components/landing/MarketPulse";
-import SignUpBand from "@/components/landing/SignUpBand";
-import StartFromZero from "@/components/landing/StartFromZero";
-import LandingClose from "@/components/landing/LandingClose";
+import GuestHome, { type GuestHomeData } from "@/components/home/guest/GuestHome";
+import NewHere from "@/components/home/guest/NewHere";
+import SignUpBand from "@/components/home/guest/SignUpBand";
+import StartFromZero from "@/components/home/guest/StartFromZero";
 import FeedbackSection from "@/components/feedback/FeedbackSection";
 
-// Hourly, not daily: the page renders today's movers and grades, so
-// day-old HTML would show yesterday's market. Matches the 3600s the scores /
-// market-state fetches below use.
+// Hourly, not daily: the page renders today's market, so day-old HTML would
+// show yesterday's. Every fetch below asks for 3600s or longer so the page's
+// ISR cadence doesn't tighten to 15 minutes.
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
@@ -33,7 +38,7 @@ export const metadata: Metadata = {
   // segments, so this page has to carry the brand itself.
   title: "DSE Stock Analysis, Rankings & Share Price | TopStockBD",
   description:
-    "Free fundamental analysis for every Dhaka Stock Exchange (DSE) company, in Bengali and English. See the score, the checks behind it, and today's rankings before you buy. No tips, no rumours.",
+    "Every Dhaka Stock Exchange (DSE) company checked after every trading day, in Bengali and English: grades, results, dividend dates and today's market. Add your shares and we tell you when something happens to them. No tips, no rumours.",
   keywords: [
     "DSE stock analysis", "DSE share price", "Dhaka Stock Exchange rankings",
     "Bangladesh stock market analysis", "DSE fundamental analysis",
@@ -44,7 +49,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "DSE Stock Analysis, Rankings & Share Price — TopStockBD",
     description:
-      "Free fundamental scores for every DSE company, in Bengali and English. The score, the method behind it, and today's market — all free.",
+      "Every DSE company checked after every trading day, in Bengali and English: grades, results, dividend dates, today's market, and news on your own shares.",
     url: "/",
     type: "website",
   },
@@ -52,7 +57,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "DSE Stock Analysis, Rankings & Share Price — TopStockBD",
     description:
-      "Free fundamental scores for every DSE company, in Bengali and English. No tips, no rumours.",
+      "Every DSE company checked after every trading day, in Bengali and English. Your shares watched. No tips, no rumours.",
   },
 };
 
@@ -76,99 +81,67 @@ const JSON_LD = {
   },
 };
 
-function sortedByScore(items: ScoreItem[]): ScoreItem[] {
-  return [...items].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
-}
-
-/** Round down to the nearest 50 so a headline count never over-claims. */
-function safeCount(n: number): number {
-  return Math.max(50, Math.floor(n / 50) * 50);
-}
-
-interface LandingData {
-  stocks: LandingStock[];
-  heroCode: string | null;
-  total: number;
-}
-
-async function landingData(promise: Promise<ScoresResponse | null>): Promise<LandingData | null> {
-  const scores = await promise;
-  if (!scores) return null;
-  const items = sortedByScore(flattenTiers(scores));
-  if (items.length === 0) return null;
-  const stocks = items.map(toLandingStock);
-  return { stocks, heroCode: pickHeroCode(stocks), total: items.length };
-}
-
-/** The next cash record date that can still be bought into — the hero's
- *  "what an account tells you" card. */
-function nextDividend(market: MarketStateData | null): HeroDividend | null {
-  const ev = (market?.next?.dividends ?? [])
-    .filter((d) => d.kind === "record" && (d.cash_per_share ?? 0) > 0 && (d.buy_days_left ?? 0) >= 0)
-    .sort((a, b) => a.date.localeCompare(b.date))[0];
-  if (!ev || ev.cash_per_share == null) return null;
-  return { code: ev.trading_code, cashPerShare: ev.cash_per_share, buyBy: ev.buy_by ?? null };
-}
-
-// ---------------------------------------------------------------------------
-// Blocks. Each awaits only the data it needs so a slow endpoint can't hold up
-// the rest of the page.
-// ---------------------------------------------------------------------------
-
-async function HeroBlock({
-  promise,
-  marketPromise,
-}: {
-  promise: Promise<ScoresResponse | null>;
-  marketPromise: Promise<MarketStateData | null>;
-}) {
-  const [data, market] = await Promise.all([landingData(promise), marketPromise]);
-  if (!data) return <HeroFallback />;
-  return (
-    <LandingHero
-      stocks={data.stocks}
-      initialCode={data.heroCode}
-      dividend={nextDividend(market)}
-    />
-  );
-}
-
-async function TrustStripSection({ promise }: { promise: Promise<ScoresResponse | null> }) {
-  const data = await landingData(promise);
-  if (!data) return null;
-  return <TrustStrip totalCount={safeCount(data.total)} />;
-}
-
-async function WhatWeDoSection({ promise }: { promise: Promise<ScoresResponse | null> }) {
-  const scores = await promise;
-  const data = await landingData(promise);
-  if (!scores || !data) return null;
-  // The first card shows a familiar company other than the hero's.
-  const questionStock = pickQuickCodes(data.stocks, 4).find((s) => s.code !== data.heroCode) ?? null;
-  const top = [...data.stocks]
+/** Everything the guest home needs, from the requests the page fires at the
+ *  top. Each one degrades to null on its own: a dead endpoint thins a block,
+ *  never the page. */
+async function guestData(p: {
+  scores: ReturnType<typeof getScores>;
+  market: ReturnType<typeof getMarketState>;
+  movers: ReturnType<typeof getMarketMovers>;
+  index: ReturnType<typeof getMarketIndex>;
+  results: ReturnType<typeof getLatestResults>;
+  buyList: ReturnType<typeof getBuyList>;
+  risks: ReturnType<typeof getRiskRegister>;
+}): Promise<GuestHomeData> {
+  const none = () => null;
+  const [scores, market, movers, index, results, buyList, risks] = await Promise.all([
+    p.scores.catch(none),
+    p.market.catch(none),
+    p.movers.catch(none),
+    p.index.catch(none),
+    p.results.catch(none),
+    p.buyList.catch(none),
+    p.risks.catch(none),
+  ]);
+  const items = scores ? flattenTiers(scores) : [];
+  const byCode = new Map(items.map((s) => [s.trading_code.toUpperCase(), s]));
+  const ranked = items
     .filter((s) => s.score != null)
-    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
-    .slice(0, 3);
+    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0) || a.trading_code.localeCompare(b.trading_code));
+
   // The real portfolio check on the well-spread sample; any failure just
-  // leaves the third card without its picture.
+  // leaves the band and the slot without it.
   let sample: SampleView | null = null;
   try {
-    sample = buildLandingPortfolios(scores).find((p) => p.slug === "diversified") ?? null;
+    sample = scores ? buildLandingPortfolios(scores).find((x) => x.slug === "diversified") ?? null : null;
   } catch {
     sample = null;
   }
-  return <WhatWeDo questionStock={questionStock} top={top} sample={sample} />;
+
+  const todayIso = bstDateStr();
+  const when = guestWhen(market, todayIso);
+  const examples = exampleRows(todayIso, results, market, risks);
+  const storyInput = { when, todayIso, market, marketIndex: index, movers, examples };
+
+  return {
+    when,
+    money: sampleMoney(byCode, sample?.grade ?? null),
+    stories: {
+      en: guestStories({ ...storyInput, lang: "en" }),
+      bn: guestStories({ ...storyInput, lang: "bn" }),
+    },
+    marketIndex: index,
+    market,
+    examples,
+    today: todayRows(todayIso, buyList, ranked, results, market),
+    sample,
+    showcase: showcasePick(byCode),
+    buyListNew: buyList?.changes?.week_joined?.length ?? 0,
+  };
 }
 
-async function MarketSection({
-  marketPromise,
-  moversPromise,
-}: {
-  marketPromise: Promise<MarketStateData | null>;
-  moversPromise: Promise<MarketMoversData | null>;
-}) {
-  const [market, movers] = await Promise.all([marketPromise, moversPromise]);
-  return <MarketPulse market={market} movers={movers} />;
+async function GuestBlock({ promise }: { promise: Promise<GuestHomeData> }) {
+  return <GuestHome d={await promise} />;
 }
 
 async function SignUpSection({ promise }: { promise: Promise<TrustStats | null> }) {
@@ -176,82 +149,55 @@ async function SignUpSection({ promise }: { promise: Promise<TrustStats | null> 
   return <SignUpBand trust={trust} />;
 }
 
-async function CloseSection({ promise }: { promise: Promise<TrustStats | null> }) {
-  const trust = await promise;
-  return <LandingClose testimonials={trust?.testimonials ?? []} />;
-}
-
-function HeroFallback() {
-  return (
-    <section className="pt-8 sm:pt-14">
-      <div className="grid grid-cols-1 items-center gap-10 md:grid-cols-[1fr_minmax(0,27rem)] md:gap-12">
-        <div className="flex flex-col gap-4">
-          <div className="h-14 w-full animate-pulse rounded bg-surface-2" />
-          <div className="h-16 w-full animate-pulse rounded bg-surface-2" />
-          <div className="h-14 w-full animate-pulse rounded bg-surface-2" />
-        </div>
-        <div className="h-96 w-full animate-pulse rounded-3xl bg-surface-2" />
-      </div>
-    </section>
-  );
-}
-
 /**
- * The logged-out landing page (rebuilt 2026-10-31, user: "unorganized and lots
- * of things … redesign so a user easily understands what this site is about
- * and feels the urge to sign up"; mockup
- * https://claude.ai/artifact/FBCjsKoN5cKYXC5q6S8pzT).
+ * The homepage for a visitor who isn't signed in (2026-11-23, user: the old
+ * landing "doesn't tell much about what user will get after sign in … mostly
+ * a promotional page", then the blended form, mockup v2
+ * https://claude.ai/artifact/2rXAyT319sXtJXWBjE6rMG). The guest lands on the
+ * signed-in home's own six blocks (`GuestHome`): the public ones show today's
+ * data, the personal ones a labelled example built from today's market. Then,
+ * for a first-time visitor and for search, `NewHere` (the four tabs with every
+ * page and what is free, Free and Premium), the sign-up band with the form on
+ * the page, and three beginner guides.
  *
- * Seven blocks, one job each: 1 hero (the promise, the ask, a lookup that
- * needs no account, and a real answer card) · 2 four plain facts · 3 what the
- * site does, as three jobs with a real piece of each · 4 today on the DSE in
- * one card · 5 the sign-up band with the form on the page · 6 three guides
- * for a beginner · 7 reviews and one last ask. No pricing and no offer on this
- * page; no performance claim anywhere.
+ * No pricing, no offer and no performance claim on this page. One language per
+ * page, chosen by the navbar switch: every line carries both through `<T>`.
  *
- * Language: one language per page, chosen by the navbar switch (Bengali for a
- * first visit). Every line carries both languages through `<T>`.
- *
- * `HomePersonalizationGate` swaps the whole thing for the dashboard once a user
- * is signed in; crawlers and first paint always get this markup.
+ * `HomePersonalizationGate` swaps the whole thing for the reader's own home
+ * once they are signed in; crawlers and first paint always get this markup.
  */
 export default function HomePage() {
-  // Every request is fired here and awaited inside the block that needs it, so
-  // they overlap. Each one degrades to null on its own — a dead endpoint drops
-  // its block, never the page. No Suspense and no loading.tsx: this route has
-  // to return finished HTML with a real status code (see the SEO rules).
-  const scoresPromise = getScores().catch(() => null);
-  const trustPromise = getTrust().catch(() => null);
-  // Mood, DSEX, breadth and the next record dates. Fetched at the same 3600s
-  // as the scores so this page's ISR cadence doesn't tighten to 15 minutes.
-  const marketPromise = getMarketState(3600).catch(() => null);
-  const moversPromise = getMarketMovers().catch(() => null);
+  // Every request is fired here and awaited inside the block that needs it.
+  // No Suspense and no loading.tsx: this route has to return finished HTML
+  // with a real status code (see the SEO rules).
+  const guest = guestData({
+    scores: getScores(),
+    market: getMarketState(3600),
+    movers: getMarketMovers(),
+    index: getMarketIndex(),
+    results: getLatestResults(3600),
+    buyList: getBuyList(3600),
+    risks: getRiskRegister(),
+  });
+  const trust = getTrust().catch(() => null);
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
 
-      {/* The ৳99 month and the Premium banner moved into the signed-in home's
-          offer slot (2026-11-17, `home/personalized/OfferSlot.tsx`). */}
       <HomePersonalizationGate>
-        <HeroBlock promise={scoresPromise} marketPromise={marketPromise} />
+        <GuestBlock promise={guest} />
 
-        <div className="mt-14 sm:mt-20">
-          <TrustStripSection promise={scoresPromise} />
+        <div className="mt-16 sm:mt-20">
+          <NewHere />
         </div>
 
-        <div className="mt-20 flex flex-col gap-20 sm:mt-24 sm:gap-24">
-          <WhatWeDoSection promise={scoresPromise} />
-          <MarketSection marketPromise={marketPromise} moversPromise={moversPromise} />
+        <div className="mt-16 sm:mt-20">
+          <SignUpSection promise={trust} />
         </div>
 
-        <div className="mt-20 sm:mt-24">
-          <SignUpSection promise={trustPromise} />
-        </div>
-
-        <div className="mt-20 flex flex-col gap-20 sm:mt-24 sm:gap-24">
+        <div className="mt-16 sm:mt-20">
           <StartFromZero />
-          <CloseSection promise={trustPromise} />
         </div>
       </HomePersonalizationGate>
 
