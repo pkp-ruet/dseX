@@ -160,7 +160,7 @@ def _public_testimonials(limit: int) -> list[dict]:
     return out
 
 
-@_ttl_cache(300, max_entries=4)
+@_ttl_cache(300, max_entries=4, keep=False)  # reviews and sign-ups change any time
 def public_trust_stats(testimonial_limit: int = 6) -> dict:
     """Real, checkable numbers for the landing page's trust block.
 

@@ -1540,9 +1540,14 @@ def invalidate_scores_cache() -> None:
     """Recompute scores so a DB change (admin adjustment / manual refresh) is
     immediately visible, then refresh the in-process cache. Single-flighted."""
     global _scores_cache
+    from backend.services.db_service import cache_stamp, clear_all_caches
     with _scores_lock:
         df = compute_and_store_scores()
-        _scores_cache = {"df": df, "at": time.time()}
+        # Everything built on the old scores (signals, the recommendation pool,
+        # research …) is kept while its data is unchanged, so a recompute must
+        # say it changed: clear first, then stamp the new frame as current.
+        clear_all_caches()
+        _scores_cache = {"df": df, "at": time.time(), "stamp": cache_stamp()}
     # Signals derive from scores — drop their cache too (lazy import: the
     # signal service imports build_scores_df from this module).
     try:
@@ -1575,17 +1580,27 @@ def build_scores_df() -> pd.DataFrame:
     reload, not N. Self-heals by computing + persisting once if no snapshot
     exists yet (fresh deploy or before the first daily job)."""
     global _scores_cache
-    cached = _scores_cache["df"]
-    if cached is not None and time.time() - _scores_cache["at"] < _SCORES_TTL:
-        return cached
+    from backend.services.db_service import cache_stamp, entry_current
+
+    def _current(entry) -> bool:
+        # The snapshot changes only when scores are recomputed, and every
+        # recompute clears the caches: keep it until then (or a new Dhaka day /
+        # the safety limit), not just for its 5-minute timer — each re-read is
+        # ~10 MB from Atlas (db_service.KEEP_UNCHANGED_SECONDS).
+        return (entry["df"] is not None and "stamp" in entry
+                and entry_current(entry["at"], entry["stamp"], _SCORES_TTL, True,
+                                  reads_prices=False))
+
+    if _current(_scores_cache):
+        return _scores_cache["df"]
     with _scores_lock:
-        cached = _scores_cache["df"]
-        if cached is not None and time.time() - _scores_cache["at"] < _SCORES_TTL:
-            return cached
+        if _current(_scores_cache):
+            return _scores_cache["df"]
+        stamp = cache_stamp()
         df = _load_snapshot_df()
         if df.empty:
             df = compute_and_store_scores()
-        _scores_cache = {"df": df, "at": time.time()}
+        _scores_cache = {"df": df, "at": time.time(), "stamp": stamp}
         return df
 
 

@@ -3,6 +3,7 @@ from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.services.rate_limit import RateLimitMiddleware
+from backend.services.etag import ETagMiddleware
 
 from backend.routers import scores, companies, dividends, audit, prices, market_movers, market_intelligence, market_index, auth, user, portfolio, dse_today, admin, market_analysis, market_state, stock_visits, top20, daily_tips, recommendations, feedback, campaigns, email, notifications, price_alerts, trust, corporate_actions, sectors, home, premium, watchlist_glance, custom_lists, results, signals
 from backend.routers import rankings
@@ -14,6 +15,13 @@ from backend.routers import compare
 from backend.routers import watch_rules
 
 app = FastAPI(title="dseX API", version="1.0.0")
+
+# ---------------------------------------------------------------------------
+# ETag / 304 for GET replies (backend/services/etag.py): a browser that already
+# holds the same body gets an empty "not changed" instead of the whole reply.
+# Added first so it sits innermost: CORS still adds its headers to the 304.
+# ---------------------------------------------------------------------------
+app.add_middleware(ETagMiddleware)
 
 # ---------------------------------------------------------------------------
 # Request limits + body-size cap (backend/services/rate_limit.py). Added BEFORE

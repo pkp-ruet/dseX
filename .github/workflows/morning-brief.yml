@@ -23,6 +23,9 @@ jobs:
     env:
       MONGODB_URI: ${{ secrets.MONGODB_URI }}
       MONGODB_DB_NAME: ${{ secrets.MONGODB_DB_NAME }}
+      # Tells the backend new notices are in (POST /api/scores/refresh): it keeps
+      # its caches until a job says the data changed.
+      REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
       # Web push. Same VAPID keypair as the Render backend.
       VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
       VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}

@@ -758,7 +758,7 @@ def _cta(buys_total: int, campaign_id: str) -> tuple[str, str]:
 
 # --- Assembly ---------------------------------------------------------------
 
-@_ttl_cache(300, max_entries=4)
+@_ttl_cache(300, max_entries=4, keep=False)
 def build_daily_content(campaign_id: str) -> dict:
     prices = load_latest_prices()
     companies = {c["trading_code"]: c for c in load_companies()}

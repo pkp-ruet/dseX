@@ -56,7 +56,9 @@ export default function MarketDataBanner() {
       let marketDate: string | null = null;
       let scrapedAt: string | null = null;
       try {
-        const res = await fetch(`${getApiUrl()}/api/market-index`, { cache: "no-store" });
+        // "no-cache" still asks the backend every time (as fresh as "no-store"),
+        // but lets it answer an unchanged index with an empty 304 (ETag).
+        const res = await fetch(`${getApiUrl()}/api/market-index`, { cache: "no-cache" });
         if (res.ok) {
           const data = (await res.json()) as { date?: string | null; scraped_at?: string | null };
           marketDate = data?.date ?? null;

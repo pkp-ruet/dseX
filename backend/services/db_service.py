@@ -36,6 +36,13 @@ _POOL_KWARGS = dict(
     # stuck operations exhaust the pool.
     socketTimeoutMS=20_000,
     waitQueueTimeoutMS=5_000,
+    # Idle check on each Atlas server once a minute instead of every 10 s.
+    # Render bills what the backend sends ("Service-Initiated" bandwidth) and
+    # the 10 s default sent ~6x more idle traffic (measured 2026-11-23). Not
+    # slower to notice a failover: the driver streams server changes as they
+    # happen, and a network error re-checks the server at once.
+    # (Wire compression was tried the same day: this Atlas tier offers none.)
+    heartbeatFrequencyMS=60_000,
 )
 
 
@@ -82,20 +89,82 @@ _ALL_CACHES: list = []
 # rebuilding all of them every 10-20 minutes spiked the 512 MB worker.
 _PRICE_CACHES: list = []
 
+# ---------------------------------------------------------------------------
+# Keep a cache until its data changes (2026-11-23, Render bandwidth).
+#
+# Market data changes only when a job writes it, and every such job clears the
+# caches when it finishes (scrape-all / scrape-quick / the morning brief call
+# `POST /api/scores/refresh`; an admin recompute clears in-process). Between
+# those clears the 5-15 minute timers only re-read the same rows: a full round
+# of the site-wide caches is ~58 MB from Atlas, and after the close nothing
+# changes until the next day. So an entry past its timer is still served while:
+#   - no clear has happened since it was built (the generation counters below:
+#     a full clear moves both, a price clear moves `prices`),
+#   - it was built on the same Dhaka day (dates, "days left", "this week"), and
+#   - it is younger than KEEP_UNCHANGED_SECONDS (a safety net for a lost clear
+#     call or a manual script that writes without clearing).
+# Inside its timer an entry is served exactly as before. Off by default for
+# per-key caches with many entries (a crawl would keep hundreds of per-stock
+# payloads resident on the 512 MB worker) and for caches over data readers
+# write (`keep=False`: visit counts, reviews, a reader's own history).
+# ---------------------------------------------------------------------------
+KEEP_UNCHANGED_SECONDS = 6 * 3600
+_DHAKA_OFFSET_S = 6 * 3600
+_gen_lock = threading.Lock()
+_GEN = {"all": 0, "prices": 0}
+
+
+def cache_stamp(now: Optional[float] = None) -> tuple:
+    """What an entry is built against: (full-clear gen, price-clear gen, Dhaka day)."""
+    now = time.time() if now is None else now
+    return (_GEN["all"], _GEN["prices"], int((now + _DHAKA_OFFSET_S) // 86_400))
+
+
+def entry_current(at: float, stamp: tuple, ttl_seconds: float, keep: bool,
+                  now: Optional[float] = None, prices: bool = False,
+                  reads_prices: bool = True) -> bool:
+    """True while an entry built at `at` under `stamp` may still be served.
+
+    `prices`: a price cache (a price clear drops it at once).
+    `reads_prices=False`: data no price scrape touches (the scores snapshot),
+    so a price clear doesn't end its keep-while-unchanged grace either."""
+    now = time.time() if now is None else now
+    current = cache_stamp(now)
+    if stamp[2] != current[2]:          # a new Dhaka day: rebuild
+        return False
+    # Built before a clear that covers it (a read still running when the clear
+    # landed): stale at once, never served for a whole timer.
+    if stamp[0] != current[0] or (prices and stamp[1] != current[1]):
+        return False
+    age = now - at
+    if age < ttl_seconds:
+        return True
+    unchanged = stamp[1] == current[1] or not reads_prices
+    return keep and unchanged and age < max(ttl_seconds, KEEP_UNCHANGED_SECONDS)
+
 
 def clear_all_caches() -> None:
     """Drop every `_ttl_cache` entry in the process (post-scrape refresh)."""
+    with _gen_lock:
+        _GEN["all"] += 1
+        _GEN["prices"] += 1
     for clear in _ALL_CACHES:
         clear()
 
 
 def clear_price_caches() -> None:
-    """Drop only the caches marked `prices=True` (market-hours price scrape)."""
+    """Drop only the caches marked `prices=True` (market-hours price scrape).
+    Moving the price generation also ends the keep-while-unchanged grace of
+    every other cache, so one that reads today's prices still picks them up on
+    its own timer, as before."""
+    with _gen_lock:
+        _GEN["prices"] += 1
     for clear in _PRICE_CACHES:
         clear()
 
 
-def _ttl_cache(ttl_seconds: int = 300, max_entries: int = 50, prices: bool = False):
+def _ttl_cache(ttl_seconds: int = 300, max_entries: int = 50, prices: bool = False,
+               keep: Optional[bool] = None):
     """Module-level TTL cache keyed by function + args.
 
     Bounded LRU: when the store exceeds ``max_entries``, the least-recently-used
@@ -113,15 +182,28 @@ def _ttl_cache(ttl_seconds: int = 300, max_entries: int = 50, prices: bool = Fal
 
     ``prices=True`` marks a cache that holds today's prices, so the market-hours
     refresh (`clear_price_caches`) drops it too.
+
+    ``keep`` serves an entry past its timer while its data hasn't changed (see
+    KEEP_UNCHANGED_SECONDS). Default: on for argument-free calls of caches of
+    up to 50 entries; ``keep=True`` keeps keyed calls too, ``False`` none.
     """
+    # Default: only calls without arguments (the site-wide loaders). A call per
+    # reader's codes or per share would hold many entries for hours for little gain.
+    keep_unchanged = (max_entries <= 50) if keep is None else keep
+    keep_keyed = keep is True
+
     def decorator(fn):
         _store: "OrderedDict[tuple, dict]" = OrderedDict()
         _lock = threading.Lock()
         _inflight: dict = {}
 
+        def _ok(entry, now=None):
+            kept = keep_unchanged and (keep_keyed or not entry["keyed"])
+            return entry_current(entry["at"], entry["stamp"], ttl_seconds, kept, now, prices)
+
         def _fresh(key):
             cached = _store.get(key)
-            if cached and time.time() - cached["at"] < ttl_seconds:
+            if cached and _ok(cached):
                 _store.move_to_end(key)
                 return True, cached["val"]
             return False, None
@@ -138,6 +220,9 @@ def _ttl_cache(ttl_seconds: int = 300, max_entries: int = 50, prices: bool = Fal
                     hit, val = _fresh(key)
                     if hit:
                         return val
+                # Stamped BEFORE the read: a clear that lands while it runs makes
+                # this result stale at once instead of keeping pre-clear data.
+                stamp = cache_stamp()
                 try:
                     val = fn(*args, **kwargs)
                 except BaseException:
@@ -150,9 +235,10 @@ def _ttl_cache(ttl_seconds: int = 300, max_entries: int = 50, prices: bool = Fal
                     # Expired entries were only ever dropped by LRU overflow, so
                     # a crawl over every stock page kept ~360 dead per-code
                     # payloads resident until the next one pushed them out.
-                    for k in [k for k, v in _store.items() if now - v["at"] >= ttl_seconds]:
+                    for k in [k for k, v in _store.items() if not _ok(v, now)]:
                         del _store[k]
-                    _store[key] = {"val": val, "at": now}
+                    _store[key] = {"val": val, "at": now, "stamp": stamp,
+                                   "keyed": bool(args or kwargs)}
                     _store.move_to_end(key)
                     while len(_store) > max_entries:
                         _store.popitem(last=False)
@@ -163,6 +249,7 @@ def _ttl_cache(ttl_seconds: int = 300, max_entries: int = 50, prices: bool = Fal
                 _store.clear()
 
         wrapper.cache_clear = cache_clear
+        wrapper.keep_unchanged = keep_unchanged
         wrapper.__wrapped__ = fn
         _ALL_CACHES.append(cache_clear)
         if prices:
@@ -1287,7 +1374,7 @@ def _tier_for_score(score: Optional[float]) -> Optional[str]:
     return tier_key(score)
 
 
-@_ttl_cache(300)
+@_ttl_cache(300, keep=False)  # visit counts change with every reader
 def load_popular_stocks(limit: int = 20) -> dict:
     """All-time visit ranking — top N by `stock_visits.count` (one row per company)."""
     import math
@@ -1354,7 +1441,7 @@ def increment_stock_visit(trading_code: str) -> None:
     )
 
 
-@_ttl_cache(300)
+@_ttl_cache(300, keep=False)  # visit counts change with every reader
 def load_stock_visit_counts() -> dict:
     """Global all-time visit count per trading_code: {code: count}. Powers the
     popularity boost in daily personalized picks."""

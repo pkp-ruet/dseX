@@ -223,6 +223,42 @@ def cmd_snapshot_signals(_args):
           f"(buy {res.get('buy', 0)}, sell {res.get('sell', 0)}, none {res.get('none', 0)}).")
 
 
+def _clear_backend_caches(scope: str = "all") -> bool:
+    """Tell the backend its data changed (`POST /api/scores/refresh`).
+
+    The backend keeps a cache until this call says its data changed (up to 6
+    hours, db_service.KEEP_UNCHANGED_SECONDS), so a lost call matters more than
+    it did under the old 5-15 minute timers: try twice. Needs REVALIDATE_SECRET
+    here and on the Render service; the call wakes a sleeping instance, hence
+    the long timeout."""
+    import os
+    import time
+    import urllib.request
+
+    secret = os.getenv("REVALIDATE_SECRET")
+    if not secret:
+        print("Backend cache clear skipped: REVALIDATE_SECRET is not set.")
+        return False
+    backend_url = os.getenv("BACKEND_URL", "https://dsex.onrender.com")
+    url = (f"{backend_url.rstrip('/')}/api/scores/refresh"
+           + ("?scope=prices" if scope == "prices" else ""))
+    for attempt in (1, 2):
+        try:
+            req = urllib.request.Request(
+                url, method="POST",
+                headers={"x-revalidate-secret": secret, "User-Agent": "dsex-scraper"},
+            )
+            urllib.request.urlopen(req, timeout=90)
+            print("Backend price caches cleared." if scope == "prices"
+                  else "Backend caches cleared.")
+            return True
+        except Exception as e:
+            print(f"Warning: backend cache clear failed (try {attempt} of 2): {e}")
+            if attempt == 1:
+                time.sleep(10)
+    return False
+
+
 def _trigger_post_scrape_hooks(scope: str = "all"):
     """Clear the backend's caches, then purge the Next.js market-data tag.
 
@@ -244,21 +280,7 @@ def _trigger_post_scrape_hooks(scope: str = "all"):
     # 15 min) still hold pre-scrape data. Purging the frontend before they clear
     # lets Next re-cache the old answer for a day. Needs REVALIDATE_SECRET on the
     # Render service too; the call wakes a sleeping instance, hence the timeout.
-    backend_url = os.getenv("BACKEND_URL", "https://dsex.onrender.com")
-    if revalidate_secret:
-        try:
-            req = urllib.request.Request(
-                f"{backend_url.rstrip('/')}/api/scores/refresh"
-                + ("?scope=prices" if scope == "prices" else ""),
-                method="POST",
-                headers={"x-revalidate-secret": revalidate_secret,
-                         "User-Agent": "dsex-scraper"},
-            )
-            urllib.request.urlopen(req, timeout=90)
-            print("Backend price caches cleared." if scope == "prices"
-                  else "Backend caches cleared.")
-        except Exception as e:
-            print(f"Warning: backend cache clear failed: {e}")
+    _clear_backend_caches(scope)
 
     if revalidate_url and revalidate_secret:
         try:
@@ -447,6 +469,10 @@ def cmd_morning_brief(args):
         if codes:
             saved = NewsScraper().run(codes)
             print(f"  {saved} new news items.")
+            # The backend keeps its caches until told the data changed; new
+            # notices (results, dividends) must show without waiting hours.
+            if saved:
+                _clear_backend_caches("all")
     counts = run_brief(force=bool(getattr(args, "force", False)))
     print(f"Morning brief done: {counts}")
 
