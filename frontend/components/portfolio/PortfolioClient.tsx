@@ -2,7 +2,6 @@
 
 import { authHref } from "@/lib/next-path";
 import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "@/components/ui/Link";
 import { useAuth } from "@/context/AuthContext";
 import {
   getScores,
@@ -44,7 +43,7 @@ import {
   type GlanceRow,
   type UpcomingResult,
 } from "@/lib/api";
-import { companyShort, taka, takaCompact, takaGroup } from "@/lib/formatters";
+import { companyShort, takaGroup } from "@/lib/formatters";
 import {
   signalInfoFromApi,
   portfolioTodayMove,
@@ -64,10 +63,8 @@ import { OpenScope, PageLockScope } from "@/components/premium/LockScope";
 import { Locked } from "@/components/premium/AnswerLock";
 import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
 import Chip from "@/components/ui/Chip";
-import DashSectionNav from "@/components/home/personalized/DashSectionNav";
 import PfCard from "./PfCard";
 import {
-  IconChevronDown,
   IconChevronRight,
   IconClose,
   IconLock,
@@ -85,7 +82,6 @@ import MoneyMadeCard from "./MoneyMadeCard";
 import ValueHistoryCard from "./ValueHistoryCard";
 import CorrectionsCard from "./CorrectionsCard";
 import HistoryCard from "./HistoryCard";
-import { KIND_TAG, LEVEL_TONE } from "./watchKinds";
 import WhatIfCard from "./WhatIfCard";
 import PortfolioSwitcher from "./PortfolioSwitcher";
 import PortfolioSettingsSheet from "./PortfolioSettingsSheet";
@@ -96,9 +92,10 @@ import AddHoldingModal from "./AddHoldingModal";
 import BuySellModal from "./BuySellModal";
 import PortfolioNews from "./PortfolioNews";
 import PortfolioPromo from "./report/PortfolioPromo";
-import PfArea, { PfReportBand } from "./report/PfArea";
-import PfVerdict from "./report/PfVerdict";
-import PfPlan from "./report/PfPlan";
+import PfHealth, { PfHealthLocked } from "./report/PfHealth";
+import PfTodo from "./report/PfTodo";
+import PfShareSheet, { type ShareSheetRow } from "./report/PfShareSheet";
+import PfFirstNote from "./report/PfFirstNote";
 import PfMoneyRoom from "./report/PfMoneyRoom";
 import TierPill from "@/components/ui/TierPill";
 import type { TierKey } from "@/lib/constants";
@@ -106,8 +103,6 @@ import { buildNextMove, gradeLifts, gradePath } from "@/lib/portfolio-next";
 import { buildPortfolioReport } from "@/lib/portfolio-report";
 import { SAMPLE_PORTFOLIOS } from "@/lib/sample-portfolios";
 import { isoLocal, todayDhaka } from "@/lib/dividend-dates";
-import WatchRulesButton from "@/components/watch-rules/WatchRulesButton";
-import WatchlistAlertCell from "@/components/watchlist/WatchlistAlertCell";
 import ErrorState from "@/components/ui/ErrorState";
 import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
@@ -260,8 +255,8 @@ function PortfolioSkeleton() {
         <Skeleton width="45%" height={16} />
       </div>
       <div className="soft-card pf-answers">
-        <div className="pf-answer-grid">
-          {[0, 1, 2, 3].map((i) => (
+        <div className="pf-answer-grid pf-answer-grid--two">
+          {[0, 1].map((i) => (
             <div key={i} className="pf-answer">
               <Skeleton width={70} height={12} />
               <Skeleton width="70%" height={20} />
@@ -723,18 +718,9 @@ export default function PortfolioClient() {
     });
   }, [sortedRows, activeFilter, q, updateTags]);
 
-  // A holding is one short line that opens in place, one at a time. When a
-  // row above closes, the tapped row is held where it was on screen.
-  const [openId, setOpenId] = useState<string | null>(null);
-  function toggleRow(id: string, el: HTMLElement | null) {
-    const before = el?.getBoundingClientRect().top ?? 0;
-    setOpenId((cur) => (cur === id ? null : id));
-    requestAnimationFrame(() => {
-      if (!el) return;
-      const shift = el.getBoundingClientRect().top - before;
-      if (Math.abs(shift) > 1) window.scrollBy({ top: shift, behavior: "instant" });
-    });
-  }
+  // A tap on a share opens its whole story in a sheet (2026-11-23; it was a
+  // drawer that opened in the list).
+  const [sheetId, setSheetId] = useState<string | null>(null);
 
   const lockedWatchCount = useMemo(() => myWatch.filter((e) => !e.free).length, [myWatch]);
 
@@ -868,32 +854,46 @@ export default function PortfolioClient() {
   // Each share's group (free) and the plan's word for it (Premium), for the rows.
   const insightOf = useMemo(() => new Map(analysis.holdings.map((h) => [h.code.toUpperCase(), h])), [analysis]);
   const actionOf = useMemo(() => new Map(report.each.act.map((a) => [a.code.toUpperCase(), a])), [report.each]);
+  // Each share's "getting back what you paid" (the old way-back item), for its sheet.
+  const wayOf = useMemo(
+    () => new Map((report.wayBack?.groups ?? []).flatMap((g) => g.items).map((it) => [it.code.toUpperCase(), it])),
+    [report.wayBack],
+  );
+  const sheetSrc = rows.find((r) => r.holding.id === sheetId) ?? null;
+  const sheetRow: ShareSheetRow | null = sheetSrc
+    ? {
+        code: sheetSrc.holding.trading_code,
+        name: companyShort(sheetSrc.company_name) || sheetSrc.holding.trading_code,
+        qty: sheetSrc.holding.qty,
+        buyPrice: sheetSrc.holding.buy_price,
+        ltp: sheetSrc.ltp,
+        costBasis: sheetSrc.cost_basis,
+        value: sheetSrc.current_value,
+        pnl: sheetSrc.pnl,
+        pnlPct: sheetSrc.pnl_pct,
+        w52High: sheetSrc.w52_high,
+        w52Low: sheetSrc.w52_low,
+        tier: (() => {
+          const k = insightOf.get(sheetSrc.holding.trading_code.toUpperCase())?.tierKey;
+          return k && k !== "unscored" ? (k as TierKey) : null;
+        })(),
+      }
+    : null;
+  /** Close the share's sheet, then act on its row (the next dialog opens on its own). */
+  function sheetFor(act: (r: ComputedRow) => void) {
+    const r = sheetSrc;
+    setSheetId(null);
+    if (r) act(r);
+  }
+  function openShareByCode(code: string) {
+    const r = rows.find((x) => x.holding.trading_code.toUpperCase() === code.toUpperCase());
+    if (r) setSheetId(r.holding.id);
+  }
 
   const bn = lang === "bn";
   // The analysis is Premium (2026-11-02): a free reader's chips skip its
   // chapters and point at the one Premium card instead.
   const reportOpen = usePremiumOpen();
-  // Six chips for the check's three parts (2026-11-11, was nine).
-  const navItems = useMemo(
-    () =>
-      reportOpen
-        ? [
-            { id: "pf-money", label: lang === "bn" ? "টাকা" : "Money" },
-            // The shares list sits right under the money, the check after it (2026-11-04)
-            { id: "pf-shares", label: lang === "bn" ? "শেয়ার" : "Shares" },
-            { id: "ch-answer", label: lang === "bn" ? "রায়" : "Verdict" },
-            { id: "ch-plan", label: lang === "bn" ? "পরিকল্পনা" : "Plan" },
-            { id: "pf-why", label: lang === "bn" ? "কেন" : "Why" },
-            { id: "ch-money", label: lang === "bn" ? "বিস্তারিত" : "Details" },
-          ]
-        : [
-            { id: "pf-money", label: lang === "bn" ? "টাকা" : "Money" },
-            { id: "pf-shares", label: lang === "bn" ? "শেয়ার" : "Shares" },
-            { id: "pf-premium", label: lang === "bn" ? "আপনার যাচাই" : "Your check" },
-            { id: "ch-money", label: lang === "bn" ? "বিস্তারিত" : "Details" },
-          ],
-    [lang, reportOpen],
-  );
   const statementHref = isMain ? "/portfolio/statement" : `/portfolio/statement?pid=${encodeURIComponent(pid)}`;
 
   const existingCodes = useMemo(
@@ -1105,7 +1105,7 @@ export default function PortfolioClient() {
               {[
                 [L("Find your share", "শেয়ার খুঁজুন"), L("Type the code, such as GP or BATBC.", "কোড লিখুন, যেমন GP বা BATBC।")],
                 [L("Enter the price and number", "দাম ও সংখ্যা দিন"), L("What you paid, and how many shares you bought.", "কত দামে কিনেছেন, আর কতগুলো শেয়ার।")],
-                [L("See the full picture", "পুরো চিত্র দেখুন"), L("Profit, dividends and next steps, updated every day.", "লাভ, ডিভিডেন্ড আর পরের পদক্ষেপ, প্রতিদিন হালনাগাদ।")],
+                [L("See your grade and what to do", "আপনার গ্রেড আর কী করবেন, দেখুন"), L("Your profit, a grade for your portfolio and the next step, after every close.", "আপনার লাভ, পোর্টফোলিওর গ্রেড আর পরের পদক্ষেপ, প্রতিদিন বাজার বন্ধের পর।")],
               ].map(([t, d], i) => (
                 <li key={i} className="pf-step">
                   <span className="pf-step-n">{i + 1}</span>
@@ -1145,17 +1145,19 @@ export default function PortfolioClient() {
           />
         </div>
       ) : (
-        // The portfolio report (2026-10-30): your money and the answer, your
-        // shares, four question chapters, your plan, then every money card as
-        // tabs. Since 2026-11-02 everything we say is Premium, like the stock
-        // page: a free reader gets the money, the shares, ONE Premium card
-        // (`PortfolioPromo`, what the check found, counted) and the tabs. The
-        // answer and the analysis stay in the HTML, open, under one `Locked`.
+        // The simple portfolio page (2026-11-23, plan
+        // https://claude.ai/artifact/Gmoy9sYiEcvK4wZL5eqTXN — user: the page
+        // "feels little disorganized, complex presentation and hard to
+        // grasp"). Three answers on top, in the order a reader asks them —
+        // what is it worth, is everything okay, what to do — then each share
+        // once with one status (a tap opens its whole story in a sheet), then
+        // "More details" folded. The check stays Premium (everything we say,
+        // since 2026-11-02): a free reader sees the grade and counts, and the
+        // one Premium card sits where "What to do" would be. The Premium
+        // parts stay in the HTML, open, under `Locked`.
         <PageLockScope anchor="pf-premium">
-          <DashSectionNav items={navItems} lang={lang} />
-
-          {/* ── 1 · Your money ── */}
-          <section id="pf-money" className="dash-section pf-chapter pf-chapter--first" aria-labelledby="pf-money-h">
+          {/* ── 1 · How much is my money worth? ── */}
+          <section id="pf-money" className="dash-section pf-chapter pf-chapter--first" aria-label={L("Your money", "আপনার টাকা")}>
             <PortfolioHero
               totalInvested={summary.totalInvested}
               totalValue={summary.totalValue}
@@ -1168,415 +1170,313 @@ export default function PortfolioClient() {
               onTogglePrivacy={togglePrivacy}
               lang={lang}
             />
-            <h2 id="pf-money-h" className="sr-only">{L("Your money", "আপনার টাকা")}</h2>
-
-            {/* The stocks you own — one card, one row per stock. Right under the
-                money since 2026-11-04 (user decision): the answer and the
-                analysis follow the shares. */}
-            <div id="pf-shares" className="dash-section mt-4 flex flex-col gap-3">
-              <div className="pf-hold-bar">
-                <h3 className={`text-lg font-bold text-text-main ${bnCls}`} lang={bn ? "bn" : undefined}>
-                  {L("Your shares", "আপনার শেয়ারগুলো")}{" "}
-                  <span className="pf-num font-semibold text-text-muted">{holdings.length}</span>
-                </h3>
-                <div className="pf-hold-tools">
-                  {/* Phones: Add on the title line, the sort full width under it (the Edit + Add pair below is 640px+) */}
-                  {!readOnly && (
-                    <span className="sm:hidden">
-                      <Button type="button" onClick={openAdd} variant="quiet" size="md" className="pf-add">
-                        <span className="pf-add-dot"><IconPlus size={14} /></span>
-                        <span className={bnCls}>{L("Add stock", "শেয়ার যোগ")}</span>
-                      </Button>
-                    </span>
-                  )}
-                  {holdings.length > 1 && (
-                    <>
-                      <label htmlFor="pf-sort" className="sr-only">{L("Sort your shares", "শেয়ারগুলো সাজান")}</label>
-                      <select
-                        id="pf-sort"
-                        value={sort ? `${sort.key}:${sort.dir}` : ""}
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          if (!v) return setSort(null);
-                          const [key, dir] = v.split(":") as [SortKey, "asc" | "desc"];
-                          setSort({ key, dir });
-                        }}
-                        className={`pf-sort ${bnCls}`}
-                      >
-                        <option value="">{L("Sort: as added", "সাজানো: যোগের ক্রমে")}</option>
-                        {SORT_OPTIONS.map((o) => (
-                          <option key={`${o.key}:${o.dir}`} value={`${o.key}:${o.dir}`}>
-                            {L("Sort: ", "সাজানো: ")}
-                            {sortLabel(o.key)}
-                            {o.key === "code" ? "" : o.dir === "desc" ? L(" (high first)", " (বেশি আগে)") : L(" (low first)", " (কম আগে)")}
-                          </option>
-                        ))}
-                      </select>
-                    </>
-                  )}
-                  {!readOnly && (
-                    <span className="hidden items-center gap-2 sm:flex">
-                      <Button type="button" onClick={openEditPicker} variant="quiet" size="sm">
-                        {L("Edit", "বদলান")}
-                      </Button>
-                      <Button type="button" onClick={openAdd} variant="quiet" size="md" className="pf-add">
-                        <span className="pf-add-dot"><IconPlus size={14} /></span>
-                        <span className={bnCls}>{L("Add stock", "শেয়ার যোগ")}</span>
-                      </Button>
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Search + filter chips once the list is long (FILTER_FROM stocks) */}
-              {showFilters && (
-                <div className="pf-find">
-                  <div className="pf-search">
-                    <label htmlFor="pf-search" className="sr-only">{L("Find a share", "শেয়ার খুঁজুন")}</label>
-                    <span className="pf-search-icon"><IconSearch size={16} /></span>
-                    <input
-                      id="pf-search"
-                      type="search"
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                      placeholder={L("Find by name or code", "নাম বা কোড দিয়ে খুঁজুন")}
-                      autoComplete="off"
-                      enterKeyHint="search"
-                      className={`input-field ${bnCls}`}
-                    />
-                    {query && (
-                      <button type="button" className="pf-search-clear" onClick={() => setQuery("")} aria-label={L("Clear search", "খোঁজা মুছুন")}>
-                        <IconClose size={16} />
-                      </button>
-                    )}
-                  </div>
-                  <div className="pf-filters" role="group" aria-label={L("Show", "দেখান")}>
-                    {FILTERS.filter((f) => f.key === "all" || filterCounts[f.key] > 0).map((f) => (
-                      <Chip key={f.key} active={activeFilter === f.key} onClick={() => setFilter(f.key)}>
-                        <span className={bnCls}>{bn ? f.bn : f.en}</span>
-                        <span className="pf-num">{filterCounts[f.key]}</span>
-                      </Chip>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div id="pf-holds" className="dash-section soft-card pf-holds pf-rise">
-                {visibleRows.length === 0 && (
-                  <div className={`pf-holds-none ${bnCls}`}>
-                    <p>{L("No shares match.", "কোনো শেয়ার মেলেনি।")}</p>
-                    <Button
-                      type="button"
-                      variant="link"
-                      size="sm"
-                      onClick={() => {
-                        setQuery("");
-                        setFilter("all");
-                      }}
-                    >
-                      {L("Show all", "সব দেখুন")}
-                    </Button>
-                  </div>
-                )}
-                {visibleRows.map((row) => {
-                  const code = row.holding.trading_code;
-                  const name = row.company_name ?? code;
-                  const tags = updateTags.get(code.toUpperCase()) ?? [];
-                  const ins = insightOf.get(code.toUpperCase());
-                  const tierOf = ins && ins.tierKey !== "unscored" ? (ins.tierKey as TierKey) : null;
-                  const act = actionOf.get(code.toUpperCase()) ?? null;
-                  const open = openId === row.holding.id;
-                  const moreId = `pf-more-${row.holding.id}`;
-                  const pos =
-                    row.ltp != null && row.w52_high != null && row.w52_low != null && row.w52_high > row.w52_low
-                      ? Math.max(0, Math.min(1, (row.ltp - row.w52_low) / (row.w52_high - row.w52_low)))
-                      : null;
-                  return (
-                    <article key={row.holding.id} className="pf-hold" data-open={open ? "" : undefined}>
-                      <div className="pf-hold-main">
-                        <div className="pf-hold-top">
-                          <div className="min-w-0">
-                            <Link prefetch={false} href={`/stock/${code}`} className="pf-hold-name">
-                              {name}
-                            </Link>
-                            <p className={`pf-hold-sub ${bnCls}`}>
-                              <span className="pf-hold-code">{code}</span>
-                              {" · "}
-                              <span className="pv">
-                                {bn
-                                  ? `${row.holding.qty.toLocaleString("en-IN")}টি শেয়ার`
-                                  : `${row.holding.qty.toLocaleString("en-IN")} share${row.holding.qty === 1 ? "" : "s"}`}
-                              </span>
-                            </p>
-                          </div>
-                          <div className="pf-hold-val">
-                            <b className="pv">{row.current_value != null ? takaGroup(row.current_value) : "—"}</b>
-                            {row.pnl != null && (
-                              <span className={`pv ${row.pnl > 0 ? "pf-up" : row.pnl < 0 ? "pf-down" : "pf-flat"}`}>
-                                {row.pnl > 0 ? "+" : row.pnl < 0 ? "−" : ""}
-                                {takaGroup(Math.abs(row.pnl))}
-                                {row.pnl_pct != null ? ` · ${row.pnl_pct > 0 ? "+" : row.pnl_pct < 0 ? "−" : ""}${Math.abs(row.pnl_pct).toFixed(1)}%` : ""}
-                              </span>
-                            )}
-                          </div>
-                          <span className="pf-hold-chev"><IconChevronDown size={18} /></span>
-                        </div>
-
-                        {(tags.length > 0 || tierOf || (reportOpen && act)) && (
-                          <div className="pf-hold-mid">
-                            {tierOf && <TierPill tier={tierOf} />}
-                            {/* The plan's word for this share (Premium, 2026-11-11) */}
-                            {reportOpen && act && (
-                              <span className="pf-act" data-act={act.action}>
-                                <span className={bnCls}>{bn ? act.label.bn : act.label.en}</span>
-                              </span>
-                            )}
-                            {/* This stock's own updates */}
-                            {tags.map((e) => (
-                              <Chip key={e.kind} tone={LEVEL_TONE[e.level]}>
-                                <span className={bnCls}>{bn ? KIND_TAG[e.kind].bn : KIND_TAG[e.kind].en}</span>
-                              </Chip>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* The whole head opens the row; the name link sits under it,
-                            so the page link moves into the details. */}
-                        <button
-                          type="button"
-                          className="pf-hold-tap"
-                          aria-expanded={open}
-                          aria-controls={moreId}
-                          aria-label={L(`${name}: details`, `${name}: বিস্তারিত`)}
-                          onClick={(e) => toggleRow(row.holding.id, e.currentTarget.closest("article"))}
-                        />
-                      </div>
-
-                      <div id={moreId} className="pf-hold-more">
-                        <div className={`pf-hold-facts ${bnCls}`}>
-                          <div className="pf-fact">
-                            <span className="pf-fact-k">{L("You paid", "কেনার দাম")}</span>
-                            <span className="pf-fact-v pv">{taka(row.holding.buy_price, 2)}</span>
-                          </div>
-                          <div className="pf-fact">
-                            <span className="pf-fact-k">{L("Price now", "এখনকার দাম")}</span>
-                            <span className="pf-fact-v">{row.ltp != null ? taka(row.ltp, 2) : "—"}</span>
-                          </div>
-                          <div className="pf-fact">
-                            <span className="pf-fact-k">{L("You put in", "বিনিয়োগ")}</span>
-                            <span className="pf-fact-v pv">{takaCompact(row.cost_basis)}</span>
-                          </div>
-                          {pos != null && (
-                            <div
-                              className="pf-fact pf-fact--range"
-                              title={`${L("Yearly range", "বছরের সীমা")}: ৳${row.w52_low!.toFixed(1)} – ৳${row.w52_high!.toFixed(1)}`}
-                            >
-                              <span className="pf-fact-k">{L("Where the price sits this year", "এ বছরে দাম কোথায়")}</span>
-                              <div className="pf-range" aria-hidden>
-                                <i style={{ left: `${(pos * 100).toFixed(1)}%` }} />
-                              </div>
-                              <div className="pf-range-ends">
-                                <span>{L("Low", "সর্বনিম্ন")} {row.w52_low!.toFixed(1)}</span>
-                                <span>{L("High", "সর্বোচ্চ")} {row.w52_high!.toFixed(1)}</span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        {reportOpen && act && (
-                          <p className={`pf-hold-plan ${bnCls}`}>
-                            <span className="pf-act" data-act={act.action}>{bn ? act.label.bn : act.label.en}</span>
-                            <span>
-                              {bn ? act.line.bn : act.line.en}
-                              {act.step != null && (
-                                <>
-                                  {" "}
-                                  <a href="#pf-path" className="pf-inline-link">{L("See your path", "আপনার পথ দেখুন")}</a>
-                                </>
-                              )}
-                            </span>
-                          </p>
-                        )}
-
-                        {!readOnly && (
-                          <div className="pf-hold-actions">
-                            <Button type="button" variant="quiet" size="sm" onClick={() => openTx("buy", row)} aria-label={`${L("Bought more", "আরও কিনেছি")} ${code}`}>
-                              {L("Bought more", "আরও কিনেছি")}
-                            </Button>
-                            <Button type="button" variant="quiet" size="sm" onClick={() => openTx("sell", row)} aria-label={`${L("Sold", "বিক্রি করেছি")} ${code}`}>
-                              {L("Sold", "বিক্রি করেছি")}
-                            </Button>
-                            <span className="pf-spacer" />
-                            <WatchlistAlertCell code={code} ltp={row.ltp} w52High={row.w52_high} w52Low={row.w52_low} />
-                            <WatchRulesButton code={code} name={companyShort(row.company_name) || code} />
-                            <Button type="button" variant="link" size="sm" iconOnly onClick={() => startEdit(row.holding)} aria-label={`${L("Edit", "বদলান")} ${code}`}>
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                                <path d="M12 20h9" />
-                                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
-                              </svg>
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="link"
-                              size="sm"
-                              iconOnly
-                              onClick={() => handleDelete(row.holding.id)}
-                              disabled={busyId === row.holding.id}
-                              className="hover:text-negative"
-                              aria-label={`${L("Remove", "সরান")} ${code}`}
-                            >
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                                <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
-                              </svg>
-                            </Button>
-                          </div>
-                        )}
-                        {/* The name no longer links (the head opens the row), so the page link lives here */}
-                        <div className="pf-hold-open">
-                          <Button href={`/stock/${code}`} variant="link" size="sm">
-                            {L(`Open the ${code} page`, `${code}-এর পেজ খুলুন`)}
-                            <IconChevronRight size={14} />
-                          </Button>
-                        </div>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            </div>
-
           </section>
 
-          {/* THE Premium card (#pf-premium) for a free reader; a Premium
-              reader keeps the anchor (the watcher's teaser push lands here). */}
+          <PfFirstNote uid={userId} />
+
+          {/* ── 2 · Is everything okay? ── 3 · What to do ──
+              A free reader: the grade and counts, and the one Premium card
+              where "What to do" would be. A Premium reader keeps the
+              #pf-premium anchor (the watcher's teaser push lands there). */}
           {reportOpen ? (
             <span id="pf-premium" className="dash-section block" aria-hidden="true" />
           ) : (
-            <div className="pl-free">
+            <div className="pl-free pf-block pf-top2">
+              <PfHealthLocked grade={analysis.grade} toLook={report.health.toLook} />
               <PortfolioPromo
                 findings={report.findings}
                 promo={report.promo}
                 outline={report.outline}
+                things={report.todo.total}
                 sampleHref={`/sample-portfolio/${SAMPLE_PORTFOLIOS.diversified.slug}`}
               />
             </div>
           )}
-
           <Locked>
             <OpenScope>
-              <PfReportBand answered={report.answered} />
-              <PfVerdict answer={report.answer} start={report.start} />
-              <PfPlan wayBack={report.wayBack} path={report.path} each={report.each} grade={analysis.grade} feePct={settings.fee_pct}>
-                <div id="pf-whatif" className="dash-section">
+              <div className="pf-block pf-top2">
+                <PfHealth health={report.health} areas={report.areas} />
+                <PfTodo todo={report.todo} onOpenShare={openShareByCode}>
                   <WhatIfCard rows={rows} priceMap={priceMap} allCodes={allCodes} lang={lang} />
-                </div>
-              </PfPlan>
-              <section id="pf-why" className="dash-section pf-part" aria-labelledby="pf-why-h">
-                <header className="pf-part-h">
-                  <p className="pf-part-n">{L("3 · Why we say this", "3 · কেন বলছি")}</p>
-                  <h2 id="pf-why-h" className="pf-part-title">
-                    {L(`Four areas, ${report.outline.answers} answers`, `চারটি দিক, ${report.outline.answers}টি উত্তর`)}
-                  </h2>
-                  <p className="pf-part-lead">
-                    {L("Each area opens with its answer. Its questions are folded under it.", "প্রতিটি দিকের শুরুতে তার উত্তর। প্রশ্নগুলো নিচে ভাঁজ করা।")}
-                  </p>
-                </header>
-                <div className="pfar-grid">
-                  {report.areas.map((c) => (
-                    <PfArea key={c.key} chapter={c} />
-                  ))}
-                </div>
-              </section>
-              <p className={`pf-disclaimer ${bnCls}`}>
-                {L(
-                  "This analysis is for guidance only. Always do your own research before making investment decisions.",
-                  "এই বিশ্লেষণ শুধু ধারণা দেওয়ার জন্য। বিনিয়োগের সিদ্ধান্ত নেওয়ার আগে সবসময় নিজে যাচাই করুন।",
-                )}
-              </p>
+                </PfTodo>
+              </div>
             </OpenScope>
           </Locked>
 
-          {/* Every money card, as tabs — all free */}
-          <PfMoneyRoom
-            panels={[
-              {
-                key: "value",
-                label: { en: "Value", bn: "মূল্য" },
-                body: (
+          {/* ── Your shares: each once, with one status ── */}
+          <section id="pf-shares" className="dash-section pf-block flex flex-col gap-3" aria-labelledby="pf-shares-h">
+            <div className="pf-hold-bar">
+              <h2 id="pf-shares-h" className={`pfh-title ${bnCls}`} lang={bn ? "bn" : undefined}>
+                {L("Your shares", "আপনার শেয়ারগুলো")}{" "}
+                <span className="pf-num font-semibold">{holdings.length}</span>
+              </h2>
+              <div className="pf-hold-tools">
+                {holdings.length > 1 && (
                   <>
-                    <ValueHistoryCard history={history} lang={lang} />
-                    <ContributionStrip rows={rows} lang={lang} />
+                    <label htmlFor="pf-sort" className="sr-only">{L("Sort your shares", "শেয়ারগুলো সাজান")}</label>
+                    <select
+                      id="pf-sort"
+                      value={sort ? `${sort.key}:${sort.dir}` : ""}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        if (!v) return setSort(null);
+                        const [key, dir] = v.split(":") as [SortKey, "asc" | "desc"];
+                        setSort({ key, dir });
+                      }}
+                      className={`pf-sort ${bnCls}`}
+                    >
+                      <option value="">{L("Sort: as added", "সাজানো: যোগের ক্রমে")}</option>
+                      {SORT_OPTIONS.map((o) => (
+                        <option key={`${o.key}:${o.dir}`} value={`${o.key}:${o.dir}`}>
+                          {L("Sort: ", "সাজানো: ")}
+                          {sortLabel(o.key)}
+                          {o.key === "code" ? "" : o.dir === "desc" ? L(" (high first)", " (বেশি আগে)") : L(" (low first)", " (কম আগে)")}
+                        </option>
+                      ))}
+                    </select>
                   </>
-                ),
-              },
-              {
-                key: "where",
-                label: { en: "Where it sits", bn: "কোথায় আছে" },
-                body: (
-                  <>
-                    <AllocationChart analysis={analysis} lang={lang} />
-                    <SectorBreakdownChart analysis={analysis} lang={lang} />
-                  </>
-                ),
-              },
-              {
-                key: "made",
-                label: { en: "Money made", bn: "আয়" },
-                body: <MoneyMadeCard made={made} settings={settings} lang={lang} onEditSettings={() => setSettingsOpen(true)} />,
-              },
-              {
-                key: "dividends",
-                label: { en: "Dividends", bn: "ডিভিডেন্ড" },
-                body: <DividendIncomeCard rows={rows} priceMap={priceMap} dividends={dividends} calendar={calendar} lang={lang} />,
-              },
-              {
-                key: "history",
-                label: { en: "History", bn: "ইতিহাস" },
-                body: (
-                  <HistoryCard
-                    log={log}
-                    lang={lang}
-                    readOnly={readOnly}
-                    statementHref={statementHref}
-                    onRemove={removeLogEntry}
-                  />
-                ),
-              },
-              {
-                key: "news",
-                label: { en: "News", bn: "খবর" },
-                anchors: ["pf-news"],
-                body: (
-                  <PfCard
-                    title={L("News on your shares", "আপনার শেয়ারের খবর")}
-                    note={L("Announcements from the companies you own.", "আপনার কোম্পানিগুলোর ঘোষণা।")}
-                    lang={lang}
-                    dataCard="news"
-                  >
-                    <PortfolioNews
-                      news={news}
-                      loading={newsLoading}
-                      names={new Map(rows.map((r) => [r.holding.trading_code.toUpperCase(), r.company_name]))}
-                      lang={lang}
-                    />
-                  </PfCard>
-                ),
-              },
-            ]}
-          />
+                )}
+                {!readOnly && (
+                  <Button type="button" onClick={openAdd} variant="quiet" size="md" className="pf-add">
+                    <span className="pf-add-dot"><IconPlus size={14} /></span>
+                    <span className={bnCls}>{L("Add", "যোগ")}</span>
+                  </Button>
+                )}
+              </div>
+            </div>
 
-          {/* Bonus shares + cash dividends kept right on the holding (with Undo).
-              Last on the page since 2026-11-04 (user decision). */}
-          <div className="pf-tail">
-            <CorrectionsCard
-              log={log}
-              suggestions={suggestions}
-              holdings={holdings}
-              lang={lang}
-              readOnly={readOnly}
-              onAction={runAction}
+            {/* Search + filter chips once the list is long (FILTER_FROM stocks) */}
+            {showFilters && (
+              <div className="pf-find">
+                <div className="pf-search">
+                  <label htmlFor="pf-search" className="sr-only">{L("Find a share", "শেয়ার খুঁজুন")}</label>
+                  <span className="pf-search-icon"><IconSearch size={16} /></span>
+                  <input
+                    id="pf-search"
+                    type="search"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder={L("Find by name or code", "নাম বা কোড দিয়ে খুঁজুন")}
+                    autoComplete="off"
+                    enterKeyHint="search"
+                    className={`input-field ${bnCls}`}
+                  />
+                  {query && (
+                    <button type="button" className="pf-search-clear" onClick={() => setQuery("")} aria-label={L("Clear search", "খোঁজা মুছুন")}>
+                      <IconClose size={16} />
+                    </button>
+                  )}
+                </div>
+                <div className="pf-filters" role="group" aria-label={L("Show", "দেখান")}>
+                  {FILTERS.filter((f) => f.key === "all" || filterCounts[f.key] > 0).map((f) => (
+                    <Chip key={f.key} active={activeFilter === f.key} onClick={() => setFilter(f.key)}>
+                      <span className={bnCls}>{bn ? f.bn : f.en}</span>
+                      <span className="pf-num">{filterCounts[f.key]}</span>
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div id="pf-holds" className="dash-section soft-card pf-holds pf-rise">
+              {visibleRows.length === 0 && (
+                <div className={`pf-holds-none ${bnCls}`}>
+                  <p>{L("No shares match.", "কোনো শেয়ার মেলেনি।")}</p>
+                  <Button
+                    type="button"
+                    variant="link"
+                    size="sm"
+                    onClick={() => {
+                      setQuery("");
+                      setFilter("all");
+                    }}
+                  >
+                    {L("Show all", "সব দেখুন")}
+                  </Button>
+                </div>
+              )}
+              {visibleRows.map((row) => {
+                const code = row.holding.trading_code;
+                const name = row.company_name ?? code;
+                const tags = updateTags.get(code.toUpperCase()) ?? [];
+                const ins = insightOf.get(code.toUpperCase());
+                const tierOf = ins && ins.tierKey !== "unscored" ? (ins.tierKey as TierKey) : null;
+                const st = report.status[code.toUpperCase()] ?? null;
+                return (
+                  <article key={row.holding.id} className="pf-hold">
+                    <button
+                      type="button"
+                      className="pf-hold-row"
+                      onClick={() => {
+                        setSheetId(row.holding.id);
+                        trackEvent("pf_open", { what: "share", key: st?.kind ?? "none" });
+                      }}
+                      aria-label={L(`${name}: open`, `${name}: খুলুন`)}
+                    >
+                      <span className="pf-hold-who">
+                        <span className="pf-hold-name">{name}</span>
+                        <span className={`pf-hold-sub ${bnCls}`}>
+                          <span className="pf-hold-code">{code}</span>
+                          {" · "}
+                          <span className="pv">
+                            {bn
+                              ? `${row.holding.qty.toLocaleString("en-IN")}টি শেয়ার`
+                              : `${row.holding.qty.toLocaleString("en-IN")} share${row.holding.qty === 1 ? "" : "s"}`}
+                          </span>
+                        </span>
+                      </span>
+                      <span className="pf-hold-val">
+                        <b className="pv">{row.current_value != null ? takaGroup(row.current_value) : "—"}</b>
+                        {row.pnl != null && (
+                          <span className={`pv ${row.pnl > 0 ? "pf-up" : row.pnl < 0 ? "pf-down" : "pf-flat"}`}>
+                            {row.pnl > 0 ? "+" : row.pnl < 0 ? "−" : ""}
+                            {takaGroup(Math.abs(row.pnl))}
+                          </span>
+                        )}
+                      </span>
+                      <span className={`pf-hold-st ${bnCls}`}>
+                        {reportOpen && st ? (
+                          <span className="pf-st" data-tone={st.tone}>
+                            <i aria-hidden="true" />
+                            {bn ? st.word.bn : st.word.en}
+                          </span>
+                        ) : tierOf ? (
+                          <TierPill tier={tierOf} />
+                        ) : null}
+                        {tags.length > 0 && (
+                          <span className="pf-hold-new">
+                            {bn ? `${tags.length}টি আপডেট` : `${tags.length} update${tags.length === 1 ? "" : "s"}`}
+                          </span>
+                        )}
+                      </span>
+                      {/* What the row opens, in words (2026-11-23) */}
+                      <span className="pf-hold-go" aria-hidden="true">
+                        {L("Details", "বিস্তারিত")}
+                        <IconChevronRight size={14} />
+                      </span>
+                      {/* A share that needs something shows why, open (2026-11-23) */}
+                      {reportOpen && st?.why && st.kind !== "ok" && (
+                        <span className={`pf-hold-why ${bnCls}`}>{bn ? st.why.bn : st.why.en}</span>
+                      )}
+                    </button>
+                  </article>
+                );
+              })}
+            </div>
+            {!readOnly && holdings.length > 1 && (
+              <div className="pf-hold-foot">
+                <Button type="button" onClick={openEditPicker} variant="link" size="sm">
+                  {L("Fix a mistake in your shares", "শেয়ারের ভুল ঠিক করুন")}
+                </Button>
+              </div>
+            )}
+          </section>
+
+          {/* ── More details: four tabs, folded, all free ── */}
+          <div className="pf-block">
+            <PfMoneyRoom
+              panels={[
+                {
+                  key: "growth",
+                  label: { en: "Growth", bn: "বৃদ্ধি" },
+                  anchors: ["value"],
+                  body: (
+                    <>
+                      <ValueHistoryCard history={history} lang={lang} />
+                      <ContributionStrip rows={rows} lang={lang} />
+                    </>
+                  ),
+                },
+                {
+                  key: "where",
+                  label: { en: "Where it sits", bn: "কোথায় আছে" },
+                  body: (
+                    <>
+                      <AllocationChart analysis={analysis} lang={lang} />
+                      <SectorBreakdownChart analysis={analysis} lang={lang} />
+                    </>
+                  ),
+                },
+                {
+                  key: "income",
+                  label: { en: "Income", bn: "আয়" },
+                  anchors: ["dividends", "made"],
+                  body: (
+                    <>
+                      <MoneyMadeCard made={made} settings={settings} lang={lang} onEditSettings={() => setSettingsOpen(true)} />
+                      <DividendIncomeCard rows={rows} priceMap={priceMap} dividends={dividends} calendar={calendar} lang={lang} />
+                    </>
+                  ),
+                },
+                {
+                  key: "activity",
+                  label: { en: "Activity", bn: "কার্যক্রম" },
+                  anchors: ["pf-news", "pf-corrections", "news"],
+                  body: (
+                    <>
+                      <span id="pf-corrections" />
+                      <CorrectionsCard
+                        log={log}
+                        suggestions={suggestions}
+                        holdings={holdings}
+                        lang={lang}
+                        readOnly={readOnly}
+                        onAction={runAction}
+                      />
+                      <HistoryCard
+                        log={log}
+                        lang={lang}
+                        readOnly={readOnly}
+                        statementHref={statementHref}
+                        onRemove={removeLogEntry}
+                      />
+                      <PfCard
+                        title={L("News on your shares", "আপনার শেয়ারের খবর")}
+                        note={L("Announcements from the companies you own.", "আপনার কোম্পানিগুলোর ঘোষণা।")}
+                        lang={lang}
+                        dataCard="news"
+                      >
+                        <span id="pf-news" />
+                        <PortfolioNews
+                          news={news}
+                          loading={newsLoading}
+                          names={new Map(rows.map((r) => [r.holding.trading_code.toUpperCase(), r.company_name]))}
+                          lang={lang}
+                        />
+                      </PfCard>
+                    </>
+                  ),
+                },
+              ]}
             />
           </div>
+
+          {/* Bonus shares / dividends waiting to be confirmed stay in sight */}
+          {suggestions.length > 0 && (
+            <p className={`pf-pending ${bnCls}`}>
+              <a href="#pf-corrections">
+                {L(
+                  `${suggestions.length} bonus or dividend ${suggestions.length === 1 ? "entry is" : "entries are"} waiting for you to confirm. See Activity.`,
+                  `${suggestions.length}টি বোনাস বা ডিভিডেন্ড আপনার নিশ্চিত করার অপেক্ষায়। কার্যক্রম দেখুন।`,
+                )}
+              </a>
+            </p>
+          )}
+
+          <PfShareSheet
+            open={sheetRow != null}
+            row={sheetRow}
+            status={sheetRow ? report.status[sheetRow.code.toUpperCase()] ?? null : null}
+            way={sheetRow ? wayOf.get(sheetRow.code.toUpperCase()) ?? null : null}
+            events={sheetRow ? myWatch.filter((e) => e.code.toUpperCase() === sheetRow.code.toUpperCase() && e.kind !== "answer" && e.kind !== "buylist") : []}
+            premium={reportOpen}
+            readOnly={readOnly}
+            onClose={() => setSheetId(null)}
+            onBuy={() => sheetFor((r) => openTx("buy", r))}
+            onSell={() => sheetFor((r) => openTx("sell", r))}
+            onEdit={() => sheetFor((r) => startEdit(r.holding))}
+            onRemove={() => sheetFor((r) => handleDelete(r.holding.id))}
+          />
         </PageLockScope>
       )}
 

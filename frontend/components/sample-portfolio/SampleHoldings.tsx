@@ -3,6 +3,7 @@ import Stat from "@/components/ui/Stat";
 import { T } from "@/components/i18n/T";
 import { changePct, companyShort, money, takaGroup } from "@/lib/formatters";
 import type { ComputedRow, PortfolioAnalysis } from "@/lib/portfolio-analysis";
+import type { PfStatus } from "@/lib/portfolio-report";
 
 /**
  * The sample's money and shares (2026-11-02): what the portfolio page's hero
@@ -11,7 +12,16 @@ import type { ComputedRow, PortfolioAnalysis } from "@/lib/portfolio-analysis";
  * name first, code · shares · bought at, value and profit on the right).
  * Server-rendered: both languages are in the HTML.
  */
-export default function SampleHoldings({ rows, analysis }: { rows: ComputedRow[]; analysis: PortfolioAnalysis }) {
+export default function SampleHoldings({
+  rows,
+  analysis,
+  status,
+}: {
+  rows: ComputedRow[];
+  analysis: PortfolioAnalysis;
+  /** Each share's one status (the simple portfolio page, 2026-11-23). */
+  status?: Record<string, PfStatus>;
+}) {
   const cost = rows.reduce((a, r) => a + r.cost_basis, 0);
   const priced = rows.filter((r) => r.current_value != null);
   const value = priced.reduce((a, r) => a + (r.current_value as number), 0);
@@ -53,6 +63,7 @@ export default function SampleHoldings({ rows, analysis }: { rows: ComputedRow[]
           const code = r.holding.trading_code;
           const name = companyShort(r.company_name) || code;
           const t = r.pnl_pct == null ? "" : r.pnl_pct > 0 ? "text-positive" : r.pnl_pct < 0 ? "text-negative" : "";
+          const st = status?.[code.toUpperCase()];
           return (
             <li key={code}>
               <Link href={`/stock/${code}`} prefetch={false} className="smp-row">
@@ -64,6 +75,17 @@ export default function SampleHoldings({ rows, analysis }: { rows: ComputedRow[]
                       bn={`${code} · ${r.holding.qty}টি শেয়ার · কেনা ${money(r.holding.buy_price)}-এ`}
                     />
                   </span>
+                  {st && (
+                    <span className="pf-st" data-tone={st.tone}>
+                      <i aria-hidden="true" />
+                      <T en={st.word.en} bn={st.word.bn} />
+                    </span>
+                  )}
+                  {st?.why && st.kind !== "ok" && (
+                    <span className="smp-why">
+                      <T en={st.why.en} bn={st.why.bn} />
+                    </span>
+                  )}
                 </span>
                 <span className="smp-right">
                   <b className="nums">{r.current_value != null ? takaGroup(r.current_value) : "—"}</b>

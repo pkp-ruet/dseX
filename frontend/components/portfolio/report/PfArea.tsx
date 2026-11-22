@@ -3,61 +3,9 @@
 import Link from "@/components/ui/Link";
 import { TONE_CLASS, ToneChip, tx } from "@/components/report/chip";
 import { CompareBars, DateLine, HundredBar } from "@/components/stock/visuals/kit";
-import { IconAlert, IconChevronDown, IconCrown } from "@/components/ui/icons";
+import { IconAlert, IconChevronDown } from "@/components/ui/icons";
 import { T } from "@/components/i18n/T";
-import type { PfChapter, PfFigure, PfPicture, PfRow } from "@/lib/portfolio-report";
-
-/** The four areas' names (2026-11-11): what each card is about. */
-const AREA_NAME: Record<string, { en: string; bn: string }> = {
-  companies: { en: "Your companies", bn: "আপনার কোম্পানি" },
-  spread: { en: "Your spread", bn: "টাকার বণ্টন" },
-  prices: { en: "Prices today", bn: "আজকের দাম" },
-  watch: { en: "To watch", bn: "নজর রাখুন" },
-};
-
-/**
- * One area of "Why we say this" (2026-11-11, was one chapter card with every
- * question open; mockup https://claude.ai/artifact/QJjjrtfUu1ZSJ4rd7wvVeY):
- * the area's name and its answer word, one count line, the first question's
- * answer and picture, and the questions folded under ONE bar. The first
- * question inside the fold skips the answer and picture shown above it.
- * Keeps the chapter ids (`#ch-companies` …) the verdict's tiles jump to.
- */
-export default function PfArea({ chapter }: { chapter: PfChapter }) {
-  const first = chapter.rows[0];
-  const name = AREA_NAME[chapter.key] ?? chapter.title;
-  const n = chapter.rows.length;
-  return (
-    <section id={chapter.id} className="soft-card pfar dash-section" aria-labelledby={`${chapter.id}-h`}>
-      <header className="pfar-head">
-        <h3 id={`${chapter.id}-h`} className="pfar-title">{tx(name)}</h3>
-        <ToneChip word={chapter.head.word} tone={chapter.head.tone} />
-      </header>
-      <p className="pfar-count">{tx(chapter.head.line)}</p>
-      {first?.headline && <p className="pfar-ans">{tx(first.headline)}</p>}
-      {first?.picture && (
-        <div className="pfar-pic">
-          <PfPictureView pic={first.picture} />
-        </div>
-      )}
-      {n > 0 && (
-        <details className="pfar-qs">
-          <summary>
-            <span>
-              <T en={`${n} question${n === 1 ? "" : "s"} behind this`} bn={`এর পেছনের ${n}টি প্রশ্ন`} />
-            </span>
-            <IconChevronDown size={16} />
-          </summary>
-          <div className="pfar-qs-body">
-            {chapter.rows.map((r, i) => (
-              <PfQuestion key={r.key} row={r} summarized={i === 0} />
-            ))}
-          </div>
-        </details>
-      )}
-    </section>
-  );
-}
+import type { PfFigure, PfPicture, PfRow } from "@/lib/portfolio-report";
 
 /**
  * One question of the portfolio report, in reading order: the question and
@@ -189,27 +137,5 @@ function PfFigures({ figures }: { figures: PfFigure[] }) {
         </li>
       ))}
     </ul>
-  );
-}
-
-/** The head of the analysis, after your shares (Premium readers): what this
- *  part of the page is, in one line — the one Premium mark here. */
-export function PfReportBand({ answered }: { answered: number }) {
-  return (
-    <header className="pf-check-head">
-      <span className="pf-check-badge">
-        <IconCrown size={14} />
-        <T en="Premium" bn="প্রিমিয়াম" />
-      </span>
-      <h2 className="pf-check-title">
-        <T en="Your portfolio check" bn="আপনার পোর্টফোলিও যাচাই" />
-      </h2>
-      <p className="pf-check-sub">
-        <T
-          en={`Checked again after every close · 3 parts · ${answered} answers`}
-          bn={`প্রতিদিন বাজার বন্ধের পর আবার যাচাই · 3টি অংশ · ${answered}টি উত্তর`}
-        />
-      </p>
-    </header>
   );
 }

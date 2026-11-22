@@ -290,6 +290,72 @@ export interface PfOutline {
   flagged: number;
 }
 
+/** One row of "Is everything okay?" (2026-11-23, the simple portfolio
+ *  page): an area as one plain sentence with a tick or a warning. Its sheet
+ *  holds that area's questions (`areas`). */
+export interface PfCheck {
+  key: LightKey;
+  tone: Tone;
+  text: Bi;
+  /** The area's chapter id in `areas` (its questions). */
+  chapter: string;
+  /** For a check that needs a look: its answer in one sentence, shown open
+   *  under it (2026-11-23, user: details behind a tap "some user may miss"). */
+  detail: Bi | null;
+}
+
+/** "Is everything okay?": the grade letter with one word, a count line and
+ *  the four checks. Replaces the verdict card and the four area tiles. */
+export interface PfHealth {
+  grade: Grade;
+  word: Bi;
+  tone: Tone;
+  /** "2 of 4 checks need a look." */
+  line: Bi;
+  checks: PfCheck[];
+  toLook: number;
+}
+
+/** One thing to do (at most three on the page), most important first:
+ *  the grade path's steps, then the shares to act on, most money first. */
+export interface PfTodoItem {
+  key: string;
+  title: Bi;
+  line: Bi;
+  /** The share it is about (its sheet opens from the item). */
+  code: string | null;
+  /** Folded under the item: the trades, why, and what a sale makes real. */
+  trades: { side: "sell" | "buy"; text: Bi }[];
+  why: Bi | null;
+  note: { text: Bi; tone: Tone } | null;
+  /** A step of the grade path. */
+  step: number | null;
+}
+
+/** "What to do": replaces "Your way back", "Three changes to an A" and
+ *  "Each of your shares" (2026-11-23). */
+export interface PfTodo {
+  items: PfTodoItem[];
+  /** How many things there were before the cut to three. */
+  total: number;
+  /** One line under the list when the path lifts the grade. */
+  gradeLine: Bi | null;
+  /** The engine's other ideas, folded. */
+  more: PfPlanItem[];
+  /** One sentence when there is nothing to do. */
+  none: Bi | null;
+}
+
+/** A share's one status in the list (2026-11-23): act (with the verb),
+ *  watch (with the reason) or all good. */
+export interface PfStatus {
+  kind: "act" | "watch" | "ok";
+  tone: Tone;
+  word: Bi;
+  /** One sentence on why (the share sheet). */
+  why: Bi | null;
+}
+
 export interface PortfolioReport {
   answer: PfAnswer;
   /** "Start here": the first step of the path, else the first move. */
@@ -307,6 +373,11 @@ export interface PortfolioReport {
   promo: PfPromo;
   /** How many questions the full check answers (the band). */
   answered: number;
+  /** The simple page (2026-11-23): "Is everything okay?", "What to do" and
+   *  one status per share. */
+  health: PfHealth;
+  todo: PfTodo;
+  status: Record<string, PfStatus>;
 }
 
 export interface ReportInput {
@@ -598,7 +669,11 @@ export function buildPortfolioReport(inp: ReportInput): PortfolioReport {
   // The verdict, the plan's parts and the areas' questions.
   const answered = answers + 1 + (wayBack ? 1 : 0) + (path ? 1 : 0) + 1;
 
-  return { answer, start, areas, wayBack, path, each, plan, findings, outline, promo, answered };
+  const health = buildHealth(f, issue, lights, answer, areas);
+  const todo = buildTodo(inp, f, path, each);
+  const status = buildStatus(inp, f, each);
+
+  return { answer, start, areas, wayBack, path, each, plan, findings, outline, promo, answered, health, todo, status };
 }
 
 function buildAnswer(inp: ReportInput, f: Facts, lights: PfLight[], issue: SpreadIssue): PfAnswer {
@@ -2076,9 +2151,9 @@ function buildPathView(inp: ReportInput, f: Facts): PfPathView | null {
 }
 
 const ACTION_WORD: Record<PfAction, Bi> = {
-  switch: B("Switch", "বদলান"),
+  switch: B("Swap for a stronger one", "আরও শক্তিশালীতে বদলান"),
   sell: B("Sell", "বিক্রি"),
-  trim: B("Trim", "কিছুটা কমান"),
+  trim: B("Sell some", "কিছুটা বিক্রি"),
   review: B("Read the warning", "সতর্কতাটি পড়ুন"),
   buy_more: B("Buy more", "আরও কেনা যায়"),
 };
@@ -2102,7 +2177,7 @@ function buildEach(inp: ReportInput, f: Facts, lf: LossFacts | null, path: PfPat
       continue;
     }
     const step = stepFor(path, code);
-    const stepLine = step ? B(`Step ${step} of your path.`, `আপনার পথের ধাপ ${step}।`) : B("", "");
+    const stepLine = step ? B(`It is number ${step} in “What to do”.`, `“কী করবেন”-এর ${step} নম্বরে আছে।`) : B("", "");
     const line =
       action === "switch" && swap
         ? join([
@@ -2115,6 +2190,210 @@ function buildEach(inp: ReportInput, f: Facts, lf: LossFacts | null, path: PfPat
   }
   act.sort((a, b) => ACTION_ORDER[a.action] - ACTION_ORDER[b.action] || (a.step ?? 9) - (b.step ?? 9));
   return { act, rest };
+}
+
+// ── The simple page (2026-11-23) ───────────────────────────────────────────
+//
+// User: the portfolio "feels little disorganized, complex presentation and
+// hard to grasp" (plan https://claude.ai/artifact/Gmoy9sYiEcvK4wZL5eqTXN).
+// Three answers on top — what it is worth, is everything okay, what to do —
+// then each share once with one status. Built from the same parts as the
+// check above (lights, path, each), so nothing here can disagree with it.
+
+function buildHealth(f: Facts, issue: SpreadIssue, lights: PfLight[], answer: PfAnswer, areas: PfChapter[]): PfHealth {
+  const tone = (k: LightKey) => lights.find((l) => l.key === k)?.tone ?? "neutral";
+  const chapter = (k: LightKey) => areas.find((c) => c.key === k)?.id ?? `ch-${k}`;
+  const ct = tone("companies");
+  const companies =
+    ct === "good"
+      ? B("Most of your money is in strong companies", "আপনার বেশিরভাগ টাকা শক্তিশালী কোম্পানিতে")
+      : ct === "fair"
+        ? B("Your companies are a mix of strong and weak", "আপনার কোম্পানিগুলো শক্তিশালী আর দুর্বলের মিশেল")
+        : ct === "bad"
+          ? B("Too much of your money is in weak companies", "আপনার টাকার অনেকটা দুর্বল কোম্পানিতে")
+          : B("We cannot grade most of your companies yet", "আপনার বেশিরভাগ কোম্পানির গ্রেড এখনো দেওয়া যায়নি");
+  const spread =
+    issue.kind === "stock"
+      ? B(`Too much of your money is in ${f.top!.code}`, `আপনার টাকার বেশি অংশ ${f.top!.code}-এ`)
+      : issue.kind === "sector"
+        ? B(`Too much of your money is in ${sectorWord(f.topSector!.name).en}`, `আপনার টাকার বেশি অংশ ${sectorWord(f.topSector!.name).bn} সেক্টরে`)
+        : issue.kind === "finance"
+          ? B("More than half is in banks and finance", "অর্ধেকের বেশি টাকা ব্যাংক ও আর্থিক প্রতিষ্ঠানে")
+          : issue.kind === "few"
+            ? B(`Your money rests on only ${f.n} share${f.n === 1 ? "" : "s"}`, `আপনার টাকা মাত্র ${f.n}টি শেয়ারে`)
+            : B("Your money is spread well", "আপনার টাকা ভালোভাবে ছড়ানো");
+  const pt = tone("prices");
+  const pw = lights.find((l) => l.key === "prices")?.word.en;
+  const prices =
+    pt === "neutral"
+      ? B("We cannot judge today's prices yet", "আজকের দাম এখনো বিচার করা যায় না")
+      : pt === "good"
+        ? pw === "Low"
+          ? B("Your shares cost little today for what they earn", "আয়ের তুলনায় আপনার শেয়ারের দাম আজ কম")
+          : B("Your shares cost a fair price today for what they earn", "আয়ের তুলনায় আপনার শেয়ারের দাম আজ ন্যায্য")
+        : pt === "fair"
+          ? B("Some of your shares cost a lot today for what they earn", "আয়ের তুলনায় আপনার কিছু শেয়ারের দাম আজ বেশি")
+          : B("Most of your money is in shares that cost a lot today", "আপনার বেশিরভাগ টাকা এমন শেয়ারে, যাদের দাম আজ বেশি");
+  const decide = new Set([...f.sells.map((h) => h.code), ...f.serious.map((x) => x.h.code)]).size;
+  const watch =
+    decide === 0
+      ? B("No serious warnings on your shares", "আপনার শেয়ারে গুরুতর কোনো সতর্কতা নেই")
+      : decide === 1
+        ? B("1 share needs a decision", "1টি শেয়ার নিয়ে সিদ্ধান্ত নিতে হবে")
+        : B(`${decide} shares need a decision`, `${decide}টি শেয়ার নিয়ে সিদ্ধান্ত নিতে হবে`);
+  // The answer shown open under a check that needs a look: the first of its
+  // questions that is not good, else its first question.
+  const detailOf = (k: LightKey, t: Tone): Bi | null => {
+    if (t !== "bad" && t !== "fair") return null;
+    const rows = areas.find((c) => c.key === k)?.rows ?? [];
+    const row = rows.find((r) => (r.tone === "bad" || r.tone === "fair") && r.headline) ?? rows.find((r) => r.headline);
+    return row?.headline ?? null;
+  };
+  const st = issue.kind === "none" ? "good" : tone("spread");
+  const wt = tone("watch");
+  const checks: PfCheck[] = [
+    { key: "companies", tone: ct, text: companies, chapter: chapter("companies"), detail: detailOf("companies", ct) },
+    { key: "spread", tone: st, text: spread, chapter: chapter("spread"), detail: detailOf("spread", st) },
+    { key: "prices", tone: pt, text: prices, chapter: chapter("prices"), detail: detailOf("prices", pt) },
+    { key: "watch", tone: wt, text: watch, chapter: chapter("watch"), detail: detailOf("watch", wt) },
+  ];
+  const toLook = checks.filter((c) => c.tone === "bad" || c.tone === "fair").length;
+  const line =
+    toLook === 0
+      ? B("All 4 checks look fine.", "4টি যাচাইয়ের সবগুলোই ঠিক আছে।")
+      : B(`${toLook} of 4 checks need a look.`, `4টি যাচাইয়ের ${toLook}টি দেখা দরকার।`);
+  return { grade: answer.grade, word: answer.word, tone: answer.tone, line, checks, toLook };
+}
+
+const TODO_MAX = 3;
+
+function buildTodo(inp: ReportInput, f: Facts, path: PfPathView | null, each: PfEach): PfTodo {
+  const items: PfTodoItem[] = [];
+  const covered = new Set<string>();
+  for (const s of path?.steps ?? []) {
+    covered.add(s.code.toUpperCase());
+    const first = s.trades[0];
+    items.push({
+      key: `step-${s.n}`,
+      title: s.title,
+      line: first ? first.text : s.why,
+      code: s.code,
+      trades: s.trades,
+      why: s.why,
+      note: s.note,
+      step: s.n,
+    });
+  }
+  const valueByCode = new Map(f.hs.map((h) => [h.code.toUpperCase(), valueOf(h)]));
+  const rest = each.act
+    .filter((a) => !covered.has(a.code.toUpperCase()))
+    .sort((x, y) => (valueByCode.get(y.code.toUpperCase()) ?? 0) - (valueByCode.get(x.code.toUpperCase()) ?? 0));
+  for (const a of rest) {
+    const v = valueByCode.get(a.code.toUpperCase()) ?? 0;
+    const title: Bi =
+      a.action === "switch"
+        ? B(`Swap ${a.code} for a stronger company`, `${a.code}-এর বদলে আরও শক্তিশালী কোম্পানি`)
+        : a.action === "sell"
+          ? B(`Think about selling ${a.code}`, `${a.code} বিক্রির কথা ভাবুন`)
+          : a.action === "trim"
+            ? B(`Sell some ${a.code}`, `${a.code} কিছুটা বিক্রি করুন`)
+            : a.action === "review"
+              ? B(`Read the warning on ${a.code}`, `${a.code}-এর সতর্কতাটি পড়ুন`)
+              : B(`You can buy more ${a.code}`, `${a.code} আরও কেনা যায়`);
+    items.push({
+      key: `act-${a.code}`,
+      title,
+      line: B(`${takaGroup(v)} of your money is in it.`, `এতে আপনার ${takaGroup(v)} আছে।`),
+      code: a.code,
+      trades: [],
+      why: a.line,
+      note: null,
+      step: null,
+    });
+  }
+  const total = items.length;
+  const shown = items.slice(0, TODO_MAX);
+  const steps = path?.steps.length ?? 0;
+  const gradeLine: Bi | null = path
+    ? steps === shown.length
+      ? B(
+          `Do ${steps === 1 ? "this" : "these"} and your grade goes from ${path.from} to ${path.to}.`,
+          `${steps === 1 ? "এটি" : "এগুলো"} করলে আপনার গ্রেড ${path.from} থেকে ${path.to} হয়।`,
+        )
+      : B(
+          `The first ${steps === 1 ? "one takes" : `${steps} take`} your grade from ${path.from} to ${path.to}.`,
+          `প্রথম ${steps}টি করলে আপনার গ্রেড ${path.from} থেকে ${path.to} হয়।`,
+        )
+    : null;
+  const none: Bi | null = total
+    ? null
+    : inp.analysis.grade === "A"
+      ? B("Nothing needs you today. Your grade is A.", "আজ আপনার কিছু করার নেই। আপনার গ্রেড A।")
+      : B(
+          `Nothing needs you today. No change we can stand behind lifts your grade from ${inp.analysis.grade} right now.`,
+          `আজ আপনার কিছু করার নেই। আমাদের যাচাই করা কোনো বদলে এখন আপনার গ্রেড ${inp.analysis.grade} থেকে বাড়ে না।`,
+        );
+  return { items: shown, total, gradeLine, more: path?.more ?? buildPlan(inp).buys, none };
+}
+
+const STATUS_WORD: Record<PfAction, Bi> = {
+  switch: B("Swap for a stronger one", "আরও শক্তিশালীতে বদলান"),
+  sell: B("Think about selling", "বিক্রির কথা ভাবুন"),
+  trim: B("Sell some", "কিছুটা বিক্রি করুন"),
+  review: B("Read the warning", "সতর্কতাটি পড়ুন"),
+  buy_more: B("Room to buy more", "আরও কেনা যায়"),
+};
+
+function buildStatus(inp: ReportInput, f: Facts, each: PfEach): Record<string, PfStatus> {
+  const out: Record<string, PfStatus> = {};
+  const actOf = new Map(each.act.map((a) => [a.code.toUpperCase(), a]));
+  const meetings = new Map<string, UpcomingResult>();
+  for (const m of inp.results) {
+    const c = m.code.toUpperCase();
+    if (m.days >= 0 && m.days <= 7 && !meetings.has(c)) meetings.set(c, m);
+  }
+  for (const h of f.hs) {
+    const code = h.code.toUpperCase();
+    const a = actOf.get(code);
+    if (a) {
+      out[code] = { kind: a.action === "buy_more" ? "ok" : "act", tone: a.tone, word: STATUS_WORD[a.action], why: a.line };
+      continue;
+    }
+    const g = inp.glance.get(code);
+    const ev = g?.event;
+    const m = meetings.get(code);
+    if (m) {
+      const d = m.days === 0 ? B("today", "আজ") : m.days === 1 ? B("tomorrow", "আগামীকাল") : dayWords(m.date);
+      out[code] = {
+        kind: "watch",
+        tone: "fair",
+        word: B(`Results ${m.days <= 1 ? d.en : `on ${d.en}`}`, `ফল ${d.bn}`),
+        why: B("Its results come out soon. Check what they show.", "এর আর্থিক ফল শিগগির আসছে। কী দেখায়, তা দেখে নিন।"),
+      };
+      continue;
+    }
+    if (ev?.kind === "record" && ev.buy_by && ev.buy_days_left != null && ev.buy_days_left >= 0 && ev.buy_days_left <= 7) {
+      const d = ev.buy_days_left === 0 ? B("today", "আজ") : ev.buy_days_left === 1 ? B("tomorrow", "আগামীকাল") : dayWords(ev.buy_by);
+      out[code] = {
+        kind: "watch",
+        tone: "fair",
+        word: B(`Last day to buy: ${d.en}`, `কেনার শেষ দিন: ${d.bn}`),
+        why: B("Keep your shares through this day to get its dividend.", "ডিভিডেন্ড পেতে এই দিন পর্যন্ত শেয়ারগুলো রাখুন।"),
+      };
+      continue;
+    }
+    if ((g?.warnings?.amber ?? 0) > 0) {
+      out[code] = {
+        kind: "watch",
+        tone: "fair",
+        word: B("Something to check", "একটি বিষয় দেখে নিন"),
+        why: B("We found a smaller thing worth a look on its stock page.", "এর পেজে দেখার মতো একটি ছোট বিষয় পেয়েছি।"),
+      };
+      continue;
+    }
+    out[code] = { kind: "ok", tone: "good", word: B("All good", "সব ঠিক আছে"), why: null };
+  }
+  return out;
 }
 
 // ── Chapter 4 · watch ──────────────────────────────────────────────────────

@@ -1,0 +1,362 @@
+<title>Portfolio, Made Simple</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Hind+Siliguri:wght@400;600&display=swap">
+<style>
+/* Layout: a reading column for the plan, with phone mockups that sit side by side from 900px */
+:root{
+  --bg:#F3F1EC; --surface:#FCFBF8; --surface-2:#EFEADF; --border:#DED6C3;
+  --text:#2E2B26; --primary:#9E5F40; --primary-soft:#F3E6DE; --on-fill:#FFFFFF;
+  --pos:#047857; --pos-soft:#E3F2EC; --neg:#B91C1C; --neg-soft:#F8E4E2;
+  --watch:#B45309; --watch-soft:#F8ECDD; --gold:#A87B14; --gold-soft:#F6EDD6;
+  --phone:#1F1D1A; --shadow:0 1px 2px rgba(46,43,38,.06),0 4px 14px rgba(46,43,38,.06);
+  --f:"Inter","Hind Siliguri",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#171614; --surface:#211F1C; --surface-2:#2A2824; --border:#3A3631;
+  --text:#ECE7DE; --primary:#D08A66; --primary-soft:#3A2A21; --on-fill:#171614;
+  --pos:#34C08F; --pos-soft:#17302A; --neg:#F07A70; --neg-soft:#3A1F1D;
+  --watch:#E49A4A; --watch-soft:#3A2C1C; --gold:#D9AE45; --gold-soft:#352C17;
+  --phone:#0C0B0A; --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#171614; --surface:#211F1C; --surface-2:#2A2824; --border:#3A3631;
+  --text:#ECE7DE; --primary:#D08A66; --primary-soft:#3A2A21; --on-fill:#171614;
+  --pos:#34C08F; --pos-soft:#17302A; --neg:#F07A70; --neg-soft:#3A1F1D;
+  --watch:#E49A4A; --watch-soft:#3A2C1C; --gold:#D9AE45; --gold-soft:#352C17;
+  --phone:#0C0B0A; --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--f);font-size:16px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 64px}
+.wrap{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:48px}
+.col{max-width:700px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 12px;text-wrap:balance}
+h2{font-size:1.4rem;line-height:1.3;margin:0 0 8px;text-wrap:balance}
+h3{font-size:1.05rem;margin:0 0 6px}
+p{margin:0 0 12px}
+.eyebrow{font-size:.8rem;font-weight:600;color:var(--primary);margin-bottom:8px}
+.lead{font-size:1.1rem}
+.num{font-variant-numeric:tabular-nums}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;box-shadow:var(--shadow)}
+.qs{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-top:16px}
+.q{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}
+.q b{display:block;font-size:1.05rem;margin-bottom:4px}
+.q small{font-size:.85rem}
+.qn{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--text);color:var(--bg);font-weight:700;font-size:.85rem;margin-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:.95rem}
+.tbl{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+th{font-size:.8rem;font-weight:600;background:var(--surface-2)}
+tr:last-child td{border-bottom:0}
+td.old{color:var(--neg)} td.new{color:var(--pos);font-weight:600}
+ul.rules{list-style:none;padding:0;margin:16px 0 0;display:flex;flex-direction:column;gap:14px}
+ul.rules li{display:grid;grid-template-columns:32px 1fr;gap:12px}
+ul.rules .n{width:32px;height:32px;border-radius:50%;background:var(--primary-soft);color:var(--primary);display:grid;place-items:center;font-weight:700}
+ul.rules b{display:block}
+
+/* ---------- phone mockups ---------- */
+.phones{display:grid;gap:24px;grid-template-columns:1fr}
+@media(min-width:900px){.phones{grid-template-columns:repeat(3,1fr)}}
+.ph-cap{font-weight:700;margin-bottom:4px}
+.ph-sub{font-size:.85rem;margin-bottom:10px;min-height:2.6em}
+.phone{background:var(--phone);border-radius:28px;padding:10px;max-width:360px;margin:0 auto;width:100%}
+.screen{background:var(--bg);border-radius:20px;padding:14px 12px 18px;display:flex;flex-direction:column;gap:12px;font-size:13px;line-height:1.45}
+.m-h{font-size:12px;font-weight:600}
+.m-val{font-size:24px;font-weight:700;line-height:1.1}
+.m-row{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.m-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px}
+.m-title{font-size:14px;font-weight:700;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.m-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.m-stats div{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px}
+.m-stats span{display:block;font-size:11px}
+.m-stats b{font-size:14px}
+.up{color:var(--pos)} .dn{color:var(--neg)}
+.grade{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+.letter{width:40px;height:40px;border-radius:50%;border:2px solid var(--watch);display:grid;place-items:center;font-weight:700;font-size:18px;color:var(--watch);flex:none}
+.chk{list-style:none;padding:0;margin:0;display:flex;flex-direction:column}
+.chk li{display:grid;grid-template-columns:22px 1fr 12px;gap:8px;padding:7px 0;border-top:1px solid var(--border);align-items:center}
+.chk li:first-child{border-top:0}
+.ic{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--on-fill)}
+.ic.ok{background:var(--pos)} .ic.wa{background:var(--watch)} .ic.bad{background:var(--neg)}
+.ic.lk{background:var(--gold-soft);color:var(--gold);font-size:10px}
+.chev{font-size:13px;opacity:1}
+.todo{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+.todo li{display:grid;grid-template-columns:22px 1fr;gap:8px}
+.todo .tn{width:22px;height:22px;border-radius:50%;background:var(--text);color:var(--bg);display:grid;place-items:center;font-size:11px;font-weight:700}
+.todo b{display:block;font-size:13px}
+.todo small{font-size:12px}
+.lnk{color:var(--primary);font-weight:600;font-size:12px}
+.foot{margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);font-size:12px}
+.sh{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:8px 0;border-top:1px solid var(--border)}
+.sh:first-of-type{border-top:0}
+.sh .nm{font-weight:600}
+.sh .cd{font-size:11px}
+.sh .v{text-align:right;font-weight:600}
+.sh .pl{text-align:right;font-size:12px}
+.st{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;grid-column:1/-1}
+.st i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.st.ok i{background:var(--pos)} .st.wa i{background:var(--watch)} .st.act i{background:var(--neg)}
+.st.ok{color:var(--pos)} .st.wa{color:var(--watch)} .st.act{color:var(--neg)}
+.st.tier{color:var(--text);font-weight:400}
+.more{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:13px}
+.lockbox{background:var(--gold-soft);border:1px solid var(--gold);border-radius:12px;padding:12px}
+.lockbox .m-title{color:var(--text)}
+.btn{display:block;text-align:center;background:var(--primary);color:var(--on-fill);border-radius:10px;padding:9px;font-weight:600;font-size:13px;margin-top:10px}
+.btn.q{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btns .btn{margin-top:0}
+.crown{color:var(--gold);font-size:11px;font-weight:700}
+.sheet{background:var(--surface);border-radius:16px 16px 12px 12px;border:1px solid var(--border);padding:12px;display:flex;flex-direction:column;gap:10px}
+.grab{width:36px;height:4px;border-radius:4px;background:var(--border);margin:0 auto}
+.take{border-left:3px solid var(--neg);padding-left:10px}
+.kv{display:grid;grid-template-columns:1fr auto;gap:4px 8px;font-size:12px}
+.kv b{text-align:right}
+.dim{background:var(--surface-2);border-radius:10px;padding:10px}
+.note{font-size:.9rem;border-left:3px solid var(--primary);padding:4px 0 4px 12px;margin-top:12px}
+.dec{display:flex;flex-direction:column;gap:12px;margin-top:16px}
+.dec .card{padding:16px}
+.pick{display:inline-block;font-size:.8rem;font-weight:600;color:var(--pos);background:var(--pos-soft);border-radius:999px;padding:2px 10px;margin-left:6px}
+.steps{counter-reset:s;list-style:none;padding:0;margin:16px 0 0;display:flex;flex-direction:column;gap:12px}
+.steps li{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+.steps li b{display:block}
+.steps .files{font-size:.85rem;margin-top:6px}
+code{font-family:ui-monospace,Consolas,monospace;font-size:.85em;background:var(--surface-2);padding:1px 5px;border-radius:5px}
+.words{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:12px}
+.words span{background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:6px 12px;font-size:.9rem;text-align:center}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+
+<header class="col">
+  <div class="eyebrow">Plan · Portfolio page · 23 Nov 2026</div>
+  <h1>Portfolio, made simple</h1>
+  <p class="lead">Most readers come to the portfolio page with three questions. Today the page answers them, but the answers are spread over many cards, folds and words. This plan puts the three answers at the top, shows each share once, and moves everything else one tap away.</p>
+</header>
+
+<section class="col">
+  <h2>What makes it hard today</h2>
+  <p>I read the page as it is built now (the share list, the verdict, plan and area cards, the money tabs). Five things make it hard to take in:</p>
+  <ul class="rules">
+    <li><span class="n">1</span><div><b>Five ways to judge the same thing.</b>A grade letter (C), an answer word ("Needs work"), four area lights, a group word on each share and an action word on each share. A new reader can't tell which one matters.</div></li>
+    <li><span class="n">2</span><div><b>One share shows up in up to five places.</b>The share list, "Your way back", "Three changes to an A", "Each of your shares" and the questions behind the areas. The reader has to put the story of one share together.</div></li>
+    <li><span class="n">3</span><div><b>The plan is three cards, each with its own idea.</b>Way back, path to an A and each share all say "what to do", in three different shapes and with new words (Switch, Trim, path, way back).</div></li>
+    <li><span class="n">4</span><div><b>Too many controls.</b>Six chips at the top, seven buttons in an open share row, six money tabs, a sort menu, a search and filter chips.</div></li>
+    <li><span class="n">5</span><div><b>The free card is a page of its own.</b>Four numbered parts, examples, a "you have now" list and a sticky price column. It explains Premium well, but it is the longest thing on the page.</div></li>
+  </ul>
+</section>
+
+<section class="col">
+  <h2>The idea: answer three questions, in order</h2>
+  <p>A general reader, whether they bought their first share last month or hold twenty, wants the same three answers. The page should give them top to bottom, each in one card, before anything else.</p>
+  <div class="qs">
+    <div class="q"><span class="qn">1</span><b>How much is my money worth?</b><small>Value, today's move and profit since you bought. Free.</small></div>
+    <div class="q"><span class="qn">2</span><b>Is everything okay?</b><small>One grade and four plain checks with a tick or a warning. Grade free, checks Premium.</small></div>
+    <div class="q"><span class="qn">3</span><b>What should I do?</b><small>At most three things, most important first, each with the taka involved. Premium.</small></div>
+  </div>
+  <p class="note">Then <b>Your shares</b> (each share once, with one status), then <b>More details</b> folded. Everything else on the page today moves into a share's sheet or behind a "Why?" tap.</p>
+</section>
+
+<section>
+  <div class="col"><h2>What it looks like</h2><p>Phone first, made-up numbers. Left: a Premium reader. Middle: the same page for a free reader. Right: what opens when you tap a share.</p></div>
+  <div class="phones">
+
+    <!-- Premium -->
+    <div>
+      <div class="ph-cap">Premium reader</div>
+      <div class="ph-sub">The three answers, then the shares.</div>
+      <div class="phone"><div class="screen">
+        <div>
+          <div class="m-h">Your portfolio is worth</div>
+          <div class="m-val num">৳4,82,350</div>
+          <div class="m-stats num">
+            <div><span>Today</span><b class="up">+৳3,120</b></div>
+            <div><span>Since you bought</span><b class="dn">−৳18,400</b></div>
+          </div>
+        </div>
+
+        <div class="m-card">
+          <div class="m-title">Is everything okay?</div>
+          <div class="grade"><span class="letter">C</span><div><b>Grade C · Needs some work</b><br><small>2 checks need a look.</small></div></div>
+          <ul class="chk">
+            <li><span class="ic ok">✓</span><span>Most of your companies are strong</span><span class="chev">›</span></li>
+            <li><span class="ic wa">!</span><span>Too much money in one share</span><span class="chev">›</span></li>
+            <li><span class="ic ok">✓</span><span>You paid fair prices</span><span class="chev">›</span></li>
+            <li><span class="ic bad">!</span><span>1 share has a serious warning</span><span class="chev">›</span></li>
+          </ul>
+        </div>
+
+        <div class="m-card">
+          <div class="m-title">What to do <small class="num">3 things</small></div>
+          <ol class="todo">
+            <li><span class="tn">1</span><div><b>Read the warning on Beacon Pharma</b><small class="num">৳38,200 of your money is in it.</small> <span class="lnk">See why ›</span></div></li>
+            <li><span class="tn">2</span><div><b>Sell some GP</b><small class="num">It is 31% of your money. Selling 70 shares brings it to 25%.</small> <span class="lnk">How ›</span></div></li>
+            <li><span class="tn">3</span><div><b>Swap ACI for a stronger company</b><small class="num">ACI is weak on profit. ৳41,000 in it.</small> <span class="lnk">How ›</span></div></li>
+          </ol>
+          <div class="foot">Do these 3 and your grade goes <b>C → B</b>.</div>
+        </div>
+
+        <div class="m-card">
+          <div class="m-title">Your shares <small>6</small></div>
+          <div class="sh num"><span class="nm">Grameenphone</span><span class="v">৳1,49,500</span><span class="cd">GP · 520 shares</span><span class="pl up">+৳12,300</span><span class="st act"><i></i>Act: sell some</span></div>
+          <div class="sh num"><span class="nm">Square Pharma</span><span class="v">৳98,200</span><span class="cd">SQURPHARMA · 450</span><span class="pl up">+৳4,100</span><span class="st ok"><i></i>All good</span></div>
+          <div class="sh num"><span class="nm">ACI</span><span class="v">৳41,000</span><span class="cd">ACI · 210</span><span class="pl dn">−৳9,800</span><span class="st act"><i></i>Act: swap</span></div>
+          <div class="sh num"><span class="nm">Olympic</span><span class="v">৳52,600</span><span class="cd">OLYMPIC · 320</span><span class="pl up">+৳1,900</span><span class="st wa"><i></i>Watch: results on Thu</span></div>
+          <div class="more" style="margin-top:6px"><span class="lnk">+ Add a share</span><span class="lnk">Show 2 more</span></div>
+        </div>
+
+        <div class="m-card more"><span>More details</span><small>Growth · Where it sits · Income · Activity ›</small></div>
+      </div></div>
+    </div>
+
+    <!-- Free -->
+    <div>
+      <div class="ph-cap">Free reader</div>
+      <div class="ph-sub">The same page. Where Premium has an answer, a free reader sees what we found, counted.</div>
+      <div class="phone"><div class="screen">
+        <div>
+          <div class="m-h">Your portfolio is worth</div>
+          <div class="m-val num">৳4,82,350</div>
+          <div class="m-stats num">
+            <div><span>Today</span><b class="up">+৳3,120</b></div>
+            <div><span>Since you bought</span><b class="dn">−৳18,400</b></div>
+          </div>
+        </div>
+
+        <div class="m-card">
+          <div class="m-title">Is everything okay?</div>
+          <div class="grade"><span class="letter">C</span><div><b>Grade C</b><br><small>We checked 4 things. 2 need a look.</small></div></div>
+          <ul class="chk">
+            <li><span class="ic lk">🔒</span><span>Your companies</span><span></span></li>
+            <li><span class="ic lk">🔒</span><span>How your money is spread</span><span></span></li>
+            <li><span class="ic lk">🔒</span><span>The prices you paid</span><span></span></li>
+            <li><span class="ic lk">🔒</span><span>Warnings on your shares</span><span></span></li>
+          </ul>
+        </div>
+
+        <div class="lockbox">
+          <div class="m-title">What to do <span class="crown">♛ Premium</span></div>
+          <p style="margin:0"><b>We found 3 things to do on your shares.</b> Doing them would lift your grade from C to B.</p>
+          <ul class="chk" style="margin-top:6px">
+            <li><span class="ic ok">✓</span><span>Which shares, and why</span><span></span></li>
+            <li><span class="ic ok">✓</span><span>How many to sell or buy, in taka</span><span></span></li>
+            <li><span class="ic ok">✓</span><span>Told the same evening when something changes</span><span></span></li>
+          </ul>
+          <span class="btn">See the 3 things · ৳199 a month</span>
+          <small style="display:block;text-align:center;margin-top:6px">or <span class="lnk">see a sample check</span></small>
+        </div>
+
+        <div class="m-card">
+          <div class="m-title">Your shares <small>6</small></div>
+          <div class="sh num"><span class="nm">Grameenphone</span><span class="v">৳1,49,500</span><span class="cd">GP · 520 shares</span><span class="pl up">+৳12,300</span><span class="st tier">Mostly strong</span></div>
+          <div class="sh num"><span class="nm">Square Pharma</span><span class="v">৳98,200</span><span class="cd">SQURPHARMA · 450</span><span class="pl up">+৳4,100</span><span class="st tier">Strong all round</span></div>
+          <div class="sh num"><span class="nm">ACI</span><span class="v">৳41,000</span><span class="cd">ACI · 210</span><span class="pl dn">−৳9,800</span><span class="st tier">Mostly weak</span></div>
+          <div class="more" style="margin-top:6px"><span class="lnk">+ Add a share</span><span class="lnk">Show 3 more</span></div>
+        </div>
+
+        <div class="m-card more"><span>More details</span><small>Growth · Where it sits · Income · Activity ›</small></div>
+      </div></div>
+    </div>
+
+    <!-- Share sheet -->
+    <div>
+      <div class="ph-cap">Tap a share</div>
+      <div class="ph-sub">Everything about one share in one sheet, instead of five places on the page.</div>
+      <div class="phone"><div class="screen" style="background:var(--surface-2)">
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="m-row"><div><b style="font-size:16px">ACI</b><br><small>Mostly weak · 210 shares</small></div><div style="text-align:right" class="num"><b style="font-size:16px">৳41,000</b><br><small class="dn">−৳9,800 since you bought</small></div></div>
+
+          <div class="take">
+            <b class="dn" style="font-size:13px">Our take: swap it</b>
+            <p style="margin:2px 0 0">ACI is weak on profit and on its finances. Beximco Pharma is in the same business and strong on both.</p>
+          </div>
+
+          <div class="dim">
+            <b style="font-size:13px">Getting back what you paid</b>
+            <div class="kv num" style="margin-top:6px">
+              <span>Price that gets your money back</span><b>৳232 (+19%)</b>
+              <span>Did it trade there this past year?</span><b>No</b>
+              <span>Cash it pays you a year</span><b>৳1,050</b>
+            </div>
+          </div>
+
+          <div class="kv num">
+            <span>You paid</span><b>৳241.9</b>
+            <span>Price now</span><b>৳195.2</b>
+            <span>Next date</span><b>Results, 28 Nov</b>
+          </div>
+
+          <div class="btns"><span class="btn">Bought more</span><span class="btn q">Sold</span></div>
+          <div class="more"><span class="lnk">Open the ACI page ›</span><span class="lnk">More ⋯</span></div>
+          <small>More: price alert · watch rules · edit · remove</small>
+        </div>
+      </div></div>
+    </div>
+
+  </div>
+</section>
+
+<section class="col">
+  <h2>The rules this plan follows</h2>
+  <p>These are the guideline for the page, and for any part added to it later.</p>
+  <ul class="rules">
+    <li><span class="n">1</span><div><b>One verdict.</b>The grade letter plus one word ("Grade C · Needs some work"). The separate answer card and the four area tiles become four checklist rows under the grade, each one sentence with a tick or a warning.</div></li>
+    <li><span class="n">2</span><div><b>Each share once, with one status.</b>Three statuses only: <b>All good</b> (green), <b>Watch</b> (amber, with the reason: results Thu, near a warning line) and <b>Act</b> (red, with the verb: sell some, swap, read the warning, buy more). A free reader sees our group word in the same place.</div></li>
+    <li><span class="n">3</span><div><b>At most three things to do.</b>One list, most taka first. Each item is one sentence, the money involved and one link. It replaces "Your way back", "Three changes to an A" and "Each of your shares". The grade change sits under the list as one line.</div></li>
+    <li><span class="n">4</span><div><b>A share's whole story lives in its sheet.</b>Our take, the price that gets your money back, the facts and the buttons. Bought more and Sold are the two buttons; the rest go under "More".</div></li>
+    <li><span class="n">5</span><div><b>Explanations sit behind a tap.</b>Each checklist row opens a sheet with the questions behind it (today's area folds). Nothing that explains "why" is open on the page.</div></li>
+    <li><span class="n">6</span><div><b>Details are one fold with four tabs.</b>Growth (value over time, vs the market) · Where it sits (by share and by business) · Income (money made, dividends) · Activity (history, news, statement).</div></li>
+    <li><span class="n">7</span><div><b>One look.</b>One card style, the same row shape everywhere (name left, taka right), colour only for good, watch and bad, clay only on things you tap, gold only for Premium. No sticky chip row: the page is short enough to scroll.</div></li>
+  </ul>
+</section>
+
+<section class="col">
+  <h2>Words on the page</h2>
+  <p>The page keeps to a short list of plain words. Some current words are retired:</p>
+  <div class="tbl" style="margin-top:12px"><table>
+    <thead><tr><th>Today</th><th>After</th></tr></thead>
+    <tbody>
+      <tr><td class="old">In good shape · Mostly fine · Needs work · At risk (separate answer)</td><td class="new">Grade C · Needs some work (one line)</td></tr>
+      <tr><td class="old">Your companies · Your spread · Prices today · To watch (areas)</td><td class="new">Four checklist rows, each a sentence</td></tr>
+      <tr><td class="old">Your way back</td><td class="new">Getting back what you paid (in the share sheet)</td></tr>
+      <tr><td class="old">Three changes to an A / path</td><td class="new">What to do (C → B under it)</td></tr>
+      <tr><td class="old">Switch · Trim</td><td class="new">Swap for a stronger company · Sell some</td></tr>
+      <tr><td class="old">You vs the market today</td><td class="new">Moved to Details › Growth</td></tr>
+      <tr><td class="old">Why we say this</td><td class="new">A "›" on each checklist row</td></tr>
+    </tbody>
+  </table></div>
+  <div class="words"><span>Worth</span><span>Today</span><span>Since you bought</span><span>Grade</span><span>All good</span><span>Watch</span><span>Act</span><span>What to do</span><span>Our take</span><span>More details</span></div>
+</section>
+
+<section class="col">
+  <h2>Helping a first-time reader</h2>
+  <ul class="rules">
+    <li><span class="n">1</span><div><b>Empty page = three steps.</b>"Add your shares → see your grade and what to do → we tell you when something changes", with one Add button and a link to a sample.</div></li>
+    <li><span class="n">2</span><div><b>One small note the first time the check appears.</b>"Your page has three parts: your money, your grade, what to do. Tap any share for its full story." Shown once, closed with ✕, remembered on the device.</div></li>
+    <li><span class="n">3</span><div><b>Every number says what it is.</b>No bare figures: "৳1,050 cash a year", not "৳1,050". Any market word gets a tap explanation, like on the stock page.</div></li>
+  </ul>
+</section>
+
+<section class="col">
+  <h2>How to build it</h2>
+  <p>Five steps. The analysis itself (<code>lib/portfolio-report.ts</code>, the grade, the backend) stays as it is; this is about what the page shows and where.</p>
+  <ol class="steps">
+    <li><b>1 · Money and "Is everything okay?"</b>Hero down to value, today and since you bought. Verdict + areas become one card: grade line + four checklist rows; each row opens a sheet with that area's questions.<div class="files"><code>PortfolioHero</code>, <code>PfVerdict</code> → new <code>PfHealth</code>, <code>PfArea</code> becomes the sheet's body</div></li>
+    <li><b>2 · "What to do"</b>One list of at most three, built from the path steps, the share actions and the way-back problem shares, one decision per share (the rule already holds). The C → B line under it. The what-if card moves into Details.<div class="files">new <code>PfTodo</code> + a <code>todo()</code> builder in <code>lib/portfolio-report.ts</code>; <code>PfPlan</code> retired</div></li>
+    <li><b>3 · Shares with one status, and the share sheet</b>Rows lose the inline drawer; a tap opens a <code>ui/Sheet</code> with our take, getting back what you paid, facts, Bought more / Sold and "More". Search and filters stay for 8+ shares.<div class="files"><code>PortfolioClient</code> rows, new <code>PfShareSheet</code></div></li>
+    <li><b>4 · More details</b>Six tabs become four; the chip row goes; corrections move into Activity.<div class="files"><code>PfMoneyRoom</code>, <code>DashSectionNav</code> removed from this page</div></li>
+    <li><b>5 · Free reader, first visit, samples</b>Locked checklist rows, the "What to do" box as the one Premium card, the first-visit note, the empty state, and the sample pages on the same layout.<div class="files"><code>PortfolioPromo</code> shortened, sample portfolio pages</div></li>
+  </ol>
+  <p class="note">Each step ships on its own and leaves the page working. Before and after, compare: time on the page, taps on "What to do" items, share sheet opens, and <code>premium_lock_tap</code> from the portfolio.</p>
+</section>
+
+<section class="col">
+  <h2>Decisions for you</h2>
+  <div class="dec">
+    <div class="card"><b>1. The free reader's Premium card</b><span class="pick">Recommended: short</span><p style="margin:6px 0 0">Short: the "What to do" box shown above (count, grade change, three ticks, one button), with the four-part explanation moved to <code>/premium</code>. Or keep the long card from 12 Nov and only move it lower. The short card fits this plan; the long one explains more.</p></div>
+    <div class="card"><b>2. Share status words</b><span class="pick">Recommended: All good / Watch / Act</span><p style="margin:6px 0 0">Or keep today's action words alone (Sell, Buy more, Switch) and show nothing for the rest. Three statuses give every share an answer.</p></div>
+    <div class="card"><b>3. The sticky chip row</b><span class="pick">Recommended: remove it</span><p style="margin:6px 0 0">With three cards on top and details folded, the page is short. Or keep three chips: Money · Shares · Details.</p></div>
+    <div class="card"><b>4. Order of shares and the check</b><span class="pick">Recommended: check first</span><p style="margin:6px 0 0">The plan puts "Is everything okay?" and "What to do" above the shares (on 4 Nov you chose shares right under the money). Check first answers the reader's questions in order; shares first keeps the list where people are used to it.</p></div>
+  </div>
+</section>
+
+</div>

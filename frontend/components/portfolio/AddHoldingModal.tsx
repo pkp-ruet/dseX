@@ -49,11 +49,30 @@ export default function AddHoldingModal({ allCodes, priceMap, existingCodes, hol
     return () => clearTimeout(t);
   }, []);
 
+  // Codes to search: every listed code, else (before they have loaded) the scored ones.
+  const pool = allCodes.length ? allCodes : [...priceMap.keys()];
+
+  /** Codes starting with what was typed first, then codes containing it, then
+   *  company names containing it ("grameen" finds GP). */
+  function findCodes(q: string): string[] {
+    const upper = q.trim().toUpperCase();
+    if (!upper) return [];
+    const starts: string[] = [];
+    const inCode: string[] = [];
+    const inName: string[] = [];
+    for (const c of pool) {
+      if (c.startsWith(upper)) starts.push(c);
+      else if (c.includes(upper)) inCode.push(c);
+      else if (upper.length >= 3 && (priceMap.get(c)?.company_name ?? "").toUpperCase().includes(upper)) inName.push(c);
+    }
+    return [...starts, ...inCode, ...inName].slice(0, 8);
+  }
+
   function handleCodeInput(value: string) {
     const upper = value.toUpperCase();
     setForm((f) => ({ ...f, trading_code: upper }));
     setActiveSuggestion(-1);
-    setSuggestions(upper.length === 0 ? [] : allCodes.filter((c) => c.startsWith(upper)).slice(0, 8));
+    setSuggestions(findCodes(upper));
   }
 
   function selectSuggestion(code: string) {
@@ -123,7 +142,7 @@ export default function AddHoldingModal({ allCodes, priceMap, existingCodes, hol
     >
       <form onSubmit={handleSubmit} className={`flex flex-col gap-4 ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
         {/* Stock code */}
-        <div className="relative flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1.5">
           <label htmlFor="ah-1" className="text-sm font-semibold text-text-main">
             {L("Stock code", "শেয়ারের কোড")}
           </label>
@@ -131,33 +150,41 @@ export default function AddHoldingModal({ allCodes, priceMap, existingCodes, hol
             id="ah-1"
             ref={codeInputRef}
             type="text"
-            placeholder={L("e.g. GP", "যেমন GP")}
+            placeholder={L("Code or name, e.g. GP", "কোড বা নাম, যেমন GP")}
             value={form.trading_code}
             onChange={(e) => handleCodeInput(e.target.value)}
             onKeyDown={handleCodeKeyDown}
-            onBlur={() => setTimeout(() => setSuggestions([]), 150)}
+            onFocus={() => form.trading_code && !picked && setSuggestions(findCodes(form.trading_code))}
+            onBlur={() => setTimeout(() => setSuggestions([]), 200)}
             className="input-field py-3 text-lg font-semibold"
-            maxLength={20}
+            maxLength={40}
             autoComplete="off"
+            autoCapitalize="characters"
+            autoCorrect="off"
+            spellCheck={false}
+            enterKeyHint="search"
             role="combobox"
             aria-expanded={suggestions.length > 0}
             aria-controls="ah-list"
             required
           />
           {suggestions.length > 0 && (
-            // Opens UPWARD on phones (the sheet is pinned to the bottom, so a
-            // downward list ran off-screen) and scrolls past ~4 rows.
+            // In the page flow, right under the field (2026-11-23). It used to
+            // float upward on phones, above the first field of the sheet,
+            // where the sheet's scrolling body cut it off: nobody saw it.
             <ul
               id="ah-list"
               role="listbox"
-              className="absolute bottom-full left-0 right-0 z-20 mb-1 max-h-56 overflow-y-auto rounded-lg border border-border bg-surface p-1 shadow-lift sm:bottom-auto sm:top-full sm:mb-0 sm:mt-1"
+              className="max-h-64 overflow-y-auto rounded-lg border border-border bg-surface p-1 shadow-soft"
             >
               {suggestions.map((c, i) => (
                 <li
                   key={c}
                   role="option"
                   aria-selected={i === activeSuggestion}
-                  onMouseDown={() => selectSuggestion(c)}
+                  // Keep the field focused (no blur closing the list mid-tap), then pick on click.
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => selectSuggestion(c)}
                   className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-3 py-2 transition-colors ${
                     i === activeSuggestion ? "bg-surface-2" : "hover:bg-surface-2"
                   }`}

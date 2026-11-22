@@ -27,11 +27,12 @@ const signedPct = (v: number, d = 1) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Ma
 const tone = (v: number | null | undefined) => (v == null || v === 0 ? "pf-flat" : v > 0 ? "pf-up" : "pf-down");
 
 /**
- * The money hero (2026-10-26 redesign, the market-analysis hero shape): open
- * on the canvas — what the portfolio is worth and what it has made — then
- * ONE card with four answers in a hairline grid (today · since you bought ·
- * you vs the market · what you put in) and the grade line as its footer.
- * No pills, no donut: the money is the picture.
+ * The money hero: "How much is my money worth?" Open on the canvas — the
+ * value, then what was put in across how many shares — and ONE card with two
+ * answers (today · since you bought). Simplified 2026-11-23 (the simple
+ * portfolio page): "you vs the market" moved to More details › Growth (the
+ * value chart's DSEX line) and the grade to "Is everything okay?".
+ * `dsexPct` and `grade` are still accepted so older callers compile.
  */
 export default function PortfolioHero({
   totalInvested,
@@ -51,17 +52,9 @@ export default function PortfolioHero({
   const bnCls = bn ? "font-bn" : "";
   const hasValue = totalValue != null;
 
-  // You vs the market today: a hair's width either way counts as level.
-  const diff = todayMove != null && dsexPct != null ? todayMove.pct - dsexPct : null;
-  const vs =
-    diff == null
-      ? null
-      : Math.abs(diff) < 0.05
-        ? { word: L("Level with it", "বাজারের সমান"), cls: "pf-flat" }
-        : diff > 0
-          ? { word: L("Ahead of it", "বাজারের চেয়ে ভালো"), cls: "pf-up" }
-          : { word: L("Behind it", "বাজারের চেয়ে পিছিয়ে"), cls: "pf-down" };
-
+  // Two answers only since 2026-11-23 (the simple portfolio page): today and
+  // since you bought. "You vs the market" moved to the details' Growth tab
+  // (the value chart's DSEX line); what you put in is one line under the value.
   const answers: { q: string; a: React.ReactNode; x: React.ReactNode; cls?: string }[] = [
     {
       q: L("Today", "আজ"),
@@ -74,17 +67,6 @@ export default function PortfolioHero({
       a: pnl != null ? <span className="pv">{signedTaka(pnl)}</span> : "—",
       x: pnlPct != null ? signedPct(pnlPct) : "",
       cls: tone(pnl),
-    },
-    {
-      q: L("You vs the market today", "আজ বাজারের তুলনায়"),
-      a: vs ? vs.word : "—",
-      x: dsexPct != null ? `DSEX ${signedPct(dsexPct, 2)}` : "",
-      cls: vs?.cls,
-    },
-    {
-      q: L("What you put in", "আপনি দিয়েছেন"),
-      a: <span className="pv">{takaGroup(totalInvested)}</span>,
-      x: L(`${holdingsCount} stock${holdingsCount === 1 ? "" : "s"}`, `${holdingsCount}টি শেয়ার`),
     },
   ];
 
@@ -119,13 +101,14 @@ export default function PortfolioHero({
       <p className="pf-hero-value pv">{takaGroup(hasValue ? totalValue : totalInvested)}</p>
 
       <p className={`pf-hero-change ${bnCls}`}>
-        {pnl != null ? (
+        {hasValue ? (
           <>
-            <b className={`pv ${tone(pnl)}`}>
-              {signedTaka(pnl)}
-              {pnlPct != null ? ` (${signedPct(pnlPct)})` : ""}
-            </b>{" "}
-            {pnl >= 0 ? L("profit since you bought", "কেনার পর থেকে লাভ") : L("loss since you bought", "কেনার পর থেকে লোকসান")}
+            {L("You put in ", "আপনি দিয়েছেন ")}
+            <b className="pv">{takaGroup(totalInvested)}</b>
+            {L(
+              ` across ${holdingsCount} share${holdingsCount === 1 ? "" : "s"}`,
+              `, ${holdingsCount}টি শেয়ারে`,
+            )}
           </>
         ) : (
           L("Live prices arrive when the market updates.", "বাজারের দাম এলে এখানে দেখা যাবে।")
@@ -133,7 +116,7 @@ export default function PortfolioHero({
       </p>
 
       <div className="soft-card pf-answers">
-        <div className="pf-answer-grid">
+        <div className="pf-answer-grid pf-answer-grid--two">
           {answers.map((a) => (
             <div key={a.q} className={`pf-answer ${bnCls}`}>
               <p className="pf-answer-q">{a.q}</p>

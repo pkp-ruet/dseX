@@ -1,18 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
-import { IconChartBars, IconCoin, IconGrid, IconList, IconNews, IconWallet } from "@/components/ui/icons";
+import { IconChartBars, IconCoin, IconGrid, IconList } from "@/components/ui/icons";
 import { T } from "@/components/i18n/T";
+import { trackEvent } from "@/lib/track";
 import { useLang } from "@/context/LangContext";
-import { PfChapterHead } from "../PfCard";
 
 const ICON: Record<string, ReactNode> = {
-  value: <IconChartBars size={20} />,
+  growth: <IconChartBars size={20} />,
   where: <IconGrid size={20} />,
-  made: <IconCoin size={20} />,
-  dividends: <IconWallet size={20} />,
-  history: <IconList size={20} />,
-  news: <IconNews size={20} />,
+  income: <IconCoin size={20} />,
+  activity: <IconList size={20} />,
 };
 
 export interface MoneyPanel {
@@ -32,8 +30,12 @@ export interface MoneyPanel {
  *
  * The tab bar is its own boxed bar since 2026-11-02 (user: "make the Your
  * money in detail tabs more visible so user understands they are tabs"):
- * icon over label, three a row on phones and six from 640px, the chosen tab
- * filled clay, the open part right under it.
+ * icon over label, the chosen tab filled clay, the open part right under it.
+ *
+ * "More details" since 2026-11-23 (the simple portfolio page): four tabs
+ * (Growth · Where it sits · Income · Activity, was six), always on screen
+ * with Growth open (a closed bar was one tap too many); a `#hash` inside a
+ * panel opens its tab.
  */
 export default function PfMoneyRoom({ panels }: { panels: MoneyPanel[] }) {
   const { bn } = useLang();
@@ -66,18 +68,16 @@ export default function PfMoneyRoom({ panels }: { panels: MoneyPanel[] }) {
 
   if (!panels.length) return null;
   return (
-    <section id="ch-money" className="dash-section pf-chapter" aria-labelledby="ch-money-h">
-      <PfChapterHead
-        id="ch-money-h"
-        title={<T en="Your money in detail" bn="আপনার টাকার বিস্তারিত" />}
-        lead={
-          <T
-            en={`Every figure behind the page, all free, in ${panels.length} parts. Tap a part to open it.`}
-            bn={`এই পেজের পেছনের সব সংখ্যা, সবই ফ্রি, ${panels.length}টি ভাগে। যেকোনো ভাগে চাপ দিয়ে খুলুন।`}
-          />
-        }
-      />
-      <div className="pfm">
+    <section id="ch-money" className="dash-section pfm-wrap" aria-label={bn ? "আরও বিস্তারিত" : "More details"}>
+      <div className="pfm-head">
+        <h2 className="pfh-title">
+          <T en="More details" bn="আরও বিস্তারিত" />
+        </h2>
+        <p className="pfm-head-sub">
+          <T en="Every figure behind your page, all free. Tap a tab." bn="আপনার পেজের পেছনের সব সংখ্যা, সবই ফ্রি। একটি ট্যাবে চাপ দিন।" />
+        </p>
+      </div>
+      <div id="pfm-body" className="pfm">
         <div
           ref={bar}
           role="tablist"
@@ -98,7 +98,10 @@ export default function PfMoneyRoom({ panels }: { panels: MoneyPanel[] }) {
                 tabIndex={on ? 0 : -1}
                 className="pfm-tab"
                 data-on={on ? "true" : undefined}
-                onClick={() => setActive(p.key)}
+                onClick={() => {
+                  setActive(p.key);
+                  trackEvent("pf_open", { what: "tab", key: p.key });
+                }}
               >
                 {ICON[p.key] && <span className="pfm-icon" aria-hidden="true">{ICON[p.key]}</span>}
                 <span className="pfm-label">
