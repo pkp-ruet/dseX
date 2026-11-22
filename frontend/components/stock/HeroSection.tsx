@@ -9,6 +9,7 @@ import CompareButton from "@/components/stock/CompareButton";
 import CategoryChip from "@/components/stock/CategoryChip";
 import YourPosition from "@/components/stock/YourPosition";
 import GradeMedal from "@/components/stock/GradeMedal";
+import SplitStrip from "@/components/stock/analysis/SplitStrip";
 import DaysLeft from "@/components/stock/DaysLeft";
 import { IconCalendar } from "@/components/ui/icons";
 import { T } from "@/components/i18n/T";
@@ -310,6 +311,11 @@ export default function HeroSection({ detail }: Props) {
           </div>
           <GradeMedal score={score} rank={num(score_row?.overall_rank)} total={num(score_row?.total_scored)} />
         </div>
+
+        {/* Our Buy / Sell split (2026-11-22): open with the analysis, else locked. */}
+        {report?.split && report.analysis && (
+          <SplitStrip split={report.split} answer={report.answer ?? null} code={code} name={name} />
+        )}
 
         {facts.length > 0 && (
           <dl className="cv-facts">

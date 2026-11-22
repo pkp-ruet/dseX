@@ -11,19 +11,18 @@ import {
 
 const SIDE_MARK = { for: "✓", against: "✕", even: "–" } as const;
 
-/** Buy / Sell split: one bar, what weighs on each side, what it is not. */
+/** Buy / Sell split, the detail (2026-11-22): the bar moved to the cover
+ *  card (`SplitStrip`); here, what weighs on each side and what it is not. */
 function SplitBar({ split }: { split: BuySellSplit }) {
   const { buy, sell } = split;
   return (
     <div className="an-split">
-      <div className="an-split-nums nums">
-        <span className="an-split-buy"><T en={`Buy ${buy}`} bn={`কেনা ${buy}`} /></span>
-        <span className="an-split-sell"><T en={`Sell ${sell}`} bn={`বিক্রি ${sell}`} /></span>
-      </div>
-      <div className="an-split-bar" role="img" aria-label={`Buy ${buy}, Sell ${sell}`}>
-        <span className="an-split-fill" style={{ width: `${buy}%` }} />
-      </div>
-      <p className="an-split-line">{tx(split.line)}</p>
+      <h3 className="an-split-h nums">
+        <T
+          en={`Buy ${buy} · Sell ${sell}: what weighs on each side`}
+          bn={`কেনা ${buy} · বিক্রি ${sell}: কোন দিকে কী ভারী`}
+        />
+      </h3>
       {split.factors.length > 0 && (
         <ul className="an-split-parts">
           {split.factors.map((f) => (

@@ -101,6 +101,28 @@ a.cv-medal:active { opacity: 0.85; }
 }
 .cv-medal-go svg:first-child:not(:last-child) { color: var(--gold-ink); }
 
+.cv-ln { margin-top: var(--space-4); padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg); }
+.cv-ln-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-3); }
+.cv-ln-k { font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+.cv-ln-nums { display: flex; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-3); font-size: var(--fs-xl); font-weight: 700; line-height: 1; color: var(--text); }
+.cv-ln-buy { color: var(--positive); }
+.cv-ln-sell { color: var(--negative); }
+.cv-ln-bar { position: relative; height: 14px; margin-top: var(--space-2); overflow: hidden; border-radius: 999px; background: var(--negative); }
+.cv-ln-fill { position: absolute; inset: 0 auto 0 0; display: block; background: var(--positive); border-right: 3px solid var(--surface); }
+.cv-ln-line { margin: var(--space-3) 0 0; font-size: var(--fs-sm); font-weight: 600; line-height: 1.5; color: var(--text); }
+.cv-ln-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 var(--space-3); margin-top: var(--space-1); font-size: var(--fs-2xs); font-weight: 600; color: var(--text); }
+.cv-ln-go { display: inline-flex; align-items: center; gap: 4px; min-height: 40px; font-size: var(--fs-sm); font-weight: 700; color: var(--primary); text-decoration: none; }
+.cv-ln-go:hover { text-decoration: underline; }
+/* Locked: the same shape in gold, no numbers, a bar that never shows the real width. */
+.cv-ln--lock { border-color: rgb(var(--gold-rgb) / 0.5); background: rgb(var(--gold-rgb) / 0.1); }
+.cv-ln-prem { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-2xs); font-weight: 700; color: var(--gold-ink); }
+.cv-ln-q { display: inline-block; width: 2.2em; height: 0.9em; border-radius: var(--radius-sm); background: rgb(var(--gold-rgb) / 0.35); vertical-align: -0.05em; }
+.cv-ln-bar--lock { overflow: visible; background: rgb(var(--gold-rgb) / 0.3); }
+.cv-ln-lock { position: absolute; left: 50%; top: 50%; display: grid; place-items: center; width: 22px; height: 22px; border: 1px solid rgb(var(--gold-rgb) / 0.6); border-radius: 999px; background: var(--surface); color: var(--gold-ink); transform: translate(-50%, -50%); }
+.cv-ln-acts { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); margin-top: var(--space-3); }
+.cv-ln-alt { font-size: var(--fs-2xs); font-weight: 600; color: var(--text); }
+a.cv-ln-alt { min-height: 40px; display: inline-flex; align-items: center; color: var(--primary); }
+
 .cv-facts {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -349,12 +371,7 @@ a.cv-medal:active { opacity: 0.85; }
 /* Buy / Sell split (2026-11-22): one bar, green for buying, red for selling,
    the parts that weigh on each side, what the number is not. */
 .an-split { margin-top: var(--space-6); padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius); }
-.an-split-nums { display: flex; justify-content: space-between; gap: var(--space-3); font-size: var(--fs-title); font-weight: 700; }
-.an-split-buy { color: var(--positive); }
-.an-split-sell { color: var(--negative); }
-.an-split-bar { position: relative; height: 12px; margin-top: var(--space-2); overflow: hidden; border-radius: 999px; background: rgb(var(--negative-rgb) / 0.85); }
-.an-split-fill { position: absolute; inset: 0 auto 0 0; display: block; background: var(--positive); border-right: 2px solid var(--surface); }
-.an-split-line { margin: var(--space-3) 0 0; font-size: var(--fs-sm); font-weight: 600; line-height: 1.5; color: var(--text); }
+.an-split-h { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
 .an-split-parts { display: grid; gap: var(--space-1) var(--space-4); margin: var(--space-3) 0 0; padding: 0; list-style: none; }
 @media (min-width: 640px) { .an-split-parts { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
 .an-split-part { display: flex; align-items: baseline; gap: var(--space-2); font-size: var(--fs-sm); color: var(--text); }
