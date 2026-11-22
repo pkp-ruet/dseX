@@ -66,6 +66,16 @@ _LABELS = {
     "dividend_yield": "The dividend it pays",
 }
 
+# The label once its own history is put on today's market level (fair_context).
+_LABELS_TODAY = {
+    "own_history_pe": "Its usual price compared with profit, in today's market",
+    "book_own": "Its usual price compared with assets, in today's market",
+}
+_LABELS_TODAY_BN = {
+    "own_history_pe": "আজকের বাজারে, মুনাফার তুলনায় এর স্বাভাবিক দাম",
+    "book_own": "আজকের বাজারে, সম্পদের তুলনায় এর স্বাভাবিক দাম",
+}
+
 # Everyday-Bengali mirror of each label (Western digits, plain words).
 _LABELS_BN = {
     "own_history_pe": "মুনাফার তুলনায় এর স্বাভাবিক দাম",
@@ -78,6 +88,11 @@ _LABELS_BN = {
 
 # Peer-P/E price kept within this factor of the own-history-P/E price.
 PEER_CAP = 1.5
+# A usual P/E above this (its own, or its peers') says the profit was too small
+# to price the share from, not what the share is worth: SAMATALETH "usually"
+# traded at 1,079 times a profit of ৳0.01. The score's own line
+# (scoring_service.PE_CEILINGS: past 40 nothing is cheap).
+USUAL_PE_MAX = 40.0
 
 
 def _weighted_median(pairs: list[tuple[float, float]]) -> Optional[float]:
@@ -117,6 +132,14 @@ def _latest_fin_value(financials: Optional[list], field: str):
     return None
 
 
+def _year_of(row: dict) -> Optional[int]:
+    y = row.get("year")
+    try:
+        return int(y)
+    except (TypeError, ValueError):
+        return None
+
+
 def _round_price(x) -> Optional[float]:
     if not isinstance(x, (int, float)) or (isinstance(x, float) and (math.isnan(x) or math.isinf(x))):
         return None
@@ -149,9 +172,15 @@ def estimate_fair_value(
     company: Optional[dict],
     ltp: Optional[float],
     sector_class: str = "GENERAL",
+    ctx: Optional[dict] = None,
 ) -> Optional[dict]:
     """Return a grounded fair-value block, or ``None`` when no sensible estimate
     is possible (the UI then falls back to soft language).
+
+    ``ctx`` = ``fair_value_service.market_context()``: the market's re-pricing
+    factors and the peer pool (fair_context). Without it the company's own
+    usual P/E and P/B and its sector's middle ones come from the score row as
+    before; the steadier profit applies either way.
 
     Shape::
 
@@ -166,14 +195,59 @@ def estimate_fair_value(
     if not score_row:
         return None
 
+    from backend.services import fair_context as fc
+    from backend.services.scoring_service import bonus_adjust_rows, own_points
+
     company = company or {}
+    # Audited years on today's share count, as the score reads them.
+    try:
+        all_rows = bonus_adjust_rows([dict(r) for r in (financials or [])],
+                                     company.get("total_shares"))
+    except Exception:  # noqa: BLE001 — the history only steadies the figure
+        all_rows = [dict(r) for r in (financials or [])]
+    fin_rows = all_rows[-5:]
     # `eps` on the score row is the earnings the price is judged on — TTM when a
-    # quarterly report is newer than the audited year (scoring_service).
-    eps = score_row.get("eps")
+    # quarterly report is newer than the audited year (scoring_service). The
+    # P/E methods use it steadied: a jump over the last three years counts at
+    # half weight, a fall in full (fair_context.steady_eps).
+    eps_ttm = score_row.get("eps")
+    eps, eps_note = fc.steady_eps(eps_ttm, [r.get("eps") for r in fin_rows])
     own_pe = score_row.get("own_avg_pe")
     peer_pe = score_row.get("sector_median_pe")
     own_pb = score_row.get("own_avg_pb")
     peer_pb = score_row.get("sector_median_pb")
+    today_labels: set[str] = set()
+    peer_count = None
+    if ctx:
+        # Its usual P/E and P/B in today's market, and cleaner peers. A usual
+        # figure that can't be put on today's footing keeps the plain one; a
+        # sector without enough clean peers has no similar-companies estimate.
+        ye_month = score_row.get("ye_month")
+        if not _pos(ye_month):
+            ye_month = (ctx.get("ye_month") or {}).get(score_row.get("trading_code") or score_row.get("code"))
+        ye_month = int(ye_month) if _pos(ye_month) else (12 if sector_class in _FINANCIAL_CLASSES else 6)
+        # Each year-end's price over THAT year's steadied profit, as today's
+        # price is judged on today's steadied profit: a year whose profit
+        # jumped had a low P/E because the market didn't trust the jump either,
+        # and that low P/E on steadied profit would count the jump twice.
+        pe_pts = []
+        for year, pe in own_points(fin_rows, ye_month, "pe"):
+            idx = next((i for i, r in enumerate(all_rows) if _year_of(r) == year), None)
+            e_y = all_rows[idx].get("eps") if idx is not None else None
+            s_y, _ = fc.steady_eps(e_y, [r.get("eps") for r in all_rows[:idx + 1]] if idx is not None else [])
+            pe_pts.append((year, pe * e_y / s_y if (_pos(e_y) and _pos(s_y)) else pe))
+        pe_today = fc.usual_today(pe_pts, ye_month, ctx.get("pe_factors"))
+        if pe_today:
+            own_pe = pe_today
+            today_labels.add("own_history_pe")
+        pb_today = fc.usual_today(own_points(fin_rows, ye_month, "pb"), ye_month, ctx.get("pb_factors"))
+        if pb_today:
+            own_pb = pb_today
+            today_labels.add("book_own")
+        if ctx.get("pool") is not None:
+            peers = fc.peer_ratios(score_row.get("trading_code"), score_row.get("sector"),
+                                   score_row.get("mcap_mn"), ctx["pool"])
+            peer_pe, peer_pb, peer_count = peers["pe"], peers["pb"], peers["n"]
     cur_pb = score_row.get("current_pb")
     p5_consist = score_row.get("p5_consist")
 
@@ -193,6 +267,11 @@ def estimate_fair_value(
     if not _pos(dps):
         cash_div_pct = _latest_fin_value(financials, "cash_dividend_pct")
         dps = (cash_div_pct * face / 100.0) if _pos(cash_div_pct) else None
+
+    if _pos(own_pe) and own_pe > USUAL_PE_MAX:
+        own_pe = None
+    if _pos(peer_pe) and peer_pe > USUAL_PE_MAX:
+        peer_pe = None
 
     eligible = _ELIGIBLE_FINANCIAL if sector_class in _FINANCIAL_CLASSES else _ELIGIBLE_GENERAL
     methods: dict[str, float] = {}
@@ -318,12 +397,20 @@ def estimate_fair_value(
         "methods": [
             {
                 "name": name,
-                "label_en": _LABELS.get(name, name),
-                "label_bn": _LABELS_BN.get(name, name),
+                "label_en": (_LABELS_TODAY if name in today_labels else _LABELS).get(name, name),
+                "label_bn": (_LABELS_TODAY_BN if name in today_labels else _LABELS_BN).get(name, name),
                 "price": _round_price(price),
             }
             for name, price in methods.items()
         ],
+        # The profit a share the P/E methods used, and "jump" when the latest
+        # year was steadied (fair_context.steady_eps).
+        "eps_used": round(eps, 2) if _pos(eps) else None,
+        "eps_note": eps_note,
+        # Which usual figures were put on today's market level, and how many
+        # similar companies stood in (None = the score row's sector middle).
+        "usual_today": sorted(today_labels),
+        "peers": peer_count,
         "basis_en": basis_en,
         "basis_bn": basis_bn,
     }

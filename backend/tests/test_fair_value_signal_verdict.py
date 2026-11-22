@@ -32,7 +32,8 @@ def test_value_box_badge_is_the_p4_verdict():
                current_pb=2.1, div_latest_dps=3.0, p4_val=3.99)
     fv = estimate_fair_value(batbc, fin_rows("BATBC"), {"face_value": 10}, 225.0)
     assert fv["stance"] == "expensive"
-    assert fv["estimates_disagree"] == (fv["estimate_stance"] != "expensive")
+    # One method left (its peers' P/E of 47.6 no longer prices it) also counts.
+    assert fv["estimates_disagree"] == (fv["estimate_stance"] != "expensive" or len(fv["methods"]) < 2)
     if fv["estimates_disagree"]:
         assert fv["confidence"] == "low"
 

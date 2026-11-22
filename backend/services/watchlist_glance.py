@@ -239,8 +239,10 @@ def _governance(code: str) -> list[dict]:
 
 def _fair(f: dict, comp: dict, ltp: Optional[float]) -> Optional[dict]:
     try:
+        from backend.services.fair_value_service import market_context
         return estimate_fair_value(f, load_financials(f["code"]), comp, ltp,
-                                   f.get("sector_class") or normalize_sector(comp.get("sector") or ""))
+                                   f.get("sector_class") or normalize_sector(comp.get("sector") or ""),
+                                   ctx=market_context())
     except Exception:  # noqa: BLE001
         logger.exception("watchlist glance: fair value failed for %s", f.get("code"))
         return None

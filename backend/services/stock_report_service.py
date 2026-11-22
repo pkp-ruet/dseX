@@ -173,6 +173,15 @@ def _answer_days(code: str) -> list[dict]:
         return []
 
 
+def _fair_ctx() -> Optional[dict]:
+    """The fair-value estimate's market inputs (fair_value_service), or None."""
+    try:
+        from backend.services.fair_value_service import market_context
+        return market_context()
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def gather(code: str, *, company: Optional[dict] = None, score_row: Optional[dict] = None,
            financials: Optional[list] = None, extended_financials: Optional[list] = None,
            holdings: Optional[list] = None, prices: Optional[list] = None,
@@ -222,7 +231,8 @@ def gather(code: str, *, company: Optional[dict] = None, score_row: Optional[dic
             score_history = None
     if fair_value is None:
         try:
-            fair_value = estimate_fair_value(score_row, financials, company, ltp, sector_class)
+            fair_value = estimate_fair_value(score_row, financials, company, ltp, sector_class,
+                                             ctx=_fair_ctx())
         except Exception:  # noqa: BLE001
             fair_value = None
     fair_fall = None
@@ -230,7 +240,7 @@ def gather(code: str, *, company: Optional[dict] = None, score_row: Optional[dic
     if eps and eps > 0:
         try:
             fair_fall = estimate_fair_value({**score_row, "eps": eps * (1 - sr.PROFIT_FALL)},
-                                            financials, company, ltp, sector_class)
+                                            financials, company, ltp, sector_class, ctx=_fair_ctx())
         except Exception:  # noqa: BLE001
             fair_fall = None
     try:

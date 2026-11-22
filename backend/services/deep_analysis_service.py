@@ -110,7 +110,8 @@ def compute_fair_value(code: str) -> Optional[dict]:
     financials = load_financials(code)
     ltp = (load_latest_prices().get(code) or {}).get("ltp")
     sector_class = normalize_sector(company.get("sector") or "")
-    return estimate_fair_value(score_row, financials, company, ltp, sector_class)
+    from backend.services.fair_value_service import market_context
+    return estimate_fair_value(score_row, financials, company, ltp, sector_class, ctx=market_context())
 
 
 def written_before_results(as_of_date, latest: Optional[dict]) -> Optional[dict]:

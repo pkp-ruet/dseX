@@ -1300,11 +1300,29 @@ def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
 def _own_history(fin_last5: list[dict], ye_month: Optional[int]) -> list[float]:
     """Year-end P/Es for "against its own past": positive ones, the floor-price
     year-ends left out when enough others remain (GR5)."""
-    pts = [(int(r["year"]), float(pe)) for r in fin_last5
-           for pe in [r.get("pe_ratio_basic")]
-           if pe and not _is_nanish(pe) and float(pe) > 0 and r.get("year") is not None]
-    clean = [pe for y, pe in pts if not _in_floor(y, ye_month)]
-    return clean if len(clean) >= MIN_OWN_YEARS else [pe for _, pe in pts]
+    return [pe for _, pe in own_points(fin_last5, ye_month)]
+
+
+def own_points(fin_last5: list[dict], ye_month: Optional[int], kind: str = "pe") -> list[tuple[int, float]]:
+    """(year, ratio) for each year-end in the window — ``kind`` "pe" (DSE's
+    year-end P/E) or "pb" (year-end price = P/E x EPS, over NAV) — positive
+    ones only, the floor-price year-ends left out when MIN_OWN_YEARS others
+    remain. The fair-value estimate reads the years too (fair_context)."""
+    pts: list[tuple[int, float]] = []
+    for r in fin_last5:
+        if r.get("year") is None or _is_nanish(r.get("year")):
+            continue
+        pe = _num(r.get("pe_ratio_basic"))
+        if not pe or pe <= 0:
+            continue
+        if kind == "pe":
+            pts.append((int(r["year"]), pe))
+            continue
+        eps, nav = _num(r.get("eps")), _num(r.get("nav_per_share"))
+        if eps and eps > 0 and nav and nav > 0:
+            pts.append((int(r["year"]), pe * eps / nav))
+    clean = [(y, v) for y, v in pts if not _in_floor(y, ye_month)]
+    return clean if len(clean) >= MIN_OWN_YEARS else pts
 
 
 def _a2_pillar5(fin_last5: list[dict], ltp: Optional[float],
@@ -2083,6 +2101,9 @@ def _compute_scores_df(
             "loan_to_mcap":         debt["loan_to_mcap"],
             "debt_level":           debt["debt_level"],
             "newer_dividend_fy":    newer_dividend_fy,
+            # Its year-end month (6 = June): the fair-value estimate matches its
+            # year-end P/Es with the market's at the same month (fair_context).
+            "ye_month":             ye_month_by_code.get(code) or (12 if (is_financial or is_insurance) else 6),
             "sector_median_pe": round(sect_pe_for_self, 2) if sect_pe_for_self is not None else None,
             "sector_median_pb": round(sect_pb_for_self, 2) if sect_pb_for_self is not None else None,
             "p1_biz":       round(p1, 2),
