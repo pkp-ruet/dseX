@@ -95,3 +95,22 @@ def test_the_split_reads_plainly():
                 assert not _RATIO_SPEAK.search(t), t
                 assert not any(ch.isdigit() for ch in t), t
                 assert not any("০" <= ch <= "৯" for ch in t), t
+
+
+def test_each_answer_spreads_over_its_own_span():
+    # 2026-11-22: a Buy weighs about 65-83, so its band is spread over that
+    # span; spread over 0-100 nearly every Buy read 85 or 90.
+    lo, hi = bs.RAW_SPANS["buy"]
+    vals = [bs.in_band(r, "buy") for r in (lo, lo + (hi - lo) * 0.25, (lo + hi) / 2, lo + (hi - lo) * 0.75, hi)]
+    assert vals[0] == 70 and vals[-1] == 95 and len(set(vals)) == 5
+    for d, (r_lo, r_hi) in bs.RAW_SPANS.items():
+        assert bs.in_band(r_lo - 30, d) == bs.BANDS[d][0] and bs.in_band(r_hi + 30, d) == bs.BANDS[d][1]
+    assert set(bs.RAW_SPANS) == set(bs.BANDS)
+
+
+def test_a_far_under_price_does_not_lean_for_buying():
+    row = {**square()["score_row"], "p4_val": 9.5}
+    price = lambda **k: next(p for p in bs.weigh(row, verdict="cheap", near_top=False, red=0, amber=0,
+                                                 blocked=False, **k) if p["key"] == "price")
+    assert price()["share"] == 0.95
+    assert price(far_under=True)["share"] == bs.PRICE_BLOCK_SHARE

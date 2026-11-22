@@ -22,10 +22,12 @@ field: how our analysis weighs today, as "Buy 75 · Sell 25".
      ``AMBER_STEP`` off (never under ``AMBER_FLOOR``); one serious problem =
      ``ONE_RED_SHARE``, two or more = 0; a risk that blocks the Buy (category
      Z, old accounts, thin trading, heavy loans, profit fell, a red flag) =
-     at most ``BLOCKED_SHARE``.
+     at most ``BLOCKED_SHARE``. A price far under our fair price while profit
+     falls (signal reason ``far_under``) leans at most ``PRICE_BLOCK_SHARE``.
 
 2. **Keep it in line with our answer.** The weighed share is placed inside
-   its answer's band (``BANDS``), in steps of 5, so the split can never
+   its answer's band (``BANDS``), in steps of 5, spread over the span that
+   answer's companies really weigh (``RAW_SPANS``), so the split can never
    disagree with the answer card: a Buy always reads Buy 70 or more, an
    Avoid always Buy 25 or less. A strong company held back by one serious
    problem therefore reads "Not yet" with Buy 45-65, never Buy 80.
@@ -67,6 +69,18 @@ BANDS = {
     "avoid": (5, 25),
 }
 STEP = 5
+# The weighed share (0-100) each answer really covers: its band is spread
+# across this span, not across 0-100 (2026-11-22). Measured over every graded
+# company on 22 Nov, from about the 10th to the 90th of each answer's own
+# companies: a Buy weighs 65-83, so spread over 0-100 it read 85 or 90 for
+# almost every Buy and the number said nothing the word didn't. Beyond the
+# span it stays at the band's edge.
+RAW_SPANS = {
+    "buy": (65.0, 83.0),
+    "wait": (45.0, 72.0),
+    "no_reason": (32.0, 62.0),
+    "avoid": (5.0, 40.0),
+}
 # A part leans for buying from this share, against it up to that one.
 FOR_FROM = 0.6
 AGAINST_TO = 0.4
@@ -77,7 +91,7 @@ def _clip(v: float) -> float:
 
 
 def weigh(row: dict, *, verdict: Optional[str], near_top: bool, red: int, amber: int,
-          blocked: bool, price_blocks: bool = False) -> list[dict]:
+          blocked: bool, price_blocks: bool = False, far_under: bool = False) -> list[dict]:
     """The parts with their weight (out of 100) and how far each leans for
     buying (0-1). Pure; `verdict` is the price section's ("cheap" / "fair" /
     "expensive" / "unjudged")."""
@@ -97,8 +111,10 @@ def weigh(row: dict, *, verdict: Optional[str], near_top: bool, red: int, amber:
         price = _clip(p4 / 10.0)
     if near_top:
         price = min(price, NEAR_TOP_SHARE)
-    if price_blocks:
-        # "Not yet" because of the price: it can't lean for buying.
+    if price_blocks or far_under:
+        # "Not yet" because of the price, or a price so far under our fair
+        # price while profit falls that it is cheap for a reason (signal
+        # reason ``far_under``): it can't lean for buying.
         price = min(price, PRICE_BLOCK_SHARE)
     out.append({"key": "price", "weight": PRICE_WEIGHT, "share": price})
 
@@ -121,13 +137,17 @@ def lean_pct(parts: list[dict]) -> float:
 
 
 def in_band(raw: float, decision: str) -> Optional[int]:
-    """The weighed share placed inside the answer's band, in steps of 5."""
+    """The weighed share placed inside the answer's band, in steps of 5,
+    spread across the span that answer's companies really weigh
+    (``RAW_SPANS``)."""
     band = BANDS.get(decision)
     if not band:
         return None
     lo, hi = band
+    r_lo, r_hi = RAW_SPANS.get(decision, (0.0, 100.0))
     steps = (hi - lo) // STEP
-    return int(lo + STEP * round(_clip(raw / 100.0) * steps))
+    pos = _clip((raw - r_lo) / (r_hi - r_lo)) if r_hi > r_lo else 0.5
+    return int(lo + STEP * round(pos * steps))
 
 
 def _names(keys: list[str], names: dict) -> tuple[str, str]:
@@ -190,7 +210,8 @@ def build_split(inp: dict, sections: dict, answer: Optional[dict],
     parts = weigh(row, verdict=pr.get("_verdict"), near_top=near_top,
                   red=int(counts.get("red") or 0), amber=int(counts.get("amber") or 0),
                   blocked=answer.get("blocker") == "risks",
-                  price_blocks=answer.get("blocker") == "price")
+                  price_blocks=answer.get("blocker") == "price",
+                  far_under=((inp.get("signal") or {}).get("reason_key") == "far_under"))
     raw = lean_pct(parts)
     buy = in_band(raw, decision)
     if buy is None:
