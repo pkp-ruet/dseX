@@ -36,35 +36,16 @@ def codes(rows):
 
 # --- the questions ---------------------------------------------------------
 
-def test_margin_join_and_leave_lines():
-    c = C("A", ltp=93.0)  # 7% under its usual price
+def test_margin_reads_our_fair_price():
+    # Since 2026-11-22 the gap is from our fair price (the stock page's), and
+    # the price itself is the Buy signal's question: no second price check.
+    c = C("A", ltp=93.0)
     assert round(bl.margin_pct(c)) == 7
-    assert not bl.price_ok(c)              # a newcomer needs 10%
-    assert bl.price_ok(c, member=True)     # a member stays until 5%
-    assert not bl.price_ok(C("B", ltp=96.0), member=True)
-
-
-def test_usual_price_is_its_own_history_only():
-    # The similar-companies figure and the stock page's "disagree" flag don't count.
-    c = C("A", ltp=80.0, **M(120.0, 60.0, peer_pe=300.0))
-    u = bl.usual_price(c)
-    assert u["low"] == 60.0 and u["high"] == 120.0
-    assert round(u["mid"]) == 100  # profit weighs twice the assets for a general company
-    assert round(bl.margin_pct(c)) == 20
-    bank = C("B", sector_class="BANK", ltp=80.0, **M(120.0, 60.0))
-    assert bl.usual_price(bank)["mid"] == 82.5  # assets first for a lender
-    assert bl.usual_price(C("C", fair_value={"methods": {"own_history_pe": 100.0}})) is None
+    assert bl.fair_price(c) == {"mid": 100.0, "low": 80.0, "high": 120.0}
+    assert bl.margin_pct(C("B", **M(120.0, 60.0))) is None          # one method: no fair price
     assert bl.margin_pct(C("D", fair_value=None)) is None
-
-
-def test_a_newcomer_must_be_under_both_measures():
-    # 20% under the middle, but above its usual price for what it owns.
-    c = C("A", ltp=80.0, **M(120.0, 60.0))
-    assert not bl.under_both(c) and not bl.price_ok(c)
-    assert bl.price_ok(c, member=True)  # a member only needs the leave margin
-    assert bl.price_ok(C("B", ltp=80.0, **M(120.0, 90.0)))
     above = C("C", ltp=104.0)
-    assert bl.margin_pct(above) < 0 and bl.first_miss(above) == 4
+    assert bl.margin_pct(above) < 0 and bl.miss_keys(above) == []
 
 
 def test_profit_join_and_leave_lines():
@@ -82,7 +63,7 @@ def test_latest_quarter_alone():
     assert bl.quarter_change(q) == -22.5
     assert not bl.quarter_ok(q) and bl.quarter_ok(q, member=True)
     assert not bl.quarter_ok(C("B", interim_q_yoy_pct=-31.0, interim_eps_q_prev=1.2), member=True)
-    assert bl.miss_keys(q) == ["quarter"] and bl.first_miss(q) == 5
+    assert bl.miss_keys(q) == ["quarter"] and bl.first_miss(q) == 4
     # A tiny or missing quarter a year ago is not compared.
     assert bl.quarter_change(C("C", interim_q_yoy_pct=-60.0, interim_eps_q_prev=0.04)) is None
     assert bl.quarter_change(C("D", interim_q_yoy_pct=-60.0)) is None
@@ -90,10 +71,11 @@ def test_latest_quarter_alone():
 
 
 def test_trading_floor_reads_a_normal_day():
-    thin = C("A", turnover_med30_mn=2.2, turnover_mn=9.0)  # one big week can't lift it
-    assert bl.trading_mn(thin) == 2.2
-    assert not bl.trading_ok(thin) and bl.trading_ok(thin, member=True)
-    assert not bl.trading_ok(C("B", turnover_med30_mn=1.5), member=True)
+    thin = C("A", turnover_med30_mn=1.2, turnover_mn=9.0)  # one big week can't lift it
+    assert bl.trading_mn(thin) == 1.2
+    assert not bl.trading_ok(thin) and bl.trading_ok(thin, member=True)   # ৳15 lakh to join, ৳10 lakh to stay
+    assert not bl.trading_ok(C("B", turnover_med30_mn=0.8), member=True)
+    assert bl.trading_ok(C("S", turnover_med30_mn=2.2))                    # slow, but on (the row says so)
     assert bl.trading_ok(C("C", turnover_med30_mn=None, turnover_mn=4.0))
     assert bl.trading_ok(C("D", turnover_med30_mn=None, turnover_mn=None))
     assert bl.miss_keys(thin) == ["trading"] and bl.first_miss(thin) == 3
@@ -136,43 +118,43 @@ def test_first_day_reads_yesterdays_buys():
 
 
 def test_caps_by_sector_financials_and_size():
-    pharma = [C(f"P{i}", conviction=90 - i) for i in range(3)]
-    banks = [C(f"B{i}", sector=BANK, sector_class="BANK", conviction=85 - i) for i in range(3)]
+    pharma = [C(f"P{i}", conviction=90 - i) for i in range(4)]
+    banks = [C(f"B{i}", sector=BANK, sector_class="BANK", conviction=85 - i) for i in range(4)]
     fin = [C("F0", sector=FINANCE, sector_class="NBFI", conviction=70)]
     res = bl.choose(pharma + banks + fin, [], [c["code"] for c in pharma + banks + fin])
     got = codes(res["members"])
-    assert got == ["P0", "P1", "B0", "B1", "F0"]
+    assert got == ["P0", "P1", "P2", "B0", "B1", "B2", "F0"]
     caps = {c["code"]: c["cap"] for c in res["also"]}
-    assert caps == {"P2": "sector", "B2": "sector"}
-    # Three financials at most, across banks + finance + insurers.
-    banks2 = [C(f"X{i}", sector=s, sector_class=k, conviction=80 - i)
-              for i, (s, k) in enumerate([(BANK, "BANK"), (BANK, "BANK"), (FINANCE, "NBFI"), ("Insurance", "INSURANCE")])]
-    res2 = bl.choose(banks2, [], codes(banks2))
-    assert len(res2["members"]) == 3 and res2["also"][0]["cap"] == "financial"
-    many = [C(f"S{i}", sector=f"Sector {i}", conviction=90 - i) for i in range(12)]
+    assert caps == {"P3": "sector", "B3": "sector"}
+    # Five financials at most, across banks + finance + insurers.
+    mixed = [(BANK, "BANK"), (BANK, "BANK"), (FINANCE, "NBFI"), (FINANCE, "NBFI"),
+             ("Insurance", "INSURANCE"), ("Insurance", "INSURANCE")]
+    fins = [C(f"X{i}", sector=s_, sector_class=k, conviction=80 - i) for i, (s_, k) in enumerate(mixed)]
+    res2 = bl.choose(fins, [], codes(fins))
+    assert len(res2["members"]) == bl.FINANCIAL_CAP == 5 and res2["also"][0]["cap"] == "financial"
+    many = [C(f"S{i}", sector=f"Sector {i}", conviction=90 - i) for i in range(24)]
     res3 = bl.choose(many, [], codes(many))
-    assert len(res3["members"]) == bl.MAX_ROWS
+    assert len(res3["members"]) == bl.MAX_ROWS == 20
     assert {c["cap"] for c in res3["also"]} == {"full"}
 
 
 def test_a_member_keeps_its_seat_unless_clearly_beaten():
-    old, new = C("OLD", conviction=80), C("NEW", conviction=83)
-    other = C("TOP", conviction=95)
-    res = bl.choose([old, new, other], prev_members=["OLD", "TOP"], prev_passed=["NEW", "OLD", "TOP"])
-    assert set(codes(res["members"])) == {"TOP", "OLD"}
-    beaten = C("NEW", conviction=86)
-    res2 = bl.choose([old, beaten, other], prev_members=["OLD", "TOP"], prev_passed=["NEW", "OLD", "TOP"])
-    assert set(codes(res2["members"])) == {"TOP", "NEW"}
+    top, mid, old = C("TOP", conviction=95), C("MID", conviction=90), C("OLD", conviction=80)
+    prev = ["OLD", "TOP", "MID"]
+    res = bl.choose([old, C("NEW", conviction=83), top, mid], prev, ["NEW"] + prev)
+    assert set(codes(res["members"])) == {"TOP", "MID", "OLD"}           # one sector, three seats
+    res2 = bl.choose([old, C("NEW", conviction=86), top, mid], prev, ["NEW"] + prev)
+    assert set(codes(res2["members"])) == {"TOP", "MID", "NEW"}
 
 
 def test_two_closes_to_leave_on_a_soft_miss():
-    near = C("A", ltp=96.0)  # under 5%: a member's price miss
-    res = bl.choose([near], prev_members=["A"], prev_passed=["A"])
+    quiet = C("A", turnover_med30_mn=0.8)  # under ৳10 lakh: a member's trading miss
+    res = bl.choose([quiet], prev_members=["A"], prev_passed=["A"])
     assert codes(res["members"]) == ["A"] and res["grace"] == ["A"]
-    assert res["members"][0]["grace"] == "value"
-    assert res["passed"] == []  # on grace is not a pass for question 6
+    assert res["members"][0]["grace"] == "trading"
+    assert res["passed"] == []  # on grace is not a pass for "two closes in a row"
     # A second miss in a row takes it off.
-    res2 = bl.choose([near], prev_members=["A"], prev_passed=[], prev_grace=["A"])
+    res2 = bl.choose([quiet], prev_members=["A"], prev_passed=[], prev_grace=["A"])
     assert res2["members"] == [] and res2["grace"] == []
     # A member that lost its Buy only on the price gets the same second close.
     soft = C("B", soft_fail=True)
@@ -180,33 +162,30 @@ def test_two_closes_to_leave_on_a_soft_miss():
     # A serious miss leaves at once, and a newcomer never gets grace.
     falling = C("C", eps_yoy_pct=-20.0)
     assert bl.choose([falling], ["C"], ["C"])["members"] == []
-    assert bl.choose([C("D", ltp=96.0)], [], ["D"])["members"] == []
-    mixed = C("E", ltp=96.0, eps_yoy_pct=-20.0)  # soft and serious together: serious wins
+    assert bl.choose([C("D", turnover_med30_mn=0.8)], [], ["D"])["members"] == []
+    mixed = C("E", turnover_med30_mn=0.8, eps_yoy_pct=-20.0)  # soft and serious together: serious wins
     assert bl.choose([mixed], ["E"], ["E"])["members"] == []
     assert bl.soft_signal_miss(["buy"], "near_52w_high")
     assert not bl.soft_signal_miss(["buy"], "red_flag")
+    assert not bl.soft_signal_miss(["buy"], "profit_slipping")
     assert not bl.soft_signal_miss(["buy", "profitable"], "near_52w_high")
 
 
 def test_a_graced_member_squeezed_out_is_not_called_a_pass():
-    others = [C(f"P{i}", conviction=95 - i) for i in range(2)]
-    graced = C("G", ltp=96.0, conviction=70)
-    res = bl.choose(others + [graced], ["P0", "P1", "G"], ["P0", "P1", "G"])
-    assert codes(res["members"]) == ["P0", "P1"] and res["also"] == []
+    others = [C(f"P{i}", conviction=95 - i) for i in range(3)]
+    graced = C("G", turnover_med30_mn=0.8, conviction=70)
+    res = bl.choose(others + [graced], ["P0", "P1", "P2", "G"], ["P0", "P1", "P2", "G"])
+    assert codes(res["members"]) == ["P0", "P1", "P2"] and res["also"] == []
 
 
-def test_join_price_is_the_lowest_line():
-    c = C("A", ltp=80.0, **M(120.0, 90.0))
-    # usual middle 110 → 99 at 10% under; its assets measure 90; the signal 95.
-    assert bl.join_price(c, 95.0) == 90.0
-    assert bl.join_price(C("B", ltp=80.0, **M(120.0, 120.0)), 95.0) == 95.0
-    assert bl.join_price(C("C", ltp=80.0, **M(120.0, 120.0)), None) == 108.0
-    assert bl.join_price(C("D", fair_value=None), None) is None
+def test_join_price_is_the_signals_buy_price():
+    assert bl.join_price(C("A"), 95.0) == 95.0
+    assert bl.join_price(C("B"), None) is None
 
 
 def test_list_is_in_conviction_order_and_never_filled():
-    res = bl.choose([C("A", conviction=70), C("B", conviction=90), C("Z", ltp=99.0)], [], ["A", "B", "Z"])
-    assert codes(res["members"]) == ["B", "A"]  # Z misses question 4 and nothing replaces it
+    res = bl.choose([C("A", conviction=70), C("B", conviction=90), C("Z", turnover_med30_mn=0.5)], [], ["A", "B", "Z"])
+    assert codes(res["members"]) == ["B", "A"]  # Z trades too little and nothing replaces it
 
 
 def test_since_and_free_pick():
@@ -243,7 +222,7 @@ def _all_text(*parts):
 
 def test_why_line_names_the_gap_and_one_standout():
     w = bl.why_line(C("A", ltp=78.0, div_yield_pct=5.9, **STEADY))
-    assert w["en"] == "A company strong all round, priced 22% under its usual price, and it pays 5.9% a year in cash."
+    assert w["en"] == "A company strong all round, priced 22% under our fair price, and it pays 5.9% a year in cash."
     assert "22% কম" in w["bn"] and "5.9%" in w["bn"]
     g = bl.why_line(C("B", score=70.0, ltp=80.0, div_yield_pct=2.0, eps_yoy_pct=26.0))
     assert g["en"].startswith("A mostly strong company, priced 20% under") and "profit up 26%" in g["en"]
@@ -280,35 +259,29 @@ def test_dividend_watch_follows_the_calendar():
 
 
 def test_almost_rows_say_what_would_bring_it_in():
-    above = bl.almost_row(C("A", ltp=104.0), 4)
-    assert above["miss"]["en"] == "Its price, ৳104, is above its usual price of ৳100."
-    assert above["fix"]["en"] == "It comes in under ৳90.0." and above["fix"]["price"] == 90.0
-    near = bl.almost_row(C("B", ltp=97.0), 4)
-    assert near["miss"]["en"].startswith("Only 3% under")
-    split = bl.almost_row(C("C", fair_value={"center": 100, "methods": {"own_history_pe": 100.0}}), 4)
-    assert "can't work out its usual price" in split["miss"]["en"]
-    both = bl.almost_row(C("S", ltp=80.0, **M(120.0, 70.0)), 4)
-    assert "not under its usual price for what it owns (৳70.0)" in both["miss"]["en"]
-    assert both["fix"]["en"] == "It comes in under ৳70.0."
-    thin = bl.almost_row(C("T", turnover_med30_mn=2.2), 3, None, "trading")
+    above = bl.almost_row(C("A", ltp=104.0, entry_price=95.0), 2)
+    assert above["miss"]["en"] == "Its price, ৳104, is not yet under the middle of our fair price, ৳100."
+    assert above["fix"]["en"] == "It comes in under ৳95.0." and above["fix"]["price"] == 95.0
+    assert bl.almost_row(C("B", ltp=94.0, entry_price=95.0), 2) is None       # already under the line
+    assert bl.almost_row(C("C", ltp=104.0), 2) is None                         # no line worked out
+    thin = bl.almost_row(C("T", turnover_med30_mn=1.2), 3, None, "trading")
     assert "price" not in thin["fix"]
-    assert "৳22 lakh" in thin["miss"]["en"] and "৳30 lakh" in thin["miss"]["en"]
+    assert "৳12 lakh" in thin["miss"]["en"] and "৳15 lakh" in thin["miss"]["en"]
     qtr = bl.almost_row(C("Q", interim_q_yoy_pct=-22.5, interim_eps_q_prev=1.2,
-                          interim_period_end="2026-09-30"), 5, {"date": "2026-11-25"}, "quarter")
+                          interim_period_end="2026-09-30"), 4, {"date": "2026-11-25"}, "quarter")
     assert qtr["miss"]["en"] == "Profit in the 3 months to Sep 2026 alone is down 22% on the same months last year."
-    assert qtr["fix"]["date"] == "2026-11-25"
+    assert qtr["fix"]["date"] == "2026-11-25" and qtr["question"] == 4
     meeting = {"date": "2026-11-08", "better_above": 1.01}
-    falling = bl.almost_row(C("D", eps_yoy_pct=-14.1), 5, meeting)
+    falling = bl.almost_row(C("D", eps_yoy_pct=-14.1), 4, meeting)
     assert falling["miss"]["en"] == "Profit is down 14% (last full year)."
     assert falling["fix"]["date"] == "2026-11-08"
     assert "৳0.92" in falling["fix"]["en"] and "৳0.83 or more" in falling["fix"]["en"]
-    assert bl.almost_row(C("E"), 6)["question"] == 6
+    assert bl.almost_row(C("E"), bl.TWO_CLOSES_Q)["question"] == bl.TWO_CLOSES_Q == 5
 
 
 def test_also_and_left_lines():
-    assert "2 companies from its sector" in bl.also_line({"cap": "sector"})["en"]
-    assert "3 banks" in bl.also_line({"cap": "financial"})["en"]
-    assert "Its price came too close" in bl.left_reason(C("A", ltp=97.0), "value", None)["en"]
+    assert "3 companies from its sector" in bl.also_line({"cap": "sector"})["en"]
+    assert "5 banks" in bl.also_line({"cap": "financial"})["en"]
     sig = {"en": "Its price is near the top of its range for the year.", "bn": "দাম বছরের সর্বোচ্চের কাছে।"}
     assert bl.left_reason(None, None, sig) == sig
     assert bl.left_reason(None, None, sig, ["profitable"])["en"] == "Its latest results showed a loss."
@@ -317,19 +290,19 @@ def test_also_and_left_lines():
     bank = C("K", sector_class="BANK", cash_years=[[2025, 10.0], [2024, 0.0]])
     assert bl.left_reason(bank, "bank_cash", None)["en"] == "It paid no cash dividend for 2024."
     assert bl.left_reason(C("N"), None, None)["en"].startswith("A newcomer")
-    assert "next close" in bl.grace_line("value")["en"] and bl.grace_line(None) is None
+    assert "next close" in bl.grace_line("trading")["en"] and bl.grace_line("value") is None
 
 
 def test_no_bengali_numerals_anywhere():
     rows = [bl.why_line(C("A", ltp=78.0, div_yield_pct=5.9, **STEADY)), bl.profit_chip(C("B", eps_yoy_pct=-7.0)),
             bl.almost_row(C("T", turnover_med30_mn=22.0), 3, None, "trading"),
             bl.almost_row(C("Q", interim_q_yoy_pct=-40.0, interim_eps_q_prev=1.0, interim_period_end="2026-09-30"),
-                          5, None, "quarter"),
+                          4, None, "quarter"),
             bl.grace_line("trading"), bl.left_reason(C("G"), "strong", None, second=True),
             bl.dividend_watch(C("W", div_yield_pct=7.0, eps=5.0, payout_latest_pct=120.0)),
-            bl.also_line({"cap": "full"}), bl.almost_row(C("C", ltp=104.0), 4),
-            bl.almost_row(C("D", eps_yoy_pct=-20.0), 5, {"date": "2026-11-10", "better_above": 9.19}),
-            bl.almost_row(C("E"), 6), bl.left_reason(C("F"), "profit", None)]
+            bl.also_line({"cap": "full"}), bl.almost_row(C("C", ltp=104.0, entry_price=95.0), 2),
+            bl.almost_row(C("D", eps_yoy_pct=-20.0), 4, {"date": "2026-11-10", "better_above": 9.19}),
+            bl.almost_row(C("E"), 5), bl.left_reason(C("F"), "profit", None)]
     for text in _all_text(*rows):
         assert not _BN_DIGITS.search(text), text
 
@@ -379,3 +352,10 @@ def test_insurers_data_check_leaves_out_their_business_part():
     assert completeness({"sector_class": "GENERAL", "data_completeness": 0.486,
                          "p1_coverage": 1.0, "p2_coverage": 0.2}) == 0.486
     assert completeness({"sector_class": "INSURANCE", "data_completeness": 0.5}) == 0.5
+
+
+def test_almost_price_row_under_the_middle_says_it_is_held_by_its_profit():
+    # Under the fair middle but kept off by a cap (KOHINOOR, 22 Nov: P/E past 25).
+    row = bl.almost_row(C("K", ltp=82.0, entry_price=75.0), 2)
+    assert row["miss"]["en"].startswith("Its price, ৳82.0, is under our fair price of ৳100")
+    assert row["fix"]["price"] == 75.0

@@ -58,6 +58,9 @@ def _forbid_store(*_a, **_k):
 
 
 scoring_service._store_snapshot = _forbid_store  # hard guard
+# The fair price's weekly market copy is a write too: never from here.
+from backend.services import fair_value_service as _fvs  # noqa: E402
+_fvs.save_week = lambda *_a, **_k: None
 
 # Regime classification from the trailing-7d DSEX change the momentum window
 # already computes as-of T.

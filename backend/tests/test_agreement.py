@@ -40,12 +40,12 @@ def test_a_fresh_buy_has_a_buy_price_at_or_over_todays_price():
     # PR1: the buy price is where the Buy rule turns, so a share whose price
     # score already clears the line can't have a buy price under today's.
     from backend.services.scoring_service import p4_at_price
-    from backend.services.signal_service import CHEAP_P4
+    from backend.services.signal_service import BUY_P4 as CHEAP_P4
 
     for row in _row_variants():
         if row["p4_val"] < CHEAP_P4:
             continue
-        row = {**row, "score": 70.0}   # mostly strong: the cheap line decides
+        row = {**row, "score": 70.0}   # a strong company: the Buy line (the fair centre) decides
         price = sr.buy_price_for(row, row["ltp"], near_top=None)
         assert price is not None, row
         # Rounded to ৳1 from ৳100, ৳0.1 below.
@@ -84,12 +84,12 @@ def test_almost_on_the_list_price_reaches_the_buy_line():
     # PR3: the buy list's "comes back under ৳X" is the solved price, so the
     # price score at X is on the Buy line, and a little higher is under it.
     from backend.services.scoring_service import p4_at_price
-    from backend.services.signal_service import CHEAP_P4, EXPENSIVE_P4
+    from backend.services.signal_service import BUY_P4
     from backend.services.signal_today import entry_price
 
     for row in _row_variants():
         row = {**row, "p4_val": max(2.0, row["p4_val"] - 3.5)}   # priced out today
-        for tier, line in (("good", CHEAP_P4), ("excellent", EXPENSIVE_P4)):
+        for tier, line in (("good", BUY_P4), ("excellent", BUY_P4)):
             p = entry_price(row, tier)
             if p is None:
                 continue
@@ -190,7 +190,7 @@ def test_frontend_price_words_follow_the_buy_list():
     src = _front("lib/constants.ts")
     body = re.search(r"export function priceWordKey\((.*?)\n\}", src, re.S).group(1)
     assert 'sig.strength === "strong") return "very_low"' in body
-    assert 'sig.reason_key === "excellent_fair_price") return "fair"' in body
+    assert 'sig.reason_key === "excellent_fair_price" || sig.reason_key === "fair_price_buy") return "fair"' in body
     assert price_word({"signal": "buy", "strength": "strong"}) == "very_low"
     assert price_word({"signal": "buy", "reason_key": "excellent_fair_price"}) == "fair"
     assert price_word({"signal": "buy", "reason_key": "quality_cheap"}) == "low"
@@ -274,3 +274,94 @@ def test_frontend_watch_rules_match_the_backend():
             assert not value, key
     sugg = re.search(r"export const SUGGESTED = \[(.*?)\];", src).group(1)
     assert [s.strip().strip('"') for s in sugg.split(",")] == list(wr.SUGGESTED)
+
+
+def test_fair_price_copies_match():
+    """The valuation score from the fair price (fair_context) uses the signal's
+    lines, the score's P/E ceilings and the stock report's deposit (2026-11-22)."""
+    from backend.services import fair_context as fc
+    from backend.services import scoring_service, signal_service, stock_report
+    assert fc.P4_AT_CENTRE - fc.P4_PER_RANGE == signal_service.EXPENSIVE_P4
+    assert fc.P4_AT_CENTRE + fc.P4_PER_RANGE == signal_service.CHEAP_P4
+    assert fc.DEPOSIT_CAP_P4 < signal_service.CHEAP_P4
+    assert fc.PE_CEILINGS == scoring_service.PE_CEILINGS
+    assert stock_report.FDR_RATE_PCT == fc.FDR_RATE_PCT
+    assert stock_report.DIV_TAX_PCT == fc.DIV_TAX_PCT
+
+
+def test_buy_list_profit_lines_are_the_signals():
+    """One profit check (2026-11-22): the Buy List reads the signal's lines."""
+    from backend.services import buy_list, signal_service
+    assert buy_list.PROFIT_JOIN_PCT == signal_service.PROFIT_BUY_PCT
+    assert buy_list.PROFIT_LEAVE_PCT == signal_service.PROFIT_LEAVE_PCT
+    assert buy_list.QUARTER_JOIN_PCT == signal_service.QUARTER_BUY_PCT
+    assert buy_list.QUARTER_LEAVE_PCT == signal_service.QUARTER_LEAVE_PCT
+
+
+def test_buy_line_sits_inside_the_fair_range():
+    """The Buy line is the fair centre, between the range's two edges."""
+    from backend.services import fair_context as fc
+    from backend.services import signal_service as sg
+    assert sg.BUY_P4 == fc.P4_AT_CENTRE
+    assert sg.EXPENSIVE_P4 < sg.BUY_LEAVE_P4 < sg.BUY_P4 < sg.CHEAP_P4 <= sg.STRONG_CHEAP_P4 < sg.FAR_UNDER_P4
+    assert sg.FAR_UNDER_P4 == fc.P4_AT_CENTRE + 2 * fc.P4_PER_RANGE
+
+
+# ---------------------------------------------------------------- one price ruler (2026-11-22, phase 4)
+
+def test_price_word_and_fair_range_always_say_the_same():
+    """The valuation score reads the fair range, so its word (low / fair /
+    high) is the range's own answer at every price, for every confidence."""
+    from backend.services import fair_context as fc
+    from backend.services.stock_facts import valuation_verdict
+    centre = 100.0
+    for half in fc.RANGE_BASE.values():
+        low, high = centre * (1 - half), centre * (1 + half)
+        for price in [40 + i * 0.5 for i in range(200)]:
+            p4, cap = fc.p4_on_fair(price, centre, half)
+            assert cap is None
+            word = valuation_verdict(p4)
+            if price < low - 1e-6:
+                assert word == "cheap", (half, price, p4)
+            elif price > high + 1e-6:
+                assert word == "expensive", (half, price, p4)
+            elif low + 1e-6 < price < high - 1e-6:
+                assert word == "fair", (half, price, p4)
+
+
+def test_buy_signal_buy_price_and_list_price_agree_on_the_fair_range():
+    """For a strong company priced on its fair range: the Buy signal is on
+    exactly when today's price is at or under the buy price the stock page
+    shows, and the Buy List joins at that same price."""
+    from backend.services import buy_list as bl
+    from backend.services.signal_service import _signal_for_row
+    mom = {"momentum_grade": "healthy", "pct_in_52w_range": 40.0}
+    for ltp in (70.0, 85.0, 95.0, 99.0, 100.5, 104.0, 112.0, 130.0):
+        row = {"score": 70.0, "ltp": ltp, "market_cat": "A", "stale_data": False, "eps": 8.0,
+               "eps_yoy_pct": 5.0, "p4_basis": "fair", "fair_center": 100.0, "fair_half_width": 0.12,
+               "fair_eps_used": 8.0, "div_latest_dps": 4.0, "p1_eps_cagr": 6.0}
+        from backend.services import fair_context as fc
+        row["p4_val"] = fc.p4_on_fair(ltp, 100.0, 0.12, 8.0, 8.0, 4.0, 6.0)[0]
+        buy = sr.buy_price_for(row, ltp, near_top=None)
+        sig = _signal_for_row(row, mom)
+        assert buy is not None and abs(buy - 100.0) <= 1.0           # the fair middle
+        assert (sig["signal"] == "buy") == (ltp <= buy), (ltp, buy, sig["reason_key"])
+        assert bl.join_price({"code": "X"}, buy) == bl.round_price(buy)
+
+
+def test_confidence_reasons_all_have_plain_words():
+    import re
+    from backend.services import fair_context as fc
+    keys = set()
+    for args in [(1, 0, 0, False, None, False, None, False), (3, 0.1, 5, True, 0.9, True, 0.3, True),
+                 (2, 0.4, 3, False, 0.2, False, 0.9, False), (3, 0.9, 4, True, 0.5, False, 0.9, False)]:
+        keys |= set(fc.confidence(*args)[1])
+    assert keys <= set(fc.CONF_REASONS)
+    market = re.compile(r"\b(EPS|NAV|P/E|ROE|TTM|YoY|CAGR)\b|ইপিএস|পিই|এনএভি")
+    bn_digits = re.compile(r"[০-৯]")
+    for level in fc.CONF_WORDS:
+        w = fc.confidence_words(level, list(fc.CONF_REASONS))
+        for txt in (w["line"]["en"], w["line"]["bn"], w["word"]["en"], w["word"]["bn"]):
+            assert txt and not market.search(txt) and not bn_digits.search(txt)
+        assert w["line"]["en"].count(",") + w["line"]["en"].count(" and ") <= 3   # three reasons at most
+    assert fc.confidence_words("nonsense", []) is None

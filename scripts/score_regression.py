@@ -37,6 +37,9 @@ def _forbid_store(*_a, **_k):
 
 
 scoring_service._store_snapshot = _forbid_store  # hard guard
+# The fair price's weekly market copy is a write too: never from here.
+from backend.services import fair_value_service as _fvs  # noqa: E402
+_fvs.save_week = lambda *_a, **_k: None
 
 TIERS = [("excellent", 75), ("good", 60), ("average", 45), ("weak", None)]
 PILLARS = [("p1_biz", 0.30), ("p2_health", 0.20), ("p3_moat", 0.20),

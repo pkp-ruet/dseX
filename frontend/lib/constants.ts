@@ -164,6 +164,6 @@ export function priceWordKey(
 ): PriceWordKey | null {
   if (!sig || sig.signal !== "buy") return null;
   if (sig.strength === "strong") return "very_low";
-  if (sig.reason_key === "excellent_fair_price") return "fair";
+  if (sig.reason_key === "excellent_fair_price" || sig.reason_key === "fair_price_buy") return "fair";
   return "low";
 }

@@ -32,18 +32,27 @@ def test_value_box_badge_is_the_p4_verdict():
                current_pb=2.1, div_latest_dps=3.0, p4_val=3.99)
     fv = estimate_fair_value(batbc, fin_rows("BATBC"), {"face_value": 10}, 225.0)
     assert fv["stance"] == "expensive"
-    # One method left (its peers' P/E of 47.6 no longer prices it) also counts.
-    assert fv["estimates_disagree"] == (fv["estimate_stance"] != "expensive" or len(fv["methods"]) < 2)
+    # One method left (its peers' P/E of 47.6 no longer prices it), or the two
+    # pointing opposite ways, counts (2026-11-22: "fair" beside a side is not
+    # a disagreement any more — the score reads the same range at the close).
+    assert fv["estimates_disagree"] == (
+        {fv["estimate_stance"], fv["stance"]} == {"cheap", "expensive"} or len(fv["methods"]) < 2)
     if fv["estimates_disagree"]:
         assert fv["confidence"] == "low"
 
 
-def test_walton_fair_badge_over_a_much_higher_estimate_is_flagged():
+def test_walton_assets_estimate_follows_what_its_assets_earn():
+    # WALTONHIL used to trade near 3x its assets while earning far more on
+    # them; today's lower return scales its usual P/B down (fair_context.book_scale).
     walton = sr(eps=32.61, own_avg_pe=24.76, sector_median_pe=30.0, own_avg_pb=2.9, nav_ps=366.8,
                 current_pb=0.92, div_latest_dps=18.0, p4_val=5.6)
     fv = estimate_fair_value(walton, fin_rows("WALTONHIL"), {"face_value": 10}, 337.0)
+    book = next(m["price"] for m in fv["methods"] if m["name"] == "book_own")
+    assert fv["book_scaled"] and book < 2.9 * 366.8
+    # "Fair" beside an estimate that says "cheap" is no longer a disagreement:
+    # only opposite answers are (the badge here is an old ratio score).
     assert fv["stance"] == "fair" and fv["estimate_stance"] == "cheap"
-    assert fv["estimates_disagree"] and fv["confidence"] == "low"
+    assert not fv["estimates_disagree"]
 
 
 def test_bracbank_buy_at_reasonable_price_is_fair_not_pricey():
@@ -117,13 +126,16 @@ def _good_row(p4, score=70.0):
     return {"score": score, "p4_val": p4, "market_cat": "A", "stale_data": False}
 
 
-def test_buy_joins_at_7_and_leaves_under_6_5():
+def test_buy_joins_at_the_fair_centre_and_leaves_under_5():
+    # 2026-11-22: one Buy line for both strong groups, the centre of the fair range.
     from backend.services.signal_service import _signal_for_row
     mom = {"momentum_grade": "healthy", "pct_in_52w_range": 50.0}
-    assert _signal_for_row(_good_row(6.98), mom)["signal"] == "none"                         # not yet in
-    assert _signal_for_row(_good_row(6.98), mom, prev={"signal": "buy"})["signal"] == "buy"  # stays
-    assert _signal_for_row(_good_row(6.4), mom, prev={"signal": "buy"})["signal"] == "none"  # leaves
-    assert _signal_for_row(_good_row(7.02), mom)["signal"] == "buy"
+    assert _signal_for_row(_good_row(5.45), mom)["signal"] == "none"                         # not yet in
+    assert _signal_for_row(_good_row(5.45), mom, prev={"signal": "buy"})["signal"] == "buy"  # stays
+    assert _signal_for_row(_good_row(4.9), mom, prev={"signal": "buy"})["signal"] == "none"  # leaves
+    sig = _signal_for_row(_good_row(5.6), mom)
+    assert sig["signal"] == "buy" and sig["reason_key"] == "fair_price_buy"
+    assert _signal_for_row(_good_row(7.02), mom)["reason_key"] == "quality_cheap"
 
 
 def test_near_top_block_lifts_only_under_80():
@@ -136,12 +148,37 @@ def test_near_top_block_lifts_only_under_80():
     assert _signal_for_row(_good_row(7.5), at79, prev=near)["signal"] == "buy"
 
 
-def test_excellent_keeps_its_buy_down_to_3_5():
+def test_strong_all_round_needs_the_same_line_now():
+    # A strong-all-round company used to be a Buy anywhere under the range's
+    # high edge; its upper half lagged the market, so it waits like the rest.
     from backend.services.signal_service import _signal_for_row
     mom = {"momentum_grade": "healthy", "pct_in_52w_range": 40.0}
+    assert _signal_for_row(_good_row(4.5, 80.0), mom)["reason_key"] == "good_wait_price"
     assert _signal_for_row(_good_row(3.8, 80.0), mom)["reason_key"] == "quality_expensive"
-    assert _signal_for_row(_good_row(3.8, 80.0), mom, prev={"signal": "buy"})["signal"] == "buy"
-    assert _signal_for_row(_good_row(3.4, 80.0), mom, prev={"signal": "buy"})["signal"] == "none"
+    assert _signal_for_row(_good_row(5.8, 80.0), mom)["signal"] == "buy"
+
+
+def test_far_under_is_a_buy_only_while_profit_rises():
+    from backend.services.signal_service import _signal_for_row
+    mom = {"momentum_grade": "healthy", "pct_in_52w_range": 30.0}
+    assert _signal_for_row({**_good_row(9.0), "eps_yoy_pct": -4.0}, mom)["reason_key"] == "far_under"
+    assert _signal_for_row(_good_row(9.0), mom)["reason_key"] == "far_under"            # no figure: unproven
+    up = _signal_for_row({**_good_row(9.0), "eps_yoy_pct": 6.0}, mom)
+    assert up["signal"] == "buy" and up["strength"] == "normal"                       # never "Very low"
+    very = _signal_for_row({**_good_row(8.2), "eps_yoy_pct": 6.0}, mom)
+    assert very["strength"] == "strong"
+
+
+def test_one_profit_check_with_a_leave_line():
+    from backend.services.signal_service import _signal_for_row
+    mom = {"momentum_grade": "healthy", "pct_in_52w_range": 40.0}
+    assert _signal_for_row({**_good_row(7.5), "eps_yoy_pct": -12.0}, mom)["reason_key"] == "profit_slipping"
+    assert _signal_for_row({**_good_row(7.5), "eps_yoy_pct": -12.0}, mom, prev={"signal": "buy"})["signal"] == "buy"
+    assert _signal_for_row({**_good_row(7.5), "eps_yoy_pct": -16.0}, mom, prev={"signal": "buy"})["signal"] == "none"
+    # The latest quarter alone, when last year's was big enough to compare.
+    q = {**_good_row(7.5), "eps_yoy_pct": 5.0, "interim_q_yoy_pct": -22.0, "interim_eps_q_prev": 1.2}
+    assert _signal_for_row(q, mom)["reason_key"] == "profit_slipping"
+    assert _signal_for_row({**q, "interim_eps_q_prev": 0.05}, mom)["signal"] == "buy"
 
 
 def test_no_trade_in_the_window_blocks_a_buy():

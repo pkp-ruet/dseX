@@ -218,7 +218,8 @@ def _fair_value(code: str) -> Optional[dict]:
         return None
     if not fv:
         return None
-    out = {k: fv.get(k) for k in ("low", "high", "center", "today", "stance", "estimates_disagree")}
+    out = {k: fv.get(k) for k in ("low", "high", "center", "today", "stance", "estimates_disagree",
+                                  "confidence", "confidence_why")}
     # Each method's price (the Buy List works out "its usual price" from the
     # company's own-history ones).
     out["methods"] = {m["name"]: m.get("price") for m in fv.get("methods") or [] if m.get("name")}

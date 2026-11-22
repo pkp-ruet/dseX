@@ -168,3 +168,107 @@ def test_a_jump_year_is_not_counted_twice():
     # 6, 6, 3.69 (2022 and 2023 sit in the floor years) = 6, on ৳3.25 today.
     assert fv["eps_used"] == pytest.approx(3.25)
     assert own["price"] == pytest.approx(19.5)
+
+
+# --- 4. Confidence and the range (2026-11-22, phase 1) ---------------------------
+
+def test_confidence_needs_methods_that_agree_and_a_steady_record():
+    level, why = fc.confidence(3, 0.2, 4, True, 0.9, False, 0.9, False)
+    assert level == "high" and {"methods_agree", "long_history", "steady_profit"} <= set(why)
+    assert fc.confidence(2, 0.4, 3, True, 0.9, False, 0.9, False)[0] == "medium"
+    assert fc.confidence(2, 0.7, 3, False, 0.3, False, 0.4, False)[0] == "low"
+
+
+def test_one_method_is_always_low_confidence():
+    assert fc.confidence(1, 0.0, 9, True, 1.0, False, 1.0, False) == ("low", ["one_method"])
+
+
+def test_a_steadied_jump_is_named_but_not_counted_twice():
+    a = fc.confidence(3, 0.2, 4, True, 0.9, False, 0.9, False)
+    b = fc.confidence(3, 0.2, 4, True, 0.9, True, 0.9, False)
+    assert a[0] == b[0] and "profit_jump" in b[1]
+
+
+def test_old_or_thin_accounts_lower_confidence():
+    assert fc.confidence(3, 0.2, 3, True, 0.9, False, 0.9, False)[0] == "high"
+    assert fc.confidence(3, 0.2, 3, True, 0.9, False, 0.9, True)[0] == "medium"
+    assert fc.confidence(3, 0.2, 3, True, 0.9, False, 0.5, False)[0] == "medium"
+
+
+def test_the_range_widens_with_less_confidence_and_wide_methods():
+    assert fc.range_half_width("high", 0.0) == pytest.approx(0.08)
+    assert fc.range_half_width("medium", 0.05) == pytest.approx(0.12)
+    assert fc.range_half_width("low", 0.0) == pytest.approx(0.18)
+    assert fc.range_half_width("medium", 0.32) == pytest.approx(0.12 + 0.25 * 0.20)
+    assert fc.range_half_width("low", 5.0) == fc.RANGE_MAX
+
+
+# --- 5. Earning power behind the assets estimate --------------------------------
+
+def test_book_scale_only_ever_lowers_and_has_a_floor():
+    assert fc.book_scale(0.10, 0.20) == pytest.approx(0.5)
+    assert fc.book_scale(0.15, 0.20) == pytest.approx(0.75)
+    assert fc.book_scale(0.30, 0.20) == 1.0
+    assert fc.book_scale(-0.05, 0.20) == fc.BOOK_SCALE_MIN
+    assert fc.book_scale(0.10, None) is None
+
+
+# --- 6. The valuation score from the price and the range -------------------------
+
+def test_the_score_is_the_signals_lines_at_the_range_edges():
+    from backend.services.signal_service import CHEAP_P4, EXPENSIVE_P4
+    c, w = 100.0, 0.12
+    assert fc.p4_on_fair(c * (1 - w), c, w)[0] == pytest.approx(CHEAP_P4)
+    assert fc.p4_on_fair(c * (1 + w), c, w)[0] == pytest.approx(EXPENSIVE_P4)
+    assert fc.p4_on_fair(c, c, w)[0] == pytest.approx(fc.P4_AT_CENTRE)
+
+
+def test_less_confidence_needs_a_bigger_fall_to_be_a_low_price():
+    from backend.services.signal_service import CHEAP_P4
+    high = fc.p4_on_fair(88.0, 100.0, fc.RANGE_BASE["high"])[0]
+    low = fc.p4_on_fair(88.0, 100.0, fc.RANGE_BASE["low"])[0]
+    assert high >= CHEAP_P4 > low
+
+
+def test_the_score_falls_as_the_price_rises_and_stays_in_bounds():
+    scores = [fc.p4_on_fair(p, 100.0, 0.12)[0] for p in (30, 60, 90, 100, 110, 150, 400)]
+    assert scores == sorted(scores, reverse=True)
+    assert scores[0] == 10.0 and scores[-1] == 0.0
+
+
+def test_a_loss_has_no_price_score():
+    assert fc.p4_on_fair(50.0, 100.0, 0.12, eps_now=-1.0) == (0.0, "loss")
+
+
+def test_pe_ceilings_cap_the_score():
+    p4, cap = fc.p4_on_fair(50.0, 100.0, 0.12, eps_now=1.0)        # P/E 50, far under the centre
+    assert cap == "pe_ceiling" and p4 == 1.0
+
+
+def test_a_flat_company_that_earns_less_than_a_deposit_is_never_a_low_price():
+    # P/E 20 (5% a year), 3% cash, profit flat: 30% under its usual price is still not "low".
+    p4, cap = fc.p4_on_fair(70.0, 100.0, 0.12, eps_now=3.5, eps_used=3.5, dps=2.1, growth_score=2.0)
+    assert cap == "deposit" and p4 == fc.DEPOSIT_CAP_P4
+    # Growing, or earning close to the deposit, or paying more cash: no cap.
+    assert fc.p4_on_fair(70.0, 100.0, 0.12, 3.5, 3.5, 2.1, growth_score=6.0)[1] is None
+    assert fc.p4_on_fair(70.0, 100.0, 0.12, 6.5, 6.5, 2.1, growth_score=2.0)[1] is None
+    assert fc.p4_on_fair(70.0, 100.0, 0.12, 3.5, 3.5, 7.5, growth_score=2.0)[1] is None
+
+
+def test_p4_at_price_reads_the_fair_range():
+    from backend.services.scoring_service import p4_at_price, price_for_p4
+    row = {"ltp": 90.0, "p4_val": 6.75, "p4_basis": "fair", "fair_center": 100.0,
+           "fair_half_width": 0.08, "eps": 8.0, "fair_eps_used": 8.0, "div_latest_dps": 4.0,
+           "p1_eps_cagr": 6.0}
+    assert p4_at_price(row, 90.0) == pytest.approx(5.5 + 1.5 * 0.10 / 0.08)
+    assert price_for_p4(row, 7.0) == pytest.approx(92.0, abs=0.01)
+
+
+def test_the_estimate_carries_confidence_and_a_range_from_it():
+    row = {"eps": 10.0, "own_avg_pe": 12.0, "own_avg_pb": 1.5, "nav_ps": 80.0,
+           "div_latest_dps": 5.0, "p5_consist": 10.0, "payout_pct": 50.0,
+           "eps_stability": 0.9, "data_completeness": 0.9}
+    fv = estimate_fair_value(row, [], {"face_value": 10}, 100.0)
+    assert fv["confidence"] in ("high", "medium", "low")
+    assert fv["half_width"] >= fc.RANGE_BASE[fv["confidence"]] - 1e-9
+    assert fv["low"] == pytest.approx(fv["center"] * (1 - fv["half_width"]), rel=0.01)

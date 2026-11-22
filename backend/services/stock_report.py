@@ -1350,16 +1350,16 @@ def buy_price_for(row: dict, ltp: Optional[float], near_top: Optional[float]) ->
     "fair price" Buy showed a buy price under today's (BRACBANK: Buy at ৳65,
     "a good buy under ৳46.6") and 13 Buys had none.
 
-    A mostly strong company is a Buy once its price score reaches CHEAP_P4; a
-    strong-all-round one stays a Buy down to EXPENSIVE_P4 (signal_service rules
-    7-9). Solved from the score itself (scoring_service.price_for_p4) and never
+    A strong company (either group) is a Buy once its price score reaches
+    BUY_P4, the centre of its fair range (signal_service rule 7, since
+    2026-11-22). Solved from the score itself (scoring_service.price_for_p4) and never
     above the near-the-top line, where the signal stops saying Buy. None for a
     weaker grade, or when no price reaches the line."""
     from backend.services.scoring_service import price_for_p4
-    from backend.services.stock_facts import CHEAP_P4, EXPENSIVE_P4
+    from backend.services.signal_service import BUY_P4
     from backend.services.tiers import tier_key
 
-    line = {"excellent": EXPENSIVE_P4, "good": CHEAP_P4}.get(tier_key(_f(row.get("score"))))
+    line = BUY_P4 if tier_key(_f(row.get("score"))) in ("good", "excellent") else None
     if line is None or not ltp:
         return None
     price = price_for_p4(row, line)
@@ -1374,12 +1374,12 @@ def buy_price_for(row: dict, ltp: Optional[float], near_top: Optional[float]) ->
 
 def leave_price_for(row: dict) -> Optional[float]:
     """The price at which a Buy leaves on valuation: its price score falls under
-    CHEAP_LEAVE_P4 (a strong-all-round company: EXPENSIVE_LEAVE_P4)."""
+    BUY_LEAVE_P4, a third of a range width over the fair centre."""
     from backend.services.scoring_service import price_for_p4
-    from backend.services.signal_service import CHEAP_LEAVE_P4, EXPENSIVE_LEAVE_P4
+    from backend.services.signal_service import BUY_LEAVE_P4
     from backend.services.tiers import tier_key
 
-    line = {"excellent": EXPENSIVE_LEAVE_P4, "good": CHEAP_LEAVE_P4}.get(tier_key(_f(row.get("score"))))
+    line = BUY_LEAVE_P4 if tier_key(_f(row.get("score"))) in ("good", "excellent") else None
     if line is None:
         return None
     price = price_for_p4(row, line)
@@ -1433,6 +1433,11 @@ def build_price(inp: dict) -> Optional[dict]:
     profit_fall = None
     if fv and fv.get("center") and not fv.get("estimates_disagree") and range_agrees(verdict, ltp, fv):
         fair = {"low": _f(fv["low"]), "high": _f(fv["high"]), "center": _f(fv["center"])}
+        # How sure we are of the range, in plain words (2026-11-22, phase 4).
+        from backend.services.fair_context import confidence_words
+        sure = confidence_words(fv.get("confidence"), fv.get("confidence_why"))
+        if sure:
+            fair["sure"] = sure
         methods = [{"label": bi(m.get("label_en") or "", m.get("label_bn") or m.get("label_en") or ""),
                     "price": _f(m.get("price"))} for m in fv.get("methods") or [] if _f(m.get("price"))]
         methods.sort(key=lambda m: m["price"])
@@ -3928,6 +3933,11 @@ _RISK_BLOCKS = {
                         "শেয়ারটি প্রতিদিন কম লেনদেন হয়, তাই বিক্রি করা কঠিন হতে পারে")),
     "earnings_dropped": (bi("Profit fell", "মুনাফা কমেছে"),
                          bi("profit fell sharply in the latest results", "সর্বশেষ ফলে মুনাফা অনেক কমেছে")),
+    "profit_slipping": (bi("Profit fell", "মুনাফা কমেছে"),
+                        bi("profit fell in the latest results", "সর্বশেষ ফলে মুনাফা কমেছে")),
+    "far_under": (bi("Cheap for a reason?", "কম দামের কারণ আছে?"),
+                  bi("its price is far under what it looks worth while profit is not growing",
+                     "দাম দেখতে ন্যায্য দামের চেয়ে অনেক কম, অথচ মুনাফা বাড়ছে না")),
     "heavy_debt": (bi("Heavy loans", "বেশি ঋণ"),
                    bi("its loans are larger than the whole company's value", "কোম্পানির ঋণ তার পুরো বাজারমূল্যের চেয়েও বেশি")),
     "red_flag": (bi("Red flag", "বড় সতর্কতা"),
@@ -4347,6 +4357,8 @@ _VIEW_FIX = {
     "stale_financials": bi("When it publishes up-to-date yearly accounts.", "হালনাগাদ বার্ষিক হিসাব প্রকাশ করলে।"),
     "thin_trading": bi("If more of its shares start trading each day.", "প্রতিদিন আরও বেশি শেয়ার লেনদেন হতে শুরু করলে।"),
     "earnings_dropped": bi("If its next results show profit recovering.", "পরের ফলে মুনাফা আবার বাড়তে দেখা গেলে।"),
+    "profit_slipping": bi("If its next results show profit holding up.", "পরের ফলে মুনাফা স্থির থাকতে দেখা গেলে।"),
+    "far_under": bi("If its next results show profit growing again.", "পরের ফলে মুনাফা আবার বাড়তে দেখা গেলে।"),
     "heavy_debt": bi("If it pays its loans down below what the whole company is worth on the market.",
                      "কোম্পানি তার ঋণ কমিয়ে পুরো বাজারমূল্যের নিচে নামিয়ে আনলে।"),
     "red_flag": bi("If the serious problem we found is resolved.", "যে গুরুতর সমস্যা পেয়েছি, তা মিটে গেলে।"),
@@ -4436,8 +4448,8 @@ def build_view(inp: dict, sections: dict, answer: dict) -> dict:
         elif top and ltp and ltp < top:
             change.append(bi(f"If the price climbs past {money(top)}, it is near its highest this year, and we would stop calling it a Buy.",
                              f"দাম {money(top)} ছাড়ালে তা এ বছরের সর্বোচ্চের কাছে চলে যাবে। তখন আমরা আর একে কেনার মতো বলব না।"))
-        change.append(bi("If its next results show profit down by a quarter or more from a year earlier.",
-                         "পরের ফলে মুনাফা আগের বছরের একই সময়ের চেয়ে এক-চতুর্থাংশ বা তার বেশি কমে গেলে।"))
+        change.append(bi("If its next results show profit down by more than 15% from a year earlier.",
+                         "পরের ফলে মুনাফা আগের বছরের একই সময়ের চেয়ে 15%-এর বেশি কমে গেলে।"))
         change.append(bi("If a serious problem turns up in its notices.", "কোম্পানির নোটিশে কোনো গুরুতর সমস্যা ধরা পড়লে।"))
     elif decision == "wait":
         if answer.get("blocker") == "risks":
@@ -4485,9 +4497,8 @@ def build_view(inp: dict, sections: dict, answer: dict) -> dict:
 # Updated by hand: a one-year fixed deposit (FDR) at the big banks, before
 # tax. Deposit interest is taxed like a cash dividend (10% with a TIN). The
 # line gives the price an anchor readers already use (audit GR5 / N11).
-FDR_RATE_PCT = 10.5
-FDR_RATE_AS_OF = "2026-11"
-FDR_TAX_PCT = 10.0
+# One copy since 2026-11-22: the valuation score's deposit rule reads it too.
+from backend.services.fair_context import FDR_RATE_AS_OF, FDR_RATE_PCT, FDR_TAX_PCT  # noqa: E402
 
 
 def _per100(v: float) -> str:

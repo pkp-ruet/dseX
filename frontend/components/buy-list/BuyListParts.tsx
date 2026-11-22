@@ -17,12 +17,12 @@ function HowLink() {
   );
 }
 
-/** The six checks as one line of ticks under the header, no box (phones and
+/** The five checks as one line of ticks under the header, no box (phones and
  *  tablets; from 1024px the side card says it). Free for every reader. */
 export function ChecksLine() {
   return (
     <div className="bl-checks-line">
-      <ol aria-label="The six checks every share on the list passed">
+      <ol aria-label="The five checks every share on the list passed">
         {QUESTIONS.map((q) => (
           <li key={q.short.en}>
             <span className="bl-tick" aria-hidden="true">
@@ -38,7 +38,7 @@ export function ChecksLine() {
 }
 
 /** From 1024px, beside the list and in view while it scrolls: how many
- *  passed, the six checks and the link to the rules. Counts only, so it is
+ *  passed, the five checks and the link to the rules. Counts only, so it is
  *  free for every reader. */
 export function GlanceCard({ data }: { data: BuyList }) {
   const close = data.also.length + data.almost.length;
@@ -49,7 +49,7 @@ export function GlanceCard({ data }: { data: BuyList }) {
       </h2>
       <p className="bl-glance-n nums">
         <b>{data.count}</b>
-        <T en={`of ${data.universe} companies passed all six`} bn={`${data.universe}টি কোম্পানির মধ্যে ছয়টিতেই পাস`} />
+        <T en={`of ${data.universe} companies passed all five`} bn={`${data.universe}টি কোম্পানির মধ্যে পাঁচটিতেই পাস`} />
       </p>
       <ol className="bl-glance-checks">
         {QUESTIONS.map((q) => (
@@ -193,7 +193,7 @@ function names(list: { code: string; name: string | null }[], lang: "en" | "bn")
   return `${n.slice(0, -1).join(", ")} ${lang === "en" ? "and" : "ও"} ${n[n.length - 1]}`;
 }
 
-/** "Also passed today": shares that passed all six but were left out to keep
+/** "Also passed today": shares that passed all five but were left out to keep
  *  the list spread. As good as the list, so right under it, in one line when
  *  they share the reason. */
 export function AlsoPassed({ data }: { data: BuyList }) {
@@ -207,8 +207,8 @@ export function AlsoPassed({ data }: { data: BuyList }) {
       {reasons.length === 1 ? (
         <p className="bl-note">
           <T
-            en={`${names(data.also, "en")} passed all six. ${data.also[0].why.en}`}
-            bn={`${names(data.also, "bn")} ছয়টিতেই পাস করেছে। ${data.also[0].why.bn}`}
+            en={`${names(data.also, "en")} passed all five. ${data.also[0].why.en}`}
+            bn={`${names(data.also, "bn")} পাঁচটিতেই পাস করেছে। ${data.also[0].why.bn}`}
           />
         </p>
       ) : (

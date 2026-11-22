@@ -171,6 +171,24 @@ export function partPicture(part: AnalysisPart, report: StockReport): ReactNode 
   }
 }
 
+/** How sure we are of the fair price: three dots (filled by the level) and
+ *  one plain line with its reasons (2026-11-22). */
+function SureLine({ sure }: { sure: { level: "high" | "medium" | "low"; word: { en: string; bn: string }; line: { en: string; bn: string } } }) {
+  const filled = sure.level === "high" ? 3 : sure.level === "medium" ? 2 : 1;
+  return (
+    <div className={`an-sure an-sure--${sure.level}`}>
+      <span className="an-sure-dots" role="img" aria-label={`${sure.word.en}`}>
+        {[0, 1, 2].map((i) => (
+          <span key={i} className={i < filled ? "is-on" : undefined} />
+        ))}
+      </span>
+      <span>
+        <T en={sure.line.en} bn={sure.line.bn} />
+      </span>
+    </div>
+  );
+}
+
 /** Anything longer, under a part: how we worked out the fair price, the
  *  flagged checks with their notices, what passed and who owns it. */
 export function partExtra(part: AnalysisPart, report: StockReport): ReactNode {
@@ -197,6 +215,7 @@ export function partExtra(part: AnalysisPart, report: StockReport): ReactNode {
                 </li>
               ))}
             </ul>
+            {pr.fair?.sure && <SureLine sure={pr.fair.sure} />}
           </div>
         )}
         <DepositLine s={pr} />

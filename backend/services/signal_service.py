@@ -70,13 +70,41 @@ HEAVY_RELEASE_PTS = 3.0
 _FINANCIAL_CLASSES = {"BANK", "NBFI", "INSURANCE"}
 # A strong company kept off Buy by one of these gets "review" for its holders.
 REVIEW_REASONS = {"red_flag", "heavy_debt", "thin_trading", "earnings_dropped",
-                  "stale_financials", "z_category"}
+                  "stale_financials", "z_category", "profit_slipping", "far_under"}
 HOLDING_SIGNAL_WORDS = {"buy_more": "Buy more", "sell": "Sell"}
 
-CHEAP_P4 = 7.0        # p4_val >= 7 -> cheap vs own history + sector
-EXPENSIVE_P4 = 4.0    # p4_val < 4  -> expensive
+CHEAP_P4 = 7.0        # p4_val >= 7 -> a low price (under the fair range)
+EXPENSIVE_P4 = 4.0    # p4_val < 4  -> a high price (over the fair range)
 NEAR_HIGH_PCT = 85.0  # >= 85% of the 52w range -> buy dampener
 EARNINGS_DROP_PCT = -25.0  # latest EPS fell >=25% YoY -> block buy (value trap)
+
+# The Buy rule on the fair range (2026-11-22, phase 2 of the price plan; set
+# from scripts/fair_value_calibration.py, internal, 31 dates Aug 2025 - Oct
+# 2026). Since phase 1 p4_val is where the close sits in the fair range: 5.5
+# at its centre, 7 at its low edge, 4 at its high edge, +1.5 per range width.
+#  * BUY_P4: a strong company (either group) is a Buy from the CENTRE down.
+#    Strong companies under the centre beat the market (lower half +2.0% /
+#    +6.5% over 63 / 126 trading days, under the range +3.4% / +5.2%); over
+#    it they lagged. A strong-all-round company used to be a Buy anywhere
+#    under the high edge (its upper half lagged by 4.3% at 126 days) and a
+#    mostly strong one only under the low edge (its lower half was the best
+#    group of all, +9.8%).
+#  * FAR_UNDER_P4: 2+ range widths under the centre is cheap for a reason
+#    unless profit is rising (far under, profit falling: -9.6% / -20.7%
+#    against the market; profit rising: +1.9% / +2.1%).
+#  * PROFIT_BUY_PCT / QUARTER_BUY_PCT: under the centre, a profit down 10-25%
+#    lagged by 4-7%; one check, the Buy List's old lines, for every Buy.
+#  * The near-the-top block stays: under the centre but near its yearly top
+#    lagged by 7.8% at 126 days (not near it: +3.8%).
+BUY_P4 = 5.5
+BUY_LEAVE_P4 = 5.0
+FAR_UNDER_P4 = 8.5
+PROFIT_BUY_PCT = -10.0
+PROFIT_LEAVE_PCT = -15.0
+QUARTER_BUY_PCT = -20.0
+QUARTER_LEAVE_PCT = -30.0
+# Last year's quarter must be this big (৳ a share) for the % to mean anything.
+QUARTER_MIN_BASE = 0.10
 
 # Conviction: a cheap Buy is upgraded to "strong" when the stock is DEEPLY cheap
 # AND still low in its 52-week range (value + room to run). Backtest-validated
@@ -89,7 +117,7 @@ EARNINGS_DROP_PCT = -25.0  # latest EPS fell >=25% YoY -> block buy (value trap)
 # block, once on, lifts only under NEAR_HIGH_RELEASE_PCT. Without them
 # PRAGATIINS went in and out of Buy 7 times in 30 days on price scores of
 # 7.02 against 6.98. "Was" = the newest stored day before today.
-CHEAP_LEAVE_P4 = 6.5
+CHEAP_LEAVE_P4 = 6.5   # unused by the Buy rule since 2026-11-22 (BUY_LEAVE_P4)
 EXPENSIVE_LEAVE_P4 = 3.5
 NEAR_HIGH_RELEASE_PCT = 80.0
 # A scored company missing from a computed momentum map traded nothing in its
@@ -154,9 +182,21 @@ REASONS: dict[str, tuple[str, str]] = {
         "A company strong all round, at a fair price.",
         "সব দিকে শক্তিশালী কোম্পানি, দামও ন্যায্য।",
     ),
+    "fair_price_buy": (
+        "A strong company, and its price is under the middle of what we work out it is worth.",
+        "কোম্পানিটি শক্তিশালী, আর দাম আমাদের হিসাবের ন্যায্য দামের মাঝামাঝির নিচে।",
+    ),
     "good_wait_price": (
-        "A mostly strong company. It is fine to keep, but a lower price would be a better time to buy more.",
-        "বেশিরভাগ দিকে শক্তিশালী কোম্পানি। ধরে রাখা যায়, তবে আরও কিনতে চাইলে দাম কমার অপেক্ষা করা ভালো।",
+        "A strong company. It is fine to keep, but its price is not yet under the middle of what we work out it is worth.",
+        "কোম্পানিটি শক্তিশালী। ধরে রাখা যায়, তবে দাম এখনো আমাদের হিসাবের ন্যায্য দামের মাঝামাঝির নিচে নামেনি।",
+    ),
+    "profit_slipping": (
+        "The price is good, but profit fell in the latest results. A Buy waits until profit holds up.",
+        "দাম ভালো, তবে সর্বশেষ ফলে মুনাফা কমেছে। মুনাফা স্থির না হওয়া পর্যন্ত কেনার পরামর্শ নয়।",
+    ),
+    "far_under": (
+        "The price is far under what we work out it is worth, while profit is not growing. A gap that big usually means something the figures don't show. We wait for profit to turn up.",
+        "দাম আমাদের হিসাবের ন্যায্য দামের চেয়ে অনেক কম, অথচ মুনাফা বাড়ছে না। এত বড় ফারাক সাধারণত এমন কিছুর ইঙ্গিত দেয় যা হিসাবে দেখা যায় না। মুনাফা বাড়তে শুরু করা পর্যন্ত অপেক্ষা করছি।",
     ),
     # --- holding-level (personalized overlay) ---
     "bought_high_still_expensive": (
@@ -301,26 +341,47 @@ def _signal_for_row(row: dict, momentum: Optional[dict],
     if any(k not in _COVERED_RED_KEYS for k in (red_keys or [])):
         return mk(NONE, "red_flag")
 
-    # 7. Cheap: buy, unless the price already ran to the top of its 52w range.
-    #    Deeply cheap + still low in the 52w range -> "strong" conviction.
-    if p4 is not None and (p4 >= CHEAP_P4 or (was_buy and p4 >= CHEAP_LEAVE_P4)):
-        if near_top:
-            return mk(NONE, "near_52w_high")
-        strong = (p4 >= STRONG_CHEAP_P4
+    # 7. The price, on the fair range (phase 2, see BUY_P4 above).
+    if p4 is None:
+        # No fair price and no ratio score: only a strong-all-round company
+        # keeps a Buy, as before.
+        if tier == "excellent" and not near_top:
+            return mk(BUY, "excellent_fair_price")
+        return mk(NONE, "near_52w_high" if near_top else "good_wait_price")
+    if p4 < EXPENSIVE_P4:
+        return mk(NONE, "quality_expensive")
+    if p4 < (BUY_LEAVE_P4 if was_buy else BUY_P4):
+        return mk(NONE, "good_wait_price")
+    # Far under its fair price: a bargain only while profit is rising.
+    if p4 > FAR_UNDER_P4 and (eps_yoy is None or eps_yoy < 0):
+        return mk(NONE, "far_under")
+    if near_top:
+        return mk(NONE, "near_52w_high")
+    # One profit check for every Buy (the Buy List no longer adds its own).
+    if profit_slipping(row, was_buy):
+        return mk(NONE, "profit_slipping")
+    if p4 >= CHEAP_P4:
+        # Under the fair range, and low in its year: a very low price.
+        strong = (STRONG_CHEAP_P4 <= p4 <= FAR_UNDER_P4
                   and pct52 is not None and pct52 <= STRONG_RANGE_PCT)
         return mk(BUY, "quality_cheap", STRENGTH_STRONG if strong else STRENGTH_NORMAL)
-    # 8. Expensive: strong company, wrong price -> no buy.
-    if p4 is not None and p4 < EXPENSIVE_P4 and not (
-            was_buy and tier == "excellent" and p4 >= EXPENSIVE_LEAVE_P4):
-        return mk(NONE, "quality_expensive")
+    return mk(BUY, "fair_price_buy")
 
-    # 9. Mid (4 <= p4 < 7) or unknown valuation: quality decides. Excellent is
-    #    rare and earns a Buy at a fair price; Good waits for a discount.
-    if tier == "excellent":
-        if near_top:
-            return mk(NONE, "near_52w_high")
-        return mk(BUY, "excellent_fair_price")
-    return mk(NONE, "good_wait_price")
+
+def profit_slipping(row: dict, was_buy: bool = False) -> bool:
+    """The latest results down past PROFIT_BUY_PCT on the same months last
+    year (the year so far when a quarter is out, else the last audited year),
+    or the latest quarter alone past QUARTER_BUY_PCT; a Buy already on keeps
+    it to the leave lines. No figure is not a fall."""
+    yoy = _f(row.get("interim_eps_yoy_pct"))
+    if yoy is None:
+        yoy = _f(row.get("eps_yoy_pct"))
+    if yoy is not None and yoy < (PROFIT_LEAVE_PCT if was_buy else PROFIT_BUY_PCT):
+        return True
+    q, base = _f(row.get("interim_q_yoy_pct")), _f(row.get("interim_eps_q_prev"))
+    if q is not None and base is not None and base >= QUARTER_MIN_BASE:
+        return q < (QUARTER_LEAVE_PCT if was_buy else QUARTER_BUY_PCT)
+    return False
 
 
 def _latest_red_keys() -> dict[str, list]:

@@ -217,7 +217,7 @@ def test_price_section_and_scenarios():
     assert pr["fair"] == {"low": 229.0, "high": 343.0, "center": 286.0}
     # The buy price is where the Buy rule turns (audit PR1): a company strong
     # all round stays a Buy until its price score falls to the expensive line.
-    assert pr["gap_pct"] == -23 and pr["buy_below"] == 410
+    assert pr["gap_pct"] == -23 and pr["buy_below"] == 345
     assert pr["profit_fall"] == {"pct": 20, "center": 251.0}
     assert len(pr["scenarios"]) == 3
     bear, base, bull = (s["price"] for s in pr["scenarios"])
@@ -246,7 +246,7 @@ def test_estimates_disagree_hides_the_range():
     assert pr["fair"] is None and pr["methods"] == []
     # The buy price comes from the Buy rule, not the estimates, so it stays
     # (13 Buys had none while the estimates disagreed; audit PR1).
-    assert pr["buy_below"] == 410
+    assert pr["buy_below"] == 345
 
 
 def red_flag_company() -> dict:
@@ -417,7 +417,7 @@ def test_answer_buy_has_no_red_light():
     assert ans["line"]["en"] == "A company strong all round, at a very low price, and nothing serious is wrong."
     # The free line carries no figures; the buy price is a separate (Premium) field.
     assert not any(ch.isdigit() for ch in ans["line"]["en"])
-    assert ans["buy_price"] == 410
+    assert ans["buy_price"] == 345
 
 
 def test_answer_waits_on_the_price():

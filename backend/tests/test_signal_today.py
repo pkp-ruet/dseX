@@ -150,14 +150,14 @@ def test_buylist_is_quiet_on_a_rule_change_day():
 def test_almost_price_is_where_the_buy_rule_turns():
     # Audit PR3: the line is solved from the price score, not the report's old
     # fair-value buy price (AMCL(PRAN) read ৳152 when the line was ~৳203).
-    row = {"score": 66.0, "ltp": 100.0, "p4_val": 6.0, "p4_vol_damp": 1.0,
+    row = {"score": 66.0, "ltp": 100.0, "p4_val": 4.5, "p4_vol_damp": 1.0,
            "current_pe": 12.0, "own_avg_pe": 12.0, "sector_median_pe": 12.0,
            "current_pb": 2.0, "own_avg_pb": 2.0, "sector_median_pb": 2.0}
     r = st.almost_row("X", _sig("none", "good_wait_price"), row, 100.0, 50.0, None)
-    assert 80.0 < r["under"] < 100.0                       # 15% under its usual ratios scores 7
+    assert 80.0 < r["under"] < 100.0                       # where the Buy line (5.5) is reached
     from backend.services.scoring_service import p4_at_price
-    assert p4_at_price(row, r["under"]) >= 6.99
+    assert p4_at_price(row, r["under"]) >= 5.49
     # Earnings so unsteady that no price reaches the line (TAKAFULINS).
-    shaky = dict(row, p4_vol_damp=0.6, p4_val=3.6)   # its stored score at today's price
+    shaky = dict(row, p4_vol_damp=0.45, p4_val=3.0)  # its stored score at today's price
     r2 = st.almost_row("Y", _sig("none", "good_wait_price"), shaky, 100.0, None, None)
     assert r2["under"] is None and r2["line"]["en"].startswith("Price alone won't bring it back")

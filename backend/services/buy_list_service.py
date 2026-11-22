@@ -1,11 +1,11 @@
 """
 Buy List — the data side of ``buy_list.py`` (the rules).
 
-``build()`` runs the six questions on the recommendation engine's pool
+``build()`` runs the five questions on the recommendation engine's pool
 (``recommend_service.pool()`` = questions 2 and 3 already answered), against
 the newest stored day before today (``buy_list_snapshots``: who was on the
 list, who passed, who is on grace, since when), and adds what each share's
-case shows: the price it would join under, its usual price, the next results
+case shows: the price it would join under, our fair price, the next results
 and dividend dates, its one thing to watch. Cached 900s; cleared with every
 cache by the scores refresh.
 
@@ -16,7 +16,7 @@ list was being re-worked every 15 minutes on half-day prices.
 
 ``store_snapshot()`` writes one row per trading day (unique ``date``) from
 compute-scores and scrape-all, after the stock-report and signal snapshots,
-with the page's payload. No backfill: on the first day question 6 reads the
+with the page's payload. No backfill: on the first day question 5 reads the
 previous signal day's Buys, and every share's "since" is that day.
 """
 from __future__ import annotations
@@ -107,7 +107,7 @@ def _signal_buy_price(c: dict, row: Optional[dict]) -> Optional[float]:
 
         near = stop_line(c.get("hi52"), c.get("lo52"), NEAR_HIGH_PCT)
         return buy_price_for(row, rc._n(c.get("ltp")), near)
-    except Exception:  # noqa: BLE001 — the line then comes from the usual price alone
+    except Exception:  # noqa: BLE001 — no buy price then
         logger.warning("buy list: buy price failed for %s", c.get("code"), exc_info=True)
         return None
 
@@ -183,12 +183,28 @@ def _next(code: str, meetings: dict, records: dict, today: str) -> list[dict]:
 
 
 def _fair(c: dict) -> Optional[dict]:
-    """Its usual price as the case's range: the lower and higher of its own
-    two measures, and the weighted middle."""
-    u = bl.usual_price(c)
-    if not u:
+    """Our fair price as the case's range (the stock page's figure)."""
+    f = bl.fair_price(c)
+    if not f:
         return None
-    return {"low": bl.round_price(u["low"]), "high": bl.round_price(u["high"]), "mid": bl.round_price(u["mid"])}
+    from backend.services.fair_context import confidence_words
+    fv = c.get("fair_value") or {}
+    out = {"low": bl.round_price(f["low"]), "high": bl.round_price(f["high"]), "mid": bl.round_price(f["mid"])}
+    sure = confidence_words(fv.get("confidence"), fv.get("confidence_why"))
+    if sure:
+        out["sure"] = sure
+    return out
+
+
+def _leave_price(row: Optional[dict]) -> Optional[float]:
+    """The price over which the Buy signal, and so the list, lets it go."""
+    if not row:
+        return None
+    try:
+        from backend.services.stock_report import leave_price_for
+        return leave_price_for(row)
+    except Exception:  # noqa: BLE001
+        return None
 
 
 def _ident(c: dict) -> dict:
@@ -207,6 +223,14 @@ def _watch(c: dict) -> Optional[dict]:
         more = ((watch.get("more") or 0) + 1) if watch else 0
         watch = {"en": dw["en"], "bn": dw["bn"], "level": dw["level"], "more": more, "key": "dividend"}
     if not watch:
+        # Nothing else to watch: say so when it trades slowly (2026-11-22, the
+        # floor came down to ৳15 lakh a day, so a few on the list trade little).
+        t = bl.trading_mn(c)
+        if t is not None and t < bl.TRADE_SLOW_MN:
+            return {"en": f"It trades slowly: about {bl._lakh(t)} a day. Buying or selling a lot of it can take a few days.",
+                    "bn": f"এর লেনদেন ধীর: দিনে প্রায় {bl._lakh_bn(t)}র। বেশি পরিমাণে কেনা বা বেচায় কয়েক দিন লাগতে পারে।",
+                    "level": "note", "more": 0,
+                    "short": {"en": "Trades slowly", "bn": "লেনদেন ধীর"}}
         return None
     # The row's tag names it (2026-11-22); a smaller auditor note is quiet.
     label = bl.watch_label(watch.get("key"), watch.get("level"))
@@ -221,7 +245,8 @@ def _item(c: dict, rank: int, since: dict, was: set[str], fresh: bool, rows: dic
           meetings: dict, records: dict, today: str) -> dict:
     m = bl.margin_pct(c)
     px = rc._n(c.get("ltp"))
-    buy = bl.join_price(c, _signal_buy_price(c, rows.get(c["code"])))
+    row = rows.get(c["code"])
+    buy = bl.join_price(c, _signal_buy_price(c, row))
     trade = bl.trading_mn(c)
     return {
         **_ident(c),
@@ -233,6 +258,8 @@ def _item(c: dict, rank: int, since: dict, was: set[str], fresh: bool, rows: dic
         "buy_below": buy,
         # On the list by its staying lines, but above the price it would join at.
         "held": bool(buy and px and px > buy),
+        # The price over which it leaves (the Buy signal's leave line).
+        "leave_above": _leave_price(row),
         "grace": bl.grace_line(c.get("grace")),
         "trading_mn": round(trade, 1) if trade is not None else None,
         "why": bl.why_line(c),
@@ -247,7 +274,52 @@ def _item(c: dict, rank: int, since: dict, was: set[str], fresh: bool, rows: dic
     }
 
 
-_ALMOST_KEYS = {"trading", "value", "profit", "quarter"}
+_ALMOST_KEYS = {"trading", "profit", "quarter"}
+# Strong companies outside the engine's pool that miss only on the Buy
+# signal's price or profit line: the "Close, not yet" rows for questions 2 / 4.
+_ALMOST_SIGNAL = {"good_wait_price": 2, "profit_slipping": 4}
+# A price row shows only when the joining price is within this much of today's.
+ALMOST_PRICE_PCT = 10.0
+
+
+def _outside_almost(pool_codes: set[str]) -> list[tuple[dict, int, Optional[str]]]:
+    """Strong companies held off the list only by the price (question 2) or
+    the profit check (question 4), with the price that brings them in."""
+    from backend.services import recommend_service as rs
+    from backend.services.signal_service import build_signals
+    from backend.services.signal_today import entry_price
+
+    try:
+        sigs = build_signals()
+    except Exception:  # noqa: BLE001
+        logger.exception("buy list: signals failed")
+        return []
+    want = [code for code, sg in sigs.items()
+            if code not in pool_codes and sg.get("tier") in ("good", "excellent")
+            and sg.get("reason_key") in _ALMOST_SIGNAL]
+    if not want:
+        return []
+    try:
+        cands = rs.candidates(want)
+    except Exception:  # noqa: BLE001
+        logger.exception("buy list: almost candidates failed")
+        return []
+    rows = _score_rows(list(cands))
+    out = []
+    for code, c in cands.items():
+        if (c.get("failed") or []) != ["buy"] or not bl.strong_today(c) or not bl.trading_ok(c):
+            continue
+        q = _ALMOST_SIGNAL[sigs[code]["reason_key"]]
+        if q == 2:
+            line, px = entry_price(rows.get(code) or {}, sigs[code].get("tier")), rc._n(c.get("ltp"))
+            if not line or not px or line >= px or (px - line) / px * 100 > ALMOST_PRICE_PCT:
+                continue
+            c = {**c, "entry_price": line}
+            out.append((c, 2, None))
+        else:
+            out.append((c, 4, "quarter" if bl.quarter_change(c) is not None
+                         and not bl.quarter_ok(c) and bl.profit_ok(c) else "profit"))
+    return out
 
 
 def _compute() -> tuple[dict, dict]:
@@ -299,11 +371,12 @@ def _compute() -> tuple[dict, dict]:
         keys = bl.miss_keys(c, c["code"] in was)
         if len(keys) == 1 and keys[0] in _ALMOST_KEYS:
             almost_src.append((c, bl.MISS_QUESTION[keys[0]], keys[0]))
-    almost_src += [(c, 6, None) for c in res["unsettled"]]
+    almost_src += [(c, bl.TWO_CLOSES_Q, None) for c in res["unsettled"]]
+    almost_src += _outside_almost(pool_codes)
     almost_src.sort(key=lambda t: bl._order(t[0]))
     almost_src = almost_src[:bl.ALMOST_ROWS]
 
-    need = set(codes) | {c["code"] for c, q, _k in almost_src if q == 5}
+    need = set(codes) | {c["code"] for c, q, _k in almost_src if q == 4}
     meetings = _meetings(need)
     records = _record_dates(set(codes), today)
     rows = _score_rows(codes)
@@ -357,7 +430,7 @@ def _compute() -> tuple[dict, dict]:
         },
         "free_pick": bl.free_pick(codes, as_of),
         "rules": {
-            "margin_pct": bl.MARGIN_JOIN_PCT, "profit_pct": abs(bl.PROFIT_JOIN_PCT),
+            "profit_pct": abs(bl.PROFIT_JOIN_PCT),
             "quarter_pct": abs(bl.QUARTER_JOIN_PCT), "trade_lakh": round(bl.TRADE_JOIN_MN * 10),
             "bank_years": bl.BANK_CASH_YEARS,
             "sector_cap": bl.SECTOR_CAP, "financial_cap": bl.FINANCIAL_CAP, "max_rows": bl.MAX_ROWS,
@@ -387,7 +460,7 @@ def close_pending(prices: dict, today: str) -> bool:
 
 def with_prices(payload: dict, prices: dict) -> dict:
     """The stored payload with each share's price, today's move, the gap to
-    its usual price and "held" brought up to the latest prices. Pure."""
+    our fair price and "held" brought up to the latest prices. Pure."""
     for it in payload.get("items") or []:
         p = prices.get(it.get("code")) or {}
         px = rc._n(p.get("ltp"))

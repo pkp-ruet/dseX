@@ -604,10 +604,18 @@ def _num(v) -> Optional[float]:
 def p4_at_price(row: dict, price: float) -> Optional[float]:
     """The valuation score (p4_val) the row would have at `price` — every ratio
     scales with the price, so this is exact up to the stored rounding. Anchored
-    on the stored p4_val at today's price so it never disagrees with it."""
+    on the stored p4_val at today's price so it never disagrees with it.
+    A score worked out from the fair price (``p4_basis`` "fair") is read off
+    the same range at that price."""
     ltp, p4 = _num(row.get("ltp")), _num(row.get("p4_val"))
     if not ltp or ltp <= 0 or p4 is None or not price or price <= 0:
         return None
+    if row.get("p4_basis") == "fair":
+        from backend.services import fair_context as fc
+        at, _cap = fc.p4_on_fair(price, row.get("fair_center"), row.get("fair_half_width"),
+                                 row.get("eps"), row.get("fair_eps_used"),
+                                 row.get("div_latest_dps"), row.get("p1_eps_cagr"))
+        return at
     vd = _num(row.get("p4_vol_damp"))
     vd = 1.0 if vd is None else vd
 
@@ -1697,6 +1705,11 @@ def _compute_scores_df(
                                 (companies.get(code) or {}).get("total_shares"))
         for code, g in fin_df.groupby("trading_code", sort=False)
     }
+    # Every year as stored (not bonus-adjusted): the fair price reads them as
+    # the stock page does (fair_value.estimate_fair_value adjusts them itself).
+    fin_raw_by_code: dict[str, list[dict]] = {
+        code: g.to_dict("records") for code, g in fin_df.groupby("trading_code", sort=False)
+    }
 
     ext_docs = list(db.company_financials_ext.find(
         {"trading_code": {"$nin": list(excluded_codes)}}, {"_id": 0}
@@ -2122,8 +2135,65 @@ def _compute_scores_df(
         row.update(sub5)
         rows.append(row)
 
+    _fair_price_pass(rows, fin_raw_by_code, companies,
+                     backtest=prices_override is not None or fin_max_year is not None)
     df = pd.DataFrame(rows)
     return df
+
+
+def _fair_price_pass(rows: list[dict], fin_by_code: dict[str, list[dict]],
+                     companies: dict[str, dict], backtest: bool = False) -> None:
+    """The valuation score (p4_val) from the fair price (2026-11-22, phase 1).
+
+    It used to be its own reading of the ratios (``_a2_pillar4``: the plain
+    own-history medians and sector medians that counted thinly traded shares)
+    while the fair price, the "usual price" and the Buy List read the cleaner
+    inputs (fair_context) — two price rulers that often disagreed (CITYBANK
+    had a Buy beside a price 9% over its usual one). Now the score is where
+    today's close sits in the fair price's range (fair_context.p4_on_fair):
+    7.0 at the range's low edge, 4.0 at its high edge, and the range is as
+    wide as our confidence in it. The ratio score stays as ``p4_ratio`` and is
+    the score when there is no fair price, or only one way of working it out
+    (``p4_basis`` says which). Runs after every row is scored because the
+    market context is read from those rows."""
+    from backend.services import fair_context as fc
+    from backend.services.fair_value import estimate_fair_value
+    from backend.services.fair_value_service import context_for_scoring
+
+    ctx = context_for_scoring(rows, fin_by_code, backtest)
+    for row in rows:
+        row["p4_ratio"] = row.get("p4_val")
+        row["p4_basis"] = "ratios"
+        row["p4_cap"] = None
+        code = row.get("trading_code")
+        ltp = _num(row.get("ltp"))
+        try:
+            fv = estimate_fair_value({**row, "p4_val": None}, fin_by_code.get(code) or [],
+                                     companies.get(code) or {}, ltp,
+                                     normalize_sector(row.get("sector") or ""), ctx=ctx)
+        except Exception as e:  # noqa: BLE001 — the ratio score stands
+            logger.warning("%s: fair price failed: %s", code, e)
+            fv = None
+        if not fv:
+            continue
+        centre, half = _num(fv.get("center")), _num(fv.get("half_width"))
+        row.update({
+            "fair_center": fv.get("center"), "fair_low": fv.get("low"), "fair_high": fv.get("high"),
+            "fair_half_width": fv.get("half_width"), "fair_conf": fv.get("confidence"),
+            "fair_conf_why": fv.get("confidence_why"), "fair_eps_used": fv.get("eps_used"),
+            "fair_methods_n": len(fv.get("methods") or []),
+            "fair_thin": bool(fv.get("estimates_disagree")),
+            "value_gap_pct": round((1 - ltp / centre) * 100, 1) if ltp and centre else None,
+        })
+        if fv.get("estimates_disagree") or not ltp or not centre or not half:
+            continue  # one way of working it out is not enough to price on
+        p4, cap = fc.p4_on_fair(ltp, centre, half, row.get("eps"), fv.get("eps_used"),
+                                row.get("div_latest_dps"), row.get("p1_eps_cagr"))
+        if p4 is None:
+            continue
+        row["p4_val"] = round(p4, 2)
+        row["p4_basis"] = "fair"
+        row["p4_cap"] = cap
 
 
 def get_company_score_row(trading_code: str) -> Optional[dict]:

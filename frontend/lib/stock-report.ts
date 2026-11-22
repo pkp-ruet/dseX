@@ -37,6 +37,14 @@ export type SectionKey =
   | CheckKey
   | "next" | "risks" | "story" | "sector" | "alternatives" | "core" | "liquidity";
 
+/** How sure we are of a fair price (2026-11-22): the level, a short word
+ *  ("Reasonably sure") and one plain line with up to three reasons. */
+export interface FairSure {
+  level: "high" | "medium" | "low";
+  word: Bi;
+  line: Bi;
+}
+
 export interface ScoreCheck {
   key: CheckKey;
   /** "Red flags", "Price today" … (free) */
@@ -103,7 +111,7 @@ export interface PriceSection extends SectionBase {
   /** Today's official close (free). */
   today: number;
   /** Fair range (Premium). Null when estimates disagree or there's no basis. */
-  fair: { low: number; high: number; center: number } | null;
+  fair: { low: number; high: number; center: number; sure?: FairSure } | null;
   /** Each method's price (Premium). */
   methods: { label: Bi; price: number }[];
   /** Today vs the centre, % (negative = below the centre) (Premium). */

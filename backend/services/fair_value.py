@@ -112,6 +112,15 @@ def _weighted_median(pairs: list[tuple[float, float]]) -> Optional[float]:
     return pts[-1][0]
 
 
+def _num0(x) -> Optional[float]:
+    """A finite number, else None."""
+    if isinstance(x, bool) or not isinstance(x, (int, float)):
+        return None
+    if isinstance(x, float) and (math.isnan(x) or math.isinf(x)):
+        return None
+    return float(x)
+
+
 def _pos(x) -> bool:
     """True for a real, finite, positive number."""
     return (
@@ -218,6 +227,7 @@ def estimate_fair_value(
     peer_pb = score_row.get("sector_median_pb")
     today_labels: set[str] = set()
     peer_count = None
+    own_years = int(_num0(score_row.get("own_avg_pe_years")) or 0)
     if ctx:
         # Its usual P/E and P/B in today's market, and cleaner peers. A usual
         # figure that can't be put on today's footing keeps the plain one; a
@@ -236,10 +246,12 @@ def estimate_fair_value(
             e_y = all_rows[idx].get("eps") if idx is not None else None
             s_y, _ = fc.steady_eps(e_y, [r.get("eps") for r in all_rows[:idx + 1]] if idx is not None else [])
             pe_pts.append((year, pe * e_y / s_y if (_pos(e_y) and _pos(s_y)) else pe))
-        pe_today = fc.usual_today(pe_pts, ye_month, ctx.get("pe_factors"))
+        pe_today, own_years = fc.usual_today_n(pe_pts, ye_month, ctx.get("pe_factors"))
         if pe_today:
             own_pe = pe_today
             today_labels.add("own_history_pe")
+        else:
+            own_years = len(pe_pts)
         pb_today = fc.usual_today(own_points(fin_rows, ye_month, "pb"), ye_month, ctx.get("pb_factors"))
         if pb_today:
             own_pb = pb_today
@@ -275,12 +287,21 @@ def estimate_fair_value(
 
     eligible = _ELIGIBLE_FINANCIAL if sector_class in _FINANCIAL_CLASSES else _ELIGIBLE_GENERAL
     methods: dict[str, float] = {}
+    book_scaled = False
     if "own_history_pe" in eligible and _pos(own_pe) and _pos(eps):
         methods["own_history_pe"] = own_pe * eps
     if "peer_pe" in eligible and _pos(peer_pe) and _pos(eps):
         methods["peer_pe"] = peer_pe * eps
     if "book_own" in eligible and _pos(own_pb) and _pos(nav):
-        methods["book_own"] = own_pb * nav
+        # Scaled by how today's return on its assets compares with its usual
+        # one (never up): the usual P/B was earned by the usual return.
+        roes = [float(r["eps"]) / float(r["nav_per_share"]) for r in fin_rows
+                if _pos(r.get("eps")) and _pos(r.get("nav_per_share"))]
+        roe_usual = sorted(roes)[len(roes) // 2] if len(roes) >= fc.USUAL_MIN_YEARS else None
+        scale = fc.book_scale((eps / nav) if _pos(eps) else (eps_ttm / nav if _num0(eps_ttm) is not None else None),
+                              roe_usual)
+        book_scaled = scale is not None and scale < 1.0
+        methods["book_own"] = own_pb * nav * (scale if scale is not None else 1.0)
     if "book_peer" in eligible and _pos(peer_pb) and _pos(nav):
         methods["book_peer"] = peer_pb * nav
     # Dividend method only for companies that actually pay a reasonably reliable
@@ -322,15 +343,19 @@ def estimate_fair_value(
         return None
 
     prices = list(methods.values())
-    if len(prices) == 1:
-        band = 0.12  # single method -> express honest uncertainty
-    else:
-        dispersion = (max(prices) - min(prices)) / (2 * center)
-        band = min(0.20, max(0.05, dispersion))
+    # How sure we are (fair_context.confidence), and a range at least as wide
+    # as that allows: the methods' spread widens it, never narrows it.
+    spread = (max(prices) - min(prices)) / center if len(prices) > 1 else 0.0
+    confidence, confidence_why = fc.confidence(
+        len(prices), spread, own_years, "own_history_pe" in methods,
+        score_row.get("eps_stability"), eps_note == "jump",
+        score_row.get("data_completeness"), score_row.get("stale_data") is True)
+    band = fc.range_half_width(confidence, spread / 2)
     low = center * (1 - band)
     high = center * (1 + band)
 
-    # What the estimate alone says…
+    # What the estimate alone says (under the range = cheap, over = expensive;
+    # the valuation score reads the same range, fair_context.p4_on_fair)…
     estimate_stance = None
     if _pos(ltp):
         if ltp < low:
@@ -339,28 +364,16 @@ def estimate_fair_value(
             estimate_stance = "expensive"
         else:
             estimate_stance = "fair"
-    # …but the badge is the page's ONE valuation verdict (the P4 pillar, the same
-    # bands the Buy/Sell signal uses), so the Value box can never say "Looks
-    # cheap" beside a Health Check that says "Looks costly" (BATBC).
+    # …and the page's ONE valuation verdict (the P4 pillar the Buy / Sell
+    # signal uses). Since 2026-11-22 the score is worked out from this same
+    # range at the close, so the two only part on a cap (a deposit pays more,
+    # a P/E past 25), a price that moved since the close, or a company whose
+    # score had to fall back to its ratios.
     from backend.services.stock_facts import valuation_verdict
     stance = valuation_verdict(score_row.get("p4_val")) or estimate_stance
-    # Any mismatch counts: "Around fair value" over an estimate 2.6x today's
-    # price (WALTONHIL ৳886 vs ৳337) reads as a contradiction just the same.
-    disagree = thin or (estimate_stance is not None and stance is not None and estimate_stance != stance)
-
-    # Confidence from how many methods agree (and how tightly), softened by data
-    # completeness.
-    spread = (max(prices) - min(prices)) / center if len(prices) > 1 else 0.0
-    n = len(prices)
-    if n >= 3 and spread < 0.15:
-        confidence = "high"
-    elif n >= 2 and spread < 0.35:
-        confidence = "medium"
-    else:
-        confidence = "low"
-    dc = score_row.get("data_completeness")
-    if isinstance(dc, (int, float)) and dc < 0.5 and confidence == "high":
-        confidence = "medium"
+    # Only opposite answers count as disagreeing: "fair" beside "cheap" is a
+    # cap or a few taka of movement, not two yardsticks pointing apart.
+    disagree = thin or ({estimate_stance, stance} == {"cheap", "expensive"})
     if disagree:
         confidence = "low"
 
@@ -394,6 +407,12 @@ def estimate_fair_value(
         # centre figure that contradicts its own badge.
         "estimates_disagree": disagree,
         "confidence": confidence,
+        "confidence_why": confidence_why,
+        # The range's half-width (0.12 = ±12% around the centre) and how many
+        # of its own year-ends its usual P/E rests on.
+        "half_width": round(band, 4),
+        "own_years": own_years,
+        "book_scaled": book_scaled,
         "methods": [
             {
                 "name": name,

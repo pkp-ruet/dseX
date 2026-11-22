@@ -183,6 +183,9 @@
   background: rgb(var(--watch-rgb) / 0.09); font-size: var(--fs-sm); line-height: 1.5; color: var(--text);
 }
 
+/* How sure we are of the fair price (2026-11-22): one plain line under the ladder. */
+.bl-lad-sure { margin: var(--space-2) 0 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+
 /* Four plain numbers, two by two. */
 .bl-facts {
   display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; margin: 0;

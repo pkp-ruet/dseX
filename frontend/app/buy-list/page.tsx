@@ -27,7 +27,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com
 const URL = `${BASE_URL}${BUY_LIST_PATH}`;
 const TITLE = "Buy List: the best DSE shares to buy today";
 const DESCRIPTION =
-  "The few Dhaka Stock Exchange shares we would buy today: strong companies, priced well under their usual price, with nothing seriously wrong. Checked after every close.";
+  "The Dhaka Stock Exchange shares we would buy today: strong companies, priced under our fair price, with nothing seriously wrong. Checked after every close.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -96,13 +96,13 @@ export default async function BuyListPage() {
         lead={
           data.count > 0 ? (
             <T
-              en={`The DSE shares we would buy today: ${data.count} of the ${data.universe} companies we check passed all six of our checks.`}
-              bn={`আজ যে শেয়ারগুলো আমরা কেনার মতো মনে করি: আমরা যে ${data.universe}টি কোম্পানি যাচাই করি, তার ${data.count}টি আমাদের ছয়টি যাচাইয়েই পাস করেছে।`}
+              en={`The DSE shares we would buy today: ${data.count} of the ${data.universe} companies we check passed all five of our checks.`}
+              bn={`আজ যে শেয়ারগুলো আমরা কেনার মতো মনে করি: আমরা যে ${data.universe}টি কোম্পানি যাচাই করি, তার ${data.count}টি আমাদের পাঁচটি যাচাইয়েই পাস করেছে।`}
             />
           ) : (
             <T
-              en={`The DSE shares we would buy today. Of the ${data.universe} companies we check, none passes all six of our questions today.`}
-              bn={`আজ যে শেয়ারগুলো আমরা কেনার মতো মনে করি। আমরা যে ${data.universe}টি কোম্পানি যাচাই করি, আজ তার কোনোটিই আমাদের ছয়টি প্রশ্নে পাস করেনি।`}
+              en={`The DSE shares we would buy today. Of the ${data.universe} companies we check, none passes all five of our questions today.`}
+              bn={`আজ যে শেয়ারগুলো আমরা কেনার মতো মনে করি। আমরা যে ${data.universe}টি কোম্পানি যাচাই করি, আজ তার কোনোটিই আমাদের পাঁচটি প্রশ্নে পাস করেনি।`}
             />
           )
         }
@@ -123,7 +123,7 @@ export default async function BuyListPage() {
                 <BuyListRows items={data.items} />
               ) : (
                 <EmptyState
-                  title={<T en="No share passes all six questions today" bn="আজ কোনো শেয়ার ছয়টি প্রশ্নে পাস করেনি" />}
+                  title={<T en="No share passes all five questions today" bn="আজ কোনো শেয়ার পাঁচটি প্রশ্নে পাস করেনি" />}
                   message={
                     <T
                       en="We never lower the bar to fill the list. The strong companies that came closest are below."

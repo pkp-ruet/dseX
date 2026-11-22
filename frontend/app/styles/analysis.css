@@ -319,6 +319,11 @@ a.cv-medal:active { opacity: 0.85; }
 .an-methods p { margin: 0; padding: 9px var(--space-3); border-radius: var(--radius) var(--radius) 0 0; background: var(--surface-2); font-size: var(--fs-xs); font-weight: 700; }
 .an-methods li { display: flex; justify-content: space-between; gap: var(--space-3); padding: 8px var(--space-3); border-top: 1px solid var(--border); font-size: var(--fs-sm); }
 .an-methods ul { list-style: none; margin: 0; padding: 0; }
+/* How sure we are of the fair price (2026-11-22): three dots + one line. */
+.an-sure { display: flex; align-items: flex-start; gap: var(--space-2); padding: 9px var(--space-3); border-top: 1px solid var(--border); font-size: var(--fs-sm); }
+.an-sure-dots { display: inline-flex; gap: 3px; padding-top: 6px; flex: none; }
+.an-sure-dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--border); }
+.an-sure-dots span.is-on { background: var(--text); }
 
 .an-passed, .an-own { margin-top: var(--space-6); min-width: 0; }
 .an-passed ul { list-style: none; margin: var(--space-2) 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px var(--space-4); }

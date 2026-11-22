@@ -27,6 +27,8 @@ LEFT_OUT = {
     "heavy_debt": ("Loans bigger than the company's value", "ঋণ কোম্পানির বাজারমূল্যের চেয়েও বেশি"),
     "thin_trading": ("Trades too little", "লেনদেন খুব কম"),
     "earnings_dropped": ("Profit fell a quarter or more", "মুনাফা এক-চতুর্থাংশ বা তার বেশি কমেছে"),
+    "profit_slipping": ("Profit fell in the latest results", "সর্বশেষ ফলে মুনাফা কমেছে"),
+    "far_under": ("Far under its worth, profit not growing", "দাম অনেক কম, মুনাফা বাড়ছে না"),
     "stale_financials": ("Accounts are old", "হিসাব পুরোনো"),
     "z_category": ("In Z category", "Z ক্যাটাগরিতে"),
 }
@@ -88,7 +90,7 @@ def price_word(sig: Optional[dict]) -> Optional[str]:
         return None
     if sig.get("strength") == "strong":
         return "very_low"
-    if sig.get("reason_key") == "excellent_fair_price":
+    if sig.get("reason_key") in ("excellent_fair_price", "fair_price_buy"):
         return "fair"
     return "low"
 
@@ -259,7 +261,7 @@ def almost_row(code: str, sig: dict, row: dict, ltp: Optional[float],
                       "শুধু দাম কমলেই এটি তালিকায় ফিরবে না: মুনাফা এত ওঠানামা করে যে কোনো দামেই আমরা একে সস্তা বলি না।")
     elif g == "red_flag" and red_line:
         line = red_line
-    elif g == "earnings_dropped":
+    elif g in ("earnings_dropped", "profit_slipping", "far_under"):
         yoy = _n(row.get("interim_eps_yoy_pct"))
         if yoy is None:
             yoy = _n(row.get("eps_yoy_pct"))
@@ -273,13 +275,13 @@ def almost_row(code: str, sig: dict, row: dict, ltp: Optional[float],
 
 
 def entry_price(row: dict, tier: Optional[str]) -> Optional[float]:
-    """The highest price at which a mostly strong company's price score reaches
-    the Buy line (7), or a strong-all-round one's the expensive line (4) —
-    signal_service rules 7-9 — or None when no price gets it there."""
+    """The highest price at which a strong company's price score reaches the
+    Buy line (BUY_P4, the centre of its fair range — signal_service rule 7),
+    or None when no price gets it there."""
     from backend.services.scoring_service import price_for_p4
-    from backend.services.stock_facts import CHEAP_P4, EXPENSIVE_P4
+    from backend.services.signal_service import BUY_P4
 
-    line = {"excellent": EXPENSIVE_P4, "good": CHEAP_P4}.get(tier or "")
+    line = BUY_P4 if tier in ("good", "excellent") else None
     if line is None or not row:
         return None
     p = price_for_p4(row, line)

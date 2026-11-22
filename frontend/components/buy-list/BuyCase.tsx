@@ -12,8 +12,8 @@ const TONE: Record<string, string> = { good: "text-positive", neutral: "text-tex
 type Rung = { key: "fair" | "buy" | "now"; at: number; label: { en: string; bn: string }; value: { en: string; bn: string } };
 
 /**
- * Today's price as a short ladder, highest first: its usual price (its own
- * past prices for its profit and for what it owns), the price it is worth
+ * Today's price as a short ladder, highest first: our fair price (the
+ * stock page's range, its middle placing the rung), the price it is worth
  * buying under (the price it would join the list at today) and today's
  * price. Read top to bottom, no key needed. A share kept on the list above
  * that price says what a new buy should wait for.
@@ -27,7 +27,7 @@ function PriceLadder({ item }: { item: BuyListItem }) {
     rungs.push({
       key: "fair",
       at: fair.mid,
-      label: { en: "Its usual price", bn: "এর স্বাভাবিক দাম" },
+      label: { en: "Our fair price", bn: "আমাদের ন্যায্য দাম" },
       value: { en: `${money(fair.low)} to ${money(fair.high)}`, bn: `${money(fair.low)} থেকে ${money(fair.high)}` },
     });
   }
@@ -66,12 +66,24 @@ function PriceLadder({ item }: { item: BuyListItem }) {
           </li>
         ))}
       </ol>
+      {fair?.sure && (
+        <p className="bl-lad-sure">
+          <T en={fair.sure.line.en} bn={fair.sure.line.bn} />
+        </p>
+      )}
       {above && buy != null && (
         <p className="bl-lad-note">
-          <T
-            en={`A new buy is better at ${money(buy)} or lower. It stays on the list while it is at least 5% under its usual price.`}
-            bn={`নতুন করে কিনতে হলে ${money(buy)} বা তার কম দামে কেনা ভালো। স্বাভাবিক দামের চেয়ে অন্তত 5% কম থাকা পর্যন্ত তালিকায় থাকবে।`}
-          />
+          {item.leave_above != null ? (
+            <T
+              en={`A new buy is better at ${money(buy)} or lower. It stays on the list while its price is under ${money(item.leave_above)}.`}
+              bn={`নতুন করে কিনতে হলে ${money(buy)} বা তার কম দামে কেনা ভালো। দাম ${money(item.leave_above)}-এর নিচে থাকা পর্যন্ত তালিকায় থাকবে।`}
+            />
+          ) : (
+            <T
+              en={`A new buy is better at ${money(buy)} or lower. It stays on the list until its price rises a little further.`}
+              bn={`নতুন করে কিনতে হলে ${money(buy)} বা তার কম দামে কেনা ভালো। দাম আরও কিছুটা না বাড়া পর্যন্ত তালিকায় থাকবে।`}
+            />
+          )}
         </p>
       )}
     </div>

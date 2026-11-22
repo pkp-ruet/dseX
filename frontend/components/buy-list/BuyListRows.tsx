@@ -99,7 +99,7 @@ function Status({ item }: { item: BuyListItem }) {
   );
 }
 
-/** Rank · company · how far under its usual price, then buy-now-or-wait,
+/** Rank · company · how far under our fair price, then buy-now-or-wait,
  *  then one short reason and its tag. */
 function Head({ item }: { item: BuyListItem }) {
   const reason = item.why_short ?? (item.why_short === undefined ? item.why : null);
@@ -131,12 +131,12 @@ function Head({ item }: { item: BuyListItem }) {
         {gap != null ? (
           <>
             <b>{gap}%</b>
-            <T en="under its usual price" bn="স্বাভাবিক দামের চেয়ে কম" />
+            <T en="under our fair price" bn="ন্যায্য দামের চেয়ে কম" />
           </>
         ) : (
           <>
             <b className="bl-gap-px">{money(item.price)}</b>
-            <T en="about its usual price" bn="প্রায় স্বাভাবিক দামে" />
+            <T en="about our fair price" bn="প্রায় ন্যায্য দামে" />
           </>
         )}
       </span>

@@ -4,52 +4,52 @@ side is ``buy_list_service.py``.
 
 The Premium page /buy-list (2026-11-08, user: bring back the buy page "as a
 premium feature, but complete new"; named "Buy List" the same day): the few
-DSE shares we would buy today. It is stricter than a Buy signal. Six
-questions, every one a yes:
+DSE shares we would buy today. It is stricter than a Buy signal. Five
+questions since 2026-11-22 (phase 3 of the price plan; six before), every one
+a yes:
 
 1. Is it a strong company? Mostly strong or better on today's own figures,
    not only held there from yesterday by the group's settling.
-2. Is today's price good? The Buy signal (``signal_service``).
+2. Is today's price good? The Buy signal (``signal_service``): since
+   2026-11-22 its price sits under the middle of our fair price, the range
+   worked out by ``fair_value.estimate_fair_value`` (one ruler for the stock
+   page, the price word and this list), not near its yearly top, and not far
+   under it while profit isn't growing. The old question 4 ("at least 10%
+   under its usual price, from its own history only, and under both of its
+   own measures") is gone: it priced the share a second way and cut 19 Buys
+   to 9 on 22 Nov.
 3. Is anything seriously wrong? The recommendation gate's other checks
    (``recommend.GATE``: a profit, no auditor / regulator / meeting warnings,
-   loans under saved profit, enough figures). 1–3 = the engine's ``pool()``.
-   Since 2026-11-18 also: it trades at least ``TRADE_JOIN_MN`` on a normal
-   day (the middle day of the last 30, the same list reaches every reader at
-   once), and a bank or finance company paid cash dividends in each of its
-   last ``BANK_CASH_YEARS`` years (Bangladesh Bank stops cash dividends at
-   banks short of provisions, so a skipped year says more than the profit).
-4. Is the price well under its usual price? Since 2026-11-18 "its usual
-   price" is the company's own history only: the price it has traded at for
-   its profit (P/E) and for what it owns (P/B), the two weighted the way the
-   fair-value estimate weighs them. Today's price at least ``MARGIN_JOIN_PCT``
-   under it, and under both of the two. (It used to be the stock page's fair
-   value, whose middle often landed on the similar-companies figure capped at
-   1.5× the company's own, and whose "estimates agree" test was a ±20% band
-   edge: a cheap share joined only 20% under, DUTCHBANGL 19.5% under stayed
-   out, and members left on a 1% rise.)
-5. Is the profit holding up? The latest results not down more than
-   ``PROFIT_JOIN_PCT`` on the same months last year, and since 2026-11-18 the
-   latest quarter alone not down more than ``QUARTER_JOIN_PCT`` (when last
-   year's quarter was big enough to compare: DBH joined on +8% for nine
-   months while its July–September quarter alone was down 22.5%).
-6. Has it passed on two closes in a row? It passed 1–5 on the previous
+   loans under saved profit, enough figures). 1-3 = the engine's ``pool()``.
+   Also: it trades at least ``TRADE_JOIN_MN`` (৳15 lakh since 2026-11-22,
+   was ৳30 lakh) on a normal day (the middle day of the last 30), and a bank
+   or finance company paid cash dividends in each of its last
+   ``BANK_CASH_YEARS`` years. Under ``TRADE_SLOW_MN`` the row says "Trades
+   slowly".
+4. Is the profit holding up? The Buy signal's own profit check
+   (``signal_service.profit_slipping``, the same lines read from there): the
+   latest results not down more than ``PROFIT_JOIN_PCT`` on the same months
+   last year, the latest quarter alone not more than ``QUARTER_JOIN_PCT``.
+5. Has it passed on two closes in a row? It passed 1-4 on the previous
    stored day too (on the first day, it had a Buy signal on the previous
    signal day).
 
 Then at most ``SECTOR_CAP`` from one DSE sector, ``FINANCIAL_CAP`` banks +
-finance companies + insurers together and ``MAX_ROWS`` in all. Never filled to
-reach a number. Ordered by the engine's conviction (the same 100 points as
-Picked for you), the same for every reader.
+finance companies + insurers together and ``MAX_ROWS`` in all (3 / 5 / 20
+since 2026-11-22, were 2 / 3 / 10). Never filled to reach a number. Ordered
+by the engine's conviction (the same 100 points as Picked for you: the grade
+first, then the price score, which reads the fair range), the same for every
+reader.
 
-It holds still: a share already on the list stays until it is less than
-``MARGIN_LEAVE_PCT`` under its usual price, its profit falls past
-``PROFIT_LEAVE_PCT`` (its latest quarter past ``QUARTER_LEAVE_PCT``) or it
+It holds still: a share already on the list keeps it until the Buy signal's
+leave lines (its price a third of a range width over the fair middle, profit
+past ``PROFIT_LEAVE_PCT``, the quarter past ``QUARTER_LEAVE_PCT``) or it
 trades under ``TRADE_LEAVE_MN``, and keeps its seat against a newcomer unless
-the newcomer beats it by ``KEEP_SEAT_PTS``. Two closes to leave too (since
-2026-11-18): a member that misses only a soft question (``SOFT_MISSES``: the
-company's day figures, the price, trading) stays one more close "on grace";
-a serious one (a warning, a loss, loans, the grade falling, profit falling,
-a skipped bank dividend) takes it off at once.
+the newcomer beats it by ``KEEP_SEAT_PTS``. Two closes to leave too: a member
+that misses only a soft question (``SOFT_MISSES``: the company's day figures,
+the price, trading) stays one more close "on grace"; a serious one (a warning,
+a loss, loans, the grade falling, profit falling, a skipped bank dividend)
+takes it off at once.
 
 No performance claims: never add "since it joined" returns.
 Bengali sentences use Western digits.
@@ -66,28 +66,21 @@ from backend.services.tiers import tier_key
 _n = rl._n
 _r = rl._r
 
-MARGIN_JOIN_PCT = 10.0     # joins at least this far under its usual price …
-MARGIN_LEAVE_PCT = 5.0     # … and leaves only when less than this under
-PROFIT_JOIN_PCT = -10.0    # joins with the latest results down this much or less …
-PROFIT_LEAVE_PCT = -15.0   # … and leaves past this fall
-QUARTER_JOIN_PCT = -20.0   # the latest quarter alone, joining …
-QUARTER_LEAVE_PCT = -30.0  # … and leaving
-QUARTER_MIN_BASE = 0.10    # ৳ a share: last year's quarter must be this big to compare
-TRADE_JOIN_MN = 3.0        # ৳30 lakh on a normal day (the middle day of 30) to join …
-TRADE_LEAVE_MN = 2.0       # … ৳20 lakh to stay
+# Question 4 is the Buy signal's own profit check since 2026-11-22 (one check,
+# signal_service.profit_slipping): the same lines, read from there.
+from backend.services.signal_service import (  # noqa: E402
+    PROFIT_BUY_PCT as PROFIT_JOIN_PCT, PROFIT_LEAVE_PCT, QUARTER_BUY_PCT as QUARTER_JOIN_PCT,
+    QUARTER_LEAVE_PCT, QUARTER_MIN_BASE)
+TRADE_JOIN_MN = 1.5        # ৳15 lakh on a normal day (the middle day of 30) to join ...
+TRADE_LEAVE_MN = 1.0       # ... ৳10 lakh to stay (the Buy signal's thin-trading line)
+TRADE_SLOW_MN = 3.0        # under ৳30 lakh the row says "Trades slowly"
 BANK_CASH_YEARS = 3        # a bank / finance company paid cash in each of these years
-SECTOR_CAP = 2             # one DSE sector
-FINANCIAL_CAP = 3          # banks + finance companies + insurers together
-MAX_ROWS = 10
+SECTOR_CAP = 3             # one DSE sector
+FINANCIAL_CAP = 5          # banks + finance companies + insurers together
+MAX_ROWS = 20
 KEEP_SEAT_PTS = 5.0        # a share on the list keeps its seat unless beaten by this
 NEXT_DAYS = 14             # results and dividend dates shown on a share's case
 ALMOST_ROWS = 8
-
-# "Its usual price": the company's own past prices against its profit and its
-# assets, weighted as the fair-value estimate weighs them (fair_value.py).
-OWN_METHODS = ("own_history_pe", "book_own")
-_OWN_WEIGHTS = {"GENERAL": {"own_history_pe": 1.0, "book_own": 0.5},
-                "FINANCIAL": {"own_history_pe": 0.6, "book_own": 1.0}}
 
 _STRONG = ("good", "excellent")
 _FINANCIAL = {"BANK", "NBFI", "INSURANCE"}
@@ -97,8 +90,10 @@ _LENDERS = {"BANK", "NBFI"}
 # close for. The price, a day's checks and trading can swing back by
 # tomorrow; a warning, a loss, falling profit or a skipped dividend can't.
 MISS_QUESTION = {"price_signal": 2, "strong": 1, "bank_cash": 3, "trading": 3,
-                 "value": 4, "profit": 5, "quarter": 5}
-SOFT_MISSES = frozenset({"price_signal", "strong", "trading", "value"})
+                 "profit": 4, "quarter": 4}
+SOFT_MISSES = frozenset({"price_signal", "strong", "trading"})
+# The question "two closes in a row" is.
+TWO_CLOSES_Q = 5
 # The signal's own reasons that are only about the price or trading.
 SOFT_SIGNAL_REASONS = frozenset({"near_52w_high", "quality_expensive", "good_wait_price", "thin_trading"})
 
@@ -156,52 +151,30 @@ def strong_today(c: dict) -> bool:
     return cg in _STRONG if cg else True
 
 
-def usual_price(c: dict) -> Optional[dict]:
-    """``{mid, low, high, methods}`` — its usual price from its own history
-    (P/E and P/B), or None unless both are there. ``mid`` weighs the two
-    like the fair-value estimate (profit first, assets first for banks,
-    finance companies and insurers)."""
-    meth = (c.get("fair_value") or {}).get("methods") or {}
-    prices = {k: _n(meth.get(k)) for k in OWN_METHODS}
-    prices = {k: v for k, v in prices.items() if v is not None and v > 0}
-    if len(prices) < len(OWN_METHODS):
+def fair_price(c: dict) -> Optional[dict]:
+    """``{mid, low, high}`` - our fair price (the stock page's, worked out at
+    today's price by ``fair_value.estimate_fair_value``), or None without one
+    or when it rests on one way of working it out."""
+    fv = c.get("fair_value") or {}
+    mid = _n(fv.get("center"))
+    if not mid or mid <= 0 or fv.get("estimates_disagree"):
         return None
-    w = _OWN_WEIGHTS["FINANCIAL" if is_financial(c) else "GENERAL"]
-    mid = sum(v * w[k] for k, v in prices.items()) / sum(w[k] for k in prices)
-    return {"mid": mid, "low": min(prices.values()), "high": max(prices.values()), "methods": prices}
+    low, high = _n(fv.get("low")), _n(fv.get("high"))
+    return {"mid": mid, "low": low if low else mid, "high": high if high else mid}
 
 
 def fair_mid(c: dict) -> Optional[float]:
-    """The middle of its usual price (kept under its old name: the page's
-    "fair" range is this one)."""
-    u = usual_price(c)
-    return u["mid"] if u else None
+    f = fair_price(c)
+    return f["mid"] if f else None
 
 
 def margin_pct(c: dict) -> Optional[float]:
-    """How far today's price sits under its usual price, in % (negative =
-    above it). None without both of its own measures."""
+    """How far today's price sits under our fair price's middle, in %
+    (negative = above it). None without a fair price."""
     mid, px = fair_mid(c), _n(c.get("ltp"))
     if mid is None or not px or px <= 0:
         return None
     return (1 - px / mid) * 100
-
-
-def under_both(c: dict) -> bool:
-    """Today's price is under its usual price on profit AND on assets."""
-    u, px = usual_price(c), _n(c.get("ltp"))
-    return bool(u and px and all(v > px for v in u["methods"].values()))
-
-
-def price_ok(c: dict, member: bool = False) -> bool:
-    """Question 4. A newcomer needs the margin and both measures above
-    today's price; a member only the leave margin."""
-    m = margin_pct(c)
-    if m is None:
-        return False
-    if member:
-        return m >= MARGIN_LEAVE_PCT
-    return m >= MARGIN_JOIN_PCT and under_both(c)
 
 
 def profit_ok(c: dict, member: bool = False) -> bool:
@@ -272,8 +245,6 @@ def miss_keys(c: dict, member: bool = False) -> list[str]:
         out.append("bank_cash")
     if not trading_ok(c, member):
         out.append("trading")
-    if not price_ok(c, member):
-        out.append("value")
     if not profit_ok(c, member):
         out.append("profit")
     if not quarter_ok(c, member):
@@ -395,16 +366,10 @@ def week_start(day: str) -> str:
 
 
 def join_price(c: dict, signal_buy: Optional[float]) -> Optional[float]:
-    """The highest price at which it would join the list today: under the
-    signal's own buy price (``stock_report.buy_price_for``), at least
-    ``MARGIN_JOIN_PCT`` under its usual price and under both of its own
-    measures. The case's "worth buying under" line, so a member kept by its
-    staying lines never shows a buy-under price that reads as today's."""
-    u = usual_price(c)
-    lines = [signal_buy] if signal_buy and signal_buy > 0 else []
-    if u:
-        lines += [u["mid"] * (1 - MARGIN_JOIN_PCT / 100), u["low"]]
-    return round_price(min(lines)) if lines else None
+    """The highest price at which it would join the list today: the Buy
+    signal's own buy price (``stock_report.buy_price_for``: the fair middle,
+    never past the near-the-top line). The case's "worth buying under" line."""
+    return round_price(signal_buy) if signal_buy and signal_buy > 0 else None
 
 
 # ---------------------------------------------------------------------------
@@ -477,8 +442,8 @@ def watch_label(key: Optional[str], level: Optional[str]) -> Optional[dict]:
 
 
 def why_line(c: dict) -> dict:
-    """One sentence on why it is on the list: the company, how far under its
-    usual price, and the one figure that stands out. The cash yield only when
+    """One sentence on why it is on the list: the company, how far under our
+    fair price, and the one figure that stands out. The cash yield only when
     the dividend looks steady."""
     m = margin_pct(c)
     mp = max(0, round(m)) if m is not None else None
@@ -503,10 +468,10 @@ def why_line(c: dict) -> dict:
         en = f"{lead_en}, at a good price today."
         bn = f"{lead_bn}। আজ দামও ভালো।"
         return _bi(en, bn)
-    if mp < 1:  # a member on grace, back at its usual price
-        return _bi(f"{lead_en}, now at about its usual price.", f"{lead_bn}। দাম এখন প্রায় এর স্বাভাবিক দামের সমান।")
-    en = f"{lead_en}, priced {mp}% under its usual price" + (f", {extra_en}." if extra_en else ".")
-    bn = f"{lead_bn}। দাম এর স্বাভাবিক দামের চেয়ে {mp}% কম" + (f", {extra_bn}।" if extra_bn else "।")
+    if mp < 1:  # a member kept by its staying line, back at about our fair price
+        return _bi(f"{lead_en}, now at about our fair price.", f"{lead_bn}। দাম এখন প্রায় আমাদের ন্যায্য দামের সমান।")
+    en = f"{lead_en}, priced {mp}% under our fair price" + (f", {extra_en}." if extra_en else ".")
+    bn = f"{lead_bn}। দাম আমাদের ন্যায্য দামের চেয়ে {mp}% কম" + (f", {extra_bn}।" if extra_bn else "।")
     return _bi(en, bn)
 
 
@@ -553,12 +518,12 @@ def results_base(meeting: Optional[dict]) -> Optional[float]:
 
 def also_line(c: dict) -> dict:
     """Why a share that passed every question isn't in the list. The page
-    shows it under "Passed all six, left out to keep the list spread", so the
+    shows it under "Also passed today", so the
     line gives only the reason."""
     cap = c.get("cap")
     if cap == "financial":
-        return _bi("Left out because 3 banks, finance companies or insurers are already on the list.",
-                   "তালিকায় এর মধ্যেই 3টি ব্যাংক, আর্থিক প্রতিষ্ঠান বা বিমা কোম্পানি আছে, তাই বাদ।")
+        return _bi(f"Left out because {FINANCIAL_CAP} banks, finance companies or insurers are already on the list.",
+                   f"তালিকায় এর মধ্যেই {FINANCIAL_CAP}টি ব্যাংক, আর্থিক প্রতিষ্ঠান বা বিমা কোম্পানি আছে, তাই বাদ।")
     if cap == "full":
         return _bi(f"Left out to keep the list to {MAX_ROWS}.",
                    f"তালিকা {MAX_ROWS}টিতে রাখতে বাদ।")
@@ -602,42 +567,27 @@ def almost_row(c: dict, question: int, meeting: Optional[dict] = None, key: Opti
                             f"পারেন, তাই আমরা অন্তত {_lakh_bn(TRADE_JOIN_MN)}র লেনদেন চাই।"),
                 "fix": _bi("It comes in once more of it trades on a normal day.",
                            "সাধারণ দিনে লেনদেন বাড়লে তালিকায় আসবে।")}
-    if question == 4:
-        u, px = usual_price(c), _n(c.get("ltp"))
-        if u is None:
-            miss = _bi("We can't work out its usual price: we need its past prices against both its profit and its assets.",
-                       "এর স্বাভাবিক দাম হিসাব করা যাচ্ছে না: মুনাফা ও সম্পদ, দুটির তুলনায়ই এর আগের দাম দরকার।")
-            fix = _bi("It comes in once we have both.", "দুটিই পাওয়া গেলে তালিকায় আসবে।")
-            return {"question": 4, "miss": miss, "fix": fix}
-        mid = u["mid"]
-        m = margin_pct(c) or 0.0
-        line = join_price(c, None)
-        pe, pb = u["methods"]["own_history_pe"], u["methods"]["book_own"]
-        if m < 0:
-            miss = _bi(f"Its price, {_money(px)}, is above its usual price of {_money(mid)}.",
-                       f"এর দাম {_money(px)}, যা এর স্বাভাবিক দাম {_money(mid)}-এর চেয়ে বেশি।")
-        elif m < 1:
-            miss = _bi(f"Its price, {_money(px)}, is about its usual price of {_money(mid)}.",
-                       f"এর দাম {_money(px)}, প্রায় এর স্বাভাবিক দাম {_money(mid)}-এর সমান।")
-        elif m >= MARGIN_JOIN_PCT and px and min(pe, pb) <= px:
-            if pb <= px:
-                miss = _bi(f"Its price is under its usual price for its profit ({_money(pe)}), "
-                           f"but not under its usual price for what it owns ({_money(pb)}).",
-                           f"দাম মুনাফার তুলনায় এর স্বাভাবিক দামের ({_money(pe)}) চেয়ে কম, "
-                           f"কিন্তু সম্পদের তুলনায় স্বাভাবিক দামের ({_money(pb)}) চেয়ে কম নয়।")
-            else:
-                miss = _bi(f"Its price is under its usual price for what it owns ({_money(pb)}), "
-                           f"but not under its usual price for its profit ({_money(pe)}).",
-                           f"দাম সম্পদের তুলনায় এর স্বাভাবিক দামের ({_money(pb)}) চেয়ে কম, "
-                           f"কিন্তু মুনাফার তুলনায় স্বাভাবিক দামের ({_money(pe)}) চেয়ে কম নয়।")
+    if question == 2:
+        # A strong company kept off the list only by the price (the Buy
+        # signal's line, the middle of our fair price): what brings it in.
+        px, mid, line = _n(c.get("ltp")), fair_mid(c), _n(c.get("entry_price"))
+        if not px or not line or line >= px:
+            return None
+        if mid and px <= mid:
+            # Under the fair middle, but held by a cap (a P/E past 25, or a
+            # deposit that earns more): high for what it earns today.
+            miss = _bi(f"Its price, {_money(px)}, is under our fair price of {_money(mid)}, but still high for the profit it makes today.",
+                       f"এর দাম {_money(px)}, যা আমাদের ন্যায্য দাম {_money(mid)}-এর নিচে, তবে এখনকার মুনাফার তুলনায় এখনো বেশি।")
+        elif mid:
+            miss = _bi(f"Its price, {_money(px)}, is not yet under the middle of our fair price, {_money(mid)}.",
+                       f"এর দাম {_money(px)}, যা এখনো আমাদের ন্যায্য দামের মাঝামাঝি {_money(mid)}-এর নিচে নামেনি।")
         else:
-            miss = _bi(f"Only {round(m)}% under its usual price of {_money(mid)}.",
-                       f"এর স্বাভাবিক দাম {_money(mid)}-এর চেয়ে মাত্র {round(m)}% কম।")
+            miss = _bi(f"Its price, {_money(px)}, is a little high for what it earns.",
+                       f"এর দাম {_money(px)}, আয়ের তুলনায় একটু বেশি।")
         fix = _bi(f"It comes in under {_money(line)}.", f"দাম {_money(line)}-এর নিচে এলে তালিকায় আসবে।")
-        if line:
-            fix["price"] = line  # the page's figure and its price-alert bell
-        return {"question": 4, "miss": miss, "fix": fix}
-    if question == 5 and key == "quarter":
+        fix["price"] = round_price(line)  # the page's figure and its price-alert bell
+        return {"question": 2, "miss": miss, "fix": fix}
+    if question == 4 and key == "quarter":
         q = quarter_change(c)
         if q is None:
             return None
@@ -646,8 +596,8 @@ def almost_row(c: dict, question: int, meeting: Optional[dict] = None, key: Opti
                    f"শুধু {l_bn} মুনাফা আগের বছরের একই সময়ের চেয়ে {_r(abs(q), 0)}% কম।")
         fix = _fix_on_results(meeting, "It comes in once a quarter's profit holds up.",
                               "কোনো প্রান্তিকে মুনাফা টিকে থাকলে তালিকায় আসবে।")
-        return {"question": 5, "miss": miss, "fix": fix}
-    if question == 5:
+        return {"question": 4, "miss": miss, "fix": fix}
+    if question == 4:
         t, t_en, t_bn = rl.profit_trend(c)
         if t is None:
             return None
@@ -661,9 +611,9 @@ def almost_row(c: dict, question: int, meeting: Optional[dict] = None, key: Opti
         else:
             fix = _bi("It comes in once its results show profit holding up.",
                       "আর্থিক ফলে মুনাফা টিকে থাকলে তালিকায় আসবে।")
-        return {"question": 5, "miss": miss, "fix": fix}
-    if question == 6:
-        return {"question": 6,
+        return {"question": 4, "miss": miss, "fix": fix}
+    if question == TWO_CLOSES_Q:
+        return {"question": TWO_CLOSES_Q,
                 "miss": _bi("It passed every question today, for the first time.",
                             "আজ প্রথমবার সব প্রশ্নে পাস করেছে।"),
                 "fix": _bi("It joins if it passes again at the next close.",
@@ -678,7 +628,6 @@ _MISS_WORDS = {
     "strong": ("the company was not mostly strong on that day's own figures",
                "সেদিনের হিসাবে কোম্পানিটি বেশিরভাগ দিকে শক্তিশালী ছিল না"),
     "trading": ("too little of it traded on a normal day", "সাধারণ দিনে এর লেনদেন খুব কম হয়েছে"),
-    "value": ("its price came too close to its usual price", "দাম এর স্বাভাবিক দামের খুব কাছে চলে এসেছে"),
 }
 
 
@@ -710,11 +659,7 @@ def left_reason(c: Optional[dict], key: Optional[str], signal_reason: Optional[d
     the engine gate's checks it failed (a member that left the pool);
     ``second`` = it was on grace and missed again."""
     out = None
-    if c is not None and key == "value":
-        out = (_bi("We can no longer work out its usual price.", "এর স্বাভাবিক দাম আর হিসাব করা যাচ্ছে না।")
-               if margin_pct(c) is None else
-               _bi("Its price came too close to its usual price.", "দাম এর স্বাভাবিক দামের খুব কাছে চলে এসেছে।"))
-    elif c is not None and key == "profit":
+    if c is not None and key == "profit":
         out = _bi("Its latest results showed profit falling.", "সর্বশেষ আর্থিক ফলে মুনাফা কমেছে।")
     elif c is not None and key == "quarter":
         out = _bi("Profit in its latest quarter alone fell sharply.", "শুধু সর্বশেষ প্রান্তিকে মুনাফা অনেক কমেছে।")

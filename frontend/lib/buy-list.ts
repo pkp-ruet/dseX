@@ -35,11 +35,14 @@ export interface BuyListItem extends BuyListIdent {
   price: number | null;
   change_pct: number | null;
   price_word: PriceWordKey;
-  /** How far under its usual price (its own history), in %. */
+  /** How far under our fair price's middle, in % (2026-11-22; it was its
+   *  usual price from its own history before). */
   margin_pct: number | null;
-  /** Its usual price: the lower and higher of its own two measures (past
-   *  prices against its profit and its assets) and the weighted middle. */
-  fair: { low: number; high: number; mid: number } | null;
+  /** Our fair price: the range and its middle (the stock page's figure),
+   *  and how sure we are of it. */
+  fair: { low: number; high: number; mid: number; sure?: { level: "high" | "medium" | "low"; word: BiText; line: BiText } } | null;
+  /** The price over which it leaves the list (the Buy signal's leave line). */
+  leave_above?: number | null;
   /** The highest price at which it would join the list today. */
   buy_below: number | null;
   /** On the list by its staying lines, but above the price it would join at. */
@@ -64,9 +67,10 @@ export interface BuyListItem extends BuyListIdent {
 }
 
 export interface BuyListAlmost extends BuyListIdent {
-  question: 3 | 4 | 5 | 6;
+  /** 2 the price · 3 trading · 4 profit · 5 two closes in a row. */
+  question: 2 | 3 | 4 | 5;
   miss: BiText;
-  /** `price`: the price that brings it in (question 4), for the row's figure
+  /** `price`: the price that brings it in (question 2), for the row's figure
    *  and its price-alert bell. */
   fix: BiText & { date?: string | null; price?: number | null };
 }
@@ -87,7 +91,6 @@ export interface BuyList {
   };
   free_pick: string | null;
   rules: {
-    margin_pct: number;
     profit_pct: number;
     quarter_pct?: number;
     trade_lakh?: number;
@@ -118,7 +121,7 @@ export interface BuyListHome {
   almost: number;
 }
 
-/** The six questions, in order. Every share on the list says yes to all six.
+/** The five questions, in order. Every share on the list says yes to all five.
  *  `short` = the name on the strip at the top of the page; `plain` = the one
  *  line under the question in "How we choose"; `line` = the full rule, folded
  *  under it; `miss` = the tag on an "Almost made it" row that missed it. */
@@ -137,16 +140,16 @@ export const QUESTIONS: { short: BiText; title: BiText; plain: BiText; line: BiT
     },
   },
   {
-    short: { en: "Good price today", bn: "আজকের দাম ভালো" },
-    title: { en: "Is today's price good?", bn: "আজকের দাম কি ভালো?" },
+    short: { en: "Under our fair price", bn: "ন্যায্য দামের নিচে" },
+    title: { en: "Is today's price under our fair price?", bn: "আজকের দাম কি আমাদের ন্যায্য দামের নিচে?" },
     plain: {
-      en: "Our price check says the price is good, and it isn't near its high of the year.",
-      bn: "আমাদের দাম যাচাইয়ে দাম ভালো, আর বছরের সর্বোচ্চ দামের কাছে নয়।",
+      en: "Under the middle of what we work out it is worth, and not near its high of the year.",
+      bn: "আমাদের হিসাবের ন্যায্য দামের মাঝামাঝির নিচে, আর বছরের সর্বোচ্চ দামের কাছে নয়।",
     },
     miss: { en: "today's price", bn: "আজকের দাম" },
     line: {
-      en: "Our price check says low, or fair for a company strong all round, and the price isn't near its highest of the year.",
-      bn: "আমাদের দাম যাচাইয়ে দাম কম, বা সব দিকে শক্তিশালী কোম্পানির জন্য ন্যায্য। আর দাম বছরের সর্বোচ্চের কাছে নয়।",
+      en: "Today's price is under the middle of what we work out the company is worth, and it isn't near its highest of the year. A price far under that, while profit isn't growing, doesn't count: a gap that big is usually there for a reason.",
+      bn: "আজকের দাম আমাদের হিসাবের ন্যায্য দামের মাঝামাঝির নিচে, আর বছরের সর্বোচ্চের কাছে নয়। মুনাফা না বাড়লে ন্যায্য দামের চেয়ে অনেক কম দাম গোনা হয় না: এত বড় ফারাক সাধারণত কোনো কারণে থাকে।",
     },
   },
   {
@@ -158,21 +161,8 @@ export const QUESTIONS: { short: BiText; title: BiText; plain: BiText; line: BiT
     },
     miss: { en: "our safety checks", bn: "নিরাপত্তা যাচাই" },
     line: {
-      en: "It makes a profit, with no auditor, regulator or meeting warning in a year and no heavy loans. It isn't in category Z, and at least ৳30 lakh of it changes hands on a normal day. A bank or finance company paid a cash dividend in each of its last 3 years.",
-      bn: "মুনাফায় আছে। এক বছরে নিরীক্ষক, নিয়ন্ত্রক বা সভা নিয়ে কোনো সতর্কতা নেই, ঋণও বেশি নয়। Z ক্যাটাগরিতে নয়, আর সাধারণ একটি দিনে অন্তত 30 লাখ টাকার লেনদেন হয়। ব্যাংক বা আর্থিক প্রতিষ্ঠান হলে গত 3 বছরের প্রতি বছর নগদ ডিভিডেন্ড দিয়েছে।",
-    },
-  },
-  {
-    short: { en: "Well under its usual price", bn: "স্বাভাবিক দামের চেয়ে বেশ কম" },
-    title: { en: "Is the price well under its usual price?", bn: "দাম কি এর স্বাভাবিক দামের চেয়ে বেশ কম?" },
-    plain: {
-      en: "At least 10% under the price it usually trades at.",
-      bn: "সাধারণত যে দামে কেনাবেচা হয়, তার চেয়ে অন্তত 10% কম।",
-    },
-    miss: { en: "its usual price", bn: "স্বাভাবিক দাম" },
-    line: {
-      en: "Its usual price comes from its own past: what it has traded at for its profit, and for what it owns. Today's price is at least 10% under it, and under both of the two.",
-      bn: "স্বাভাবিক দাম আসে এর নিজের অতীত থেকে: মুনাফার তুলনায় আর সম্পদের তুলনায় এটি কোন দামে কেনাবেচা হয়েছে। আজকের দাম তার চেয়ে অন্তত 10% কম, আর দুটির চেয়েই কম।",
+      en: "It makes a profit, with no auditor, regulator or meeting warning in a year and no heavy loans. It isn't in category Z, and at least ৳15 lakh of it changes hands on a normal day (under ৳30 lakh, the row says it trades slowly). A bank or finance company paid a cash dividend in each of its last 3 years.",
+      bn: "মুনাফায় আছে। এক বছরে নিরীক্ষক, নিয়ন্ত্রক বা সভা নিয়ে কোনো সতর্কতা নেই, ঋণও বেশি নয়। Z ক্যাটাগরিতে নয়, আর সাধারণ একটি দিনে অন্তত 15 লাখ টাকার লেনদেন হয় (30 লাখের কম হলে তালিকায় লেখা থাকে যে লেনদেন ধীর)। ব্যাংক বা আর্থিক প্রতিষ্ঠান হলে গত 3 বছরের প্রতি বছর নগদ ডিভিডেন্ড দিয়েছে।",
     },
   },
   {

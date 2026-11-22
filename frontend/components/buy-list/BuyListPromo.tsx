@@ -20,7 +20,7 @@ const LOCKED_SHOWN = 5;
  * The Buy List's one Premium card, for a reader without Premium (redone
  * 2026-11-22): today's free share first, open and complete ("Free today ·
  * No. 5 of 9", a different one each day, `free_pick`), then the other shares
- * as locked rows that show our group and how far under its usual price, never
+ * as locked rows that show our group and how far under our fair price, never
  * the name or the sector (a sector and a gap can give a name away: telecom
  * has three shares). Then what Premium shows, the price and one button.
  */
@@ -47,7 +47,7 @@ export default function BuyListPromo({ data }: { data: BuyList }) {
         ) : n === 1 ? (
           <T en="One share made today's list" bn="আজকের তালিকায় একটি শেয়ার" />
         ) : (
-          <T en="No share passes all six of our questions today." bn="আজ কোনো শেয়ার আমাদের ছয়টি প্রশ্নে পাস করেনি।" />
+          <T en="No share passes all five of our questions today." bn="আজ কোনো শেয়ার আমাদের পাঁচটি প্রশ্নে পাস করেনি।" />
         )
       }
       lead={
