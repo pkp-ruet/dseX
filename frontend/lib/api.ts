@@ -1715,6 +1715,29 @@ export async function apiGetMe(): Promise<{ user: AuthUser }> {
   return apiAuthFetch<{ user: AuthUser }>("/api/auth/me");
 }
 
+/** Add a password (a Google-only account, with a fresh Google confirm) or
+ *  change one (the current password, or the Google confirm). A refusal is a
+ *  403 whose message is the reason: `current_password`, `confirm_google`,
+ *  `google_mismatch` or `google_invalid`. `access_token` comes back after a
+ *  change, which signed out every earlier sign-in. */
+export interface SetPasswordResponse {
+  ok: true;
+  changed: boolean;
+  user: AuthUser;
+  access_token?: string;
+}
+
+export async function apiSetPassword(body: {
+  new_password: string;
+  current_password?: string;
+  google_id_token?: string;
+}): Promise<SetPasswordResponse> {
+  return apiAuthFetch<SetPasswordResponse>("/api/auth/password", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
 
 // Premium payments (bKash / Nagad Send Money, or a bank transfer by NPSB /
 // BEFTN — backend services/payments.py)

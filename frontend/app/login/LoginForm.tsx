@@ -50,8 +50,8 @@ export default function LoginForm() {
       setError(
         status === 401 && msg.includes("Google")
           ? L(
-              "This account signs in with Google. Use \"Continue with Google\" above.",
-              "এই অ্যাকাউন্টে Google দিয়ে সাইন ইন করতে হয়। ওপরের \"Continue with Google\" ব্যবহার করুন।",
+              "This account signs in with Google. Use \"Continue with Google\" above. To use a password, add one in your profile after that.",
+              "এই অ্যাকাউন্টে Google দিয়ে সাইন ইন করতে হয়। ওপরের \"Continue with Google\" ব্যবহার করুন। পাসওয়ার্ড দিয়ে ঢুকতে চাইলে এরপর প্রোফাইলে একটি পাসওয়ার্ড যোগ করুন।",
             )
           : status === 429
             ? L(
@@ -171,8 +171,14 @@ export default function LoginForm() {
             </summary>
             <p className="mt-2">
               <T
-                en="Email us from the address or phone number on your account and we will help you back in, usually the same day: "
-                bn="আপনার অ্যাকাউন্টের ইমেইল বা ফোন নম্বর জানিয়ে আমাদের ইমেইল করুন; সাধারণত সেদিনই আমরা আবার ঢুকতে সাহায্য করি: "
+                en="If you have ever signed in with Google, use “Continue with Google” above, then set a new password in your profile."
+                bn="কখনো Google দিয়ে সাইন ইন করে থাকলে ওপরের “Continue with Google” ব্যবহার করুন, তারপর প্রোফাইলে নতুন পাসওয়ার্ড দিন।"
+              />
+            </p>
+            <p className="mt-2">
+              <T
+                en="Otherwise, email us from the address or phone number on your account and we will help you back in, usually the same day: "
+                bn="তা না হলে আপনার অ্যাকাউন্টের ইমেইল বা ফোন নম্বর জানিয়ে আমাদের ইমেইল করুন; সাধারণত সেদিনই আমরা আবার ঢুকতে সাহায্য করি: "
               />
               <a href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Forgot my password")}`} className="font-semibold text-primary underline">
                 {SUPPORT_EMAIL}

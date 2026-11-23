@@ -136,6 +136,10 @@ def _users():
 def sanitize_user(doc: dict) -> dict:
     doc = dict(doc)
     doc.pop("_id", None)
+    # A raw document says whether the account has a password; the session
+    # read (`get_user_by_id`) leaves the hash out, so there `public_user` asks.
+    if "password_hash" in doc:
+        doc["has_password"] = bool(doc.get("password_hash"))
     doc.pop("password_hash", None)
     # Ensure email/phone always present as null if missing (sparse index omits them)
     doc.setdefault("email", None)
@@ -185,10 +189,26 @@ def public_user(user: dict) -> dict:
     out["watchlist"] = out["watchlist"] or []
     out["total_visits"] = out["total_visits"] or 0
     out["is_admin"] = is_admin(user)
+    # How the account signs in (the profile's Sign-in row). Left out only when
+    # the database can't be read, and the profile then hides the row.
+    out["google_linked"] = bool(user.get("google_id"))
+    if "has_password" in user:
+        out["has_password"] = bool(user["has_password"])
+    elif user.get("user_id"):
+        try:
+            out["has_password"] = account_has_password(user["user_id"])
+        except Exception:  # noqa: BLE001 — never fail /me over this flag
+            pass
     # Plan: is_premium, premium_until, limits (entitlements.py).
 
     out.update(plan_fields(user))
     return out
+
+
+def account_has_password(user_id: str) -> bool:
+    return _users().count_documents(
+        {"user_id": user_id, "password_hash": {"$type": "string", "$ne": ""}}, limit=1
+    ) > 0
 
 
 def get_user_by_id(user_id: str) -> Optional[dict]:
@@ -370,6 +390,87 @@ def authenticate_user(
         {"$set": {"last_login_at": datetime.now(timezone.utc)}},
     )
     return sanitize_user(raw)
+
+
+# ---------------------------------------------------------------------------
+# Setting a password from the profile (2026-11-23)
+# ---------------------------------------------------------------------------
+# A Google-only account adds a password so it can also sign in with its email
+# and password; an account with one changes it. The saved sign-in alone is
+# never enough: it lasts 30 days on a phone, so whoever holds a shared or lost
+# phone could add a password and keep the account. Adding one needs Google to
+# confirm the owner again; changing one needs the current password, or the
+# Google confirm on a Google account (that is also its "forgot my password").
+
+PASSWORD_MIN = 8
+PASSWORD_MAX = 128
+# A Google confirm must be this fresh (Google's own tokens live an hour).
+GOOGLE_CONFIRM_MAX_AGE = timedelta(minutes=10)
+
+
+def password_change_check(
+    has_password: bool,
+    google_id: Optional[str],
+    *,
+    current_ok: bool,
+    google_sub: Optional[str],
+) -> Optional[str]:
+    """None when the change may go ahead, else why not:
+    `google_mismatch` — a Google confirm from another Google account;
+    `current_password` — the account has a password and it wasn't given right;
+    `confirm_google` — a Google-only account must confirm with Google."""
+    google_ok = bool(google_sub) and bool(google_id) and google_sub == google_id
+    if google_ok or (has_password and current_ok):
+        return None
+    if google_sub:
+        return "google_mismatch"
+    return "current_password" if has_password else "confirm_google"
+
+
+def google_confirm_fresh(claims: dict, now: Optional[datetime] = None) -> bool:
+    """True when the Google token was issued within GOOGLE_CONFIRM_MAX_AGE (a
+    minute of clock skew allowed), so an old one can't be replayed."""
+    now = now or datetime.now(timezone.utc)
+    try:
+        issued = datetime.fromtimestamp(float(claims["iat"]), tz=timezone.utc)
+    except (KeyError, TypeError, ValueError, OverflowError):
+        return False
+    return -timedelta(minutes=1) <= now - issued <= GOOGLE_CONFIRM_MAX_AGE
+
+
+def set_user_password(
+    user_id: str,
+    new_password: str,
+    *,
+    current_password: Optional[str] = None,
+    google_sub: Optional[str] = None,
+) -> bool:
+    """Save a new password. Returns True when it replaced an old one (every
+    earlier sign-in then stops working; the caller hands this device a fresh
+    token). Raises ValueError with `password_change_check`'s reason."""
+    raw = _users().find_one(
+        {"user_id": user_id}, {"password_hash": 1, "google_id": 1, "is_active": 1}
+    )
+    if not raw or not raw.get("is_active"):
+        raise ValueError("no_account")
+    had = bool(raw.get("password_hash"))
+    current_ok = bool(current_password) and had and verify_password(
+        current_password, raw.get("password_hash")
+    )
+    reason = password_change_check(
+        had, raw.get("google_id"), current_ok=current_ok, google_sub=google_sub
+    )
+    if reason:
+        raise ValueError(reason)
+    now = datetime.now(timezone.utc)
+    update = {"password_hash": hash_password(new_password), "password_set_at": now, "updated_at": now}
+    if had:
+        # A changed password signs out every other device: whoever knew the
+        # old one is out.
+        update["tokens_valid_after"] = now
+    _users().update_one({"user_id": user_id}, {"$set": update})
+    user_cache.invalidate_user(user_id)
+    return had
 
 
 # ---------------------------------------------------------------------------

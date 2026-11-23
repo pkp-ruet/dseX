@@ -20,6 +20,10 @@ from backend.services.auth_service import (
     create_or_link_google_user,
     sanitize_user,
     public_user,
+    set_user_password,
+    google_confirm_fresh,
+    PASSWORD_MIN,
+    PASSWORD_MAX,
 )
 from backend.services.db_service import get_db
 from backend.services.entitlements import is_admin
@@ -99,6 +103,20 @@ class GoogleAuthRequest(BaseModel):
     id_token: str = Field(..., max_length=4096)
 
 
+class SetPasswordRequest(BaseModel):
+    new_password: str = Field(..., max_length=PASSWORD_MAX)
+    # One of these proves the owner (auth_service.password_change_check).
+    current_password: Optional[str] = Field(None, max_length=PASSWORD_MAX)
+    google_id_token: Optional[str] = Field(None, max_length=4096)
+
+    @field_validator("new_password")
+    @classmethod
+    def password_min_length(cls, v: str) -> str:
+        if len(v) < PASSWORD_MIN:
+            raise ValueError(f"Password must be at least {PASSWORD_MIN} characters")
+        return v
+
+
 class PingBody(BaseModel):
     path: Optional[str] = Field(None, max_length=300)
     standalone: Optional[bool] = None
@@ -159,7 +177,10 @@ def login(body: LoginRequest):
         if str(exc) == "use_google":
             raise HTTPException(
                 status_code=401,
-                detail="This account signs in with Google. Use \"Continue with Google\".",
+                detail=(
+                    "This account signs in with Google. Use \"Continue with Google\", "
+                    "then add a password in your profile if you want one."
+                ),
             )
         raise
     if not user:
@@ -170,8 +191,10 @@ def login(body: LoginRequest):
     return {"access_token": token, "token_type": "bearer", "user": public_user(user)}
 
 
-@router.post("/google")
-def google_sign_in(body: GoogleAuthRequest):
+def _verify_google(id_token: str, bad_status: int = 401) -> dict:
+    """Google's checked claims for an ID token from `@react-oauth/google`.
+    `bad_status`: a signed-in route passes 403, because the browser treats a
+    401 there as "your session ended" and signs the reader out."""
     if not GOOGLE_CLIENT_ID:
         raise HTTPException(status_code=500, detail="Google sign-in is not configured.")
 
@@ -181,12 +204,12 @@ def google_sign_in(body: GoogleAuthRequest):
         from google.auth.transport import requests as g_requests
 
         claims = g_id_token.verify_oauth2_token(
-            body.id_token,
+            id_token,
             g_requests.Request(),
             GOOGLE_CLIENT_ID,
         )
     except ValueError:
-        raise HTTPException(status_code=401, detail="Invalid Google token.")
+        raise HTTPException(status_code=bad_status, detail="Invalid Google token.")
     except Exception:
         # Transport/cert-fetch/import errors etc. — never let this become a bare
         # 500 (those skip CORS headers and surface as "Failed to fetch" in the browser).
@@ -194,7 +217,13 @@ def google_sign_in(body: GoogleAuthRequest):
         raise HTTPException(status_code=503, detail="Could not verify Google sign-in right now. Please try again.")
 
     if not claims.get("email_verified"):
-        raise HTTPException(status_code=401, detail="Your Google email is not verified.")
+        raise HTTPException(status_code=bad_status, detail="Your Google email is not verified.")
+    return claims
+
+
+@router.post("/google")
+def google_sign_in(body: GoogleAuthRequest):
+    claims = _verify_google(body.id_token)
 
     sub = claims.get("sub")
     email = claims.get("email")
@@ -222,8 +251,61 @@ def google_sign_in(body: GoogleAuthRequest):
         raise HTTPException(status_code=500, detail="Could not complete Google sign-in. Please try again.")
 
     user = sanitize_user(user_doc)
+    # A new Google account's document has no password field at all.
+    user["has_password"] = bool(user_doc.get("password_hash"))
     token = create_access_token(user["user_id"])
     return {"access_token": token, "token_type": "bearer", "user": public_user(user)}
+
+
+@router.post("/password")
+def set_password(body: SetPasswordRequest, current_user: dict = Depends(get_current_user)):
+    """Add a password (a Google-only account, confirmed with Google) or change
+    one (the current password, or the Google confirm). Never answers 401: the
+    browser would read that as a lost session and sign the reader out."""
+    uid = current_user["user_id"]
+    google_sub = None
+    if body.google_id_token:
+        claims = _verify_google(body.google_id_token, bad_status=403)
+        if not google_confirm_fresh(claims):
+            raise HTTPException(status_code=403, detail="google_invalid")
+        google_sub = claims.get("sub")
+        if not google_sub:
+            raise HTTPException(status_code=403, detail="google_invalid")
+
+    # Wrong current passwords count with the login's, so this route can't be
+    # used to guess the password of an account someone has a token for.
+    # Same key as the login route's (email and phone are stored normalized).
+    account = f"acct:{current_user.get('email') or current_user.get('phone') or uid}"
+    if body.current_password and not google_sub:
+        wait = LOGIN_FAILURES.blocked(account)
+        if wait:
+            raise HTTPException(
+                status_code=429,
+                detail="Too many wrong passwords for this account. Please wait a few minutes and try again.",
+                headers={"Retry-After": retry_after(wait)},
+            )
+
+    try:
+        changed = set_user_password(
+            uid,
+            body.new_password,
+            current_password=body.current_password,
+            google_sub=google_sub,
+        )
+    except ValueError as exc:
+        reason = str(exc)
+        if reason == "current_password":
+            LOGIN_FAILURES.hit(account)
+        if reason in {"current_password", "confirm_google", "google_mismatch"}:
+            raise HTTPException(status_code=403, detail=reason)
+        raise HTTPException(status_code=404, detail="Account not found.")
+
+    user = get_user_by_id(uid) or current_user
+    out = {"ok": True, "changed": changed, "user": public_user({**user, "has_password": True})}
+    if changed:
+        # The change signed out every earlier sign-in, this device's too.
+        out["access_token"] = create_access_token(uid)
+    return out
 
 
 @router.get("/me")

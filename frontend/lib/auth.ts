@@ -28,6 +28,11 @@ export interface AuthUser {
   total_visits: number;
   is_active: boolean;
   is_admin: boolean;
+  /** The account can sign in with a password. Missing on an older backend or
+   *  a user cached before 2026-11-23: the profile then hides its Sign-in row. */
+  has_password?: boolean;
+  /** The account is linked to a Google account (it can use "Continue with Google"). */
+  google_linked?: boolean;
   // Plan (backend `entitlements.plan_fields`). Optional: a user cached before
   // premium shipped has none of these until the next /me refresh.
   is_premium?: boolean;

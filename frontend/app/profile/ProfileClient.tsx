@@ -14,6 +14,7 @@ import { bnDate } from "@/lib/bn";
 import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
 import PremiumPlanCta from "@/components/premium/PremiumPlanCta";
+import PasswordSheet from "@/components/auth/PasswordSheet";
 import { PREMIUM_PATH } from "@/lib/premium";
 
 const API_URL =
@@ -44,6 +45,7 @@ export default function ProfileClient() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [watchCount, setWatchCount] = useState(0);
+  const [pwOpen, setPwOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !isLoggedIn) {
@@ -192,6 +194,66 @@ export default function ProfileClient() {
             </span>
             <p className="text-text-main font-medium mt-1">{identifier}</p>
           </div>
+
+          {/* How you sign in — a Google-only account can add a password here.
+              Hidden until the backend says (an older backend sends no flag). */}
+          {typeof user.has_password === "boolean" && (
+            <div id="sign-in" className="p-4 scroll-mt-24">
+              <div className="flex items-center justify-between gap-3 mb-1">
+                <span className="text-xs font-semibold text-text-muted">
+                  <T en="Sign-in" bn="সাইন ইন" />
+                </span>
+                {user.has_password && (
+                  <button
+                    type="button"
+                    onClick={() => setPwOpen(true)}
+                    className="btn-link btn-sm -my-2"
+                  >
+                    <T en="Change password" bn="পাসওয়ার্ড বদলান" />
+                  </button>
+                )}
+              </div>
+              <p className="text-text-main font-medium mt-1">
+                {user.google_linked && user.has_password ? (
+                  user.email ? (
+                    <T en="With Google, or your email and password" bn="Google দিয়ে, অথবা ইমেইল আর পাসওয়ার্ড দিয়ে" />
+                  ) : (
+                    <T en="With Google, or your phone and password" bn="Google দিয়ে, অথবা ফোন আর পাসওয়ার্ড দিয়ে" />
+                  )
+                ) : user.google_linked ? (
+                  <T en="With Google" bn="Google দিয়ে" />
+                ) : user.email ? (
+                  <T en="With your email and password" bn="ইমেইল আর পাসওয়ার্ড দিয়ে" />
+                ) : (
+                  <T en="With your phone number and password" bn="ফোন নম্বর আর পাসওয়ার্ড দিয়ে" />
+                )}
+              </p>
+              {!user.has_password && (
+                <>
+                  <p className="text-sm text-text-main mt-1">
+                    <T
+                      en="Add a password to sign in with your email too, without Google."
+                      bn="পাসওয়ার্ড যোগ করলে Google ছাড়াও ইমেইল দিয়ে সাইন ইন করতে পারবেন।"
+                    />
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setPwOpen(true)}
+                    className="btn-quiet btn-sm mt-3"
+                  >
+                    <T en="Add a password" bn="পাসওয়ার্ড যোগ করুন" />
+                  </button>
+                </>
+              )}
+              <PasswordSheet
+                open={pwOpen}
+                onClose={() => setPwOpen(false)}
+                hasPassword={user.has_password}
+                googleLinked={Boolean(user.google_linked)}
+                identifier={user.email ?? user.phone ?? ""}
+              />
+            </div>
+          )}
 
           {/* Member since */}
           <div className="p-4">
