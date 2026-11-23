@@ -46,11 +46,12 @@ function fromMap(key: string, pageKey: string): Service {
 const FIRST: Service[] = [
   fromMap("market", "today"),
   fromMap("buylist", "buylist"),
+  // 2026-11-23: the portfolio builder sits right after the Buy List (Results moved to "See more").
+  fromMap("builder", "builder"),
   fromMap("screener", "screener"),
   fromMap("compare", "compare"),
   fromMap("ranking", "companies"),
   fromMap("dividends", "calendar"),
-  fromMap("results", "results"),
   fromMap("discover", "foryou"),
 ];
 
@@ -62,10 +63,10 @@ const PREMIUM: Service = {
 
 /** "See more" opens these eight in place. */
 const MORE: Service[] = [
+  // 2026-11-23: Results moved here when the portfolio builder joined the first eight.
+  fromMap("results", "results"),
   fromMap("research", "research"),
   fromMap("sectors", "sectors"),
-  // 2026-11-23: the portfolio builder took Updates' place (the bell opens Updates).
-  fromMap("builder", "builder"),
   fromMap("watchlist", "watchlist"),
   fromMap("portfolio", "portfolio"),
   // 2026-11-23: Updates took TopStock AI's place when the assistant was removed.
