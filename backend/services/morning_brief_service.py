@@ -203,8 +203,8 @@ def _email_html(items: list[dict], lang: str, user_id: str) -> tuple[str, str]:
     subject = (f"বাজার খোলার আগে: আপনার শেয়ারে {len(items)}টি খবর" if bn
                else f"Before the bell: {len(items)} thing{'s' if len(items) != 1 else ''} on your shares")
     rows = "".join(
-        f'<tr><td style="padding:10px 0;border-top:1px solid #DED6C3;font-size:15px;color:#2E2B26">'
-        f'<a href="{html.escape(SITE_URL + mb.tagged(i["url"], "brief-email"))}" style="color:#2E2B26;text-decoration:none">'
+        f'<tr><td style="padding:10px 0;border-top:1px solid #D5DDE8;font-size:15px;color:#16202D">'
+        f'<a href="{html.escape(SITE_URL + mb.tagged(i["url"], "brief-email"))}" style="color:#16202D;text-decoration:none">'
         f'{html.escape(i[k])}</a></td></tr>'
         for i in items
     )
@@ -213,17 +213,17 @@ def _email_html(items: list[dict], lang: str, user_id: str) -> tuple[str, str]:
             else "What to know about your shares before DSE opens at 10 AM.")
     unsub = "ইমেইল বন্ধ করুন" if bn else "Stop these emails"
     body = (
-        '<div style="background:#FAF8F4;padding:24px 16px;font-family:Inter,Arial,sans-serif">'
-        '<div style="max-width:560px;margin:0 auto;background:#FFFFFF;border:1px solid #DED6C3;border-radius:12px;padding:24px">'
-        f'<div style="font-size:13px;color:#9E5F40;font-weight:600">TopStockBD Premium</div>'
-        f'<h1 style="font-size:22px;color:#2E2B26;margin:6px 0 4px">{head}</h1>'
-        f'<p style="font-size:14px;color:#5C554A;margin:0 0 12px">{lead}</p>'
+        '<div style="background:#F1F4F8;padding:24px 16px;font-family:Inter,Arial,sans-serif">'
+        '<div style="max-width:560px;margin:0 auto;background:#FFFFFF;border:1px solid #D5DDE8;border-radius:12px;padding:24px">'
+        f'<div style="font-size:13px;color:#1E5BB0;font-weight:600">TopStockBD Premium</div>'
+        f'<h1 style="font-size:22px;color:#16202D;margin:6px 0 4px">{head}</h1>'
+        f'<p style="font-size:14px;color:#435064;margin:0 0 12px">{lead}</p>'
         f'<table role="presentation" width="100%" style="border-collapse:collapse">{rows}</table>'
         f'<p style="margin:20px 0 0"><a href="{html.escape(SITE_URL + "/?src=brief-email")}" '
-        'style="display:inline-block;background:#9E5F40;color:#FFFFFF;padding:10px 16px;border-radius:10px;'
+        'style="display:inline-block;background:#1E5BB0;color:#FFFFFF;padding:10px 16px;border-radius:10px;'
         f'text-decoration:none;font-weight:600">{"আপনার দিন দেখুন" if bn else "Open your day"}</a></p>'
-        f'<p style="font-size:12px;color:#5C554A;margin:20px 0 0"><a href="{html.escape(_unsub_url(user_id))}" '
-        f'style="color:#5C554A">{unsub}</a></p>'
+        f'<p style="font-size:12px;color:#435064;margin:20px 0 0"><a href="{html.escape(_unsub_url(user_id))}" '
+        f'style="color:#435064">{unsub}</a></p>'
         '</div></div>'
     )
     return subject, body

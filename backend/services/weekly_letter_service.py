@@ -171,36 +171,36 @@ def _email_html(letter: dict, lang: str, user_id: str, premium: bool) -> tuple[s
     blocks = []
     for p in parts:
         rows = "".join(
-            f'<tr><td style="padding:8px 0;border-top:1px solid #DED6C3;font-size:15px;color:#2E2B26">'
-            + (f'<a href="{html.escape(SITE_URL + wl_tag(ln["url"]))}" style="color:#2E2B26;text-decoration:none">'
+            f'<tr><td style="padding:8px 0;border-top:1px solid #D5DDE8;font-size:15px;color:#16202D">'
+            + (f'<a href="{html.escape(SITE_URL + wl_tag(ln["url"]))}" style="color:#16202D;text-decoration:none">'
                f'{html.escape(ln[k])}</a>' if ln.get("url") else html.escape(ln[k]))
             + "</td></tr>"
             for ln in p["lines"]
         )
         blocks.append(
-            f'<h2 style="font-size:17px;color:#2E2B26;margin:20px 0 6px">{html.escape(p["title_bn" if bn else "title_en"])}</h2>'
+            f'<h2 style="font-size:17px;color:#16202D;margin:20px 0 6px">{html.escape(p["title_bn" if bn else "title_en"])}</h2>'
             f'<table role="presentation" width="100%" style="border-collapse:collapse">{rows}</table>'
         )
     if not premium:
         more = ("প্রিমিয়ামে আরও 3টি অংশ: পাঁচ লাইনে বাজার, এ সপ্তাহের গুরুতর সমস্যা, আর আগামী সপ্তাহে আপনার শেয়ার।"
                 if bn else "3 more parts come with Premium: the market in five lines, serious problems this week, and next week on your shares.")
-        blocks.append(f'<p style="font-size:14px;color:#2E2B26;margin:16px 0 0">{more}</p>')
+        blocks.append(f'<p style="font-size:14px;color:#16202D;margin:16px 0 0">{more}</p>')
     button = "পুরো চিঠি পড়ুন" if bn else "Read the full letter"
     unsub = "ইমেইল বন্ধ করুন" if bn else "Stop these emails"
     lead = ("প্রতি শুক্রবার, আপনার শেয়ারের সপ্তাহ এক জায়গায়।" if bn
             else "Every Friday, your shares' week in one place.")
     body = (
-        '<div style="background:#FAF8F4;padding:24px 16px;font-family:Inter,Arial,sans-serif">'
-        '<div style="max-width:560px;margin:0 auto;background:#FFFFFF;border:1px solid #DED6C3;border-radius:12px;padding:24px">'
-        '<div style="font-size:13px;color:#9E5F40;font-weight:600">TopStockBD</div>'
-        f'<h1 style="font-size:22px;color:#2E2B26;margin:6px 0 4px">{subject}</h1>'
-        f'<p style="font-size:14px;color:#2E2B26;margin:0">{lead}</p>'
+        '<div style="background:#F1F4F8;padding:24px 16px;font-family:Inter,Arial,sans-serif">'
+        '<div style="max-width:560px;margin:0 auto;background:#FFFFFF;border:1px solid #D5DDE8;border-radius:12px;padding:24px">'
+        '<div style="font-size:13px;color:#1E5BB0;font-weight:600">TopStockBD</div>'
+        f'<h1 style="font-size:22px;color:#16202D;margin:6px 0 4px">{subject}</h1>'
+        f'<p style="font-size:14px;color:#16202D;margin:0">{lead}</p>'
         + "".join(blocks)
         + f'<p style="margin:20px 0 0"><a href="{html.escape(SITE_URL + "/notifications?src=letter-email#letter")}" '
-        'style="display:inline-block;background:#9E5F40;color:#FFFFFF;padding:10px 16px;border-radius:10px;'
+        'style="display:inline-block;background:#1E5BB0;color:#FFFFFF;padding:10px 16px;border-radius:10px;'
         f'text-decoration:none;font-weight:600">{button}</a></p>'
-        f'<p style="font-size:12px;color:#2E2B26;margin:20px 0 0"><a href="{html.escape(_unsub_url(user_id))}" '
-        f'style="color:#2E2B26">{unsub}</a></p>'
+        f'<p style="font-size:12px;color:#16202D;margin:20px 0 0"><a href="{html.escape(_unsub_url(user_id))}" '
+        f'style="color:#16202D">{unsub}</a></p>'
         '</div></div>'
     )
     return subject, body

@@ -14,15 +14,15 @@ import type { CheckKey, Tone } from "@/lib/stock-report";
  */
 
 const C = {
-  bg: "#FAF8F4",
+  bg: "#F1F4F8",
   surface: "#FFFFFF",
-  surface2: "#EFEADF",
-  border: "#DED6C3",
-  text: "#2E2B26",
-  muted: "#5C554A",
-  clay: "#8F5638",
+  surface2: "#E9EEF5",
+  border: "#D5DDE8",
+  text: "#16202D",
+  muted: "#435064",
+  primary: "#1B529F",
 };
-const TONE: Record<Tone, string> = { good: "#047857", fair: "#B45309", bad: "#B91C1C", neutral: "#5C554A" };
+const TONE: Record<Tone, string> = { good: "#047857", fair: "#A64B05", bad: "#B91C1C", neutral: "#435064" };
 const SIZE = { width: 1080, height: 1080 };
 const KEYS: CheckKey[] = ["red_flags", "price", "dividend", "this_year", "owners", "cash", "safety", "quality"];
 
@@ -57,7 +57,7 @@ export async function GET(req: Request) {
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontSize: 30, fontWeight: 700, color: C.clay }}>TopStockBD</div>
+          <div style={{ fontSize: 30, fontWeight: 700, color: C.primary }}>TopStockBD</div>
           <div style={{ fontSize: 24, color: C.muted }}>{`Stock report · ${code}`}</div>
         </div>
 

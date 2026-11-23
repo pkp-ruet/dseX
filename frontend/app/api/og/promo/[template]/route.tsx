@@ -11,12 +11,12 @@ const PORTRAIT = { width: 1080, height: 1350 };
 /** Link-preview shape (Facebook / X cards want ~1.91:1). Used by `mood`. */
 const LANDSCAPE = { width: 1200, height: 630 };
 const COLORS = {
-  primary: "#8F5638",
-  accent: "#9E5F40",
-  bg: "#FAF8F4",
-  text: "#2E2B26",
-  muted: "#5C554A",
-  surface: "#EFEADF",
+  primary: "#1B529F",
+  accent: "#1E5BB0",
+  bg: "#F1F4F8",
+  text: "#16202D",
+  muted: "#435064",
+  surface: "#E9EEF5",
   positive: "#047857",
   negative: "#B91C1C",
 };
@@ -1401,9 +1401,9 @@ async function RenderTopRanked() {
   // Gold / silver / bronze podium; quiet neutral badge for the rest.
   const rankStyle = (i: number): { bg: string; fg: string } => {
     if (i === 0) return { bg: "linear-gradient(135deg,#F59E0B,#D97706)", fg: "white" };
-    if (i === 1) return { bg: "linear-gradient(135deg,#94A3B8,#5C554A)", fg: "white" };
+    if (i === 1) return { bg: "linear-gradient(135deg,#94A3B8,#435064)", fg: "white" };
     if (i === 2) return { bg: "linear-gradient(135deg,#B45309,#92400E)", fg: "white" };
-    return { bg: "linear-gradient(135deg,#EFEADF,#EFEADF)", fg: "#5C554A" };
+    return { bg: "linear-gradient(135deg,#E9EEF5,#E9EEF5)", fg: "#435064" };
   };
 
   return (
@@ -1413,7 +1413,7 @@ async function RenderTopRanked() {
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        background: "#FAF8F4",
+        background: "#F1F4F8",
         fontFamily: "sans-serif",
       }}
     >
@@ -1425,7 +1425,7 @@ async function RenderTopRanked() {
           position: "relative",
           overflow: "hidden",
           padding: "36px 52px 32px 52px",
-          background: "#8F5638",
+          background: "#1B529F",
         }}
       >
         <div
@@ -1476,7 +1476,7 @@ async function RenderTopRanked() {
               padding: "9px 24px",
               fontSize: 32,
               fontWeight: 800,
-              color: "#8F5638",
+              color: "#1B529F",
               boxShadow: "0 8px 20px rgba(2,6,23,0.18)",
             }}
           >
@@ -1497,7 +1497,7 @@ async function RenderTopRanked() {
       >
         {top.length === 0 && (
           <div
-            style={{ display: "flex", fontSize: 28, color: "#5C554A", padding: 40 }}
+            style={{ display: "flex", fontSize: 28, color: "#435064", padding: 40 }}
           >
             Rankings unavailable right now.
           </div>
@@ -1512,7 +1512,7 @@ async function RenderTopRanked() {
               background: "white",
               borderRadius: 20,
               padding: "11px 24px",
-              border: "1px solid #EFEADF",
+              border: "1px solid #E9EEF5",
               boxShadow: "0 6px 18px rgba(2,6,23,0.05)",
             }}
           >
@@ -1546,7 +1546,7 @@ async function RenderTopRanked() {
                   display: "flex",
                   fontSize: 34,
                   fontWeight: 800,
-                  color: "#2E2B26",
+                  color: "#16202D",
                   lineHeight: 1.05,
                   letterSpacing: -0.3,
                 }}
@@ -1558,7 +1558,7 @@ async function RenderTopRanked() {
                   display: "flex",
                   fontSize: 18,
                   fontWeight: 500,
-                  color: "#5C554A",
+                  color: "#435064",
                   marginTop: 4,
                   maxWidth: 520,
                   whiteSpace: "nowrap",
@@ -1578,7 +1578,7 @@ async function RenderTopRanked() {
                 padding: "9px 16px",
                 fontSize: 32,
                 fontWeight: 800,
-                color: "#8F5638",
+                color: "#1B529F",
               }}
             >
               {fmtPrice(s.ltp)}
@@ -1601,7 +1601,7 @@ async function RenderTopRanked() {
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              background: "#8F5638",
+              background: "#1B529F",
               borderRadius: 999,
               padding: "17px",
               fontSize: 27,
@@ -1631,13 +1631,13 @@ async function RenderTop20() {
 
   const rankBg = (i: number): string => {
     if (i === 0) return "linear-gradient(135deg,#F59E0B,#D97706)";
-    if (i === 1) return "linear-gradient(135deg,#94A3B8,#5C554A)";
+    if (i === 1) return "linear-gradient(135deg,#94A3B8,#435064)";
     if (i === 2) return "linear-gradient(135deg,#B45309,#92400E)";
-    return "linear-gradient(135deg,#9E5F40,#8F5638)";
+    return "linear-gradient(135deg,#1E5BB0,#1B529F)";
   };
 
   const retStyle = (n: number | null): { fg: string; bg: string } => {
-    if (n == null) return { fg: "#5C554A", bg: "#EFEADF" };
+    if (n == null) return { fg: "#435064", bg: "#E9EEF5" };
     if (n >= 0) return { fg: "#047857", bg: "#E3F1EB" };
     return { fg: "#B91C1C", bg: "#F6E1E1" };
   };
@@ -1649,7 +1649,7 @@ async function RenderTop20() {
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        background: "#FAF8F4",
+        background: "#F1F4F8",
         fontFamily: "sans-serif",
       }}
     >
@@ -1661,7 +1661,7 @@ async function RenderTop20() {
           position: "relative",
           overflow: "hidden",
           padding: "30px 52px 26px 52px",
-          background: "#8F5638",
+          background: "#1B529F",
         }}
       >
         <div
@@ -1720,7 +1720,7 @@ async function RenderTop20() {
               padding: "9px 24px",
               fontSize: 34,
               fontWeight: 800,
-              color: "#8F5638",
+              color: "#1B529F",
               boxShadow: "0 6px 18px rgba(0,0,0,0.16)",
             }}
           >
@@ -1741,7 +1741,7 @@ async function RenderTop20() {
       >
         {top.length === 0 && (
           <div
-            style={{ display: "flex", fontSize: 28, color: "#5C554A", padding: 40 }}
+            style={{ display: "flex", fontSize: 28, color: "#435064", padding: 40 }}
           >
             Trending Stocks unavailable right now.
           </div>
@@ -1754,13 +1754,13 @@ async function RenderTop20() {
           if (item.rs_vs_dsex_pct != null && Math.abs(item.rs_vs_dsex_pct) >= 0.5)
             chips.push({
               text: `${item.rs_vs_dsex_pct > 0 ? "+" : ""}${item.rs_vs_dsex_pct.toFixed(1)}% vs DSEX`,
-              fg: "#B45309",
+              fg: "#A64B05",
               bg: "#F7EBDD",
             });
           if (item.volume_ratio != null && item.volume_ratio >= 1.3)
             chips.push({
               text: `${item.volume_ratio.toFixed(1)}x volume`,
-              fg: "#B45309",
+              fg: "#A64B05",
               bg: "#F7EBDD",
             });
           if (item.days_counted > 0)
@@ -1770,7 +1770,7 @@ async function RenderTop20() {
               bg: "#E3F1EB",
             });
           if (chips.length === 0)
-            chips.push({ text: "Strong momentum pick", fg: "#5C554A", bg: "#EFEADF" });
+            chips.push({ text: "Strong momentum pick", fg: "#435064", bg: "#E9EEF5" });
           return (
             <div
               key={item.trading_code}
@@ -1814,7 +1814,7 @@ async function RenderTop20() {
                     display: "flex",
                     fontSize: 40,
                     fontWeight: 800,
-                    color: "#2E2B26",
+                    color: "#16202D",
                     lineHeight: 1.05,
                   }}
                 >
@@ -1824,7 +1824,7 @@ async function RenderTop20() {
                   style={{
                     display: "flex",
                     fontSize: 18,
-                    color: "#5C554A",
+                    color: "#435064",
                     marginTop: 2,
                     maxWidth: 420,
                     whiteSpace: "nowrap",
@@ -1870,7 +1870,7 @@ async function RenderTop20() {
                 <div
                   style={{
                     display: "flex",
-                    background: "#8F5638",
+                    background: "#1B529F",
                     color: "white",
                     fontSize: 14,
                     fontWeight: 800,
@@ -1899,7 +1899,7 @@ async function RenderTop20() {
                   style={{
                     display: "flex",
                     fontSize: 20,
-                    color: "#5C554A",
+                    color: "#435064",
                     fontWeight: 600,
                     marginTop: 8,
                   }}
@@ -1926,7 +1926,7 @@ async function RenderTop20() {
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              background: "#8F5638",
+              background: "#1B529F",
               borderRadius: 999,
               padding: "17px",
               fontSize: 27,
@@ -1977,7 +1977,7 @@ function TileCaption({
           display: "flex",
           fontSize: 35,
           fontWeight: 800,
-          color: "#2E2B26",
+          color: "#16202D",
           letterSpacing: -0.8,
           lineHeight: 1.05,
         }}
@@ -2095,7 +2095,7 @@ async function RenderShowcase() {
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        background: "#FAF8F4",
+        background: "#F1F4F8",
         fontFamily: "sans-serif",
       }}
     >
@@ -2107,7 +2107,7 @@ async function RenderShowcase() {
           position: "relative",
           overflow: "hidden",
           padding: "26px 52px 22px 52px",
-          background: "#8F5638",
+          background: "#1B529F",
         }}
       >
         <div
@@ -2165,7 +2165,7 @@ async function RenderShowcase() {
               padding: "8px 22px",
               fontSize: 32,
               fontWeight: 800,
-              color: "#8F5638",
+              color: "#1B529F",
               boxShadow: "0 6px 18px rgba(0,0,0,0.16)",
             }}
           >
@@ -2206,7 +2206,7 @@ async function RenderShowcase() {
                       display: "flex",
                       fontSize: 56,
                       fontWeight: 800,
-                      color: "#2E2B26",
+                      color: "#16202D",
                       lineHeight: 1,
                     }}
                   >
@@ -2217,7 +2217,7 @@ async function RenderShowcase() {
                       display: "flex",
                       fontSize: 15,
                       fontWeight: 700,
-                      color: "#5C554A",
+                      color: "#435064",
                       marginTop: 2,
                       letterSpacing: 1,
                     }}
@@ -2231,7 +2231,7 @@ async function RenderShowcase() {
                       display: "flex",
                       fontSize: 44,
                       fontWeight: 800,
-                      color: "#2E2B26",
+                      color: "#16202D",
                       lineHeight: 1,
                     }}
                   >
@@ -2246,7 +2246,7 @@ async function RenderShowcase() {
                       padding: "6px 14px",
                       fontSize: 20,
                       fontWeight: 800,
-                      color: "#2E2B26",
+                      color: "#16202D",
                       marginTop: 10,
                     }}
                   >
@@ -2256,13 +2256,13 @@ async function RenderShowcase() {
               </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
                 {analysisChips.map((c) => (
-                  <div key={c} style={pill("#E3F1EB", "#8F5638")}>
+                  <div key={c} style={pill("#E3ECF8", "#1B529F")}>
                     {c}
                   </div>
                 ))}
               </div>
             </div>
-            <TileCaption index="01" accent="#8F5638" title="Stock analysis" />
+            <TileCaption index="01" accent="#1B529F" title="Stock analysis" />
           </div>
 
           {/* Tile 2 — Smart rankings */}
@@ -2284,7 +2284,7 @@ async function RenderShowcase() {
                     justifyContent: "space-between",
                     padding: "11px 2px",
                     borderBottom:
-                      i < rankTable.length - 1 ? "1px solid #EFEADF" : "none",
+                      i < rankTable.length - 1 ? "1px solid #E9EEF5" : "none",
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -2296,7 +2296,7 @@ async function RenderShowcase() {
                         width: 32,
                         height: 32,
                         borderRadius: 9,
-                        background: "#2E2B26",
+                        background: "#16202D",
                         color: "white",
                         fontSize: 17,
                         fontWeight: 800,
@@ -2309,7 +2309,7 @@ async function RenderShowcase() {
                         display: "flex",
                         fontSize: 26,
                         fontWeight: 800,
-                        color: "#2E2B26",
+                        color: "#16202D",
                         maxWidth: 250,
                         whiteSpace: "nowrap",
                         overflow: "hidden",
@@ -2332,7 +2332,7 @@ async function RenderShowcase() {
                 </div>
               ))}
             </div>
-            <TileCaption index="02" accent="#B45309" title="Smart rankings" />
+            <TileCaption index="02" accent="#A64B05" title="Smart rankings" />
           </div>
         </div>
 
@@ -2352,7 +2352,7 @@ async function RenderShowcase() {
                         justifyContent: "space-between",
                         padding: "11px 2px",
                         borderBottom:
-                          i < watchRows.length - 1 ? "1px solid #EFEADF" : "none",
+                          i < watchRows.length - 1 ? "1px solid #E9EEF5" : "none",
                       }}
                     >
                       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -2370,7 +2370,7 @@ async function RenderShowcase() {
                             display: "flex",
                             fontSize: 26,
                             fontWeight: 800,
-                            color: "#2E2B26",
+                            color: "#16202D",
                             maxWidth: 230,
                             whiteSpace: "nowrap",
                             overflow: "hidden",
@@ -2399,13 +2399,13 @@ async function RenderShowcase() {
               </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
                 {watchChips.map((c) => (
-                  <div key={c} style={pill("#F7EBDD", "#B45309")}>
+                  <div key={c} style={pill("#F7EBDD", "#A64B05")}>
                     {c}
                   </div>
                 ))}
               </div>
             </div>
-            <TileCaption index="03" accent="#B45309" title="Watchlist & alerts" />
+            <TileCaption index="03" accent="#A64B05" title="Watchlist & alerts" />
           </div>
 
           {/* Tile 4 — Portfolio analysis */}
@@ -2465,7 +2465,7 @@ async function RenderShowcase() {
                     style={{
                       display: "flex",
                       fontSize: 19,
-                      color: "#5C554A",
+                      color: "#435064",
                       marginTop: 8,
                     }}
                   >
@@ -2499,7 +2499,7 @@ async function RenderShowcase() {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            background: "#8F5638",
+            background: "#1B529F",
             borderRadius: 999,
             padding: "18px",
             fontSize: 28,

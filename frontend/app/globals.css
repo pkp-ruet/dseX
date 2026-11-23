@@ -2,44 +2,50 @@
 @tailwind components;
 @tailwind utilities;
 :root {
-  /* Role-based palette — cream canvas · navy anchor · clay primary · steel-blue info · gold premium.
-     Different colors do different jobs; green/red stay locked to market data. */
-  --primary: #9E5F40;       /* clay — primary buttons + main actions (one step deeper since 2026-10-31: white text on it is 5:1, AA; #B0714E was 3.9:1) */
-  --primary-ink: #8F5638;   /* deeper clay — primary text/links on light */
-  --primary-soft: #C99475;  /* light clay — gradients, hover tints */
+  /* "Bay blue" palette (2026-11-24, user chose option B of the colour review
+     https://claude.ai/artifact/54w4ZJUtYx8tc81Zu1hFg8 — the warm grey-beige + clay
+     palette read as dusty and sad: every neutral sat in one yellow-brown band and the
+     clay button shared a hue with the amber warning). Soft blue-white canvas · deep
+     blue primary · navy anchor · teal info · gold premium. Different colours do
+     different jobs; green/red stay locked to market data. */
+  --primary: #1E5BB0;       /* deep blue — primary buttons + main actions (white text on it 6.6:1) */
+  --primary-ink: #1B529F;   /* deeper blue — primary text/links on light (7.5:1 on a card) */
+  --primary-soft: #A9C4EA;  /* light blue — gradients, icon tiles, hover borders */
 
-  /* Anchor — deep navy: navbar, footer, top ribbon, dark headings */
-  --navy: #2A3644;
-  --navy-ink: #1F2833;
-  --navy-soft: #3C4C5E;
+  /* Anchor — deep navy: toasts, skip link, government share, credit-rating dots */
+  --navy: #22344D;
+  --navy-ink: #18263A;
+  --navy-soft: #46566B;
 
-  /* Info — steel blue: links, info chips, rankings + market surfaces */
-  --info: #4E7292;
-  --info-ink: #3A576F;
-  --info-soft: #83A0B8;
+  /* Info — teal, kept off the primary blue so charts that pair them (owners pie:
+     sponsors = primary, institutions = info) stay two colours: info chips, results dots */
+  --info: #0E6A80;
+  --info-ink: #0B5869;
+  --info-soft: #7FB3C2;
 
-  /* Gold — premium accents: stars, watchlist, dividends, "best" */
-  --gold: #C6A96B;          /* real gold — fills and icons */
-  --gold-ink: #8F7333;      /* deeper gold — gold text on light (readable) */
-  --gold-soft: #DCC79A;
-  --gold-light: #F3ECDA;    /* gold-tinted panel wash */
+  /* Gold — premium accents: stars, watchlist, dividends, "best". Against blue it is
+     the opposite colour, so Premium stands out */
+  --gold: #D3A23C;          /* real gold — fills and icons */
+  --gold-ink: #845F0E;      /* deeper gold — gold text on light (5.7:1 on a card, 5.1:1 on --gold-light) */
+  --gold-soft: #E8CD8E;
+  --gold-light: #F8EFD9;    /* gold-tinted panel wash */
 
   /* Warm accent — readable bronze-gold; safe as text AND as a fill (pairs with the gold premium accent) */
-  --warm: #97762F;
+  --warm: #8A6A24;
   --warm-soft: #E6D6A4;
   --warm-ink: #6E5622;
 
   --positive: #047857;      /* emerald — gain / buy (LOCKED market semantic) */
   --negative: #B91C1C;      /* red — loss / sell (LOCKED market semantic; one step deeper than #DC2626 so it clears AA on --surface-2) */
-  --bg: #F3F1EC;            /* soft warm canvas (2026-11-06: one step down from #FAF8F4 — a reader found the bright screen tiring; was cream #F6F1E7 before the 2026-10 redesign). Cards lift off it by border + shadow, not by contrast */
-  --border: #DED6C3;        /* warm hairline (deepened with the canvas so it still reads) */
-  --text: #2E2B26;          /* charcoal ink */
+  --bg: #F1F4F8;            /* soft blue-white canvas: as soft as the 2026-11-06 #F3F1EC (a reader found a bright screen tiring) but crisp instead of grey-beige. Cards lift off it by border + shadow, not by contrast */
+  --border: #D5DDE8;        /* cool hairline */
+  --text: #16202D;          /* navy-tinted ink */
   /* Secondary ink: labels, captions, meta lines, notes, small print (2026-11-23, the calm
      plan step 1). One step softer than --text so bold no longer has to carry every
-     difference, but never faded: 8.4:1 on --surface, 7.7:1 on --bg, 7.2:1 on --surface-2
+     difference, but never faded: 8.0:1 on --surface, 7.4:1 on --bg, 7.0:1 on --surface-2
      (AAA everywhere). From 2026-10-30 to 11-23 it equalled --text (user: "no line should
-     be faded, all clearly visible"); the old #5C554A was under 7:1 on the grey panel. */
-  --text-muted: #504B43;
+     be faded, all clearly visible"). */
+  --text-muted: #435064;
   /* Radius scale (the ONLY radii in the app besides 999px pills and ≤4px hairlines):
      8 tight controls · 10 controls · 12 inputs + small cards · 16 cards · 20 hero panels.
      tailwind.config.ts maps rounded-md/DEFAULT/lg/xl/3xl onto the same five values. */
@@ -81,102 +87,102 @@
 
   /* Resting shadow calmed in the 2026-10 redesign (was 0 12px 32px -12px @ .12):
      a card is set off by its hairline border first, the shadow only hints at lift. */
-  --shadow-soft: 0 1px 2px rgba(46, 43, 38, 0.05), 0 6px 16px -10px rgba(46, 43, 38, 0.10);
-  --shadow-lift: 0 1px 2px rgba(46, 43, 38, 0.05), 0 22px 48px -16px rgba(46, 43, 38, 0.16);
+  --shadow-soft: 0 1px 2px rgba(22, 32, 45, 0.05), 0 6px 16px -10px rgba(22, 32, 45, 0.10);
+  --shadow-lift: 0 1px 2px rgba(22, 32, 45, 0.05), 0 22px 48px -16px rgba(22, 32, 45, 0.16);
 
   /* Fundamental-strength tier colors (excellent/good/average/weak) */
   --tier-excellent: #047857;   /* emerald (= --positive) */
-  --tier-good: #46687F;        /* steel blue, one step deeper than --info so 12px text clears AA on --surface-2 */
-  --tier-average: #5A6577;     /* warm slate — neutral; 4.9:1 on --surface-2 (the old #64748B was 3.9:1) */
+  --tier-good: #3C6A96;        /* a greyer blue than --primary, so a "Mostly strong" pill never reads as a button; 4.9:1 on --surface-2 */
+  --tier-average: #556074;     /* slate — neutral; 5.4:1 on --surface-2 */
   --tier-weak: #B91C1C;        /* red (= --negative) */
-  --watch: #B45309;            /* burnt-amber warn token (not a tier) */
+  --watch: #A64B05;            /* burnt-amber warn token (not a tier); one step deeper 2026-11-24 so it clears AA on --surface-2 (#B45309 was 4.2:1) */
 
   /* Surfaces */
-  --surface: #FCFBF8;     /* cards — off-white since 2026-11-06 (pure #FFFFFF was the main glare) */
-  --surface-2: #EFEADF;   /* inset panel — kept light enough that emerald/red text stay AA on it */
-  --cell-rule: #EFE8DA;   /* table cell hairline (lighter than --border) */
-  --surface-warm: #F9F6F0; /* warm ivory panel, between the canvas and a card — the home page's top band (2026-11-18, was clay at 12%) */
+  --surface: #FCFDFF;     /* cards — off-white since 2026-11-06 (pure #FFFFFF was the main glare) */
+  --surface-2: #E9EEF5;   /* inset panel — kept light enough that emerald/red text stay AA on it */
+  --cell-rule: #E6ECF3;   /* table cell hairline (lighter than --border) */
+  --surface-warm: #F7F9FC; /* soft panel between the canvas and a card — the home page's top band (name kept from the warm palette) */
 
   /* RGB triplets of the tokens above, so Tailwind opacity modifiers work
      (`bg-primary/10`, `border-border/60`). Keep in step with the hex values. */
-  --bg-rgb: 243 241 236;
-  --surface-rgb: 252 251 248;
-  --surface-2-rgb: 239 234 223;
-  --border-rgb: 222 214 195;
-  --text-rgb: 46 43 38;
-  --scrim-rgb: 46 43 38;   /* the veil behind sheets and overlays: ink in light, black in dark (a --text veil turned cream in dark mode) */
-  --text-muted-rgb: 80 75 67;
-  --primary-rgb: 158 95 64;
-  --navy-rgb: 42 54 68;
-  --info-rgb: 78 114 146;
-  --gold-rgb: 198 169 107;
-  --warm-rgb: 151 118 47;
+  --bg-rgb: 241 244 248;
+  --surface-rgb: 252 253 255;
+  --surface-2-rgb: 233 238 245;
+  --border-rgb: 213 221 232;
+  --text-rgb: 22 32 45;
+  --scrim-rgb: 22 32 45;   /* the veil behind sheets and overlays: ink in light, black in dark (a --text veil turned pale in dark mode) */
+  --text-muted-rgb: 67 80 100;
+  --primary-rgb: 30 91 176;
+  --navy-rgb: 34 52 77;
+  --info-rgb: 14 106 128;
+  --gold-rgb: 211 162 60;
+  --warm-rgb: 138 106 36;
   --positive-rgb: 4 120 87;
   --negative-rgb: 185 28 28;
-  --watch-rgb: 180 83 9;
+  --watch-rgb: 166 75 5;
 
-  /* Text and icons drawn ON a coloured fill (clay buttons, green ticks, red
+  /* Text and icons drawn ON a coloured fill (blue buttons, green ticks, red
      badges, gold medals, the chosen tab). White here; near-black in dark mode,
      where the fills are lighter. Never use --surface for this: on an ink fill
      (`background: var(--text)`) --surface is right and flips with the theme,
-     on a coloured fill it would turn dark-on-clay in dark mode. */
+     on a coloured fill it would turn dark-on-blue in dark mode. */
   --on-fill: #FFFFFF;
   color-scheme: light;
 }
 /* ---- Dark mode (2026-11-06, user decision after a reader found the bright
    screen tiring). `<html data-theme>` is set before first paint by the boot
    script in lib/theme.ts: the reader's choice (menu → Screen), else the
-   phone's own setting. Same roles as light: warm near-black canvas, softer
-   ink (never pure white), every fill a step lighter so it reads on dark.
-   Up / down stay green / red — lighter shades of the same two colours.
-   Keep every `--x-rgb` triplet in step with its hex. ---- */
+   phone's own setting. Same roles as light: deep navy canvas (Bay blue,
+   2026-11-24), softer ink (never pure white), every fill a step lighter so
+   it reads on dark. Up / down stay green / red — lighter shades of the same
+   two colours. Keep every `--x-rgb` triplet in step with its hex. ---- */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --primary: #D38B68;
-  --primary-ink: #E3A585;
-  --primary-soft: #7A4E3A;
-  --navy: #1E2630;          /* footer — a cool panel on the warm canvas */
-  --navy-ink: #2B3644;      /* toast, skip link — lighter than the canvas so they still stand out */
-  --navy-soft: #33404F;
-  --info: #86A8C6;
-  --info-ink: #A3BFD6;
-  --info-soft: #4F6B83;
-  --gold: #D2B676;
-  --gold-ink: #DBC48F;
-  --gold-soft: #6B5B37;
-  --gold-light: #2B251A;
+  --primary: #6CA6F2;
+  --primary-ink: #8DBAF6;
+  --primary-soft: #25416A;
+  --navy: #18212D;          /* a cool panel a step off the canvas */
+  --navy-ink: #263447;      /* toast, skip link — lighter than the canvas so they still stand out */
+  --navy-soft: #34445A;
+  --info: #5CC3D6;
+  --info-ink: #8AD3E0;
+  --info-soft: #2F5F6B;
+  --gold: #E2B75A;
+  --gold-ink: #EBC97C;
+  --gold-soft: #6B5A33;
+  --gold-light: #2A2416;
   --warm: #CBA75C;
   --warm-soft: #4A3F26;
   --warm-ink: #DFC383;
   --positive: #3FBF8E;
   --negative: #F27D73;
-  --bg: #161412;
-  --border: #3B3630;
-  --text: #ECE5DA;
-  --text-muted: #BDB5A8;    /* secondary ink, same step as light: 8.3:1 on --surface, 7.4:1 on --surface-2 */
+  --bg: #0E131A;
+  --border: #2B3644;
+  --text: #E5ECF5;
+  --text-muted: #A8B5C6;    /* secondary ink, same step as light: 8.2:1 on --surface, 7.3:1 on --surface-2 */
   --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.30), 0 6px 16px -10px rgba(0, 0, 0, 0.50);
   --shadow-lift: 0 1px 2px rgba(0, 0, 0, 0.30), 0 22px 48px -16px rgba(0, 0, 0, 0.60);
   --tier-excellent: #3FBF8E;
-  --tier-good: #8FB0CB;
-  --tier-average: #ABB3BF;
+  --tier-good: #93B6D9;
+  --tier-average: #A9B3C2;
   --tier-weak: #F27D73;
   --watch: #E59C4F;
-  --surface: #1F1C19;
-  --surface-2: #2A2622;
-  --cell-rule: #2C2824;
-  --surface-warm: #1B1815;  /* between the canvas and a card, like light */
-  --on-fill: #17130F;
-  --bg-rgb: 22 20 18;
-  --surface-rgb: 31 28 25;
-  --surface-2-rgb: 42 38 34;
-  --border-rgb: 59 54 48;
-  --text-rgb: 236 229 218;
+  --surface: #151C25;
+  --surface-2: #1D2631;
+  --cell-rule: #202A35;
+  --surface-warm: #121820;  /* between the canvas and a card, like light */
+  --on-fill: #0A1422;
+  --bg-rgb: 14 19 26;
+  --surface-rgb: 21 28 37;
+  --surface-2-rgb: 29 38 49;
+  --border-rgb: 43 54 68;
+  --text-rgb: 229 236 245;
   --scrim-rgb: 0 0 0;
-  --text-muted-rgb: 189 181 168;
-  --primary-rgb: 211 139 104;
-  --navy-rgb: 30 38 48;
-  --info-rgb: 134 168 198;
-  --gold-rgb: 210 182 118;
+  --text-muted-rgb: 168 181 198;
+  --primary-rgb: 108 166 242;
+  --navy-rgb: 24 33 45;
+  --info-rgb: 92 195 214;
+  --gold-rgb: 226 183 90;
   --warm-rgb: 203 167 92;
   --positive-rgb: 63 191 142;
   --negative-rgb: 242 125 115;

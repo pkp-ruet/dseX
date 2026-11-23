@@ -59,8 +59,8 @@ export const GOOD_OR_BETTER = { en: "mostly strong or better", bn: "বেশি
  */
 export const TIER_COLORS: Record<TierKey, string> = {
   excellent: "#047857", // Satori OG image only
-  good:      "#46687F", // Satori OG image only
-  average:   "#5A6577", // Satori OG image only
+  good:      "#3C6A96", // Satori OG image only
+  average:   "#556074", // Satori OG image only
   weak:      "#B91C1C", // Satori OG image only
 };
 

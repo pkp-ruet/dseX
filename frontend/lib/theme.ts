@@ -16,7 +16,7 @@ export const THEME_KEY = "dsex.theme";
 export const DEFAULT_THEME: ThemePref = "auto";
 
 /** Browser chrome colours (themeColor) — the navbar's surface in each mode. */
-export const THEME_CHROME = { light: "#FCFBF8", dark: "#1F1C19" } as const; // themeColor
+export const THEME_CHROME = { light: "#FCFDFF", dark: "#151C25" } as const; // themeColor
 
 /**
  * Runs in `<head>` before the first paint: resolves the saved choice (else
