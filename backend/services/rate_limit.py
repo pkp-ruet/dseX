@@ -157,6 +157,8 @@ RULES: list[Rule] = [
     _rule("watch-rules", "PUT POST", r"^/api/user/watch-rules/", 30, 15),
     _rule("notifications-seen", "POST", r"^/api/user/notifications/seen$", 30, 15),
     _rule("for-you-hide", "POST DELETE", r"^/api/user/for-you/hide/", 30, 15),
+    # Portfolio builder: Premium builds as often as they want; this only stops scripts.
+    _rule("portfolio-builder", "POST", r"^/api/user/portfolio-builder$", 30 * PER_HOUR, 10),
     _rule("refresh", "POST", r"^/api/scores/refresh$", 10, 5, by_ip=True),
 ]
 

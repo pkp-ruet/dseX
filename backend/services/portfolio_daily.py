@@ -661,6 +661,12 @@ def run_portfolio_daily(not_before_dhaka_hour: Optional[int] = None) -> dict:
         counts["rank_alerts"] = run_rank_alerts(now, day, push_ok)
     except Exception:  # noqa: BLE001 — rank alerts never fail the portfolio job
         log.warning("rank alerts failed", exc_info=True)
+    try:
+        # Portfolio builder phase 2: what changed in each reader's newest plan.
+        from backend.services.portfolio_builder_service import run_plan_watch
+        counts["plan_watch"] = run_plan_watch(now, day, push_ok)
+    except Exception:  # noqa: BLE001 — the plan watch never fails the portfolio job
+        log.warning("plan watch failed", exc_info=True)
     log.info("portfolio daily done: %s", counts)
     return counts
 

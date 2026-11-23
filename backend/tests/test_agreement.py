@@ -276,6 +276,36 @@ def test_frontend_watch_rules_match_the_backend():
     assert [s.strip().strip('"') for s in sugg.split(",")] == list(wr.SUGGESTED)
 
 
+def test_frontend_portfolio_builder_matches_the_backend():
+    """Portfolio builder (2026-11-23): the answer keys, jobs, limits and the
+    shares-for-the-money steps are the backend's."""
+    from backend.services import portfolio_builder as pb
+
+    src = _front("lib/portfolio-builder.ts")
+
+    def keys(name: str) -> list[str]:
+        body = re.search(rf"export const {name} = \[(.*?)\] as const;", src).group(1)
+        return [s.strip().strip('"') for s in body.split(",") if s.strip()]
+
+    assert keys("PURPOSES") == list(pb.PURPOSES)
+    assert keys("STARTS") == list(pb.STARTS)
+    assert keys("HORIZONS") == list(pb.HORIZONS)
+    assert keys("LIKES") == list(pb.LIKES)
+    assert keys("LEAVE_OUT") == list(pb.LEAVE_OUT)
+    assert keys("JOBS") == list(pb.JOBS)
+    num = lambda name: int(re.search(rf"export const {name} = ([\d_]+);", src).group(1).replace("_", ""))  # noqa: E731
+    assert num("MIN_AMOUNT") == pb.MIN_AMOUNT
+    assert num("MAX_AMOUNT") == pb.MAX_AMOUNT
+    assert num("MAX_LIKES") == pb.MAX_LIKES
+    for amount in (10_000, 24_999, 25_000, 74_999, 75_000, 299_999, 300_000, 999_999, 1_000_000):
+        steps = re.findall(r"if \(amount < ([\d_]+)\) return (\d+);", src)
+        n = next((int(k) for under, k in steps if amount < int(under.replace("_", ""))), None)
+        n = n if n is not None else int(re.search(r"\n  return (\d+);\n}\n\nexport const AMOUNT_CHIPS", src).group(1))
+        assert n == pb.share_count(amount), amount
+    for job, (en, bn) in pb.JOB_WORDS.items():
+        assert f'{job}: {{ en: "{en}", bn: "{bn}" }}' in src, job
+
+
 def test_fair_price_copies_match():
     """The valuation score from the fair price (fair_context) uses the signal's
     lines, the score's P/E ceilings and the stock report's deposit (2026-11-22)."""

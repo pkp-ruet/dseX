@@ -1,6 +1,7 @@
 "use client";
 
 import { authHref } from "@/lib/next-path";
+import Link from "@/components/ui/Link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -1124,6 +1125,16 @@ export default function PortfolioClient() {
                 {L("See a sample portfolio", "নমুনা পোর্টফোলিও দেখুন")}
               </Button>
             </div>
+            {/* 2026-11-23: the biggest moment for the portfolio builder. */}
+            <p className="pf-empty-text">
+              {L("No shares yet? ", "এখনো কোনো শেয়ার নেই? ")}
+              <Link href="/portfolio-builder" className="font-semibold text-primary">
+                {L(
+                  "Tell us how much you want to invest, and we'll build a portfolio.",
+                  "কত টাকা বিনিয়োগ করতে চান বলুন, আমরা পোর্টফোলিও বানিয়ে দেব।",
+                )}
+              </Link>
+            </p>
           </section>
 
           {/* A reader who sold everything still has their records */}
@@ -1369,6 +1380,18 @@ export default function PortfolioClient() {
                   {L("Fix a mistake in your shares", "শেয়ারের ভুল ঠিক করুন")}
                 </Button>
               </div>
+            )}
+            {/* 2026-11-23, the portfolio builder phase 2: new money added to these shares. */}
+            {isMain && !readOnly && (
+              <p className="pf-empty-text">
+                {L("Have new money to add? ", "নতুন টাকা যোগ করবেন? ")}
+                <Link href="/portfolio-builder?start=mine&src=portfolio" className="font-semibold text-primary">
+                  {L(
+                    "We'll split it across strong companies without making any share or business too big.",
+                    "কোনো শেয়ার বা ব্যবসা বেশি বড় না করে আমরা তা শক্তিশালী কোম্পানিতে ভাগ করে দেব।",
+                  )}
+                </Link>
+              </p>
             )}
           </section>
 

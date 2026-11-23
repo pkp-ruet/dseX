@@ -62,6 +62,7 @@ import {
   IconMoon,
   IconStar,
   IconEye,
+  IconBlocks,
   IconSun,
   IconTune,
 } from "@/components/ui/icons";
@@ -83,6 +84,8 @@ const INSTALL_KEY = "dsex.install.home.dismissed";
 // "Not now" on the watch-rules slide: back after 14 days.
 const RULES_KEY = "dsex.home.rulesSlide";
 const RULES_SNOOZE_MS = 14 * 86400000;
+// "Not now" on the portfolio-builder slide (2026-11-23): back after 14 days.
+const BUILDER_KEY = "dsex.home.builderSlide";
 
 const YEAR = PAID_PLANS.find((p) => p.key === "yearly") ?? PAID_PLANS[PAID_PLANS.length - 1];
 
@@ -303,6 +306,7 @@ export default function OfferSlot({
   const [setupHidden, setSetupHidden] = useState(true);
   const [installHidden, setInstallHidden] = useState(true);
   const [rulesHidden, setRulesHidden] = useState(true);
+  const [builderHidden, setBuilderHidden] = useState(true);
   // How many rules the reader has (null until read).
   const [ruleCount, setRuleCount] = useState<number | null>(null);
   const [isPhone, setIsPhone] = useState(false);
@@ -341,6 +345,12 @@ export default function OfferSlot({
       setRulesHidden(at > 0 && Date.now() - at < RULES_SNOOZE_MS);
     } catch {
       setRulesHidden(false);
+    }
+    try {
+      const at = Number(localStorage.getItem(BUILDER_KEY) || 0);
+      setBuilderHidden(at > 0 && Date.now() - at < RULES_SNOOZE_MS);
+    } catch {
+      setBuilderHidden(false);
     }
     try {
       const raw = uid ? localStorage.getItem(tipsKey(uid)) : null;
@@ -997,6 +1007,82 @@ export default function OfferSlot({
     };
   }
 
+  // The portfolio builder (2026-11-23), one card for every reader, worded for
+  // where they are: no shares yet → build a portfolio; shares and a plan they
+  // can still build → plan the new money ("start from my shares"); a plan
+  // already built that they can't rebuild for free → their plan, watched
+  // after every close. The first plan is free.
+  let builderSlide: Slide | null = null;
+  const builderBuilt = !!user?.builder?.free_used;
+  const builderCanBuild = isPremium || !builderBuilt;
+  const builderKind: "fresh" | "mine" | "plan" | null = builderHidden
+    ? null
+    : hasPortfolio && builderCanBuild
+      ? "mine"
+      : !hasPortfolio && !builderBuilt
+        ? "fresh"
+        : builderBuilt
+          ? "plan"
+          : null;
+  if (builderKind) {
+    const free = !isPremium && !builderBuilt;
+    const copy = {
+      fresh: {
+        title: bn ? "বিনিয়োগের টাকা আছে?" : "Have money to invest?",
+        body: bn
+          ? `তিনটি প্রশ্নের উত্তর দিন, আমরা শক্তিশালী কোম্পানি দিয়ে পুরো পোর্টফোলিও বানিয়ে দেব: কোন শেয়ার, কতটি করে।${free ? " প্রথমটি ফ্রি।" : ""}`
+          : `Answer three questions and we build a whole portfolio from strong companies: which shares, how many of each.${free ? " Your first plan is free." : ""}`,
+        cta: bn ? "পোর্টফোলিও বানান" : "Build my portfolio",
+        href: "/portfolio-builder?src=home",
+      },
+      mine: {
+        title: bn ? "নতুন টাকা যোগ করবেন?" : "Have new money to add?",
+        body: bn
+          ? `কত টাকা বলুন, আমরা তা শক্তিশালী কোম্পানিতে ভাগ করে দেব, আপনার শেয়ার দেখে, যাতে কোনো শেয়ার বা ব্যবসা বেশি বড় না হয়।${free ? " প্রথম পরিকল্পনা ফ্রি।" : ""}`
+          : `Tell us how much, and we split it across strong companies with your shares in mind, so no share or business gets too big.${free ? " Your first plan is free." : ""}`,
+        cta: bn ? "নতুন টাকার পরিকল্পনা" : "Plan my new money",
+        href: "/portfolio-builder?start=mine&src=home",
+      },
+      plan: {
+        title: bn ? "আপনার পোর্টফোলিও পরিকল্পনা" : "Your portfolio plan",
+        body: bn
+          ? "প্রতিদিন বাজার বন্ধের পর আমরা পরিকল্পনার শেয়ারগুলো দেখি, আর কোনোটি কেনার দামে এলে বা বদলালে জানাই।"
+          : "We check the shares in your plan after every close, and tell you when one reaches its price or something changes.",
+        cta: bn ? "আমার পরিকল্পনা দেখুন" : "See my plan",
+        href: "/portfolio-builder?src=home",
+      },
+    }[builderKind];
+    builderSlide = {
+      id: "builder",
+      tone: "plain",
+      onSeen: () => trackEvent("builder_slide_view", { premium: isPremium ? 1 : 0, kind: builderKind }),
+      node: (
+        <>
+          {eyebrow(<IconBlocks size={14} />, bn ? "পোর্টফোলিও বানান" : "Portfolio builder")}
+          <h3 className="hm-sl-title">{copy.title}</h3>
+          <p className="hm-sl-body">{copy.body}</p>
+          <div className="hm-sl-acts">
+            <Button href={copy.href} onClick={() => trackEvent("builder_slide_tap", { premium: isPremium ? 1 : 0, kind: builderKind })}>
+              {copy.cta}
+            </Button>
+            <button
+              type="button"
+              className="hm-sl-link"
+              onClick={() => {
+                try {
+                  localStorage.setItem(BUILDER_KEY, String(Date.now()));
+                } catch {}
+                setBuilderHidden(true);
+              }}
+            >
+              {bn ? "এখন না" : "Not now"}
+            </button>
+          </div>
+        </>
+      ),
+    };
+  }
+
   // Phones that can install the app (desktop has the navbar's Install button).
   let installSlide: Slide | null = null;
   if (isPhone && !installed && (canInstall || ios) && !installHidden) {
@@ -1155,11 +1241,11 @@ export default function OfferSlot({
   const lead = afterToday ? [afterSlide, briefSlide] : [briefSlide, afterSlide];
   const order: (Slide | null)[] = isPremium
     ? brandNew
-      ? [...lead, startSlide, setupSlide, rulesSlide, tipSlide, researchSlide, pushSlide, installSlide]
-      : [...lead, resultsSlide, rulesSlide, researchSlide, tipSlide, pushSlide, setupSlide, installSlide]
+      ? [...lead, startSlide, builderSlide, setupSlide, rulesSlide, tipSlide, researchSlide, pushSlide, installSlide]
+      : [...lead, resultsSlide, rulesSlide, builderSlide, researchSlide, tipSlide, pushSlide, setupSlide, installSlide]
     : brandNew
-      ? [portfolioSlide, startSlide, setupSlide, rulesSlide, pickSlide, pitch, installSlide]
-      : [portfolioSlide, pickSlide, weekSlide, rulesSlide, pitch, pushSlide, setupSlide, installSlide];
+      ? [portfolioSlide, builderSlide, startSlide, setupSlide, rulesSlide, pickSlide, pitch, installSlide]
+      : [portfolioSlide, pickSlide, builderSlide, weekSlide, rulesSlide, pitch, pushSlide, setupSlide, installSlide];
   // A free reader's first slide depends on the portfolio: wait until it is
   // known, so the portfolio slide never pops in ahead of the others.
   const waiting = freeReader && holdings === null;

@@ -52,6 +52,8 @@ export interface AuthUser {
   /** The reader's own ৳99 month (backend `payments.offer_state`), or null
    *  when it isn't theirs (ended, Premium, already used). */
   offer?: OwnOfferState | null;
+  /** The portfolio builder's one free plan (backend `portfolio_builder.builder_state`). */
+  builder?: { free_used: boolean; count: number };
 }
 
 export interface OwnOfferState {

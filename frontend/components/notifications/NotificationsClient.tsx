@@ -40,11 +40,13 @@ const KIND: Record<string, Pair> = {
   letter: { en: "Friday letter", bn: "শুক্রবারের চিঠি" },
   screen: { en: "Saved screen", bn: "সেভ করা স্ক্রিন" },
   rule: { en: "Your rule", bn: "আপনার নিয়ম" },
+  plan: { en: "Your plan", bn: "আপনার পরিকল্পনা" },
 };
 
 /** The watcher's kinds: the "your shares" layer of THE Premium line. A free
- *  reader sees the week's one marked `free`; the rest are counted. */
-const WATCH_KINDS = new Set(["results", "grade", "red_flag", "record", "category", "drop", "low52", "breakeven"]);
+ *  reader sees the week's one marked `free`; the rest are counted. `plan` =
+ *  the portfolio builder's plan watch (2026-11-23). */
+const WATCH_KINDS = new Set(["results", "grade", "red_flag", "record", "category", "drop", "low52", "breakeven", "plan"]);
 
 /** Counted words: [one, many, Bengali]. */
 const COUNT_WORDS: Record<string, [string, string, string]> = {
@@ -56,6 +58,7 @@ const COUNT_WORDS: Record<string, [string, string, string]> = {
   drop: ["big fall", "big falls", "বড় দরপতন"],
   low52: ["yearly low", "yearly lows", "বছরের সর্বনিম্ন দাম"],
   breakeven: ["return to your price", "returns to your price", "কেনা দামে ফেরা"],
+  plan: ["change in your portfolio plan", "changes in your portfolio plan", "পরিকল্পনায় বদল"],
 };
 
 /** "2 results reports, 1 warning and 1 big fall" in both languages. */

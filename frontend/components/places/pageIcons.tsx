@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 import {
   IconActivity,
   IconBell,
+  IconBlocks,
   IconBook,
   IconBriefcase,
   IconCap,
@@ -25,6 +26,7 @@ export const PAGE_ICON: Record<string, ComponentType<{ size?: number }>> = {
   calendar: IconCoin,
   sectors: IconPie,
   buylist: IconClipboardCheck,
+  builder: IconBlocks,
   companies: IconTrophy,
   screener: IconTune,
   compare: IconCompare,

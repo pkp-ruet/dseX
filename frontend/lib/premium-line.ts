@@ -54,7 +54,8 @@ export const AREAS = {
   "buy_list": { "layer": "judgement", "free": "count_one", "n": 1, "per": null },
   "for_you": { "layer": "judgement", "free": "count", "n": null, "per": null },
   "research": { "layer": "judgement", "free": "count", "n": null, "per": null },
-  "ai": { "layer": "judgement", "free": "limit", "n": 10, "per": "day" }
+  "ai": { "layer": "judgement", "free": "limit", "n": 10, "per": "day" },
+  "portfolio_builder": { "layer": "judgement", "free": "limit", "n": 1, "per": null }
 } satisfies Record<string, Area>;
 
 export type AreaKey = keyof typeof AREAS;

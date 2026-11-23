@@ -379,3 +379,18 @@ export const IconGift = (p: { size?: number }) => (
     <path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5" />
   </I>
 );
+/** Build again (the portfolio builder). */
+export const IconRedo = (p: { size?: number }) => (
+  <I {...p}>
+    <path d="M20 11a8 8 0 1 0-2.3 5.7" />
+    <path d="M20 4v7h-7" />
+  </I>
+);
+/** The portfolio builder: blocks of different sizes. */
+export const IconBlocks = (p: { size?: number }) => (
+  <I {...p}>
+    <rect x="3" y="12" width="5" height="9" rx="1" />
+    <rect x="10" y="7" width="5" height="14" rx="1" />
+    <rect x="17" y="3" width="4" height="18" rx="1" />
+  </I>
+);

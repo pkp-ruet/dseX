@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import PageHeader from "@/components/ui/PageHeader";
+import Link from "@/components/ui/Link";
 import EmptyState from "@/components/ui/EmptyState";
 import PageGate from "@/components/premium/PageGate";
 import BuyListRows from "@/components/buy-list/BuyListRows";
@@ -143,6 +144,14 @@ export default async function BuyListPage() {
       </div>
 
       <HowWeChoose rules={data.rules} />
+
+      {/* 2026-11-23: the Buy List says which shares; the builder says how to split your money. */}
+      <p className="bl-advice">
+        <T en="Want your money split across strong companies? " bn="টাকা শক্তিশালী কোম্পানিগুলোতে ভাগ করে রাখতে চান? " />
+        <Link href="/portfolio-builder" className="font-semibold text-primary">
+          <T en="Build a portfolio" bn="পোর্টফোলিও বানান" />
+        </Link>
+      </p>
 
       <p className="bl-advice">
         <T

@@ -105,6 +105,14 @@ export const PLACES: Place[] = [
         premium: true,
       },
       {
+        key: "builder",
+        href: "/portfolio-builder",
+        name: { en: "Portfolio builder", bn: "পোর্টফোলিও বানান" },
+        line: { en: "A whole portfolio for your money, first plan free", bn: "আপনার টাকায় পুরো পোর্টফোলিও, প্রথমটি ফ্রি" },
+        ask: { en: "How should I invest my money?", bn: "আমার টাকা কীভাবে বিনিয়োগ করব?" },
+        icon: "builder",
+      },
+      {
         key: "companies",
         href: "/dsestockranking",
         name: { en: "All companies", bn: "সব কোম্পানি" },

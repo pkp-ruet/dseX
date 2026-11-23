@@ -65,6 +65,8 @@ function MenuIcon({ name }: { name?: string }) {
       return <svg {...p}><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3Z" /><path d="M18.5 15l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z" /></svg>;
     case "buylist":
       return <svg {...p}><path d="M10 6h10M10 12h10M10 18h10" /><path d="m3.5 6 1.5 1.5L8 4.5M3.5 12l1.5 1.5L8 10.5M3.5 18l1.5 1.5L8 16.5" /></svg>;
+    case "builder":
+      return <svg {...p}><rect x="3" y="12" width="5" height="9" rx="1" /><rect x="10" y="7" width="5" height="14" rx="1" /><rect x="17" y="3" width="4" height="18" rx="1" /></svg>;
     case "signals":
       return <svg {...p}><path d="M7 3v18M7 3l-3 4M7 3l3 4" /><path d="M17 21V3M17 21l-3-4M17 21l3-4" /></svg>;
     case "picks":

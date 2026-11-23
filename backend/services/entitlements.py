@@ -161,7 +161,15 @@ def plan_fields(user: dict) -> dict:
         "report_keys": keys_state(user.get("report_keys"), now),
         # The reader's own ৳99 month (payments.offer_state), or None.
         "offer": offer_state(user, now, is_premium(user), offer_open()),
+        # The portfolio builder's one free plan (portfolio_builder.builder_state).
+        "builder": _builder_state(user),
     }
+
+
+def _builder_state(user: dict) -> dict:
+    from backend.services.portfolio_builder import builder_state
+
+    return builder_state(user)
 
 
 def _taste_state(user: dict, now: datetime) -> Optional[dict]:

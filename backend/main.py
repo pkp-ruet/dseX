@@ -13,6 +13,7 @@ from backend.routers import research
 from backend.routers import buy_list
 from backend.routers import compare
 from backend.routers import watch_rules
+from backend.routers import portfolio_builder
 
 app = FastAPI(title="dseX API", version="1.0.0")
 
@@ -90,6 +91,7 @@ app.include_router(research.router)
 app.include_router(buy_list.router)
 app.include_router(compare.router)
 app.include_router(watch_rules.router)
+app.include_router(portfolio_builder.router)
 
 
 def _startup_step(name, fn) -> None:

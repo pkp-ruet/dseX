@@ -46,6 +46,8 @@ const PAGE_KEYS: Record<string, string[]> = {
   sectors: ["sector", "industry", "industries", "সেক্টর"],
   buylist: ["buy", "buy list", "buy signal", "signals", "what to buy", "best shares", "best stocks", "undervalued",
     "কেনার তালিকা", "কী কিনব", "কোন শেয়ার কিনব", "সিগন্যাল"],
+  builder: ["portfolio builder", "build portfolio", "build a portfolio", "invest", "invest money", "how to invest",
+    "1 lakh", "lakh", "plan", "where to invest", "বিনিয়োগ", "টাকা", "পোর্টফোলিও বানান", "কোথায় বিনিয়োগ"],
   companies: ["ranking", "rank", "top stocks", "strongest", "score", "all stocks", "all shares", "all companies",
     "share price", "prices", "price list", "a to z", "র‍্যাঙ্কিং", "স্কোর", "সব শেয়ার", "সব কোম্পানি", "শেয়ারের দাম", "শেয়ারদর"],
   screener: ["screener", "screen", "filter", "find", "cheap", "low pe", "pe", "pb", "book value",

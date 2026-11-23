@@ -59,6 +59,7 @@ export default async function FindPlacePage() {
 
   const figures: Record<string, DoorFigure | null> = {
     buylist: buyList ? { value: buyList.count, unit: { en: "shares today", bn: "আজকের শেয়ার" } } : null,
+    builder: { value: 3, unit: { en: "questions", bn: "প্রশ্ন" } },
     companies: graded ? { value: graded, unit: { en: "ranked", bn: "র‍্যাঙ্ক করা" } } : null,
     screener: { value: 6, unit: { en: "ready lists", bn: "তৈরি তালিকা" } },
     research: { value: REPORTS.length, unit: { en: "reports", bn: "রিপোর্ট" } },

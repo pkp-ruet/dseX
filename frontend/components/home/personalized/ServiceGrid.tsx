@@ -70,7 +70,8 @@ const PREMIUM: Service = {
 const MORE: Service[] = [
   fromMap("research", "research"),
   fromMap("sectors", "sectors"),
-  fromMap("updates", "updates"),
+  // 2026-11-23: the portfolio builder took Updates' place (the bell opens Updates).
+  fromMap("builder", "builder"),
   fromMap("watchlist", "watchlist"),
   fromMap("portfolio", "portfolio"),
   AI,

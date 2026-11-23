@@ -12,6 +12,7 @@ import type {
 import type { StockReport } from "@/lib/stock-report";
 import type { BuyList, BuyListHome } from "@/lib/buy-list";
 import type { RenewalHave } from "@/lib/renewal";
+import type { BuilderAnswers, BuildResult, KeptPlan, KeptPlans } from "@/lib/portfolio-builder";
 
 /**
  * Backend base URL (no trailing slash).
@@ -2636,7 +2637,7 @@ export interface NotificationItem {
   id: string;
   /** A watcher kind, or `alert` (a price alert hit), `brief` (9 AM), `letter` (Friday),
    *  `screen` (a saved screen changed: who joined or left and why, Premium). */
-  kind: PortfolioWatchEvent["kind"] | "alert" | "brief" | "letter" | "screen" | "rule";
+  kind: PortfolioWatchEvent["kind"] | "alert" | "brief" | "letter" | "screen" | "rule" | "plan";
   code: string | null;
   level: "good" | "watch" | "bad" | "neutral" | "info";
   /** When it came (ISO). */
@@ -3667,4 +3668,22 @@ export async function apiUpdateCustomList(
 
 export async function apiDeleteCustomList(id: string): Promise<{ ok: boolean }> {
   return apiAuthFetch(`/api/user/custom-lists/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
+// ---------------------------------------------------------------------------
+// Portfolio builder (2026-11-23, signed in only; types in lib/portfolio-builder.ts)
+// ---------------------------------------------------------------------------
+
+/** Build a plan and keep it. A free reader's second build is
+ *  `403 limit_reached:portfolio_builder`. */
+export async function apiBuildPortfolio(answers: BuilderAnswers): Promise<BuildResult> {
+  return apiAuthFetch("/api/user/portfolio-builder", { method: "POST", body: JSON.stringify(answers) });
+}
+
+export async function apiGetBuilderPlans(): Promise<KeptPlans> {
+  return apiAuthFetch("/api/user/portfolio-builder");
+}
+
+export async function apiGetBuilderPlan(id: string): Promise<KeptPlan> {
+  return apiAuthFetch(`/api/user/portfolio-builder/${encodeURIComponent(id)}`);
 }

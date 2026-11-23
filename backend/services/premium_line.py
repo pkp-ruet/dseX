@@ -75,6 +75,8 @@ AREAS: dict[str, dict] = {
     "for_you": _a("judgement", "count"),
     "research": _a("judgement", "count"),
     "ai": _a("judgement", "limit", 10, "day"),
+    # 2026-11-23: one plan per account, open in full; building again is Premium.
+    "portfolio_builder": _a("judgement", "limit", 1),
 }
 
 # Where each area is going (the plan's table). Only the ones that move.

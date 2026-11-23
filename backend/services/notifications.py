@@ -69,6 +69,9 @@ def event_row(e: dict) -> Optional[dict]:
     code = (e.get("code") or "").upper() or None
     anchor = RULE_ANCHOR.get(e.get("rule"), "") if kind == "rule" else STOCK_ANCHOR.get(kind, "")
     url = (f"/stock/{code}" + (f"#{anchor}" if anchor else "")) if code else "/portfolio"
+    if kind == "plan" and e.get("url"):
+        # The portfolio builder's plan watch (2026-11-23) carries its own link.
+        url = e["url"]
     return {
         "id": f"ev-{e.get('id')}",
         "kind": kind,
