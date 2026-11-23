@@ -96,7 +96,7 @@ export default function DisclaimerPage() {
                   TopStockBD is <strong className={B}>not a financial advisor</strong>, investment advisor,
                   broker or dealer. Nothing on this website, including our grades, scores, rankings, the Buy List,
                   our analysis, our answer on whether to buy and the price we would buy under, the companies we
-                  pick for you, TopStock AI&apos;s replies or any other content, is financial, investment or trading
+                  pick for you, the portfolios we build or any other content, is financial, investment or trading
                   advice, or advice of any other kind.
                 </>
               }
@@ -105,7 +105,7 @@ export default function DisclaimerPage() {
                   TopStockBD কোনো <strong className={B}>আর্থিক পরামর্শদাতা নয়</strong>, বিনিয়োগ পরামর্শদাতা,
                   ব্রোকার বা ডিলারও নয়। এই ওয়েবসাইটের কোনো কিছুই, আমাদের গ্রেড, স্কোর, র‍্যাঙ্কিং, কেনার তালিকা,
                   আমাদের বিশ্লেষণ, কেনা যায় কি না সেই উত্তর ও যে দামের নিচে আমরা কিনতাম, আপনার জন্য বাছাই করা
-                  কোম্পানি, টপস্টক এআইয়ের উত্তর বা অন্য যেকোনো বিষয়বস্তুসহ, আর্থিক, বিনিয়োগ বা ট্রেডিং পরামর্শ নয়, অন্য
+                  কোম্পানি, আমাদের বানানো পোর্টফোলিও বা অন্য যেকোনো বিষয়বস্তুসহ, আর্থিক, বিনিয়োগ বা ট্রেডিং পরামর্শ নয়, অন্য
                   কোনো ধরনের পরামর্শও নয়।
                 </>
               }

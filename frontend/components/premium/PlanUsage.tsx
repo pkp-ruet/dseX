@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { T } from "@/components/i18n/T";
 import { useAuth } from "@/context/AuthContext";
 import { activeAlertCount, loadAlerts } from "@/lib/price-alerts";
-import { FREE_LIMITS, limitFor, usePremium } from "@/lib/premium";
+import { limitFor, usePremium } from "@/lib/premium";
 import { getCachedWatchlist, loadWatchlist, subscribeWatchlist } from "@/lib/watchlist";
 
 type Row = { key: string; label: { en: string; bn: string }; used: number | null; limit: number | null; note?: { en: string; bn: string } };
@@ -12,7 +12,7 @@ type Row = { key: string; label: { en: string; bn: string }; used: number | null
 /**
  * What the reader's plan allows and how much of it they use (2026-10-29, the
  * Free vs Premium plan, step 7): watchlist, armed price alerts, this month's
- * free full reports and TopStock AI — so a limit is seen before it is hit.
+ * free full analyses — so a limit is seen before it is hit.
  * Hitting a limit opens the Premium popup (`showLimitNotice` → `LimitSheet`).
  */
 export default function PlanUsage() {
@@ -45,12 +45,6 @@ export default function PlanUsage() {
           },
         }]
       : []),
-    {
-      key: "ai",
-      label: { en: "TopStock AI questions a day", bn: "দিনে TopStock AI প্রশ্ন" },
-      used: null,
-      limit: limitFor(user, "ai_daily") ?? (isPremium ? null : FREE_LIMITS.ai_daily),
-    },
   ];
 
   return (

@@ -353,7 +353,7 @@ function judgeEntry(
   // The stock page's own price rule run on the price paid (2026-11-05): the
   // glance's `price_lines` are where its price word turns, so "bought cheap"
   // here is what the stock page would say at that price. The sector-median
-  // method below stays for pages without them (the dashboard, TopStock AI).
+  // method below stays for pages without them (the dashboard).
   if (lines !== undefined) {
     if (lines === null) return { ...none, entryPe };
     const { low_below: low, high_above: high } = lines;

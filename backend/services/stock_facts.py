@@ -629,7 +629,7 @@ def build_items(score_row: Optional[dict], holdings: list[dict], financials: lis
 def build_flags(score_row, holdings, financials, company, news=None,
                 sector_class: str = "GENERAL", now=None) -> dict:
     """The /api/company payload's ``signal_flags``: English strings in
-    green/red (back-compat for the OG card and the assistant) + bilingual items."""
+    green/red (back-compat for the OG card) + bilingual items."""
     items = build_items(score_row, holdings, financials, company, news, sector_class, now)
     return {
         "green": [i["en"] for i in items if i["tone"] == "good"],

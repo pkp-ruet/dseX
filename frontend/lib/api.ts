@@ -168,7 +168,7 @@ export interface SignalItem {
 }
 
 export interface SignalFlags {
-  /** English text — kept for the OG card and the assistant. */
+  /** English text — kept for the OG card. */
   green: string[];
   red: string[];
   /** What the stock page renders. Absent on responses from an older backend. */
@@ -2056,76 +2056,6 @@ export async function apiSendTestPush(): Promise<PushSendResult> {
 }
 
 // ---------------------------------------------------------------------------
-// Stock recommendation
-// ---------------------------------------------------------------------------
-
-export interface RecommendationAnswers {
-  timeline: "short" | "long";
-  strategy: "fundamental_strong" | "market_trending";
-  sectors: string[];
-  dividend: "income_focused" | "doesnt_matter";
-  valuation: "value" | "growth" | "any";
-  budget: "under_50" | "50_to_200" | "any";
-  risk: "steady" | "balanced" | "aggressive";
-  size: "large" | "any" | "small";
-}
-
-/** A plain {en, bn} pair — every sentence the engine writes comes in both. */
-export interface BiText {
-  en: string;
-  bn: string;
-}
-
-export interface RecommendedStock {
-  trading_code: string;
-  company_name: string | null;
-  sector: string | null;
-  score: number | null;
-  tier: string | null;
-  ltp: number | null;
-  change_pct: number | null;
-  div_yield_pct: number | null;
-  eps_yoy_pct: number | null;
-  p1_biz?: number | null;
-  p3_moat?: number | null;
-  p4_val?: number | null;
-  p5_div?: number | null;
-  /** The reason + up to two number lines. */
-  reasons: string[];
-  reasons_bn?: string[];
-  /** The recommendation engine's words (same as a `ForYouItem`). */
-  kind?: ForYouKind | null;
-  tag_en?: string | null;
-  tag_bn?: string | null;
-  why_en?: string | null;
-  why_bn?: string | null;
-  points?: BiText[];
-  watch?: BiText | null;
-  strong?: boolean;
-  anchor?: string | null;
-}
-
-export interface RecommendationResponse {
-  generated_at: string;
-  answers_echo: Record<string, unknown>;
-  relaxations: string[];
-  saved: boolean;
-  picks: RecommendedStock[];
-}
-
-/** Public POST (TopStock AI's "suggest stocks") — the recommendation engine
- *  with the answers as stated tastes. A signed-in reader's own stocks shape it
- *  too, and the answers are saved so the dashboard's picks lean the same way. */
-export async function getStockRecommendations(
-  answers: RecommendationAnswers,
-): Promise<RecommendationResponse> {
-  return apiAuthFetch<RecommendationResponse>("/api/recommendations", {
-    method: "POST",
-    body: JSON.stringify(answers),
-  });
-}
-
-// ---------------------------------------------------------------------------
 // Recommendation engine — "Picked for you" + "What to buy next"
 // (backend services/recommend.py; one engine for every personal suggestion).
 // "Picked for you" runs in explore mode since 2026-11-08: strong companies to
@@ -2133,12 +2063,18 @@ export async function getStockRecommendations(
 // today's Buy List); "What to buy next" keeps the Buy check.
 // ---------------------------------------------------------------------------
 
+/** A plain {en, bn} pair — every sentence the engine writes comes in both. */
+export interface BiText {
+  en: string;
+  bn: string;
+}
+
 /** What ties a pick to the reader: one they own and could add to, one they
  *  follow, a stronger company than a weak one of theirs, the same business as
- *  a good one, a sector they asked for, a strength their stocks share, a
- *  sector they don't have, or simply one of today's strongest. */
+ *  a good one, a strength their stocks share, a sector they don't have, or
+ *  simply one of today's strongest. */
 export type ForYouKind =
-  | "add_more" | "watched" | "upgrade" | "similar" | "asked" | "style" | "new_area" | "top";
+  | "add_more" | "watched" | "upgrade" | "similar" | "style" | "new_area" | "top";
 
 export interface ForYouItem {
   code: string;
@@ -2776,29 +2712,6 @@ export async function apiAuthPing(
   }
 }
 
-/**
- * Mark that the signed-in user sent a message to TopStock AI. Fire-and-forget;
- * no-ops for logged-out users (so the assistant stays usable anonymously and
- * adoption is counted against registered users only).
- */
-export async function apiMarkAiUsed(): Promise<{ count_today: number; limit: number | null } | null> {
-  const token = getToken();
-  if (!token) return null;
-  try {
-    const res = await fetch(`${getApiUrl()}/api/user/ai-used`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) return null;
-    const body = await res.json();
-    return typeof body?.count_today === "number"
-      ? { count_today: body.count_today, limit: body.limit ?? null }
-      : null;
-  } catch {
-    return null; // fire-and-forget
-  }
-}
-
 export async function apiTrackStockVisit(code: string): Promise<void> {
   if (!code) return;
   try {
@@ -2872,6 +2785,7 @@ export async function getTop20(): Promise<Top20Response> {
 
 // ---------------------------------------------------------------------------
 // TopStockBD Tips — ~10 plain-English fundamental tips, refreshed daily
+// (only the admin page reads them since TopStock AI was removed, 2026-11-23)
 // ---------------------------------------------------------------------------
 
 export interface DailyTipFact {
@@ -2893,15 +2807,6 @@ export interface DailyTip {
   metric_label: string | null;
   metric_value: number | null;
   ltp: number | null;
-}
-
-export interface DailyTipsResponse {
-  date: string | null;
-  tips: DailyTip[];
-}
-
-export async function getDailyTips(): Promise<DailyTipsResponse> {
-  return apiFetch<DailyTipsResponse>("/api/daily-tips", 86400);
 }
 
 // ---------------------------------------------------------------------------

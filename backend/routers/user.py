@@ -5,7 +5,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from backend.routers.auth import get_current_user
-from utils.market_hours import bst_today_iso
 from backend.services.auth_service import (
     get_user_watchlist,
     get_user_watchlist_meta,
@@ -15,8 +14,6 @@ from backend.services.auth_service import (
     get_db,
     sanitize_user,
     touch_watchlist_visit,
-    get_last_recommendation,
-    clear_last_recommendation,
 )
 from backend.services.entitlements import (
     HARD_LIMITS,
@@ -89,48 +86,6 @@ def remove_from_watchlist(body: WatchlistBody, current_user: dict = Depends(get_
 def visit_watchlist(current_user: dict = Depends(get_current_user)):
     prev = touch_watchlist_visit(current_user["user_id"])
     return {"previous_visit_at": prev}
-
-
-# ---------------------------------------------------------------------------
-# Stock recommendation
-# ---------------------------------------------------------------------------
-
-@router.get("/last-recommendation")
-def last_recommendation(current_user: dict = Depends(get_current_user)):
-    return {"recommendation": get_last_recommendation(current_user["user_id"])}
-
-
-@router.delete("/last-recommendation")
-def delete_last_recommendation(current_user: dict = Depends(get_current_user)):
-    clear_last_recommendation(current_user["user_id"])
-    return {"ok": True}
-
-
-# ---------------------------------------------------------------------------
-# TopStock AI usage (adoption tracking)
-# ---------------------------------------------------------------------------
-
-@router.post("/ai-used")
-def mark_ai_used(current_user: dict = Depends(get_current_user)):
-    """Record that the signed-in user sent a message to TopStock AI.
-
-    Sets first/last-used timestamps + increments a message counter. Fired
-    fire-and-forget from the assistant on every user message; best-effort."""
-    now = datetime.now(timezone.utc)
-    # Per-Dhaka-day counter beside the lifetime one; the frontend blocks a free
-    # account at `limits.ai_daily` and re-syncs its own count from this reply.
-    today = bst_today_iso()
-    day = current_user.get("ai_day") or {}
-    count_today = (day.get("count", 0) if day.get("date") == today else 0) + 1
-    get_db()["users"].update_one(
-        {"user_id": current_user["user_id"]},
-        {
-            "$set": {"ai_last_used_at": now, "ai_day": {"date": today, "count": count_today}},
-            "$min": {"ai_first_used_at": now},
-            "$inc": {"ai_query_count": 1},
-        },
-    )
-    return {"ok": True, "count_today": count_today, "limit": limits_for(current_user)["ai_daily"]}
 
 
 # ---------------------------------------------------------------------------

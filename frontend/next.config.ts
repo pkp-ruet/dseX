@@ -85,6 +85,8 @@ const nextConfig: NextConfig = {
       { source: "/picked-for-you", destination: "/for-you", permanent: true },
       // Discover became "Based on your shares" (2026-11-18).
       { source: "/discover", destination: "/for-you", permanent: true },
+      // TopStock AI was removed (2026-11-23); it sat under Find.
+      { source: "/assistant", destination: "/find", permanent: true },
       // One market page (2026-11-05): DSE today, Market analysis and the
       // Bengali daily page (/share-bazar) merged into /dse-today, "Market today".
       { source: "/market-analysis", destination: "/dse-today", permanent: true },

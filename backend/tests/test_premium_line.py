@@ -51,7 +51,7 @@ def test_step_one_changes_nothing_a_reader_sees():
     from backend.services import compare, entitlements, portfolio_watch, report_keys
 
     assert entitlements.FREE_LIMITS == {
-        "watchlist": None, "holdings": None, "alerts": 3, "ai_daily": 10,  # step 5: watchlist open
+        "watchlist": None, "holdings": None, "alerts": 3,  # step 5: watchlist open
         "portfolios": 1, "custom_lists": 0, "compare": 10,  # step 5: compare figures for 10
     }
     assert report_keys.REPORT_KEYS_PER_MONTH == 10

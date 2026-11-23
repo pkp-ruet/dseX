@@ -93,7 +93,7 @@ def main() -> None:
 
     p = rs.pool()
     f = p["funnel"]
-    print(f"BUY gate (Buy List, what to buy next, TopStock AI) as of {p['as_of']}: "
+    print(f"BUY gate (Buy List, what to buy next) as of {p['as_of']}: "
           f"{f['rated']} rated · {f['buys']} Buy signals · {f['passed']} pass every check")
     for c in f["checks"]:
         print(f"    {c['left']:>3} left after: {c['en']}")

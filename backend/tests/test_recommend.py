@@ -25,11 +25,11 @@ def with_conviction(fs, levels=None):
     return fs
 
 
-def profile(held=(), watched=(), facts=None, levels=None, sig="buy_more", pool=None, stated=None):
+def profile(held=(), watched=(), facts=None, levels=None, sig="buy_more", pool=None):
     """held = [(code, value)]; watched = [code]."""
     mine = [{"code": c, "held": True, "watched": False, "value": v, "holding_signal": sig} for c, v in held]
     mine += [{"code": c, "held": False, "watched": True, "value": 0.0, "holding_signal": None} for c in watched]
-    return rc.build_profile(mine, facts or {}, levels or {}, stated, pool)
+    return rc.build_profile(mine, facts or {}, levels or {}, pool)
 
 
 # ---------------------------------------------------------------------------
@@ -163,16 +163,8 @@ def test_a_shared_strength_counts_only_when_todays_picks_dont_all_have_it():
         "Pays 4%+ a year, like 2 of your 2 stocks. We grade it strong all round, and its price is low.")
 
 
-def test_quiz_answers_are_strengths_the_reader_asked_for():
-    prof = profile(stated={"dividend": "income_focused", "sectors": [CEMENT]})
-    assert prof["traits"][0]["asked"] and prof["traits"][0]["key"] == "dividends"
-    assert prof["asked_sectors"] == {CEMENT}
-    [it] = _one(F("CEM", sector=CEMENT), prof, {})
-    assert it["kind"] == "asked" and it["tag_en"] == "Your sector"
-    # Asking for a sector lifts its cap: five banks when banks were asked for.
+def test_one_sector_gives_at_most_three_picks():
     banks = with_conviction([F(f"BK{i}", sector=BANK, sector_class="BANK", score=85.0 - i) for i in range(5)])
-    asked = profile(stated={"sectors": [BANK]})
-    assert len(rc.recommend(banks, {}, asked, {})) == 5
     assert len(rc.recommend(banks, {}, rc.empty_profile(), {})) == 3
 
 

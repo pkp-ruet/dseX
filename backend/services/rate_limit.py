@@ -134,7 +134,6 @@ RULES: list[Rule] = [
     # Adding / changing a password from the profile (signed in, per account).
     _rule("set-password", "POST", r"^/api/auth/password$", 10 * PER_HOUR, 5),
     # Expensive public compute.
-    _rule("recommend", "POST", r"^/api/recommendations$", 20, 10),
     _rule("sample-plan", "GET", r"^/api/portfolio/sample-plan$", 20, 10),
     _rule("glance", "GET", r"^/api/watchlist/glance$", 30, 15),
     _rule("watch-updates", "GET", r"^/api/watchlist/updates$", 30, 15),

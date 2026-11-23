@@ -1277,34 +1277,6 @@ a:hover .ticker-tag,
   background: color-mix(in srgb, var(--primary) 12%, transparent);
 }
 .mobile-bottom-bar-badge { box-shadow: 0 0 0 2px var(--surface); }
-/* ======================================
-   DISHA — chat assistant (FAB, panel, typing dots, scrollbar)
-   ====================================== */
-/* FAB clears the 60px mobile bottom bar; drops to the corner on desktop. */
-.disha-typing span {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--text-muted);
-  animation: disha-bounce 1.2s infinite ease-in-out;
-}
-.disha-typing span:nth-child(2) { animation-delay: 0.15s; }
-.disha-typing span:nth-child(3) { animation-delay: 0.30s; }
-@keyframes disha-bounce {
-  0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
-  40% { transform: translateY(-4px); opacity: 1; }
-}
-.disha-scroll { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
-.disha-scroll::-webkit-scrollbar { width: 8px; }
-.disha-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
-/* Quick-action bar: scrolls horizontally without a visible scrollbar. */
-.disha-qbar { scrollbar-width: none; -ms-overflow-style: none; }
-.disha-qbar::-webkit-scrollbar { display: none; }
-@media (prefers-reduced-motion: reduce) {
-
-.disha-typing span { animation: none; opacity: 0.6; }
-}
 
 /* ---------- Card ---------- */
 /* =========================================================
@@ -1922,8 +1894,8 @@ a:hover .ticker-tag,
 .app-toast {
   position: fixed;
   left: 50%;
-  /* Above the bottom bar (60px) AND the .disha-fab that sits
-     just over it, so a toast never lands on a floating button. */
+  /* Well above the bottom bar (60px), so a toast never lands on it
+     or on a bottom-anchored prompt card. */
   bottom: calc(130px + env(safe-area-inset-bottom, 0px));
   z-index: 90;
   display: flex;

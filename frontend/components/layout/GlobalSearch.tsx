@@ -85,14 +85,6 @@ const PAGES: PageShortcut[] = [
     keys: ["bangla", "blog", "ব্লগ", "বাংলা"],
   },
   {
-    href: "/assistant",
-    label: "TopStock AI",
-    labelBn: "টপস্টক এআই",
-    sub: "Ask about the market or any share",
-    subBn: "বাজার বা যেকোনো শেয়ার নিয়ে প্রশ্ন করুন",
-    keys: ["ai", "assistant", "chat", "ask", "help", "এআই", "প্রশ্ন"],
-  },
-  {
     href: "/premium",
     label: "Premium",
     labelBn: "প্রিমিয়াম",

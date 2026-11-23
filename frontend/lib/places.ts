@@ -146,7 +146,6 @@ export const PLACES: Place[] = [
         ask: { en: "Who is in trouble, who pays well?", bn: "কে সমস্যায়, কে ভালো ডিভিডেন্ড দেয়?" },
         icon: "lists",
         premium: true,
-        paths: ["/assistant"],
       },
     ],
   },

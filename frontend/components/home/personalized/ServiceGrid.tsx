@@ -5,7 +5,6 @@ import Link from "@/components/ui/Link";
 import Sheet from "@/components/ui/Sheet";
 import type { Lang } from "@/context/LangContext";
 import {
-  IconChat,
   IconChevronDown,
   IconChevronRight,
   IconCrown,
@@ -55,11 +54,6 @@ const FIRST: Service[] = [
   fromMap("discover", "foryou"),
 ];
 
-const AI: Service = {
-  key: "ai", href: "/assistant", Icon: IconChat,
-  name: { en: "TopStock AI", bn: "টপস্টক এআই" },
-  line: { en: "Ask anything about a share.", bn: "যেকোনো শেয়ার নিয়ে প্রশ্ন করুন।" },
-};
 const PREMIUM: Service = {
   key: "premium", href: "/premium", Icon: IconCrown,
   name: { en: "Premium", bn: "প্রিমিয়াম" },
@@ -74,14 +68,15 @@ const MORE: Service[] = [
   fromMap("builder", "builder"),
   fromMap("watchlist", "watchlist"),
   fromMap("portfolio", "portfolio"),
-  AI,
+  // 2026-11-23: Updates took TopStock AI's place when the assistant was removed.
+  fromMap("updates", "updates"),
   fromMap("guides", "guides"),
   PREMIUM,
 ];
 
 const ALL = [...FIRST, ...MORE];
 
-/** "What is each one?": every page under its place, then TopStock AI and Premium. */
+/** "What is each one?": every page under its place, then Premium. */
 const MAP_GROUPS: { key: string; name: Bi; href?: string; items: Service[] }[] = [
   ...PLACES.map((pl) => ({
     key: pl.key,
@@ -89,7 +84,7 @@ const MAP_GROUPS: { key: string; name: Bi; href?: string; items: Service[] }[] =
     href: pl.key === "learn" ? undefined : pl.href,
     items: pl.pages.map((p) => fromMap(p.key, p.key)),
   })),
-  { key: "more", name: { en: "More", bn: "আরও" }, items: [AI, PREMIUM] },
+  { key: "more", name: { en: "More", bn: "আরও" }, items: [PREMIUM] },
 ];
 
 /**

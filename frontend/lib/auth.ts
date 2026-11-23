@@ -42,7 +42,7 @@ export interface AuthUser {
   /** The last plan bought (`lib/premium-plans.ts` key). */
   paid_plan?: string | null;
   /** null = unlimited. */
-  limits?: { watchlist: number | null; holdings?: number | null; alerts: number | null; ai_daily: number | null; portfolios?: number | null; custom_lists?: number | null; compare?: number | null };
+  limits?: { watchlist: number | null; holdings?: number | null; alerts: number | null; portfolios?: number | null; custom_lists?: number | null; compare?: number | null };
   /** The 7-day taste of the "your shares" layer (backend/services/taste.py), or null. */
   taste?: TasteState | null;
   /** Premium or the taste: Updates in full, same-evening pushes, the brief, watch rules past 3. */

@@ -157,10 +157,6 @@ const COPY = {
   moodWeak: ["The market is weak today.", "আজ বাজার দুর্বল।"],
   moodFallback: ["See how the whole market is doing today.", "আজ পুরো বাজারের অবস্থা দেখুন।"],
 
-  // The recommendation engine's rows (RecoRow: the portfolio's "What to buy next").
-  forYouNew: ["New", "নতুন"],
-  forYouWatch: ["Watch:", "খেয়াল রাখুন:"],
-
   // Explore / learn
   exploreMarket: ["Explore the market", "বাজার ঘুরে দেখুন"],
   seeMore: ["More", "আরও"],

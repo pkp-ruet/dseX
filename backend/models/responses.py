@@ -47,43 +47,6 @@ class ScoreItem(BaseModel):
     signal: Optional[StockSignal] = None
 
 
-class RecommendedStock(BaseModel):
-    trading_code: str
-    company_name: Optional[str] = None
-    sector: Optional[str] = None
-    score: Optional[float] = None
-    tier: Optional[str] = None          # excellent|good|average|weak (services/tiers.py)
-    ltp: Optional[float] = None
-    change_pct: Optional[float] = None
-    div_yield_pct: Optional[float] = None
-    eps_yoy_pct: Optional[float] = None
-    p1_biz: Optional[float] = None
-    p3_moat: Optional[float] = None
-    p4_val: Optional[float] = None
-    p5_div: Optional[float] = None
-    reasons: list[str] = []            # the reason + up to two number lines
-    reasons_bn: list[str] = []         # the same sentences in everyday Bengali
-    signal: Optional[StockSignal] = None
-    # The recommendation engine's words (services/recommend.py).
-    kind: Optional[str] = None          # watched|add_more|upgrade|similar|asked|style|new_area|top
-    tag_en: Optional[str] = None        # the kind word ("Like GP", "Top pick")
-    tag_bn: Optional[str] = None
-    why_en: Optional[str] = None
-    why_bn: Optional[str] = None
-    points: list[dict[str, str]] = []   # [{en, bn}] number lines
-    watch: Optional[dict[str, str]] = None  # {en, bn} — one honest watch-out
-    strong: bool = False
-    anchor: Optional[str] = None        # the reader's own stock a pick is tied to
-
-
-class RecommendationResponse(BaseModel):
-    generated_at: str
-    answers_echo: dict[str, Any]
-    relaxations: list[str] = []         # filters dropped to find enough matches
-    saved: bool = False                 # true if persisted for a logged-in user
-    picks: list[RecommendedStock]
-
-
 class ScoreTiers(BaseModel):
     excellent: list[ScoreItem]
     good: list[ScoreItem]

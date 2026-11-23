@@ -61,7 +61,7 @@ def tier_phrase(key: str) -> tuple[str, str]:
 
 
 # Old key -> new key, for stored docs written before the 2026-07 rename
-# (e.g. users.last_recommendation picks). Read-time hygiene only — never
+# (e.g. old stored picks). Read-time hygiene only — never
 # emit the old keys in new data.
 LEGACY_TIER_KEYS = {
     "strong_buy": "excellent",

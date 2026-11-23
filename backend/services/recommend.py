@@ -3,8 +3,8 @@ Recommendation engine — the rules, kept pure (no database) so they can be
 tested. The data side is ``recommend_service.py``.
 
 ONE engine for every personal stock suggestion in the app: the dashboard's
-"Picked for you", the portfolio's "What to buy next", TopStock AI's "suggest
-stocks" and the empty watchlist's "Suggested to follow".
+"Picked for you", the portfolio's "What to buy next" and the empty watchlist's
+"Suggested to follow".
 
 Three layers, each explainable in plain words:
 
@@ -25,8 +25,7 @@ in the whole market; picked for you is a personalized list for exploring the
 other stocks in the market, read analysis, know things"):
 
 - **buy** (``GATE``) — today's Buy signal + the safety checks. The Buy List's
-  first three questions, the portfolio's "What to buy next" and TopStock AI's
-  "suggest stocks" read it.
+  first three questions and the portfolio's "What to buy next" read it.
 - **explore** (``EXPLORE_GATE``, ``explore=True``) — "Picked for you" and the
   empty watchlist's "Suggested to follow": a company we grade mostly strong or
   better that passes the safety checks, whatever its price today. Never a
@@ -73,7 +72,7 @@ LABEL_CAP = {"style": 4, "new_area": 3}  # past this, a pick reads as a plain "T
 FIN_HEAVY_PCT = 50.0     # banks + finance + insurers holding more of their money than this
 
 BONUS = {"add_more": 24.0, "watched": 26.0, "upgrade": 22.0, "similar": 14.0,
-         "asked": 12.0, "new_area": 6.0, "top": 0.0}
+         "new_area": 6.0, "top": 0.0}
 STYLE_MAX = 10.0
 
 _NOT_LENDER = {"GENERAL"}
@@ -246,25 +245,14 @@ def _trait(qkey: str, lvl: int) -> dict:
     return {"key": qkey, "level": lvl, "en": l.tag_en, "bn": l.tag_bn}
 
 
-# TopStock AI's quiz answers -> the strengths they ask for.
-_STATED = {
-    ("dividend", "income_focused"): ("dividends", 1),
-    ("valuation", "value"): ("price", 2),
-    ("valuation", "growth"): ("growth", 2),
-    ("risk", "steady"): ("safety", 1),
-    ("size", "large"): ("trading", 2),
-}
-
-
 def build_profile(mine: list[dict], facts: dict[str, dict], levels: dict[str, dict],
-                  stated: Optional[dict] = None, pool_levels: Optional[list[dict]] = None) -> dict:
+                  pool_levels: Optional[list[dict]] = None) -> dict:
     """The reader from their own stocks.
 
     ``mine`` = [{code, held, watched, value, holding_signal}] — holdings carry
-    their money (``value``), followed-only stocks 0. ``stated`` = TopStock AI
-    quiz answers, which outrank what their stocks suggest. ``pool_levels`` =
-    today's gated picks' strengths: a strength most of them share ("Low price"
-    on a cheap day) says nothing about this reader's taste, so it is left out."""
+    their money (``value``), followed-only stocks 0. ``pool_levels`` = today's
+    gated picks' strengths: a strength most of them share ("Low price" on a
+    cheap day) says nothing about this reader's taste, so it is left out."""
     held = {m["code"] for m in mine if m.get("held")}
     watched = {m["code"] for m in mine if m.get("watched")}
     hsig = {m["code"]: m.get("holding_signal") for m in mine if m.get("held")}
@@ -316,17 +304,7 @@ def build_profile(mine: list[dict], facts: dict[str, dict], levels: dict[str, di
                 if common(qkey, want) <= TRAIT_COMMON:
                     traits.append(_trait(qkey, want) | {"n": n, "of": len(rated), "common": common(qkey, want)})
                 break
-
-    asked, asked_sectors = [], set()
-    for (q, a), (qkey, lvl) in _STATED.items():
-        if (stated or {}).get(q) == a:
-            asked.append(_trait(qkey, lvl) | {"n": None, "of": None, "asked": True, "common": common(qkey, lvl)})
-    for sec in (stated or {}).get("sectors") or []:
-        if isinstance(sec, str) and sec.strip():
-            asked_sectors.add(sec.strip())
-    # Asked-for strengths replace the same question's inferred one.
-    asked_keys = {t["key"] for t in asked}
-    traits = asked + [t for t in sorted(traits, key=lambda t: (-t["n"], t["common"])) if t["key"] not in asked_keys]
+    traits.sort(key=lambda t: (-t["n"], t["common"]))
 
     return {
         "held": held, "watched": watched, "codes": held | watched,
@@ -334,7 +312,7 @@ def build_profile(mine: list[dict], facts: dict[str, dict], levels: dict[str, di
         "sectors": sectors, "heavy": heavy,
         "fin_heavy": total > 0 and len(held) > 1 and fin_pct > FIN_HEAVY_PCT,
         "top_sector_pct": max((s["pct"] for s in sectors.values()), default=0.0),
-        "traits": traits, "asked_sectors": asked_sectors,
+        "traits": traits,
     }
 
 
@@ -347,10 +325,10 @@ def empty_profile() -> dict:
 # ---------------------------------------------------------------------------
 
 def style_match(lv: Optional[dict], prof: dict) -> list[dict]:
-    """Their strengths this pick shares — what they asked for first, then the
-    rarest among today's picks (the one that says most about the fit)."""
+    """Their strengths this pick shares, the rarest among today's picks first
+    (the one that says most about the fit)."""
     shared = [t for t in prof["traits"] if ((lv or {}).get(t["key"]) or 0) >= t["level"]]
-    return sorted(shared, key=lambda t: (not t.get("asked"), t.get("common") or 0.0))
+    return sorted(shared, key=lambda t: t.get("common") or 0.0)
 
 
 def fit(c: dict, lv: Optional[dict], prof: dict, explore: bool = False) -> Optional[dict]:
@@ -385,8 +363,6 @@ def fit(c: dict, lv: Optional[dict], prof: dict, explore: bool = False) -> Optio
             kind, anchor = "upgrade", poor["code"]
         elif s and s.get("anchor"):
             kind, anchor = "similar", s["anchor"]
-        elif sec and sec in prof["asked_sectors"]:
-            kind = "asked"
         elif shared:
             kind = "style"
         elif (prof["held"] and sec and sec not in prof["sectors"]
@@ -602,21 +578,12 @@ def words(c: dict, kind: str, anchor: Optional[str], shared: list[dict], prof: d
         tag = (f"Like {anchor}", f"{anchor}-এর মতো")
         why = (f"It is in the same business as {anchor}, which you {'own' if own else 'follow'}. {g_en}",
                f"আপনার {'কেনা' if own else 'ফলো করা'} {anchor}-এর মতো একই ব্যবসা। {g_bn}")
-    elif kind == "asked":
-        # The tag already says "your sector"; the reason says what stands out.
-        tag = ("Your sector", "আপনার সেক্টর")
-        en, bn, said = _top_why(c, lv, explore)
-        why = (f"You asked about {sec}. {en}", f"আপনি {sec_bn} সেক্টরের কথা জানতে চেয়েছিলেন। {bn}")
-        skip = (said,) if said else ()
     elif kind == "style":
         t = shared[0]
         lead = t["key"]
         tag = ("Fits your style", "আপনার ধরনের")
-        if t.get("asked"):
-            why = (f"{t['en']}, as you asked. {g_en}", f"{t['bn']}, যেমনটা আপনি চেয়েছেন। {g_bn}")
-        else:
-            why = (f"{t['en']}, like {t['n']} of your {t['of']} stocks. {g_en}",
-                   f"{t['bn']}, আপনার {t['of']}টি শেয়ারের {t['n']}টির মতোই। {g_bn}")
+        why = (f"{t['en']}, like {t['n']} of your {t['of']} stocks. {g_en}",
+               f"{t['bn']}, আপনার {t['of']}টি শেয়ারের {t['n']}টির মতোই। {g_bn}")
     elif kind == "new_area":
         tag = ("New sector for you", "আপনার জন্য নতুন সেক্টর")
         top = max(prof["sectors"].items(), key=lambda kv: kv[1]["pct"], default=(None, {"pct": 0.0}))
@@ -968,10 +935,9 @@ def select(ranked: list[tuple[float, dict, dict]], prof: dict, n: int = N_PICKS)
         if len(out) >= n:
             break
         sec, kind, anchor = c.get("sector") or "", ft["kind"], ft["anchor"]
-        asked = sec in prof["asked_sectors"]  # a sector they asked for is never capped
-        if sec and not asked and per_sector.get(sec, 0) >= SECTOR_CAP:
+        if sec and per_sector.get(sec, 0) >= SECTOR_CAP:
             continue
-        is_fin = (c.get("sector_class") or "GENERAL") in _FINANCIAL and not asked
+        is_fin = (c.get("sector_class") or "GENERAL") in _FINANCIAL
         if is_fin and fin >= FINANCIAL_CAP:
             continue
         mine = c["code"] in prof["codes"]

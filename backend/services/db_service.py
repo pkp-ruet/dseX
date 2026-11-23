@@ -1354,7 +1354,7 @@ def compute_signal_flags(
     """Good signs / Watch-outs for the stock page — see services/stock_facts.py.
 
     Returns {"green": [en], "red": [en], "items": [{key, tone, en, bn}]}; the
-    English lists stay for older readers (OG card, assistant, dump_facts)."""
+    English lists stay for older readers (OG card, dump_facts)."""
     from backend.services.stock_facts import build_flags
     from utils.sector import normalize_sector
 

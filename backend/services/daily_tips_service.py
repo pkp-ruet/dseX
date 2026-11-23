@@ -484,7 +484,7 @@ def _build_tip(r: dict, passed: list[dict]) -> dict:
     lead = top[0]
     return {
         "category": lead["key"],            # drives frontend color/icon
-        "text": headline,                   # backward-compatible single-line text (assistant, admin)
+        "text": headline,                   # backward-compatible single-line text (admin)
         # The facts as one plain sentence in each language (the page shows these).
         "summary": "It " + _join([s["fact"](r) for s in top], " and ") + ".",
         "summary_bn": _sentence([s["fact_bn"](r) for s in top], " ও ", "।"),

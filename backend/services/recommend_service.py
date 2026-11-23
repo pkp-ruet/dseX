@@ -18,7 +18,6 @@ Callers:
                    ``starter`` list feeds the empty watchlist's "Suggested to
                    follow".
 - ``for_portfolio`` — the portfolio's "What to buy next" (buy, ``/api/user/portfolio/buy-next``).
-- ``from_answers``  — TopStock AI's "suggest stocks" (buy, ``POST /api/recommendations``).
 - ``buy_list_service`` — the Buy List's questions 1–3 (buy).
 
 ``users.for_you_seen = {day, codes, prev}`` remembers the reader's last list so
@@ -203,12 +202,10 @@ def _load_watchlist(user: dict) -> list[str]:
     return get_user_watchlist(user["user_id"]) if user.get("user_id") else []
 
 
-def _profile(p: dict, user: Optional[dict], holdings, watchlist, stated: Optional[dict] = None) -> dict:
+def _profile(p: dict, holdings, watchlist) -> dict:
     mine = _mine(holdings, watchlist, p["facts"])
-    if stated is None:
-        stated = ((user or {}).get("last_recommendation") or {}).get("answers")
     pool_levels = [p["levels"].get(c["code"]) or {} for c in p["cands"]]
-    return rc.build_profile(mine, p["facts"], p["levels"], stated, pool_levels)
+    return rc.build_profile(mine, p["facts"], p["levels"], pool_levels)
 
 
 def _today() -> str:
@@ -341,81 +338,7 @@ def for_portfolio(user: dict, holdings: list[dict], watchlist: Optional[list[str
     p = pool()
     if watchlist is None:
         watchlist = _load_watchlist(user)
-    prof = _profile(p, user, holdings, watchlist)
+    prof = _profile(p, holdings, watchlist)
     rows = rc.holding_rows(holdings, p["facts"])
     plan = rc.portfolio_plan(rows, p["cands"], p["levels"], prof, p["facts"], p["funnel"]["buys"])
     return {"as_of": p["as_of"], "funnel": p["funnel"], **plan}
-
-
-# ---------------------------------------------------------------------------
-# TopStock AI's "suggest stocks"
-# ---------------------------------------------------------------------------
-
-N_ANSWERS = 5
-
-# Filters dropped, in order, when too few stocks pass — the sector is the last
-# thing given up (same order the old quiz engine used).
-_RELAX = [set(), {"budget"}, {"budget", "sectors"}]
-
-
-def _budget_ok(c: dict, budget: Optional[str]) -> bool:
-    price = _n(c.get("ltp"))
-    if budget == "under_50":
-        return price is not None and price < 50
-    if budget == "50_to_200":
-        return price is not None and 50 <= price <= 200
-    return True
-
-
-def _as_recommended(it: dict, c: dict, sig: Optional[dict]) -> dict:
-    """An engine item in the old ``RecommendedStock`` shape (+ the engine's words)."""
-    pts_en = [p["en"] for p in it["points"]]
-    pts_bn = [p["bn"] for p in it["points"]]
-    return {
-        "trading_code": it["code"], "company_name": it["name"], "sector": it["sector"],
-        "score": it["score"], "tier": it["tier"], "ltp": it["price"], "change_pct": it["change_pct"],
-        "div_yield_pct": it["div_yield_pct"], "eps_yoy_pct": _n(c.get("eps_yoy_pct")),
-        "p1_biz": _n(c.get("p1_biz")), "p3_moat": _n(c.get("p3_moat")),
-        "p4_val": _n(c.get("p4_val")), "p5_div": _n(c.get("p5_div")),
-        "reasons": [it["why_en"], *pts_en][:3], "reasons_bn": [it["why_bn"], *pts_bn][:3],
-        "signal": sig,
-        "kind": it["kind"], "tag_en": it["tag_en"], "tag_bn": it["tag_bn"],
-        "why_en": it["why_en"], "why_bn": it["why_bn"], "points": it["points"],
-        "watch": it["watch"], "strong": it["strong"], "anchor": it["anchor"],
-    }
-
-
-def from_answers(answers: dict, user: Optional[dict] = None, n: int = N_ANSWERS) -> dict:
-    """Quiz answers act as stated tastes on top of the reader's own stocks;
-    the sector and budget answers stay hard filters until too few pass."""
-    from backend.services.signal_service import build_signals, wire_fields
-
-    p = pool()
-    holdings = _load_holdings(user) if user else []
-    watchlist = _load_watchlist(user) if user else []
-    prof = _profile(p, user, holdings, watchlist, stated=answers)
-    wanted = {s.strip() for s in (answers.get("sectors") or []) if isinstance(s, str) and s.strip()}
-
-    chosen: list[dict] = []
-    dropped: set[str] = set()
-    for drop in _RELAX:
-        dropped = drop
-        chosen = [c for c in p["cands"]
-                  if ("budget" in drop or _budget_ok(c, answers.get("budget")))
-                  and ("sectors" in drop or not wanted or c.get("sector") in wanted)]
-        if len(chosen) >= n:
-            break
-
-    items = rc.recommend(chosen, p["levels"], prof, p["facts"], n)
-    try:
-        sigs = build_signals()
-    except Exception:  # noqa: BLE001
-        sigs = {}
-    by_code = {c["code"]: c for c in chosen}
-    return {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-        "answers_echo": dict(answers),
-        "relaxations": sorted(dropped),
-        "saved": False,
-        "picks": [_as_recommended(it, by_code[it["code"]], wire_fields(sigs.get(it["code"]))) for it in items],
-    }

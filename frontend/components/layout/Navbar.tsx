@@ -61,8 +61,6 @@ function MenuIcon({ name }: { name?: string }) {
       return <svg {...p}><path d="M6 20v-5M12 20V8M18 20v-9" /><path d="M4 20h16" /></svg>;
     case "analysis":
       return <svg {...p}><path d="M3 12h4l2 6 4-14 2 8h6" /></svg>;
-    case "ai":
-      return <svg {...p}><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3Z" /><path d="M18.5 15l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z" /></svg>;
     case "buylist":
       return <svg {...p}><path d="M10 6h10M10 12h10M10 18h10" /><path d="m3.5 6 1.5 1.5L8 4.5M3.5 12l1.5 1.5L8 10.5M3.5 18l1.5 1.5L8 16.5" /></svg>;
     case "builder":

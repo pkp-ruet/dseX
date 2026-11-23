@@ -96,7 +96,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     data("/screener", "daily", 0.85),
     content("/compare-stocks", "monthly", 0.7),
     content("/portfolio-builder", "monthly", 0.7),
-    content("/assistant", "monthly", 0.6),
     content("/learn", "monthly", 0.8),
     content("/blog", "monthly", 0.8),
     content("/premium", "monthly", 0.5),

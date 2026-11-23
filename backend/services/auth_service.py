@@ -159,16 +159,15 @@ def sanitize_user(doc: dict) -> dict:
 # `get_user_by_id` backs `get_current_user`, so it runs on every signed-in
 # request (incl. the per-navigation /api/auth/ping). Leave out the big blobs:
 # `daily_picks` / `pick_feedback` are left on old docs by the retired picks
-# engine (2026-10-28), and callers only read `last_recommendation.answers`
-# (the recommendation engine's stated tastes). `for_you_seen` stays in — it is
-# two short code lists and the engine reads it from the session doc.
+# engine (2026-10-28), and `last_recommendation` by TopStock AI's quiz (removed
+# 2026-11-23); nothing reads them. `for_you_seen` stays in — it is two short
+# code lists and the engine reads it from the session doc.
 _SESSION_PROJECTION = {
     "_id": 0,
     "password_hash": 0,
     "daily_picks": 0,
     "pick_feedback": 0,
-    "last_recommendation.picks": 0,
-    "last_recommendation.relaxations": 0,
+    "last_recommendation": 0,
 }
 
 # What the browser gets back from /me and the login endpoints (mirrors the
@@ -609,52 +608,6 @@ def touch_watchlist_visit(user_id: str) -> Optional[str]:
     if isinstance(prev, datetime):
         return prev.isoformat()
     return None
-
-
-# ---------------------------------------------------------------------------
-# Stock recommendation (last quiz result)
-# ---------------------------------------------------------------------------
-
-def save_last_recommendation(user_id: str, answers: dict, result: dict) -> bool:
-    """Persist a user's most recent recommendation result on their user doc.
-    Small subdoc, inline — no separate collection/index needed."""
-    now = datetime.now(timezone.utc)
-    doc = {
-        "answers": answers,
-        "picks": result.get("picks", []),          # already JSON-safe (no NaN)
-        "relaxations": result.get("relaxations", []),
-        "generated_at": result.get("generated_at"),
-        "saved_at": now,
-    }
-    _users().update_one(
-        {"user_id": user_id},
-        {"$set": {"last_recommendation": doc, "updated_at": now}},
-    )
-    return True
-
-
-def get_last_recommendation(user_id: str) -> Optional[dict]:
-    d = _users().find_one({"user_id": user_id}, {"last_recommendation": 1, "_id": 0})
-    rec = (d or {}).get("last_recommendation")
-    if rec and isinstance(rec.get("saved_at"), datetime):
-        rec = {**rec, "saved_at": rec["saved_at"].isoformat()}
-    if rec and rec.get("picks"):
-        # Docs saved before the 2026-07 tier rename carry old tier keys.
-        from backend.services.tiers import LEGACY_TIER_KEYS
-        rec = {**rec, "picks": [
-            {**p, "tier": LEGACY_TIER_KEYS.get(p.get("tier"), p.get("tier"))}
-            for p in rec["picks"]
-        ]}
-    return rec
-
-
-def clear_last_recommendation(user_id: str) -> bool:
-    """Remove the saved recommendation entirely (used by 'Start over')."""
-    _users().update_one(
-        {"user_id": user_id},
-        {"$unset": {"last_recommendation": ""}, "$set": {"updated_at": datetime.now(timezone.utc)}},
-    )
-    return True
 
 
 # ---------------------------------------------------------------------------

@@ -351,13 +351,6 @@ export const IconPen = (p: { size?: number }) => (
     <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
   </I>
 );
-/** A speech bubble — TopStock AI. */
-export const IconChat = (p: { size?: number }) => (
-  <I {...p}>
-    <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
-    <path d="M8 12h.01M12 12h.01M16 12h.01" />
-  </I>
-);
 export const IconEye = (p: { size?: number }) => (
   <I {...p}>
     <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />

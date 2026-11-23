@@ -8,9 +8,7 @@ started the old free month keep its days until they run out
 (`premium_source="trial"`).
 
 Limits are enforced server-side for the watchlist and price alerts (holdings
-have no free cap since 2026-11-02, only the hard ceiling); the
-TopStock AI cap is counted by the frontend (the assistant runs in the browser).
-The stock-page and portfolio locks are screen-only by design — the data still
+have no free cap since 2026-11-02, only the hard ceiling). The stock-page and portfolio locks are screen-only by design — the data still
 ships, the UI hides it (see CLAUDE.md "Premium").
 """
 from datetime import datetime, timedelta, timezone
@@ -29,7 +27,6 @@ FREE_LIMITS = {
     "watchlist": free_n("watchlist"),
     "holdings": None,
     "alerts": free_n("watch_rules"),
-    "ai_daily": free_n("ai"),
     "portfolios": free_n("portfolios"),
     "custom_lists": free_n("saved_screens"),
     "compare": free_n("compare"),

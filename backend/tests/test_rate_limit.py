@@ -103,9 +103,9 @@ def test_middleware_returns_429_with_cors_headers():
     app = CORSMiddleware(rl.RateLimitMiddleware(_ok_app),
                          allow_origins=["https://www.topstockbd.com"], allow_methods=["*"], allow_headers=["*"])
     origin = {"origin": "https://www.topstockbd.com"}
-    statuses = [_call(app, "POST", "/api/recommendations", origin)[0] for _ in range(11)]
+    statuses = [_call(app, "GET", "/api/portfolio/sample-plan", origin)[0] for _ in range(11)]
     assert statuses[:10] == [200] * 10
-    status, headers = _call(app, "POST", "/api/recommendations", origin)
+    status, headers = _call(app, "GET", "/api/portfolio/sample-plan", origin)
     assert status == 429
     assert headers.get("access-control-allow-origin") == "https://www.topstockbd.com"
     assert int(headers["retry-after"]) >= 1
@@ -114,20 +114,20 @@ def test_middleware_returns_429_with_cors_headers():
 def test_frontend_server_is_not_limited():
     app = rl.RateLimitMiddleware(_ok_app)
     for _ in range(50):
-        assert _call(app, "POST", "/api/recommendations", {"x-internal-key": "s3cret"})[0] == 200
-    assert _call(app, "POST", "/api/recommendations", {"x-internal-key": "wrong"})[0] == 200
+        assert _call(app, "GET", "/api/portfolio/sample-plan", {"x-internal-key": "s3cret"})[0] == 200
+    assert _call(app, "GET", "/api/portfolio/sample-plan", {"x-internal-key": "wrong"})[0] == 200
     for _ in range(15):
-        _call(app, "POST", "/api/recommendations", {"x-internal-key": "wrong"})
-    assert _call(app, "POST", "/api/recommendations", {"x-internal-key": "wrong"})[0] == 429
+        _call(app, "GET", "/api/portfolio/sample-plan", {"x-internal-key": "wrong"})
+    assert _call(app, "GET", "/api/portfolio/sample-plan", {"x-internal-key": "wrong"})[0] == 429
 
 
 def test_signed_in_requests_use_the_account_bucket():
     app = rl.RateLimitMiddleware(_ok_app)
     auth = {"authorization": f"Bearer {create_access_token('reader-1')}"}
     for _ in range(10):
-        assert _call(app, "POST", "/api/recommendations", auth)[0] == 200
-    assert _call(app, "POST", "/api/recommendations", auth)[0] == 429
-    assert _call(app, "POST", "/api/recommendations")[0] == 200   # anonymous, same IP: own bucket
+        assert _call(app, "GET", "/api/portfolio/sample-plan", auth)[0] == 200
+    assert _call(app, "GET", "/api/portfolio/sample-plan", auth)[0] == 429
+    assert _call(app, "GET", "/api/portfolio/sample-plan")[0] == 200   # anonymous, same IP: own bucket
 
 
 def test_body_size_cap():

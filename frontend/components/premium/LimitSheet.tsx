@@ -40,14 +40,6 @@ const COPY: Partial<Record<LimitKind, (n: number) => { title: Bi; line: Bi; gets
     },
     gets: { en: "As many watch rules and price alerts as you need", bn: "যত দরকার তত নিয়ম আর প্রাইস অ্যালার্ট" },
   }),
-  ai_daily: (n) => ({
-    title: { en: `You have asked ${n} questions today`, bn: `আজ আপনি ${n}টি প্রশ্ন করেছেন` },
-    line: {
-      en: "Your free questions start again tomorrow. With Premium you can ask at any time.",
-      bn: "ফ্রি প্রশ্ন আবার কাল থেকে। প্রিমিয়ামে যেকোনো সময় প্রশ্ন করতে পারবেন।",
-    },
-    gets: { en: "Ask TopStock AI at any time", bn: "যেকোনো সময় TopStock AI-কে প্রশ্ন" },
-  }),
   portfolios: () => ({
     title: { en: "A free account has one portfolio", bn: "ফ্রি অ্যাকাউন্টে একটি পোর্টফোলিও থাকে" },
     line: {

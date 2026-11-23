@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import PageHeader from "@/components/ui/PageHeader";
 import PlaceDoors, { type DoorFigure } from "@/components/places/PlaceDoors";
 import PlaceSearch from "@/components/places/PlaceSearch";
-import Link from "@/components/ui/Link";
 import { T } from "@/components/i18n/T";
-import { IconChat } from "@/components/ui/icons";
 import { flattenTiers, getBuyList, getScores } from "@/lib/api";
 import { REPORTS } from "@/lib/research-reports";
 import { placeByKey } from "@/lib/places";
@@ -12,8 +10,8 @@ import { placeByKey } from "@/lib/places";
 /**
  * Find (2026-11-20, the app map): the place page the bottom bar's Find tab
  * opens. Search first, then the five pages, ordered from "tell me" (the Buy
- * List) to "let me look myself" (Research), each with today's number, then
- * TopStock AI. Figures are secondary: a slow backend only drops a number.
+ * List) to "let me look myself" (Research), each with today's number.
+ * Figures are secondary: a slow backend only drops a number.
  */
 export const revalidate = 900;
 
@@ -79,13 +77,6 @@ export default async function FindPlacePage() {
       />
       <PlaceSearch />
       <PlaceDoors place={place} figures={figures} />
-      <p className="pl-note">
-        <IconChat size={16} />
-        <T en="Have a question in your own words?" bn="নিজের ভাষায় প্রশ্ন আছে?" />
-        <Link href="/assistant" className="text-primary font-semibold">
-          <T en="Ask TopStock AI" bn="TopStock AI-কে জিজ্ঞেস করুন" />
-        </Link>
-      </p>
     </div>
   );
 }

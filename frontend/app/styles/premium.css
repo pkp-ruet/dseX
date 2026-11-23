@@ -799,32 +799,7 @@ details[open] > .pm-fold-summary .pm-fold-chev { transform: rotate(180deg); }
 .pq-q span { font-size: var(--fs-sm); line-height: 1.4; color: var(--text); }
 @media (max-width: 420px) { .pq-row { grid-template-columns: minmax(0, 1fr); gap: var(--space-2); } }
 
-/* Picked for you: app/styles/picks.css (2026-11-05). The suggestion rows
-   TopStock AI still uses (RecoRow, `.reco-*`) stay here. */
-/* RecoRow: room between rows; the compact rows' reason on its own lines. */
-.reco-row { padding-block: var(--space-2); }
-.reco-row--rich { padding-block: var(--space-3); }
-.reco-why.reco-why--clamp {
-  margin-top: 6px;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-}
-
-/* RecoRow rich: the reason, the number lines, one watch-out. */
-.reco-why { display: block; margin-top: var(--space-2); font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
-.reco-facts {
-  display: grid; gap: var(--space-2);
-  margin-top: var(--space-3); padding-top: var(--space-3);
-  border-top: 1px dashed var(--border);
-}
-.reco-fact { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--fs-xs); line-height: 1.45; color: var(--text); }
-.reco-fact-dot { flex: none; width: 6px; height: 6px; margin-top: 6px; border-radius: 50%; background: var(--primary); }
-.reco-watch {
-  display: flex; align-items: flex-start; gap: 6px;
-  margin-top: var(--space-3); padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
-  background: rgb(var(--watch-rgb) / 0.08);
-  font-size: var(--fs-xs); line-height: 1.45; color: var(--watch);
-}
+/* Picked for you: app/styles/picks.css (2026-11-05). */
 
 /* ── The renewal banner (2026-11-13) ───────────────────────────────────────
    `components/premium/RenewBanner.tsx`: on top of every page while Premium
