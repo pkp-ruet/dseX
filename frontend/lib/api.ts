@@ -2977,6 +2977,8 @@ export interface AdminAnalyticsResponse {
     new_buyers_30d: number;
     /** Paying members by the plan they bought last (1 month, 6 months, 1 year, ৳99 month, other). */
     plans?: { key: string; label: string; members: number }[];
+    /** What happened when each bought plan ran out (renewed, moved up / down, lapsed). */
+    renewals?: { wait_days: number; plans: AdminRenewalRow[]; total: AdminRenewalRow };
     ending: AdminEnding[];  // Premium ending in the next 14 days
   };
   groups: { free: AdminGroupFigures; premium: AdminGroupFigures };
@@ -2984,6 +2986,23 @@ export interface AdminAnalyticsResponse {
   stocks: { code: string; users: number; views: number }[];
   /** The homepage Premium banner, last 30 days (readers; % = of readers who saw it). */
   banner?: AdminBannerFigures;
+}
+
+/** One plan's renewals: each payment of that plan, by what came after it ran out. */
+export interface AdminRenewalRow {
+  key: string;
+  label: string;
+  renewed: number;   // paid again for the same length
+  up: number;        // paid again for a longer plan
+  down: number;      // paid again for a shorter plan
+  early: number;     // of those, paid before the plan ran out
+  lapsed: number;    // ended more than wait_days ago, no payment since
+  waiting: number;   // ended within wait_days, no payment yet
+  running: number;   // still running, no payment after it yet
+  kept: number;      // renewed + up + down
+  decided: number;   // kept + lapsed
+  rate: number | null; // kept / decided, in %
+  to: { key: string; label: string; n: number }[]; // which plan they paid for next
 }
 
 export interface AdminBannerFigures {

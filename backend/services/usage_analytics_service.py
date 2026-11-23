@@ -211,6 +211,11 @@ def _build() -> dict:
         {"status": "accepted"}, {"_id": 0, "user_id": 1, "amount": 1, "created_at": 1})), [])
     pending = _safe(lambda: db["payments"].count_documents({"status": "pending"}), 0)
     money = ua.money_summary(payments, now)
+    # Every payment that gave days (a pending one gives them at once), admins out.
+    granted = _safe(lambda: list(db["payments"].find(
+        {"status": {"$in": ["accepted", "pending"]}, "granted": True, "user_id": {"$nin": admins}},
+        {"_id": 0, "user_id": 1, "created_at": 1, "plan": 1, "days": 1, "premium_until_after": 1})), [])
+    renewals = ua.renewal_rows(granted, now)
 
     # Names only for the few whose Premium ends this week.
     soon_ids = [m["user_id"] for m in members
@@ -286,6 +291,7 @@ def _build() -> dict:
             "repeat_buyers": money["repeat_buyers"],
             "new_buyers_30d": money["new_buyers_30d"],
             "plans": ua.plan_counts(members),
+            "renewals": renewals,
             "ending": ending,
         },
         "groups": {

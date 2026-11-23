@@ -131,3 +131,45 @@ def test_plan_counts_only_paying_members_by_plan():
         ("other", 1)]
     assert [r["key"] for r in ua.plan_counts([])] == [
         "monthly", "quarterly", "halfyearly", "yearly", "offer"]
+
+
+def _pay(uid, plan, made, end, days=None):
+    return {"user_id": uid, "plan": plan, "days": days, "created_at": made, "premium_until_after": end}
+
+
+def test_renewal_rows_sort_each_ended_plan_by_what_came_next():
+    d = lambda n: NOW + timedelta(days=n)  # noqa: E731
+    pays = [
+        # a: monthly, renewed monthly early, that one still running
+        _pay("a", "monthly", d(-28), d(2)), _pay("a", "monthly", d(-1), d(32)),
+        # b: monthly, moved up to a year after it ended
+        _pay("b", "monthly", d(-40), d(-10)), _pay("b", "yearly", d(-8), d(357)),
+        # c: monthly, ended 10 days ago, nothing since → lapsed
+        _pay("c", "monthly", d(-40), d(-10)),
+        # e: monthly, ended 3 days ago → still waiting
+        _pay("e", "monthly", d(-33), d(-3)),
+        # f: ৳99 month then ৳199 month = renewed (same length)
+        _pay("f", "offer", d(-35), d(-5)), _pay("f", "monthly", d(-4), d(26)),
+        # g: a year down to a month
+        _pay("g", "yearly", d(-400), d(-35)), _pay("g", "monthly", d(-36), d(-5)),
+        # h: admin's custom plan, no end date yet → skipped
+        {"user_id": "h", "plan": "custom", "days": 10, "created_at": d(-1)},
+    ]
+    out = ua.renewal_rows(pays, NOW)
+    rows = {r["key"]: r for r in out["plans"]}
+    m = rows["monthly"]
+    assert (m["renewed"], m["up"], m["lapsed"], m["waiting"], m["running"]) == (1, 1, 1, 2, 2)
+    assert m["early"] == 1 and m["kept"] == 2 and m["decided"] == 3 and m["rate"] == 66.7
+    assert m["to"] == [{"key": "monthly", "label": "1 month", "n": 1},
+                       {"key": "yearly", "label": "1 year", "n": 1}]
+    assert rows["offer"]["renewed"] == 1 and rows["offer"]["rate"] == 100.0
+    assert rows["yearly"]["down"] == 1 and rows["yearly"]["running"] == 1
+    assert "other" not in rows
+    t = out["total"]
+    assert t["kept"] == 4 and t["lapsed"] == 1 and t["waiting"] == 2 and t["rate"] == 80.0
+    assert [r["key"] for r in out["plans"]] == ["monthly", "yearly", "offer"]
+
+
+def test_renewal_rows_empty():
+    out = ua.renewal_rows([], NOW)
+    assert out["plans"] == [] and out["total"]["rate"] is None

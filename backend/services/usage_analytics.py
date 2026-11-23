@@ -265,6 +265,85 @@ def ending_soon(members: list[dict], today: date, last_active: dict[str, str],
     return out
 
 
+# How long each plan runs, to tell a move up from a move down. A plan not here
+# (an admin's custom days) is read from the payment's own `days`.
+PLAN_DAYS = {"offer": 30, "monthly": 30, "quarterly": 90, "halfyearly": 180, "yearly": 365}
+RENEW_WAIT_DAYS = 7  # after a plan ends, how long before "not renewed" counts as lapsed
+
+
+def renewal_rows(payments: list[dict], now: datetime, wait_days: int = RENEW_WAIT_DAYS) -> dict:
+    """What happened when each bought plan ran out, by the plan bought.
+
+    `payments`: granted payments (accepted, or pending and granted) with
+    user_id, plan, days, created_at, premium_until_after (the day that
+    payment's Premium ran to). For each payment:
+    - the reader paid again later → renewed (same length), moved up (longer)
+      or moved down (shorter); early when the next payment came before the end;
+    - else its end is more than `wait_days` behind us → lapsed;
+    - else its end has passed → waiting (may still renew);
+    - else it is still running → not counted.
+    `rate` = renewed + up + down over those plus lapsed (waiting left out)."""
+    by_user: dict[str, list[dict]] = {}
+    for p in payments:
+        if p.get("user_id") and as_utc(p.get("created_at")):
+            by_user.setdefault(p["user_id"], []).append(p)
+    labels = dict(PLAN_LABELS)
+    keys = [k for k, _ in PLAN_LABELS]
+    blank = lambda: {"renewed": 0, "up": 0, "down": 0, "early": 0, "lapsed": 0,  # noqa: E731
+                     "waiting": 0, "running": 0, "to": {}}
+    stats: dict[str, dict] = {}
+    cutoff = now - timedelta(days=wait_days)
+
+    def length(p: dict) -> int:
+        return PLAN_DAYS.get(p.get("plan")) or int(p.get("days") or 0)
+
+    for rows in by_user.values():
+        rows.sort(key=lambda p: as_utc(p["created_at"]))
+        for i, p in enumerate(rows):
+            end = as_utc(p.get("premium_until_after"))
+            if not end:
+                continue
+            key = p.get("plan") if p.get("plan") in labels else "other"
+            s = stats.setdefault(key, blank())
+            nxt = rows[i + 1] if i + 1 < len(rows) else None
+            if nxt:
+                a, b = length(p), length(nxt)
+                s["up" if b > a else "down" if b < a else "renewed"] += 1
+                if as_utc(nxt["created_at"]) < end:
+                    s["early"] += 1
+                to = nxt.get("plan") if nxt.get("plan") in labels else "other"
+                s["to"][to] = s["to"].get(to, 0) + 1
+            elif end <= cutoff:
+                s["lapsed"] += 1
+            elif end <= now:
+                s["waiting"] += 1
+            else:
+                s["running"] += 1
+
+    def finish(key: str, label: str, s: dict) -> dict:
+        kept = s["renewed"] + s["up"] + s["down"]
+        decided = kept + s["lapsed"]
+        return {
+            "key": key, "label": label, **{k: v for k, v in s.items() if k != "to"},
+            "kept": kept, "decided": decided,
+            "rate": pct(kept, decided) if decided else None,
+            "to": [{"key": k, "label": labels.get(k, "Other"), "n": n}
+                   for k, n in sorted(s["to"].items(), key=lambda kv: (-kv[1], kv[0]))],
+        }
+
+    rows_out = [finish(k, labels[k], stats[k]) for k in keys if k in stats]
+    if "other" in stats:
+        rows_out.append(finish("other", "Other", stats["other"]))
+    total = blank()
+    for s in stats.values():
+        for k in total:
+            if k != "to":
+                total[k] += s[k]
+        for k, n in s["to"].items():
+            total["to"][k] = total["to"].get(k, 0) + n
+    return {"wait_days": wait_days, "plans": rows_out, "total": finish("all", "All plans", total)}
+
+
 # ---------------------------------------------------------------------------
 # What readers opened
 # ---------------------------------------------------------------------------

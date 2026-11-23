@@ -3,7 +3,12 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { apiGetAdminAnalytics, type AdminAnalyticsResponse, type AdminGroupFigures } from "@/lib/api";
+import {
+  apiGetAdminAnalytics,
+  type AdminAnalyticsResponse,
+  type AdminGroupFigures,
+  type AdminRenewalRow,
+} from "@/lib/api";
 import { money } from "@/lib/formatters";
 import PageHeader from "@/components/ui/PageHeader";
 import Button from "@/components/ui/Button";
@@ -75,6 +80,70 @@ function Tiles({ d }: { d: AdminAnalyticsResponse }) {
   );
 }
 
+/** What happened when each bought plan ran out, by the plan bought. */
+function Renewals({ r }: { r: NonNullable<AdminAnalyticsResponse["premium"]["renewals"]> }) {
+  const cols: { key: keyof AdminRenewalRow; label: string; tone?: string }[] = [
+    { key: "renewed", label: "Renewed" },
+    { key: "up", label: "Moved up", tone: "text-positive" },
+    { key: "down", label: "Moved down" },
+    { key: "lapsed", label: "Lapsed", tone: "text-watch" },
+    { key: "waiting", label: "Ended, waiting" },
+    { key: "running", label: "Still running" },
+  ];
+  const row = (x: AdminRenewalRow, total = false) => (
+    <tr key={x.key} className={total ? "font-semibold" : "border-b border-border"}>
+      <td className="py-2 pr-3">
+        <span className="block text-text-main">{x.label}</span>
+        {x.to.length > 0 && (
+          <span className="block text-xs text-text-muted">
+            Paid next for: {x.to.map((t) => `${t.label} ${t.n}`).join(" · ")}
+            {x.early ? ` · ${n(x.early)} before it ran out` : ""}
+          </span>
+        )}
+      </td>
+      {cols.map((c) => (
+        <td key={c.key} className={`nums py-2 pr-3 text-right ${x[c.key] ? c.tone ?? "" : "text-text-muted"}`}>
+          {n(x[c.key] as number)}
+        </td>
+      ))}
+      <td className="nums py-2 text-right">
+        {pc(x.rate)}
+        {x.decided > 0 && <span className="block text-xs text-text-muted">of {n(x.decided)}</span>}
+      </td>
+    </tr>
+  );
+  return (
+    <>
+      <h3 className="mb-1 mt-6 text-sm font-semibold text-text-main">Renewals by plan</h3>
+      <p className="mb-3 text-sm text-text-muted">
+        Each payment, by what the reader did when it ran out. Lapsed = ended over {r.wait_days} days ago
+        with no payment since. Renewal rate = renewed, moved up or moved down, out of those plus lapsed.
+      </p>
+      {r.plans.length === 0 ? (
+        <p className="text-sm text-text-muted">No plan has run out yet.</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-0 text-sm">
+            <thead>
+              <tr className="border-b border-border text-xs text-text-muted">
+                <th className="py-2 pr-3 text-left font-semibold">Plan bought</th>
+                {cols.map((c) => (
+                  <th key={c.key} className="py-2 pr-3 text-right font-semibold">{c.label}</th>
+                ))}
+                <th className="py-2 text-right font-semibold">Renewal rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {r.plans.map((x) => row(x))}
+              {r.plans.length > 1 && row(r.total, true)}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </>
+  );
+}
+
 function PremiumBlock({ d }: { d: AdminAnalyticsResponse }) {
   const p = d.premium;
   const facts = [
@@ -115,6 +184,8 @@ function PremiumBlock({ d }: { d: AdminAnalyticsResponse }) {
           </div>
         </>
       )}
+
+      {p.renewals && <Renewals r={p.renewals} />}
 
       <h3 className="mb-2 mt-6 text-sm font-semibold text-text-main">
         Premium ends in the next 14 days · {n(p.ending.length)}
