@@ -6,9 +6,9 @@ import { getScreener } from "@/lib/api";
 import { applyScreen, EMPTY_SPEC, unpackRows } from "@/lib/screener";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
-const TITLE = "Stock Screener — Filter Every DSE Share";
+const TITLE = "Stock Screener — Ready Lists of DSE Shares";
 const DESCRIPTION =
-  "Find Dhaka Stock Exchange (DSE) shares from ready lists or your own filters: our grade and price check, dividend safety, P/E, dividend yield, record dates, profit growth, market cap, sector and category. See how many shares match for free; the shares, saved screens and alerts are Premium. Updated after every trading day.";
+  "Ready lists of Dhaka Stock Exchange (DSE) shares: near the 52-week high or low, lowest P/E, highest dividend, below book value, biggest and most traded companies, and our own picks such as strong and cheap or big and steady. Narrow any list by sector or share price. See how many shares each list has for free; the shares, saved lists and alerts are Premium. Updated after every trading day.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -22,6 +22,8 @@ export const metadata: Metadata = {
     "DSE stocks below book value",
     "DSE market cap list",
     "DSE dividend record date",
+    "DSE 52 week high",
+    "DSE 52 week low",
     "শেয়ার স্ক্রিনার",
   ],
   alternates: { canonical: "/screener" },
@@ -82,8 +84,8 @@ export default async function ScreenerPage() {
         title={<T en="Find the shares that fit what you want" bn="আপনার চাওয়ার সাথে মেলে এমন শেয়ার খুঁজুন" />}
         lead={
           <T
-            en={`Pick a list or set your own filters. We check all ${data.rows.length} DSE shares after every close.`}
-            bn={`একটি তালিকা বাছুন বা নিজের ফিল্টার দিন। প্রতিদিন বাজার বন্ধের পর আমরা ডিএসইর ${data.rows.length}টি শেয়ারই যাচাই করি।`}
+            en={`Pick a list, then narrow it by sector or share price if you like. We check all ${data.rows.length} DSE shares after every close.`}
+            bn={`একটি তালিকা বাছুন, চাইলে সেক্টর বা শেয়ারের দাম দিয়ে আরও বাছাই করুন। প্রতিদিন বাজার বন্ধের পর আমরা ডিএসইর ${data.rows.length}টি শেয়ারই যাচাই করি।`}
           />
         }
       />

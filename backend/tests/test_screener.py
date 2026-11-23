@@ -108,18 +108,64 @@ def test_words_read_plainly():
 
 
 def test_goals_and_old_ready_screens_are_valid():
-    assert [r.id for r in sc.GOALS] == ["strong_cheap", "steady_dividends", "dividend_soon", "profit_growing",
-                                       "owners_buying", "strong_near_low"]
+    assert [r.id for r in sc.GOALS] == ["strong_cheap", "big_steady", "steady_dividends", "dividend_soon",
+                                       "profit_growing", "owners_hold", "owners_buying", "strong_near_low"]
+    assert [r.id for r in sc.BASIC] == ["near_high", "near_low", "low_pe", "high_dividend", "below_book",
+                                       "biggest", "most_traded", "no_loans"]
     for r in sc.READY:
         sc.normalize_spec(r.spec(), SECTORS)
         assert sc.BY_KEY[r.metric].kind == "range"
         assert r.title_bn and r.blurb_bn
         assert r.goal == (r in sc.GOALS), r.id
+        assert r.basic == (r in sc.BASIC), r.id
     assert len({r.id for r in sc.READY}) == len(sc.READY)
+    # One set of tiles: every list of ours and every simple list, once, first in READY.
+    assert sorted(r.id for r in sc.CARDS) == sorted(r.id for r in sc.GOALS + sc.BASIC)
+    assert sc.READY[:len(sc.CARDS)] == sc.CARDS
     # Old links (?ready=near_low, the removed lists' redirects) still load.
     for old in ("high_dividend", "low_pe", "below_book", "near_low", "profit_up", "biggest", "most_traded",
                 "no_loans", "a_payers"):
         assert old in sc.READY_BY_ID and not sc.READY_BY_ID[old].goal
+
+
+def test_simple_lists_use_public_figures_only():
+    # "From the plain numbers": none of our own analysis inside (they are
+    # Premium as lists, like ours, since 2026-11-24).
+    for r in sc.BASIC:
+        assert not any(sc.BY_KEY[f["key"]].ours for f in r.spec()["filters"]), r.id
+
+
+def test_52_week_figures_and_owners_share():
+    v = sc.row_values(_f("A", ltp=95.0, hi52=100.0, lo52=50.0, sponsor_now=62.4), None, 0)
+    assert v["from_high"] == 5.0 and v["from_low"] == 90.0 and v["owners_pct"] == 62.4
+    at_high = sc.row_values(_f("B", ltp=100.0, hi52=100.0, lo52=50.0), None, 0)
+    assert at_high["from_high"] == 0.0
+    # DSE's monthly report writes 0 for a missing figure: no reading, not "owns nothing".
+    assert sc.row_values(_f("C", sponsor_now=0), None, 0)["owners_pct"] is None
+    assert sc.row_values(_f("D"), None, 0)["from_high"] is None   # no yearly range
+
+
+def test_simple_and_new_lists_find_what_they_say():
+    rows = [
+        _row("HIGH", ltp=98.0, hi52=100.0, lo52=60.0),
+        _row("LOW", ltp=52.0, hi52=100.0, lo52=50.0),
+        _row("MID", ltp=80.0, hi52=100.0, lo52=60.0),
+        _row("BIG", mcap_mn=30000.0, turnover_mn=6.0, paid_years=5, sponsor_now=55.0),
+        _row("BIGQUIET", mcap_mn=30000.0, turnover_mn=3.0, paid_years=5),          # ৳30 lakh a day
+        _row("OWNED", sponsor_now=70.0),
+        _row("OWNEDFLAG", sponsor_now=70.0, red=1),
+    ]
+    run = {g.id: [r["code"] for r in sc.apply(rows, g.safe_spec())] for g in sc.CARDS}
+    assert run["near_high"] == ["HIGH"]
+    assert run["near_low"] == ["LOW"]
+    assert run["big_steady"] == ["BIG"]
+    assert run["owners_hold"] == ["OWNED", "BIG"]
+
+
+def test_a_fall_back_toward_the_yearly_low_has_a_joining_price():
+    v = _row("X", ltp=60.0, hi52=100.0, lo52=50.0)["v"]
+    assert sc.join_price(v, {"key": "from_low", "max": 5}) == 52.5
+    assert sc.join_price(v, {"key": "from_high", "max": 5}) is None   # it would have to rise
 
 
 def test_goals_find_what_they_say():
@@ -136,8 +182,8 @@ def test_goals_find_what_they_say():
         _row("LOW", pct_in_range=10.0, p4_val=5.0),
     ]
     run = {g.id: [r["code"] for r in sc.apply(rows, g.safe_spec())] for g in sc.GOALS}
-    # The goals carry only their own rules; Z and thin trading go on top.
-    assert not any(f["key"] in ("category", "turnover") for g in sc.GOALS for f in g.spec()["filters"])
+    # The lists carry only their own rules; the safety rules (no Z, ৳10 lakh a day) go on top.
+    assert not any(f in (sc.NOT_Z, sc.TRADED) for g in sc.CARDS for f in g.spec()["filters"])
     assert set(run["strong_cheap"]) == {"CHEAP", "SOON", "CASH", "PAPER", "BUYER"}
     assert run["dividend_soon"] == ["SOON"]
     assert run["profit_growing"] == ["CASH"]
@@ -227,3 +273,84 @@ def test_a_saved_screen_remembers_the_lists_it_was_made_from():
         sc.normalize_spec({"filters": [], "lists": ["luck"]}, SECTORS)
     old = sc.normalize_spec({"filters": [{"key": "pe", "max": 10}]}, SECTORS)
     assert "lists" not in old and sc.summary(old)[0]["en"] == "P/E: Under 10"
+
+
+# --- What changed on each list this week (2026-11-23) ---------------------
+
+def test_week_start_matches_the_buy_list():
+    from backend.services import buy_list as bl
+    for d in ["2026-11-22", "2026-11-23", "2026-11-26", "2026-11-27", "2026-11-28"]:
+        assert sc.week_start(d) == bl.week_start(d)
+    assert sc.week_start("2026-11-26") == "2026-11-22"   # Thursday → the Sunday before
+
+
+def test_week_changes_against_the_last_day_before_the_week():
+    # Thursday 19 Nov is the last close before the week of Sunday 22 Nov.
+    hist = [("2026-11-18", ["A", "B"]), ("2026-11-19", ["A", "B", "C"]), ("2026-11-23", ["A", "C", "D"])]
+    ch = sc.week_changes(hist, ["D", "A", "E"], "2026-11-24")
+    assert ch == {"since": "2026-11-19", "joined": ["D", "E"], "left": ["B", "C"]}
+
+
+def test_a_share_that_joined_and_left_inside_the_week_is_neither():
+    hist = [("2026-11-19", ["A"]), ("2026-11-23", ["A", "X"])]
+    ch = sc.week_changes(hist, ["A"], "2026-11-24")
+    assert ch["joined"] == [] and ch["left"] == []
+
+
+def test_with_no_day_before_the_week_the_oldest_stored_day_is_the_base():
+    ch = sc.week_changes([("2026-11-23", ["A"]), ("2026-11-24", ["A", "B"])], ["A", "B", "C"], "2026-11-25")
+    assert ch["since"] == "2026-11-23" and ch["joined"] == ["B", "C"]
+
+
+def test_nothing_stored_before_today_means_no_changes():
+    assert sc.week_changes([], ["A"], "2026-11-24") is None
+    assert sc.week_changes([("2026-11-24", ["A"])], ["A", "B"], "2026-11-24") is None
+
+
+def test_a_rule_change_mid_week_restarts_the_count():
+    old = [f"O{i}" for i in range(10)]
+    new = [f"N{i}" for i in range(10)]
+    hist = [("2026-11-19", old), ("2026-11-23", new)]
+    ch = sc.week_changes(hist, new + ["Z"], "2026-11-24")
+    assert ch["since"] == "2026-11-23" and ch["joined"] == ["Z"] and ch["left"] == []
+
+
+def test_a_rule_change_today_shows_no_changes():
+    old = [f"O{i}" for i in range(10)]
+    ch = sc.week_changes([("2026-11-19", old)], [f"N{i}" for i in range(10)], "2026-11-24")
+    assert ch["rebuilt"] and ch["joined"] == [] and ch["left"] == []
+
+
+def test_a_small_list_swapping_is_still_news():
+    # 3 of 4 changing is a big share, but under REBUILT_MIN shares: the market, not our rules.
+    ch = sc.week_changes([("2026-11-19", ["A", "B", "C"])], ["A", "X", "Y"], "2026-11-24")
+    assert ch["joined"] == ["X", "Y"] and ch["left"] == ["B", "C"]
+
+
+def test_leave_reason_names_the_filter_it_fails():
+    v = _row("GP", div_yield_pct=3.2)["v"]
+    why = sc.leave_reason("GP", v, [{"key": "yield", "min": 4}, {"key": "paid", "min": 5}])
+    assert why["en"] == "GP: Yield is now 3.2%." and "3.2%" in why["bn"]
+    assert sc.leave_reason("GP", None, [])["en"] == "GP is no longer graded."
+
+
+def test_quick_look_figures_ride_on_each_row():
+    f = _f("Q", p1_biz=8.0, p2_health=5.0, p3_moat=2.0, p5_div=7.5, p3_coverage=1.0,
+           p4_basis="fair", fair_low=90.0, fair_high=120.0)
+    v = sc.row_values(f, None, 1, {"amber": 2, "warn": {"en": "Auditor's note", "bn": "নিরীক্ষকের মন্তব্য"}})
+    assert (v["w_profit"], v["w_fin"], v["w_biz"], v["w_div"]) == ("strong", "fair", "weak", "strong")
+    assert v["amber"] == 2 and v["warn_en"] == "Auditor's note" and v["warn_bn"]
+    assert (v["fair_lo"], v["fair_hi"]) == (90.0, 120.0)
+    # A check with no figures is not judged; a fair price on the old ratios is not shown.
+    v2 = sc.row_values(_f("R", p3_moat=6.0, p3_coverage=0, p4_basis="ratios", fair_low=1.0, fair_high=2.0), None, 0)
+    assert v2["w_biz"] is None and v2["fair_lo"] is None and v2["warn_en"] is None
+    assert all(k in sc.EXTRA_COLS for k in ("w_profit", "amber", "warn_en", "fair_hi"))
+
+
+def test_serious_warning_labels_name_the_red_flag():
+    from backend.services.screener_service import _warn_label
+    assert _warn_label("category")["en"] == "Z category"      # red category is Z, never "Category B"
+    assert _warn_label("audit")["en"] == "Auditor's warning"
+    assert _warn_label("factory")["en"] == "Factory found closed"
+    assert _warn_label("something_new")["en"] == "A serious warning"
+    assert _warn_label(None) is None

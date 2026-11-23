@@ -1,6 +1,7 @@
 import type {
   ScreenerFilter, ScreenerFilterDef, ScreenerReady, ScreenerSpec, ScreenerUniverse, ScreenerUnit,
 } from "@/lib/api";
+import { dayShort } from "@/components/dividend-calendar/dates";
 
 /**
  * The stock screener's rules in the browser (2026-11-01). `GET /api/screener`
@@ -67,40 +68,6 @@ export function applyScreen(rows: ScreenerRow[], spec: ScreenerSpec): ScreenerRo
     if (d !== 0) return desc ? -d : d;
     return a.code.localeCompare(b.code);
   });
-}
-
-/** How many rows pass `filters` with the filter on `key` replaced by `f`
- *  (or taken off when `f` is null) — the count beside every choice. */
-export function countWith(rows: ScreenerRow[], filters: ScreenerFilter[], key: string, f: ScreenerFilter | null): number {
-  const others = filters.filter((x) => x.key !== key);
-  const all = f ? [...others, f] : others;
-  let n = 0;
-  for (const r of rows) if (matches(r.v, all)) n++;
-  return n;
-}
-
-/** The middle half of the market on one figure: where most DSE shares sit. */
-export function typical(rows: ScreenerRow[], key: string): { lo: number; mid: number; hi: number; n: number } | null {
-  const xs = rows.map((r) => r.v[key]).filter((x): x is number => typeof x === "number").sort((a, b) => a - b);
-  if (xs.length < 10) return null;
-  const at = (q: number) => xs[Math.min(xs.length - 1, Math.max(0, Math.round(q * (xs.length - 1))))];
-  return { lo: at(0.25), mid: at(0.5), hi: at(0.75), n: xs.length };
-}
-
-/** Bars for the filter sheet: counts in `bins` equal steps between the 2nd
- *  and 98th percentile (one giant listing would squash the rest). */
-export function histogram(rows: ScreenerRow[], key: string, bins = 24): { lo: number; hi: number; counts: number[] } | null {
-  const xs = rows.map((r) => r.v[key]).filter((x): x is number => typeof x === "number").sort((a, b) => a - b);
-  if (xs.length < 10) return null;
-  const lo = xs[Math.floor(0.02 * (xs.length - 1))];
-  const hi = xs[Math.ceil(0.98 * (xs.length - 1))];
-  if (!(hi > lo)) return null;
-  const counts = new Array(bins).fill(0);
-  for (const x of xs) {
-    const i = Math.min(bins - 1, Math.max(0, Math.floor(((x - lo) / (hi - lo)) * bins)));
-    counts[i]++;
-  }
-  return { lo, hi, counts };
 }
 
 // ---------------------------------------------------------------------------
@@ -277,6 +244,9 @@ export function joinPrice(v: Record<string, Figure>, f: ScreenerFilter): number 
   } else if (f.key === "range_pos" && hi != null) {
     const a = numOf(v.lo52), b = numOf(v.hi52);
     out = a != null && b != null && b > a ? a + ((b - a) * hi) / 100 : null;
+  } else if (f.key === "from_low" && hi != null) {
+    const a = numOf(v.lo52);
+    out = a && a > 0 ? a * (1 + hi / 100) : null;
   } else if (f.key === "price_word" && f.in?.length) {
     out = numOf(f.in.includes("low") ? v.low_below : f.in.includes("fair") ? v.high_above : null);
   }
@@ -308,10 +278,238 @@ export function nearMisses(rows: ScreenerRow[], spec: ScreenerSpec, maxFall = NE
   return out.sort((a, b) => a.fallPct - b.fallPct || a.row.code.localeCompare(b.row.code));
 }
 
-/** The six lists; an older backend without the flag gets its ready-made screens. */
-export function goalScreens(ready: ScreenerReady[]): ScreenerReady[] {
-  const goals = ready.filter((r) => r.goal);
-  return goals.length ? goals : ready;
+// ---------------------------------------------------------------------------
+// One reason per row (2026-11-23): why a share is on the screen, in words,
+// from the figures the screen picks on. On phones it replaces the bare
+// figure lines.
+// ---------------------------------------------------------------------------
+
+/** Figures a reason never names: the group word sits beside the code, and a
+ *  sector, a category or our score says nothing about why it fits. */
+const NO_REASON = new Set(["grade", "sector", "category", "score"]);
+/** Parts a reason line holds at most. */
+export const REASON_PARTS = 3;
+
+const r1 = (x: number) => trim(Math.round(x * 10) / 10, 1);
+const r0 = (x: number) => trim(Math.round(x), 0);
+
+/** One figure as a short plain phrase, or null when it says nothing. */
+export function reasonPart(key: string, v: Record<string, Figure>, def?: ScreenerFilterDef): Bi | null {
+  const x = v[key];
+  if (x == null || NO_REASON.has(key)) return null;
+  const n = typeof x === "number" ? x : null;
+  switch (key) {
+    case "price_word":
+      return x === "low" ? { en: "Low price for what it earns", bn: "আয়ের তুলনায় দাম কম" }
+        : x === "fair" ? { en: "Fair price", bn: "ন্যায্য দাম" }
+        : { en: "High price", bn: "দাম বেশি" };
+    case "warnings":
+      return x === "none" ? { en: "No serious warnings", bn: "গুরুতর সতর্কতা নেই" }
+        : { en: "Has a serious warning", bn: "গুরুতর সতর্কতা আছে" };
+    case "div_safety":
+      return x === "safe" ? { en: "Dividend looks steady", bn: "ডিভিডেন্ড স্থিতিশীল মনে হচ্ছে" }
+        : x === "watch" ? { en: "Dividend worth a check", bn: "ডিভিডেন্ড যাচাই করে নিন" }
+        : { en: "Dividend at risk", bn: "ডিভিডেন্ড ঝুঁকিতে" };
+    case "cash_backed":
+      return x === "yes" ? { en: "Profit came in as cash", bn: "মুনাফা নগদে এসেছে" }
+        : x === "partly" ? { en: "Profit partly in cash", bn: "মুনাফার কিছুটা নগদে এসেছে" }
+        : { en: "Profit mostly on paper", bn: "মুনাফা বেশিরভাগই কাগজে" };
+    case "owners":
+      return x === "bought" ? { en: "Owners bought more than they sold", bn: "মালিকরা বেচার চেয়ে বেশি কিনেছেন" }
+        : x === "sold" ? { en: "Owners sold more than they bought", bn: "মালিকরা কেনার চেয়ে বেশি বেচেছেন" }
+        : { en: "No trades by its owners", bn: "মালিকদের কোনো লেনদেন নেই" };
+  }
+  if (n == null) return null;
+  switch (key) {
+    case "price":
+      return { en: `Price ${fmt(n, "taka", 1)}`, bn: `দাম ${fmt(n, "taka", 1)}` };
+    case "change":
+      return { en: `Today ${n > 0 ? "+" : ""}${r1(n)}%`, bn: `আজ ${n > 0 ? "+" : ""}${r1(n)}%` };
+    case "pe":
+      return { en: `Price is ${r1(n)} years of profit`, bn: `দামে ${r1(n)} বছরের মুনাফা` };
+    case "pb":
+      return n < 1 ? { en: "Priced under what it owns", bn: "সম্পদের চেয়ে কম দামে" }
+        : { en: `Priced at ${trim(n, 1)} times what it owns`, bn: `সম্পদের ${trim(n, 1)} গুণ দামে` };
+    case "range_pos": {
+      const price = numOf(v.price), lo = numOf(v.lo52), hi = numOf(v.hi52);
+      if (n <= 50 && price && lo && lo > 0) {
+        const up = ((price - lo) / lo) * 100;
+        return up < 1 ? { en: "At its lowest price of the year", bn: "বছরের সর্বনিম্ন দামে" }
+          : { en: `${r0(up)}% above its yearly low`, bn: `বছরের সর্বনিম্নের চেয়ে ${r0(up)}% ওপরে` };
+      }
+      if (price && hi && hi > 0) {
+        const down = ((hi - price) / hi) * 100;
+        return down < 1 ? { en: "At its highest price of the year", bn: "বছরের সর্বোচ্চ দামে" }
+          : { en: `${r0(down)}% below its yearly high`, bn: `বছরের সর্বোচ্চের চেয়ে ${r0(down)}% নিচে` };
+      }
+      return null;
+    }
+    case "from_high":
+      return n < 0.5 ? { en: "At its 52-week high", bn: "52 সপ্তাহের সর্বোচ্চ দামে" }
+        : { en: `${r1(n)}% below its 52-week high`, bn: `52 সপ্তাহের সর্বোচ্চের চেয়ে ${r1(n)}% নিচে` };
+    case "from_low":
+      return n < 0.5 ? { en: "At its 52-week low", bn: "52 সপ্তাহের সর্বনিম্ন দামে" }
+        : { en: `${r1(n)}% above its 52-week low`, bn: `52 সপ্তাহের সর্বনিম্নের চেয়ে ${r1(n)}% ওপরে` };
+    case "owners_pct":
+      return { en: `Founders and directors own ${r0(n)}%`, bn: `উদ্যোক্তা ও পরিচালকদের হাতে ${r0(n)}%` };
+    case "ret_1y":
+      return n >= 0 ? { en: `Price up ${r0(n)}% in a year`, bn: `1 বছরে দাম ${r0(n)}% বেড়েছে` }
+        : { en: `Price down ${r0(-n)}% in a year`, bn: `1 বছরে দাম ${r0(-n)}% কমেছে` };
+    case "yield":
+      return n > 0 ? { en: `${r1(n)}% a year in cash`, bn: `বছরে ${r1(n)}% নগদ` }
+        : { en: "No cash dividend", bn: "নগদ ডিভিডেন্ড নেই" };
+    case "paid":
+      return n >= 5 ? { en: "Paid cash all 5 years", bn: "5 বছরই নগদ দিয়েছে" }
+        : n >= 3 ? { en: `Paid cash ${n} of 5 years`, bn: `5 বছরে ${n} বছর নগদ দিয়েছে` }
+        : { en: "Paid cash 2 of 5 years or fewer", bn: "5 বছরে 2 বছর বা কম নগদ দিয়েছে" };
+    case "record_days": {
+      const when = n === 0 ? { en: "Record date today", bn: "আজ রেকর্ড ডেট" }
+        : n === 1 ? { en: "Record date tomorrow", bn: "আগামীকাল রেকর্ড ডেট" }
+        : { en: `Record date in ${n} days`, bn: `${n} দিন পর রেকর্ড ডেট` };
+      const by = typeof v.buy_by === "string" ? dayShort(v.buy_by) : null;
+      return by ? { en: `${when.en}, buy by ${by.en}`, bn: `${when.bn}, কিনতে হবে ${by.bn}-এর মধ্যে` } : when;
+    }
+    case "eps":
+      return n < 0 ? { en: `A loss of ${fmt(-n, "taka", 2)} a share`, bn: `শেয়ারপ্রতি ${fmt(-n, "taka", 2)} লোকসান` }
+        : { en: `Profit ${fmt(n, "taka", 2)} a share`, bn: `শেয়ারপ্রতি মুনাফা ${fmt(n, "taka", 2)}` };
+    case "profit_change":
+      return Math.abs(n) < 1 ? { en: "Profit about the same", bn: "মুনাফা প্রায় একই" }
+        : n > 0 ? { en: `Profit up ${r0(n)}%`, bn: `মুনাফা ${r0(n)}% বেড়েছে` }
+        : { en: `Profit down ${r0(-n)}%`, bn: `মুনাফা ${r0(-n)}% কমেছে` };
+    case "roe":
+      return { en: `Earns ${r0(n)}% on its owners' money`, bn: `মালিকদের টাকায় ${r0(n)}% মুনাফা` };
+    case "mcap":
+      return { en: `Worth ${fmt(n, "crore", 0)}`, bn: `মূল্য ${fmt(n, "crore", 0, true)}` };
+    case "turnover":
+      return { en: `${fmt(n, "lakh", 0)} traded a day`, bn: `দিনে ${fmt(n, "lakh", 0, true)} লেনদেন` };
+    case "loans":
+      return n < 1 ? { en: "Almost no loans", bn: "প্রায় ঋণ নেই" }
+        : { en: `Loans ${r0(n)}% of its value`, bn: `ঋণ বাজারমূল্যের ${r0(n)}%` };
+  }
+  if (!def) return null;
+  const w = figureWords(x, def);
+  return { en: `${def.short_en} ${w.en}`, bn: `${def.short_bn} ${w.bn}` };
+}
+
+/** Why a share is on the screen: the figures `filters` pick on (the list's
+ *  first, then the reader's own), as up to REASON_PARTS short phrases. With a
+ *  list picked, a short line is topped up with the list's own figure, then
+ *  the cash it pays and the years of profit in its price. Null when there is
+ *  nothing worth saying (e.g. a screen on sector alone). */
+export function rowReason(
+  row: ScreenerRow,
+  filters: ScreenerFilter[],
+  defs: Map<string, ScreenerFilterDef>,
+  list?: ScreenerReady,
+  /** The figure the row already shows big (its key figure): not said twice. */
+  skip?: string,
+): Bi | null {
+  const keys: string[] = [];
+  const add = (k: string) => { if (k !== skip && !keys.includes(k)) keys.push(k); };
+  filters.forEach((f) => add(f.key));
+  if (list) [list.metric, "yield", "pe"].forEach(add);
+  const parts: Bi[] = [];
+  for (const k of keys) {
+    if (parts.length >= REASON_PARTS) break;
+    // Fill-ups only until the line has two parts; the screen's own figures always count.
+    const filler = list && !filters.some((f) => f.key === k);
+    if (filler && parts.length >= 2) break;
+    const p = reasonPart(k, row.v, defs.get(k));
+    if (p) parts.push(p);
+  }
+  if (!parts.length) return null;
+  return { en: parts.map((p) => p.en).join(" · "), bn: parts.map((p) => p.bn).join(" · ") };
+}
+
+// ---------------------------------------------------------------------------
+// Watch (2026-11-23, widened 2026-11-24): one tap saves what the pop-up shows
+// — a list, plus a sector or a price if picked — as a screen with its daily
+// alert, named for it, no name to type.
+// ---------------------------------------------------------------------------
+
+/** The saved spec of what the pop-up shows: the list's rules, the reader's
+ *  sector / price (and any other filter a link brought), the safety rules. */
+export function screenWatchSpec(g: ScreenerReady | undefined, own: ScreenerFilter[]): ScreenerSpec {
+  const filters = withSafety(mergeFilters([...(g?.spec.filters ?? []), ...own]));
+  return {
+    v: 2, filters, sort: g?.spec.sort ?? DEFAULT_SORT, dir: g?.spec.dir ?? "desc",
+    lists: g ? [g.id] : [], own, safe: true,
+  };
+}
+
+/** Its name on the saved card: "Lowest P/E · Bank · Under ৳20" (40 characters at most). */
+export function screenWatchName(g: ScreenerReady | undefined, own: ScreenerFilter[], defs: Map<string, ScreenerFilterDef>, bn: boolean): string {
+  const parts = [g ? (bn ? g.title_bn : g.title_en) : (bn ? "সব শেয়ার" : "Every share")];
+  for (const f of own) {
+    const d = defs.get(f.key);
+    if (d) parts.push(bn ? valueWords(f, d).bn : valueWords(f, d).en);
+  }
+  return parts.join(" · ").slice(0, 40);
+}
+
+/** A saved screen that is exactly this list with exactly these filters of the reader's own. */
+export function isScreenWatch(spec: unknown, lists: string[], own: ScreenerFilter[]): boolean {
+  const s = spec as Partial<ScreenerSpec> | null;
+  if (!s || !Array.isArray(s.filters) || s.safe === false) return false;
+  const sl = s.lists ?? [];
+  if (sl.length !== lists.length || sl.some((x, i) => x !== lists[i])) return false;
+  const so = s.own ?? [];
+  return so.length === own.length && so.every((f) => own.some((g) => sameFilter(f, g)));
+}
+
+// ---------------------------------------------------------------------------
+// The key figure (2026-11-24): the one number a list is about, shown big on
+// each row of the pop-up, its plain name once in the list's header.
+// ---------------------------------------------------------------------------
+
+/** Lists whose own figure says less than another one: "Strong, near its low"
+ *  reads better as how far above the low; "Owners are buying" as how much
+ *  the founders own. */
+const KEY_OVERRIDE: Record<string, string> = { strong_near_low: "from_low", owners_buying: "owners_pct" };
+/** Orders that are never the key figure (the row shows price and today's move anyway). */
+const NOT_KEY = new Set(["name", "price", "change"]);
+
+/** The figure a row shows big: the order a member picked, else the list's own figure. */
+export function keyOf(list: ScreenerReady | undefined, sort: string | null, defs: Map<string, ScreenerFilterDef>): string {
+  if (sort && !NOT_KEY.has(sort) && defs.get(sort)?.kind === "range") return sort;
+  if (list) return KEY_OVERRIDE[list.id] ?? list.metric;
+  return "mcap";
+}
+
+/** The key figure's column name in plain words (+ the unit when the cells are bare numbers). */
+const KEY_HEAD: Record<string, Bi> = {
+  pe: { en: "Years of profit (P/E)", bn: "কত বছরের মুনাফা (পিই)" },
+  pb: { en: "Price vs what it owns (P/B)", bn: "সম্পদের তুলনায় দাম (পিবি)" },
+  yield: { en: "Cash a year", bn: "বছরে নগদ" },
+  paid: { en: "Years it paid cash", bn: "যত বছর নগদ দিয়েছে" },
+  record_days: { en: "Record date in", bn: "রেকর্ড ডেট বাকি" },
+  mcap: { en: "Company value", bn: "কোম্পানির মূল্য" },
+  turnover: { en: "Traded a day", bn: "দিনে লেনদেন" },
+  profit_change: { en: "Profit change", bn: "মুনাফা বদল" },
+  loans: { en: "Loans vs its value", bn: "মূল্যের তুলনায় ঋণ" },
+  owners_pct: { en: "Founders own", bn: "উদ্যোক্তাদের হাতে" },
+  from_high: { en: "Below 52-week high", bn: "52 সপ্তাহের সর্বোচ্চ থেকে নিচে" },
+  from_low: { en: "Above 52-week low", bn: "52 সপ্তাহের সর্বনিম্ন থেকে ওপরে" },
+  range_pos: { en: "Place in its year", bn: "বছরে দামের অবস্থান" },
+  ret_1y: { en: "1-year change", bn: "1 বছরের বদল" },
+  eps: { en: "Profit a share", bn: "শেয়ারপ্রতি মুনাফা" },
+  roe: { en: "Profit on owners' money", bn: "মালিকদের টাকায় মুনাফা" },
+  score: { en: "Our score", bn: "আমাদের স্কোর" },
+};
+
+export function keyHead(key: string, def: ScreenerFilterDef | undefined): Bi {
+  const h = KEY_HEAD[key] ?? (def ? { en: def.short_en, bn: def.short_bn } : { en: key, bn: key });
+  if (!def) return h;
+  const ue = headUnit(def), ub = headUnit(def, true);
+  return { en: ue ? `${h.en} (${ue})` : h.en, bn: ub ? `${h.bn} (${ub})` : h.bn };
+}
+
+/** Every list with a tile, in the backend's order (2026-11-24: one set of
+ *  tiles, our lists and the simple ones together). An older backend without
+ *  the flags gets its ready-made screens. */
+export function listScreens(ready: ScreenerReady[]): ScreenerReady[] {
+  const cards = ready.filter((r) => r.goal || r.basic);
+  return cards.length ? cards : ready;
 }
 
 // ---------------------------------------------------------------------------
@@ -387,23 +585,4 @@ export function matchGoal(
     if (ok) return { goal: g, refine: rest, safe };
   }
   return null;
-}
-
-/** The columns a result table shows beside price and today's change: the
- *  order's figure, then the figures the screen filters on, then P/E, yield
- *  and size until there are `want`; at most 5 (the table shows fewer on
- *  narrower screens, so the first ones matter most). */
-export function tableColumns(spec: ScreenerSpec, defs: Map<string, ScreenerFilterDef>, want = 4): string[] {
-  const out: string[] = [];
-  const add = (k: string) => {
-    const d = defs.get(k);
-    if (d && d.kind === "range" && k !== "price" && k !== "change" && !out.includes(k)) out.push(k);
-  };
-  if (spec.sort !== "name") add(spec.sort);
-  spec.filters.forEach((f) => add(f.key));
-  for (const k of ["pe", "yield", "mcap", "turnover"]) {
-    if (out.length >= want) break;
-    add(k);
-  }
-  return out.slice(0, 5);
 }

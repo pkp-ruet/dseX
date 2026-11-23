@@ -1362,6 +1362,9 @@ a:hover .ticker-tag,
   overflow-y: auto;
   padding: var(--space-2) var(--space-4) var(--space-4);
 }
+.sheet-sub { margin: 4px 0 0; font-size: var(--fs-sm); line-height: 1.4; color: var(--text-muted); }
+/* xl: a list (the screener's pop-up) — nearly the whole phone screen. */
+.sheet-panel--xl { height: calc(100dvh - 24px); max-height: calc(100dvh - 24px); }
 .sheet-foot {
   display: flex;
   flex-wrap: wrap;
@@ -1381,6 +1384,7 @@ a:hover .ticker-tag,
     animation: sheet-fade 0.15s ease-out;
   }
   .sheet-panel--lg { max-width: 600px; }
+  .sheet-panel--xl { max-width: 880px; height: calc(100dvh - 64px); max-height: calc(100dvh - 64px); }
   .sheet-grip { display: none; }
   .sheet-head { padding-top: var(--space-4); }
 }

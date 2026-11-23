@@ -174,6 +174,19 @@ def cmd_compute_scores(_args):
 
     _snapshot_stock_reports()
     _snapshot_buy_list()
+    _snapshot_screener_lists()
+
+
+def _snapshot_screener_lists():
+    """Store today's members of the screener's lists — the page reads them
+    back as who joined and left this week. Best-effort, never fails the job."""
+    try:
+        from backend.services.screener_service import store_snapshot
+        res = store_snapshot()
+        counts = ", ".join(f"{k} {v}" for k, v in res["lists"].items())
+        print(f"  Stored the screener lists for {res['date']} ({counts}).")
+    except Exception as e:
+        print(f"  Warning: screener list snapshot failed: {e}")
 
 
 def _snapshot_buy_list():
@@ -600,6 +613,8 @@ def cmd_scrape_all(args):
     # Today's Buy List, after the report + signal snapshots it reads.
     print("=== Post-scrape: Snapshotting the Buy List ===")
     _snapshot_buy_list()
+    print("=== Post-scrape: Snapshotting the screener lists ===")
+    _snapshot_screener_lists()
 
     # Regenerate the "TopStockBD Tips" homepage bullets from the fresh snapshot.
     print("=== Post-scrape: Regenerating TopStockBD Tips ===")

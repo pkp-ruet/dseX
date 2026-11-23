@@ -18,6 +18,7 @@ export default function Sheet({
   open,
   onClose,
   title,
+  subtitle,
   children,
   footer,
   size = "md",
@@ -26,11 +27,14 @@ export default function Sheet({
   open: boolean;
   onClose: () => void;
   title: ReactNode;
+  /** One short line under the title (a count, a date). */
+  subtitle?: ReactNode;
   children: ReactNode;
   /** Actions row, pinned to the bottom of the sheet. */
   footer?: ReactNode;
-  /** md ≈ 440px · lg ≈ 600px wide on desktop. */
-  size?: "md" | "lg";
+  /** md ≈ 440px · lg ≈ 600px wide on desktop · xl = a list: nearly full
+   *  height on phones, ≈ 880px wide and tall on desktop (the screener's lists). */
+  size?: "md" | "lg" | "xl";
   /** false while saving, so a stray tap can't close it mid-request. */
   dismissible?: boolean;
 }) {
@@ -76,7 +80,7 @@ export default function Sheet({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className={`sheet-panel ${size === "lg" ? "sheet-panel--lg" : ""}`}
+        className={`sheet-panel ${size === "lg" ? "sheet-panel--lg" : size === "xl" ? "sheet-panel--xl" : ""}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sheet-grip" aria-hidden="true" />
@@ -85,6 +89,7 @@ export default function Sheet({
             <h2 id={titleId} className="text-lg font-semibold leading-tight text-text-main">
               {title}
             </h2>
+            {subtitle && <p className="sheet-sub">{subtitle}</p>}
           </div>
           <Button variant="quiet" size="sm" iconOnly aria-label={inBn ? "বন্ধ করুন" : "Close"} onClick={onClose} disabled={!dismissible}>
             <span aria-hidden="true">✕</span>

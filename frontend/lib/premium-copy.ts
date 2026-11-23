@@ -125,10 +125,10 @@ export const FEATURES: Feature[] = [
     key: "screener",
     name: { en: "Stock screener", bn: "স্টক স্ক্রিনার" },
     line: {
-      en: "Our six lists, filters on our own analysis, and screens saved with a daily alert.",
-      bn: "আমাদের ছয়টি তালিকা, আমাদের বিশ্লেষণের ফিল্টার, আর প্রতিদিনের অ্যালার্টসহ সেভ করা স্ক্রিন।",
+      en: "16 ready lists, from 52-week high to our own picks, and lists saved with a daily alert.",
+      bn: "16টি তৈরি তালিকা, 52 সপ্তাহের সর্বোচ্চ থেকে আমাদের নিজের বাছাই পর্যন্ত, আর প্রতিদিনের অ্যালার্টসহ সেভ করা তালিকা।",
     },
-    free: { en: "your own filters, with the shares", bn: "নিজের ফিল্টার, শেয়ারসহ" },
+    free: { en: "how many shares each list has", bn: "প্রতিটি তালিকায় কতটি শেয়ার" },
   },
   {
     key: "compare",

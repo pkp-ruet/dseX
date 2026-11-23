@@ -192,14 +192,7 @@ def change_reasons(spec: dict, almost_then: dict, joined: list[str], left: list[
         return {}, {}
     filters = spec.get("filters") or []
     jw = {c: sc.change_reason(c, (almost_then or {}).get(c), values.get(c) or {}, True) for c in joined}
-    lw = {}
-    for c in left:
-        v = values.get(c)
-        if v is None:  # gone from the graded list (delisted, no score)
-            lw[c] = {"en": f"{c} is no longer graded.", "bn": f"{c}-এর আর গ্রেড নেই।"}
-            continue
-        failed = sc.misses(v, filters)
-        lw[c] = sc.change_reason(c, failed[0] if failed else None, v, False)
+    lw = {c: sc.leave_reason(c, values.get(c), filters) for c in left}
     return jw, lw
 
 
@@ -291,7 +284,7 @@ def push_payload(changes: list[tuple], lang: str = "bn") -> Optional[dict]:
         title = (f"আপনার {len(changes)}টি স্ক্রিনে নতুন {total}টি শেয়ার" if bn
                  else f"{total} new shares on {len(changes)} of your screens")
         names = " · ".join(f"{c[0]['name']}: {', '.join(c[1][:2])}" for c in changes[:3])
-        url = "/screener?tab=saved&src=alert"
+        url = "/notifications?src=alert"   # the screener has no saved-screens section since 2026-11-24
     body = (f"আজ সব ফিল্টারে মিলেছে: {names}" if bn else f"Matched every filter today: {names}")
     return {"title": title, "body": body, "url": url, "tag": "customlists"}
 

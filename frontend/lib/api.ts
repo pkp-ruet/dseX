@@ -3489,8 +3489,10 @@ export interface ScreenerReady {
   spec: ScreenerSpec;
   /** The figure a card shows beside each share. */
   metric: string;
-  /** One of the six goal cards (2026-11-14). The others only load from `?ready=` (old links). */
+  /** One of "our lists" (2026-11-14): a tile, Premium. The others only load from `?ready=` (old links). */
   goal?: boolean;
+  /** A simple list on public figures alone (2026-11-23: 52-week high, lowest P/E …): a tile. Premium like our lists (2026-11-24). */
+  basic?: boolean;
 }
 
 export interface ScreenerUniverse {
@@ -3504,6 +3506,21 @@ export interface ScreenerUniverse {
   cols: string[];
   /** [code, name, figure per `cols` …] — one per scored company. */
   rows: (string | number | null)[][];
+  /** Who joined and left each list with a card this week (2026-11-23), by
+   *  list id; absent on an older backend, and for a list with nothing stored
+   *  before today. */
+  changes?: Record<string, ScreenerListChange>;
+}
+
+/** One list's week: against the last close before the week began (`since`). */
+export interface ScreenerListChange {
+  since: string;
+  /** Codes on the list today that weren't on it then, in the list's order. */
+  joined: string[];
+  /** On it then, gone today, with the filter it fails now in words. */
+  left: { code: string; name: string; en: string; bn: string }[];
+  /** Today swapped most of the list at once (our rules changed): no changes shown. */
+  rebuilt?: boolean;
 }
 
 /** How long the screener page waits for `/api/screener`: a cold backend builds

@@ -172,6 +172,26 @@ FILTERS: list[Filter] = [
            unit="pct", decimals=0, high_good=False,
            presets=(P(None, 20, "Near the low", "সর্বনিম্নের কাছে"), P(None, 50, "Lower half", "নিচের অর্ধেকে"),
                     P(50, None, "Upper half", "ওপরের অর্ধেকে"), P(80, None, "Near the high", "সর্বোচ্চের কাছে")), menu=False),
+    # The 52-week lists (2026-11-23): how far today's price is from the year's
+    # high and low, on the same adjusted range as "where it sits in its year".
+    Filter("from_high", "price", "range", "How far below its 52-week high", "52 সপ্তাহের সর্বোচ্চ দামের চেয়ে কত নিচে",
+           "Below 52-wk high", "সর্বোচ্চ থেকে নিচে",
+           "How far today's price is under the highest price of the last 12 months. 0% means it is at its high. "
+           "Older prices are adjusted for dividends and bonus shares, so a payout doesn't count as a fall.",
+           "গত 12 মাসের সবচেয়ে বেশি দামের চেয়ে আজকের দাম কত নিচে। 0% মানে সর্বোচ্চ দামেই আছে। "
+           "ডিভিডেন্ড ও বোনাস শেয়ারের হিসাব ধরে পুরোনো দাম মেলানো হয়, তাই ডিভিডেন্ডের পর দাম কমাকে পতন ধরা হয় না।",
+           unit="pct", decimals=1, high_good=False, menu=False,
+           presets=(P(None, 2, "Within 2%", "2%-এর মধ্যে"), P(None, 5, "Within 5%", "5%-এর মধ্যে"),
+                    P(None, 10, "Within 10%", "10%-এর মধ্যে"), P(30, None, "30% or more below", "30% বা বেশি নিচে"))),
+    Filter("from_low", "price", "range", "How far above its 52-week low", "52 সপ্তাহের সর্বনিম্ন দামের চেয়ে কত ওপরে",
+           "Above 52-wk low", "সর্বনিম্ন থেকে ওপরে",
+           "How far today's price is over the lowest price of the last 12 months. 0% means it is at its low. "
+           "Older prices are adjusted for dividends and bonus shares, so a payout doesn't count as a fall.",
+           "গত 12 মাসের সবচেয়ে কম দামের চেয়ে আজকের দাম কত ওপরে। 0% মানে সর্বনিম্ন দামেই আছে। "
+           "ডিভিডেন্ড ও বোনাস শেয়ারের হিসাব ধরে পুরোনো দাম মেলানো হয়, তাই ডিভিডেন্ডের পর দাম কমাকে পতন ধরা হয় না।",
+           unit="pct", decimals=1, high_good=False, menu=False,
+           presets=(P(None, 2, "Within 2%", "2%-এর মধ্যে"), P(None, 5, "Within 5%", "5%-এর মধ্যে"),
+                    P(None, 10, "Within 10%", "10%-এর মধ্যে"), P(50, None, "50% or more above", "50% বা বেশি ওপরে"))),
     Filter("ret_1y", "price", "range", "Price change over 1 year", "1 বছরে দাম বদল", "1 year", "1 বছর",
            "The price today against a year ago, with dividends and bonus shares since then taken into account.",
            "এক বছর আগের তুলনায় আজকের দাম, এর মধ্যে দেওয়া ডিভিডেন্ড ও বোনাস শেয়ার হিসাবে ধরে।",
@@ -253,6 +273,15 @@ FILTERS: list[Filter] = [
            unit="pct", decimals=0, high_good=False,
            presets=(P(None, 5, "Almost none", "প্রায় নেই"), P(None, 25, "Under 25%", "25%-এর কম"),
                     P(25, 100, "25% to 100%", "25% থেকে 100%"), P(100, None, "More than its value", "মূল্যের চেয়ে বেশি")), menu=False),
+    Filter("owners_pct", "company", "range", "Held by founders and directors", "উদ্যোক্তা ও পরিচালকদের হাতে",
+           "Owners hold", "মালিকদের হাতে",
+           "The share of the company its founders and directors own, from DSE's latest monthly report. "
+           "DSE's rule is at least 30% between them.",
+           "কোম্পানির কত অংশ উদ্যোক্তা ও পরিচালকদের হাতে, ডিএসইর সর্বশেষ মাসিক প্রতিবেদন থেকে। "
+           "ডিএসইর নিয়মে তাঁদের হাতে মিলিয়ে অন্তত 30% থাকতে হয়।",
+           unit="pct", decimals=0, menu=False,
+           presets=(P(None, 30, "Under 30%", "30%-এর কম"), P(30, 50, "30% to 50%", "30% থেকে 50%"),
+                    P(50, None, "50% or more", "50% বা বেশি"), P(60, None, "60% or more", "60% বা বেশি"))),
     # Sector and category
     Filter("sector", "company", "set", "Sector", "সেক্টর", "Sector", "সেক্টর",
            "The DSE sector the company is listed in. Pick one or several.",
@@ -289,8 +318,12 @@ def _r(v, d: int = 2) -> Optional[float]:
 
 # Figures a row carries that are not filters: the yearly range and the prices
 # where our price check turns (for "Almost there"), and the last day to buy
-# before the record date (shown beside a record-date figure).
-EXTRA_COLS = ["lo52", "hi52", "low_below", "high_above", "buy_by"]
+# before the record date (shown beside a record-date figure). The quick look
+# (2026-11-24): the four business checks' words (strong / fair / weak, the
+# grade's own lines), the smaller things the stock report found, its first
+# serious warning as a short label, and our fair price range.
+EXTRA_COLS = ["lo52", "hi52", "low_below", "high_above", "buy_by",
+              "w_profit", "w_fin", "w_biz", "w_div", "amber", "warn_en", "warn_bn", "fair_lo", "fair_hi"]
 
 # The "Is the profit real?" report's words, as the filter's three choices.
 _CASH_WORDS = {"backed": "yes", "partly": "partly", "paper": "no", "none": "no"}
@@ -309,9 +342,12 @@ def row_values(f: dict, ret_1y: Optional[float] = None, red: Optional[int] = Non
     - ``record``: {"days", "buy_by"} for the next cash record date you can
       still buy in time for;
     - ``lines``: {"low_below", "high_above"}, the prices where our price check
-      turns (``watchlist_glance.price_lines``).
+      turns (``watchlist_glance.price_lines``);
+    - ``amber``: the smaller things in its newest stock-report snapshot;
+    - ``warn``: {en, bn}, its first serious warning as a short label.
     """
     from backend.services.dividend_safety import dividend_safety
+    from backend.services.grade_rules import check_values, check_words
 
     extra = extra or {}
     pe, pb = _n(f.get("current_pe")), _n(f.get("current_pb"))
@@ -326,6 +362,12 @@ def row_values(f: dict, ret_1y: Optional[float] = None, red: Optional[int] = Non
     safety = dividend_safety(f, sector_class or "GENERAL") if yld > 0 else None
     record = extra.get("record") or {}
     lines = extra.get("lines") or {}
+    ltp, hi, lo = _n(f.get("ltp")), _n(f.get("hi52")), _n(f.get("lo52"))
+    # A 0 is DSE's missing figure in the monthly report, not founders owning nothing.
+    owners = _n(f.get("sponsor_now"))
+    words = check_words(check_values(f))
+    warn = extra.get("warn") or {}
+    on_fair = f.get("p4_basis") == "fair"
     return {
         "grade": tier_key(score) if score is not None else None,
         "price_word": _price_word(f.get("p4_val")),
@@ -339,6 +381,8 @@ def row_values(f: dict, ret_1y: Optional[float] = None, red: Optional[int] = Non
         "pe": _r(pe) if pe and pe > 0 else None,
         "pb": _r(pb) if pb and pb > 0 else None,
         "range_pos": _r(f.get("pct_in_range"), 1),
+        "from_high": _r(max(0.0, (hi - ltp) / hi * 100), 1) if ltp and hi and hi > 0 else None,
+        "from_low": _r(max(0.0, (ltp - lo) / lo * 100), 1) if ltp and lo and lo > 0 else None,
         "ret_1y": _r(ret_1y, 1),
         "yield": _r(yld),
         # 3/4/5 of the last five years; 2 stands for "2 or fewer".
@@ -350,6 +394,7 @@ def row_values(f: dict, ret_1y: Optional[float] = None, red: Optional[int] = Non
         "mcap": _r(mcap / 10, 1) if mcap is not None else None,         # ৳ million -> crore
         "turnover": _r(turn * 10, 1) if turn is not None else None,     # ৳ million -> lakh
         "loans": None if lender else _r(f.get("loan_pct_mcap"), 1),
+        "owners_pct": _r(owners, 1) if owners and owners > 0 else None,
         "sector": f.get("sector") or None,
         "category": cat if cat in ("A", "B", "N", "Z") else None,
         "lo52": _r(f.get("lo52")),
@@ -357,6 +402,15 @@ def row_values(f: dict, ret_1y: Optional[float] = None, red: Optional[int] = Non
         "low_below": _r(lines.get("low_below")),
         "high_above": _r(lines.get("high_above")),
         "buy_by": record.get("buy_by"),
+        "w_profit": words.get("p1_biz"),
+        "w_fin": words.get("p2_health"),
+        "w_biz": words.get("p3_moat"),
+        "w_div": words.get("p5_div"),
+        "amber": extra.get("amber"),
+        "warn_en": warn.get("en"),
+        "warn_bn": warn.get("bn"),
+        "fair_lo": _r(f.get("fair_low")) if on_fair else None,
+        "fair_hi": _r(f.get("fair_high")) if on_fair else None,
     }
 
 
@@ -487,8 +541,8 @@ def join_price(values: dict, flt: dict) -> Optional[float]:
     """The highest price at which the company would pass ``flt`` on today's
     other figures, when a lower price is what it takes; None when the filter
     doesn't move with the price, a higher price would be needed, or a figure
-    is missing. Price-driven: price, P/E, P/B, yield, place in its year, size
-    and our price check."""
+    is missing. Price-driven: price, P/E, P/B, yield, place in its year, how
+    far above its 52-week low, size and our price check."""
     price = _n(values.get("price"))
     if not price or price <= 0:
         return None
@@ -506,6 +560,9 @@ def join_price(values: dict, flt: dict) -> Optional[float]:
     elif key == "range_pos" and hi is not None:
         a, b = _n(values.get("lo52")), _n(values.get("hi52"))
         out = a + (b - a) * hi / 100 if a is not None and b is not None and b > a else None
+    elif key == "from_low" and hi is not None:
+        a = _n(values.get("lo52"))
+        out = a * (1 + hi / 100) if a and a > 0 else None
     elif key == "price_word" and flt.get("in"):
         want = flt["in"]
         line = values.get("low_below") if "low" in want else values.get("high_above") if "fair" in want else None
@@ -575,6 +632,69 @@ def change_reason(code: str, key: Optional[str], values: dict, joined: bool) -> 
     if en is None:
         return {"en": f"{code}: {fd.short_en} has no figure now.", "bn": f"{code}: {fd.short_bn}-এর এখন কোনো তথ্য নেই।"}
     return {"en": f"{code}: {fd.short_en} is now {en}.", "bn": f"{code}: {fd.short_bn} এখন {bn}।"}
+
+
+def leave_reason(code: str, values: Optional[dict], filters: list[dict]) -> dict:
+    """{en, bn}: why a share is no longer on a screen — the first filter it
+    fails today, or that it is no longer graded (``values`` None)."""
+    if values is None:
+        return {"en": f"{code} is no longer graded.", "bn": f"{code}-এর আর গ্রেড নেই।"}
+    failed = misses(values, filters)
+    return change_reason(code, failed[0] if failed else None, values, False)
+
+
+# ---------------------------------------------------------------------------
+# What changed on each list this week (2026-11-23)
+# ---------------------------------------------------------------------------
+
+# A step where this share of a list's members (counting both days together)
+# changes at once, and at least this many shares, is read as our rules
+# changing (a scoring update), not the market: the week then counts from
+# that day. A real market day rarely swaps most of a list.
+REBUILT_SHARE = 0.6
+REBUILT_MIN = 8
+
+
+def week_start(day: str) -> str:
+    """The Sunday that starts DSE's trading week (= ``buy_list.week_start``)."""
+    from datetime import date, timedelta
+    d = date.fromisoformat(str(day)[:10])
+    return (d - timedelta(days=(d.weekday() + 1) % 7)).isoformat()
+
+
+def is_rebuilt(before: set, after: set) -> bool:
+    changed = before ^ after
+    return len(changed) >= REBUILT_MIN and len(changed) >= REBUILT_SHARE * len(before | after)
+
+
+def week_changes(history: list[tuple], now: list[str], today: str) -> Optional[dict]:
+    """Who joined and who left one list this week.
+
+    ``history`` = [(date, codes)] stored after earlier closes (any order; days
+    on or after ``today`` are ignored), ``now`` = today's members in the list's
+    order. The base is the newest stored day before the week began, else the
+    oldest stored day this week. Joined = on today, not on the base; left = on
+    the base, not today (a share that joined and left again in the week is
+    neither). None when nothing was stored before today.
+    → {"since": base date, "joined": [codes, in ``now`` order], "left": [codes]}
+    (+ ``rebuilt: True`` when today itself swapped most of the list)."""
+    days = sorted((d, list(c or [])) for d, c in history if d and d < today)
+    if not days:
+        return None
+    start = week_start(today)
+    before = [i for i, (d, _) in enumerate(days) if d < start]
+    chain = days[before[-1]:] if before else days
+    since, base = chain[0][0], set(chain[0][1])
+    prev = base
+    for d, codes in chain[1:]:
+        cur = set(codes)
+        if is_rebuilt(prev, cur):
+            since, base = d, cur
+        prev = cur
+    cur = set(now)
+    if is_rebuilt(prev, cur):
+        return {"since": today, "joined": [], "left": [], "rebuilt": True}
+    return {"since": since, "joined": [c for c in now if c not in base], "left": sorted(base - cur)}
 
 
 # ---------------------------------------------------------------------------
@@ -662,10 +782,13 @@ class ReadyScreen:
     dir: str
     metric: str  # the figure a card shows beside each share
     extra: tuple = field(default_factory=tuple)
-    # A goal card on the page (2026-11-14). The rest are the ready-made screens
-    # from before: no card, but ``?ready=<id>`` (old links, the removed lists'
-    # redirects) still loads their filters.
+    # A goal card on the page (2026-11-14): one of "our lists", built on our
+    # own analysis. ``basic`` (2026-11-23) = a simple list on public figures
+    # alone (52-week high, lowest P/E …), open to every reader. The rest are
+    # ready-made screens from before: no card, but ``?ready=<id>`` (old links,
+    # the removed lists' redirects) still loads their filters.
     goal: bool = False
+    basic: bool = False
 
     def spec(self) -> dict:
         return {"v": 2, "filters": [dict(f) for f in self.filters], "sort": self.sort, "dir": self.dir}
@@ -702,12 +825,19 @@ def with_safety(filters: list[dict]) -> list[dict]:
 STRONG = {"key": "grade", "in": ["excellent", "good"]}
 NO_WARNINGS = {"key": "warnings", "in": ["none"]}
 
+# Our lists, in tile order. Two joined 2026-11-23 (user: "lists like Owners
+# hold most of it, Big and steady"); the six-tile limit went with them.
 GOALS: list[ReadyScreen] = [
     ReadyScreen("strong_cheap", "Strong and cheap", "শক্তিশালী, দামও কম",
                 "Strong companies our price check calls low, with no serious warnings.",
                 "শক্তিশালী কোম্পানি, আমাদের যাচাইয়ে দাম কম, কোনো গুরুতর সতর্কতা নেই।",
                 (STRONG, {"key": "price_word", "in": ["low"]}, NO_WARNINGS),
                 "score", "desc", "pe", goal=True),
+    ReadyScreen("big_steady", "Big and steady", "বড় ও স্থিতিশীল",
+                "Strong companies worth ৳2,000 crore or more that paid cash all 5 years and trade ৳50 lakh a day.",
+                "৳2,000 কোটি বা বেশি মূল্যের শক্তিশালী কোম্পানি, 5 বছরই নগদ দিয়েছে, দিনে ৳50 লাখ লেনদেন হয়।",
+                (STRONG, {"key": "mcap", "min": 2000}, {"key": "paid", "min": 5}, {"key": "turnover", "min": 50}),
+                "mcap", "desc", "mcap", goal=True),
     ReadyScreen("steady_dividends", "Steady dividends", "নিয়মিত ডিভিডেন্ড",
                 "Paid cash every year for 5 years, 4% or more, and it looks safe.",
                 "5 বছরই নগদ দিয়েছে, 4% বা বেশি, আর ডিভিডেন্ড নিরাপদ মনে হচ্ছে।",
@@ -723,6 +853,11 @@ GOALS: list[ReadyScreen] = [
                 "মুনাফা 20% বা বেশি বেড়েছে, আর নগদও এসেছে।",
                 ({"key": "profit_change", "min": 20}, {"key": "cash_backed", "in": ["yes"]}, NO_WARNINGS),
                 "score", "desc", "profit_change", goal=True),
+    ReadyScreen("owners_hold", "Owners hold most of it", "মালিকদের হাতেই বেশিরভাগ",
+                "Strong companies whose founders and directors own half or more, with no serious warnings.",
+                "শক্তিশালী কোম্পানি, যার অর্ধেক বা বেশি উদ্যোক্তা ও পরিচালকদের হাতে, কোনো গুরুতর সতর্কতা নেই।",
+                (STRONG, {"key": "owners_pct", "min": 50}, NO_WARNINGS),
+                "owners_pct", "desc", "owners_pct", goal=True),
     ReadyScreen("owners_buying", "Owners are buying", "মালিকরা কিনছেন",
                 "Founders or directors bought more than they sold this year.",
                 "এ বছর উদ্যোক্তা বা পরিচালকেরা যত বেচেছেন, তার চেয়ে বেশি কিনেছেন।",
@@ -733,35 +868,66 @@ GOALS: list[ReadyScreen] = [
                 (STRONG, {"key": "range_pos", "max": 25}), "range_pos", "asc", "range_pos", goal=True),
 ]
 
-READY: list[ReadyScreen] = GOALS + [
-    ReadyScreen("high_dividend", "High dividend", "বেশি ডিভিডেন্ড",
-                "Paid 5% or more of the price in cash last year", "গত বছর দামের 5% বা বেশি নগদ দিয়েছে",
-                ({"key": "yield", "min": 5}, NOT_Z, TRADED), "yield", "desc", "yield"),
-    ReadyScreen("low_pe", "Low P/E", "কম পিই",
-                "The price is under 10 years of its profit", "দাম 10 বছরের মুনাফার কম",
-                ({"key": "pe", "max": 10}, NOT_Z, TRADED), "pe", "asc", "pe"),
+# The simple lists (2026-11-23, user: "basic lists like all 52 week high/low,
+# lowest pe so people easily understand"): public figures only. Premium like
+# our lists (2026-11-24, user: "Lock them too"): a free reader sees the count.
+# Like our lists they carry only their own rules; the page adds the safety
+# rules (no Z, ৳10 lakh a day) on top. The ids of the old ready-made screens
+# are kept, so their links and the removed lists' redirects open the tile.
+BASIC: list[ReadyScreen] = [
+    ReadyScreen("near_high", "Near 52-week high", "52 সপ্তাহের সর্বোচ্চের কাছে",
+                "Within 5% of its highest price of the last 12 months, closest first.",
+                "গত 12 মাসের সবচেয়ে বেশি দামের 5%-এর মধ্যে, সবচেয়ে কাছেরটি আগে।",
+                ({"key": "from_high", "max": 5},), "from_high", "asc", "from_high", basic=True),
+    ReadyScreen("near_low", "Near 52-week low", "52 সপ্তাহের সর্বনিম্নের কাছে",
+                "Within 5% of its lowest price of the last 12 months, closest first.",
+                "গত 12 মাসের সবচেয়ে কম দামের 5%-এর মধ্যে, সবচেয়ে কাছেরটি আগে।",
+                ({"key": "from_low", "max": 5},), "from_low", "asc", "from_low", basic=True),
+    ReadyScreen("low_pe", "Lowest P/E", "সবচেয়ে কম পিই",
+                "Profitable shares priced under 10 years of their profit, lowest first.",
+                "মুনাফায় থাকা শেয়ার, দাম 10 বছরের মুনাফার কম, সবচেয়ে কমটি আগে।",
+                ({"key": "pe", "max": 10},), "pe", "asc", "pe", basic=True),
+    ReadyScreen("high_dividend", "Highest dividend", "সবচেয়ে বেশি ডিভিডেন্ড",
+                "Paid 5% or more of today's price in cash last year, highest first.",
+                "গত বছর আজকের দামের 5% বা বেশি নগদ দিয়েছে, সবচেয়ে বেশিটি আগে।",
+                ({"key": "yield", "min": 5},), "yield", "desc", "yield", basic=True),
     ReadyScreen("below_book", "Below what it owns", "সম্পদের চেয়ে কম দামে",
-                "The price is under the company's net assets per share, and it makes a profit",
-                "দাম শেয়ারপ্রতি নিট সম্পদের চেয়ে কম, আর মুনাফায় আছে",
-                ({"key": "pb", "max": 1}, {"key": "eps", "min": 0}, NOT_Z, TRADED), "pb", "asc", "pb"),
-    ReadyScreen("near_low", "Near its 1-year low", "বছরের সর্বনিম্নের কাছে",
-                "The price is close to its lowest point of the last 12 months",
-                "দাম গত 12 মাসের সবচেয়ে কম দামের কাছাকাছি",
-                ({"key": "range_pos", "max": 20}, NOT_Z, TRADED), "mcap", "desc", "range_pos"),
+                "Priced under its net assets per share, and it makes a profit.",
+                "দাম শেয়ারপ্রতি নিট সম্পদের চেয়ে কম, আর মুনাফায় আছে।",
+                ({"key": "pb", "max": 1}, {"key": "eps", "min": 0}), "pb", "asc", "pb", basic=True),
+    ReadyScreen("biggest", "Biggest companies", "সবচেয়ে বড় কোম্পানি",
+                "Worth over ৳2,000 crore on the market, biggest first.",
+                "বাজারে মূল্য ৳2,000 কোটির বেশি, সবচেয়ে বড়টি আগে।",
+                ({"key": "mcap", "min": 2000},), "mcap", "desc", "mcap", basic=True),
+    ReadyScreen("most_traded", "Most traded", "সবচেয়ে বেশি লেনদেন",
+                "Over ৳5 crore bought and sold a day, most first.",
+                "দিনে ৳5 কোটির বেশি কেনাবেচা হয়, সবচেয়ে বেশিটি আগে।",
+                ({"key": "turnover", "min": 500},), "turnover", "desc", "turnover", basic=True),
+    ReadyScreen("no_loans", "Almost no loans", "প্রায় ঋণ নেই",
+                "Loans under 5% of its market value, and it makes a profit.",
+                "ঋণ বাজারমূল্যের 5%-এর কম, আর মুনাফায় আছে।",
+                ({"key": "loans", "max": 5}, {"key": "eps", "min": 0}), "mcap", "desc", "loans", basic=True),
+]
+# Every list with a tile on the page, in tile order (2026-11-24, user: "merge
+# simple list and our list to a single list"): by what a reader looks for —
+# a good price, size, dividends, profit, owners, the year's high and low. What
+# the daily snapshot stores and what ``/api/screener`` sends first.
+CARD_ORDER = [
+    "strong_cheap", "low_pe", "below_book",
+    "big_steady", "biggest", "most_traded",
+    "steady_dividends", "high_dividend", "dividend_soon",
+    "profit_growing", "no_loans",
+    "owners_hold", "owners_buying",
+    "near_high", "near_low", "strong_near_low",
+]
+_BY_ID = {r.id: r for r in GOALS + BASIC}
+CARDS: list[ReadyScreen] = [_BY_ID[i] for i in CARD_ORDER]
+
+READY: list[ReadyScreen] = CARDS + [
     ReadyScreen("profit_up", "Profit growing", "মুনাফা বাড়ছে",
                 "Profit up 25% or more on last year", "গত বছরের চেয়ে মুনাফা 25% বা বেশি",
                 ({"key": "profit_change", "min": 25}, {"key": "eps", "min": 0}, NOT_Z, TRADED),
                 "mcap", "desc", "profit_change"),
-    ReadyScreen("biggest", "Biggest companies", "সবচেয়ে বড় কোম্পানি",
-                "Worth over ৳2,000 crore on the market", "বাজার মূলধন ৳2,000 কোটির বেশি",
-                ({"key": "mcap", "min": 2000},), "mcap", "desc", "mcap"),
-    ReadyScreen("most_traded", "Most traded", "সবচেয়ে বেশি লেনদেন",
-                "Over ৳1 crore bought and sold a day", "দিনে ৳1 কোটির বেশি কেনাবেচা",
-                ({"key": "turnover", "min": 100},), "turnover", "desc", "turnover"),
-    ReadyScreen("no_loans", "Almost no loans", "প্রায় ঋণ নেই",
-                "Loans under 5% of its market value, and it makes a profit",
-                "ঋণ বাজার মূলধনের 5%-এর কম, আর মুনাফায় আছে",
-                ({"key": "loans", "max": 5}, {"key": "eps", "min": 0}, NOT_Z, TRADED), "mcap", "desc", "loans"),
     ReadyScreen("a_payers", "Category A, paying 3%+", "A ক্যাটাগরি, 3%+ দেয়",
                 "In DSE's category A and paid 3% or more in cash", "ডিএসইর A ক্যাটাগরিতে, আর 3% বা বেশি নগদ দিয়েছে",
                 ({"key": "category", "in": ["A"]}, {"key": "yield", "min": 3}, TRADED), "yield", "desc", "yield"),
