@@ -36,6 +36,16 @@ def _report(inp, signal=("buy", "quality_cheap")):
 
 def _texts(a):
     yield "summary", a["summary"]
+    if a.get("lead"):
+        yield "lead", a["lead"]
+    for v in a.get("verdict") or []:
+        yield f"verdict.{v['key']}.word", v["word"]
+        if v.get("line"):
+            yield f"verdict.{v['key']}.line", v["line"]
+    for i, g in enumerate(a.get("good") or []):
+        yield f"good[{i}]", g
+    for i, w in enumerate(a.get("watch") or []):
+        yield f"watch[{i}]", w["text"]
     for k in ("line", "checks"):
         if a["grade"].get(k):
             yield f"grade.{k}", a["grade"][k]
@@ -94,14 +104,56 @@ def test_price_part_shows_the_fair_range_or_says_why_not():
     assert "fair price" not in " ".join(s["label"]["en"] for s in price["stats"])
 
 
-def test_buy_under_is_never_above_the_price_sections_line():
-    rep = _report(square())
-    price = next(p for p in rep["analysis"]["parts"] if p["key"] == "price")
-    buy = next((s for s in price["stats"] if s["label"]["en"] == "we would buy under"), None)
-    want = rep["sections"]["price"].get("buy_below")
-    assert (buy is None) == (want is None)
-    if buy:
-        assert buy["value"]["en"] == sr.money(want)
+_SIGNAL_WORDS = re.compile(r"(buy|sell)|very low|near its yearly top", re.I)
+
+
+def test_the_analysis_never_says_buy_or_sell():
+    """2026-11-24: the stock page is analysis only. No buy price, no Buy /
+    Sell, no signal-made price word, whatever the signal says."""
+    for inp, sig in ((square(), ("buy", "quality_cheap")), (square(), ("none", "near_52w_high")),
+                     (red_flag_company(), ("sell", "weak")), (_falling(), ("none", "good_wait_price"))):
+        rep = _report(inp, sig)
+        a = rep["analysis"]
+        price = next(p for p in a["parts"] if p["key"] == "price")
+        assert price["word"] == rep["sections"]["price"]["word"]
+        for where, b in _texts(a):
+            if where.startswith("dividend.callout"):
+                continue   # "the last day to buy" before a record date is a date, not advice
+            assert not _SIGNAL_WORDS.search(b["en"]), f"{inp['code']} {where}: {b['en']}"
+
+
+def test_verdict_rows_lead_and_lists():
+    a = _report(square())["analysis"]
+    assert [v["key"] for v in a["verdict"]] == ["company", "dividend", "price", "problems"]
+    company = a["verdict"][0]
+    assert company["word"] == a["grade"]["word"] and company["tone"] == a["grade"]["tone"]
+    assert a["verdict"][2]["line"]["en"].startswith("We think it is worth")
+    assert a["lead"]["en"].endswith("for what it earns today.")
+    assert 1 <= len(a["good"]) <= 3 and len(a["watch"]) <= 2
+    assert all(w["tone"] in ("bad", "fair") for w in a["watch"])
+    # One sentence each.
+    for g in a["good"] + [w["text"] for w in a["watch"]]:
+        assert g["en"].count(". ") == 0 and g["en"].endswith(".")
+    _all_bi(a)
+
+
+def test_serious_problems_lead_the_watch_list():
+    a = _report(red_flag_company(), ("sell", "weak"))["analysis"]
+    problems = next(v for v in a["verdict"] if v["key"] == "problems")
+    assert problems["tone"] == "bad" and problems["word"]["en"].endswith("serious")
+    assert a["watch"] and a["watch"][0]["tone"] == "bad"
+    assert a["lead"]["en"].startswith("One of the weakest")
+
+
+def test_price_view_change_counts_only_once_it_holds():
+    from backend.services.stock_report_service import settled_price_change
+    low, fair = {"en": "Low", "bn": "কম"}, {"en": "Fair", "bn": "ন্যায্য"}
+    row = lambda d, w: {"date": d, "price_word": w, "price_line": {"en": "x", "bn": "x"}}
+    ch = settled_price_change([row("2026-11-24", low), row("2026-11-23", low), row("2026-11-20", fair)])
+    assert ch and ch["to"] == low and ch["from"] == fair and ch["day"] == "2026-11-24"
+    assert settled_price_change([row("2026-11-24", low), row("2026-11-23", fair), row("2026-11-20", fair)]) is None
+    assert settled_price_change([row("2026-11-24", low), row("2026-11-23", low), row("2026-11-20", low)]) is None
+    assert settled_price_change([row("2026-11-24", low), row("2026-11-23", low)]) is None
 
 
 def test_lender_asks_about_its_own_money():

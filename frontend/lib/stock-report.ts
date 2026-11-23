@@ -506,9 +506,27 @@ export interface StockAnalysis {
     /** "Strong: profit, finances · Weak: price". */
     checks: Bi | null;
   };
-  /** Three or four short sentences that sum the company up. */
+  /** Three or four short sentences that sum the company up (no longer shown). */
   summary: Bi | null;
   parts: AnalysisPart[];
+  /** One line of our view: the company, then today's price (2026-11-24). Older
+   *  backends send none. */
+  lead?: Bi | null;
+  /** The cover's four rows: the company, its dividend, today's price, problems. */
+  verdict?: VerdictRow[];
+  /** Up to three good things, one sentence each. */
+  good?: Bi[];
+  /** Up to two things to watch, the most serious first. */
+  watch?: { tone: "bad" | "fair"; text: Bi }[];
+}
+
+/** One row of the cover's verdict (backend `stock_analysis._verdict`). */
+export interface VerdictRow {
+  key: "company" | "dividend" | "price" | "problems";
+  label: Bi;
+  word: Bi;
+  tone: Tone;
+  line: Bi | null;
 }
 
 /**
@@ -548,9 +566,15 @@ export const PART_ALIASES: Record<PartKey, string[]> = {
   price: ["ch-price", "rp-price", "v-price", "v-fair"],
   safety: ["ch-risks", "rp-red_flags", "red-flags", "signals", "rp-owners", "rp-liquidity", "rp-risks"],
 };
-export const ANALYSIS_ALIASES = ["ch-company", "ch-report", "ch-verdict", "health", "score-history"];
 export const DATES_ALIASES = ["ch-next", "rp-next"];
 export const CONCLUSION_ALIASES = ["ch-answer", "ch-view", "rp-alternatives", "rp-you", "rp-fit"];
+/** Since 2026-11-24 the dates card and our conclusion are gone (the page is
+ *  analysis only): their anchors — the watcher's pushes, old bookmarks — land
+ *  on the "In short" card. */
+export const ANALYSIS_ALIASES = [
+  "ch-company", "ch-report", "ch-verdict", "health", "score-history",
+  CONCLUSION_ID, ...CONCLUSION_ALIASES, DATES_ID, ...DATES_ALIASES,
+];
 
 export interface StockReport {
   version: 1;

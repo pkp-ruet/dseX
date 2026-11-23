@@ -24,10 +24,9 @@ import StockLockScope from "@/components/premium/LockScope";
 import { isShowcase } from "@/lib/premium-line";
 import ReportGate from "@/components/stock/report/ReportGate";
 import PremiumPromo from "@/components/stock/report/PremiumPromo";
-import RallyBanner from "@/components/stock/report/RallyBanner";
-import AnalysisSummary from "@/components/stock/analysis/AnalysisSummary";
+import InShort from "@/components/stock/analysis/InShort";
 import AnalysisBody from "@/components/stock/analysis/AnalysisBody";
-import { ANALYSIS_ID, CONCLUSION_ID, PART_ID } from "@/lib/stock-report";
+import { ANALYSIS_ID } from "@/lib/stock-report";
 import { StoryTable } from "@/components/stock/report/sections";
 import DataRoom, { type RoomPanel } from "@/components/stock/report/DataRoom";
 import LatestResults from "@/components/stock/report/LatestResults";
@@ -261,30 +260,22 @@ export default async function StockDetailPage({ params }: PageProps) {
   const hasMomentum = !!momentum && momentum.momentum_grade !== "unknown";
   const hasPeers = (related_stocks?.length ?? 0) > 0;
 
-  // The chips: a reader with the full report gets the answer, the report's
-  // four chapters (one per question), Our view and the data room; a free
-  // reader gets the price, the one Premium card and the data room. Without a
-  // report (it failed to build — every company had one on 2026-10-29) the
-  // page is the cover and the data room.
-  // 2026-11-05: the report is our analysis (summary, six parts, dates, our
-  // conclusion). Without one (an ungraded share, or the report failed to
-  // build) the page is the cover, the chart and the data room.
+  // Our analysis (2026-11-24, analysis only: no Buy / Sell on this page). A
+  // reader with it gets "In short" and six small cards; a free reader the one
+  // Premium card. Without one (an ungraded share, or the report failed to
+  // build) the page is the cover, the chart and the numbers.
   const analysis = report?.analysis ?? null;
+  // 2026-11-24 (analysis only): three chips — the cover, the analysis (or the
+  // Premium card) and the numbers.
   const openSections: NavSection[] = [
     { id: "ch-overview", label: "Overview", labelBn: "এক নজরে" },
-    ...(analysis
-      ? [
-          { id: ANALYSIS_ID, label: "Our analysis", labelBn: "বিশ্লেষণ" },
-          ...analysis.parts.map((p) => ({ id: PART_ID(p.key), label: p.name.en, labelBn: p.name.bn })),
-          ...(report?.answer ? [{ id: CONCLUSION_ID, label: "Conclusion", labelBn: "সিদ্ধান্ত" }] : []),
-        ]
-      : []),
-    { id: "ch-data", label: "Data", labelBn: "তথ্য" },
+    ...(analysis ? [{ id: ANALYSIS_ID, label: "Analysis", labelBn: "বিশ্লেষণ" }] : []),
+    { id: "ch-data", label: "Numbers", labelBn: "সংখ্যা" },
   ];
   const sections: NavSection[] = [
     { id: "ch-overview", label: "Overview", labelBn: "এক নজরে" },
     ...(analysis ? [{ id: "ch-premium", label: "Premium", labelBn: "প্রিমিয়াম" }] : []),
-    { id: "ch-data", label: "Data", labelBn: "তথ্য" },
+    { id: "ch-data", label: "Numbers", labelBn: "সংখ্যা" },
   ];
 
   // Current stock as the highlighted first row of the peer comparison.
@@ -435,13 +426,11 @@ export default async function StockDetailPage({ params }: PageProps) {
               code={profile.trading_code}
               name={name}
               analysis={analysis}
-              redFlags={report.sections.red_flags?.counts ?? null}
               ltp={num(detail.latest_price.ltp)}
             />
           }
         >
-          {report.warning && <RallyBanner w={report.warning} />}
-          <AnalysisSummary analysis={analysis} answer={report.answer ?? null} updated={report.updated} name={name} />
+          <InShort analysis={analysis} report={report} />
         </ReportGate>
       )}
       <PriceChart code={profile.trading_code} events={report?.events} />
@@ -457,16 +446,15 @@ export default async function StockDetailPage({ params }: PageProps) {
         openSections={openSections}
       />
 
-      {/* The analysis: six parts, the dates, our conclusion, a short close.
-          Hidden from a reader without the report (the Premium card above
-          stands in for it). */}
+      {/* Why we say this: six small cards and a short close. Hidden from a
+          reader without the analysis (the Premium card above stands in for it). */}
       {report && analysis && (
         <ReportGate>
           <AnalysisBody detail={detail} report={report} analysis={analysis} />
         </ReportGate>
       )}
 
-      {/* The data room: every raw number, in tabs, all free. */}
+      {/* The numbers: every raw figure, in tabs, all free. */}
       <DataRoom panels={roomPanels} />
       </StockLockScope>
     </>

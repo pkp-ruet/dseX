@@ -2875,6 +2875,10 @@ function kindPhrase(kind: PortfolioWatchEvent["kind"] | "flip", n: number, cash:
       return one ? B("a change in our answer", "আমাদের উত্তরে একটি বদল") : B(`${n} changes in our answer`, `আমাদের উত্তরে ${n}টি বদল`);
     case "buylist":
       return one ? B("a change on the buy list", "কেনার তালিকায় একটি বদল") : B(`${n} changes on the buy list`, `কেনার তালিকায় ${n}টি বদল`);
+    case "price_view":
+      return one
+        ? B("a change in our view of a price", "একটি শেয়ারের দাম নিয়ে আমাদের মতে বদল")
+        : B(`${n} changes in our view of the price`, `দাম নিয়ে আমাদের মতে ${n}টি বদল`);
     case "breakeven":
       return one ? B("a share back to your price", "একটি শেয়ার কেনা দামে ফিরেছে") : B(`${n} shares back to your price`, `${n}টি শেয়ার কেনা দামে ফিরেছে`);
     default:

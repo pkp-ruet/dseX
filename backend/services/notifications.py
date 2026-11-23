@@ -33,7 +33,7 @@ SKIP_KINDS = {"answer", "buylist"}
 # Where a watcher event opens on its stock page (the anchors the pushes use).
 STOCK_ANCHOR = {"results": "results", "grade": "ch-analysis", "red_flag": "an-safety",
                 "breakeven": "ch-conclusion", "record": "dividends", "category": "an-safety",
-                "drop": "", "low52": ""}
+                "drop": "", "low52": "", "price_view": "an-price"}
 # A fired watch rule opens where its news is (THE Premium line, step 4).
 RULE_ANCHOR = {"results": "results", "profit_drop": "results", "grade_down": "ch-analysis",
                "grade_up": "ch-analysis", "red_flag": "an-safety", "z_category": "an-safety",

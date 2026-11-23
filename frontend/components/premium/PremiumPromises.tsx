@@ -10,7 +10,7 @@ import { money } from "@/lib/formatters";
 import { THREE_PROMISES } from "@/lib/premium-copy";
 
 const TAX = 0.1;
-const WATCH_KINDS = new Set(["results", "grade", "red_flag", "record", "category", "drop", "low52", "breakeven", "rule"]);
+const WATCH_KINDS = new Set(["results", "grade", "red_flag", "record", "category", "drop", "low52", "breakeven", "rule", "price_view"]);
 
 type Mine = {
   shares: number;

@@ -361,11 +361,14 @@ def _profit_part(inp: dict, sec: dict, row: dict) -> dict:
     if loss_last or ty_loss:
         tile = bi(f"A loss in {last[0]}", f"{last[0]} সালে লোকসান") if loss_last else bi("A loss this year", "এ বছর লোকসান")
         brief = bi("It is making a loss.", "কোম্পানিটি এখন লোকসানে আছে।")
+        brief_tone = "bad"
     elif fell:
         tile = bi(f"Down since {peak[0]}", f"{peak[0]} সালের পর কমেছে")
+        recovering = (pct or 0) >= sr.GROWING_PCT
         brief = (bi(f"Its profit fell after {peak[0]}, but it is recovering this year.",
-                    f"{peak[0]} সালের পর মুনাফা কমেছিল, তবে এ বছর আবার বাড়ছে।") if (pct or 0) >= sr.GROWING_PCT
+                    f"{peak[0]} সালের পর মুনাফা কমেছিল, তবে এ বছর আবার বাড়ছে।") if recovering
                  else bi(f"Its profit has fallen since {peak[0]}.", f"{peak[0]} সালের পর থেকে মুনাফা কমেছে।"))
+        brief_tone = "fair" if recovering else "bad"
     else:
         tile = (bi(f"{_signed(pct)} {when_en}", f"{when_bn} {_signed(pct)}") if pct is not None
                 else bi(f"Up every year since {first[0]}", f"{first[0]} সাল থেকে প্রতি বছর বেড়েছে") if every_up
@@ -375,20 +378,26 @@ def _profit_part(inp: dict, sec: dict, row: dict) -> dict:
         if (every_up or grew) and (pct is None or pct > -sr.GROWING_PCT):
             brief = (bi("Its profit keeps growing and comes in as real cash.", "মুনাফা বাড়ছে, আর তা নগদেই আসছে।") if cash_ok
                      else bi("Its profit keeps growing.", "মুনাফা বাড়ছে।"))
+            brief_tone = "good"
         elif every_up or grew:
             brief = bi("Its profit grew for years, but it is down this year.", "কয়েক বছর মুনাফা বেড়েছে, তবে এ বছর কমেছে।")
+            brief_tone = "fair"
         elif pct is not None and pct >= sr.GROWING_PCT:
             brief = bi("Its profit is growing this year.", "এ বছর মুনাফা বাড়ছে।")
+            brief_tone = "good"
         elif pct is not None and pct <= -sr.GROWING_PCT:
             brief = bi("Its profit is down this year.", "এ বছর মুনাফা কমেছে।")
+            brief_tone = "fair"
         elif no_figures:
-            brief = None
+            brief, brief_tone = None, "neutral"
         else:
             brief = bi("Its profit is steady.", "মুনাফা মোটামুটি স্থির।")
+            brief_tone = "good" if tone == "good" else "neutral"
 
     src = (ty or {}).get("source") or (sec.get("story") or {}).get("source")
     return _part("profit", word, tone, _v is not None, answer=answer, tile=tile, stats=stats, checks=checks,
-                 source=src, brief=brief, watch=_check_watch(row, "p1_biz"),
+                 source=src, brief=brief, watch=_check_watch(row, "p1_biz"), _brief_tone=brief_tone,
+                 _covers=("loss", "core") if brief_tone == "bad" else (),
                  series=[{"year": y, "value": v} for y, v in years], unit=unit,
                  note=(ty or {}).get("latest", {}).get("headline") if ty and ty.get("latest") else None)
 
@@ -414,9 +423,14 @@ def _finances_part(inp: dict, sec: dict, row: dict) -> dict:
     mcap = _f(row.get("mcap_mn"))
     meas = sa.get("measures") or {}
     question = None
+    brief_tone = tone if tone in ("good", "fair", "bad") else "neutral"
 
     if sc not in sr._FINANCIALS and loan is not None:
         r = loan / res if (res and res > 0 and loan > 0) else None
+        brief_tone = ("good" if loan <= 0 or (r is not None and r < 0.5)
+                      else "fair" if r is not None and r <= 1
+                      else "bad" if r is not None or res is not None
+                      else "neutral")
         if loan <= 0:
             s1 = bi("It has no loans.", "কোম্পানির কোনো ঋণ নেই।")
             tile = bi("No loans", "ঋণ নেই")
@@ -521,7 +535,8 @@ def _finances_part(inp: dict, sec: dict, row: dict) -> dict:
         checks.append(_line(cat_line[0], cat_line[1], cat_line[2]))
     return _part("finances", word, tone, v is not None, answer=answer, tile=tile, stats=stats, checks=checks,
                  source=sa.get("source"), brief=brief, question=question,
-                 watch=_check_watch(row, "p2_health"), bars=bars)
+                 watch=_check_watch(row, "p2_health"), bars=bars, _brief_tone=brief_tone,
+                 _covers=("loans",) if brief_tone == "bad" else ())
 
 
 # ---------------------------------------------------------------- 3 · business
@@ -535,8 +550,10 @@ def _business_part(inp: dict, sec: dict, row: dict) -> dict:
     first, last = (yrs[0], yrs[-1]) if len(yrs) >= 2 else (None, None)
 
     s1 = tile = brief = None
+    btone = "neutral"
     if sales:
         r, n = sales["rank"], sales["of"]
+        btone = "good" if r <= max(5, math.ceil(n / 4)) and tone != "bad" else "neutral"
         if r == 1:
             a_en, a_bn = "It is the biggest company in its sector", "এটি নিজের সেক্টরের সবচেয়ে বড় কোম্পানি"
             tile = bi("Biggest in its sector", "সেক্টরে সবচেয়ে বড়")
@@ -571,10 +588,12 @@ def _business_part(inp: dict, sec: dict, row: dict) -> dict:
                 f"নিজস্ব মূলধনে বছরে {val['bn']} মুনাফা করে, যা " + ("সেক্টরের বেশির ভাগের চেয়ে বেশি।" if more else "সেক্টরের বেশির ভাগের চেয়ে কম।"))
         tile = bi(f"Earns {val['en']} on owners' money", f"নিজস্ব মূলধনে {val['bn']} মুনাফা")
         brief = s1
+        btone = "good" if more else "fair"
     elif st.get("headline"):
         s1 = st["headline"]
         tile = st.get("word") or word
         brief = s1
+        btone = tone if tone in ("good", "fair", "bad") else "neutral"
     answer = s1 or bi("We could not compare it with the other companies in its sector.",
                       "নিজের সেক্টরের অন্য কোম্পানির সঙ্গে এর তুলনা করা যায়নি।")
     tile = tile or word
@@ -624,6 +643,7 @@ def _business_part(inp: dict, sec: dict, row: dict) -> dict:
             show.append({"label": bi(en, bn_), "rank": rk["rank"], "of": rk["of"], "value": rk["value"]})
     return _part("business", word, tone, v is not None, answer=answer, tile=tile, stats=stats, checks=checks,
                  source=se.get("source") or st.get("source"), brief=brief, watch=_check_watch(row, "p3_moat"),
+                 _brief_tone=btone,
                  ranks=show or None, sector=se.get("sector"), peers=se.get("peers"))
 
 
@@ -668,22 +688,34 @@ def _dividend_part(inp: dict, sec: dict, row: dict) -> dict:
         s2 = (bi(f"It paid cash in {k} of the last {n} years.", f"গত {n} বছরের {k}টিতে নগদ দিয়েছে।") if n and k else None)
         tile = bi("Bonus shares only", "শুধু বোনাস শেয়ার") if bonus_only else bi("No cash this year", "এ বছর নগদ নেই")
         brief = bi("It pays no regular cash dividend.", "নিয়মিত নগদ ডিভিডেন্ড দেয় না।")
+        brief_tone = "fair"
+        vline = s2 or s1
     else:
         if n >= 3 and k == n and streak >= 3:
             s1 = bi(f"It pays cash every year, and has raised it {streak} years in a row.",
                     f"প্রতি বছর নগদ ডিভিডেন্ড দেয়, আর টানা {streak} বছর তা বাড়িয়েছে।")
             tile = bi(f"Raised {streak} years in a row", f"টানা {streak} বছর বেড়েছে")
             brief = bi(f"It has raised its cash dividend {streak} years in a row.", f"টানা {streak} বছর নগদ ডিভিডেন্ড বাড়িয়েছে।")
+            brief_tone = "good"
         elif n >= 3 and k == n:
             s1 = bi(f"It has paid cash every year for {n} years.", f"টানা {n} বছর প্রতি বছর নগদ ডিভিডেন্ড দিয়েছে।")
             tile = bi(f"Paid every year for {n} years", f"{n} বছর ধরে প্রতি বছর দিয়েছে")
             brief = bi("It pays a cash dividend every year.", "প্রতি বছর নগদ ডিভিডেন্ড দেয়।")
+            brief_tone = "good"
         else:
             s1 = bi(f"It paid cash in {k} of the last {n} years.", f"গত {n} বছরের {k}টিতে নগদ ডিভিডেন্ড দিয়েছে।")
             tile = bi(f"Paid in {k} of {n} years", f"{n} বছরের {k}টিতে দিয়েছে")
             brief = bi(f"It paid a cash dividend in {k} of the last {n} years.", f"গত {n} বছরের {k}টিতে নগদ ডিভিডেন্ড দিয়েছে।")
+            brief_tone = "fair"
         s2 = (bi(f"But it pays less a share than it did in {best[0]}.", f"তবে {best[0]} সালের চেয়ে এখন শেয়ারপ্রতি কম দেয়।")
               if lower else None)
+        if lower:
+            brief_tone = "fair"
+            # The cover's dividend row says why it is amber (RENATA: paid
+            # every year, but ৳5.50 against ৳14.50 in 2021).
+            tile = bi(f"Pays less than in {best[0]}", f"{best[0]} সালের চেয়ে কম দেয়")
+        vline = (bi(f"{_tk(cur)} a share · {yld:.1f}% a year", f"শেয়ারপ্রতি {_tk(cur)} · বছরে {yld:.1f}%") if yld
+                 else bi(f"{_tk(cur)} a share for {cur_y}", f"{cur_y} সালের জন্য শেয়ারপ্রতি {_tk(cur)}"))
         stats = [_stat(bi(_tk(cur), _tk(cur)), bi(f"a share for {cur_y}", f"{cur_y} সালের জন্য শেয়ারপ্রতি")),
                  _stat(bi(f"{yld:.1f}%", f"{yld:.1f}%"), bi("a year on today's price", "আজকের দামে বছরে")) if yld else None]
     if n:
@@ -712,26 +744,32 @@ def _dividend_part(inp: dict, sec: dict, row: dict) -> dict:
                  stats=stats, checks=checks, source=dv.get("source"),
                  brief=brief if dv else bi("It pays no regular cash dividend.", "নিয়মিত নগদ ডিভিডেন্ড দেয় না।"),
                  watch=_check_watch(row, "p5_div"), callout=callout,
+                 _brief_tone=brief_tone if dv else "fair", _vline=vline if dv else None,
+                 _covers=("payout",) if (sf and sf.get("level") == "risk") else (),
                  series=[{"year": h["year"], "value": h["cash_ps"]} for h in hist])
 
 
 # ---------------------------------------------------------------- 5 · price
 
-def _price_part(inp: dict, sec: dict, row: dict, answer: dict) -> Optional[dict]:
+def _price_tone(word_en: str) -> str:
+    """The price word's tone: low is good for the reader, high is not."""
+    return {"Low": "good", "Fair": "neutral", "High": "bad"}.get(word_en, "neutral")
+
+
+def _price_part(inp: dict, sec: dict, row: dict) -> Optional[dict]:
+    """Our view of today's price, on the price section's own word (Low / Fair /
+    High / Can't judge). Since 2026-11-24 the stock page is analysis only: no
+    signal words ("Very low", "Near its yearly top") and no buy price here."""
     pr = sec.get("price")
     if not pr:
         return None
-    light = next((l for l in (answer or {}).get("lights") or [] if l["key"] == "price"), None)
-    word, tone = (light["word"], light["tone"]) if light else (pr["word"], pr["tone"])
+    word = pr["word"]
+    tone = _price_tone(word["en"])
     verdict = pr.get("_verdict")
-    near = bool(light and light["word"]["en"].startswith("Near"))
     ltp = _f(pr.get("today"))
     fair = pr.get("fair")
     pe = pr.get("pe") or {}
     now, usual, similar = _f(pe.get("now")), _f(pe.get("usual")), _f(pe.get("sector"))
-    # The price section's buy-below: capped at the near-the-top line, and
-    # cleared when the answer gives no buy price (build_report).
-    buy = _f(pr.get("buy_below"))
 
     if fair:
         rng = bi(f" We think it is worth {sr.money(fair['low'])} to {sr.money(fair['high'])}.",
@@ -755,11 +793,7 @@ def _price_part(inp: dict, sec: dict, row: dict, answer: dict) -> Optional[dict]
         s1 = bi("We have not judged its price yet.", "এর দাম আমরা এখনো বিচার করিনি।")
         brief = None
     s2 = None
-    if near:
-        s2 = bi("It is also close to its highest price this year.", "দাম এ বছরের সর্বোচ্চের কাছাকাছিও আছে।")
-        brief = bi(((brief or bi("", ""))["en"] + " It is close to its highest price this year.").strip(),
-                   ((brief or bi("", ""))["bn"] + " দাম এ বছরের সর্বোচ্চের কাছাকাছি।").strip())
-    elif not fair and now and verdict != "unjudged":
+    if not fair and now and verdict != "unjudged":
         s2 = (bi(f"You pay {now:.0f} years of its profit; it usually costs {usual:.0f}.",
                  f"আজকের দামে এর {now:.0f} বছরের মুনাফার সমান দাম দিচ্ছেন; সাধারণত লাগে {usual:.0f} বছরের।") if usual
               else bi(f"You pay {now:.0f} years of its profit.", f"আজকের দামে এর {now:.0f} বছরের মুনাফার সমান দাম দিচ্ছেন।"))
@@ -771,9 +805,7 @@ def _price_part(inp: dict, sec: dict, row: dict, answer: dict) -> Optional[dict]
                            bi("our fair price", "আমাদের হিসাবে ন্যায্য দাম")))
     elif now:
         stats.append(_stat(bi(f"{now:.0f} years", f"{now:.0f} বছর"), bi("of its profit you pay", "এর মুনাফার সমান দাম দিচ্ছেন")))
-    if buy:
-        stats.append(_stat(bi(sr.money(buy), sr.money(buy)), bi("we would buy under", "এর নিচে আমরা কিনতাম")))
-    elif usual and not fair:
+    if usual and not fair:
         stats.append(_stat(bi(f"{usual:.0f} years", f"{usual:.0f} বছর"), bi("what it usually costs", "সাধারণত যত লাগে")))
     elif now and fair:
         stats.append(_stat(bi(f"{now:.0f} years", f"{now:.0f} বছর"), bi("of its profit you pay", "এর মুনাফার সমান দাম দিচ্ছেন")))
@@ -811,8 +843,6 @@ def _price_part(inp: dict, sec: dict, row: dict, answer: dict) -> Optional[dict]
     if verdict in ("cheap", "fair") and p1 is not None and p1 < sr.WEAK_BELOW:
         checks.append(_line("fair", "Part of why it looks cheap: its profit has been weak",
                             "সস্তা দেখানোর একটি কারণ: মুনাফা দুর্বল"))
-    if near:
-        checks.append(_line("fair", "Close to its highest price this year", "দাম এ বছরের সর্বোচ্চের কাছাকাছি"))
 
     note = None
     if not fair and verdict not in (None, "unjudged") and (inp.get("fair_value") or {}).get("center"):
@@ -826,8 +856,20 @@ def _price_part(inp: dict, sec: dict, row: dict, answer: dict) -> Optional[dict]
         tile = bi(f"{now:.0f} years of profit", f"{now:.0f} বছরের মুনাফা")
     else:
         tile = word
+    # The cover's price row: the range, else years of profit now against usual.
+    if fair:
+        vline = bi(f"We think it is worth {sr.money(fair['low'])} to {sr.money(fair['high'])}",
+                   f"আমাদের হিসাবে ন্যায্য দাম {sr.money(fair['low'])} থেকে {sr.money(fair['high'])}")
+    elif verdict == "unjudged":
+        vline = bi("It made a loss in its latest results", "সর্বশেষ ফলে লোকসান হয়েছে")
+    elif now and usual:
+        vline = bi(f"{now:.0f} years of its profit, usually {usual:.0f}", f"{now:.0f} বছরের মুনাফার সমান, সাধারণত {usual:.0f}")
+    elif now:
+        vline = bi(f"{now:.0f} years of its profit", f"{now:.0f} বছরের মুনাফার সমান")
+    else:
+        vline = None
     return _part("price", word, tone, True, answer=ans, tile=tile, stats=stats, checks=checks,
-                 source=pr.get("source"), brief=brief, note=note)
+                 source=pr.get("source"), brief=brief, note=note, _vline=vline, _verdict=verdict)
 
 
 # ---------------------------------------------------------------- 6 · safety
@@ -903,7 +945,7 @@ def build_analysis(inp: dict, sections: dict, answer: Optional[dict]) -> Optiona
         "finances": _finances_part(inp, sections, row),
         "business": _business_part(inp, sections, row),
         "dividend": _dividend_part(inp, sections, row),
-        "price": _price_part(inp, sections, row, answer or {}),
+        "price": _price_part(inp, sections, row),
         "safety": _safety_part(sections),
     }
 
@@ -943,4 +985,138 @@ def build_analysis(inp: dict, sections: dict, answer: Optional[dict]) -> Optiona
         p = parts.get(k)
         if p:
             out_parts.append({kk: vv for kk, vv in p.items() if not kk.startswith("_")})
-    return {"grade": grade, "summary": summary, "parts": out_parts}
+    tier = tier_key(_f(row.get("score")))
+    return {
+        "grade": grade, "summary": summary, "parts": out_parts,
+        "lead": _lead(tier, rank, total, parts.get("price")),
+        "verdict": _verdict(grade, parts, sections.get("red_flags")),
+        "good": _good(parts, vals, sections.get("red_flags")),
+        "watch": _watch(parts, vals, sections.get("red_flags")),
+    }
+
+
+# ---------------------------------------------------------------- the verdict, in short
+# 2026-11-24 (user: "too much facts, numbers and explanation … the philosophy
+# of a stock page should be only analysis, not buy/sell signals"; mockup
+# https://claude.ai/artifact/2shfh7wSivDZXcExSTabQB). The cover carries four
+# verdict rows; the analysis opens with one line of our view, up to three good
+# things and up to two things to watch. Every line comes from a part's own
+# short line or a red-flag check's own sentence, so nothing here can say
+# something the parts don't.
+
+GOOD_MAX = 3
+WATCH_MAX = 2
+
+# A company by its group, for the lead line ("A company that is mostly strong").
+_GROUP_LEAD = {
+    "excellent": ("A company that is strong all round", "সব দিকে শক্তিশালী একটি কোম্পানি"),
+    "good": ("A company that is mostly strong", "বেশিরভাগ দিকে শক্তিশালী একটি কোম্পানি"),
+    "average": ("A company with a mixed record", "মিশ্র অবস্থার একটি কোম্পানি"),
+    "weak": ("A company that is mostly weak", "বেশিরভাগ দিকে দুর্বল একটি কোম্পানি"),
+}
+# Today's price for the lead line.
+_PRICE_LEAD = {
+    "cheap": (", at a low price for what it earns today.", "আয়ের তুলনায় আজকের দাম কম।"),
+    "fair": (", at a fair price for what it earns today.", "আয়ের তুলনায় আজকের দাম ন্যায্য।"),
+    "expensive": (", at a high price for what it earns today.", "আয়ের তুলনায় আজকের দাম বেশি।"),
+    "unjudged": (". It made a loss, so we can't judge its price.", "লোকসান হওয়ায় এর দাম বিচার করা যায় না।"),
+}
+
+
+def _lead(tier: Optional[str], rank: Optional[int], total: Optional[int], price: Optional[dict]) -> Optional[dict]:
+    """One line of our view: the company, then today's price."""
+    if tier not in _GROUP_LEAD:
+        return None
+    a_en, a_bn = _GROUP_LEAD[tier]
+    st = _standing(rank, total)
+    # The plainest standing beats the group's name at the two ends of the list.
+    if st and rank and total and (rank <= 10 or rank / total > 0.9):
+        a_en, a_bn = st["en"], st["bn"]
+    p = _PRICE_LEAD.get((price or {}).get("_verdict") or "")
+    if not p:
+        return bi(f"{a_en}.", f"{a_bn}।")
+    return bi(f"{a_en}{p[0]}", f"{a_bn}। {p[1]}")
+
+
+def _verdict(grade: dict, parts: dict, rf: Optional[dict]) -> list[dict]:
+    """The cover's four rows: the company, its dividend, today's price, problems."""
+    rows = [{"key": "company", "label": bi("The company", "কোম্পানি"), "word": grade["word"], "tone": grade["tone"],
+             "line": grade.get("line")}]
+    dv = parts.get("dividend")
+    if dv:
+        rows.append({"key": "dividend", "label": bi("Its dividend", "ডিভিডেন্ড"), "word": dv["tile"],
+                     "tone": dv.get("_brief_tone") or dv["tone"], "line": dv.get("_vline")})
+    pr = parts.get("price")
+    if pr:
+        rows.append({"key": "price", "label": bi("Today's price", "আজকের দাম"), "word": pr["word"], "tone": pr["tone"],
+                     "line": pr.get("_vline")})
+    if rf:
+        c = rf["counts"]
+        red, amber, n = c["red"], c["amber"], c["checks"]
+        if red:
+            first = next(x for x in rf["checks"] if x["level"] == "red")
+            word = bi(f"{red} serious", f"{red}টি গুরুতর")
+            rows.append({"key": "problems", "label": bi("Problems", "সমস্যা"), "word": word, "tone": "bad",
+                         "line": first["detail"]})
+        elif amber:
+            rows.append({"key": "problems", "label": bi("Problems", "সমস্যা"), "word": bi("None serious", "গুরুতর কিছু নেই"),
+                         "tone": "good",
+                         "line": bi(f"{amber} small {'thing' if amber == 1 else 'things'} to check",
+                                    f"দেখার মতো {amber}টি ছোট বিষয়")})
+        else:
+            rows.append({"key": "problems", "label": bi("Problems", "সমস্যা"), "word": bi("None found", "কিছু পাওয়া যায়নি"),
+                         "tone": "good", "line": bi(f"All {n} of our checks passed", f"আমাদের {n}টি যাচাইয়ের সবই ঠিক")})
+    return rows
+
+
+def _check_parts(parts: dict, vals: dict) -> list[str]:
+    """The four check parts, strongest check first (unmeasured last)."""
+    keys = [k for k in ("profit", "finances", "business", "dividend") if parts.get(k)]
+    return sorted(keys, key=lambda k: -(vals.get(CHECK_OF[k]) if vals.get(CHECK_OF[k]) is not None else -1))
+
+
+def _good(parts: dict, vals: dict, rf: Optional[dict]) -> list[dict]:
+    """Up to three good things: each check part whose short line is good."""
+    out = []
+    for k in _check_parts(parts, vals):
+        p = parts[k]
+        if p.get("_brief") and p.get("_brief_tone") == "good":
+            out.append(_first(p["_brief"]))
+    if len(out) < GOOD_MAX and rf and not rf["counts"]["red"] and not rf["counts"]["amber"]:
+        n = rf["counts"]["checks"]
+        out.append(bi(f"Nothing wrong on any of our {n} safety checks.", f"আমাদের {n}টি নিরাপত্তা যাচাইয়ের কোনোটিতেই সমস্যা নেই।"))
+    return out[:GOOD_MAX]
+
+
+def _first(b: dict) -> dict:
+    """A short line's first sentence (a lender's finances line runs to two)."""
+    en = re.split(r"(?<=\.)\s+", b["en"].strip(), maxsplit=1)[0]
+    bn_ = re.split(r"(?<=।)\s+", b["bn"].strip(), maxsplit=1)[0]
+    return bi(en, bn_)
+
+
+def _sentence(b: dict) -> dict:
+    """A red-flag check's sentence with a full stop (some end without one)."""
+    en, bn_ = b["en"].strip(), b["bn"].strip()
+    return bi(en if en.endswith((".", "!", "?")) else f"{en}.", bn_ if bn_.endswith(("।", ".", "?")) else f"{bn_}।")
+
+
+def _watch(parts: dict, vals: dict, rf: Optional[dict]) -> list[dict]:
+    """Up to two things to watch, the most serious first: serious problems,
+    then a weak part, then a part that slipped, then a smaller problem."""
+    checks = (rf or {}).get("checks") or []
+    covered = set()
+    weak, slipped = [], []
+    for k in reversed(_check_parts(parts, vals)):   # weakest first
+        p = parts[k]
+        if not p.get("_brief"):
+            continue
+        if p.get("_brief_tone") == "bad":
+            weak.append({"tone": "bad", "text": _first(p["_brief"])})
+            covered.update(p.get("_covers") or ())
+        elif p.get("_brief_tone") == "fair":
+            slipped.append({"tone": "fair", "text": _first(p["_brief"])})
+            covered.update(p.get("_covers") or ())
+    reds = [{"tone": "bad", "text": _sentence(c["detail"])} for c in checks if c["level"] == "red" and c["key"] not in covered]
+    ambers = [{"tone": "fair", "text": _sentence(c["detail"])} for c in checks if c["level"] == "amber" and c["key"] not in covered]
+    return (reds + weak + slipped + ambers)[:WATCH_MAX]

@@ -2426,7 +2426,7 @@ export async function apiGetPortfolioHistory(pid?: string | null): Promise<Portf
 
 export interface PortfolioWatchEvent {
   id: string;
-  kind: "record" | "results" | "grade" | "category" | "drop" | "low52" | "red_flag" | "answer" | "buylist" | "breakeven";
+  kind: "record" | "results" | "grade" | "category" | "drop" | "low52" | "red_flag" | "answer" | "buylist" | "breakeven" | "price_view";
   code: string;
   level: "good" | "watch" | "bad";
   title_en: string;

@@ -168,6 +168,7 @@ const WATCH_KIND: Record<PortfolioWatchEvent["kind"], FrameKind> = {
   red_flag: "category",
   answer: "signal",
   buylist: "signal",
+  price_view: "grade",
 };
 
 const WATCH_LABEL: Record<PortfolioWatchEvent["kind"], [string, string]> = {
@@ -181,6 +182,7 @@ const WATCH_LABEL: Record<PortfolioWatchEvent["kind"], [string, string]> = {
   red_flag: ["Red flag", "বড় সতর্কতা"],
   answer: ["Our answer changed", "আমাদের উত্তর বদলেছে"],
   buylist: ["Buy list", "কেনার তালিকা"],
+  price_view: ["Our view of the price", "দাম নিয়ে আমাদের মত"],
 };
 
 // Where one watcher event opens on the stock page (same as its push; the
@@ -193,6 +195,7 @@ export const WATCH_ANCHOR: Partial<Record<PortfolioWatchEvent["kind"], string>> 
   answer: "#ch-answer",
   buylist: "#ch-answer",
   breakeven: "#ch-answer",
+  price_view: "#an-price",
 };
 
 const KIND_WORDS: Partial<Record<FrameKind, { en: [string, string]; bn: string }>> = {

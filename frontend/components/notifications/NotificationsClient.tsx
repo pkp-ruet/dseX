@@ -35,6 +35,7 @@ const KIND: Record<string, Pair> = {
   drop: { en: "Big fall", bn: "বড় দরপতন" },
   low52: { en: "Yearly low", bn: "বছরের সর্বনিম্ন" },
   breakeven: { en: "Back to your price", bn: "কেনা দামে ফেরা" },
+  price_view: { en: "Our price view", bn: "দাম নিয়ে মত" },
   alert: { en: "Price alert", bn: "প্রাইস অ্যালার্ট" },
   brief: { en: "9 AM brief", bn: "সকাল 9টার খবর" },
   letter: { en: "Friday letter", bn: "শুক্রবারের চিঠি" },
@@ -46,7 +47,7 @@ const KIND: Record<string, Pair> = {
 /** The watcher's kinds: the "your shares" layer of THE Premium line. A free
  *  reader sees the week's one marked `free`; the rest are counted. `plan` =
  *  the portfolio builder's plan watch (2026-11-23). */
-const WATCH_KINDS = new Set(["results", "grade", "red_flag", "record", "category", "drop", "low52", "breakeven", "plan"]);
+const WATCH_KINDS = new Set(["results", "grade", "red_flag", "record", "category", "drop", "low52", "breakeven", "plan", "price_view"]);
 
 /** Counted words: [one, many, Bengali]. */
 const COUNT_WORDS: Record<string, [string, string, string]> = {
@@ -58,6 +59,7 @@ const COUNT_WORDS: Record<string, [string, string, string]> = {
   drop: ["big fall", "big falls", "বড় দরপতন"],
   low52: ["yearly low", "yearly lows", "বছরের সর্বনিম্ন দাম"],
   breakeven: ["return to your price", "returns to your price", "কেনা দামে ফেরা"],
+  price_view: ["change in our view of a price", "changes in our view of the price", "দাম নিয়ে আমাদের মতে বদল"],
   plan: ["change in your portfolio plan", "changes in your portfolio plan", "পরিকল্পনায় বদল"],
 };
 

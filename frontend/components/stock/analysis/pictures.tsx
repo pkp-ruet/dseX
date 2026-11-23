@@ -1,17 +1,15 @@
 import type { ReactNode } from "react";
 import { T } from "@/components/i18n/T";
-import { IconCheck } from "@/components/ui/icons";
 import { CheckDots, CompareBars, RankLine, YearBars } from "@/components/stock/visuals/kit";
-import { DepositLine, FlagList, OwnersFree, PricePicture, PricePremium } from "@/components/stock/report/sections";
-import { money, tx } from "@/components/stock/report/fmt";
+import { FlagList, PricePicture } from "@/components/stock/report/sections";
+import { tx } from "@/components/stock/report/fmt";
 import { sectorBn } from "@/lib/bn";
 import type { AnalysisPart, StockReport } from "@/lib/stock-report";
 
 /**
- * Each part's picture (beside its answer) and anything longer (under it),
- * from the part's own figures or the report's sections, drawn with the
- * report's picture kit. Every value is printed on the picture — nothing to
- * read off an axis, nothing folded away. Server components.
+ * Each part's ONE picture, from the part's own figures or the report's
+ * sections, drawn with the report's picture kit (2026-11-24: one picture a
+ * card; the fair-price bar sits in the "In short" card). Server components.
  */
 
 const crore = (v: number) => {
@@ -40,16 +38,11 @@ function ProfitPicture({ part }: { part: AnalysisPart }) {
         tone: p.value < 0 ? "bad" : undefined,
       }))}
       caption={
-        <>
-          {perShare ? (
-            <T en="Profit a share each year, ৳" bn="প্রতি বছর শেয়ারপ্রতি মুনাফা, ৳" />
-          ) : (
-            <T en="Profit each year, ৳ crore" bn="প্রতি বছরের মুনাফা, ৳ কোটি" />
-          )}
-          {part.note && (
-            <span className="mt-1 block font-semibold text-text-main">{tx(part.note)}</span>
-          )}
-        </>
+        perShare ? (
+          <T en="Profit a share each year, ৳" bn="প্রতি বছর শেয়ারপ্রতি মুনাফা, ৳" />
+        ) : (
+          <T en="Profit each year, ৳ crore" bn="প্রতি বছরের মুনাফা, ৳ কোটি" />
+        )
       }
     />
   );
@@ -103,7 +96,7 @@ function BusinessPicture({ part }: { part: AnalysisPart }) {
           <T en={`Its place among the ${of} companies in its sector`} bn={`নিজের সেক্টরের ${of}টি কোম্পানির মধ্যে এর অবস্থান`} />
         )}
       </p>
-      {ranks.map((r, i) => (
+      {ranks.slice(0, 1).map((r, i) => (
         <RankLine
           key={i}
           rank={r.rank}
@@ -154,15 +147,7 @@ export function partPicture(part: AnalysisPart, report: StockReport): ReactNode 
       return <DividendPicture part={part} />;
     case "price": {
       const pr = report.sections.price;
-      if (!pr) return null;
-      return (
-        <>
-          {pr.fair && <p className="an-pic-k"><T en="Today's price against our fair price" bn="আমাদের ন্যায্য দামের তুলনায় আজকের দাম" /></p>}
-          <PricePremium s={pr} />
-          <p className="an-pic-k"><T en="Years of its profit you pay" bn="কত বছরের মুনাফার সমান দাম" /></p>
-          <PricePicture s={pr} />
-        </>
-      );
+      return pr ? <PricePicture s={pr} /> : null;
     }
     case "safety":
       return <SafetyPicture report={report} />;
@@ -171,90 +156,10 @@ export function partPicture(part: AnalysisPart, report: StockReport): ReactNode 
   }
 }
 
-/** How sure we are of the fair price: three dots (filled by the level) and
- *  one plain line with its reasons (2026-11-22). */
-function SureLine({ sure }: { sure: { level: "high" | "medium" | "low"; word: { en: string; bn: string }; line: { en: string; bn: string } } }) {
-  const filled = sure.level === "high" ? 3 : sure.level === "medium" ? 2 : 1;
-  return (
-    <div className={`an-sure an-sure--${sure.level}`}>
-      <span className="an-sure-dots" role="img" aria-label={`${sure.word.en}`}>
-        {[0, 1, 2].map((i) => (
-          <span key={i} className={i < filled ? "is-on" : undefined} />
-        ))}
-      </span>
-      <span>
-        <T en={sure.line.en} bn={sure.line.bn} />
-      </span>
-    </div>
-  );
-}
-
-/** Anything longer, under a part: how we worked out the fair price, the
- *  flagged checks with their notices, what passed and who owns it. */
+/** Under the safety card: each check that found something, with its notice.
+ *  The other parts have nothing under their picture. */
 export function partExtra(part: AnalysisPart, report: StockReport): ReactNode {
-  if (part.key === "price") {
-    const pr = report.sections.price;
-    if (!pr) return null;
-    const methods = pr.fair ? pr.methods : [];
-    if (!methods.length && !pr.deposit?.lines.length) return null;
-    return (
-      <>
-        {methods.length > 0 && (
-          <div className="an-methods">
-            <p>
-              <T
-                en={`How we worked out ${money(pr.fair!.low)} to ${money(pr.fair!.high)}: ${methods.length} ways, the middle ones count most`}
-                bn={`${money(pr.fair!.low)} থেকে ${money(pr.fair!.high)} যেভাবে হিসাব করেছি: ${methods.length}টি উপায়, মাঝের হিসাবগুলোর গুরুত্ব বেশি`}
-              />
-            </p>
-            <ul>
-              {methods.map((m, i) => (
-                <li key={i}>
-                  <span>{tx(m.label)}</span>
-                  <b className="nums">{money(m.price)}</b>
-                </li>
-              ))}
-            </ul>
-            {pr.fair?.sure && <SureLine sure={pr.fair.sure} />}
-          </div>
-        )}
-        <DepositLine s={pr} />
-      </>
-    );
-  }
-  if (part.key === "safety") {
-    const rf = report.sections.red_flags;
-    const flagged = (rf?.checks ?? []).filter((c) => c.level !== "pass");
-    const passed = (rf?.checks ?? []).filter((c) => c.level === "pass");
-    const owners = report.sections.owners;
-    return (
-      <>
-        {flagged.length > 0 && <FlagList checks={flagged} />}
-        <div className="an-pair">
-          {passed.length > 0 && (
-            <div className="an-passed">
-              <p className="an-pic-k">
-                <T en={`Passed (${passed.length})`} bn={`ঠিক আছে (${passed.length}টি)`} />
-              </p>
-              <ul>
-                {passed.map((c) => (
-                  <li key={c.key}>
-                    <IconCheck size={13} />
-                    <span>{tx(c.detail)}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {owners && (
-            <div className="an-own">
-              <p className="an-pic-k"><T en="Who owns it" bn="মালিকানা কার হাতে" /></p>
-              <OwnersFree s={owners} />
-            </div>
-          )}
-        </div>
-      </>
-    );
-  }
-  return null;
+  if (part.key !== "safety") return null;
+  const flagged = (report.sections.red_flags?.checks ?? []).filter((c) => c.level !== "pass");
+  return flagged.length > 0 ? <FlagList checks={flagged} /> : null;
 }

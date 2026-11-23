@@ -1,8 +1,9 @@
 /* The stock page's cover and analysis (2026-11-05, plan + mockup
-   https://claude.ai/artifact/X9ipDsdsLDtoMmQPe1VkS8).
-   cv-*  = the cover card (components/stock/HeroSection.tsx, GradeMedal.tsx)
-   an-*  = our analysis (components/stock/analysis/*): the summary card, the
-           six parts in one shape, the dates and our conclusion.
+   https://claude.ai/artifact/X9ipDsdsLDtoMmQPe1VkS8; analysis only since
+   2026-11-24, mockup https://claude.ai/artifact/2shfh7wSivDZXcExSTabQB).
+   cv-*  = the cover card (components/stock/HeroSection.tsx, CoverVerdict.tsx)
+   an-*  = our analysis (components/stock/analysis/*): "In short" and the six
+           small cards.
    Tokens only; colour means something (green good, amber check, red bad,
    clay = act / this company, gold = Premium marks). */
 
@@ -76,16 +77,14 @@
   .cv-name { font-size: var(--fs-2xl); }
 }
 
-/* Price on the left (top on phones), the verdict on the right, facts under the price. */
-.cv-body { display: grid; gap: var(--space-4); grid-template-areas: "price" "verdict" "facts"; }
+/* Price on the left (top on phones), the verdict on the right. */
+.cv-body { display: grid; gap: var(--space-4); grid-template-areas: "price" "verdict"; }
 .cv-pricebox { grid-area: price; min-width: 0; }
 .cv-verdict { grid-area: verdict; }
-.cv-facts { grid-area: facts; }
 @media (min-width: 768px) {
   .cv-body {
-    grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
-    grid-template-areas: "price verdict" "facts verdict";
-    grid-template-rows: auto 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 400px);
+    grid-template-areas: "price verdict";
     gap: var(--space-6) var(--space-8);
     align-items: start;
   }
@@ -129,110 +128,62 @@
   box-shadow: 0 0 0 3px var(--surface);
 }
 
-/* The verdict panel: grade, split and the six parts in one inset. */
+/* Our verdict (2026-11-24, components/stock/analysis/CoverVerdict.tsx): four
+   rows in one inset: the company (free), its dividend, today's price and
+   problems. A free reader sees the last three as gold locks. */
 .cv-verdict {
-  display: grid;
-  gap: var(--space-3);
   min-width: 0;
-  padding: var(--space-4);
+  padding: 0 var(--space-4) var(--space-1);
   border-radius: var(--radius-lg);
   background: var(--surface-2);
 }
-
-/* Our grade, as a medal (flat inside the panel): the tier colour tints the word. */
-.cv-medal {
-  --medal: var(--text);
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  border-radius: var(--radius-md);
-  text-decoration: none;
-  color: var(--text);
-}
-.cv-medal[data-tier="excellent"] { --medal: var(--tier-excellent); }
-.cv-medal[data-tier="good"] { --medal: var(--tier-good); }
-.cv-medal[data-tier="average"] { --medal: var(--tier-average); }
-.cv-medal[data-tier="weak"] { --medal: var(--tier-weak); }
-a.cv-medal:active { opacity: 0.85; }
-.cv-medal-word { display: block; margin-top: 1px; font-size: var(--fs-lg); font-weight: 700; line-height: 1.2; color: var(--medal); }
-.cv-medal-go {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin-top: var(--space-1);
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  color: var(--primary-ink);
-}
-a.cv-medal:hover .cv-medal-go { text-decoration: underline; }
-.cv-medal-go svg:first-child:not(:last-child) { color: var(--gold-ink); }
-
-/* The Buy / Sell split (components/stock/analysis/SplitStrip.tsx). */
-.cv-ln { padding-top: var(--space-3); border-top: 1px solid var(--border); }
-.cv-ln-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-3); }
-.cv-ln-k { font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
-.cv-ln-nums { display: flex; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-3); font-size: var(--fs-xl); font-weight: 700; line-height: 1; color: var(--text); }
-.cv-ln-buy { color: var(--positive); }
-.cv-ln-sell { color: var(--negative); }
-.cv-ln-bar { position: relative; height: 12px; margin-top: var(--space-2); overflow: hidden; border-radius: 999px; background: var(--negative); }
-.cv-ln-fill { position: absolute; inset: 0 auto 0 0; display: block; background: var(--positive); border-right: 3px solid var(--surface-2); }
-.cv-ln-line { margin: var(--space-3) 0 0; font-size: var(--fs-sm); font-weight: 400; line-height: 1.5; color: var(--text); }
-.cv-ln-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 var(--space-3); margin-top: var(--space-1); font-size: var(--fs-2xs); font-weight: 400; color: var(--text-muted); }
-.cv-ln-go { display: inline-flex; align-items: center; gap: 4px; min-height: 40px; font-size: var(--fs-sm); font-weight: 600; color: var(--primary); text-decoration: none; }
-.cv-ln-go:hover { text-decoration: underline; }
-/* Locked: the same shape in gold, no numbers, a bar that never shows the real width. */
-.cv-ln--lock { padding: var(--space-3); border: 1px solid rgb(var(--gold-rgb) / 0.5); border-radius: var(--radius-md); background: rgb(var(--gold-rgb) / 0.1); }
-.cv-ln-prem { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-2xs); font-weight: 600; color: var(--gold-ink); }
-.cv-ln-q { display: inline-block; width: 2.2em; height: 0.9em; border-radius: var(--radius-sm); background: rgb(var(--gold-rgb) / 0.35); vertical-align: -0.05em; }
-.cv-ln-bar--lock { overflow: visible; background: rgb(var(--gold-rgb) / 0.3); }
-.cv-ln-lock { position: absolute; left: 50%; top: 50%; display: grid; place-items: center; width: 22px; height: 22px; border: 1px solid rgb(var(--gold-rgb) / 0.6); border-radius: 999px; background: var(--surface); color: var(--gold-ink); transform: translate(-50%, -50%); }
-.cv-ln-acts { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); margin-top: var(--space-3); }
-.cv-ln-alt { font-size: var(--fs-2xs); font-weight: 600; color: var(--text); }
-a.cv-ln-alt { min-height: 40px; display: inline-flex; align-items: center; color: var(--primary); }
-
-/* The six parts, one word each (components/stock/analysis/CoverParts.tsx). */
-.cv-parts {
+.cv-v-k { margin: 0; padding-top: var(--space-3); font-size: var(--fs-xs); font-weight: 400; color: var(--text-muted); }
+.cv-v-k a { color: inherit; text-decoration: none; }
+.cv-v-k a:hover { color: var(--primary-ink); text-decoration: underline; }
+.cv-vrows { margin: 0; padding: 0; list-style: none; }
+.cv-vrow {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-2);
-  margin: 0;
-  padding: var(--space-3) 0 0;
-  list-style: none;
+  grid-template-columns: 6.5rem minmax(0, 1fr) auto;
+  gap: 2px var(--space-3);
+  align-items: center;
+  min-height: 52px;
+  padding: var(--space-3) 0;
   border-top: 1px solid var(--border);
 }
-.cv-part {
+.cv-verdict > .cv-vrows:first-of-type > .cv-vrow:first-child { border-top: 0; }
+.cv-v-label { font-size: var(--fs-sm); font-weight: 400; line-height: 1.3; color: var(--text-muted); }
+.cv-v-val { display: grid; gap: 2px; min-width: 0; }
+.cv-v-word {
+  --t: var(--primary);
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  height: 100%;
-  min-height: 52px;
-  padding: var(--space-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  line-height: 1.3;
   color: var(--text);
+}
+.cv-v-word::before { content: ""; flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--t); }
+.cv-v-word[data-tone="good"] { --t: var(--positive); color: var(--positive); }
+.cv-v-word[data-tone="fair"] { --t: var(--watch); color: var(--watch); }
+.cv-v-word[data-tone="bad"] { --t: var(--negative); color: var(--negative); }
+.cv-v-line { padding-left: 17px; font-size: var(--fs-sm); font-weight: 400; line-height: 1.4; color: var(--text-muted); overflow-wrap: anywhere; }
+.cv-v-lock {
+  grid-column: 2 / -1;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgb(var(--gold-rgb) / 0.16);
+  color: var(--gold-ink);
+  font-size: var(--fs-sm);
+  font-weight: 600;
   text-decoration: none;
 }
-.cv-part:hover { border-color: color-mix(in srgb, var(--primary) 45%, var(--border)); }
-.cv-part:active { opacity: 0.85; }
-.cv-part-k { font-size: var(--fs-2xs); font-weight: 600; line-height: 1.25; }
-.cv-part-w { font-size: var(--fs-sm); font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
-.cv-parts--lock .cv-part { border-color: rgb(var(--gold-rgb) / 0.45); background: rgb(var(--gold-rgb) / 0.08); }
-.cv-part-lock { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-2xs); color: var(--gold-ink); }
-
-.cv-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; border-top: 1px solid var(--border); }
-.cv-facts > div { min-width: 0; padding: var(--space-3) var(--space-3) 2px 0; }
-.cv-facts > div:nth-child(even) { padding-left: var(--space-3); border-left: 1px solid var(--border); }
-.cv-facts dd { margin: 0; }
-@media (min-width: 768px) { .cv-facts { border-top: 0; } }
-.cv-term {
-  margin-left: 6px;
-  padding: 0 5px;
-  border-radius: 4px;
-  background: var(--surface-2);
-  font-size: var(--fs-2xs);
-  font-weight: 600;
-}
+.cv-v-lock:hover { background: rgb(var(--gold-rgb) / 0.26); }
 
 /* The foot: the next date and the page's address. */
 .cv-foot {
@@ -281,13 +232,14 @@ a.cv-ln-alt { min-height: 40px; display: inline-flex; align-items: center; color
 .an-card { padding: var(--space-4); margin-top: var(--space-4); }
 @media (min-width: 640px) { .an-card { padding: var(--space-6) var(--space-8); } }
 
-/* -- the summary ------------------------------------------------------ */
+/* -- In short (components/stock/analysis/InShort.tsx, 2026-11-24) -------
+   One line of our view, what's good, what to watch, today's price. */
 .an-eyebrow {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
-  margin: 0 0 var(--space-4);
+  margin: 0 0 var(--space-3);
   font-size: var(--fs-xs);
   font-weight: 400;
   color: var(--text-muted);
@@ -303,256 +255,94 @@ a.cv-ln-alt { min-height: 40px; display: inline-flex; align-items: center; color
   font-size: var(--fs-2xs);
   font-weight: 600;
 }
-.an-head { display: flex; align-items: center; gap: var(--space-4); }
-.an-grade {
-  --medal: var(--text);
-  display: block;
-  margin: 0;
-  font-size: var(--fs-xl);
-  font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
-  color: var(--medal);
-}
-@media (min-width: 640px) { .an-grade { font-size: var(--fs-2xl); } }
-.an-grade[data-tier="excellent"] { --medal: var(--tier-excellent); }
-.an-grade[data-tier="good"] { --medal: var(--tier-good); }
-.an-grade[data-tier="average"] { --medal: var(--tier-average); }
-.an-grade[data-tier="weak"] { --medal: var(--tier-weak); }
-.an-text { margin: var(--space-4) 0 var(--space-4); max-width: 64ch; font-size: var(--fs-md); line-height: 1.6; color: var(--text); }
-@media (min-width: 640px) { .an-text { font-size: var(--fs-title); } }
-
-.an-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
-@media (min-width: 768px) { .an-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); } }
-.an-tile {
-  --t: var(--text);
-  display: grid;
-  align-content: start;
-  gap: 3px;
-  min-width: 0;
-  min-height: 40px;
-  padding: var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-  text-decoration: none;
-  color: var(--text);
-}
-.an-tile:hover { border-color: var(--text); }
-.an-tile:active { background: var(--surface-2); }
-.an-tile-k { display: flex; justify-content: space-between; gap: 6px; font-size: var(--fs-2xs); font-weight: 600; }
-.an-tile-w { display: flex; align-items: center; gap: 7px; font-size: var(--fs-md); font-weight: 600; line-height: 1.25; color: var(--t); }
-.an-tile-w::before { content: ""; flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--t); }
-.an-tile-v { font-size: var(--fs-xs); font-weight: 600; line-height: 1.35; }
-.an-tile[data-tone="good"], .an-mk[data-tone="good"] { --t: var(--positive); }
-.an-tile[data-tone="fair"], .an-mk[data-tone="fair"] { --t: var(--watch); }
-.an-tile[data-tone="bad"], .an-mk[data-tone="bad"] { --t: var(--negative); }
-.an-tile[data-tone="neutral"] { --t: var(--text); }
-.an-tile[data-tone="neutral"] .an-tile-w::before { background: rgb(var(--text-rgb) / 0.35); }
-.an-note { margin: var(--space-3) 0 0; font-size: var(--fs-xs); color: var(--text-muted); }
-.an-to-concl {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2) var(--space-3);
-  min-height: 40px;
-  margin-top: var(--space-4);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--border);
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  text-decoration: none;
-  color: var(--text);
-}
-.an-to-concl-go { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; color: var(--primary-ink); }
-.an-to-concl:hover .an-to-concl-go { text-decoration: underline; }
-
-/* -- one part --------------------------------------------------------- */
-.an-part-head {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 2px var(--space-3);
-  align-items: center;
-}
-.an-n {
-  grid-row: span 2;
-  align-self: start;
-  width: 30px;
-  height: 30px;
-  border-radius: var(--radius-sm);
-  display: grid;
-  place-items: center;
-  background: var(--surface-2);
-  font-size: var(--fs-sm);
-  font-weight: 600;
-}
-.an-part-head h2 { margin: 0; font-size: var(--fs-lg); font-weight: 700; line-height: 1.2; color: var(--text); }
-.an-q { margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
-.an-part-head > .rp-chip { grid-column: 2; justify-self: start; margin-top: var(--space-2); }
-@media (min-width: 640px) {
-  .an-part-head { grid-template-columns: auto minmax(0, 1fr) auto; }
-  .an-n { grid-row: 1 / span 2; align-self: center; }
-  .an-part-head h2, .an-q { grid-column: 2; }
-  .an-part-head > .rp-chip { grid-column: 3; grid-row: 1 / span 2; margin-top: 0; }
-}
-.an-body { display: grid; gap: var(--space-6); margin-top: var(--space-4); }
-@media (min-width: 900px) {
-  .an-body[data-pic="true"] { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: var(--space-8); align-items: start; }
-}
-.an-answer { margin: 0; font-size: var(--fs-md); font-weight: 400; line-height: 1.5; color: var(--text); }
-@media (min-width: 640px) { .an-answer { font-size: var(--fs-title); } }
-
-.an-stats {
-  display: grid;
-  grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr));
-  margin: var(--space-4) 0;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-}
-.an-stats > div { min-width: 0; padding: 10px var(--space-3); }
-.an-stats > div + div { border-left: 1px solid var(--border); }
-.an-stats b { display: block; font-size: var(--fs-md); font-weight: 600; line-height: 1.2; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-.an-stats span { display: block; margin-top: 3px; font-size: var(--fs-2xs); font-weight: 600; line-height: 1.3; }
-@media (min-width: 640px) { .an-stats b { font-size: var(--fs-title); } }
-
-.an-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.an-list li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; font-size: var(--fs-base); line-height: 1.45; color: var(--text); }
+.an-short-h { margin: 0; font-size: var(--fs-xl); font-weight: 700; line-height: 1.25; color: var(--text); }
+.an-lead { margin: var(--space-2) 0 0; max-width: 60ch; font-size: var(--fs-md); line-height: 1.55; color: var(--text); }
+@media (min-width: 640px) { .an-lead { font-size: var(--fs-title); } }
+.an-gw { display: grid; gap: var(--space-6); margin-top: var(--space-6); }
+@media (min-width: 768px) { .an-gw { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: var(--space-8); } }
+.an-k { margin: 0 0 var(--space-3); font-size: var(--fs-sm); font-weight: 600; color: var(--text-muted); }
+.an-pts { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+.an-pts li { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 10px; font-size: var(--fs-base); line-height: 1.45; color: var(--text); }
 .an-mk {
   --t: var(--text);
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   display: grid;
   place-items: center;
   font-size: var(--fs-2xs);
   font-weight: 600;
   color: var(--t);
-  background: color-mix(in srgb, var(--t) 12%, var(--surface));
+  background: color-mix(in srgb, var(--t) 13%, var(--surface));
 }
-.an-mk[data-tone="info"] { --t: var(--info-ink); }
-.an-mk[data-tone="neutral"] { --t: var(--text); }
-.an-watch, .an-callout, .an-aside {
-  display: grid;
-  grid-template-columns: 20px minmax(0, 1fr);
-  gap: var(--space-2);
-  margin: var(--space-4) 0 0;
-  padding: 10px var(--space-3);
-  border-radius: var(--radius);
+.an-mk[data-tone="good"] { --t: var(--positive); }
+.an-mk[data-tone="fair"] { --t: var(--watch); }
+.an-mk[data-tone="bad"] { --t: var(--negative); }
+.an-none { margin: 0; font-size: var(--fs-sm); color: var(--text-muted); }
+.an-pv { margin-top: var(--space-6); padding-top: var(--space-6); border-top: 1px solid var(--border); }
+.an-pv-h { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
+.an-pv-h .an-k { margin: 0; }
+.an-pv .rv-fig { margin-top: var(--space-3); }
+.an-pv-line { margin: var(--space-3) 0 0; max-width: 60ch; font-size: var(--fs-base); line-height: 1.5; color: var(--text); }
+
+/* -- Why we say this: six small cards (AnalysisPart.tsx, 2026-11-24) ----
+   Name + word, the question, one or two sentences, one picture, a link
+   down to the numbers. Two a row from 900px. */
+.an-why { margin-top: var(--space-8); }
+.an-why-head h2 { margin: 0; font-size: var(--fs-xl); font-weight: 700; line-height: 1.25; color: var(--text); }
+.an-why-head p { margin: var(--space-1) 0 0; max-width: 62ch; font-size: var(--fs-sm); color: var(--text-muted); }
+.an-pcs { display: grid; gap: var(--space-4); margin-top: var(--space-4); }
+@media (min-width: 900px) { .an-pcs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.an-pc { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; padding: var(--space-4); }
+@media (min-width: 640px) { .an-pc { padding: var(--space-6); } }
+.an-pc-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-3); }
+.an-pc-head h3 { margin: 0; font-size: var(--fs-title); font-weight: 600; line-height: 1.25; color: var(--text); }
+.an-pc-q { margin: -2px 0 0; font-size: var(--fs-sm); color: var(--text-muted); }
+.an-pc-a { margin: var(--space-1) 0 0; font-size: var(--fs-base); line-height: 1.5; color: var(--text); }
+.an-pc-pic { min-width: 0; margin-top: var(--space-2); }
+.an-pc-pic .rv-fig:first-child { margin-top: 0; }
+.an-pic-k { margin: 0 0 var(--space-2); font-size: var(--fs-2xs); font-weight: 400; color: var(--text-muted); }
+.an-pc .rp-checks { margin-top: var(--space-2); }
+.an-pc-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  min-height: 40px;
+  margin-top: auto;
+  padding-top: var(--space-2);
   font-size: var(--fs-sm);
   font-weight: 600;
-  line-height: 1.45;
+  color: var(--primary-ink);
+  text-decoration: none;
 }
-.an-watch { background: rgb(var(--watch-rgb) / 0.09); color: var(--text); }
-.an-watch svg { color: var(--watch); }
-.an-callout { background: rgb(var(--info-rgb) / 0.1); color: var(--info-ink); }
-.an-aside { grid-template-columns: minmax(0, 1fr); border: 1px dashed var(--border); font-weight: 600; color: var(--text); }
-.an-pic { min-width: 0; }
-.an-pic-k { margin: 0 0 var(--space-2); font-size: var(--fs-2xs); font-weight: 600; color: var(--text); }
-.an-pic .rv-fig:first-child { margin-top: 0; }
-.an-pic > * + .an-pic-k { margin-top: var(--space-6); }
-.an-extra { margin-top: var(--space-6); }
-.an-src { margin: var(--space-6) 0 0; padding-top: var(--space-3); border-top: 1px solid var(--border); font-size: var(--fs-2xs); font-weight: 400; color: var(--text-muted); }
+.an-pc-more:hover { text-decoration: underline; }
 
-.an-methods { margin-top: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius); }
-.an-methods p { margin: 0; padding: 9px var(--space-3); border-radius: var(--radius) var(--radius) 0 0; background: var(--surface-2); font-size: var(--fs-xs); font-weight: 600; }
-.an-methods li { display: flex; justify-content: space-between; gap: var(--space-3); padding: 8px var(--space-3); border-top: 1px solid var(--border); font-size: var(--fs-sm); }
-.an-methods ul { list-style: none; margin: 0; padding: 0; }
-/* How sure we are of the fair price (2026-11-22): three dots + one line. */
-.an-sure { display: flex; align-items: flex-start; gap: var(--space-2); padding: 9px var(--space-3); border-top: 1px solid var(--border); font-size: var(--fs-sm); }
-.an-sure-dots { display: inline-flex; gap: 3px; padding-top: 6px; flex: none; }
-.an-sure-dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--border); }
-.an-sure-dots span.is-on { background: var(--text); }
-
-.an-passed, .an-own { margin-top: var(--space-6); min-width: 0; }
-.an-passed ul { list-style: none; margin: var(--space-2) 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px var(--space-4); }
-.an-passed li { display: flex; align-items: baseline; gap: 7px; font-size: var(--fs-sm); color: var(--text); }
-.an-passed li svg { flex: none; color: var(--positive); transform: translateY(1px); }
-.an-pair { display: grid; gap: var(--space-6); }
-@media (min-width: 900px) { .an-pair { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-8); } }
-
-/* -- dates ------------------------------------------------------------ */
-.an-card-h { margin: 0; font-size: var(--fs-lg); font-weight: 700; color: var(--text); }
-.an-card-lead { margin: 4px 0 0; font-size: var(--fs-sm); color: var(--text); }
-.an-expect { list-style: none; margin: var(--space-4) 0 0; padding: 0; display: grid; gap: var(--space-3); }
-.an-expect li { font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
-.an-expect b { display: block; }
-
-/* -- our conclusion ---------------------------------------------------- */
-.an-concl { border: 1.5px solid var(--text); }
-.an-concl-k { margin: 0 0 var(--space-2); font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
-.an-concl-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); }
-.an-concl-price { font-size: var(--fs-title); font-weight: 600; color: var(--text); }
-.an-concl-line { margin: var(--space-3) 0 4px; font-size: var(--fs-md); line-height: 1.5; color: var(--text); }
-.an-concl-since { margin: 0; font-size: var(--fs-xs); font-weight: 400; color: var(--text-muted); }
-/* Buy / Sell split (2026-11-22): one bar, green for buying, red for selling,
-   the parts that weigh on each side, what the number is not. */
-.an-split { margin-top: var(--space-6); padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius); }
-.an-split-h { margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
-.an-split-parts { display: grid; gap: var(--space-1) var(--space-4); margin: var(--space-3) 0 0; padding: 0; list-style: none; }
-@media (min-width: 640px) { .an-split-parts { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
-.an-split-part { display: flex; align-items: baseline; gap: var(--space-2); font-size: var(--fs-sm); color: var(--text); }
-.an-split-mark { width: 1em; flex: none; font-weight: 700; text-align: center; }
-.an-split-part[data-side="for"] .an-split-mark { color: var(--positive); }
-.an-split-part[data-side="against"] .an-split-mark { color: var(--negative); }
-.an-split-name { font-weight: 600; }
-.an-split-word { margin-left: auto; font-weight: 700; }
-.an-split-note { margin: var(--space-3) 0 0; font-size: var(--fs-2xs); font-weight: 400; line-height: 1.5; color: var(--text-muted); }
-
-.an-cases { display: grid; gap: var(--space-3); margin-top: var(--space-6); }
-@media (min-width: 768px) { .an-cases { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
-.an-case { padding: var(--space-3) var(--space-4); border: 1px solid var(--border); border-radius: var(--radius); }
-.an-case h3 { margin: 0 0 var(--space-2); font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
-.an-case-wide { margin-top: var(--space-3); }
-.an-acts { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin-top: var(--space-6); }
-.an-acts p { margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
-.an-fine { margin: var(--space-4) 0 0; font-size: var(--fs-2xs); font-weight: 400; color: var(--text-muted); }
-.an-better { margin-top: var(--space-6); }
-.an-better h3 { margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
-
-/* Your shares and the portfolio check, after the conclusion (signed-in
-   readers with a stake only; empty → no card). */
-.an-you { margin-top: var(--space-4); }
-.an-you:empty { display: none; }
-
-/* -- the Premium card's contents list (components/stock/report/PremiumPromo.tsx) -- */
-.spa-rows { list-style: none; margin: 0; padding: 0; }
-.spa-row {
-  display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) auto;
-  gap: 2px var(--space-3);
-  align-items: start;
-  padding: var(--space-3) 0;
-  border-top: 1px solid var(--border);
-  font-size: var(--fs-base);
-}
-.spa-row:first-child { border-top: 0; }
-.spa-n {
-  width: 26px;
-  height: 26px;
-  border-radius: var(--radius-sm);
+/* -- the Premium card (components/stock/report/PremiumPromo.tsx): the
+   "In short" shape, locked. Counts and grey bars, never the lines. -- */
+.spa-rows { list-style: none; margin: 0; padding: 0; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); }
+.spa-row { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: var(--space-3); align-items: start; padding: var(--space-3) var(--space-4); }
+.spa-row + .spa-row { border-top: 1px solid var(--border); }
+.spa-mk {
+  --t: var(--text);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--surface-2);
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  color: var(--text);
-}
-.spa-concl .spa-n { background: var(--text); color: var(--surface); }
-.spa-lock { display: inline-flex; padding-top: 3px; color: var(--gold-ink); }
-.spa-free {
-  --t: var(--text);
-  display: inline-flex;
-  margin-top: 6px;
-  padding: 2px 8px;
-  border-radius: 999px;
   font-size: var(--fs-2xs);
   font-weight: 600;
   color: var(--t);
-  background: color-mix(in srgb, var(--t) 11%, var(--surface));
+  background: color-mix(in srgb, var(--t) 13%, var(--surface));
 }
-.spa-free[data-tone="good"] { --t: var(--positive); }
-.spa-free[data-tone="fair"] { --t: var(--watch); }
-.spa-free[data-tone="bad"] { --t: var(--negative); }
+.spa-mk[data-tone="good"] { --t: var(--positive); }
+.spa-mk[data-tone="fair"] { --t: var(--watch); }
+.spa-mk--lock { --t: var(--gold-ink); background: rgb(var(--gold-rgb) / 0.16); }
+.spa-name { display: block; font-size: var(--fs-base); font-weight: 600; line-height: 1.35; color: var(--text); }
+.spa-cnt { padding-top: 2px; font-size: var(--fs-sm); color: var(--text-muted); white-space: nowrap; }
+.spa-ghosts { display: grid; gap: 6px; margin-top: var(--space-2); }
+.spa-ghost { display: block; height: 9px; border-radius: 999px; background: rgb(var(--text-rgb) / 0.12); }
+.spa-ghost[data-bar="true"] { height: 16px; border-radius: var(--radius-sm); }
 .spa-every { margin: var(--space-3) 0 0; font-size: var(--fs-xs); font-weight: 400; color: var(--text-muted); }
 
 /* -- the data room's tab bar (components/stock/report/DataRoom.tsx, 2026-11-05) --

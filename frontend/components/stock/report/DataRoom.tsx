@@ -78,18 +78,18 @@ export default function DataRoom({ panels }: { panels: RoomPanel[] }) {
         id="ch-data-t"
         size="lg"
         className="mb-5"
-        title={<T en="The data room" bn="তথ্যের ঘর" />}
+        title={<T en="The numbers" bn="সব সংখ্যা" />}
         lead={
           <T
-            en="Every number on this company, straight from DSE and its accounts. All free. Tap a tab to see it."
-            bn="এই কোম্পানির সব সংখ্যা, সরাসরি ডিএসই আর এর হিসাব থেকে। সবই ফ্রি। দেখতে একটি ট্যাবে চাপুন।"
+            en="Every figure behind our analysis, straight from DSE and the company's accounts. All free. Tap a tab to see it."
+            bn="আমাদের বিশ্লেষণের পেছনের সব সংখ্যা, সরাসরি ডিএসই আর কোম্পানির হিসাব থেকে। সবই ফ্রি। দেখতে একটি ট্যাবে চাপুন।"
           />
         }
       />
       <div
         ref={bar}
         role="tablist"
-        aria-label={bn ? "তথ্যের ঘর" : "The data room"}
+        aria-label={bn ? "সব সংখ্যা" : "The numbers"}
         onKeyDown={onKey}
         className="room-bar"
         style={{ "--cols": n, "--phone-cols": phoneCols } as CSSProperties}

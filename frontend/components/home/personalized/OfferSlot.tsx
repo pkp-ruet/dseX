@@ -100,6 +100,7 @@ const WATCH_WORDS: Record<PortfolioWatchEvent["kind"], { en: [string, string]; b
   red_flag: { en: ["new warning", "new warnings"], bn: "নতুন সতর্কতা" },
   answer: { en: ["change in our answer", "changes in our answer"], bn: "আমাদের উত্তরে বদল" },
   buylist: { en: ["Buy List change", "Buy List changes"], bn: "কেনার তালিকায় বদল" },
+  price_view: { en: ["change in our price view", "changes in our price view"], bn: "দাম নিয়ে আমাদের মতে বদল" },
   breakeven: { en: ["share back to your price", "shares back to your price"], bn: "কেনা দামে ফেরা" },
 };
 

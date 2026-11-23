@@ -245,6 +245,24 @@ def _answer_event(code: str, change: dict) -> Optional[dict]:
     }
 
 
+_PRICE_LEVEL = {"Low": "good", "Fair": "watch", "High": "watch"}
+
+
+def _price_view_event(code: str, change: dict) -> Optional[dict]:
+    """Our view of the price changed (2026-11-24, in place of the answer push)."""
+    to, frm, line = change.get("to") or {}, change.get("from") or {}, change.get("line") or {}
+    if not to.get("en") or not frm.get("en"):
+        return None
+    return {
+        "id": f"price_view-{code}-{to['en']}-{change.get('day') or ''}", "kind": "price_view", "code": code,
+        "level": _PRICE_LEVEL.get(to["en"], "watch"),
+        "title_en": f"Our view of {code}'s price changed: now {to['en']}",
+        "title_bn": f"{code}-এর দাম নিয়ে আমাদের মত বদলেছে: এখন {to.get('bn') or to['en']}",
+        "body_en": f"It was {frm['en']}. {line.get('en') or ''}".strip(),
+        "body_bn": f"আগে ছিল {frm.get('bn') or frm['en']}। {line.get('bn') or ''}".strip(),
+    }
+
+
 # A Buy within this share of its stop line (the near-the-yearly-high price
 # where it stops being a Buy) counts as "near its limit".
 NEAR_STOP_PCT = 3.0
@@ -379,6 +397,11 @@ def build_events(held: dict[str, int], facts: dict, day: str,
             e = _answer_event(code, ac)
             if e:
                 out.append(e)
+        pv = (facts.get("price_views") or {}).get(code)
+        if pv:
+            e = _price_view_event(code, pv)
+            if e:
+                out.append(e)
         bl = (facts.get("buylist") or {}).get(code)
         if bl:
             e = _buylist_event(code, bl, day)
@@ -428,6 +451,7 @@ _LEVEL_ORDER = {"bad": 0, "watch": 1, "good": 2}
 
 # Where a single event of each kind opens on the stock page.
 _STOCK_ANCHOR = {"results": "results", "grade": "score-history", "red_flag": "red-flags", "answer": "ch-answer",
+                 "price_view": "an-price",
                  "buylist": "ch-answer", "breakeven": "ch-answer"}
 
 
@@ -478,7 +502,7 @@ def week_start(day: str) -> str:
 # list — Premium only, never a free reader's open event (2026-11-04, audit EL2:
 # an Avoid ranks worst, so "Our answer on X changed: Avoid. It was Buy …" went
 # out in full in free teaser pushes). The notifications list leaves them out too.
-PREMIUM_ONLY_KINDS = {"answer", "buylist"}
+PREMIUM_ONLY_KINDS = {"answer", "buylist", "price_view"}
 
 
 def pick_free(events: list[dict]) -> Optional[dict]:
@@ -555,6 +579,7 @@ def trial_recap_payload(caught: int, days_left: int, lang: str = "bn") -> dict:
 KIND_WORDS = {
     "red_flag": ("red flag", "red flags", "বড় সতর্কতা"),
     "answer": ("change in our answer", "changes in our answer", "আমাদের উত্তরে বদল"),
+    "price_view": ("change in our view of the price", "changes in our view of the price", "দাম নিয়ে আমাদের মতে বদল"),
     "buylist": ("change on the buy list", "changes on the buy list", "কেনার তালিকায় বদল"),
     # A quarter or a full year (results_explainer.load_latest_results).
     "results": ("results report", "results reports", "আর্থিক ফল"),

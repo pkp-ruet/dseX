@@ -1,11 +1,9 @@
 import Link from "@/components/ui/Link";
 import WatchRulesHint from "@/components/watch-rules/WatchRulesHint";
 import CoverActions from "@/components/stock/CoverActions";
-import CoverParts from "@/components/stock/analysis/CoverParts";
 import CategoryChip from "@/components/stock/CategoryChip";
 import YourPosition from "@/components/stock/YourPosition";
-import GradeMedal from "@/components/stock/GradeMedal";
-import SplitStrip from "@/components/stock/analysis/SplitStrip";
+import CoverVerdict from "@/components/stock/analysis/CoverVerdict";
 import DaysLeft from "@/components/stock/DaysLeft";
 import { IconCalendar } from "@/components/ui/icons";
 import { T } from "@/components/i18n/T";
@@ -78,14 +76,6 @@ const num = (v: unknown): number | null => {
   return Number.isFinite(n) ? n : null;
 };
 
-/** ৳ crore for the quick facts: ৳19,369 cr. */
-function croreText(mn: number | null): Bi | null {
-  if (mn == null || !Number.isFinite(mn) || mn <= 0) return null;
-  const cr = mn / 10;
-  const s = cr >= 100 ? Math.round(cr).toLocaleString("en-US") : cr.toFixed(1);
-  return { en: `৳${s} cr`, bn: `৳${s} কোটি` };
-}
-
 const SKIP_WORDS = /^(ltd|limited|plc|the|of|and|bangladesh|company|co)$/i;
 
 /** Two letters for the initials tile: "Square Pharmaceuticals PLC." → "SP". */
@@ -102,24 +92,17 @@ function nextDate(next: NextSection | undefined, today: string | null): NextSect
   return next.items.find((it) => it.date && (!today || it.date >= today) && it.kind !== "spot") ?? null;
 }
 
-interface Fact {
-  label: Bi;
-  term?: string;
-  value: Bi;
-  sub?: Bi;
-}
-
 /**
  * The cover, made to be a Facebook post as well as the top of the page
  * (2026-11-23, user: "post this screenshot … the follow, watch and all quick
  * buttons are useless"; mockup https://claude.ai/artifact/VTWHEAHf62EEqAj6wBWMDP).
  * ONE card: the brand + "Our analysis" date line, the name with one line of
  * tags, the price with today's move and the year's range, then OUR VERDICT in
- * one panel (the grade medal, free; the Buy / Sell split and the six parts'
- * words, open with the analysis, else locked), four quick facts, and a foot
- * with the next date and the page's address. The buttons sit under the card
- * (`CoverActions`) so a screenshot stops at its edge; the reader's own shares
- * follow them.
+ * four rows (2026-11-24, analysis only: the company — free —, its dividend,
+ * today's price and problems; no Buy / Sell), and a foot with the next date
+ * and the page's address. The quick facts moved to the numbers at the bottom.
+ * The buttons sit under the card (`CoverActions`) so a screenshot stops at its
+ * edge; the reader's own shares follow them.
  */
 export default function HeroSection({ detail }: Props) {
   const { profile, latest_price, score_row } = detail;
@@ -153,66 +136,9 @@ export default function HeroSection({ detail }: Props) {
   const name = profile.company_name ?? code;
 
   // Quick facts: public figures with plain names (the market word small).
-  const shares = num(profile.total_shares);
-  const mcap = ltp != null && shares ? croreText((ltp * shares) / 1e6) : null;
-  const pe = num(score_row?.current_pe);
-  const eps = num(score_row?.eps);
-  const epsTtm = score_row?.eps_basis === "ttm";
-  const dv = report?.sections.dividend;
-  const cashPs = dv?.year_cash_ps ?? null;
-  const yieldPct = dv?.year_yield_pct ?? num(score_row?.div_yield_pct);
-  const facts: Fact[] = [];
-  if (mcap) facts.push({ label: { en: "Market value", bn: "বাজারমূল্য" }, value: mcap });
-  if (pe != null && pe > 0) {
-    facts.push({
-      label: { en: "Price for its profit", bn: "মুনাফার তুলনায় দাম" },
-      term: "P/E",
-      value: { en: pe.toFixed(1), bn: pe.toFixed(1) },
-      sub: { en: `you pay ${Math.round(pe)} years of profit`, bn: `${Math.round(pe)} বছরের মুনাফার সমান দাম` },
-    });
-  } else if (eps != null && eps <= 0) {
-    facts.push({
-      label: { en: "Price for its profit", bn: "মুনাফার তুলনায় দাম" },
-      term: "P/E",
-      value: { en: "None", bn: "নেই" },
-      sub: { en: "it made a loss", bn: "লোকসান হয়েছে" },
-    });
-  }
-  if (cashPs != null && cashPs > 0) {
-    const ps = Math.abs(cashPs - Math.round(cashPs)) < 0.005 ? `৳${Math.round(cashPs)}` : `৳${cashPs.toFixed(2)}`;
-    facts.push({
-      label: { en: "Cash dividend", bn: "নগদ ডিভিডেন্ড" },
-      value: { en: `${ps} a share`, bn: `শেয়ারপ্রতি ${ps}` },
-      sub: yieldPct != null ? { en: `${yieldPct.toFixed(1)}% a year`, bn: `বছরে ${yieldPct.toFixed(1)}%` } : undefined,
-    });
-  } else if (dv) {
-    facts.push({
-      label: { en: "Cash dividend", bn: "নগদ ডিভিডেন্ড" },
-      value: { en: "None", bn: "নেই" },
-      sub: { en: "for its latest year", bn: "সর্বশেষ বছরে" },
-    });
-  }
-  if (eps != null) {
-    const v = `${eps < 0 ? "-" : ""}৳${Math.abs(eps).toFixed(2)}`;
-    facts.push({
-      label: { en: "Profit a share", bn: "শেয়ারপ্রতি মুনাফা" },
-      term: "EPS",
-      value: { en: v, bn: v },
-      sub: epsTtm ? { en: "last 12 months", bn: "গত 12 মাসে" } : { en: "latest year", bn: "সর্বশেষ বছরে" },
-    });
-  }
-
   const nx = nextDate(report?.sections.next, marketDay ?? priceDay);
 
   const brandDay = marketDay ?? priceDay;
-  const parts = (report?.analysis?.parts ?? []).map(({ key, name: pn, word, tone, measured }) => ({
-    key,
-    name: pn,
-    word,
-    tone,
-    measured,
-  }));
-
   return (
     <>
       <nav aria-label="Breadcrumb" className="mb-3">
@@ -317,36 +243,9 @@ export default function HeroSection({ detail }: Props) {
             )}
           </div>
 
-          {/* Our verdict: the grade (free), the Buy / Sell split and the six
-              parts (open with the analysis, else locked). */}
-          <div className="cv-verdict">
-            <GradeMedal score={score} rank={num(score_row?.overall_rank)} total={num(score_row?.total_scored)} />
-            {report?.split && report.analysis && (
-              <SplitStrip split={report.split} answer={report.answer ?? null} code={code} name={name} />
-            )}
-            {report?.analysis && <CoverParts parts={parts} />}
-          </div>
-
-          {facts.length > 0 && (
-            <dl className="cv-facts">
-              {facts.map((f) => (
-                <div key={f.label.en}>
-                  <dt className="text-xs font-semibold text-text-main">
-                    <T en={f.label.en} bn={f.label.bn} />
-                    {f.term && <span className="cv-term">{f.term}</span>}
-                  </dt>
-                  <dd className="nums mt-0.5 text-base font-semibold leading-tight text-text-main sm:text-lg">
-                    <T en={f.value.en} bn={f.value.bn} />
-                    {f.sub && (
-                      <span className="mt-0.5 block text-xs font-semibold">
-                        <T en={f.sub.en} bn={f.sub.bn} />
-                      </span>
-                    )}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          )}
+          {/* Our verdict (2026-11-24): the company (free), its dividend, today's
+              price and problems (open with the analysis, else locked). */}
+          <CoverVerdict rows={report?.analysis?.verdict ?? null} score={score} />
         </div>
 
         {/* The next date and the page's address: what a reader types after

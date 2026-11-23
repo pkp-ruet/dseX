@@ -266,12 +266,15 @@ def _facts(held_codes: set[str], today, followed_codes: Optional[set[str]] = Non
     except Exception:  # noqa: BLE001
         log.warning("red flag read failed", exc_info=True)
         red_flags = {}
+    # Our view of the price (2026-11-24): replaced the answer push — the stock
+    # page no longer says Buy / Sell, so neither does its push.
+    answers = {}
     try:
-        from backend.services.stock_report_service import answer_changes
-        answers = answer_changes(followed_codes)
+        from backend.services.stock_report_service import price_view_changes
+        price_views = price_view_changes(followed_codes)
     except Exception:  # noqa: BLE001
-        log.warning("answer change read failed", exc_info=True)
-        answers = {}
+        log.warning("price view change read failed", exc_info=True)
+        price_views = {}
     try:
         prior = _prior_closes(held_codes, trade_day) if trade_day else {}
     except Exception:  # noqa: BLE001
@@ -284,7 +287,7 @@ def _facts(held_codes: set[str], today, followed_codes: Optional[set[str]] = Non
     return {"prices": prices, "trade_day": trade_day, "record": record, "results": results, "rows": rows,
             "score_before": before, "sector_class": sector_class, "grades": grades,
             "category": category, "lows": lows, "red_flags": red_flags,
-            "answers": answers, "buylist": buylist, "prior": prior, "ex_moves": ex_moves,
+            "answers": answers, "price_views": price_views, "buylist": buylist, "prior": prior, "ex_moves": ex_moves,
             **_rule_facts(rule_codes, today), "buy_rows": buy_rows}
 
 

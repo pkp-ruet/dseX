@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import Link from "@/components/ui/Link";
 import Button from "@/components/ui/Button";
-import { IconArrowRight, IconCrown, IconLock } from "@/components/ui/icons";
+import { IconCrown, IconLock } from "@/components/ui/icons";
 import ReportKeyButton from "@/components/premium/ReportKeyButton";
 import { T } from "@/components/i18n/T";
 import { useAuth } from "@/context/AuthContext";
@@ -13,44 +13,12 @@ import { PREMIUM_PATH, usePremium } from "@/lib/premium";
 import { FROM_MONTH, LOWEST_PRICE } from "@/lib/premium-plans";
 import { savePremiumContext } from "@/lib/premium-context";
 import { trackEvent } from "@/lib/track";
-import type { AnalysisPart, Bi, RedFlagsSection, StockAnalysis, Tone } from "@/lib/stock-report";
+import type { Bi, StockAnalysis } from "@/lib/stock-report";
 import { useMyStake } from "../YourPosition";
 
-/** Which version of the card a GA event came from (v3 = the analysis card, 2026-11-05). */
-const VARIANT = "v3";
-
-/** What we read for each part, from the part's own figures — never its answer. */
-function lookedAt(p: AnalysisPart): Bi {
-  switch (p.key) {
-    case "profit": {
-      const n = p.series?.length ?? 0;
-      return n >= 2
-        ? { en: `${n} years of profit, this year's results, and how much of it arrives as cash`, bn: `${n} বছরের মুনাফা, এ বছরের ফল, আর মুনাফার কতটা নগদে আসে` }
-        : { en: "Its profit, this year's results, and how much of it arrives as cash", bn: "মুনাফা, এ বছরের ফল, আর মুনাফার কতটা নগদে আসে" };
-    }
-    case "finances":
-      return p.bars?.length
-        ? { en: "Its loans against the savings it has built up, and its interest", bn: "জমানো টাকার তুলনায় ঋণ, আর সুদের চাপ" }
-        : { en: "How much of its own money stands behind it", bn: "এর পেছনে নিজস্ব মূলধন কতটা" };
-    case "business": {
-      const of = p.ranks?.[0]?.of;
-      return of
-        ? { en: `Its place among the ${of} companies in its sector`, bn: `নিজের সেক্টরের ${of}টি কোম্পানির মধ্যে এর অবস্থান` }
-        : { en: "How it compares with the other companies in its sector", bn: "নিজের সেক্টরের অন্য কোম্পানির সঙ্গে তুলনা" };
-    }
-    case "dividend": {
-      const n = p.series?.length ?? 0;
-      return n >= 2
-        ? { en: `${n} years of dividends, and whether it can keep paying`, bn: `${n} বছরের ডিভিডেন্ড, আর তা দিয়ে যেতে পারবে কি না` }
-        : { en: "Its dividends, and whether it can keep paying", bn: "ডিভিডেন্ড, আর তা দিয়ে যেতে পারবে কি না" };
-    }
-    case "price":
-      return { en: "Our fair price, and how it compares with its usual price and similar companies", bn: "আমাদের হিসাবে ন্যায্য দাম, আর স্বাভাবিক দাম ও একই ধরনের কোম্পানির সঙ্গে তুলনা" };
-    case "safety":
-    default:
-      return { en: "The auditor, the regulator, its loans, its owners and how easy it is to sell", bn: "নিরীক্ষক, নিয়ন্ত্রক সংস্থা, ঋণ, মালিকানা আর বিক্রির সহজতা" };
-  }
-}
+/** Which version of the card a GA event came from (v3 = the analysis card,
+ *  2026-11-05; v4 = the "In short" shape, 2026-11-24). */
+const VARIANT = "v4";
 
 /** "1 Dec" — when the month's free analyses come back (Dhaka calendar). */
 function comesBack(month: string | undefined): Bi {
@@ -77,32 +45,36 @@ function ReadList({ codes }: { codes: string[] }) {
   );
 }
 
-/** The safety-check count is free (it always was): a chip on that row. */
-function safetyCount(rf: RedFlagsSection["counts"] | null): { text: Bi; tone: Tone } | null {
-  if (!rf) return null;
-  if (rf.red > 0) {
-    return { tone: "bad", text: { en: `${rf.checks} checks · ${rf.red} serious`, bn: `${rf.checks}টি যাচাই · ${rf.red}টি গুরুতর` } };
-  }
-  if (rf.amber > 0) {
-    return {
-      tone: "fair",
-      text: { en: `${rf.checks} checks · nothing serious · ${rf.amber} to look at`, bn: `${rf.checks}টি যাচাই · গুরুতর কিছু নেই · দেখার মতো ${rf.amber}টি` },
-    };
-  }
-  return { tone: "good", text: { en: `${rf.checks} checks · all passed`, bn: `${rf.checks}টি যাচাই · সবই ঠিক` } };
+/** "3 things" / "1 thing" / "3টি": a count, never the things. */
+function things(n: number): Bi {
+  return { en: `${n} ${n === 1 ? "thing" : "things"}`, bn: `${n}টি` };
+}
+
+/** Grey bars where the hidden lines go: as many as there are lines (at most
+ *  three), or one wide bar for the price. */
+function Ghosts({ n, bar = false }: { n: number; bar?: boolean }) {
+  if (n <= 0) return null;
+  const widths = bar ? ["100%"] : ["88%", "64%", "76%"].slice(0, Math.min(3, n));
+  return (
+    <span className="spa-ghosts" aria-hidden="true">
+      {widths.map((w, i) => (
+        <span key={i} className="spa-ghost" data-bar={bar ? "true" : undefined} style={{ width: w }} />
+      ))}
+    </span>
+  );
 }
 
 /**
  * THE Premium card on the stock page (`#ch-premium`; rebuilt 2026-11-05, user:
  * "the way we are introducing our premium need to change. right now it's
  * header focused on buy signal. but our main goal is to present our
- * fundamental analysis"). It sells OUR ANALYSIS of the company: the headline
- * is the grade (free on the cover) and "see exactly why", then the analysis's
- * six parts as a locked contents list — what we read for each, never the
- * answer — with the safety-check count free, and our conclusion as the last
- * row. Then the price, one button, and the free taste (for a guest: sign up
- * for 10 a month). It sits right under the cover, above the chart. GA events
- * carry `variant: "v3"`.
+ * fundamental analysis"). It sells OUR ANALYSIS of the company. Since
+ * 2026-11-24 (analysis only, no Buy / Sell on the page) it has the shape of
+ * the "In short" card it stands in for: what's good and what to watch as
+ * counts with grey bars (never the lines), today's price against our fair
+ * price and the six parts, locked. Then the price, one button, and the free
+ * taste (for a guest: sign up for 10 a month). It sits right under the
+ * cover, above the chart. GA events carry `variant: "v4"`.
  *
  * Since 2026-11-08 a signed-in free reader's first 10 shares a month open by
  * themselves, so a free reader only meets this card once those are read —
@@ -112,13 +84,11 @@ export default function PremiumPromo({
   code,
   name,
   analysis,
-  redFlags,
   ltp,
 }: {
   code: string;
   name: string;
   analysis: StockAnalysis;
-  redFlags: RedFlagsSection["counts"] | null;
   ltp: number | null;
 }) {
   const { user } = useAuth();
@@ -133,7 +103,9 @@ export default function PremiumPromo({
   const held = qty > 0 && ltp != null ? qty * ltp : null;
 
   const g = analysis.grade;
-  const strongish = g.tone === "good";
+  // Counts only: how many good things and things to watch, never which.
+  const nGood = analysis.good?.length ?? null;
+  const nWatch = analysis.watch?.length ?? null;
 
   // The month's free analyses, all read (a guest has none; a failed open has some left).
   const keys = user?.report_keys;
@@ -142,7 +114,6 @@ export default function PremiumPromo({
   const shown = read.slice(0, 3);
   const more = read.length - shown.length;
   const back = comesBack(keys?.month);
-  const sc = safetyCount(redFlags);
 
   const offer = user?.offer ?? null;
   const href = offer ? "/premium?plan=offer&src=stock#pay" : user ? `${PREMIUM_PATH}#pay` : PREMIUM_PATH;
@@ -174,7 +145,10 @@ export default function PremiumPromo({
       label: bn ? `${name}: আমাদের বিশ্লেষণ` : `Our analysis of ${name}`,
       stakes: [
         ...(stake ? [stake] : []),
-        ...analysis.parts.slice(0, stake ? 2 : 3).map((p) => (bn ? p.question.bn : p.question.en)),
+        ...(bn
+          ? ["কী ভালো", "কী খেয়াল রাখবেন", "আজকের দাম কি ন্যায্য"]
+          : ["What's good", "What to watch", "Is today's price fair"]
+        ).slice(0, stake ? 2 : 3),
       ],
     });
   };
@@ -211,85 +185,75 @@ export default function PremiumPromo({
             <b className="pv">{takaGroup(held)}</b>
             <span>
               <T
-                en={`${first ? `${first}, you` : "You"} have this much in ${code}. We graded the business behind it “${g.word.en}”. See exactly why.`}
-                bn={`${first ? `${first}, ` : ""}${code}-এ আপনার এতটা টাকা আছে। এর পেছনের ব্যবসাকে আমরা “${g.word.bn}” গ্রেড দিয়েছি। কেন, দেখে নিন।`}
+                en={`${first ? `${first}, you` : "You"} have this much in ${code}. See what's good about it, what to watch, and whether today's price is fair.`}
+                bn={`${first ? `${first}, ` : ""}${code}-এ আপনার এতটা টাকা আছে। এর ভালো দিক কী, কী খেয়াল রাখবেন, আর আজকের দাম ন্যায্য কি না, দেখে নিন।`}
               />
             </span>
           </h2>
         ) : (
           <h2 id="sp-t" className="sp-title">
-            {strongish ? (
-              <T en={`${name} is graded “${g.word.en}”. See exactly why.`} bn={`${name}-কে আমরা “${g.word.bn}” গ্রেড দিয়েছি। কেন, দেখে নিন।`} />
-            ) : (
-              <T
-                en={`${name} is graded “${g.word.en}”. See what is strong, what is weak, and why.`}
-                bn={`${name}-কে আমরা “${g.word.bn}” গ্রেড দিয়েছি। কোথায় শক্তিশালী, কোথায় দুর্বল, আর কেন, দেখে নিন।`}
-              />
-            )}
+            <T
+              en={`What's good about ${name}, what to watch, and is today's price fair?`}
+              bn={`${name}: কী ভালো, কী খেয়াল রাখবেন, আর আজকের দাম কি ন্যায্য?`}
+            />
           </h2>
         )}
         <p className="sp-lead">
           <T
-            en="We read its accounts for the last five years, this year's results, its loans, its dividends and its price, and explain each one in plain words."
-            bn="গত পাঁচ বছরের হিসাব, এ বছরের ফল, ঋণ, ডিভিডেন্ড আর দাম আমরা খুঁটিয়ে দেখেছি, আর প্রতিটি সহজ ভাষায় বুঝিয়ে বলেছি।"
+            en="We read its accounts, its dividends and its notices to DSE, and checked its price against what it earns. Then we say it in plain words."
+            bn="এর হিসাব, ডিভিডেন্ড আর ডিএসইতে দেওয়া নোটিশ আমরা খুঁটিয়ে দেখেছি, আর আয়ের তুলনায় দাম যাচাই করেছি। তারপর সহজ ভাষায় বলেছি।"
           />
         </p>
       </div>
 
       <div className="sp-body">
         <p className="sp-k">
-          <T en="What's in the analysis" bn="বিশ্লেষণে যা আছে" />
+          <T en="What's in our analysis" bn="আমাদের বিশ্লেষণে যা আছে" />
         </p>
-        <ol className="spa-rows">
-          {analysis.parts.map((p, i) => {
-            const lk = lookedAt(p);
-            return (
-              <li key={p.key} className="spa-row">
-                <span className="spa-n" aria-hidden="true">{i + 1}</span>
-                <span className="min-w-0">
-                  <b className="block text-text-main">
-                    <T en={`${p.name.en} · ${p.question.en}`} bn={`${p.name.bn} · ${p.question.bn}`} />
-                  </b>
-                  <span className="block text-sm text-text-main">
-                    <T en={lk.en} bn={lk.bn} />
-                  </span>
-                  {p.key === "safety" && sc && (
-                    <span className="spa-free" data-tone={sc.tone}>
-                      <T en={`${sc.text.en} · free`} bn={`${sc.text.bn} · ফ্রি`} />
-                    </span>
-                  )}
-                </span>
-                <span className="spa-lock" aria-label={bn ? "প্রিমিয়াম" : "Premium"}>
-                  <IconLock size={14} />
-                </span>
-              </li>
-            );
-          })}
-          <li className="spa-row spa-concl">
-            <span className="spa-n" aria-hidden="true">
-              <IconArrowRight size={14} />
-            </span>
+        <ul className="spa-rows">
+          <li className="spa-row">
+            <span className="spa-mk" data-tone="good" aria-hidden="true">✓</span>
             <span className="min-w-0">
-              <b className="block text-text-main">
-                <T en="Our conclusion" bn="আমাদের সিদ্ধান্ত" />
-              </b>
-              <span className="block text-sm text-text-main">
-                <T en="Should you buy it today, and up to what price?" bn="আজ কি কেনা উচিত, আর কত দাম পর্যন্ত?" />
-              </span>
+              <b className="spa-name"><T en="What's good" bn="ভালো দিক" /></b>
+              <Ghosts n={nGood ?? 3} />
             </span>
-            <span className="spa-lock" aria-hidden="true">
-              <IconLock size={14} />
+            {nGood != null && <span className="spa-cnt"><T en={things(nGood).en} bn={things(nGood).bn} /></span>}
+          </li>
+          <li className="spa-row">
+            <span className="spa-mk" data-tone="fair" aria-hidden="true">!</span>
+            <span className="min-w-0">
+              <b className="spa-name"><T en="What to watch" bn="যা খেয়াল রাখবেন" /></b>
+              <Ghosts n={nWatch ?? 1} />
+            </span>
+            {nWatch != null && <span className="spa-cnt"><T en={things(nWatch).en} bn={things(nWatch).bn} /></span>}
+          </li>
+          <li className="spa-row">
+            <span className="spa-mk spa-mk--lock" aria-hidden="true"><IconLock size={13} /></span>
+            <span className="min-w-0">
+              <b className="spa-name"><T en="Today's price, against what we think it is worth" bn="আমাদের হিসাবে ন্যায্য দামের তুলনায় আজকের দাম" /></b>
+              <Ghosts n={1} bar />
             </span>
           </li>
-        </ol>
+          <li className="spa-row">
+            <span className="spa-mk spa-mk--lock" aria-hidden="true"><IconLock size={13} /></span>
+            <span className="min-w-0">
+              <b className="spa-name">
+                <T
+                  en="Why we say it: profit, loans, business, dividend, price and safety"
+                  bn="কেন বলছি: মুনাফা, ঋণ, ব্যবসা, ডিভিডেন্ড, দাম আর নিরাপত্তা"
+                />
+              </b>
+            </span>
+            <span className="spa-cnt"><T en={`${analysis.parts.length} parts`} bn={`${analysis.parts.length}টি অংশ`} /></span>
+          </li>
+        </ul>
         <p className="spa-every">
           <T
-            en="The same analysis on every DSE share, updated after every result, with a notification when our answer changes."
-            bn="ডিএসইর প্রতিটি শেয়ারে একই বিশ্লেষণ, প্রতিটি ফলের পর হালনাগাদ, আর আমাদের উত্তর বদলালে নোটিফিকেশন।"
+            en="The same analysis on every DSE share, updated after every result, with a notification when our view of the price changes."
+            bn="ডিএসইর প্রতিটি শেয়ারে একই বিশ্লেষণ, প্রতিটি ফলের পর হালনাগাদ, আর দাম নিয়ে আমাদের মত বদলালে নোটিফিকেশন।"
           />
         </p>
       </div>
-
       <div className="sp-foot">
         <div className="sp-price">
           {offer ? (

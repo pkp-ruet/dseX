@@ -3809,7 +3809,8 @@ def _short_watch(c: dict) -> dict:
 def build_offer(sections: dict) -> list[dict]:
     """What Premium shows on THIS share, in plain words, from counts — never
     the answers (2026-10-30: the three-line summary left the page)."""
-    out = [bi("Why each of the three lights is green, amber or red", "তিনটি আলোর প্রতিটি কেন সবুজ, হলুদ বা লাল")]
+    # 2026-11-24: the stock page is analysis only — no lights, no buy price.
+    out = [bi("What's good about it and what to watch, in plain words", "এর ভালো দিক কী আর কী খেয়াল রাখবেন, সহজ ভাষায়")]
     rf = sections.get("red_flags")
     if rf:
         a = rf["counts"]["amber"]
@@ -3822,7 +3823,8 @@ def build_offer(sections: dict) -> list[dict]:
                       "কোম্পানি যাঁরা চালান, তাঁদের মধ্যে কে কোন দামে কিনেছেন বা বিক্রি করেছেন"))
     pr = sections.get("price")
     if pr and pr.get("fair"):
-        out.append(bi("What we think a fair price is, and the price we would buy under", "আমাদের হিসাবে ন্যায্য দাম কত, আর কোন দামের নিচে কেনা ভালো"))
+        out.append(bi("What we think a fair price is, and where today's price sits against it",
+                      "আমাদের হিসাবে ন্যায্য দাম কত, আর আজকের দাম তার তুলনায় কোথায়"))
     elif pr:
         out.append(bi("How its price compares with its past and with similar companies", "আগের বছরগুলো আর একই ধরনের কোম্পানির তুলনায় এর দাম কেমন"))
     dv = sections.get("dividend")
@@ -4695,7 +4697,12 @@ def snapshot_fields(report: dict) -> dict:
         "amber_lines": {c["key"]: c["detail"] for c in rf.get("checks") or [] if c["level"] == "amber"},
         "fair_center": ((pr.get("fair") or {}).get("center")),
         "buy_below": pr.get("buy_below"),
-        # The answer card (2026-10-30): the watcher's `answer` event diffs these.
+        # Our view of today's price (2026-11-24): the watcher's `price_view`
+        # event diffs these (the stock page shows no Buy / Sell any more).
+        "price_word": pr.get("word"),
+        "price_line": next((p.get("answer") for p in (report.get("analysis") or {}).get("parts") or []
+                            if p.get("key") == "price"), None),
+        # The answer card (2026-10-30): kept for the record; nothing pushes it now.
         "decision": (report.get("answer") or {}).get("decision"),
         "answer_word": (report.get("answer") or {}).get("word"),
         "answer_line": (report.get("answer") or {}).get("line"),

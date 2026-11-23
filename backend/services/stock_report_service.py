@@ -476,6 +476,46 @@ def settled_answer_change(rows: list[dict]) -> Optional[dict]:
             "to": a.get("answer_word"), "line": a.get("answer_line")}
 
 
+def price_view_changes(codes) -> dict[str, dict]:
+    """{code: {"day", "from": word, "to": word, "line"}} — our view of today's
+    price (Low / Fair / High / Can't judge) changed and held for two snapshot
+    days in a row (`settled_price_change`). Replaced the answer push on
+    2026-11-24: the stock page is analysis only, so the push is too."""
+    from backend.services.db_service import get_db
+
+    codes = sorted({c.upper() for c in codes or [] if c})
+    if not codes:
+        return {}
+    by_code: dict[str, list[dict]] = {}
+    since = (_today() - timedelta(days=21)).isoformat()
+    for d in get_db()[SNAPSHOT_COLLECTION].find(
+        {"trading_code": {"$in": codes}, "date": {"$gte": since}, "price_word": {"$exists": True}},
+        {"_id": 0, "trading_code": 1, "date": 1, "price_word": 1, "price_line": 1},
+    ).sort("date", -1):
+        rows = by_code.setdefault(d["trading_code"], [])
+        if len(rows) < 3:
+            rows.append(d)
+    out = {}
+    for code, rows in by_code.items():
+        ch = settled_price_change(rows)
+        if ch:
+            out[code] = ch
+    return out
+
+
+def settled_price_change(rows: list[dict]) -> Optional[dict]:
+    """Pure: `rows` newest first (up to three snapshot days). A change counts
+    when the newest two agree and the one before them differs. "Not rated"
+    on either side is not news."""
+    if len(rows) < 3:
+        return None
+    w = [((r.get("price_word") or {}).get("en") or "") for r in rows[:3]]
+    if not w[0] or w[0] != w[1] or w[1] == w[2] or not w[2] or "Not rated" in (w[0], w[2]):
+        return None
+    return {"day": rows[0]["date"], "from": rows[2].get("price_word"), "to": rows[0].get("price_word"),
+            "line": rows[0].get("price_line")}
+
+
 def new_red_flags(prev: dict[str, list[str]], cur: dict[str, dict]) -> dict[str, list[dict]]:
     """Pure diff: red keys in `cur` that were not in `prev` (codes `prev` never
     saw are a baseline, not news)."""
