@@ -133,36 +133,37 @@ export default function StoriesRow({
 
   // The label holds its place while the rings load, so nothing jumps. Same
   // heading as every other home block (`.hm-head`, round 2, 2026-11-18).
+  // The note sits under the title (spacious pass, 2026-11-23); the arrows on the right.
   const head = (
     <div className="hm-head">
-      <h2 id={headId} className="hm-head-h">
-        {t(lang, starter ? "storiesMarket" : "storiesTitle")}
-      </h2>
-      <div className="hm-head-end">
+      <div className="hm-head-txt">
+        <h2 id={headId} className="hm-head-h">
+          {t(lang, starter ? "storiesMarket" : "storiesTitle")}
+        </h2>
         <p className="hm-head-note">{t(lang, "storiesHint")}</p>
-        {(edges.prev || edges.next) && (
-          <div className="hm-rail-nav">
-            <button
-              type="button"
-              className="hm-rail-btn hm-rail-btn--prev"
-              onClick={() => scrollRail(-1)}
-              disabled={!edges.prev}
-              aria-label={bn ? "আগের স্টোরি" : "Earlier stories"}
-            >
-              <IconChevronRight size={16} />
-            </button>
-            <button
-              type="button"
-              className="hm-rail-btn"
-              onClick={() => scrollRail(1)}
-              disabled={!edges.next}
-              aria-label={bn ? "পরের স্টোরি" : "More stories"}
-            >
-              <IconChevronRight size={16} />
-            </button>
-          </div>
-        )}
       </div>
+      {(edges.prev || edges.next) && (
+        <div className="hm-rail-nav">
+          <button
+            type="button"
+            className="hm-rail-btn hm-rail-btn--prev"
+            onClick={() => scrollRail(-1)}
+            disabled={!edges.prev}
+            aria-label={bn ? "আগের স্টোরি" : "Earlier stories"}
+          >
+            <IconChevronRight size={16} />
+          </button>
+          <button
+            type="button"
+            className="hm-rail-btn"
+            onClick={() => scrollRail(1)}
+            disabled={!edges.next}
+            aria-label={bn ? "পরের স্টোরি" : "More stories"}
+          >
+            <IconChevronRight size={16} />
+          </button>
+        </div>
+      )}
     </div>
   );
 

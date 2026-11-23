@@ -97,9 +97,10 @@ const MAP_GROUPS: { key: string; name: Bi; href?: string; items: Service[] }[] =
  * own Premium card. Free readers see a crown on the Premium pages; members see
  * a thin gold ring on them instead (round 2, 2026-11-18: what they unlocked);
  * a small gold number shows what is new (the Buy List's joiners this week,
- * "For you"'s new picks today). "See more" and "What is each one?" sit side by
- * side on the card's bottom edge from the start. Every icon carries its own
- * `data-card` for the home tap tracking.
+ * "For you"'s new picks today). "See more" and "What is each one?" are the
+ * card's last row, two halves (they hung off its bottom edge as pills until
+ * the spacious pass, 2026-11-23). Every icon carries its own `data-card` for
+ * the home tap tracking.
  */
 export default function ServiceGrid({
   lang,
@@ -154,8 +155,8 @@ export default function ServiceGrid({
         })}
       </ul>
 
-      {/* Two pills on the card's bottom edge: more icons, and one line about
-          every page — from the start, since a new reader needs it most. */}
+      {/* The card's last row: more icons, and one line about every page —
+          from the start, since a new reader needs it most. */}
       <div className="hm-hang">
         <button
           type="button"

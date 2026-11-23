@@ -32,7 +32,8 @@ interface NewsItem {
   code: string;
   name: string;
   kind: Bi;
-  warn: boolean;
+  /** Colour for the kind word: a better result green, a weaker one or the auditor's words amber. */
+  tone: "good" | "warn" | null;
   text: Bi;
   href: string;
 }
@@ -92,7 +93,7 @@ export default function OnYourShares({
         code,
         name: shortName(r.name, code),
         kind: { en: `Results · ${lvl.short}`, bn: `আর্থিক ফল · ${lvl.shortBn}` },
-        warn: r.level === "bad",
+        tone: r.level === "good" ? "good" : r.level === "bad" ? "warn" : null,
         text: { en: r.headline_en, bn: r.headline_bn || r.headline_en },
         href: `/stock/${encodeURIComponent(code)}#results`,
       });
@@ -113,7 +114,7 @@ export default function OnYourShares({
         code,
         name: shortName(priceMap.get(code)?.company_name, code),
         kind: KIND_WORD[read.kind],
-        warn: WARN.has(read.kind),
+        tone: WARN.has(read.kind) ? "warn" : null,
         text: read.text,
         href: `/stock/${encodeURIComponent(code)}#news`,
       });
@@ -146,72 +147,82 @@ export default function OnYourShares({
   }
 
   const total = items.length + dates.length;
+  // Two halves, each with a small label (spacious pass, 2026-11-23): what is
+  // new on the reader's shares, then this week's dates. Side by side from 1024px.
   return (
     <section className={`hm-ours ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined} data-card="on-your-shares">
       <div className="hm-head">
         <h2 className="hm-head-h">{bn ? "আপনার শেয়ারে" : "On your shares"}</h2>
-        <span className="hm-head-note">{bn ? "নতুন খবর আর এ সপ্তাহের তারিখ" : "What's new, and this week's dates"}</span>
       </div>
       <div className="hm-tcard">
-        {items.length > 0 && (
-          <ul className="hm-nlist">
-            {items.slice(0, premium ? NEWS_ROWS : FREE_ROWS).map((r) => (
-              <li key={r.key}>
-                <Link href={r.href} className="hm-nrow">
-                  <span className="hm-nrow-txt">
-                    <span className="hm-nrow-top">
-                      <span className={`hm-kind${r.warn ? " hm-kind--warn" : ""}`}>{pick(r.kind)}</span>
-                      <span className="hm-nrow-co">{r.name}</span>
-                      <span className="hm-nrow-day nums">{pick(whenWord(todayIso, r.iso))}</span>
-                    </span>
-                    <span className="hm-nrow-text">{pick(r.text)}</span>
-                  </span>
-                  <span className="hm-chev" aria-hidden>
-                    <IconChevronRight size={16} />
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-        {!premium && items.length > FREE_ROWS && (
-          <Link href="/premium?src=home-ours#pay" className="hm-ours-lock" data-card="ours-premium">
-            <IconLock size={14} />
-            <span>
-              {bn
-                ? `আপনার শেয়ারে আরও ${items.length - FREE_ROWS}টি খবর। কোন শেয়ারে, প্রিমিয়ামে দেখুন।`
-                : `${items.length - FREE_ROWS} more ${items.length - FREE_ROWS === 1 ? "update" : "updates"} on your shares. See which with Premium.`}
-            </span>
-          </Link>
-        )}
-        {dates.length > 0 && (
-          <ul className="hm-dlist hm-ours-dates">
-            {dates.slice(0, DATE_ROWS).map((d) => (
-              <li key={`${d.code}-${d.iso}-${d.what.en}`}>
-                <Link href={d.href} className="hm-drow">
-                  <DateTile iso={d.iso} small soon={daysFrom(todayIso, d.iso) <= 1} />
-                  <span className="hm-drow-txt">
-                    <b className="hm-drow-code">{d.code}</b>
-                    <span className="hm-drow-what">
-                      {pick(whenWord(todayIso, d.iso))} · {pick(d.what)}
-                    </span>
-                  </span>
-                  <span className="hm-chev" aria-hidden>
-                    <IconChevronRight size={16} />
+        <div className="hm-ours-body">
+          {items.length > 0 && (
+            <div className="hm-ours-new">
+              <p className="hm-ours-sub">{bn ? "নতুন" : "New"}</p>
+              <ul className="hm-nlist">
+                {items.slice(0, premium ? NEWS_ROWS : FREE_ROWS).map((r) => (
+                  <li key={r.key}>
+                    <Link href={r.href} className="hm-nrow">
+                      <span className="hm-nrow-txt">
+                        <span className="hm-nrow-top">
+                          <span className={`hm-kind${r.tone ? ` hm-kind--${r.tone}` : ""}`}>{pick(r.kind)}</span>
+                          <span className="hm-nrow-day nums">{pick(whenWord(todayIso, r.iso))}</span>
+                        </span>
+                        <span className="hm-nrow-co">{r.name}</span>
+                        <span className="hm-nrow-text">{pick(r.text)}</span>
+                      </span>
+                      <span className="hm-chev" aria-hidden>
+                        <IconChevronRight size={16} />
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              {!premium && items.length > FREE_ROWS && (
+                <Link href="/premium?src=home-ours#pay" className="hm-ours-lock" data-card="ours-premium">
+                  <IconLock size={15} />
+                  <span>
+                    {bn
+                      ? `আপনার শেয়ারে আরও ${items.length - FREE_ROWS}টি খবর। কোন শেয়ারে, প্রিমিয়ামে দেখুন।`
+                      : `${items.length - FREE_ROWS} more ${items.length - FREE_ROWS === 1 ? "update" : "updates"} on your shares. See which with Premium.`}
                   </span>
                 </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+              )}
+            </div>
+          )}
+          {dates.length > 0 && (
+            <div className="hm-ours-dates">
+              <p className="hm-ours-sub">{bn ? "এ সপ্তাহে" : "This week"}</p>
+              <ul className="hm-dlist">
+                {dates.slice(0, DATE_ROWS).map((d) => (
+                  <li key={`${d.code}-${d.iso}-${d.what.en}`}>
+                    <Link href={d.href} className="hm-drow">
+                      <DateTile iso={d.iso} small soon={daysFrom(todayIso, d.iso) <= 1} />
+                      <span className="hm-drow-txt">
+                        <b className="hm-drow-code">{d.code}</b>
+                        <span className="hm-drow-what">
+                          {pick(whenWord(todayIso, d.iso))} · {pick(d.what)}
+                        </span>
+                      </span>
+                      <span className="hm-chev" aria-hidden>
+                        <IconChevronRight size={16} />
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
         <Link href="/notifications" className="hm-dmore hm-ours-all">
           {total > NEWS_ROWS + DATE_ROWS || items.length > NEWS_ROWS || dates.length > DATE_ROWS
             ? bn
-              ? "আপডেটে সব দেখুন ›"
-              : "See everything in Updates ›"
+              ? "আপডেটে সব দেখুন"
+              : "See everything in Updates"
             : bn
-              ? "সব আপডেট ›"
-              : "All updates ›"}
+              ? "সব আপডেট"
+              : "All updates"}
+          <IconChevronRight size={16} />
         </Link>
       </div>
     </section>

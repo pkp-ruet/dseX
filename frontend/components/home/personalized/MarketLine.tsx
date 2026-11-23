@@ -96,7 +96,7 @@ export default function MarketLine({
         <span className="hm-mkt-t2 nums">
           {bn ? "ডিএসইএক্স" : "DSEX"} {dsex}{" "}
           {chg != null && (
-            <span className={up ? "text-positive" : "text-negative"}>
+            <span className={`font-semibold ${up ? "text-positive" : "text-negative"}`}>
               {up ? "▲" : "▼"} {signed(chg)}
               {chgPct != null && ` (${signed(chgPct)}%)`}
             </span>

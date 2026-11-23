@@ -19,13 +19,30 @@
    offer slot sits beside the market line + the story rings card (dense flow
    pulls it up into the row the stories start); the two columns share a top
    and a bottom line, and the slot's pager sits inside its card.
+
+   The spacious pass (2026-11-23, user: "redesign homepage to make it look
+   more spacious and clean"; mockup
+   https://claude.ai/artifact/V1QgJF34Gyq9iG5QKhv3A5, "Yes, build it"): same
+   blocks, same words. 40px between blocks on phones and 56px from 1024px;
+   the band sits open on the canvas and the icon card no longer overlaps it;
+   "See more" and "What is each one?" are the icon card's last row; headings
+   are 20px with their note under them; rows get 16–20px of padding; a
+   divider inside a card starts after the icon; "On your shares" has two
+   small labels (New, This week) and plain coloured kind words; from 1024px
+   "Today for you" is three cards. Don't bring back the overlap, the hanging
+   pills or the boxed band.
    =================================================================== */
 
-.hm { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-6); padding-top: var(--space-4); }
+.hm {
+  display: grid; grid-template-columns: minmax(0, 1fr);
+  gap: calc(var(--space-8) + var(--space-2));
+  padding-top: var(--space-6);
+}
 /* Every block may shrink to the screen: a grid item's default minimum is its
    content's width, and the story rings row is many screens wide. */
 .hm > * { min-width: 0; }
-.hm-top { margin-bottom: var(--space-4); }
+/* The band and the icon card: one pair, 32px apart. */
+.hm-top { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-8); min-width: 0; }
 /* The column MUST be minmax(0, 1fr): an implicit `auto` column grows to the
    story rings row's full width and pushed the rings and the market line off
    the right edge of a phone (2026-11-17). */
@@ -34,39 +51,45 @@
 /* No stories to show: no empty card, no extra gap. */
 .hm-stories { min-width: 0; }
 .hm-stories:empty { display: none; }
+.hm-stories .story-rail { gap: var(--space-4); }
 @media (min-width: 1024px) {
-  .hm { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); grid-auto-flow: row dense; column-gap: var(--space-6); align-items: start; }
+  .hm {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); grid-auto-flow: row dense;
+    column-gap: var(--space-8); row-gap: calc(var(--space-12) + var(--space-2));
+    align-items: start; padding-top: var(--space-8);
+  }
   .hm-top, .hm-today, .hm-ours { grid-column: 1 / -1; }
   /* The slot and the stories column are one pair (2026-11-18, user: the side
      by side "is not looking clean on desktop"): both stretch to the same
      bottom line, the market line on top of the right one, the story rings in
      a card that takes the rest of its height. */
   .hm-slot { grid-column: 1; align-self: stretch; }
-  .hm-side { grid-column: 2; align-self: stretch; grid-template-rows: auto 1fr; }
+  .hm-side { grid-column: 2; align-self: stretch; grid-template-rows: auto 1fr; gap: var(--space-6); }
   .hm-side .hm-mkt { order: -1; }
   .hm:not(:has(.hm-slot)) .hm-side { grid-column: 1 / -1; }
   .hm-stories {
     display: flex; flex-direction: column;
-    padding: var(--space-4) var(--space-4) var(--space-2);
-    border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: var(--space-6) var(--space-6) var(--space-4);
+    border: 1px solid rgb(var(--border-rgb) / 0.7); border-radius: var(--radius-lg);
     background: var(--surface);
   }
   .hm-stories > div { flex: 1 1 auto; display: flex; flex-direction: column; }
-  .hm-stories .hm-head { margin-bottom: var(--space-2); }
   /* The rings sit in the middle of the space under the heading. */
   .hm-stories .story-rail { margin-block: auto; }
 }
 
-/* ONE heading for every block (round 2, 2026-11-18): your shares today,
-   continue where you left off, today for you. Title left, an optional note
-   right. */
+/* ONE heading for every block (round 2, 2026-11-18; spacious pass
+   2026-11-23): the 20px title, an optional note under it in the secondary
+   ink (`.hm-head-txt` holds the two), and an optional control on the right
+   (the story rings' arrows, the guest's Example tag). */
 .hm-head {
-  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
-  gap: var(--space-1) var(--space-3); margin-bottom: var(--space-3);
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: var(--space-1) var(--space-3); margin-bottom: var(--space-4);
 }
-.hm-head-h { font-size: var(--fs-md); font-weight: 600; line-height: 1.3; color: var(--text); }
-.hm-head-note { font-size: var(--fs-2xs); font-weight: 400; color: var(--text-muted); }
-.hm-head-end { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
+.hm-head-txt { display: grid; gap: var(--space-1); min-width: 0; }
+.hm-head-h { font-size: var(--fs-lg); font-weight: 700; line-height: 1.3; color: var(--text); text-wrap: balance; }
+.hm-head-note { font-size: var(--fs-xs); font-weight: 400; line-height: 1.45; color: var(--text-muted); }
+.hm-head > .hm-g-ex { margin-top: 3px; }
 
 /* The story rings' arrows (mouse only; phones swipe). 32px with a 40px tap
    area, so the heading stays one line. */
@@ -84,89 +107,90 @@
 .hm-rail-btn:disabled { opacity: 0.35; cursor: default; }
 .hm-rail-btn--prev svg { transform: rotate(180deg); }
 
-/* ---------- 1 · The band ---------- */
-.hm-band {
-  padding: var(--space-4) var(--space-4) calc(var(--space-8) + var(--space-3));
-  border: 1px solid rgb(var(--border-rgb) / 0.7);
-  border-radius: var(--radius-xl);
-  background: var(--surface-warm);
-}
+/* ---------- 1 · The band ----------
+   Open on the canvas since the spacious pass (2026-11-23): no tinted box, so
+   the greeting, the money card and the search read as the page's top. */
+.hm-band { padding: 0; }
 .hm-band-in {
-  display: grid; grid-template-columns: 52px minmax(0, 1fr);
-  column-gap: var(--space-3); row-gap: var(--space-3); align-items: center;
+  display: grid; grid-template-columns: 48px minmax(0, 1fr);
+  column-gap: var(--space-4); row-gap: var(--space-3); align-items: start;
 }
 .hm-av {
-  position: relative; width: 52px; height: 52px; border-radius: 50%;
+  position: relative; width: 48px; height: 48px; border-radius: 50%;
   display: grid; place-items: center;
   background: var(--primary); color: var(--on-fill);
   font-size: var(--fs-lg); font-weight: 700;
-  box-shadow: 0 0 0 3px var(--surface);
 }
 .hm-av-crown {
   position: absolute; right: -4px; bottom: -3px; width: 22px; height: 22px; border-radius: 50%;
   display: grid; place-items: center;
   background: var(--gold-light); color: var(--gold-ink);
-  box-shadow: 0 0 0 2px var(--surface);
+  box-shadow: 0 0 0 2px var(--bg);
 }
 .hm-date {
   display: flex; align-items: center; gap: var(--space-2); min-width: 0;
   font-size: var(--fs-2xs); font-weight: 400; color: var(--text-muted);
 }
-.hm-date-sep { width: 1px; height: 12px; flex: none; background: var(--border); }
+.hm-date-sep { width: 4px; height: 4px; flex: none; border-radius: 50%; background: var(--text-muted); }
 .hm-hi {
-  margin-top: 2px; font-size: var(--fs-xl); font-weight: 700; line-height: 1.2;
+  margin-top: var(--space-1); font-size: var(--fs-xl); font-weight: 700; line-height: 1.2;
   letter-spacing: -0.01em; color: var(--text); text-wrap: balance;
 }
 /* Round 2 (2026-11-18): the money spans the band on phones, so the value can
-   be the biggest number on the screen. */
-.hm-pill-wrap { grid-column: 1 / -1; min-width: 0; }
+   be the biggest number on the screen. 20px under the greeting. */
+.hm-pill-wrap { grid-column: 1 / -1; min-width: 0; margin-top: var(--space-2); }
 
-/* The reader's plan, under the greeting: Premium till when, or the free
-   analyses left this month (one tap to /premium). */
+/* The reader's plan, under the greeting: the free analyses left this month as
+   a plain link (one tap to /premium); a Premium reader only sees it as the
+   renewal reminder chip in their last 10 days. */
 .hm-plan {
   position: relative;
-  display: inline-flex; align-items: center; gap: 6px; max-width: 100%;
-  margin-top: var(--space-2); min-height: 30px; padding: 0 var(--space-3) 0 var(--space-2);
-  border: 1px solid var(--border); border-radius: 999px; background: var(--surface);
-  font-size: var(--fs-2xs); font-weight: 600; color: var(--text);
+  display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; max-width: 100%;
+  margin-top: var(--space-1); min-height: 40px;
+  font-size: var(--fs-xs); font-weight: 400; line-height: 1.4; color: var(--text-muted);
 }
-/* A 40px tap area around a 30px chip. */
-.hm-plan::after { content: ""; position: absolute; inset: -5px 0; }
-.hm-plan:hover { border-color: rgb(var(--primary-rgb) / 0.45); }
-.hm-plan svg { flex: none; color: var(--gold-ink); }
-.hm-plan-txt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.hm-plan--prem { border-color: transparent; background: var(--gold-light); box-shadow: inset 0 0 0 1px rgb(var(--gold-rgb) / 0.9); }
-.hm-plan--prem:hover { border-color: transparent; }
+.hm-plan > svg { flex: none; color: var(--gold-ink); }
+.hm-plan-txt { min-width: 0; }
+.hm-plan-go { display: inline-flex; align-items: center; gap: 2px; font-weight: 600; color: var(--primary-ink); white-space: nowrap; }
+.hm-plan:hover .hm-plan-go { text-decoration: underline; text-underline-offset: 3px; }
+/* The renewal reminder stays a chip: it is the one line here that asks for something. */
+.hm-plan--prem {
+  flex-wrap: nowrap; min-height: 32px; margin-top: var(--space-2); padding: 0 var(--space-3) 0 var(--space-2);
+  border-radius: 999px; background: var(--gold-light); box-shadow: inset 0 0 0 1px rgb(var(--gold-rgb) / 0.9);
+  font-weight: 600; color: var(--text);
+}
+/* A 40px tap area around the 32px chip. */
+.hm-plan--prem::after { content: ""; position: absolute; inset: -4px 0; }
+.hm-plan--prem .hm-plan-txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* The last 3 days of Premium: amber, like the renewal banner. */
 .hm-plan--soon { background: rgb(var(--watch-rgb) / 0.14); box-shadow: inset 0 0 0 1px rgb(var(--watch-rgb) / 0.6); }
-.hm-plan--soon svg { color: var(--watch); }
+.hm-plan--soon > svg { color: var(--watch); }
+/* The money: one calm card, full width ("See my portfolio" / "Add your
+   shares", or the value once shown). */
 .hm-pill {
-  display: inline-flex; align-items: center; flex-wrap: wrap; gap: 4px var(--space-2);
-  min-height: 44px; max-width: 100%;
-  padding: 5px var(--space-4) 5px 5px;
-  border: 1px solid var(--border); border-radius: 999px;
+  display: flex; align-items: center; gap: var(--space-3); width: 100%;
+  min-height: 64px; padding: var(--space-2) var(--space-4) var(--space-2) var(--space-2);
+  border: 1px solid rgb(var(--border-rgb) / 0.7); border-radius: var(--radius-lg);
   background: var(--surface); box-shadow: var(--shadow-soft);
-  font-size: var(--fs-sm); font-weight: 600; color: var(--text);
+  font-size: var(--fs-base); font-weight: 600; color: var(--text); text-align: left;
   transition: border-color 0.15s ease;
 }
 .hm-pill:hover { border-color: rgb(var(--primary-rgb) / 0.45); }
 .hm-pill:active { background: var(--surface-2); }
-.hm-pill--wait { width: 196px; background: var(--surface-2); box-shadow: none; }
+.hm-pill--wait { background: var(--surface-2); box-shadow: none; }
+.hm-pill-label { flex: 1; min-width: 0; }
 .hm-pill-ic {
-  flex: none; width: 32px; height: 32px; border-radius: 50%;
+  flex: none; width: 44px; height: 44px; border-radius: 50%;
   display: grid; place-items: center;
   background: var(--primary); color: var(--on-fill);
 }
 /* Shown: the eye (44px) hides it again; everything right of it, the arrow
    included, opens the portfolio. */
-.hm-pill--open {
-  display: flex; width: 100%; flex-wrap: nowrap; gap: var(--space-3);
-  padding: var(--space-2); border-radius: var(--radius-lg);
-}
-.hm-pill-eye { width: 44px; height: 44px; cursor: pointer; }
+.hm-pill--open { flex-wrap: nowrap; }
+.hm-pill-eye { cursor: pointer; }
 .hm-pill-eye:hover { background: var(--primary-ink); }
 .hm-pill-open { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--space-2); color: var(--text); }
-.hm-pill-txt { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.hm-pill-txt { flex: 1; min-width: 0; display: grid; gap: var(--space-1); }
 .hm-pill-l1 { display: flex; flex-wrap: wrap; align-items: center; gap: 4px var(--space-2); }
 .hm-pill-val { font-size: var(--fs-xl); font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; }
 .hm-pill-day {
@@ -175,17 +199,18 @@
 }
 .hm-pill-day--up { background: rgb(var(--positive-rgb) / 0.12); color: var(--positive); }
 .hm-pill-day--down { background: rgb(var(--negative-rgb) / 0.12); color: var(--negative); }
-.hm-pill-l2 { font-size: var(--fs-2xs); font-weight: 600; }
+.hm-pill-l2 { font-size: var(--fs-xs); font-weight: 400; color: var(--text-muted); }
 .hm-pill-chev { flex: none; display: grid; place-items: center; color: var(--primary-ink); }
 
-/* The search field (opens the site's search) */
+/* The search field (opens the site's search); its words read like a
+   field's placeholder. */
 .hm-search {
   grid-column: 1 / -1;
-  display: flex; align-items: center; gap: var(--space-2);
-  width: 100%; min-width: 0; min-height: 44px; padding: 0 var(--space-4);
-  border: 1px solid var(--border); border-radius: var(--radius-md);
+  display: flex; align-items: center; gap: var(--space-3);
+  width: 100%; min-width: 0; min-height: 52px; padding: 0 calc(var(--space-4) + 2px);
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
   background: var(--surface);
-  font-size: var(--fs-sm); font-weight: 600; color: var(--text); text-align: left;
+  font-size: var(--fs-sm); font-weight: 400; color: var(--text-muted); text-align: left;
   cursor: pointer; transition: border-color 0.15s ease;
 }
 .hm-search:hover { border-color: rgb(var(--primary-rgb) / 0.45); }
@@ -193,41 +218,53 @@
 .hm-search svg { flex: none; color: var(--primary); }
 .hm-search span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (min-width: 640px) {
-  .hm-band { padding: var(--space-6) var(--space-6) calc(var(--space-8) + var(--space-4)); }
-  .hm-band-in { grid-template-columns: 56px minmax(0, 1fr) auto; }
-  .hm-av { width: 56px; height: 56px; }
-  .hm-pill-wrap { grid-column: 3; grid-row: 1; }
-  .hm-pill--open { width: auto; }
+  .hm-band-in { grid-template-columns: 56px minmax(0, 1fr); }
+  .hm-av { width: 56px; height: 56px; font-size: var(--fs-xl); }
   .hm-hi { font-size: var(--fs-2xl); }
 }
+/* From 900px the money card sits on the right of the greeting, and the
+   search runs the full width under both. */
+@media (min-width: 900px) {
+  .hm-band-in { grid-template-columns: 56px minmax(0, 1fr) minmax(0, 340px); row-gap: var(--space-6); }
+  .hm-pill-wrap { grid-column: 3; grid-row: 1; align-self: center; margin-top: 0; }
+  .hm-pill { min-height: 72px; }
+  .hm-search { min-height: 56px; font-size: var(--fs-base); }
+}
 
-/* ---------- 2 · What you can do ---------- */
+/* ---------- 2 · What you can do ----------
+   One card of its own since the spacious pass (2026-11-23): 32px under the
+   band instead of overlapping it, more room between the rows, and "See more"
+   + "What is each one?" as its last row. */
 .hm-grid {
-  position: relative;
-  margin: calc(var(--space-6) * -1 - var(--space-1)) var(--space-3) 0;
-  padding: var(--space-4) var(--space-2) var(--space-8);
-  border: 1px solid var(--border); border-radius: var(--radius-xl);
-  background: var(--surface); box-shadow: var(--shadow-lift);
+  position: relative; overflow: hidden;
+  border: 1px solid rgb(var(--border-rgb) / 0.7); border-radius: var(--radius-xl);
+  background: var(--surface); box-shadow: var(--shadow-soft);
 }
 .hm-grid-list {
-  list-style: none; margin: 0; padding: 0;
+  list-style: none; margin: 0; padding: var(--space-6) 6px calc(var(--space-4) + 6px);
   display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
-  row-gap: var(--space-3); column-gap: 2px;
+  row-gap: var(--space-6); column-gap: var(--space-1);
 }
 @media (min-width: 640px) {
-  .hm-grid { margin-inline: var(--space-4); padding-inline: var(--space-3); }
-  .hm-grid-list { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  .hm-grid-list {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    padding: var(--space-8) var(--space-4) var(--space-6);
+    row-gap: var(--space-8); column-gap: var(--space-2);
+  }
 }
 .hm-svc {
-  display: flex; flex-direction: column; align-items: center; gap: 7px;
-  min-height: 92px; padding: 6px 2px; border-radius: var(--radius-md);
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 6px 2px; border-radius: var(--radius-md);
   text-align: center; color: var(--text);
 }
 .hm-svc:hover, .hm-svc:active { background: var(--surface-2); }
 .hm-svc-ic {
-  position: relative; width: 56px; height: 56px; border-radius: 50%;
+  position: relative; width: 52px; height: 52px; border-radius: 50%;
   display: grid; place-items: center;
-  background: rgb(var(--primary-rgb) / 0.12); color: var(--primary);
+  background: rgb(var(--primary-rgb) / 0.1); color: var(--primary);
+}
+@media (min-width: 640px) {
+  .hm-svc-ic { width: 56px; height: 56px; }
 }
 /* A member's Premium pages: a thin gold ring where a free reader sees a crown. */
 .hm-svc-ic--member { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--gold); }
@@ -245,25 +282,26 @@
   background: var(--surface); color: var(--gold-ink);
   box-shadow: 0 0 0 1.5px rgb(var(--gold-rgb) / 0.9);
 }
-/* "See more" and "What is each one?" sit on the card's bottom edge. */
+/* "See more" and "What is each one?": the card's last row, two halves split
+   by a hairline (they hung off the card's bottom edge as pills until the
+   spacious pass). */
 .hm-hang {
-  position: absolute; left: var(--space-2); right: var(--space-2); bottom: -20px;
-  display: flex; justify-content: center; gap: var(--space-2);
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid rgb(var(--border-rgb) / 0.7);
 }
 .hm-more {
-  display: inline-flex; align-items: center; gap: 4px;
-  min-height: 40px; padding: 0 var(--space-4);
-  border: 1px solid var(--border); border-radius: 999px;
-  background: var(--surface); box-shadow: var(--shadow-soft);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 52px; padding: 0 var(--space-3);
   font-size: var(--fs-xs); font-weight: 600; color: var(--primary-ink); white-space: nowrap;
 }
-.hm-more:hover { border-color: rgb(var(--primary-rgb) / 0.45); }
+.hm-more:hover, .hm-more:active { background: var(--surface-2); }
+.hm-more:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
 .hm-more svg { flex: none; transition: transform 0.15s ease; }
 .hm-more[aria-expanded="true"] svg { transform: rotate(180deg); }
-.hm-help { gap: 6px; padding: 0 var(--space-3); }
-/* Under 360px both labels don't fit: the help pill keeps only its icon. */
+.hm-help { border-left: 1px solid rgb(var(--border-rgb) / 0.7); }
+/* Under 360px "What is each one?" doesn't fit its half: it keeps only its icon
+   (the button carries the words as its aria-label). */
 @media (max-width: 359px) {
-  .hm-help { width: 40px; padding: 0; justify-content: center; }
   .hm-help-txt { display: none; }
 }
 
@@ -304,26 +342,26 @@
 }
 .hm-track::-webkit-scrollbar { display: none; }
 .hm-slide {
-  flex: 0 0 calc(100% - 36px); scroll-snap-align: start; min-width: 0;
-  display: flex; flex-direction: column; gap: var(--space-2);
-  padding: var(--space-4);
-  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  flex: 0 0 calc(100% - 28px); scroll-snap-align: start; min-width: 0;
+  display: flex; flex-direction: column; gap: var(--space-3);
+  padding: calc(var(--space-4) + var(--space-1));
+  border: 1px solid rgb(var(--border-rgb) / 0.7); border-radius: var(--radius-lg);
   background: var(--surface);
 }
 .hm-track > .hm-slide:only-child { flex-basis: 100%; }
-.hm-slide--gold { background: rgb(var(--gold-rgb) / 0.12); border-color: rgb(var(--gold-rgb) / 0.6); }
-.hm-slide--clay { background: rgb(var(--primary-rgb) / 0.07); border-color: rgb(var(--primary-rgb) / 0.3); }
+.hm-slide--gold { background: rgb(var(--gold-rgb) / 0.08); border-color: rgb(var(--gold-rgb) / 0.45); }
+.hm-slide--clay { background: rgb(var(--primary-rgb) / 0.05); border-color: rgb(var(--primary-rgb) / 0.25); }
 .hm-sl-eye { display: flex; align-items: center; gap: 6px; font-size: var(--fs-2xs); font-weight: 600; color: var(--text); }
 .hm-sl-eye svg { flex: none; color: var(--primary); }
 .hm-slide--gold .hm-sl-eye svg { color: var(--gold-ink); }
-.hm-sl-title { font-size: var(--fs-title); font-weight: 600; line-height: 1.3; color: var(--text); text-wrap: balance; }
+.hm-sl-title { font-size: var(--fs-lg); font-weight: 600; line-height: 1.3; color: var(--text); text-wrap: balance; }
 .hm-sl-body { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
 .hm-sl-small { font-size: var(--fs-xs); line-height: 1.5; color: var(--text-muted); }
 .hm-sl-price { display: flex; align-items: baseline; gap: var(--space-2); color: var(--text); }
 .hm-sl-price b { font-size: var(--fs-xl); line-height: 1; }
 .hm-sl-price s { font-size: var(--fs-sm); font-weight: 600; }
-.hm-sl-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; font-size: var(--fs-sm); color: var(--text); }
-.hm-sl-list li { display: flex; align-items: flex-start; gap: var(--space-2); min-width: 0; overflow-wrap: anywhere; }
+.hm-sl-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
+.hm-sl-list li { display: flex; align-items: flex-start; gap: 10px; min-width: 0; overflow-wrap: anywhere; }
 .hm-sl-list svg { flex: none; margin-top: 3px; color: var(--primary); }
 .hm-slide--gold .hm-sl-list svg { color: var(--gold-ink); }
 .hm-sl-num {
@@ -347,7 +385,7 @@
   font-size: var(--fs-xs); font-weight: 600; color: var(--text);
   text-decoration: underline; text-underline-offset: 3px;
 }
-.hm-slot-foot { display: flex; align-items: center; justify-content: center; gap: var(--space-3); margin-top: var(--space-2); min-height: 16px; }
+.hm-slot-foot { display: flex; align-items: center; justify-content: center; gap: var(--space-3); margin-top: var(--space-4); min-height: 16px; }
 .hm-dots { display: flex; gap: 6px; }
 .hm-dot { width: 7px; height: 7px; border-radius: 999px; background: rgb(var(--text-rgb) / 0.25); transition: width 0.2s ease; }
 .hm-dot[data-on] { width: 18px; background: var(--primary); }
@@ -368,9 +406,11 @@
      of hanging under the card (2026-11-18). */
   .hm-slot { position: relative; display: flex; flex-direction: column; }
   .hm-track { flex: 1 1 auto; }
-  .hm-slide { flex-basis: 100%; }
+  .hm-slide { flex-basis: 100%; gap: var(--space-4); padding: calc(var(--space-6) + var(--space-1)); }
+  .hm-sl-title { font-size: var(--fs-xl); line-height: 1.25; }
   .hm-slot-foot {
-    position: absolute; right: calc(var(--space-4) + 1px); bottom: calc(var(--space-4) + 1px);
+    position: absolute;
+    right: calc(var(--space-6) + var(--space-1) + 1px); bottom: calc(var(--space-6) + var(--space-1) + 1px);
     margin: 0; min-height: 0;
   }
   .hm-dots { display: none; }
@@ -379,7 +419,7 @@
   .hm-arrow:disabled:hover { border-color: var(--border); }
   /* Room for the pager (three 40px parts), so a button never runs under it. */
   .hm-slot--multi .hm-sl-acts { padding-right: 140px; }
-  .hm-slot--multi .hm-slide:not(:has(> .hm-sl-acts)) { padding-bottom: calc(var(--space-4) + 48px); }
+  .hm-slot--multi .hm-slide:not(:has(> .hm-sl-acts)) { padding-bottom: calc(var(--space-6) + var(--space-1) + 48px); }
 }
 @media (prefers-reduced-motion: reduce) {
   .hm-dot, .hm-more svg { transition: none; }
@@ -399,10 +439,10 @@
 
 /* ---------- 5 · The market in one line ---------- */
 .hm-mkt {
-  display: flex; align-items: center; gap: var(--space-3);
-  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
-  border: 1px solid var(--border); border-radius: var(--radius-lg);
-  background: var(--surface); color: var(--text);
+  display: flex; align-items: center; gap: var(--space-4);
+  padding: calc(var(--space-4) + 2px) var(--space-4) calc(var(--space-4) + 2px) calc(var(--space-4) + var(--space-1));
+  border: 1px solid rgb(var(--border-rgb) / 0.7); border-radius: var(--radius-lg);
+  background: var(--surface); box-shadow: var(--shadow-soft); color: var(--text);
 }
 .hm-mkt:hover, .hm-mkt:active { background: var(--surface-2); }
 .hm-mkt-dot { flex: none; width: 10px; height: 10px; border-radius: 50%; }
@@ -410,24 +450,23 @@
 .hm-mkt-dot--down { background: var(--negative); box-shadow: 0 0 0 4px rgb(var(--negative-rgb) / 0.16); }
 .hm-mkt-dot--weak { background: var(--watch); box-shadow: 0 0 0 4px rgb(var(--watch-rgb) / 0.16); }
 .hm-mkt-dot--steady { background: var(--text); box-shadow: 0 0 0 4px rgb(var(--text-rgb) / 0.1); }
-.hm-mkt-txt { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1px; }
-.hm-mkt-t1 { font-size: var(--fs-sm); font-weight: 600; }
-.hm-mkt-t2 { font-size: var(--fs-xs); font-weight: 600; }
-.hm-mkt-t3 { font-size: var(--fs-2xs); font-weight: 600; }
+.hm-mkt-txt { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); }
+.hm-mkt-t1 { font-size: var(--fs-base); font-weight: 600; }
+.hm-mkt-t2 { font-size: var(--fs-xs); font-weight: 400; }
+.hm-mkt-t3 { font-size: var(--fs-2xs); font-weight: 400; color: var(--text-muted); }
 .hm-spark { flex: none; display: block; }
 .hm-chev { flex: none; display: grid; place-items: center; color: var(--primary-ink); }
 
 /* ---------- 6 · Today for you ----------
-   Two cards, one shape each (tidied 2026-11-17): "Your dates this week" (a
-   date list, the dividend calendar's tiles) and three summary rows with the
-   same parts — icon · title (+ "N new") · one caption · a big number · ›.
-   No chips, no lock lines. From 1024px the two cards sit side by side; with
-   no dates card the three rows do. */
-.hm-today-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
+   Summary rows with the same parts — icon · title (+ "N new") · one caption ·
+   a big number · › (tidied 2026-11-17). No chips, no lock lines. Phones: one
+   card, the rows split by dividers that start after the icon. From 1024px
+   each row is its own card, side by side (spacious pass, 2026-11-23). */
+.hm-today-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
 .hm-tcard {
   min-width: 0; margin: 0; padding: 0; list-style: none;
-  border: 1px solid var(--border); border-radius: var(--radius-lg);
-  background: var(--surface); overflow: hidden;
+  border: 1px solid rgb(var(--border-rgb) / 0.7); border-radius: var(--radius-lg);
+  background: var(--surface); box-shadow: var(--shadow-soft); overflow: hidden;
 }
 
 /* Your dates this week */
@@ -438,13 +477,14 @@
 .hm-tcard-h { font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
 .hm-tcard-count { flex: none; font-size: var(--fs-2xs); font-weight: 600; color: var(--text); }
 .hm-dlist { list-style: none; margin: 0; padding: 0; }
+/* Date rows: the tiles keep them apart, so no divider between them. */
 .hm-drow {
-  display: grid; grid-template-columns: 44px minmax(0, 1fr) 16px; gap: var(--space-3); align-items: center;
-  min-height: 64px; padding: var(--space-2) var(--space-4);
-  border-top: 1px solid var(--border); color: var(--text);
+  display: grid; grid-template-columns: 44px minmax(0, 1fr) 16px; gap: var(--space-4); align-items: center;
+  min-height: 68px; padding: var(--space-2) var(--space-4) var(--space-2) calc(var(--space-4) + var(--space-1));
+  color: var(--text);
 }
 .hm-drow:hover, .hm-drow:active { background: var(--surface-2); }
-.hm-drow-txt { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1px; min-width: 0; }
+.hm-drow-txt { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; min-width: 0; }
 .hm-drow-code { font-size: var(--fs-sm); font-weight: 600; }
 .hm-drow-what { font-size: var(--fs-xs); line-height: 1.4; }
 .hm-dnote {
@@ -454,7 +494,8 @@
 /* "See all 6 dates": the rest opens in place (it was plain "+2 more" text). */
 .hm-dmore {
   display: flex; width: 100%; align-items: center; justify-content: space-between; gap: var(--space-2);
-  min-height: 48px; padding: 0 var(--space-4); border-top: 1px solid var(--border);
+  min-height: 52px; padding: 0 var(--space-4) 0 calc(var(--space-4) + var(--space-1));
+  border-top: 1px solid rgb(var(--border-rgb) / 0.7);
   font-size: var(--fs-xs); font-weight: 600; color: var(--primary-ink); text-align: left;
 }
 .hm-dmore:hover, .hm-dmore:active { background: var(--surface-2); }
@@ -464,20 +505,26 @@
   .hm-dmore svg { transition: none; }
 }
 
-/* The three summary rows */
-.hm-sum > li + li { border-top: 1px solid var(--border); }
+/* The summary rows. A divider starts after the icon (20px + 44px + 12px). */
+.hm-sum > li + li::before {
+  content: ""; display: block; height: 1px;
+  margin-left: calc(var(--space-4) + var(--space-1) + 44px + var(--space-3));
+  background: rgb(var(--border-rgb) / 0.7);
+}
 .hm-srow {
   display: grid; grid-template-columns: 44px minmax(0, 1fr) auto 16px; gap: var(--space-3); align-items: center;
-  min-height: 72px; padding: var(--space-3) var(--space-4); color: var(--text);
+  min-height: 84px;
+  padding: calc(var(--space-4) + var(--space-1)) var(--space-4) calc(var(--space-4) + var(--space-1)) calc(var(--space-4) + var(--space-1));
+  color: var(--text);
 }
 a.hm-srow:hover, a.hm-srow:active { background: var(--surface-2); }
 .hm-srow-ic {
   position: relative; width: 44px; height: 44px; border-radius: var(--radius-md);
   display: grid; place-items: center;
-  background: rgb(var(--primary-rgb) / 0.12); color: var(--primary);
+  background: rgb(var(--primary-rgb) / 0.1); color: var(--primary);
 }
-.hm-srow-txt { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; min-width: 0; }
-.hm-srow-title { display: flex; flex-wrap: wrap; align-items: center; gap: 2px var(--space-2); font-size: var(--fs-sm); font-weight: 600; }
+.hm-srow-txt { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); min-width: 0; }
+.hm-srow-title { display: flex; flex-wrap: wrap; align-items: center; gap: 2px var(--space-2); font-size: var(--fs-base); font-weight: 600; }
 .hm-new {
   display: inline-flex; align-items: center; padding: 0 7px; border-radius: 999px;
   background: var(--gold-light); box-shadow: inset 0 0 0 1px rgb(var(--gold-rgb) / 0.8);
@@ -485,77 +532,116 @@ a.hm-srow:hover, a.hm-srow:active { background: var(--surface-2); }
 }
 .hm-srow-cap {
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
-  font-size: var(--fs-xs); line-height: 1.4; overflow-wrap: anywhere;
+  font-size: var(--fs-xs); line-height: 1.4; color: var(--text-muted); overflow-wrap: anywhere;
 }
 .hm-srow-num { display: grid; justify-items: end; text-align: right; line-height: 1.15; }
 .hm-srow-num b { font-size: var(--fs-lg); font-weight: 700; }
-.hm-srow-num span { font-size: var(--fs-2xs); font-weight: 600; white-space: nowrap; }
+.hm-srow-num span { font-size: var(--fs-2xs); font-weight: 400; color: var(--text-muted); white-space: nowrap; }
 
+/* From 1024px: each row its own card, side by side — icon top left, the
+   title and caption, then the big number at the bottom. Two by two with four
+   rows (four in a line left each too narrow). */
 @media (min-width: 1024px) {
-  .hm-today-grid:has(> .hm-dcard) { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
-  .hm-today-grid:not(:has(> .hm-dcard)) .hm-sum { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
-  .hm-today-grid:not(:has(> .hm-dcard)) .hm-sum > li + li { border-top: 0; border-left: 1px solid var(--border); }
-  /* Four rows: two by two (four in a line left each too narrow). */
-  .hm-today-grid:not(:has(> .hm-dcard)) .hm-sum:has(> li:nth-child(4)) {
-    grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr));
+  .hm-tcard.hm-sum {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-6);
+    border: 0; border-radius: 0; background: none; box-shadow: none; overflow: visible;
   }
-  .hm-today-grid:not(:has(> .hm-dcard)) .hm-sum:has(> li:nth-child(4)) > li:nth-child(odd) { border-left: 0; }
-  .hm-today-grid:not(:has(> .hm-dcard)) .hm-sum:has(> li:nth-child(4)) > li:nth-child(n + 3) { border-top: 1px solid var(--border); }
+  .hm-tcard.hm-sum:has(> li:nth-child(4)),
+  .hm-tcard.hm-sum:has(> li:nth-child(2)):not(:has(> li:nth-child(3))) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hm-tcard.hm-sum:not(:has(> li:nth-child(2))) { grid-template-columns: minmax(0, 1fr); }
+  .hm-sum > li {
+    display: flex; min-width: 0; overflow: hidden;
+    border: 1px solid rgb(var(--border-rgb) / 0.7); border-radius: var(--radius-lg);
+    background: var(--surface); box-shadow: var(--shadow-soft);
+  }
+  .hm-sum > li + li::before { display: none; }
+  .hm-sum .hm-srow {
+    flex: 1 1 auto; min-height: 0;
+    grid-template-columns: 44px minmax(0, 1fr) 16px; grid-template-rows: auto 1fr auto;
+    grid-template-areas: "ic . chev" "txt txt txt" "num num num";
+    align-items: start; row-gap: var(--space-4); padding: var(--space-6);
+  }
+  .hm-sum .hm-srow-ic { grid-area: ic; }
+  .hm-sum .hm-srow-txt { grid-area: txt; }
+  .hm-sum .hm-srow-num { grid-area: num; display: flex; align-items: baseline; gap: 6px; text-align: left; }
+  .hm-sum .hm-srow-num b { font-size: var(--fs-xl); }
+  .hm-sum .hm-srow > .hm-chev { grid-area: chev; align-self: center; justify-self: end; }
 }
 
 /* ---------- 4 · On your shares (2026-11-20, the app map) ----------
    The newest three things on the reader's shares (results, notices to DSE as
-   plain sentences: kind word · company · day, then the sentence) and this
-   week's dates, then one link to Updates. */
+   plain sentences: kind word and day, then the company, then the sentence)
+   and this week's dates, then one link to Updates. Since the spacious pass
+   (2026-11-23) each half has a small label (New, This week); from 1024px the
+   two sit side by side in the card. */
 .hm-ours { min-width: 0; }
-.hm-ours-dates { border-top: 1px solid var(--border); }
-.hm-ours .hm-nlist + .hm-ours-dates { border-top: 1px solid var(--border); }
+.hm-ours-body { display: grid; grid-template-columns: minmax(0, 1fr); }
+.hm-ours-new { display: flex; flex-direction: column; min-width: 0; }
+.hm-ours-dates { min-width: 0; padding-bottom: var(--space-2); }
+.hm-ours-new + .hm-ours-dates { border-top: 1px solid rgb(var(--border-rgb) / 0.7); }
+@media (min-width: 1024px) {
+  .hm-ours-body:has(> .hm-ours-new + .hm-ours-dates) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hm-ours-new + .hm-ours-dates { border-top: 0; border-left: 1px solid rgb(var(--border-rgb) / 0.7); }
+  /* The Premium line closes the left half. */
+  .hm-ours-new > .hm-ours-lock { margin-top: auto; }
+}
+.hm-ours-sub {
+  margin: 0; padding: calc(var(--space-4) + 2px) var(--space-4) 0 calc(var(--space-4) + var(--space-1));
+  font-size: var(--fs-xs); font-weight: 400; color: var(--text-muted);
+}
 .hm-ours-all { text-decoration: none; color: var(--primary); font-weight: 600; }
 /* A free reader's count of the rest (THE Premium line, step 3). */
 .hm-ours-lock {
-  display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 10px 14px;
-  border-top: 1px dashed rgb(var(--gold-rgb) / 0.7); background: rgb(var(--gold-rgb) / 0.08);
-  font-size: var(--fs-sm); font-weight: 600; line-height: 1.4; color: var(--text); text-decoration: none;
+  display: flex; align-items: center; gap: 10px; min-height: 48px;
+  padding: var(--space-3) var(--space-4) var(--space-3) calc(var(--space-4) + var(--space-1));
+  border-top: 1px solid rgb(var(--border-rgb) / 0.7); background: rgb(var(--gold-rgb) / 0.08);
+  font-size: var(--fs-xs); font-weight: 600; line-height: 1.45; color: var(--text); text-decoration: none;
 }
 .hm-ours-lock svg { flex: none; color: var(--gold-ink); }
 .hm-ours-lock:hover, .hm-ours-lock:active { background: rgb(var(--gold-rgb) / 0.14); }
 .hm-ours-quiet {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-3);
-  padding: var(--space-4); color: var(--text); font-size: var(--fs-sm); text-decoration: none;
+  padding: calc(var(--space-4) + var(--space-1)); color: var(--text); font-size: var(--fs-sm); line-height: 1.5; text-decoration: none;
 }
 .hm-nlist { list-style: none; margin: 0; padding: 0; }
-.hm-nlist > li + li { border-top: 1px solid var(--border); }
+/* A divider between notices, starting at the text. */
+.hm-nlist > li + li::before {
+  content: ""; display: block; height: 1px; margin-left: calc(var(--space-4) + var(--space-1));
+  background: rgb(var(--border-rgb) / 0.7);
+}
 .hm-nrow {
   display: grid; grid-template-columns: minmax(0, 1fr) 16px; gap: var(--space-3); align-items: center;
-  padding: var(--space-3) var(--space-4); color: var(--text);
+  padding: var(--space-4) var(--space-4) var(--space-4) calc(var(--space-4) + var(--space-1)); color: var(--text);
 }
 .hm-nrow:hover, .hm-nrow:active { background: var(--surface-2); }
 .hm-nrow-txt { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); min-width: 0; }
-.hm-nrow-top { display: flex; align-items: center; gap: 6px; min-width: 0; }
-.hm-kind {
-  flex: none; display: inline-flex; align-items: center; min-height: 20px; padding: 0 var(--space-2);
-  border-radius: var(--radius-sm); background: var(--surface-2);
-  font-size: var(--fs-2xs); font-weight: 600; color: var(--text);
-}
-/* The auditor's words are a warning. */
-.hm-kind--warn { background: rgb(var(--watch-rgb) / 0.12); color: var(--watch); }
+.hm-nrow-top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); min-width: 0; }
+/* The kind word: plain small words, coloured only when they mean something
+   (a better result green; a weaker one or the auditor's words amber). */
+.hm-kind { min-width: 0; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted); }
+.hm-kind--good { color: var(--positive); }
+.hm-kind--warn, .hm-kind--watch { color: var(--watch); }
+.hm-kind--bad { color: var(--negative); }
 .hm-nrow-co {
   min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  font-size: var(--fs-xs); font-weight: 600;
+  font-size: var(--fs-base); font-weight: 600;
 }
-.hm-nrow-day { flex: none; margin-left: auto; padding-left: var(--space-2); font-size: var(--fs-2xs); font-weight: 600; }
-.hm-nrow-text { font-size: var(--fs-sm); line-height: 1.45; }
+.hm-nrow-day { flex: none; font-size: var(--fs-2xs); font-weight: 400; color: var(--text-muted); }
+.hm-nrow-text { font-size: var(--fs-sm); line-height: 1.5; }
 
 /* ---------- The review block (end of the signed-in home, 2026-11-18) ----------
    `components/feedback/FeedbackSection.tsx`: the home's heading, one card. */
-.hm-rv { margin-top: var(--space-6); }
+.hm-rv { margin-top: calc(var(--space-8) + var(--space-2)); }
+@media (min-width: 1024px) {
+  .hm-rv { margin-top: calc(var(--space-12) + var(--space-2)); }
+}
 .hm-rv-card {
-  display: grid; gap: var(--space-3); padding: var(--space-4);
-  border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface);
+  display: grid; gap: var(--space-4); padding: var(--space-6) calc(var(--space-4) + var(--space-1));
+  border: 1px solid rgb(var(--border-rgb) / 0.7); border-radius: var(--radius-lg); background: var(--surface);
 }
 .hm-rv-card > * { max-width: 640px; }
 @media (min-width: 640px) {
-  .hm-rv-card { padding: var(--space-6); }
+  .hm-rv-card { padding: var(--space-8); }
 }
 .hm-rv-lead { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
 .hm-rv-stars { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-3); }
@@ -587,8 +673,8 @@ html[data-signed-in="1"] .home-landing { display: none; }
 /* The 7-day taste (THE Premium line, step 6): one calm note under the icon
    grid while Premium is open on the reader's shares. */
 .taste-note {
-  display: grid; gap: var(--space-2); padding: 16px;
-  border: 1px solid rgb(var(--gold-rgb) / 0.6); border-radius: var(--radius-md);
+  display: grid; gap: var(--space-3); padding: calc(var(--space-4) + var(--space-1));
+  border: 1px solid rgb(var(--gold-rgb) / 0.45); border-radius: var(--radius-lg);
   background: rgb(var(--gold-rgb) / 0.08);
 }
 .taste-k { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-size: var(--fs-xs); font-weight: 600; color: var(--gold-ink); }
@@ -655,14 +741,13 @@ html[data-signed-in="1"] .home-landing { display: none; }
   font-size: var(--fs-2xs); font-weight: 600; color: var(--text); white-space: nowrap;
 }
 
-/* 4 · On your shares: the example rows' kind words, then the ask. */
-.hm-kind--good { background: rgb(var(--positive-rgb) / 0.12); color: var(--positive); }
-.hm-kind--watch { background: rgb(var(--watch-rgb) / 0.12); color: var(--watch); }
-.hm-kind--bad { background: rgb(var(--negative-rgb) / 0.12); color: var(--negative); }
+/* 4 · On your shares: the example rows (their kind words are the signed-in
+   block's, `.hm-kind--good|watch|bad`), then the ask. */
 .hm-g-ours-foot {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3);
-  padding: var(--space-3) var(--space-4); border-top: 1px solid var(--border);
-  background: rgb(var(--primary-rgb) / 0.07);
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3) var(--space-4);
+  padding: calc(var(--space-4) + 2px) var(--space-4) calc(var(--space-4) + 2px) calc(var(--space-4) + var(--space-1));
+  border-top: 1px solid rgb(var(--border-rgb) / 0.7);
+  background: rgb(var(--primary-rgb) / 0.05);
 }
 .hm-g-ours-foot p { display: grid; gap: 2px; min-width: 0; flex: 1 1 16rem; font-size: var(--fs-xs); line-height: 1.45; color: var(--text-muted); }
 .hm-g-ours-foot b { font-size: var(--fs-sm); }

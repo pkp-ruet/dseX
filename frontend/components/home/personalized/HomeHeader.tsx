@@ -45,9 +45,10 @@ function renewWords(premiumUntil: string | null | undefined, bn: boolean): { tex
   };
 }
 
-/** A free reader's chip: the free analyses left this month. */
+/** A free reader's plan line: the free analyses left this month. "See
+ *  Premium" follows it as the link's own words. */
 function planWords(keys: ReportKeys | null | undefined, bn: boolean): string {
-  if (!keys) return bn ? "ফ্রি প্ল্যান · প্রিমিয়াম দেখুন" : "Free plan · See Premium";
+  if (!keys) return bn ? "ফ্রি প্ল্যান" : "Free plan";
   if (keys.left > 0) {
     return bn
       ? `ফ্রি প্ল্যান · ${keys.per_month}টির মধ্যে ${keys.left}টি বিশ্লেষণ বাকি`
@@ -82,6 +83,11 @@ function planWords(keys: ReportKeys | null | undefined, bn: boolean): string {
  * arrow is part of the link; before the open the move says "Last close".
  *
  * Replaced `HeroGreeting` + `MoneyHero` / `MoneyHeroGhost` on the home page.
+ *
+ * Spacious pass (2026-11-23): the band sits open on the canvas, the free plan
+ * chip is a plain link ("Free plan · 6 of 10 analyses left  See Premium"),
+ * and the money button is one full-width card with a chevron (on the right
+ * of the greeting from 900px).
  */
 export default function HomeHeader({
   name,
@@ -147,18 +153,24 @@ export default function HomeHeader({
     pill = (
       <Link href="/portfolio" className="hm-pill">
         <span className="hm-pill-ic" aria-hidden>
-          <IconPlus size={16} />
+          <IconPlus size={18} />
         </span>
-        <span>{bn ? "আপনার শেয়ার যোগ করুন" : "Add your shares"}</span>
+        <span className="hm-pill-label">{bn ? "আপনার শেয়ার যোগ করুন" : "Add your shares"}</span>
+        <span className="hm-pill-chev" aria-hidden>
+          <IconChevronRight size={18} />
+        </span>
       </Link>
     );
   } else if (!shown) {
     pill = (
       <button type="button" className="hm-pill" onClick={toggle} aria-pressed={false}>
         <span className="hm-pill-ic" aria-hidden>
-          <IconEye size={16} />
+          <IconEye size={18} />
         </span>
-        <span>{bn ? "পোর্টফোলিও দেখুন" : "See my portfolio"}</span>
+        <span className="hm-pill-label">{bn ? "পোর্টফোলিও দেখুন" : "See my portfolio"}</span>
+        <span className="hm-pill-chev" aria-hidden>
+          <IconChevronRight size={18} />
+        </span>
       </button>
     );
   } else {
@@ -237,9 +249,12 @@ export default function HomeHeader({
           </h1>
           {!premium ? (
             <Link href="/premium?src=home-plan" className="hm-plan" data-card="plan">
-              <IconBook size={14} />
+              <IconBook size={15} />
               <span className="hm-plan-txt">{planWords(reportKeys, bn)}</span>
-              <IconChevronRight size={14} />
+              <span className="hm-plan-go">
+                {bn ? "প্রিমিয়াম দেখুন" : "See Premium"}
+                <IconChevronRight size={14} />
+              </span>
             </Link>
           ) : renew ? (
             <Link

@@ -31,11 +31,11 @@ export default function GuestOurs({ rows }: { rows: ExampleRow[] }) {
                     <span className={`hm-kind hm-kind--${r.tone}`}>
                       <T en={r.kind.en} bn={r.kind.bn} />
                     </span>
-                    <span className="hm-nrow-co">{r.name}</span>
                     <span className="hm-nrow-day nums">
                       <T en={r.when.en} bn={r.when.bn} />
                     </span>
                   </span>
+                  <span className="hm-nrow-co">{r.name}</span>
                   <span className="hm-nrow-text">
                     <T en={r.text.en} bn={r.text.bn} />
                   </span>
