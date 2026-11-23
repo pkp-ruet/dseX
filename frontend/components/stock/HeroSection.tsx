@@ -335,7 +335,7 @@ export default function HeroSection({ detail }: Props) {
                     <T en={f.label.en} bn={f.label.bn} />
                     {f.term && <span className="cv-term">{f.term}</span>}
                   </dt>
-                  <dd className="nums mt-0.5 text-base font-bold leading-tight text-text-main sm:text-lg">
+                  <dd className="nums mt-0.5 text-base font-semibold leading-tight text-text-main sm:text-lg">
                     <T en={f.value.en} bn={f.value.bn} />
                     {f.sub && (
                       <span className="mt-0.5 block text-xs font-semibold">

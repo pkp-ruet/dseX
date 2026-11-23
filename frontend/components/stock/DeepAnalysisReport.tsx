@@ -86,7 +86,7 @@ export default function DeepAnalysisReport({ report, writtenBefore }: Props) {
         {report.sections.map((s, i) => (
           <section key={s.key} className="stock-anchor" id={`sec-${s.key}`}>
             <div className="flex items-baseline gap-2.5 mb-2">
-              <span className="text-xs font-bold tabular-nums shrink-0 text-text-muted">
+              <span className="text-xs tabular-nums shrink-0 text-text-muted">
                 {String(i + 1).padStart(2, "0")}
               </span>
               <h3 className="text-lg sm:text-xl font-bold leading-snug text-text-main">{pair(s.title_en, s.title_bn)}</h3>

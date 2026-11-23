@@ -121,7 +121,7 @@ export default function ProfileClient() {
         {/* Your plan — with what it allows and what you use (#plan: the limit toasts open it) */}
         <div id="plan" className="soft-card p-4 scroll-mt-24">
           <div className="flex items-center justify-between gap-3 mb-2">
-            <span className="text-xs font-semibold text-text-muted">
+            <span className="text-xs text-text-muted">
               <T en="Your plan" bn="আপনার প্ল্যান" />
             </span>
             <Link href={PREMIUM_PATH} className="text-sm font-semibold text-primary">
@@ -137,7 +137,7 @@ export default function ProfileClient() {
           {/* Display name */}
           <div className="p-4">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-semibold text-text-muted">
+              <span className="text-xs text-text-muted">
                 <T en="Name" bn="নাম" />
               </span>
               {!editingName && (
@@ -189,7 +189,7 @@ export default function ProfileClient() {
 
           {/* Email / phone */}
           <div className="p-4">
-            <span className="text-xs font-semibold text-text-muted">
+            <span className="text-xs text-text-muted">
               {user.email ? <T en="Email" bn="ইমেইল" /> : <T en="Phone" bn="ফোন" />}
             </span>
             <p className="text-text-main font-medium mt-1">{identifier}</p>
@@ -200,7 +200,7 @@ export default function ProfileClient() {
           {typeof user.has_password === "boolean" && (
             <div id="sign-in" className="p-4 scroll-mt-24">
               <div className="flex items-center justify-between gap-3 mb-1">
-                <span className="text-xs font-semibold text-text-muted">
+                <span className="text-xs text-text-muted">
                   <T en="Sign-in" bn="সাইন ইন" />
                 </span>
                 {user.has_password && (
@@ -257,7 +257,7 @@ export default function ProfileClient() {
 
           {/* Member since */}
           <div className="p-4">
-            <span className="text-xs font-semibold text-text-muted">
+            <span className="text-xs text-text-muted">
               <T en="Member since" bn="সদস্য হয়েছেন" />
             </span>
             <p className="text-text-main font-medium mt-1">{joinedDate}</p>
@@ -266,7 +266,7 @@ export default function ProfileClient() {
           {/* Watchlist */}
           <div className="p-4 flex items-center justify-between">
             <div>
-              <span className="text-xs font-semibold text-text-muted">
+              <span className="text-xs text-text-muted">
                 <T en="Watchlist" bn="ওয়াচলিস্ট" />
               </span>
               <p className="text-text-main font-medium mt-1">

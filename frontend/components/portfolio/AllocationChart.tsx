@@ -147,11 +147,11 @@ export default function AllocationChart({ analysis, lang = "en" }: Props) {
                   className="flex min-h-10 min-w-0 flex-col justify-center hover:text-primary-ink active:opacity-70"
                 >
                   <span className="truncate text-sm font-semibold text-text-main">{name}</span>
-                  {name !== r.code && <span className="text-xs font-semibold text-text-muted">{r.code}</span>}
+                  {name !== r.code && <span className="text-xs text-text-muted">{r.code}</span>}
                 </Link>
                 <div className="text-right">
-                  <span className="pf-num block text-sm font-bold text-text-main">{share.toFixed(0)}%</span>
-                  <span className="pv pf-num block text-xs font-semibold text-text-muted">{takaGroup(valueOf(r))}</span>
+                  <span className="pf-num block text-sm font-semibold text-text-main">{share.toFixed(0)}%</span>
+                  <span className="pv pf-num block text-xs text-text-muted">{takaGroup(valueOf(r))}</span>
                 </div>
               </div>
               <div className="pf-bar mt-1.5" aria-hidden="true">
@@ -167,8 +167,8 @@ export default function AllocationChart({ analysis, lang = "en" }: Props) {
                 {t.more(rest.length)}
               </span>
               <div className="text-right">
-                <span className="pf-num block text-sm font-bold text-text-main">{pct(restVal).toFixed(0)}%</span>
-                <span className="pv pf-num block text-xs font-semibold text-text-muted">{takaGroup(restVal)}</span>
+                <span className="pf-num block text-sm font-semibold text-text-main">{pct(restVal).toFixed(0)}%</span>
+                <span className="pv pf-num block text-xs text-text-muted">{takaGroup(restVal)}</span>
               </div>
             </div>
             <div className="pf-bar mt-1.5" aria-hidden="true">

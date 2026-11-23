@@ -106,7 +106,7 @@ export default function InstallPrompt() {
           <div className="min-w-0 flex-1">
             {ios && !canInstall ? (
               <>
-                <p className="text-sm font-bold text-text-main">
+                <p className="text-sm font-semibold text-text-main">
                   <T en="Add TopStockBD to your home screen" bn="TopStockBD হোম স্ক্রিনে যোগ করুন" />
                 </p>
                 <p className="mt-1 text-xs leading-snug text-text-muted">
@@ -131,7 +131,7 @@ export default function InstallPrompt() {
                   <button
                     type="button"
                     onClick={dismiss}
-                    className="rounded-lg px-3 py-2 text-xs font-semibold text-text-muted hover:text-text-main"
+                    className="rounded-lg px-3 py-2 text-xs text-text-muted hover:text-text-main"
                   >
                     <T en="Got it" bn="বুঝেছি" />
                   </button>
@@ -139,7 +139,7 @@ export default function InstallPrompt() {
               </>
             ) : (
               <>
-                <p className="text-sm font-bold text-text-main">
+                <p className="text-sm font-semibold text-text-main">
                   <T en="Install TopStockBD as an app" bn="TopStockBD অ্যাপ হিসেবে ইনস্টল করুন" />
                 </p>
                 <p className="mt-1 text-xs leading-snug text-text-muted">

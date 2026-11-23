@@ -40,14 +40,14 @@
 .scr-strip-item:focus-visible { outline: none; box-shadow: var(--ring); }
 .scr-strip-item[aria-current="true"] { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); }
 .scr-strip-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.scr-strip-n { font-weight: 700; color: var(--primary-ink); }
+.scr-strip-n { font-weight: 600; color: var(--primary-ink); }
 .scr-strip-new {
   padding: 1px 8px;
   border-radius: 999px;
   background: var(--primary);
   color: var(--on-fill);
   font-size: var(--fs-xs);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 /* --- The one card --- */
@@ -62,8 +62,8 @@
 .scr-part + .scr-part { border-top: 1px solid var(--border); }
 @media (min-width: 640px) { .scr-part { padding: 20px 24px; } }
 .scr-part-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.scr-label { margin: 0; font-size: var(--fs-base); font-weight: 700; line-height: 1.3; color: var(--text); }
-.scr-note { margin: 0; font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
+.scr-label { margin: 0; font-size: var(--fs-base); font-weight: 600; line-height: 1.3; color: var(--text); }
+.scr-note { margin: 0; font-size: var(--fs-sm); line-height: 1.45; color: var(--text-muted); }
 
 .scr-link {
   min-height: 40px;
@@ -121,9 +121,9 @@
   background: var(--primary);
   color: var(--on-fill);
 }
-.scr-tile-name { font-size: var(--fs-sm); font-weight: 700; line-height: 1.3; }
+.scr-tile-name { font-size: var(--fs-sm); font-weight: 600; line-height: 1.3; }
 .scr-tile-n { margin-top: auto; font-size: var(--fs-xs); color: var(--text); }
-.scr-tile-n b { font-size: var(--fs-base); font-weight: 700; color: var(--primary-ink); }
+.scr-tile-n b { font-size: var(--fs-base); font-weight: 600; color: var(--primary-ink); }
 .scr-tile-n.is-zero b { color: var(--negative); }
 
 /* The picked list's line, under the tiles. */
@@ -157,7 +157,7 @@
   gap: 6px;
   padding: 0 4px 0 14px;
   font-size: var(--fs-sm);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text);
 }
 .scr-chip-x {
@@ -214,7 +214,7 @@
   text-align: center;
   color: var(--text);
 }
-.scr-seg-item b { font-size: var(--fs-base); font-weight: 700; }
+.scr-seg-item b { font-size: var(--fs-base); font-weight: 600; }
 .scr-seg-item b.is-zero { color: var(--negative); }
 .scr-seg-item:hover { background: rgb(var(--primary-rgb) / 0.06); }
 .scr-seg-item[aria-checked="true"] { background: var(--surface); box-shadow: var(--shadow-soft); color: var(--primary-ink); }
@@ -241,12 +241,12 @@
 }
 @media (min-width: 768px) { .scr-foot { bottom: 16px; margin: 0 16px 16px; } }
 .scr-foot-n { margin: 0; font-size: var(--fs-lg); font-weight: 700; line-height: 1.2; color: var(--text); }
-.scr-foot-note { flex: 1 1 12rem; margin: 0; font-size: var(--fs-sm); font-weight: 600; line-height: 1.4; color: var(--text); }
+.scr-foot-note { flex: 1 1 12rem; margin: 0; font-size: var(--fs-sm); font-weight: 400; line-height: 1.4; color: var(--text-muted); }
 
 /* How we pick (a sheet). */
 .scr-how-list { display: grid; gap: var(--space-3); margin: 0; }
 @media (min-width: 640px) { .scr-how-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.scr-how-list dt { font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+.scr-how-list dt { font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
 .scr-how-list dd { display: grid; gap: 2px; margin: 2px 0 0; font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
 
 /* Our own analysis: a gold dot on its chips, sheet and menu group. */
@@ -270,7 +270,7 @@
 .scr-select:focus-visible { outline: none; border-color: var(--primary); box-shadow: var(--ring); }
 
 /* --- All filters (a sheet): names in a grid, two a row --- */
-.scr-menu-head { display: flex; align-items: center; gap: 6px; margin: 0 0 8px; font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+.scr-menu-head { display: flex; align-items: center; gap: 6px; margin: 0 0 8px; font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
 .scr-menu { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
 .scr-menu-item {
   display: flex;
@@ -293,7 +293,7 @@
 .scr-menu-item:focus-visible { outline: none; box-shadow: var(--ring); }
 .scr-menu-item--ours { background: var(--gold-light); border-color: var(--gold-soft); }
 .scr-menu-item.is-on { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); }
-.scr-menu-name { font-size: var(--fs-sm); font-weight: 700; line-height: 1.3; }
+.scr-menu-name { font-size: var(--fs-sm); font-weight: 600; line-height: 1.3; }
 .scr-menu-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; font-size: var(--fs-xs); }
 .scr-menu-on { display: inline-flex; align-items: center; gap: 3px; font-weight: 700; color: var(--primary-ink); }
 
@@ -307,7 +307,7 @@
   border-radius: var(--radius);
   background: var(--gold-light);
   font-size: var(--fs-sm);
-  color: var(--text);
+  color: var(--text-muted);
 }
 .scr-view-note .scr-own-dot { margin-top: 6px; }
 
@@ -377,7 +377,7 @@
     white-space: normal;
     overflow: visible;
     font-size: var(--fs-sm);
-    font-weight: 700;
+    font-weight: 600;
     color: var(--text);
   }
   .scr-table td[data-cell="meta"]::before {
@@ -419,9 +419,9 @@
   border-top: 1px solid var(--border);
 }
 .scr-near-row > .min-w-0 { flex: 1 1 14rem; }
-.scr-near-name { font-size: var(--fs-base); font-weight: 700; color: var(--text); }
+.scr-near-name { font-size: var(--fs-base); font-weight: 600; color: var(--text); }
 .scr-near-name:hover { text-decoration: underline; }
 .scr-near-code { font-size: var(--fs-xs); font-weight: 600; }
-.scr-near-join { margin-top: 2px; font-size: var(--fs-sm); font-weight: 700; color: var(--positive); }
+.scr-near-join { margin-top: 2px; font-size: var(--fs-sm); font-weight: 600; color: var(--positive); }
 
 /* --- The Premium card: the count and one button (2026-11-14, "make it simple") --- */

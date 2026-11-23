@@ -71,7 +71,7 @@ export default function EmptyStateActions({ compact = false, onAdded }: Props = 
   return (
     <div className={`text-left ${compact ? "mt-3" : "mt-5"}`}>
       {!compact && (
-        <p className="mb-2.5 text-xs font-bold   text-text-muted">
+        <p className="mb-2.5 text-xs text-text-muted">
           <T en="Suggested to follow" bn="অনুসরণ করার মতো" />
         </p>
       )}
@@ -114,7 +114,7 @@ export default function EmptyStateActions({ compact = false, onAdded }: Props = 
                   prefetch={false}
                   className="flex min-w-0 flex-1 flex-col"
                 >
-                  <span className="text-sm font-bold leading-tight text-text-main transition-colors group-hover:text-primary">
+                  <span className="text-sm font-semibold leading-tight text-text-main transition-colors group-hover:text-primary">
                     {code}
                   </span>
                   <span className="truncate text-xs text-text-muted">
@@ -127,7 +127,7 @@ export default function EmptyStateActions({ compact = false, onAdded }: Props = 
 
                 {/* Latest price + today's move */}
                 <span className="flex shrink-0 flex-col items-end leading-tight">
-                  <span className="text-sm font-bold tabular-nums text-text-main">
+                  <span className="text-sm font-semibold tabular-nums text-text-main">
                     {taka(it.price, 1)}
                   </span>
                   <span className={`text-xs font-semibold tabular-nums ${chgClass}`}>
@@ -137,7 +137,7 @@ export default function EmptyStateActions({ compact = false, onAdded }: Props = 
 
                 {isWatched ? (
                   <span
-                    className="inline-flex h-9 shrink-0 items-center gap-1 rounded-full border border-positive/30 bg-positive/10 px-3 text-xs font-bold text-positive"
+                    className="inline-flex h-9 shrink-0 items-center gap-1 rounded-full border border-positive/30 bg-positive/10 px-3 text-xs font-semibold text-positive"
                     aria-label={L(`${code} added`, `${code} যোগ হয়েছে`)}
                   >
                     {ICON_CHECK}

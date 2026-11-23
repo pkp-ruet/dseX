@@ -29,7 +29,7 @@ export default function SectorScoringNote({
       />
 
       <div className="rounded-xl border border-border bg-surface-2 p-3.5 sm:p-4">
-        <span className="inline-flex items-center rounded-full border border-border bg-surface px-2.5 py-1 text-xs font-semibold text-text-muted">
+        <span className="inline-flex items-center rounded-full border border-border bg-surface px-2.5 py-1 text-xs text-text-muted">
           <T en="Scoring rules" bn="স্কোরের নিয়ম" /> · <T en={note.label} bn={note.label_bn ?? note.label} />
         </span>
 
@@ -37,7 +37,7 @@ export default function SectorScoringNote({
           <T en={note.en} bn={note.bn} />
         </p>
 
-        <p className="mt-3 text-xs font-semibold text-text-muted">
+        <p className="mt-3 text-xs text-text-muted">
           <T
             en="Every company gets one score out of 100 from four parts of its business: profit, finances, business strength and dividend record. The share price is judged on its own. When a company never reported a figure, that part's weight moves to the parts it did report, instead of counting as zero. "
             bn="প্রতিটি কোম্পানি ব্যবসার চারটি অংশ থেকে 100-এর মধ্যে একটি স্কোর পায়: মুনাফা, আর্থিক অবস্থা, ব্যবসার শক্তি আর ডিভিডেন্ডের ধারা। শেয়ারের দাম আলাদাভাবে বিচার করা হয়। কোনো কোম্পানি একটি তথ্য কখনো প্রকাশ না করলে সেটিকে শূন্য ধরা হয় না; তার ভার যায় প্রকাশিত অংশগুলোতে। "

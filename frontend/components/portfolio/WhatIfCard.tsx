@@ -163,8 +163,8 @@ export default function WhatIfCard({
       <div className={`flex flex-col gap-5 ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
         <div className="grid grid-cols-1 gap-5 border-t border-border pt-5 sm:grid-cols-2 sm:gap-6">
           <fieldset className="flex min-w-0 flex-col gap-2">
-            <legend className="mb-2 text-sm font-bold text-text-main">{L("1. Sell", "1. বিক্রি")}</legend>
-            <label htmlFor={`${ids}-sc`} className="text-xs font-semibold text-text-muted">
+            <legend className="mb-2 text-sm font-semibold text-text-main">{L("1. Sell", "1. বিক্রি")}</legend>
+            <label htmlFor={`${ids}-sc`} className="text-xs text-text-muted">
               {L("Stock to sell", "যে শেয়ার বিক্রি করবেন")}
             </label>
             <select
@@ -186,7 +186,7 @@ export default function WhatIfCard({
             </select>
             {sellRow && (
               <>
-                <label htmlFor={`${ids}-sq`} className="mt-1 text-xs font-semibold text-text-muted">
+                <label htmlFor={`${ids}-sq`} className="mt-1 text-xs text-text-muted">
                   {L("Shares", "শেয়ার")}
                 </label>
                 <input
@@ -208,8 +208,8 @@ export default function WhatIfCard({
           </fieldset>
 
           <fieldset className="flex min-w-0 flex-col gap-2">
-            <legend className="mb-2 text-sm font-bold text-text-main">{L("2. Buy", "2. কেনা")}</legend>
-            <label htmlFor={`${ids}-bc`} className="text-xs font-semibold text-text-muted">
+            <legend className="mb-2 text-sm font-semibold text-text-main">{L("2. Buy", "2. কেনা")}</legend>
+            <label htmlFor={`${ids}-bc`} className="text-xs text-text-muted">
               {L("Stock to buy", "যে শেয়ার কিনবেন")}
             </label>
             <input
@@ -226,7 +226,7 @@ export default function WhatIfCard({
                 <option key={c} value={c} />
               ))}
             </datalist>
-            <label htmlFor={`${ids}-ba`} className="mt-1 text-xs font-semibold text-text-muted">
+            <label htmlFor={`${ids}-ba`} className="mt-1 text-xs text-text-muted">
               {L("Amount (৳)", "টাকা (৳)")}
             </label>
             <input
@@ -260,7 +260,7 @@ export default function WhatIfCard({
           <div className="rounded-lg bg-surface-2 p-4" aria-live="polite">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <h4 className="text-sm font-bold text-text-main">{L("Your grade", "আপনার গ্রেড")}</h4>
+                <h4 className="text-sm font-semibold text-text-main">{L("Your grade", "আপনার গ্রেড")}</h4>
                 <p className={`text-sm font-semibold ${verdict.cls}`}>{verdict.text}</p>
               </div>
               <div className="flex shrink-0 items-center gap-2">

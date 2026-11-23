@@ -32,7 +32,7 @@
 .rs-day-head {
   display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
   margin: 0 0 var(--space-2); padding: 0 2px;
-  font-size: var(--fs-sm); font-weight: 700; color: var(--text);
+  font-size: var(--fs-sm); font-weight: 600; color: var(--text);
 }
 .rs-day-n { flex-shrink: 0; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .rs-list { list-style: none; margin: 0; padding: 0; overflow: hidden; }
@@ -52,7 +52,7 @@ a.rs-row:active { background: var(--surface-2); opacity: 0.85; }
 }
 .rs-meta {
   display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; margin-top: 4px;
-  font-size: var(--fs-2xs); font-weight: 600; line-height: 1.5; color: var(--text-muted);
+  font-size: var(--fs-2xs); font-weight: 400; line-height: 1.5; color: var(--text-muted);
 }
 .rs-meta .ms-own { margin-left: 0; vertical-align: 0; }
 .rs-level { display: inline-flex; align-items: center; gap: 6px; color: var(--text); }
@@ -63,7 +63,7 @@ a.rs-row:active { background: var(--surface-2); opacity: 0.85; }
 .rs-meaning { display: block; margin-top: 6px; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
 
 .rs-fig { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; text-align: right; }
-.rs-move { font-size: var(--fs-title); font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; color: var(--text); }
+.rs-move { font-size: var(--fs-title); font-weight: 600; line-height: 1.2; font-variant-numeric: tabular-nums; color: var(--text); }
 .rs-move--words { font-size: var(--fs-sm); }
 .rs-move--positive { color: var(--positive); }
 .rs-move--negative { color: var(--negative); }

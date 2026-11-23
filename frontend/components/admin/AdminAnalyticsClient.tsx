@@ -34,8 +34,8 @@ function Block({ title, note, children }: { title: string; note?: ReactNode; chi
   return (
     <Card className="min-w-0">
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <h2 className="text-base font-bold text-text-main">{title}</h2>
-        {note && <span className="text-xs font-semibold text-text-muted">{note}</span>}
+        <h2 className="text-base font-semibold text-text-main">{title}</h2>
+        {note && <span className="text-xs text-text-muted">{note}</span>}
       </div>
       {children}
     </Card>
@@ -102,7 +102,7 @@ function PremiumBlock({ d }: { d: AdminAnalyticsResponse }) {
 
       {p.plans && p.plans.length > 0 && (
         <>
-          <h3 className="mb-3 mt-6 text-sm font-bold text-text-main">Paying members by plan</h3>
+          <h3 className="mb-3 mt-6 text-sm font-semibold text-text-main">Paying members by plan</h3>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {p.plans.map((r) => (
               <Stat
@@ -116,7 +116,7 @@ function PremiumBlock({ d }: { d: AdminAnalyticsResponse }) {
         </>
       )}
 
-      <h3 className="mb-2 mt-6 text-sm font-bold text-text-main">
+      <h3 className="mb-2 mt-6 text-sm font-semibold text-text-main">
         Premium ends in the next 14 days · {n(p.ending.length)}
       </h3>
       {p.ending.length === 0 ? (
@@ -125,7 +125,7 @@ function PremiumBlock({ d }: { d: AdminAnalyticsResponse }) {
         <div className="overflow-x-auto">
           <table className="w-full min-w-0 text-sm">
             <thead>
-              <tr className="border-b border-border text-left text-xs font-semibold text-text-muted">
+              <tr className="border-b border-border text-left text-xs text-text-muted">
                 <th className="py-2 pr-3 font-semibold">Reader</th>
                 <th className="py-2 pr-3 font-semibold">Ends</th>
                 <th className="py-2 pr-3 font-semibold">Seen this week</th>
@@ -219,7 +219,7 @@ function GroupTable({ free, premium }: { free: AdminGroupFigures; premium: Admin
     <Block title="Free and Premium, side by side">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-border text-xs font-semibold text-text-muted">
+          <tr className="border-b border-border text-xs text-text-muted">
             <th className="py-2 pr-3 text-left font-semibold" scope="col"><span className="sr-only">Figure</span></th>
             <th className="py-2 pr-3 text-right font-semibold" scope="col">Free</th>
             <th className="py-2 text-right font-semibold" scope="col">Premium</th>
@@ -244,7 +244,7 @@ function AreasBlock({ d }: { d: AdminAnalyticsResponse }) {
   const max = Math.max(1, ...rows.map((r) => Math.max(r.free_pct, r.premium_pct)));
   return (
     <Block title="What readers opened" note={`Last 7 days · share of each group's active readers`}>
-      <div className="mb-3 flex gap-4 text-xs font-semibold text-text-muted">
+      <div className="mb-3 flex gap-4 text-xs text-text-muted">
         <span className="flex items-center gap-1.5"><span className="inline-block h-2 w-3 rounded-sm bg-info" />Free</span>
         <span className="flex items-center gap-1.5"><span className="inline-block h-2 w-3 rounded-sm bg-primary" />Premium</span>
       </div>
@@ -282,7 +282,7 @@ function StocksBlock({ d }: { d: AdminAnalyticsResponse }) {
         <ol className="flex flex-col">
           {d.stocks.map((s, i) => (
             <li key={s.code} className="flex items-center gap-3 border-b border-border py-2 last:border-0">
-              <span className="nums w-5 text-xs font-semibold text-text-muted">{i + 1}</span>
+              <span className="nums w-5 text-xs text-text-muted">{i + 1}</span>
               <Link href={`/stock/${s.code}`} className="flex-1 font-semibold text-text-main hover:text-primary">
                 {s.code}
               </Link>

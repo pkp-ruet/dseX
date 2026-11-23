@@ -91,15 +91,15 @@ function AlertCard({
   return (
     <div className="flex flex-col gap-2 rounded-xl border border-border bg-surface p-4">
       <div className="flex items-center justify-between gap-3">
-        <Link href={`/stock/${alert.trading_code}`} className="text-base font-bold text-primary">
+        <Link href={`/stock/${alert.trading_code}`} className="text-base font-semibold text-primary">
           {alert.trading_code}
         </Link>
         {alert.is_active ? (
-          <span className="rounded-full border border-watch/30 bg-watch/10 px-2 py-0.5 text-xs font-bold   text-watch">
+          <span className="rounded-full border border-watch/30 bg-watch/10 px-2 py-0.5 text-xs font-semibold   text-watch">
             <T en="Active" bn="চালু" />
           </span>
         ) : (
-          <span className="rounded-full border border-border bg-surface-2 px-2 py-0.5 text-xs font-bold   text-text-muted">
+          <span className="rounded-full border border-border bg-surface-2 px-2 py-0.5 text-xs text-text-muted">
             <T en={`Reached ${hit.en}`.trim()} bn={`${hit.bn} পৌঁছেছে`.trim()} />
           </span>
         )}
@@ -228,7 +228,7 @@ export default function AlertsClient({ shared = false }: { shared?: boolean }) {
     <>
       {active.length > 0 && (
         <section className="mb-6">
-          <h3 className="mb-2 text-xs font-bold text-text-muted">
+          <h3 className="mb-2 text-xs text-text-muted">
             <T
               en={`Active (${active.length}${alertLimit !== null ? ` of ${alertLimit}` : ""})`}
               bn={`চালু (${alertLimit !== null ? `${alertLimit}টির মধ্যে ` : ""}${active.length}টি)`}
@@ -244,7 +244,7 @@ export default function AlertsClient({ shared = false }: { shared?: boolean }) {
 
       {triggered.length > 0 && (
         <section>
-          <h3 className="mb-2 text-xs font-bold text-text-muted">
+          <h3 className="mb-2 text-xs text-text-muted">
             <T en="Recently reached" bn="সম্প্রতি পৌঁছেছে" />
           </h3>
           <div className="flex flex-col gap-2.5">

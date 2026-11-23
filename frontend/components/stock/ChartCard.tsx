@@ -14,14 +14,14 @@ export default function ChartCard({
   return (
     <Card padding="none" className="rounded-2xl p-5">
       <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-0.5 sm:gap-3 mb-1">
-        <p className="text-base font-bold text-text-main">{title}</p>
+        <p className="text-base font-semibold text-text-main">{title}</p>
         {subtitle && (
           <p className="text-xs font-medium text-text-muted">{subtitle}</p>
         )}
       </div>
       {pill && (
         <p
-          className="inline-block text-xs font-bold px-2.5 py-1 rounded-full mt-2 mb-1"
+          className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full mt-2 mb-1"
           style={{
             background: "color-mix(in srgb, var(--positive) 10%, transparent)",
             color: "var(--positive)",

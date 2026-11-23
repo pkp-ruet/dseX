@@ -105,7 +105,7 @@ export default function AdminDailyTipsClient() {
       {/* Header / nav */}
       <div className="flex items-center justify-between mb-6 gap-2 flex-wrap">
         <div>
-          <p className="text-xs   font-bold text-text-muted mb-1">
+          <p className="text-xs text-text-muted mb-1">
             Admin
           </p>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-text-main leading-tight">
@@ -159,7 +159,7 @@ export default function AdminDailyTipsClient() {
       <Card as="section" padding="none" className="rounded-xl overflow-hidden mb-5">
         <div className="h-1.5 w-full" style={{ background: "linear-gradient(90deg, var(--primary-ink), var(--primary))" }} />
         <div className="p-4 sm:p-5">
-          <p className="text-xs   font-bold mb-3 text-primary">
+          <p className="text-xs   font-semibold mb-3 text-primary">
             ★ Currently live on homepage · {tips.length} tips
           </p>
 
@@ -177,7 +177,7 @@ export default function AdminDailyTipsClient() {
                   <div className="min-w-0">
                     <Link
                       prefetch={false} href={`/stock/${tip.trading_code}`}
-                      className="text-sm font-bold text-text-main hover:underline"
+                      className="text-sm font-semibold text-text-main hover:underline"
                     >
                       {tip.trading_code}
                     </Link>
@@ -187,7 +187,7 @@ export default function AdminDailyTipsClient() {
                     type="button"
                     onClick={() => handleExclude(tip)}
                     disabled={busyCode != null}
-                    className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold border-2 text-negative disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                    className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold border-2 text-negative disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                     style={{ borderColor: "color-mix(in srgb, var(--negative) 40%, transparent)" }}
                   >
                     {busyCode === tip.trading_code ? "…" : "✕ Remove"}
@@ -207,7 +207,7 @@ export default function AdminDailyTipsClient() {
       {/* Excluded stocks */}
       <Card as="section" padding="none" className="rounded-xl p-4 sm:p-5">
         <div className="flex items-center justify-between mb-3 gap-2">
-          <h2 className="text-sm sm:text-base font-bold text-text-main">Excluded from tips</h2>
+          <h2 className="text-sm sm:text-base font-semibold text-text-main">Excluded from tips</h2>
           <span className="text-xs sm:text-xs text-text-muted">
             {excludes.length} {excludes.length === 1 ? "stock" : "stocks"}
           </span>
@@ -223,7 +223,7 @@ export default function AdminDailyTipsClient() {
                 className="flex items-start justify-between gap-3 rounded-lg border border-border bg-bg px-3 py-2"
               >
                 <div className="min-w-0">
-                  <Link prefetch={false} href={`/stock/${ex.trading_code}`} className="text-sm font-bold text-text-main hover:underline">
+                  <Link prefetch={false} href={`/stock/${ex.trading_code}`} className="text-sm font-semibold text-text-main hover:underline">
                     {ex.trading_code}
                   </Link>
                   {ex.company_name && (

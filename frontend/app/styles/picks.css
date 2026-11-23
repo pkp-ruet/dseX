@@ -19,9 +19,9 @@
 @media (min-width: 640px) { .fu-intro { padding: var(--space-6); } }
 .fu-eyebrow {
   display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
-  font-size: var(--fs-sm); font-weight: 600; color: var(--primary-ink);
+  font-size: var(--fs-sm); font-weight: 400; color: var(--primary-ink);
 }
-.fu-eyebrow-date { font-weight: 400; color: var(--text); }
+.fu-eyebrow-date { font-weight: 400; color: var(--text-muted); }
 .fu-intro-h {
   margin-top: var(--space-2);
   font-size: var(--fs-2xl); font-weight: 700; line-height: 1.2; letter-spacing: -0.01em;
@@ -64,17 +64,17 @@ a.fu-share:active { background: var(--surface-2); }
 .fu-locked > svg { flex: none; color: var(--gold-ink); }
 .fu-locked:hover .fu-locked-tag { text-decoration: underline; }
 .fu-locked:active { background: var(--surface-2); }
-.fu-locked-tag { flex: none; font-size: var(--fs-xs); font-weight: 700; color: var(--gold-ink); }
+.fu-locked-tag { flex: none; font-size: var(--fs-xs); font-weight: 600; color: var(--gold-ink); }
 
 /* A company (Premium, and the starter list). */
 .fu-pick { padding: var(--space-4); scroll-margin-top: 96px; }
 @media (min-width: 640px) { .fu-pick { padding: var(--space-4) var(--space-6); } }
 .fu-pick-top { display: flex; align-items: flex-start; gap: var(--space-3); }
-.fu-pick-name { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; font-size: var(--fs-base); font-weight: 700; line-height: 1.35; color: var(--text); }
+.fu-pick-name { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; font-size: var(--fs-base); font-weight: 600; line-height: 1.35; color: var(--text); }
 .fu-pick-name a:hover { color: var(--primary-ink); text-decoration: underline; }
-.fu-new { font-size: var(--fs-xs); font-weight: 700; color: var(--positive); }
+.fu-new { font-size: var(--fs-xs); font-weight: 600; color: var(--positive); }
 .fu-pick-code { margin-top: 2px; font-size: var(--fs-xs); color: var(--text); }
-.fu-pick-px { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: var(--fs-base); font-weight: 700; color: var(--text); }
+.fu-pick-px { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: var(--fs-base); font-weight: 600; color: var(--text); }
 .fu-pick-px span + span { font-size: var(--fs-xs); font-weight: 600; }
 .fu-why { margin-top: var(--space-3); max-width: 64ch; font-size: var(--fs-base); line-height: 1.55; color: var(--text); }
 .fu-common { margin-top: var(--space-3); }
@@ -92,7 +92,7 @@ a.fu-share:active { background: var(--surface-2); }
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-2);
   margin-top: var(--space-4); padding-top: var(--space-2); border-top: 1px solid var(--cell-rule);
 }
-.fu-read { display: inline-flex; align-items: center; gap: 4px; min-height: 40px; font-size: var(--fs-sm); font-weight: 600; color: var(--primary-ink); }
+.fu-read { display: inline-flex; align-items: center; gap: 4px; min-height: 40px; font-size: var(--fs-sm); font-weight: 400; color: var(--primary-ink); }
 .fu-read:hover { text-decoration: underline; }
 .fu-acts-end { display: inline-flex; align-items: center; gap: var(--space-4); }
 .fu-follow { display: inline-flex; align-items: center; gap: 2px; font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
@@ -108,11 +108,11 @@ a.fu-share:active { background: var(--surface-2); }
   cursor: pointer; list-style: none;
 }
 .fu-how > summary::-webkit-details-marker { display: none; }
-.fu-how > summary b { display: block; font-size: var(--fs-base); font-weight: 700; color: var(--text); }
-.fu-how-sub { display: block; font-size: var(--fs-xs); color: var(--text); }
+.fu-how > summary b { display: block; font-size: var(--fs-base); font-weight: 600; color: var(--text); }
+.fu-how-sub { display: block; font-size: var(--fs-xs); color: var(--text-muted); }
 .fu-how-chev { flex: none; color: var(--primary-ink); }
 .fu-steps { list-style: none; margin: 0; padding: 0 var(--space-4) var(--space-3); display: grid; gap: var(--space-4); }
-.fu-steps h3 { font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+.fu-steps h3 { font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
 .fu-steps p { margin-top: 4px; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); max-width: 70ch; }
 .fu-gate { list-style: none; margin: var(--space-2) 0 0; padding: 0; display: grid; gap: 6px; }
 .fu-gate li { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--fs-sm); color: var(--text); }
@@ -120,5 +120,5 @@ a.fu-share:active { background: var(--surface-2); }
 .fu-bullets { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 6px; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); max-width: 70ch; }
 .fu-advice {
   margin: 0 var(--space-4) var(--space-4); padding-top: var(--space-3); border-top: 1px solid var(--cell-rule);
-  font-size: var(--fs-xs); line-height: 1.5; color: var(--text);
+  font-size: var(--fs-xs); line-height: 1.5; color: var(--text-muted);
 }

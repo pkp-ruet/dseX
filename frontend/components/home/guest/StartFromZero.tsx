@@ -53,7 +53,7 @@ export default function StartFromZero() {
           const card = (href: string, title: string, line: string, step: string) => (
             <Link href={href} className="soft-card flex h-full flex-col p-5 no-underline transition-shadow hover:shadow-lift">
               <span className="text-sm font-semibold text-text-main">{step}</span>
-              <span className="mt-2 block text-lg font-bold leading-snug text-text-main">{title}</span>
+              <span className="mt-2 block text-lg font-semibold leading-snug text-text-main">{title}</span>
               <span className="mt-1.5 block text-base leading-relaxed text-text-main">{line}</span>
             </Link>
           );

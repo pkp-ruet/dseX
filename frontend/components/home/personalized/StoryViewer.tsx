@@ -57,7 +57,7 @@ function Icon({ name, size }: { name: StoryIcon; size: number }) {
 export function StoryFace({ story, size = "md" }: { story: Story; size?: "sm" | "md" }) {
   if (story.inner) {
     return (
-      <span className={`text-xs font-bold leading-none tabular-nums nums ${TONE_TEXT[story.inner.tone]}`}>
+      <span className={`text-xs font-semibold leading-none tabular-nums nums ${TONE_TEXT[story.inner.tone]}`}>
         {story.inner.text}
       </span>
     );
@@ -74,7 +74,7 @@ function Frame({ frame, lang }: { frame: StoryFrame; lang: Lang }) {
   const pct = (n: number) => `${(n / total) * 100}%`;
   return (
     <div aria-live="polite">
-      <p className="flex items-center gap-1.5 text-sm font-semibold text-text-muted">
+      <p className="flex items-center gap-1.5 text-sm text-text-muted">
         {frame.locked && <IconLock size={14} />}
         {frame.label}
       </p>
@@ -109,7 +109,7 @@ function Frame({ frame, lang }: { frame: StoryFrame; lang: Lang }) {
               <span className={`block text-2xl font-bold leading-none tabular-nums nums ${TONE_TEXT[c.tone ?? "neutral"]}`}>
                 {c.value}
               </span>
-              <span className="mt-1 block truncate text-xs font-semibold text-text-muted">{c.label}</span>
+              <span className="mt-1 block truncate text-xs text-text-muted">{c.label}</span>
             </div>
           ))}
         </div>
@@ -312,10 +312,10 @@ export default function StoryViewer({
             <StoryFace story={story} size="sm" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="flex min-w-0 items-center gap-1.5 text-sm font-bold text-text-main">
+            <p className="flex min-w-0 items-center gap-1.5 text-sm font-semibold text-text-main">
               <span className="truncate">{story.name}</span>
               {story.code && story.code !== story.name && (
-                <span className="shrink-0 text-xs font-semibold text-text-muted">{story.code}</span>
+                <span className="shrink-0 text-xs text-text-muted">{story.code}</span>
               )}
               {owner && <OwnerTag kind={owner} lang={lang} />}
             </p>

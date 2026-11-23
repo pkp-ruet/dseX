@@ -26,7 +26,7 @@ export default function CategoryChip({ category, note, color, bg, border }: Prop
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-controls={`cat-note-${category}`}
-        className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full"
+        className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full"
         style={{ color, background: bg, border: `1px solid ${border}` }}
       >
         {category === "Z" && <IconAlert size={12} />}

@@ -45,7 +45,7 @@ export default function NewsCard({ title, body, postDate }: Props) {
           </span>
         </span>
         <span
-          className="text-xs font-bold shrink-0 mt-0.5 px-2.5 py-1 rounded-full whitespace-nowrap"
+          className="text-xs font-semibold shrink-0 mt-0.5 px-2.5 py-1 rounded-full whitespace-nowrap"
           style={{ background: "color-mix(in srgb, var(--primary) 10%, transparent)", color: "var(--primary)", border: "1px solid color-mix(in srgb, var(--primary) 25%, transparent)" }}
         >
           <T en={formatDate(postDate)} bn={bnDate(postDate) || formatDate(postDate)} />

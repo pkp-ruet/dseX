@@ -20,7 +20,7 @@ export default function LatestResults({ r }: { r: ResultsExplained }) {
   const profit = r.lines.find((l) => l.key === "profit");
   return (
     <div id="latest-results" className="stock-anchor soft-card mb-4 p-4">
-      <p className="text-xs font-semibold text-text-muted">
+      <p className="text-xs text-text-muted">
         <T en={`Latest results · ${r.period_en}`} bn={`সর্বশেষ ফল · ${r.period_bn}`} />
         {r.post_date ? (
           <>

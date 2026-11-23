@@ -82,7 +82,7 @@ export default function Sheet({
         <div className="sheet-grip" aria-hidden="true" />
         <div className="sheet-head">
           <div className="min-w-0">
-            <h2 id={titleId} className="text-lg font-bold leading-tight text-text-main">
+            <h2 id={titleId} className="text-lg font-semibold leading-tight text-text-main">
               {title}
             </h2>
           </div>

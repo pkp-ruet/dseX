@@ -129,7 +129,7 @@ export default function ShareholdingPie({ shareholding, previous = null, ownersh
                   </span>
                   {delta != null && (
                     <span
-                      className="text-xs font-bold tabular-nums nums px-1.5 py-0.5 rounded-full"
+                      className="text-xs font-semibold tabular-nums nums px-1.5 py-0.5 rounded-full"
                       title={
                         isBn
                           ? prevAsOf
@@ -147,7 +147,7 @@ export default function ShareholdingPie({ shareholding, previous = null, ownersh
                       {delta > 0 ? "▲" : "▼"} {Math.abs(delta).toFixed(1)}
                     </span>
                   )}
-                  <span className="text-sm font-bold tabular-nums nums w-14 text-right" style={{ color: c.color }}>
+                  <span className="text-sm font-semibold tabular-nums nums w-14 text-right" style={{ color: c.color }}>
                     {val.toFixed(1)}%
                   </span>
                 </div>

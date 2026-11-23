@@ -177,9 +177,9 @@ export default function DividendIncomeCard({
             className={`grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-3 border-b border-cell-rule pb-2 ${bnText}`}
             lang={bn ? "bn" : undefined}
           >
-            <h4 className="m-0 text-sm font-bold text-text-main">{L("Coming up on your stocks", "আপনার শেয়ারে সামনে যা আসছে")}</h4>
+            <h4 className="m-0 text-sm font-semibold text-text-main">{L("Coming up on your stocks", "আপনার শেয়ারে সামনে যা আসছে")}</h4>
             {totalPayout > 0 && (
-              <p className="m-0 whitespace-nowrap text-sm font-semibold text-text-muted">
+              <p className="m-0 whitespace-nowrap text-sm text-text-muted">
                 <span className="pv pf-num font-bold pf-up">≈ {takaGroup(totalPayout)}</span> {L("on its way", "আসছে")}
               </p>
             )}
@@ -210,7 +210,7 @@ export default function DividendIncomeCard({
                   {(u.payout != null || (u.bonusShares != null && u.bonusShares > 0)) && (
                     <div className="text-right">
                       {u.payout != null && (
-                        <p className="pv pf-num m-0 text-sm font-bold pf-up">≈ {takaGroup(u.payout)}</p>
+                        <p className="pv pf-num m-0 text-sm font-semibold pf-up">≈ {takaGroup(u.payout)}</p>
                       )}
                       {u.bonusShares != null && u.bonusShares > 0 && (
                         <p className={`pv pf-num m-0 text-xs font-semibold text-text-muted ${bnText}`} lang={bn ? "bn" : undefined}>

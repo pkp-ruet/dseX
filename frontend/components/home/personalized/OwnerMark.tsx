@@ -36,7 +36,7 @@ export function OwnerTag({ kind, lang = "en" }: { kind: "portfolio" | "watchlist
   return (
     <span
       title={`${t("en", kind === "portfolio" ? "inPortfolio" : "onWatchlist")} / ${t("bn", kind === "portfolio" ? "inPortfolio" : "onWatchlist")}`}
-      className="grid h-[18px] w-[18px] shrink-0 place-items-center rounded-sm text-xs font-extrabold"
+      className="grid h-[18px] w-[18px] shrink-0 place-items-center rounded-sm text-xs font-semibold"
       style={{
         color: tone,
         background: `color-mix(in srgb, ${tone} ${kind === "portfolio" ? 12 : 14}%, transparent)`,

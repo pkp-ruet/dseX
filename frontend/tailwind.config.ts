@@ -64,9 +64,15 @@ const config: Config = {
         // kept as an alias so existing headings don't need touching.
         display: ["var(--font-inter)", "var(--font-bengali)", "Inter", "system-ui", "sans-serif"],
       },
-      // Type scale mirrors the `--fs-*` tokens. 12px is the floor app-wide —
-      // the audience reads on budget Android phones. Nothing smaller than `text-xs`.
+      // Type scale mirrors the `--fs-*` tokens. The audience reads on budget
+      // Android phones; nothing is smaller than `text-xs`. Since 2026-11-23 (calm
+      // plan step 1) the three small steps read the tokens too, so they follow the
+      // 1px rise and the Bengali step: xs 13px, sm 15px (16 in Bengali), base 16px
+      // (17 in Bengali). lg and up keep Tailwind's own sizes (18, 20, 24 …).
       fontSize: {
+        xs: ["var(--fs-2xs)", { lineHeight: "1.35" }],
+        sm: ["var(--fs-sm)", { lineHeight: "1.45" }],
+        base: ["var(--fs-base)", { lineHeight: "1.5" }],
         "2xs": ["var(--fs-2xs)", { lineHeight: "1.25" }],
         display: ["var(--fs-display)", { lineHeight: "1.05" }],
       },

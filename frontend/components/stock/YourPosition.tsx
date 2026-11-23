@@ -124,23 +124,23 @@ export default function YourPosition({ code, ltp }: Props) {
         <dl className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div>
             <dt className="text-xs text-text-muted">{t("shares")}</dt>
-            <dd className="text-base font-bold tabular-nums nums text-text-main">
+            <dd className="text-base font-semibold tabular-nums nums text-text-main">
               {qty.toLocaleString("en-US")}
             </dd>
           </div>
           <div>
             <dt className="text-xs text-text-muted">{t("avgCost")}</dt>
-            <dd className="text-base font-bold tabular-nums nums text-text-main">{money(avg)}</dd>
+            <dd className="text-base font-semibold tabular-nums nums text-text-main">{money(avg)}</dd>
           </div>
           <div>
             <dt className="text-xs text-text-muted">{t("value")}</dt>
-            <dd className="text-base font-bold tabular-nums nums text-text-main">{money(valueNow)}</dd>
+            <dd className="text-base font-semibold tabular-nums nums text-text-main">{money(valueNow)}</dd>
           </div>
           <div>
             <dt className="text-xs text-text-muted">{t("pl")}</dt>
             {/* flex-wrap gives "+৳1,234,567" and "(+12.3%)" a break between them —
                 as one unbreakable run they overflowed the 2-col grid cell */}
-            <dd className={`flex min-w-0 flex-wrap items-baseline gap-x-1 text-base font-bold tabular-nums nums ${plCls}`}>
+            <dd className={`flex min-w-0 flex-wrap items-baseline gap-x-1 text-base font-semibold tabular-nums nums ${plCls}`}>
               <span>{pl == null ? "--" : `${pl >= 0 ? "+" : "-"}${money(Math.abs(pl))}`}</span>
               {plPct != null && (
                 <span className="text-xs font-semibold">

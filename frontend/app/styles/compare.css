@@ -16,21 +16,21 @@
 .cmp-num {
   display: inline-grid; place-items: center; flex: none; width: 24px; height: 24px; border-radius: 50%;
   background: var(--text); color: var(--surface);
-  font-size: var(--fs-2xs); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums;
+  font-size: var(--fs-2xs); font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums;
 }
 .cmp-num--sm { width: 20px; height: 20px; }
 
 /* ---------- the shares card ---------- */
 .cmp-shares { display: grid; gap: var(--space-3); padding: var(--space-4); box-shadow: var(--shadow-lift); }
-.cmp-sh-title { font-size: var(--fs-title); font-weight: 700; line-height: 1.3; color: var(--text); text-wrap: balance; overflow-wrap: anywhere; }
+.cmp-sh-title { font-size: var(--fs-title); font-weight: 600; line-height: 1.3; color: var(--text); text-wrap: balance; overflow-wrap: anywhere; }
 .cmp-sh-lead { margin-top: 4px; font-size: var(--fs-sm); color: var(--text); }
 .cmp-sh-sub {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
-  gap: 0 var(--space-3); margin-top: 2px; font-size: var(--fs-xs); color: var(--text);
+  gap: 0 var(--space-3); margin-top: 2px; font-size: var(--fs-xs); color: var(--text-muted);
 }
 .cmp-copy {
   display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0;
-  border: 0; background: transparent; font-size: var(--fs-sm); font-weight: 600; color: var(--primary-ink); cursor: pointer;
+  border: 0; background: transparent; font-size: var(--fs-sm); font-weight: 400; color: var(--primary-ink); cursor: pointer;
 }
 .cmp-copy:hover { text-decoration: underline; }
 
@@ -71,11 +71,11 @@
 }
 .cmp-row:last-child { border-bottom: 0; padding-bottom: 0; }
 .cmp-row-co { min-width: 0; color: var(--text); text-decoration: none; line-height: 1.25; }
-.cmp-row-co b { display: block; font-size: var(--fs-sm); font-weight: 700; overflow-wrap: anywhere; }
+.cmp-row-co b { display: block; font-size: var(--fs-sm); font-weight: 600; overflow-wrap: anywhere; }
 .cmp-row-co span { font-size: var(--fs-2xs); }
 .cmp-row-co:hover b { text-decoration: underline; }
 .cmp-row-px { text-align: right; line-height: 1.25; font-variant-numeric: tabular-nums; color: var(--text); }
-.cmp-row-px b { display: block; font-size: var(--fs-sm); font-weight: 700; }
+.cmp-row-px b { display: block; font-size: var(--fs-sm); font-weight: 600; }
 .cmp-row-px span { font-size: var(--fs-2xs); font-weight: 600; }
 .cmp-row-x {
   width: 36px; height: 36px; border: 0; border-radius: 50%; background: transparent;
@@ -83,7 +83,7 @@
 }
 .cmp-row-x:hover, .cmp-row-x:active { background: var(--surface-2); }
 .cmp-row-ahead { grid-column: 2 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: var(--fs-2xs); color: var(--text); }
-.cmp-ahead-lab { font-weight: 600; }
+.cmp-ahead-lab { font-weight: 400; }
 .cmp-ahead {
   display: inline-flex; align-items: center; min-height: 28px; padding: 0 10px;
   border: 1px solid var(--border); border-radius: 999px; background: var(--surface);
@@ -92,7 +92,7 @@
 .cmp-ahead:hover, .cmp-ahead:active { border-color: var(--primary); background: rgb(var(--primary-rgb) / 0.06); }
 .cmp-sh-foot {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
-  gap: 0 var(--space-4); font-size: var(--fs-xs); color: var(--text);
+  gap: 0 var(--space-4); font-size: var(--fs-xs); color: var(--text-muted);
 }
 
 /* a share picked past the free limit: a locked row, then the Premium banner */
@@ -100,14 +100,14 @@
 .cmp-num--lock { background: var(--gold-light); color: var(--gold-ink); box-shadow: inset 0 0 0 1px var(--gold-soft); }
 .cmp-lock-pill {
   display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px;
-  background: var(--gold-light); font-size: var(--fs-2xs); font-weight: 700; color: var(--gold-ink);
+  background: var(--gold-light); font-size: var(--fs-2xs); font-weight: 600; color: var(--gold-ink);
 }
 .cmp-lock {
   display: grid; gap: var(--space-2); padding: var(--space-4);
   border: 1px solid var(--gold-soft); border-radius: var(--radius-md); background: var(--gold-light);
 }
-.cmp-lock-tag { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-2xs); font-weight: 700; color: var(--gold-ink); }
-.cmp-lock-h { font-size: var(--fs-md); font-weight: 700; line-height: 1.35; color: var(--text); text-wrap: balance; }
+.cmp-lock-tag { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-2xs); font-weight: 600; color: var(--gold-ink); }
+.cmp-lock-h { font-size: var(--fs-md); font-weight: 600; line-height: 1.35; color: var(--text); text-wrap: balance; }
 .cmp-lock-line { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
 .cmp-lock-acts { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); margin-top: var(--space-1); }
 .cmp-lock-later {
@@ -115,20 +115,20 @@
   font-size: var(--fs-sm); font-weight: 600; color: var(--text); cursor: pointer;
 }
 .cmp-lock-later:hover { text-decoration: underline; }
-.cmp-lock-fine { font-size: var(--fs-xs); color: var(--text); }
+.cmp-lock-fine { font-size: var(--fs-xs); color: var(--text-muted); }
 
-.cmp-note { padding: var(--space-3) var(--space-4); border-radius: var(--radius); background: var(--surface-2); font-size: var(--fs-sm); color: var(--text); }
+.cmp-note { padding: var(--space-3) var(--space-4); border-radius: var(--radius); background: var(--surface-2); font-size: var(--fs-sm); color: var(--text-muted); }
 .cmp-fail { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-4); }
 
 /* ---------- nothing picked yet ---------- */
 .cmp-start { display: grid; gap: var(--space-6); }
-.cmp-start-h { margin-bottom: var(--space-3); font-size: var(--fs-md); font-weight: 700; color: var(--text); }
+.cmp-start-h { margin-bottom: var(--space-3); font-size: var(--fs-md); font-weight: 600; color: var(--text); }
 .cmp-mine {
   display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: var(--space-2) var(--space-3); align-items: start;
   padding: var(--space-4); border-color: rgb(var(--primary-rgb) / 0.35);
 }
 .cmp-mine-ic { display: grid; place-items: center; width: 40px; height: 40px; border-radius: var(--radius); background: rgb(var(--primary-rgb) / 0.1); color: var(--primary-ink); }
-.cmp-mine h2 { font-size: var(--fs-md); font-weight: 700; color: var(--text); }
+.cmp-mine h2 { font-size: var(--fs-md); font-weight: 600; color: var(--text); }
 .cmp-mine p { margin-top: 2px; font-size: var(--fs-sm); color: var(--text); }
 .cmp-mine-btn { grid-column: 1 / -1; justify-self: start; }
 @media (min-width: 640px) {
@@ -143,7 +143,7 @@
   text-align: left; color: var(--text); cursor: pointer;
 }
 .cmp-tile:hover, .cmp-tile:active { border-color: var(--primary); }
-.cmp-tile b { font-size: var(--fs-sm); font-weight: 700; line-height: 1.3; }
+.cmp-tile b { font-size: var(--fs-sm); font-weight: 600; line-height: 1.3; }
 .cmp-tile span { font-size: var(--fs-2xs); }
 .cmp-seven { padding: var(--space-4); }
 .cmp-seven ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
@@ -158,7 +158,7 @@
 .cmp-part-h p { margin-top: 2px; max-width: 62ch; font-size: var(--fs-sm); color: var(--text); }
 .cmp-prem-tag {
   display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px;
-  background: var(--gold-light); font-size: var(--fs-2xs); font-weight: 700; color: var(--gold-ink);
+  background: var(--gold-light); font-size: var(--fs-2xs); font-weight: 600; color: var(--gold-ink);
 }
 .cmp-end { font-size: var(--fs-xs); color: var(--text); }
 
@@ -174,7 +174,7 @@
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-soft);
 }
 .cmp-qs[aria-busy="true"] .cmp-q { gap: var(--space-3); padding-bottom: var(--space-4); }
-.cmp-q-h { font-size: var(--fs-title); font-weight: 700; line-height: 1.3; color: var(--text); text-wrap: balance; }
+.cmp-q-h { font-size: var(--fs-title); font-weight: 600; line-height: 1.3; color: var(--text); text-wrap: balance; }
 .cmp-q-ans { margin-top: 6px; font-size: var(--fs-base); line-height: 1.5; color: var(--text); }
 
 .cmp-bars { list-style: none; margin: var(--space-3) 0 var(--space-3); padding: 0; display: grid; gap: 4px; }
@@ -187,7 +187,7 @@
   font-size: var(--fs-sm); color: var(--text);
 }
 .cmp-br.is-leader .cmp-br-co { font-weight: 700; }
-.cmp-br-sub { display: block; font-size: var(--fs-2xs); color: var(--text); }
+.cmp-br-sub { display: block; font-size: var(--fs-2xs); color: var(--text-muted); }
 .cmp-br-track { position: relative; height: 12px; border-radius: 999px; background: var(--surface-2); }
 .cmp-q .cmp-br.is-leader .cmp-br-track { background: rgb(var(--primary-rgb) / 0.12); }
 .cmp-br-track i { position: absolute; top: 0; bottom: 0; min-width: 4px; border-radius: 999px; background: rgb(var(--text-rgb) / 0.28); }
@@ -198,7 +198,7 @@
 }
 .cmp-br-track.is-div i.is-up { background: var(--positive); border-radius: 0 999px 999px 0; }
 .cmp-br-track.is-div i.is-down { background: var(--negative); border-radius: 999px 0 0 999px; }
-.cmp-br-val { font-size: var(--fs-sm); font-weight: 700; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--text); }
+.cmp-br-val { font-size: var(--fs-sm); font-weight: 600; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--text); }
 .cmp-q .cmp-br.is-leader .cmp-br-val:not(.cmp-pos):not(.cmp-neg) { color: var(--primary-ink); }
 .cmp-pos { color: var(--positive); }
 .cmp-neg { color: var(--negative); }
@@ -239,14 +239,14 @@
 .cmp-dt { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: var(--space-3); align-items: center; padding: var(--space-3) 0; border-top: 1px solid var(--cell-rule); }
 .cmp-dt:first-child { border-top: 0; }
 .cmp-dt-tile { width: 46px; padding: 3px 0 4px; border: 1px solid var(--border); border-radius: var(--radius); text-align: center; line-height: 1.15; color: var(--text); }
-.cmp-dt-tile b { display: block; font-size: var(--fs-title); font-weight: 700; }
+.cmp-dt-tile b { display: block; font-size: var(--fs-title); font-weight: 600; }
 .cmp-dt-tile span { font-size: var(--fs-2xs); font-weight: 600; }
 .cmp-dt-tile.is-today { background: var(--text); border-color: var(--text); color: var(--surface); }
 .cmp-dt-what { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-size: var(--fs-sm); color: var(--text); }
 .cmp-dt-what b { font-weight: 700; }
 .cmp-dt-when {
   display: inline-block; padding: 1px 8px; border-radius: 999px;
-  background: var(--surface-2); font-size: var(--fs-2xs); font-weight: 700; white-space: nowrap;
+  background: var(--surface-2); font-size: var(--fs-2xs); font-weight: 600; white-space: nowrap;
 }
 .cmp-dt-line { display: block; margin-top: 2px; font-size: var(--fs-xs); color: var(--text); }
 .cmp-showall {
@@ -260,14 +260,14 @@
 
 /* ---------- Premium: in plain words, our analysis ---------- */
 .cmp-plain { padding: var(--space-4); }
-.cmp-plain h2 { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); font-size: var(--fs-md); font-weight: 700; color: var(--text); }
+.cmp-plain h2 { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); font-size: var(--fs-md); font-weight: 600; color: var(--text); }
 .cmp-plain p { max-width: 72ch; margin-top: var(--space-2); padding-left: 14px; border-left: 3px solid var(--primary); font-size: var(--fs-base); line-height: 1.55; color: var(--text); }
 
 .cmp-an { list-style: none; margin: 0; padding: 0 var(--space-4); }
 .cmp-an-row { display: grid; gap: 4px; padding: var(--space-4) 0; border-top: 1px solid var(--cell-rule); }
 .cmp-an-row:first-child { border-top: 0; }
 .cmp-an-top { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
-.cmp-an-name { font-size: var(--fs-md); font-weight: 700; color: var(--text); }
+.cmp-an-name { font-size: var(--fs-md); font-weight: 600; color: var(--text); }
 .cmp-an-words { display: flex; flex-wrap: wrap; gap: 2px var(--space-4); font-size: var(--fs-sm); color: var(--text); }
 .cmp-an-words b { font-weight: 700; }
 .cmp-an-line { font-size: var(--fs-sm); color: var(--text); }
@@ -295,7 +295,7 @@
 }
 .cmp-finds li:first-child { padding-top: 0; }
 .cmp-finds li:last-child { border-bottom: 0; }
-.cmp-finds b { font-size: var(--fs-title); font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.cmp-finds b { font-size: var(--fs-title); font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
 
 /* The dashboard's Compare stocks card (home/personalized/CompareFeature.tsx):
    one question card's bars in miniature, inside the screener card's

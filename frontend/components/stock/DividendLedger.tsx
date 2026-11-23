@@ -56,7 +56,7 @@ export default function DividendLedger({ rows, face, initial = 6 }: Props) {
     if (cash <= 0) return <span style={MUTED}>—</span>;
     return (
       <>
-        <span className={`font-bold ${big ? "text-base" : ""} text-positive`}>{cash}%</span>
+        <span className={`font-semibold ${big ? "text-base" : ""} text-positive`}>{cash}%</span>
         {cashPerShare != null && (
           <span className="block text-xs" style={MUTED}>
             <T en={`${money(cashPerShare)} a share`} bn={`শেয়ারপ্রতি ${money(cashPerShare)}`} />
@@ -73,7 +73,7 @@ export default function DividendLedger({ rows, face, initial = 6 }: Props) {
 
   const bonusCell = (stock: number, big = false) =>
     stock > 0
-      ? <span className={`font-bold ${big ? "text-base" : ""} text-info`}>{stock}%</span>
+      ? <span className={`font-semibold ${big ? "text-base" : ""} text-info`}>{stock}%</span>
       : <span style={MUTED}>—</span>;
 
   return (
@@ -83,7 +83,7 @@ export default function DividendLedger({ rows, face, initial = 6 }: Props) {
         {visible.map(({ r, period, cash, stock }, i) => (
           <li key={`${r.declaration_date}-${i}`} className="p-4" style={{ borderColor: "var(--border)" }}>
             <div className="flex items-baseline justify-between gap-3 mb-2.5">
-              <span className="text-sm font-bold" style={INK}>{periodT(period)}</span>
+              <span className="text-sm font-semibold" style={INK}>{periodT(period)}</span>
               <span className="text-xs text-right" style={MUTED}>
                 {typeT(r.dividend_type)} · <T en="declared" bn="ঘোষণা" /> {d2(r.declaration_date)}
               </span>

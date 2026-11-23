@@ -51,7 +51,7 @@ export default function Stat({
   return (
     <div className={`flex min-w-0 flex-col gap-1 ${alignCls} ${className}`.trim()}>
       <span className={`nums font-bold leading-none ${VALUE_SIZE[size]} ${TONE[tone]}`}>{value}</span>
-      <span className="text-xs font-semibold text-text-muted">{label}</span>
+      <span className="text-xs text-text-muted">{label}</span>
       {sub && <span className={`nums text-xs font-semibold ${TONE[subTone]}`}>{sub}</span>}
     </div>
   );

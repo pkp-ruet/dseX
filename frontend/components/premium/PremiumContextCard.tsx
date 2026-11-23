@@ -43,7 +43,7 @@ export default function PremiumContextCard() {
   return (
     <div className="premium-card" role="note">
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold text-text-muted">
+        <p className="text-xs text-text-muted">
           <T en={from.en} bn={from.bn} />
         </p>
         {ctx.label && <p className="mt-1 font-semibold text-text-main">{ctx.label}</p>}

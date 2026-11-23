@@ -58,7 +58,7 @@ export default function DseTodayNewsCard({
         </Link>
         {(isPortfolio || isWatchlist) && (
           <span
-            className="inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-bold"
+            className="inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-semibold"
             style={{
               color: pillColor,
               background: `color-mix(in srgb, ${isPortfolio ? "var(--positive)" : "var(--primary)"} 12%, transparent)`,
@@ -71,7 +71,7 @@ export default function DseTodayNewsCard({
           {item.company_name ?? ""}
         </span>
         {item.post_date && (
-          <span className="shrink-0 text-xs font-bold tabular-nums text-text-muted">
+          <span className="shrink-0 text-xs tabular-nums text-text-muted">
             <T en={formatDate(item.post_date)} bn={bnDate(item.post_date)} />
           </span>
         )}
@@ -90,7 +90,7 @@ export default function DseTodayNewsCard({
           </p>
           <button
             onClick={() => setExpanded((v) => !v)}
-            className="self-start text-xs font-bold text-primary-ink transition-opacity hover:opacity-70"
+            className="self-start text-xs font-semibold text-primary-ink transition-opacity hover:opacity-70"
           >
             {expanded ? <T en="Show less" bn="কম দেখান" /> : <T en="Read more →" bn="আরও পড়ুন →" />}
           </button>

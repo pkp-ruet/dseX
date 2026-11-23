@@ -54,7 +54,7 @@ export default function AnalysisSummary({
       <div className="an-head">
         <ScoreBadge score={g.score} size="md" />
         <div className="min-w-0">
-          <span className="block text-xs font-bold text-text-main">
+          <span className="block text-xs font-semibold text-text-main">
             <T en="Our grade" bn="আমাদের গ্রেড" />
           </span>
           <h2 id="an-sum-t" className="an-grade" data-tier={g.score == null ? undefined : tier}>

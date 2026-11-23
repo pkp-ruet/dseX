@@ -53,7 +53,7 @@ function IndexTile({ name, value, change, changePct, lead = false }: {
       </span>
       {/* flex-wrap: "▲ +18.45 (+0.35%)" is ~100px but a 3-up tile is ~70px at 360px,
           so the percentage drops to its own line instead of running into DSES. */}
-      <span className="flex min-w-0 flex-wrap items-baseline gap-x-1 text-xs sm:text-xs font-bold tabular-nums" style={{ color }}>
+      <span className="flex min-w-0 flex-wrap items-baseline gap-x-1 text-xs sm:text-xs font-semibold tabular-nums" style={{ color }}>
         {hasChange ? (
           <>
             <span className="text-xs">{up ? "▲" : "▼"}</span>
@@ -77,13 +77,13 @@ function StatTile({ label, value, sub, subColor }: {
 }) {
   return (
     <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface-2 p-2.5 sm:p-3">
-      <span className="text-xs font-semibold text-text-muted">
+      <span className="text-xs text-text-muted">
         {label}
       </span>
-      <span className="text-sm sm:text-lg font-extrabold leading-none tabular-nums text-text-main">
+      <span className="text-sm sm:text-lg font-semibold leading-none tabular-nums text-text-main">
         {value}
       </span>
-      <span className="text-xs font-bold tabular-nums" style={{ color: subColor || "var(--text-muted)" }}>
+      <span className="text-xs font-semibold tabular-nums" style={{ color: subColor || "var(--text-muted)" }}>
         {sub || " "}
       </span>
     </div>
@@ -131,10 +131,10 @@ export default function DseTodayHeader({ header, condition }: Props) {
         {/* Top — date + condition */}
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-text-muted">
+            <span className="text-xs text-text-muted">
               <T en="Trading day" bn="লেনদেনের দিন" />
             </span>
-            <span className="text-sm font-bold text-text-main">{dateLabel}</span>
+            <span className="text-sm font-semibold text-text-main">{dateLabel}</span>
           </div>
           <span
             className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
@@ -194,10 +194,10 @@ export default function DseTodayHeader({ header, condition }: Props) {
         {/* Breadth */}
         <div className="rounded-xl border border-border bg-surface-2 p-3">
           <div className="mb-2 flex items-center justify-between gap-2">
-            <span className="text-xs font-semibold text-text-muted">
+            <span className="text-xs text-text-muted">
               <T en="Rises and falls" bn="দাম বাড়া ও কমা" />
             </span>
-            <span className="text-xs font-bold tabular-nums">
+            <span className="text-xs font-semibold tabular-nums">
               <span className="text-positive">
                 <T en={`${up} up`} bn={`${up}টি বেড়েছে`} />
               </span>
@@ -217,7 +217,7 @@ export default function DseTodayHeader({ header, condition }: Props) {
             <div style={{ width: `${downWidth}%`, background: "var(--negative)" }} />
           </div>
           {breadthTotal > 0 && (
-            <div className="mt-1.5 text-xs font-semibold tabular-nums text-text-muted">
+            <div className="mt-1.5 text-xs tabular-nums text-text-muted">
               <T
                 en={`${pct((up / breadthTotal) * 100)} rose · ${pct((down / breadthTotal) * 100)} fell`}
                 bn={`${pct((up / breadthTotal) * 100)} বেড়েছে · ${pct((down / breadthTotal) * 100)} কমেছে`}

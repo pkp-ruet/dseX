@@ -152,7 +152,7 @@ export default function AdminCampaignsClient() {
         {/* ---- Left: audience + controls ---- */}
         <div className="min-w-0 space-y-5">
           <div className={card}>
-            <h2 className="text-sm font-bold text-text-main mb-3">Who gets it today</h2>
+            <h2 className="text-sm font-semibold text-text-main mb-3">Who gets it today</h2>
             {overviewErr && <p className="text-negative text-sm">{overviewErr}</p>}
             {aud && (
               <>
@@ -186,7 +186,7 @@ export default function AdminCampaignsClient() {
               thing worth spotting before pressing Send. */}
           {overview && overview.blocks?.length > 0 && (
             <div className={card}>
-              <h2 className="text-sm font-bold text-text-main mb-3">What&apos;s in today&apos;s mail</h2>
+              <h2 className="text-sm font-semibold text-text-main mb-3">What&apos;s in today&apos;s mail</h2>
               <div className="space-y-1.5">
                 {overview.blocks.map((b) => (
                   <div key={b.key} className="flex items-start justify-between gap-3 text-sm">
@@ -207,7 +207,7 @@ export default function AdminCampaignsClient() {
 
           {overview && overview.buys.length > 0 && (
             <div className={card}>
-              <h2 className="text-sm font-bold text-text-main mb-3">
+              <h2 className="text-sm font-semibold text-text-main mb-3">
                 Featured buys ({overview.buys.length}
                 {overview.buys_total > overview.buys.length ? ` of ${overview.buys_total}` : ""})
               </h2>
@@ -221,7 +221,7 @@ export default function AdminCampaignsClient() {
                     <span className="flex items-center gap-2 whitespace-nowrap">
                       {b.is_new && (
                         <span
-                          className="text-xs font-bold px-2 py-0.5 rounded-full"
+                          className="text-xs font-semibold px-2 py-0.5 rounded-full"
                           style={{ background: "var(--positive)", color: "var(--surface)" }}
                         >
                           New
@@ -233,7 +233,7 @@ export default function AdminCampaignsClient() {
                         </span>
                       )}
                       <span
-                        className="text-xs font-bold px-2 py-0.5 rounded-full"
+                        className="text-xs font-semibold px-2 py-0.5 rounded-full"
                         style={{ background: "var(--primary)", color: "var(--surface)" }}
                       >
                         {b.strength === "strong" ? "Buy · very low price" : "Buy"}
@@ -246,7 +246,7 @@ export default function AdminCampaignsClient() {
           )}
 
           <div className={card}>
-            <h2 className="text-sm font-bold text-text-main mb-3">Send</h2>
+            <h2 className="text-sm font-semibold text-text-main mb-3">Send</h2>
             <div className="space-y-3">
               <label className="block text-xs text-text-muted">
                 Subject line
@@ -290,7 +290,7 @@ export default function AdminCampaignsClient() {
 
           {(campaignId || stats) && (
             <div className={card}>
-              <h2 className="text-sm font-bold text-text-main mb-3">
+              <h2 className="text-sm font-semibold text-text-main mb-3">
                 Progress {stats?.status === "done" ? "· done" : "· sending…"}
               </h2>
               <div className="grid grid-cols-3 gap-2 text-center">
@@ -305,7 +305,7 @@ export default function AdminCampaignsClient() {
 
         {/* ---- Right: live preview of the exact email ---- */}
         <div className={`min-w-0 ${card}`}>
-          <h2 className="text-sm font-bold text-text-main mb-3">Preview · the email everyone gets</h2>
+          <h2 className="text-sm font-semibold text-text-main mb-3">Preview · the email everyone gets</h2>
           {previewErr && <p className="text-negative text-sm">{previewErr}</p>}
           <iframe
             title="Daily email preview"

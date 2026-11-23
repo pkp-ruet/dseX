@@ -77,7 +77,7 @@ export default function SectorBreakdownChart({ analysis, lang = "en" }: Props) {
                     {heavy && <span className="text-watch"> · {t.heavy}</span>}
                   </p>
                 </div>
-                <span className="pf-num text-base font-bold text-text-main">{s.weightPct.toFixed(0)}%</span>
+                <span className="pf-num text-base font-semibold text-text-main">{s.weightPct.toFixed(0)}%</span>
               </div>
               <div className="pf-bar mt-1.5" aria-hidden="true">
                 <span

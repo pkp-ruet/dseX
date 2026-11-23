@@ -27,8 +27,8 @@
   padding-bottom: var(--space-3);
   border-bottom: 1px solid var(--border);
   font-size: var(--fs-2xs);
-  font-weight: 600;
-  color: var(--text);
+  font-weight: 400;
+  color: var(--text-muted);
 }
 .cv-mark { font-size: var(--fs-sm); font-weight: 700; letter-spacing: -0.01em; color: var(--text); }
 .cv-mark-bd { color: var(--primary); }
@@ -44,7 +44,7 @@
   border: 1px solid rgb(var(--primary-rgb) / 0.22);
   color: var(--primary-ink);
   font-size: var(--fs-title);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.02em;
 }
 .cv-name {
@@ -64,10 +64,10 @@
   gap: var(--space-1) var(--space-3);
   margin-top: var(--space-1);
   font-size: var(--fs-xs);
-  font-weight: 600;
-  color: var(--text);
+  font-weight: 400;
+  color: var(--text-muted);
 }
-.cv-code { font-weight: 700; letter-spacing: 0.02em; }
+.cv-code { font-weight: 600; letter-spacing: 0.02em; }
 .cv-sector { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; color: var(--text); text-decoration: none; }
 .cv-sector:hover { color: var(--primary-ink); text-decoration: underline; }
 @media (min-width: 640px) {
@@ -100,13 +100,13 @@
   padding: 4px 10px;
   border-radius: 999px;
   font-size: var(--fs-sm);
-  font-weight: 700;
+  font-weight: 600;
   background: var(--surface-2);
   color: var(--text);
 }
 .cv-chg[data-dir="up"] { background: rgb(var(--positive-rgb) / 0.1); color: var(--positive); }
 .cv-chg[data-dir="down"] { background: rgb(var(--negative-rgb) / 0.08); color: var(--negative); }
-.cv-close { margin: var(--space-2) 0 0; font-size: var(--fs-2xs); font-weight: 600; color: var(--text); }
+.cv-close { margin: var(--space-2) 0 0; font-size: var(--fs-2xs); font-weight: 400; color: var(--text-muted); }
 .cv-year { margin-top: var(--space-4); max-width: 28rem; }
 .cv-year-top {
   display: grid;
@@ -115,8 +115,8 @@
   gap: 0 var(--space-3);
   margin-bottom: var(--space-2);
   font-size: var(--fs-2xs);
-  font-weight: 600;
-  color: var(--text);
+  font-weight: 400;
+  color: var(--text-muted);
 }
 .cv-year-bar { position: relative; height: 6px; border-radius: 999px; background: var(--surface-2); }
 .cv-year-dot {
@@ -161,7 +161,7 @@ a.cv-medal:active { opacity: 0.85; }
   gap: 4px;
   margin-top: var(--space-1);
   font-size: var(--fs-sm);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--primary-ink);
 }
 a.cv-medal:hover .cv-medal-go { text-decoration: underline; }
@@ -170,19 +170,19 @@ a.cv-medal:hover .cv-medal-go { text-decoration: underline; }
 /* The Buy / Sell split (components/stock/analysis/SplitStrip.tsx). */
 .cv-ln { padding-top: var(--space-3); border-top: 1px solid var(--border); }
 .cv-ln-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-3); }
-.cv-ln-k { font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+.cv-ln-k { font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
 .cv-ln-nums { display: flex; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-3); font-size: var(--fs-xl); font-weight: 700; line-height: 1; color: var(--text); }
 .cv-ln-buy { color: var(--positive); }
 .cv-ln-sell { color: var(--negative); }
 .cv-ln-bar { position: relative; height: 12px; margin-top: var(--space-2); overflow: hidden; border-radius: 999px; background: var(--negative); }
 .cv-ln-fill { position: absolute; inset: 0 auto 0 0; display: block; background: var(--positive); border-right: 3px solid var(--surface-2); }
-.cv-ln-line { margin: var(--space-3) 0 0; font-size: var(--fs-sm); font-weight: 600; line-height: 1.5; color: var(--text); }
-.cv-ln-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 var(--space-3); margin-top: var(--space-1); font-size: var(--fs-2xs); font-weight: 600; color: var(--text); }
-.cv-ln-go { display: inline-flex; align-items: center; gap: 4px; min-height: 40px; font-size: var(--fs-sm); font-weight: 700; color: var(--primary); text-decoration: none; }
+.cv-ln-line { margin: var(--space-3) 0 0; font-size: var(--fs-sm); font-weight: 400; line-height: 1.5; color: var(--text); }
+.cv-ln-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 var(--space-3); margin-top: var(--space-1); font-size: var(--fs-2xs); font-weight: 400; color: var(--text-muted); }
+.cv-ln-go { display: inline-flex; align-items: center; gap: 4px; min-height: 40px; font-size: var(--fs-sm); font-weight: 600; color: var(--primary); text-decoration: none; }
 .cv-ln-go:hover { text-decoration: underline; }
 /* Locked: the same shape in gold, no numbers, a bar that never shows the real width. */
 .cv-ln--lock { padding: var(--space-3); border: 1px solid rgb(var(--gold-rgb) / 0.5); border-radius: var(--radius-md); background: rgb(var(--gold-rgb) / 0.1); }
-.cv-ln-prem { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-2xs); font-weight: 700; color: var(--gold-ink); }
+.cv-ln-prem { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-2xs); font-weight: 600; color: var(--gold-ink); }
 .cv-ln-q { display: inline-block; width: 2.2em; height: 0.9em; border-radius: var(--radius-sm); background: rgb(var(--gold-rgb) / 0.35); vertical-align: -0.05em; }
 .cv-ln-bar--lock { overflow: visible; background: rgb(var(--gold-rgb) / 0.3); }
 .cv-ln-lock { position: absolute; left: 50%; top: 50%; display: grid; place-items: center; width: 22px; height: 22px; border: 1px solid rgb(var(--gold-rgb) / 0.6); border-radius: 999px; background: var(--surface); color: var(--gold-ink); transform: translate(-50%, -50%); }
@@ -216,7 +216,7 @@ a.cv-ln-alt { min-height: 40px; display: inline-flex; align-items: center; color
 .cv-part:hover { border-color: color-mix(in srgb, var(--primary) 45%, var(--border)); }
 .cv-part:active { opacity: 0.85; }
 .cv-part-k { font-size: var(--fs-2xs); font-weight: 600; line-height: 1.25; }
-.cv-part-w { font-size: var(--fs-sm); font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+.cv-part-w { font-size: var(--fs-sm); font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
 .cv-parts--lock .cv-part { border-color: rgb(var(--gold-rgb) / 0.45); background: rgb(var(--gold-rgb) / 0.08); }
 .cv-part-lock { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-2xs); color: var(--gold-ink); }
 
@@ -231,7 +231,7 @@ a.cv-ln-alt { min-height: 40px; display: inline-flex; align-items: center; color
   border-radius: 4px;
   background: var(--surface-2);
   font-size: var(--fs-2xs);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 /* The foot: the next date and the page's address. */
@@ -247,7 +247,7 @@ a.cv-ln-alt { min-height: 40px; display: inline-flex; align-items: center; color
 .cv-next { display: flex; align-items: center; gap: var(--space-2); margin: 0; font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
 .cv-next svg { flex: none; color: var(--info); }
 .cv-next b { font-weight: 700; }
-.cv-url { font-size: var(--fs-2xs); font-weight: 700; color: var(--primary-ink); }
+.cv-url { font-size: var(--fs-2xs); font-weight: 600; color: var(--primary-ink); }
 
 /* The buttons under the card (components/stock/CoverActions.tsx): four equal
    tiles on phones (More opens the other three in place), one row from 640px. */
@@ -289,8 +289,8 @@ a.cv-ln-alt { min-height: 40px; display: inline-flex; align-items: center; color
   gap: var(--space-2);
   margin: 0 0 var(--space-4);
   font-size: var(--fs-xs);
-  font-weight: 600;
-  color: var(--text);
+  font-weight: 400;
+  color: var(--text-muted);
 }
 .an-badge {
   display: inline-flex;
@@ -301,7 +301,7 @@ a.cv-ln-alt { min-height: 40px; display: inline-flex; align-items: center; color
   background: var(--gold-light);
   color: var(--gold-ink);
   font-size: var(--fs-2xs);
-  font-weight: 700;
+  font-weight: 600;
 }
 .an-head { display: flex; align-items: center; gap: var(--space-4); }
 .an-grade {
@@ -340,8 +340,8 @@ a.cv-ln-alt { min-height: 40px; display: inline-flex; align-items: center; color
 }
 .an-tile:hover { border-color: var(--text); }
 .an-tile:active { background: var(--surface-2); }
-.an-tile-k { display: flex; justify-content: space-between; gap: 6px; font-size: var(--fs-2xs); font-weight: 700; }
-.an-tile-w { display: flex; align-items: center; gap: 7px; font-size: var(--fs-md); font-weight: 700; line-height: 1.25; color: var(--t); }
+.an-tile-k { display: flex; justify-content: space-between; gap: 6px; font-size: var(--fs-2xs); font-weight: 600; }
+.an-tile-w { display: flex; align-items: center; gap: 7px; font-size: var(--fs-md); font-weight: 600; line-height: 1.25; color: var(--t); }
 .an-tile-w::before { content: ""; flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--t); }
 .an-tile-v { font-size: var(--fs-xs); font-weight: 600; line-height: 1.35; }
 .an-tile[data-tone="good"], .an-mk[data-tone="good"] { --t: var(--positive); }
@@ -349,7 +349,7 @@ a.cv-ln-alt { min-height: 40px; display: inline-flex; align-items: center; color
 .an-tile[data-tone="bad"], .an-mk[data-tone="bad"] { --t: var(--negative); }
 .an-tile[data-tone="neutral"] { --t: var(--text); }
 .an-tile[data-tone="neutral"] .an-tile-w::before { background: rgb(var(--text-rgb) / 0.35); }
-.an-note { margin: var(--space-3) 0 0; font-size: var(--fs-xs); color: var(--text); }
+.an-note { margin: var(--space-3) 0 0; font-size: var(--fs-xs); color: var(--text-muted); }
 .an-to-concl {
   display: flex;
   flex-wrap: wrap;
@@ -364,7 +364,7 @@ a.cv-ln-alt { min-height: 40px; display: inline-flex; align-items: center; color
   text-decoration: none;
   color: var(--text);
 }
-.an-to-concl-go { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; color: var(--primary-ink); }
+.an-to-concl-go { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; color: var(--primary-ink); }
 .an-to-concl:hover .an-to-concl-go { text-decoration: underline; }
 
 /* -- one part --------------------------------------------------------- */
@@ -384,7 +384,7 @@ a.cv-ln-alt { min-height: 40px; display: inline-flex; align-items: center; color
   place-items: center;
   background: var(--surface-2);
   font-size: var(--fs-sm);
-  font-weight: 700;
+  font-weight: 600;
 }
 .an-part-head h2 { margin: 0; font-size: var(--fs-lg); font-weight: 700; line-height: 1.2; color: var(--text); }
 .an-q { margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
@@ -399,7 +399,7 @@ a.cv-ln-alt { min-height: 40px; display: inline-flex; align-items: center; color
 @media (min-width: 900px) {
   .an-body[data-pic="true"] { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: var(--space-8); align-items: start; }
 }
-.an-answer { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: 1.5; color: var(--text); }
+.an-answer { margin: 0; font-size: var(--fs-md); font-weight: 400; line-height: 1.5; color: var(--text); }
 @media (min-width: 640px) { .an-answer { font-size: var(--fs-title); } }
 
 .an-stats {
@@ -411,7 +411,7 @@ a.cv-ln-alt { min-height: 40px; display: inline-flex; align-items: center; color
 }
 .an-stats > div { min-width: 0; padding: 10px var(--space-3); }
 .an-stats > div + div { border-left: 1px solid var(--border); }
-.an-stats b { display: block; font-size: var(--fs-md); font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.an-stats b { display: block; font-size: var(--fs-md); font-weight: 600; line-height: 1.2; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .an-stats span { display: block; margin-top: 3px; font-size: var(--fs-2xs); font-weight: 600; line-height: 1.3; }
 @media (min-width: 640px) { .an-stats b { font-size: var(--fs-title); } }
 
@@ -425,7 +425,7 @@ a.cv-ln-alt { min-height: 40px; display: inline-flex; align-items: center; color
   display: grid;
   place-items: center;
   font-size: var(--fs-2xs);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--t);
   background: color-mix(in srgb, var(--t) 12%, var(--surface));
 }
@@ -447,14 +447,14 @@ a.cv-ln-alt { min-height: 40px; display: inline-flex; align-items: center; color
 .an-callout { background: rgb(var(--info-rgb) / 0.1); color: var(--info-ink); }
 .an-aside { grid-template-columns: minmax(0, 1fr); border: 1px dashed var(--border); font-weight: 600; color: var(--text); }
 .an-pic { min-width: 0; }
-.an-pic-k { margin: 0 0 var(--space-2); font-size: var(--fs-2xs); font-weight: 700; color: var(--text); }
+.an-pic-k { margin: 0 0 var(--space-2); font-size: var(--fs-2xs); font-weight: 600; color: var(--text); }
 .an-pic .rv-fig:first-child { margin-top: 0; }
 .an-pic > * + .an-pic-k { margin-top: var(--space-6); }
 .an-extra { margin-top: var(--space-6); }
-.an-src { margin: var(--space-6) 0 0; padding-top: var(--space-3); border-top: 1px solid var(--border); font-size: var(--fs-2xs); font-weight: 600; color: var(--text); }
+.an-src { margin: var(--space-6) 0 0; padding-top: var(--space-3); border-top: 1px solid var(--border); font-size: var(--fs-2xs); font-weight: 400; color: var(--text-muted); }
 
 .an-methods { margin-top: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius); }
-.an-methods p { margin: 0; padding: 9px var(--space-3); border-radius: var(--radius) var(--radius) 0 0; background: var(--surface-2); font-size: var(--fs-xs); font-weight: 700; }
+.an-methods p { margin: 0; padding: 9px var(--space-3); border-radius: var(--radius) var(--radius) 0 0; background: var(--surface-2); font-size: var(--fs-xs); font-weight: 600; }
 .an-methods li { display: flex; justify-content: space-between; gap: var(--space-3); padding: 8px var(--space-3); border-top: 1px solid var(--border); font-size: var(--fs-sm); }
 .an-methods ul { list-style: none; margin: 0; padding: 0; }
 /* How sure we are of the fair price (2026-11-22): three dots + one line. */
@@ -479,15 +479,15 @@ a.cv-ln-alt { min-height: 40px; display: inline-flex; align-items: center; color
 
 /* -- our conclusion ---------------------------------------------------- */
 .an-concl { border: 1.5px solid var(--text); }
-.an-concl-k { margin: 0 0 var(--space-2); font-size: var(--fs-xs); font-weight: 700; color: var(--text); }
+.an-concl-k { margin: 0 0 var(--space-2); font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
 .an-concl-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); }
-.an-concl-price { font-size: var(--fs-title); font-weight: 700; color: var(--text); }
+.an-concl-price { font-size: var(--fs-title); font-weight: 600; color: var(--text); }
 .an-concl-line { margin: var(--space-3) 0 4px; font-size: var(--fs-md); line-height: 1.5; color: var(--text); }
-.an-concl-since { margin: 0; font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
+.an-concl-since { margin: 0; font-size: var(--fs-xs); font-weight: 400; color: var(--text-muted); }
 /* Buy / Sell split (2026-11-22): one bar, green for buying, red for selling,
    the parts that weigh on each side, what the number is not. */
 .an-split { margin-top: var(--space-6); padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius); }
-.an-split-h { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+.an-split-h { margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
 .an-split-parts { display: grid; gap: var(--space-1) var(--space-4); margin: var(--space-3) 0 0; padding: 0; list-style: none; }
 @media (min-width: 640px) { .an-split-parts { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
 .an-split-part { display: flex; align-items: baseline; gap: var(--space-2); font-size: var(--fs-sm); color: var(--text); }
@@ -496,18 +496,18 @@ a.cv-ln-alt { min-height: 40px; display: inline-flex; align-items: center; color
 .an-split-part[data-side="against"] .an-split-mark { color: var(--negative); }
 .an-split-name { font-weight: 600; }
 .an-split-word { margin-left: auto; font-weight: 700; }
-.an-split-note { margin: var(--space-3) 0 0; font-size: var(--fs-2xs); font-weight: 600; line-height: 1.5; color: var(--text); }
+.an-split-note { margin: var(--space-3) 0 0; font-size: var(--fs-2xs); font-weight: 400; line-height: 1.5; color: var(--text-muted); }
 
 .an-cases { display: grid; gap: var(--space-3); margin-top: var(--space-6); }
 @media (min-width: 768px) { .an-cases { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
 .an-case { padding: var(--space-3) var(--space-4); border: 1px solid var(--border); border-radius: var(--radius); }
-.an-case h3 { margin: 0 0 var(--space-2); font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+.an-case h3 { margin: 0 0 var(--space-2); font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
 .an-case-wide { margin-top: var(--space-3); }
 .an-acts { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin-top: var(--space-6); }
 .an-acts p { margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
-.an-fine { margin: var(--space-4) 0 0; font-size: var(--fs-2xs); font-weight: 600; color: var(--text); }
+.an-fine { margin: var(--space-4) 0 0; font-size: var(--fs-2xs); font-weight: 400; color: var(--text-muted); }
 .an-better { margin-top: var(--space-6); }
-.an-better h3 { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+.an-better h3 { margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
 
 /* Your shares and the portfolio check, after the conclusion (signed-in
    readers with a stake only; empty → no card). */
@@ -534,7 +534,7 @@ a.cv-ln-alt { min-height: 40px; display: inline-flex; align-items: center; color
   place-items: center;
   background: var(--surface-2);
   font-size: var(--fs-xs);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text);
 }
 .spa-concl .spa-n { background: var(--text); color: var(--surface); }
@@ -546,14 +546,14 @@ a.cv-ln-alt { min-height: 40px; display: inline-flex; align-items: center; color
   padding: 2px 8px;
   border-radius: 999px;
   font-size: var(--fs-2xs);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--t);
   background: color-mix(in srgb, var(--t) 11%, var(--surface));
 }
 .spa-free[data-tone="good"] { --t: var(--positive); }
 .spa-free[data-tone="fair"] { --t: var(--watch); }
 .spa-free[data-tone="bad"] { --t: var(--negative); }
-.spa-every { margin: var(--space-3) 0 0; font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
+.spa-every { margin: var(--space-3) 0 0; font-size: var(--fs-xs); font-weight: 400; color: var(--text-muted); }
 
 /* -- the data room's tab bar (components/stock/report/DataRoom.tsx, 2026-11-05) --
    A boxed bar like the portfolio's money tabs: an icon over each label, the

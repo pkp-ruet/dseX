@@ -348,7 +348,7 @@ export default function PriceChart({ code, events = [] }: Props) {
           ))}
           {dots.some((d) => d.n > 1) && (
             <span className="inline-flex items-center gap-1.5">
-              <i className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-text-main text-xs font-bold text-surface" aria-hidden="true">2</i>
+              <i className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-text-main text-xs font-semibold text-surface" aria-hidden="true">2</i>
               <T en="Events a few days apart" bn="কয়েক দিনের মধ্যে একাধিক ঘটনা" />
             </span>
           )}

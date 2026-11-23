@@ -105,7 +105,7 @@ export default function SectorStockTable({
                             "Its latest accounts are more than two years old",
                             "সর্বশেষ আর্থিক হিসাব দুই বছরের বেশি পুরোনো",
                           )}
-                          className="text-xs font-semibold text-text-muted"
+                          className="text-xs text-text-muted"
                         >
                           <T en="old accounts" bn="পুরোনো হিসাব" />
                         </span>
@@ -148,7 +148,7 @@ export default function SectorStockTable({
         </tbody>
       </DataTable>
 
-      <p className="mt-2.5 text-xs font-semibold text-text-muted">
+      <p className="mt-2.5 text-xs text-text-muted">
         <T
           en="The score is our rating out of 100. It measures how strong the company is, not whether the price is about to move. Tap any column heading to sort again."
           bn="স্কোর হলো 100-এর মধ্যে আমাদের রেটিং। এটি কোম্পানি কতটা শক্তিশালী তা মাপে, দাম শিগগির বাড়বে কি না তা নয়। আবার সাজাতে যেকোনো কলামের শিরোনামে চাপ দিন।"

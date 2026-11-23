@@ -11,7 +11,7 @@ import type { RallyWarning } from "@/lib/stock-report";
 export default function RallyBanner({ w }: { w: RallyWarning }) {
   return (
     <div className="rp-rally mb-6" data-level={w.level} role="note">
-      <p className={`flex items-start gap-2 text-sm font-bold leading-snug ${w.level === "red" ? "text-negative" : "text-watch"}`}>
+      <p className={`flex items-start gap-2 text-sm font-semibold leading-snug ${w.level === "red" ? "text-negative" : "text-watch"}`}>
         <span className="mt-0.5 shrink-0"><IconAlert size={16} /></span>
         <span>{tx(w.headline)}</span>
       </p>

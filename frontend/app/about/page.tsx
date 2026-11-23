@@ -84,7 +84,7 @@ const PROBLEMS = [
 
 const GROUP_ORDER: TierKey[] = ["excellent", "good", "average", "weak"];
 
-const P = "text-lg leading-[1.78] text-text-muted";
+const P = "text-lg leading-[1.78] text-text-main";
 const H2 = "text-xl sm:text-2xl font-bold tracking-tight text-text-main";
 
 export default function AboutPage() {
@@ -212,15 +212,15 @@ export default function AboutPage() {
             <div key={p.label} className="soft-card flex gap-4 p-5">
               <span
                 aria-hidden="true"
-                className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold text-primary-ink tabular-nums"
+                className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-semibold text-primary-ink tabular-nums"
               >
                 {i + 1}
               </span>
               <div>
-                <div className="font-bold text-text-main text-base mb-1">
+                <div className="font-semibold text-text-main text-base mb-1">
                   <T en={p.label} bn={p.labelBn} />
                 </div>
-                <div className="text-base text-text-muted leading-[1.7]">
+                <div className="text-base text-text-main leading-[1.7]">
                   <T en={p.desc} bn={p.descBn} />
                 </div>
               </div>
@@ -243,10 +243,10 @@ export default function AboutPage() {
         <div className="soft-card divide-y divide-border">
           {GROUP_ORDER.map((k) => (
             <div key={k} className="p-5">
-              <div className="font-bold text-text-main text-base mb-1">
+              <div className="font-semibold text-text-main text-base mb-1">
                 <T en={TIER_LABELS[k]} bn={TIER_LABELS_BN[k]} />
               </div>
-              <div className="text-base text-text-muted leading-[1.7]">
+              <div className="text-base text-text-main leading-[1.7]">
                 <T en={TIER_MEANINGS[k]} bn={TIER_MEANINGS_BN[k]} />
               </div>
             </div>
@@ -260,7 +260,7 @@ export default function AboutPage() {
         </p>
         <ul className="soft-card p-5 space-y-3">
           {PROBLEMS.map((item) => (
-            <li key={item.en} className="flex gap-3 text-base leading-[1.65] text-text-muted">
+            <li key={item.en} className="flex gap-3 text-base leading-[1.65] text-text-main">
               <span aria-hidden="true" className="mt-[0.62em] h-[7px] w-[7px] shrink-0 rounded-full bg-primary" />
               <span>
                 <T en={item.en} bn={item.bn} />
@@ -303,12 +303,12 @@ export default function AboutPage() {
 
       {/* What we are not */}
       <section className="soft-card p-6 space-y-4">
-        <h2 className="text-lg font-bold text-text-main">
+        <h2 className="text-lg font-semibold text-text-main">
           <T en="What we are not" bn="আমরা যা নই" />
         </h2>
         <ul className="space-y-3">
           {NOT_LIST.map((item) => (
-            <li key={item.en} className="flex gap-3 text-base leading-[1.65] text-text-muted">
+            <li key={item.en} className="flex gap-3 text-base leading-[1.65] text-text-main">
               <span aria-hidden="true" className="mt-[0.62em] h-[7px] w-[7px] shrink-0 rounded-full bg-primary" />
               <span>
                 <T en={item.en} bn={item.bn} />

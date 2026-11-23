@@ -134,22 +134,22 @@ export default function DividendTimeline({ rows, faceValue, ltp }: Props) {
               >
                 <IconCalendar size={15} />
               </span>
-              <p className="text-sm font-bold leading-snug min-w-0 text-text-main">
+              <p className="text-sm font-semibold leading-snug min-w-0 text-text-main">
                 <T en="Next dividend. Record date: " bn="পরের ডিভিডেন্ড। রেকর্ড ডেট: " />
                 {d2(recordIso)}
               </p>
               <DaysLeft
                 date={recordIso}
-                className="sm:ml-auto text-xs font-bold px-2 py-0.5 rounded-full tabular-nums nums whitespace-nowrap"
+                className="sm:ml-auto text-xs font-semibold px-2 py-0.5 rounded-full tabular-nums nums whitespace-nowrap"
               />
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-text-muted">
+                <p className="text-xs text-text-muted">
                   <T en="Declared" bn="ঘোষিত" />
                 </p>
-                <p className="text-base sm:text-lg font-bold tabular-nums nums leading-tight break-words text-text-main">
+                <p className="text-base sm:text-lg font-semibold tabular-nums nums leading-tight break-words text-text-main">
                   {declared}
                 </p>
                 <p className="text-xs text-text-muted">
@@ -158,10 +158,10 @@ export default function DividendTimeline({ rows, faceValue, ltp }: Props) {
               </div>
               {cashPerShare != null && (
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold text-text-muted">
+                  <p className="text-xs text-text-muted">
                     <T en="Cash per share" bn="শেয়ারপ্রতি নগদ" />
                   </p>
-                  <p className="text-base sm:text-lg font-bold tabular-nums nums leading-tight text-positive">{money(cashPerShare)}</p>
+                  <p className="text-base sm:text-lg font-semibold tabular-nums nums leading-tight text-positive">{money(cashPerShare)}</p>
                   {yieldPct != null && (
                     <p className="text-xs leading-snug text-text-muted">
                       <T
@@ -173,10 +173,10 @@ export default function DividendTimeline({ rows, faceValue, ltp }: Props) {
                 </div>
               )}
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-text-muted">
+                <p className="text-xs text-text-muted">
                   <T en="Last day to buy" bn="শেষ কেনার দিন" />
                 </p>
-                <p className="text-base sm:text-lg font-bold tabular-nums nums leading-tight" style={{ color: spotNow ? "var(--watch)" : "var(--text)" }}>
+                <p className="text-base sm:text-lg font-semibold tabular-nums nums leading-tight" style={{ color: spotNow ? "var(--watch)" : "var(--text)" }}>
                   {d2(buyByIso)}
                 </p>
                 <p className="text-xs leading-snug text-text-muted">
@@ -192,10 +192,10 @@ export default function DividendTimeline({ rows, faceValue, ltp }: Props) {
               </div>
               {r.agm_date && (
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold text-text-muted">
+                  <p className="text-xs text-text-muted">
                     <T en="AGM" bn="এজিএম" />
                   </p>
-                  <p className="text-base sm:text-lg font-bold tabular-nums nums leading-tight text-text-main">{d2(r.agm_date)}</p>
+                  <p className="text-base sm:text-lg font-semibold tabular-nums nums leading-tight text-text-main">{d2(r.agm_date)}</p>
                   <p className="text-xs text-text-muted">
                     <T en="Shareholders approve the dividend here" bn="এখানে শেয়ারহোল্ডাররা ডিভিডেন্ড অনুমোদন করেন" />
                   </p>

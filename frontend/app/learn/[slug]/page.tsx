@@ -150,7 +150,7 @@ export default async function GuidePage({ params }: Props) {
       {/* More in this category */}
       {related.length > 0 && (
         <section className="space-y-4 pt-2">
-          <h2 className="text-lg font-bold text-text-main">
+          <h2 className="text-lg font-semibold text-text-main">
             More in {guide.category}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">

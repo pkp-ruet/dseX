@@ -29,7 +29,7 @@ function Row({ label, value, tone = "text-text-main", bn }: { label: string; val
       <p className="text-sm text-text-main">
         <T en={label} bn={bn} />
       </p>
-      <p className={`nums shrink-0 text-sm font-bold ${tone}`}>{value}</p>
+      <p className={`nums shrink-0 text-sm font-semibold ${tone}`}>{value}</p>
     </div>
   );
 }
@@ -142,7 +142,7 @@ export default function StatementClient() {
         ]}
       >
         <Card padding="none" className="statement-sheet p-5 sm:p-6">
-          <p className="text-xs font-semibold text-text-muted">TopStockBD · {name}</p>
+          <p className="text-xs text-text-muted">TopStockBD · {name}</p>
           <h2 className="mt-1 text-xl font-bold text-text-main">
             <T en={`Statement for ${year}`} bn={`${year} সালের হিসাব`} />
           </h2>
@@ -163,7 +163,7 @@ export default function StatementClient() {
             <Row label="Bonus shares received" bn="বোনাস শেয়ার" value={st.bonusShares.toLocaleString()} />
           </div>
 
-          <h3 className="mt-6 text-base font-bold text-text-main">
+          <h3 className="mt-6 text-base font-semibold text-text-main">
             <T en="Every entry" bn="প্রতিটি লেনদেন" />
           </h3>
           {entries.length === 0 ? (
@@ -217,7 +217,7 @@ export default function StatementClient() {
             </table>
           )}
 
-          <h3 className="mt-6 text-base font-bold text-text-main">
+          <h3 className="mt-6 text-base font-semibold text-text-main">
             <T en="Your shares today" bn="আজ আপনার শেয়ার" />
           </h3>
           <ul className="mt-2 divide-y divide-border text-sm">

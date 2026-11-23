@@ -47,7 +47,7 @@ const JSON_LD = {
   ],
 };
 
-const P = "text-lg leading-[1.78] text-text-muted";
+const P = "text-lg leading-[1.78] text-text-main";
 const H2 = "text-xl sm:text-2xl font-bold tracking-tight text-text-main";
 const B = "text-text-main";
 
@@ -86,7 +86,7 @@ export default function DisclaimerPage() {
 
         {/* Primary disclaimer — most prominent */}
         <section className="soft-card p-6 space-y-3.5 border-l-4 border-l-negative">
-          <h2 className="text-lg font-bold text-text-main">
+          <h2 className="text-lg font-semibold text-text-main">
             <T en="Not financial advice" bn="এটি আর্থিক পরামর্শ নয়" />
           </h2>
           <p className={P}>
@@ -128,7 +128,7 @@ export default function DisclaimerPage() {
               }
             />
           </p>
-          <p className="text-lg font-bold text-text-main">
+          <p className="text-lg font-semibold text-text-main">
             <T en="You invest at your own risk." bn="বিনিয়োগের ঝুঁকি আপনার নিজের।" />
           </p>
         </section>
@@ -223,7 +223,7 @@ export default function DisclaimerPage() {
           </p>
           <ul className="space-y-3">
             {RESEARCH_STEPS.map((item) => (
-              <li key={item.en} className="flex gap-3 text-lg leading-[1.7] text-text-muted">
+              <li key={item.en} className="flex gap-3 text-lg leading-[1.7] text-text-main">
                 <span aria-hidden="true" className="mt-[0.62em] h-[7px] w-[7px] shrink-0 rounded-full bg-primary" />
                 <span>
                   <T en={item.en} bn={item.bn} />

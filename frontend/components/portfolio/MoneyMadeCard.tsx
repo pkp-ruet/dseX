@@ -92,9 +92,9 @@ export default function MoneyMadeCard({
           <li key={p.key} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-3">
             <div className="min-w-0">
               <p className="m-0 text-sm font-semibold text-text-main">{p.label}</p>
-              <p className="m-0 text-xs font-semibold text-text-muted">{p.sub}</p>
+              <p className="m-0 text-xs text-text-muted">{p.sub}</p>
             </div>
-            <span className={`pv pf-num text-base font-bold ${TONE_CLS[p.tone]}`}>{signed(p.value)}</span>
+            <span className={`pv pf-num text-base font-semibold ${TONE_CLS[p.tone]}`}>{signed(p.value)}</span>
           </li>
         ))}
       </ul>
@@ -102,7 +102,7 @@ export default function MoneyMadeCard({
       <div className={`mt-3 rounded-lg bg-surface-2 px-4 py-3 ${bnText}`} lang={bn ? "bn" : undefined}>
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-3">
           <p className="m-0 text-sm font-semibold text-text-main">{L("What you take home", "হাতে যা আসে")}</p>
-          <p className={`pv pf-num m-0 text-lg font-bold ${TONE_CLS[tone(made.net.total)]}`}>{signed(made.net.total)}</p>
+          <p className={`pv pf-num m-0 text-lg font-semibold ${TONE_CLS[tone(made.net.total)]}`}>{signed(made.net.total)}</p>
         </div>
         <p className="mt-1 text-sm leading-relaxed text-text-muted">
           {L(

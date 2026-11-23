@@ -161,7 +161,7 @@ export default function ScoreHistory({ history }: { history: ScoreHistoryData })
         </ResponsiveContainer>
       </div>
       <div className="mt-5">
-        <h4 className="text-sm font-bold text-text-main mb-3">
+        <h4 className="text-sm font-semibold text-text-main mb-3">
           <T en="When the grade changed" bn="গ্রেড কবে বদলেছে" />
         </h4>
         {history.changes.length ? (

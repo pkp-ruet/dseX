@@ -30,10 +30,10 @@ export function TierBar({ counts, total }: { counts: Record<string, number>; tot
 function Metric({ label, value }: { label: ReactNode; value: ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-xs font-semibold text-text-muted">
+      <span className="text-xs text-text-muted">
         {label}
       </span>
-      <span className="text-sm font-extrabold leading-none tabular-nums text-text-main">
+      <span className="text-sm font-semibold leading-none tabular-nums text-text-main">
         {value}
       </span>
     </div>
@@ -53,17 +53,17 @@ export default function SectorCard({ sector: s }: { sector: SectorSummary }) {
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <h3 className="text-base font-extrabold leading-tight tracking-tight text-text-main">
+          <h3 className="text-base font-semibold leading-tight tracking-tight text-text-main">
             <T en={s.sector} bn={sectorBn(s.sector)} />
           </h3>
-          <p className="mt-1 text-xs font-semibold text-text-muted">
+          <p className="mt-1 text-xs text-text-muted">
             <T
               en={`${s.company_count} companies · ${crore(s.total_mcap_mn)}`}
               bn={`${s.company_count}টি কোম্পানি · ${croreBn(s.total_mcap_mn)}`}
             />
           </p>
         </div>
-        <span className="text-sm font-extrabold tabular-nums" style={{ color: chgColor }}>
+        <span className="text-sm font-semibold tabular-nums" style={{ color: chgColor }}>
           {chg != null ? `${chg > 0 ? "+" : ""}${pct(chg, 2)}` : "—"}
         </span>
       </div>
@@ -80,7 +80,7 @@ export default function SectorCard({ sector: s }: { sector: SectorSummary }) {
       </div>
 
       {s.top_ranked && (
-        <p className="flex items-center gap-2 text-xs font-semibold text-text-muted">
+        <p className="flex items-center gap-2 text-xs text-text-muted">
           <span className="min-w-0 truncate">
             <T en="Top ranked:" bn="শীর্ষে:" />{" "}
             <span className="font-extrabold text-text-main">{s.top_ranked.trading_code}</span>

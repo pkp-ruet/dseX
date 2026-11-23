@@ -32,7 +32,7 @@ export default function AlmostThere({
 
   return (
     <section className="scr-near" aria-labelledby="scr-near-title">
-      <h3 id="scr-near-title" className="text-base font-bold text-text-main">
+      <h3 id="scr-near-title" className="text-base font-semibold text-text-main">
         <T en="Almost there" bn="প্রায় মিলেছে" />
       </h3>
       <p className="text-sm text-text-main">

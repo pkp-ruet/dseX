@@ -102,11 +102,11 @@ export default function HistoryCard({
                   <span className="text-text-muted"> · </span>
                   {d.title}
                 </p>
-                <p className="m-0 mt-0.5 text-xs font-semibold text-text-muted">
+                <p className="m-0 mt-0.5 text-xs text-text-muted">
                   {formatDate(e.kind === "dividend" || e.kind === "bonus" ? e.record_date : e.date)}
                 </p>
               </div>
-              {d.amount && <p className={`pv pf-num m-0 shrink-0 text-sm font-bold ${d.tone}`}>{d.amount}</p>}
+              {d.amount && <p className={`pv pf-num m-0 shrink-0 text-sm font-semibold ${d.tone}`}>{d.amount}</p>}
               {canRemove && (
                 <Button
                   type="button"

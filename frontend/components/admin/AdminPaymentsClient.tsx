@@ -156,7 +156,7 @@ ${effect}`,
     <div className="max-w-3xl mx-auto px-3 sm:px-4 py-6 sm:py-10">
       <div className="flex items-center justify-between mb-6 gap-2 flex-wrap">
         <div>
-          <p className="text-xs font-bold text-text-muted mb-1">Admin</p>
+          <p className="text-xs text-text-muted mb-1">Admin</p>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-text-main leading-tight">Payments</h1>
           <p className="text-sm text-text-muted mt-1">
             Premium started when the reader tapped &ldquo;I&apos;ve paid&rdquo;. Find each payment in the
@@ -223,9 +223,9 @@ ${effect}`,
           items.map((p) => (
             <Card key={p.id} padding="none" className="px-4 py-3">
               <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                <p className="text-lg font-bold text-text-main tabular-nums">
+                <p className="text-lg font-semibold text-text-main tabular-nums">
                   ৳{p.amount.toLocaleString("en-IN")}{" "}
-                  <span className="text-sm font-semibold text-text-muted">
+                  <span className="text-sm text-text-muted">
                     {METHOD_LABEL[p.method] ?? p.method} · {planByKey(p.plan)?.name ?? (p.plan === "custom" ? `${p.days} days` : p.plan)}
                   </span>
                 </p>

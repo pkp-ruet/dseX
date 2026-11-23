@@ -37,8 +37,8 @@ function List({ title, note, stocks, metric, accent }: {
         borderColor: `color-mix(in srgb, ${accent} 22%, var(--border))`,
       }}
     >
-      <h3 className="text-sm font-extrabold tracking-tight text-text-main">{title}</h3>
-      <p className="mt-0.5 text-xs font-semibold text-text-muted">{note}</p>
+      <h3 className="text-sm font-semibold tracking-tight text-text-main">{title}</h3>
+      <p className="mt-0.5 text-xs text-text-muted">{note}</p>
 
       <div className="mt-2.5 flex flex-col">
         {stocks.map((s) => {
@@ -51,17 +51,17 @@ function List({ title, note, stocks, metric, accent }: {
               <div className="flex min-w-0 items-center gap-2">
                 <Link
                   href={`/stock/${s.trading_code}`}
-                  className="font-display text-sm font-extrabold tracking-tight text-text-main hover:text-primary"
+                  className="font-display text-sm font-semibold tracking-tight text-text-main hover:text-primary"
                 >
                   {s.trading_code}
                 </Link>
                 {s.tier && <TierPill tier={s.tier} />}
               </div>
               <div className="flex flex-shrink-0 items-baseline gap-2.5 tabular-nums">
-                <span className="text-xs font-semibold text-text-muted">
+                <span className="text-xs text-text-muted">
                   {s.ltp != null ? taka(s.ltp) : "—"}
                 </span>
-                <span className="text-sm font-extrabold" style={{ color: v.color }}>
+                <span className="text-sm font-semibold" style={{ color: v.color }}>
                   {v.text}
                 </span>
               </div>

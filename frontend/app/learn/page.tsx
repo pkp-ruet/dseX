@@ -99,7 +99,7 @@ export default function LearnPage() {
 
       {/* Category index — tap to jump to a section */}
       <section aria-label="Browse by topic" className="space-y-3">
-        <h2 className="text-center text-xs font-bold   text-text-muted">
+        <h2 className="text-center text-xs text-text-muted">
           Browse by topic
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -113,11 +113,11 @@ export default function LearnPage() {
                 <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[color-mix(in_srgb,var(--primary)_8%,var(--surface-2))] text-lg">
                   {c.icon}
                 </span>
-                <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs font-bold text-text-muted">
+                <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-text-muted">
                   {c.count}
                 </span>
               </div>
-              <span className="font-bold text-text-main text-base leading-snug group-hover:text-primary transition-colors">
+              <span className="font-semibold text-text-main text-base leading-snug group-hover:text-primary transition-colors">
                 {c.label}
               </span>
               <span className="text-xs leading-snug text-text-muted line-clamp-2">
@@ -143,7 +143,7 @@ export default function LearnPage() {
                 <h2 className="text-xl font-bold tracking-tight text-text-main">
                   {category}
                 </h2>
-                <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs font-bold text-text-muted">
+                <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs text-text-muted">
                   {guidesInCategory.length}
                 </span>
               </div>
@@ -168,7 +168,7 @@ export default function LearnPage() {
                     </span>
                   </div>
                   <div>
-                    <h3 className="font-bold text-text-main text-base leading-snug group-hover:text-primary transition-colors">
+                    <h3 className="font-semibold text-text-main text-base leading-snug group-hover:text-primary transition-colors">
                       {guide.title}
                     </h3>
                     <p className="mt-1.5 text-sm text-text-muted leading-relaxed">

@@ -1,6 +1,6 @@
 /* Watch rules (THE Premium line, step 4, 2026-11-22): the "Watch this share"
    sheet — one row a rule, a tick on the left, a percent choice on the right. */
-.wr-lead { margin: 0 0 var(--space-3); font-size: var(--fs-base); font-weight: 600; color: var(--text); }
+.wr-lead { margin: 0 0 var(--space-3); font-size: var(--fs-base); font-weight: 400; color: var(--text); }
 .wr-suggest { font-weight: 400; }
 .wr-list { display: grid; margin: 0; padding: 0; list-style: none; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); }
 .wr-row {
@@ -47,10 +47,10 @@
 .wrp-plan--over { border-color: rgb(var(--gold-rgb) / 0.6); background: rgb(var(--gold-rgb) / 0.08); }
 .wrp-section { margin-top: var(--space-8); }
 .wrp-section:first-child { margin-top: 0; }
-.wrp-h { display: flex; align-items: center; gap: var(--space-2); margin: 0 0 var(--space-3); font-size: var(--fs-base); font-weight: 700; color: var(--text); }
+.wrp-h { display: flex; align-items: center; gap: var(--space-2); margin: 0 0 var(--space-3); font-size: var(--fs-base); font-weight: 600; color: var(--text); }
 .wrp-n {
   display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; padding: 0 8px;
-  border-radius: 999px; background: var(--surface-2); font-size: var(--fs-xs); font-weight: 700; font-variant-numeric: tabular-nums;
+  border-radius: 999px; background: var(--surface-2); font-size: var(--fs-xs); font-weight: 600; font-variant-numeric: tabular-nums;
 }
 .wrp-empty { margin: 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
 .wrp-card {
@@ -60,7 +60,7 @@
 .wrp-share { display: grid; gap: var(--space-3); padding: 14px 16px; border-top: 1px solid var(--cell-rule); }
 .wrp-share:first-child, .wrp-row:first-child { border-top: 0; }
 .wrp-share-top { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
-.wrp-name { font-size: var(--fs-base); font-weight: 700; color: var(--text); }
+.wrp-name { font-size: var(--fs-base); font-weight: 600; color: var(--text); }
 .wrp-name:hover { text-decoration: underline; }
 .wrp-code { font-size: var(--fs-xs); font-weight: 600; letter-spacing: 0.02em; }
 .wrp-tag { padding: 2px 8px; border-radius: 999px; background: var(--surface-2); font-size: var(--fs-xs); font-weight: 600; color: var(--text); }

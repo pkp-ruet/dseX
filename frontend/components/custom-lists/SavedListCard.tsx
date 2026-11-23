@@ -33,7 +33,7 @@ export default function SavedListCard({
     <Card padding="none" className="overflow-hidden" id={`list-${list.id}`}>
       <div className="p-4 sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-2">
-          <h3 className="text-base font-bold text-text-main">{list.name}</h3>
+          <h3 className="text-base font-semibold text-text-main">{list.name}</h3>
           {list.passed != null && (
             <span className="text-sm text-text-muted tabular-nums">
               {t(`${list.passed} match today`, `আজ ${list.passed}টি মিলেছে`)}

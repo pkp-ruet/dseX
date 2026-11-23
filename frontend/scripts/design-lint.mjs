@@ -8,7 +8,8 @@
  *   - raw hex colours                             → tokens (OG-image routes exempt)
  *   - Tailwind palette colours (red-500, slate-…) → tokens
  *   - `dark:` variants                            → dark mode is token-based (globals.css `:root[data-theme="dark"]`), never a per-class variant
- *   - `text-[…]` font sizes                       → text-xs … text-5xl (12px floor)
+ *   - `text-[…]` font sizes                       → text-xs … text-5xl (13px floor since 2026-11-23)
+ *   - bold on text-xs / text-sm (and on CSS rules at --fs-2xs/xs/sm) → semibold, or a regular muted label
  *   - `shadow-[…]` / `rounded-[…]`                → shadow-soft|lift, rounded-sm|md|lg|xl|3xl
  * and app/**\/*.css for raw font-size / border-radius / box-shadow values.
  *
@@ -97,6 +98,42 @@ for (const rel of PLAIN_FILES) {
         if (m) findings.push(`${rel}:${i + 1}  plain words (no market jargon or ratios on screen): ${m[0]}`);
       }
     });
+}
+
+// Calm text (2026-11-23, calm plan step 1): bold is for page titles and big
+// numbers; text at 15px and under is at most semibold. Labels and notes use the
+// secondary ink at regular weight instead of being made heavy.
+const SMALL_TW = /(?<![\w:/-])text-(?:2xs|xs|sm)(?![\w-])/;
+const HEAVY_TW = /(?<![\w:/-])font-(?:bold|extrabold|black)(?![\w-])/;
+const GROWS_BIG = /(?<![\w/-])(?:[a-z]+:)?text-(?:xl|[2-5]xl|display)(?![\w-])/;
+const SMALL_CSS = /font-size:\s*var\(--fs-(?:2xs|xs|sm)\)/;
+const HEAVY_CSS = /font-weight:\s*(?:[7-9]00|bold|bolder)\b/;
+// The wordmark and the skip link are the two deliberate exceptions.
+const HEAVY_OK = /\.(?:cv-mark|skip-link)\b/;
+for (const d of SRC_DIRS) {
+  for (const file of walk(join(ROOT, d))) {
+    if (EXEMPT.some((r) => r.test(file))) continue;
+    const src = readFileSync(file, "utf8");
+    const rel = relative(ROOT, file);
+    if (file.endsWith(".css")) {
+      // Comments blanked (same length, so line numbers hold), then every innermost rule block.
+      const clean = src.replace(/\/\*[\s\S]*?\*\//g, (c) => c.replace(/[^\n]/g, " "));
+      for (const m of clean.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+        const [, sel, body] = m;
+        if (!SMALL_CSS.test(body) || !HEAVY_CSS.test(body) || HEAVY_OK.test(sel)) continue;
+        const line = clean.slice(0, m.index + sel.length).split("\n").length;
+        findings.push(`${rel}:${line}  bold small text (15px and under is at most 600): ${sel.trim().split("\n").pop().trim()}`);
+      }
+    } else {
+      src.split("\n").forEach((line, i) => {
+        for (const lit of line.match(/(["'`])(?:\\.|(?!\1).)*\1/g) ?? []) {
+          if (SMALL_TW.test(lit) && HEAVY_TW.test(lit) && !GROWS_BIG.test(lit)) {
+            findings.push(`${rel}:${i + 1}  bold small text (use font-semibold, or regular + text-text-muted for a label): ${lit.slice(0, 80)}`);
+          }
+        }
+      });
+    }
+  }
 }
 
 if (findings.length) {

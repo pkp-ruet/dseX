@@ -129,7 +129,7 @@ export default function StickySummaryBar({
           className="h-full flex items-center gap-2 sm:gap-3 px-3 bg-surface/90 backdrop-blur border-b border-border"
         >
           {/* everything here is shrink-0, so the code is the one thing that ellipsises */}
-          <span className="font-bold text-sm shrink-0 max-w-[5.5rem] truncate text-text-main">{code}</span>
+          <span className="font-semibold text-sm shrink-0 max-w-[5.5rem] truncate text-text-main">{code}</span>
           {/* score ring + tier word: from sm up — on a 360px phone code + star + price + % fills the line */}
           {score != null && (
             <span className="hidden sm:inline-flex items-center gap-1.5 shrink-0">
@@ -149,7 +149,7 @@ export default function StickySummaryBar({
 
           <div className="ml-auto flex items-center gap-1.5 sm:gap-2 shrink-0 tabular-nums">
             <StarButton code={code} size="md" />
-            <span className="font-bold text-sm text-text-main">{money(ltp)}</span>
+            <span className="font-semibold text-sm text-text-main">{money(ltp)}</span>
             {changePct != null && (
               <span className={`text-xs font-semibold ${changeTone(changePct)}`}>
                 {fmtChange(changePct)}

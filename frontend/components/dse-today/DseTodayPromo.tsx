@@ -45,7 +45,7 @@ export default function DseTodayPromo() {
           >
             <T en="The bigger picture" bn="পুরো চিত্র" />
           </span>
-          <p className="mt-0.5 text-sm font-bold leading-snug text-text-main sm:text-base">
+          <p className="mt-0.5 text-sm font-semibold leading-snug text-text-main sm:text-base">
             <T en="Is the market up or down, cheap or expensive?" bn="বাজার বাড়ছে না কমছে, দাম কম না বেশি?" />
           </p>
           <p className="mt-0.5 hidden text-sm leading-snug text-text-muted sm:block">
@@ -58,7 +58,7 @@ export default function DseTodayPromo() {
 
         {/* CTA */}
         <span
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-extrabold text-on-fill transition-all group-hover:gap-2.5 sm:px-4 sm:text-sm"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold text-on-fill transition-all group-hover:gap-2.5 sm:px-4 sm:text-sm"
           style={{ background: "var(--primary)" }}
         >
           <span className="hidden sm:inline">

@@ -105,7 +105,7 @@ export default function FeedbackPrompt() {
         ) : (
           <>
             <div className="flex items-start justify-between gap-3">
-              <h3 className="text-base font-bold leading-snug text-text-main">
+              <h3 className="text-base font-semibold leading-snug text-text-main">
                 <T en="How is TopStockBD working for you?" bn="TopStockBD আপনার কেমন লাগছে?" />
               </h3>
               <button

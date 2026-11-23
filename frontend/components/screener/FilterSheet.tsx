@@ -204,7 +204,7 @@ export default function FilterSheet({
                 )}
                 <div className="grid grid-cols-2 gap-3">
                   <label htmlFor="scr-min" className="block">
-                    <span className="mb-1 block text-xs font-semibold text-text-muted">
+                    <span className="mb-1 block text-xs text-text-muted">
                       {t("From", "থেকে")}{unit.en && ` (${t(unit.en, unit.bn)})`}
                     </span>
                     <input
@@ -217,7 +217,7 @@ export default function FilterSheet({
                     />
                   </label>
                   <label htmlFor="scr-max" className="block">
-                    <span className="mb-1 block text-xs font-semibold text-text-muted">
+                    <span className="mb-1 block text-xs text-text-muted">
                       {t("To", "পর্যন্ত")}{unit.en && ` (${t(unit.en, unit.bn)})`}
                     </span>
                     <input

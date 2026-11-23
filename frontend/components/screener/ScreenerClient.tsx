@@ -644,7 +644,7 @@ export default function ScreenerClient({ data }: { data: ScreenerUniverse }) {
           <section ref={resultRef} aria-labelledby="scr-result" className="scroll-mt-24 space-y-3">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div className="min-w-0">
-                <h2 id="scr-result" className="text-lg font-bold text-text-main">
+                <h2 id="scr-result" className="text-lg font-semibold text-text-main">
                   {pickedTitle
                     ? tt(pickedTitle.en, pickedTitle.bn)
                     : chosen ? tt("Your filters", "আপনার ফিল্টার") : tt("Every share", "সব শেয়ার")}
@@ -733,7 +733,7 @@ export default function ScreenerClient({ data }: { data: ScreenerUniverse }) {
         {/* Saved screens, for editing */}
         {isLoggedIn && (isPremium || lists.length > 0) && (
           <section id="saved" ref={savedRef} aria-labelledby="scr-saved" className="scroll-mt-24 space-y-4">
-            <h2 id="scr-saved" className="text-lg font-bold text-text-main">
+            <h2 id="scr-saved" className="text-lg font-semibold text-text-main">
               {tt(lists.length ? `Your saved screens (${lists.length})` : "Your saved screens",
                   lists.length ? `আপনার সেভ করা স্ক্রিন (${lists.length})` : "আপনার সেভ করা স্ক্রিন")}
             </h2>

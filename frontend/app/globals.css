@@ -34,7 +34,12 @@
   --bg: #F3F1EC;            /* soft warm canvas (2026-11-06: one step down from #FAF8F4 — a reader found the bright screen tiring; was cream #F6F1E7 before the 2026-10 redesign). Cards lift off it by border + shadow, not by contrast */
   --border: #DED6C3;        /* warm hairline (deepened with the canvas so it still reads) */
   --text: #2E2B26;          /* charcoal ink */
-  --text-muted: #2E2B26;    /* = --text since 2026-10-30 (user: "no line should be faded, all clearly visible"): secondary text is told apart by size and weight, never by a lighter colour */
+  /* Secondary ink: labels, captions, meta lines, notes, small print (2026-11-23, the calm
+     plan step 1). One step softer than --text so bold no longer has to carry every
+     difference, but never faded: 8.4:1 on --surface, 7.7:1 on --bg, 7.2:1 on --surface-2
+     (AAA everywhere). From 2026-10-30 to 11-23 it equalled --text (user: "no line should
+     be faded, all clearly visible"); the old #5C554A was under 7:1 on the grey panel. */
+  --text-muted: #504B43;
   /* Radius scale (the ONLY radii in the app besides 999px pills and ≤4px hairlines):
      8 tight controls · 10 controls · 12 inputs + small cards · 16 cards · 20 hero panels.
      tailwind.config.ts maps rounded-md/DEFAULT/lg/xl/3xl onto the same five values. */
@@ -46,14 +51,18 @@
   /* THE focus ring for fields; buttons/links use a 2px primary outline. */
   --ring: 0 0 0 3px color-mix(in srgb, var(--primary) 24%, transparent);
 
-  /* Type scale — THE font sizes for the app. 12px is the floor (budget Android
+  /* Type scale — THE font sizes for the app. 13px is the floor (budget Android
      phones); every `font-size` in this file uses one of these, and components
      use the matching Tailwind step (text-xs … text-5xl), never text-[…]. */
-  --fs-2xs: 0.75rem;     /* 12px — floor: chips, table headers, captions */
-  --fs-xs: 0.8125rem;    /* 13px — secondary lines */
-  --fs-sm: 0.875rem;     /* 14px — body in dense UI */
-  --fs-base: 0.9375rem;  /* 15px — body */
-  --fs-md: 1rem;         /* 16px — lead body */
+  /* 2026-11-23 (calm plan step 1): the five small steps went up 1px each — most text
+     on the site sat at 12–14px. Tailwind's text-xs / text-sm / text-base read these
+     tokens too (tailwind.config.ts), and Bengali pages take the sentence steps 1px
+     further (below). 12px is left only for chart ticks (lib/chart-theme.ts). */
+  --fs-2xs: 0.8125rem;   /* 13px — chips, tags, table headers, small print */
+  --fs-xs: 0.875rem;     /* 14px — labels, meta lines */
+  --fs-sm: 0.9375rem;    /* 15px — body in dense UI, list rows */
+  --fs-base: 1rem;       /* 16px — body */
+  --fs-md: 1.0625rem;    /* 17px — lead body, answers */
   --fs-title: 1.125rem;  /* 18px — card titles */
   --fs-lg: 1.25rem;      /* 20px — section titles */
   --fs-xl: 1.5rem;       /* 24px — page h1 on phones */
@@ -96,7 +105,7 @@
   --border-rgb: 222 214 195;
   --text-rgb: 46 43 38;
   --scrim-rgb: 46 43 38;   /* the veil behind sheets and overlays: ink in light, black in dark (a --text veil turned cream in dark mode) */
-  --text-muted-rgb: 46 43 38;
+  --text-muted-rgb: 80 75 67;
   --primary-rgb: 158 95 64;
   --navy-rgb: 42 54 68;
   --info-rgb: 78 114 146;
@@ -144,7 +153,7 @@
   --bg: #161412;
   --border: #3B3630;
   --text: #ECE5DA;
-  --text-muted: #ECE5DA;    /* = --text, same rule as light: no faded text */
+  --text-muted: #BDB5A8;    /* secondary ink, same step as light: 8.3:1 on --surface, 7.4:1 on --surface-2 */
   --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.30), 0 6px 16px -10px rgba(0, 0, 0, 0.50);
   --shadow-lift: 0 1px 2px rgba(0, 0, 0, 0.30), 0 22px 48px -16px rgba(0, 0, 0, 0.60);
   --tier-excellent: #3FBF8E;
@@ -163,7 +172,7 @@
   --border-rgb: 59 54 48;
   --text-rgb: 236 229 218;
   --scrim-rgb: 0 0 0;
-  --text-muted-rgb: 236 229 218;
+  --text-muted-rgb: 189 181 168;
   --primary-rgb: 211 139 104;
   --navy-rgb: 30 38 48;
   --info-rgb: 134 168 198;
@@ -196,6 +205,14 @@ html[data-lang="bn"] [data-l="en"] {
 /* Bengali sets taller than Latin; give running text a little more room. */
 html[data-lang="bn"] body {
   line-height: 1.6;
+}
+/* Bengali glyphs read smaller than Latin at the same size, so the sentence steps
+   are 1px larger on a Bengali page (2026-11-23, calm plan step 1). Labels, chips
+   and titles keep the shared sizes so rows and tabs still fit. */
+html[data-lang="bn"] {
+  --fs-sm: 1rem;         /* 16px */
+  --fs-base: 1.0625rem;  /* 17px */
+  --fs-md: 1.125rem;     /* 18px */
 }
 /* The page must never scroll sideways: anything poking past the viewport lets
    mobile browsers pan horizontally, and the fixed navbar / bottom bar visibly
@@ -363,7 +380,7 @@ html {
   display: inline-flex;
   align-items: center;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.04em;
   line-height: 1.2;
   color: var(--primary-ink);
@@ -395,7 +412,7 @@ a:hover .ticker-tag,
   align-items: center;
   gap: 0.6rem;
   font-size: var(--fs-2xs);
-  font-weight: 800;
+  font-weight: 600;
   color: var(--text);
   margin: 1.75rem 0 0.75rem;
   clear: both;
@@ -455,7 +472,7 @@ a:hover .ticker-tag,
   align-items: center;
   gap: 7px;
   font-size: var(--fs-2xs);
-  font-weight: 700;
+  font-weight: 400;
   color: var(--primary-ink);
   background: color-mix(in srgb, var(--primary) 9%, var(--surface));
   border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--border));
@@ -485,7 +502,7 @@ a:hover .ticker-tag,
 .rank-limits-title {
   margin: 0 0 12px;
   font-size: var(--fs-2xs);
-  font-weight: 800;
+  font-weight: 600;
   color: var(--text-muted);
 }
 .rank-limits-points {
@@ -499,7 +516,7 @@ a:hover .ticker-tag,
   position: relative;
   padding-left: 18px;
   font-size: var(--fs-xs);
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.55;
   color: var(--text);
 }
@@ -522,7 +539,7 @@ a:hover .ticker-tag,
   padding-top: 11px;
   border-top: 1px solid var(--cell-rule);
   font-size: var(--fs-2xs);
-  font-weight: 600;
+  font-weight: 400;
   color: var(--text-muted);
 }
 .rank-limits-note + .rank-limits-note {
@@ -636,7 +653,7 @@ a:hover .ticker-tag,
 }
 .search-suggestion-code {
   font-size: var(--fs-xs);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--primary);
   flex-shrink: 0;
   min-width: 52px;
@@ -666,7 +683,7 @@ a:hover .ticker-tag,
 .info-col-header {
   font-family: var(--font-ui);
   font-size: var(--fs-2xs);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text);
   border-bottom: 1px solid var(--border);
   padding-bottom: 6px;
@@ -691,7 +708,7 @@ a:hover .ticker-tag,
   background: color-mix(in srgb, var(--info) 8%, transparent);
 }
 .icr-key {
-  font-weight: 700;
+  font-weight: 400;
   color: var(--primary);
 }
 /* Per-section ticker colors */
@@ -831,7 +848,7 @@ a:hover .ticker-tag,
 
 .intel-signal-title {
   font-size: var(--fs-2xs);
-  font-weight: 800;
+  font-weight: 600;
   color: var(--primary);
   margin-bottom: 2px;
 }
@@ -859,7 +876,7 @@ a:hover .ticker-tag,
 .intel-row:hover { background: color-mix(in srgb, var(--info) 6%, transparent); }
 .intel-row-header {
   font-size: var(--fs-2xs) !important;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -869,7 +886,7 @@ a:hover .ticker-tag,
 }
 .intel-row-header:hover { background: none; }
 .intel-code {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--primary);
   font-size: var(--fs-2xs);
   overflow: hidden;
@@ -895,7 +912,7 @@ a:hover .ticker-tag,
 }
 .intel-metric {
   font-variant-numeric: tabular-nums;
-  font-weight: 700;
+  font-weight: 600;
   font-size: var(--fs-2xs);
   text-align: right;
   justify-self: end;
@@ -1067,7 +1084,7 @@ a:hover .ticker-tag,
 }
 .nav-loading-code {
   color: var(--primary);
-  font-weight: 800;
+  font-weight: 600;
 }
 .nav-loading-sub {
   font-size: var(--fs-2xs);
@@ -1089,7 +1106,7 @@ a:hover .ticker-tag,
 }
 .watchlist-empty h2 {
   font-size: var(--fs-title);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text);
   margin: 0 0 8px;
 }
@@ -1185,7 +1202,7 @@ a:hover .ticker-tag,
   color: var(--text-muted);
   font-family: inherit;
   font-size: var(--fs-2xs);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.03em;
   transition: color 0.15s, transform 0.12s ease;
   position: relative;
@@ -1221,7 +1238,7 @@ a:hover .ticker-tag,
   height: 14px;
   padding: 0 4px;
   font-size: var(--fs-2xs);
-  font-weight: 800;
+  font-weight: 600;
   background: var(--gold);
   color: #3A2E14;
   border-radius: 999px;
@@ -1378,7 +1395,7 @@ a:hover .ticker-tag,
 .atp-field { display: flex; flex-direction: column; gap: 6px; }
 .atp-field span {
   font-size: var(--fs-2xs);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-muted);
 }
 .atp-field input {
@@ -1408,14 +1425,14 @@ a:hover .ticker-tag,
   margin: 2px 0 6px;
 }
 .pa-current b { font-size: var(--fs-xl); font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
-.pa-current span { font-size: var(--fs-2xs); font-weight: 700; color: var(--text-muted); }
+.pa-current span { font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted); }
 /* Quick-pick chips */
 .pa-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .pa-chip {
   flex: 0 0 auto;
   padding: 6px 10px;
   font-size: var(--fs-2xs);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text);
   background: var(--surface-2);
   border: 1px solid var(--border);
@@ -1451,7 +1468,7 @@ a:hover .ticker-tag,
 /* (gradient-filled headline removed in redesign step 6) */
 .ms-page-date {
   display: inline-block; margin-top: 16px;
-  font-size: var(--fs-sm); font-weight: 600; color: var(--text-muted);
+  font-size: var(--fs-sm); font-weight: 400; color: var(--text-muted);
   background: var(--surface); border: 1px solid var(--border); border-radius: 999px;
   padding: 5px 14px; box-shadow: var(--shadow-soft);
 }
@@ -1470,12 +1487,12 @@ a:hover .ticker-tag,
 .ms-hero-eyebrow {
   display: inline-block;
   font-family: var(--font-ui);
-  font-size: var(--fs-sm); font-weight: 600;
+  font-size: var(--fs-sm); font-weight: 400;
   color: var(--text-muted);
 }
 .ms-mood-pill {
   display: inline-flex; align-items: center; gap: 8px; margin-top: 12px;
-  font-size: var(--fs-md); font-weight: 700; padding: 6px 14px; border-radius: 999px;
+  font-size: var(--fs-md); font-weight: 600; padding: 6px 14px; border-radius: 999px;
   background: color-mix(in srgb, currentColor 8%, var(--surface));
   border: 1px solid color-mix(in srgb, currentColor 22%, var(--border));
 }
@@ -1496,7 +1513,7 @@ a:hover .ticker-tag,
   padding: 13px 14px 13px 18px; box-shadow: var(--shadow-soft);
 }
 .ms-stat::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--ms-accent, var(--primary)); }
-.ms-stat-label { font-size: var(--fs-xs); color: var(--text-muted); margin: 0 0 5px; font-weight: 700; }
+.ms-stat-label { font-size: var(--fs-xs); color: var(--text-muted); margin: 0 0 5px; font-weight: 600; }
 .ms-stat-value { font-size: var(--fs-lg); font-weight: 800; margin: 0; color: var(--text); letter-spacing: -0.01em; line-height: 1.12; }
 /* ---- Section header (catchy, numbered) ---- */
 
@@ -1508,8 +1525,8 @@ a:hover .ticker-tag,
 
 /* ---- Cards ---- */
 .ms-card { padding: 18px; }
-.ms-card-title { font-size: var(--fs-md); font-weight: 700; margin: 0 0 14px; color: var(--text); }
-.ms-card-note { font-size: var(--fs-xs); color: var(--text-muted); margin: 0 0 12px; font-weight: 500; line-height: 1.5; }
+.ms-card-title { font-size: var(--fs-md); font-weight: 600; margin: 0 0 14px; color: var(--text); }
+.ms-card-note { font-size: var(--fs-xs); color: var(--text-muted); margin: 0 0 12px; font-weight: 400; line-height: 1.5; }
 
 /* ---- Sector strength bars (diverging from centre) ---- */
 .ms-sector { display: grid; grid-template-columns: 112px minmax(0, 1fr) 52px; align-items: center; gap: 10px; padding: 8px 0; }
@@ -1536,8 +1553,8 @@ a:hover .ticker-tag,
 .ms-empty { font-size: var(--fs-sm); color: var(--text-muted); padding: 10px 0; }
 /* ---- Bengali (বাংলা) accents — paired with .font-bn + lang="bn" ---- */
 
-.ms-bn-text { font-size: var(--fs-md); color: var(--text); font-weight: 500; line-height: 1.9; margin: 0; max-width: 72ch; }
-.ms-bn-note { font-size: var(--fs-xs); color: var(--text-muted); font-weight: 500; margin: 12px 0 0; }
+.ms-bn-text { font-size: var(--fs-md); color: var(--text); font-weight: 400; line-height: 1.9; margin: 0; max-width: 72ch; }
+.ms-bn-note { font-size: var(--fs-xs); color: var(--text-muted); font-weight: 400; margin: 12px 0 0; }
 
 .ed-section-label::before {
   content: "";
@@ -1594,7 +1611,7 @@ a:hover .ticker-tag,
 .ed-spot-code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: var(--fs-2xs);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.4px;
   color: var(--primary-ink);
   background: color-mix(in srgb, var(--primary) 12%, transparent);
@@ -1617,7 +1634,7 @@ a:hover .ticker-tag,
 }
 .ed-verdict {
   font-size: var(--fs-2xs);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.3px;
   border-radius: 999px;
   padding: 5px 12px;
@@ -1673,7 +1690,7 @@ a:hover .ticker-tag,
 }
 .ed-run-main { min-width: 0; }
 .ed-run-name {
-  font-weight: 700;
+  font-weight: 600;
   font-size: var(--fs-title);
   color: var(--text);
 }
@@ -1698,7 +1715,7 @@ a:hover .ticker-tag,
   border-radius: var(--radius-sm);
   padding: 2px 6px;
   margin-left: 8px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.3px;
   vertical-align: middle;
   white-space: nowrap;
@@ -1715,7 +1732,7 @@ a:hover .ticker-tag,
 }
 .ed-run-stat {
   font-size: var(--fs-base);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text);
 }
 .ed-run-stat-label {
@@ -1767,7 +1784,7 @@ a:hover .ticker-tag,
   padding: 20px 0;
 }
 .ed-faq-item dt {
-  font-weight: 700;
+  font-weight: 600;
   font-size: var(--fs-title);
   color: var(--text);
 }
@@ -1827,7 +1844,7 @@ a:hover .ticker-tag,
   flex-shrink: 0;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: var(--fs-2xs);
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.02em;
   color: var(--mono-c, var(--primary));
   background: color-mix(in srgb, var(--mono-c, var(--primary)) 12%, var(--surface));
@@ -1946,7 +1963,7 @@ a:hover .ticker-tag,
   border-radius: var(--radius-lg);
 }
 .empty-state-icon { display: flex; justify-content: center; margin-bottom: 12px; color: var(--text-muted); }
-.empty-state-title { font-size: var(--fs-md); font-weight: 800; color: var(--text); margin: 0; }
+.empty-state-title { font-size: var(--fs-md); font-weight: 600; color: var(--text); margin: 0; }
 .empty-state-msg { font-size: var(--fs-sm); color: var(--text-muted); margin: 6px auto 0; max-width: 34rem; line-height: 1.55; }
 .empty-state-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 16px; }
 /* ---- Error state (components/ui/ErrorState.tsx) ---- */
@@ -2001,7 +2018,7 @@ a:hover .ticker-tag,
 .ms-why > summary {
   list-style: none; cursor: pointer; user-select: none;
   display: inline-flex; align-items: center; gap: 6px;
-  font-size: var(--fs-sm); font-weight: 800; color: var(--primary-ink); padding: 6px 0;
+  font-size: var(--fs-sm); font-weight: 600; color: var(--primary-ink); padding: 6px 0;
 }
 .ms-why > summary::-webkit-details-marker { display: none; }
 .ms-why > summary svg { transition: transform 0.18s ease; }
@@ -2015,14 +2032,14 @@ a:hover .ticker-tag,
   display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: baseline;
   padding: 10px 12px; border-radius: var(--radius); background: var(--surface-2); border: 1px solid var(--border);
 }
-.ms-why-k { font-size: var(--fs-xs); font-weight: 700; color: var(--text-muted); }
-.ms-why-v { font-size: var(--fs-sm); font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.ms-why-k { font-size: var(--fs-xs); font-weight: 600; color: var(--text-muted); }
+.ms-why-v { font-size: var(--fs-sm); font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
 
 /* ---- Owner tag beside a code: H (held) / star (followed) — same language as the dashboard ---- */
 .ms-own {
   display: inline-flex; align-items: center; justify-content: center;
   margin-left: 6px; vertical-align: 2px; width: 16px; height: 16px; border-radius: var(--radius-sm);
-  font-size: var(--fs-2xs); font-weight: 800; line-height: 1;
+  font-size: var(--fs-2xs); font-weight: 600; line-height: 1;
 }
 .ms-own--held { color: var(--on-fill); background: var(--primary); }
 .ms-own--watch { color: var(--warm-ink); background: color-mix(in srgb, var(--warm) 24%, var(--surface)); }
@@ -2036,7 +2053,7 @@ a:hover .ticker-tag,
 /* ---- GlobalSearch page shortcuts (2026-09-12): the small "Page" tag on a shortcut row ---- */
 .search-suggestion-tag {
   margin-left: auto; flex-shrink: 0; align-self: center;
-  font-size: var(--fs-2xs); font-weight: 800;
+  font-size: var(--fs-2xs); font-weight: 600;
   color: var(--primary); background: color-mix(in srgb, var(--primary) 11%, var(--surface));
   padding: 2px 7px; border-radius: 999px;
 }
@@ -2085,7 +2102,7 @@ a:hover .ticker-tag,
 .page-faq-title {
   margin: 0 0 8px;
   font-size: var(--fs-2xs);
-  font-weight: 800;
+  font-weight: 600;
   color: var(--text-muted);
 }
 .page-faq-item { border-bottom: 1px solid var(--cell-rule); }
@@ -2096,7 +2113,7 @@ a:hover .ticker-tag,
   padding: 10px 26px 10px 0;
   position: relative;
   font-size: var(--fs-sm);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text);
 }
 .page-faq-q::-webkit-details-marker { display: none; }
@@ -2185,7 +2202,7 @@ h2.info-col-header { margin: 0; }
     border-radius: 999px;
     padding: 0 0.9rem;
     font-size: var(--fs-2xs);
-    font-weight: 700;
+    font-weight: 600;
     white-space: nowrap;
     transition: background-color 120ms, color 120ms, border-color 120ms;
   }

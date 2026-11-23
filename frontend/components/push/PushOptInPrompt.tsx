@@ -123,7 +123,7 @@ export default function PushOptInPrompt() {
           <div className="min-w-0 flex-1">
             {mode === "ios" ? (
               <>
-                <p className="text-sm font-bold text-text-main">
+                <p className="text-sm font-semibold text-text-main">
                   <T en="Get a short daily update on your stocks" bn="প্রতিদিন আপনার শেয়ারের ছোট্ট আপডেট পান" />
                 </p>
                 <p className="mt-1 text-xs leading-snug text-text-muted">
@@ -148,7 +148,7 @@ export default function PushOptInPrompt() {
                   <button
                     type="button"
                     onClick={snooze}
-                    className="rounded-lg px-3 py-2 text-xs font-semibold text-text-muted hover:text-text-main"
+                    className="rounded-lg px-3 py-2 text-xs text-text-muted hover:text-text-main"
                   >
                     <T en="Got it" bn="বুঝেছি" />
                   </button>
@@ -156,7 +156,7 @@ export default function PushOptInPrompt() {
               </>
             ) : (
               <>
-                <p className="text-sm font-bold text-text-main">
+                <p className="text-sm font-semibold text-text-main">
                   <T en="Your stocks in one daily update" bn="প্রতিদিন একটি আপডেটে আপনার শেয়ার" />
                 </p>
                 <p className="mt-1 text-xs leading-snug text-text-muted">

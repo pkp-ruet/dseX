@@ -47,7 +47,7 @@
   gap: 6px;
   margin: 0;
   font-size: var(--fs-md);
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
   color: var(--primary-ink);
 }
@@ -59,8 +59,8 @@
   gap: 6px;
   margin: 4px 0 0;
   font-size: var(--fs-xs);
-  font-weight: 600;
-  color: var(--text);
+  font-weight: 400;
+  color: var(--text-muted);
 }
 .rk-legend-key {
   display: grid;
@@ -117,7 +117,7 @@
   border-radius: var(--radius);
   background: var(--surface-2);
   font-size: var(--fs-md);
-  font-weight: 700;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--text);
 }
@@ -141,13 +141,13 @@
   transition: color 0.15s ease;
 }
 .rk-line:hover .rk-co-name { color: var(--primary-ink); }
-.rk-co-code { font-size: var(--fs-2xs); font-weight: 700; letter-spacing: 0.06em; color: var(--text); }
+.rk-co-code { font-size: var(--fs-2xs); font-weight: 600; letter-spacing: 0.06em; color: var(--text); }
 
 /* Latest price over today's change — the arrow column hides below 480px so
    the name keeps its room on a phone (the whole row is still the link) */
 .rk-price { display: grid; justify-items: end; gap: 2px; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.rk-price-now { font-size: var(--fs-base); font-weight: 700; color: var(--text); }
-.rk-price-chg { font-size: var(--fs-2xs); font-weight: 700; }
+.rk-price-now { font-size: var(--fs-base); font-weight: 600; color: var(--text); }
+.rk-price-chg { font-size: var(--fs-2xs); font-weight: 600; }
 @media (min-width: 640px) { .rk-price { min-width: 84px; } }
 
 .rk-go { display: none; align-items: center; gap: 4px; color: var(--text); }
@@ -169,7 +169,7 @@
   padding: 0 8px;
   border-radius: 999px;
   font-size: var(--fs-2xs);
-  font-weight: 700;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 .rk-move.is-up { background: color-mix(in srgb, var(--positive) 12%, var(--surface)); color: var(--positive); }
@@ -195,7 +195,7 @@
   margin: var(--space-4) 0 var(--space-8);
   font-size: var(--fs-sm);
   line-height: 1.55;
-  color: var(--text);
+  color: var(--text-muted);
 }
 
 @media (prefers-reduced-motion: reduce) {

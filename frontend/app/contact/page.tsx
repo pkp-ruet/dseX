@@ -72,10 +72,10 @@ export default function ContactPage() {
         />
 
         <section className="soft-card p-6 space-y-4">
-          <h2 className="text-lg font-bold text-text-main">
+          <h2 className="text-lg font-semibold text-text-main">
             <T en="Email us" bn="ইমেইল করুন" />
           </h2>
-          <p className="text-lg leading-[1.7] text-text-muted">
+          <p className="text-lg leading-[1.7] text-text-main">
             <T
               en="Email is the best way to reach us. We usually reply within 1 to 3 working days."
               bn="আমাদের সঙ্গে যোগাযোগের সবচেয়ে ভালো উপায় ইমেইল। সাধারণত 1 থেকে 3 কার্যদিবসের মধ্যে উত্তর দিই।"
@@ -91,7 +91,7 @@ export default function ContactPage() {
             <T en="What to include" bn="ইমেইলে যা লিখবেন" />
           </h2>
           <ul className="space-y-3">
-            <li className="flex gap-3 text-lg leading-[1.7] text-text-muted">
+            <li className="flex gap-3 text-lg leading-[1.7] text-text-main">
               <span aria-hidden="true" className="mt-[0.62em] h-[7px] w-[7px] shrink-0 rounded-full bg-primary" />
               <T
                 en={
@@ -106,7 +106,7 @@ export default function ContactPage() {
                 }
               />
             </li>
-            <li className="flex gap-3 text-lg leading-[1.7] text-text-muted">
+            <li className="flex gap-3 text-lg leading-[1.7] text-text-main">
               <span aria-hidden="true" className="mt-[0.62em] h-[7px] w-[7px] shrink-0 rounded-full bg-primary" />
               <T
                 en={
@@ -121,7 +121,7 @@ export default function ContactPage() {
                 }
               />
             </li>
-            <li className="flex gap-3 text-lg leading-[1.7] text-text-muted">
+            <li className="flex gap-3 text-lg leading-[1.7] text-text-main">
               <span aria-hidden="true" className="mt-[0.62em] h-[7px] w-[7px] shrink-0 rounded-full bg-primary" />
               <T
                 en={
@@ -143,13 +143,13 @@ export default function ContactPage() {
           <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text-main">
             <T en="About this site" bn="এই সাইট সম্পর্কে" />
           </h2>
-          <p className="text-lg leading-[1.78] text-text-muted">
+          <p className="text-lg leading-[1.78] text-text-main">
             <T
               en="TopStockBD is an independent site. It studies the public financial data of companies listed on the Dhaka Stock Exchange (DSE). We have no link with DSE, BSEC, or any broker or financial institution."
               bn="TopStockBD একটি স্বাধীন সাইট। ঢাকা স্টক এক্সচেঞ্জে (ডিএসই) তালিকাভুক্ত কোম্পানির প্রকাশিত আর্থিক তথ্য এখানে বিশ্লেষণ করা হয়। ডিএসই, বিএসইসি, কোনো ব্রোকার বা আর্থিক প্রতিষ্ঠানের সঙ্গে আমাদের কোনো সম্পর্ক নেই।"
             />
           </p>
-          <p className="text-lg leading-[1.78] text-text-muted">
+          <p className="text-lg leading-[1.78] text-text-main">
             <T
               en={
                 <>

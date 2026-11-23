@@ -30,7 +30,7 @@ export default function ArticleContents({
       lang={bn ? "bn" : undefined}
       className={`border-y border-border py-4 ${bn ? "font-bn" : ""}`}
     >
-      <p className="mb-1 text-xs font-semibold text-text-muted">{label}</p>
+      <p className="mb-1 text-xs text-text-muted">{label}</p>
       <ol className="grid grid-cols-1 list-decimal gap-x-6 pl-5 text-sm sm:grid-cols-2">
         {headings.map((h, i) => (
           <li key={h} className="marker:text-text-muted">

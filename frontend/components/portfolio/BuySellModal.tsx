@@ -194,7 +194,7 @@ export default function BuySellModal({ mode, holding, ltp, companyName, onClose,
         {/* After this — the resulting position, in one quiet panel */}
         {preview && (
           <div className="rounded-lg bg-surface-2 px-4 py-3 text-sm">
-            <p className="text-xs font-semibold text-text-muted">{L("After this", "এরপর")}</p>
+            <p className="text-xs text-text-muted">{L("After this", "এরপর")}</p>
             {preview.kind === "buy" && (
               <p className="mt-1 text-text-main">
                 <span className="pv nums font-bold">

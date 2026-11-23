@@ -177,7 +177,7 @@ export default function AdminImagesClient() {
           >
             <div className="flex items-start justify-between gap-3 mb-3">
               <div className="min-w-0">
-                <h2 className="text-lg font-bold text-text-main">
+                <h2 className="text-lg font-semibold text-text-main">
                   {t.title}
                 </h2>
                 <p className="text-xs text-text-muted mt-1">

@@ -34,7 +34,7 @@ type Tab = "pe" | "pb" | "sector";
 function tile(label: Bi, value: string, sub: Bi, color?: string) {
   return (
     <Card key={label.en} padding="none" className="flex-1 rounded-2xl p-4">
-      <p className="text-xs font-semibold mb-2 text-text-muted">{tx(label)}</p>
+      <p className="text-xs mb-2 text-text-muted">{tx(label)}</p>
       <p className="text-2xl font-bold tabular-nums nums leading-none" style={{ color: color ?? "var(--text)" }}>
         {value}
       </p>

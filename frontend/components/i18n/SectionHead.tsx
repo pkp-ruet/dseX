@@ -39,7 +39,7 @@ export default function SectionHead({
       {/* 2026-10 redesign (decision 6): a plain sentence-case label and a plain
           headline. `accent`, `icon` and `highlight` are accepted but no longer
           paint anything — colour on the landing page lives in the data. */}
-      {eyebrow && <p className="text-sm font-semibold text-text-muted">{eyebrow}</p>}
+      {eyebrow && <p className="text-sm text-text-muted">{eyebrow}</p>}
       <h2
         id={id}
         className={`text-balance text-2xl font-bold leading-tight tracking-tight text-text-main sm:text-3xl ${

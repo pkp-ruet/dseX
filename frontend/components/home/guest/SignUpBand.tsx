@@ -207,13 +207,13 @@ export default function SignUpBand({ trust }: { trust: TrustStats | null }) {
             {STEPS.map((s, i) => (
               <li key={i} className="flex gap-3.5">
                 <span
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-text-main text-sm font-bold text-text-main nums"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-text-main text-sm font-semibold text-text-main nums"
                   aria-hidden
                 >
                   {i + 1}
                 </span>
                 <div className="min-w-0">
-                  <p className="text-base font-bold text-text-main">{s.title}</p>
+                  <p className="text-base font-semibold text-text-main">{s.title}</p>
                   <p className="mt-0.5 text-sm leading-relaxed text-text-main">{s.line}</p>
                 </div>
               </li>

@@ -71,7 +71,7 @@ export default function CorrectionsCard({
       <div className={`flex flex-col gap-5 ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
         {suggestions.length > 0 && (
           <div className="rounded-lg bg-surface-2 p-4">
-            <h4 className="text-sm font-bold text-text-main">
+            <h4 className="text-sm font-semibold text-text-main">
               {L(
                 `${suggestions.length} from before. Did you receive ${suggestions.length === 1 ? "this" : "these"}?`,
                 `আগের ${suggestions.length}টি। আপনি কি এগুলো পেয়েছিলেন?`,
@@ -131,7 +131,7 @@ export default function CorrectionsCard({
 
         {recent.length > 0 && (
           <div>
-            <h4 className="text-sm font-bold text-text-main">{L("Added for you", "আপনার হিসাবে যোগ হয়েছে")}</h4>
+            <h4 className="text-sm font-semibold text-text-main">{L("Added for you", "আপনার হিসাবে যোগ হয়েছে")}</h4>
             <ul className="pf-rows mt-1">
               {recent.map((e) => (
                 <li key={e.id} className="flex items-center gap-3 py-3">

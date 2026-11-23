@@ -323,7 +323,7 @@ export default async function SectorPage({ params }: Props) {
               <SectorCard key={o.slug} sector={o} />
             ))}
           </div>
-          <p className="mt-3 text-xs font-semibold text-text-muted">
+          <p className="mt-3 text-xs text-text-muted">
             <Link href="/sectors" className="text-primary underline">
               <T en={`See all ${data.market.sector_count} sectors`} bn={`সব ${data.market.sector_count}টি সেক্টর দেখুন`} />
             </Link>{" "}

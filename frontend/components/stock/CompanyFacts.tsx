@@ -219,8 +219,8 @@ export default function CompanyFacts({ detail }: Props) {
           <dl className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-4">
             {facts.map((f) => (
               <div key={f.key} className="min-w-0">
-                <dt className="text-xs font-semibold mb-1 text-text-muted">{tx(f.label)}</dt>
-                <dd className="text-lg font-bold tabular-nums nums leading-none truncate" style={{ color: f.tone ?? "var(--text)" }}>
+                <dt className="text-xs mb-1 text-text-muted">{tx(f.label)}</dt>
+                <dd className="text-lg font-semibold tabular-nums nums leading-none truncate" style={{ color: f.tone ?? "var(--text)" }}>
                   {tx(f.value)}
                 </dd>
                 <dd className="text-xs mt-1 leading-snug text-text-muted">{tx(f.desc)}</dd>

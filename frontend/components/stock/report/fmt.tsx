@@ -25,7 +25,7 @@ export const signedPct = (v: number | null | undefined) =>
 /** A small label above a figure. */
 export function Label({ en, bn }: Bi) {
   return (
-    <span className="block text-xs font-semibold text-text-muted">
+    <span className="block text-xs text-text-muted">
       <T en={en} bn={bn} />
     </span>
   );

@@ -39,7 +39,7 @@ function Fact({ label, value, sub }: { label: Bi; value: React.ReactNode; sub?: 
   return (
     <div>
       <Label {...label} />
-      <span className="mt-0.5 block text-base font-bold leading-tight tabular-nums nums text-text-main">{value}</span>
+      <span className="mt-0.5 block text-base font-semibold leading-tight tabular-nums nums text-text-main">{value}</span>
       {sub && <span className="mt-0.5 block text-xs text-text-muted">{sub}</span>}
     </div>
   );
@@ -161,7 +161,7 @@ export function StoryTable({ s }: { s: StorySection }) {
   if (!rows.length) return null;
   return (
     <div className="mb-6 overflow-x-auto">
-      <p className="mb-2 text-sm font-bold text-text-main">
+      <p className="mb-2 text-sm font-semibold text-text-main">
         <T en="Ten years of accounts" bn="দশ বছরের হিসাব" />
       </p>
       <table className="w-full border-collapse text-xs tabular-nums nums sm:text-sm">
@@ -429,7 +429,7 @@ export function QualityDetails({ detail, showBars = true }: { detail: CompanyDet
     <>
       {showBars && (
         <div className="mb-4">
-          <p className="mb-2 text-sm font-bold text-text-main">
+          <p className="mb-2 text-sm font-semibold text-text-main">
             <T en="How we grade the whole company" bn="পুরো কোম্পানিকে আমরা যেভাবে গ্রেড দিই" />
           </p>
           <p className="mb-3 text-xs text-text-muted">
@@ -441,7 +441,7 @@ export function QualityDetails({ detail, showBars = true }: { detail: CompanyDet
       <HealthCheck scoreRow={detail.score_row} detail={detail} />
       {detail.score_history && detail.score_history.points.length >= 2 && (
         <div className="mt-6 border-t border-border pt-4">
-          <p className="mb-2 text-sm font-bold text-text-main">
+          <p className="mb-2 text-sm font-semibold text-text-main">
             <T en="Has it always been this good?" bn="সবসময় কি এমন ভালো ছিল?" />
           </p>
           <ScoreHistory history={detail.score_history} />
@@ -564,7 +564,7 @@ export function PriceDetails({ s, code, ltp, w52High, w52Low }: {
     <>
       {s.buy_below != null && (
         <div className="rp-note flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm font-bold text-text-main">
+          <p className="text-sm font-semibold text-text-main">
             <T en={`Our buy price: under ${money(s.buy_below)}`} bn={`আমাদের কেনার দাম: ${money(s.buy_below)}-এর নিচে`} />
           </p>
           <BuyBelowAlert code={code} target={s.buy_below} ltp={ltp} w52High={w52High} w52Low={w52Low} />
@@ -572,7 +572,7 @@ export function PriceDetails({ s, code, ltp, w52High, w52Low }: {
       )}
       {s.scenarios.length > 0 && (
         <div className="mt-4">
-          <p className="text-sm font-bold text-text-main">
+          <p className="text-sm font-semibold text-text-main">
             <T en="Three paths for the next 12 months" bn="আগামী 12 মাসের তিনটি সম্ভাবনা" />
           </p>
           <Paths
@@ -586,7 +586,7 @@ export function PriceDetails({ s, code, ltp, w52High, w52Low }: {
       )}
       {s.methods.length > 0 && (
         <div className="mt-4">
-          <p className="text-sm font-bold text-text-main">
+          <p className="text-sm font-semibold text-text-main">
             <T en="How we worked out what it's worth" bn="শেয়ারটির ন্যায্য দাম আমরা যেভাবে হিসাব করেছি" />
           </p>
           <ul className="rp-rows">
@@ -770,7 +770,7 @@ export function RedFlagsDetails({ s }: { s: RedFlagsSection }) {
       {ambers.length > 0 && <FlagList checks={ambers} />}
       {passed.length > 0 && (
         <div className="mt-4 border-t border-border pt-3">
-          <p className="text-xs font-bold text-text-muted">
+          <p className="text-xs text-text-muted">
             <T en={`Passed ${passed.length} checks`} bn={`${passed.length}টি বিষয়ে কোনো সমস্যা পাওয়া যায়নি`} />
           </p>
           <ul className="rp-passed">

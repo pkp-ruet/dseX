@@ -189,9 +189,9 @@ export default function AddHoldingModal({ allCodes, priceMap, existingCodes, hol
                     i === activeSuggestion ? "bg-surface-2" : "hover:bg-surface-2"
                   }`}
                 >
-                  <span className="text-sm font-bold text-text-main">{c}</span>
+                  <span className="text-sm font-semibold text-text-main">{c}</span>
                   <span className="min-w-0 flex-1 truncate text-sm text-text-muted">{priceMap.get(c)?.company_name ?? ""}</span>
-                  {existingCodes.has(c) && <span className="text-xs font-semibold text-text-muted">{L("You own it", "আছে")}</span>}
+                  {existingCodes.has(c) && <span className="text-xs text-text-muted">{L("You own it", "আছে")}</span>}
                 </li>
               ))}
             </ul>

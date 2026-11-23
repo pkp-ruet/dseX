@@ -140,7 +140,7 @@ export default function AdminGrantPremium({ onDone }: { onDone: () => void }) {
 
   return (
     <Card as="section" padding="none" className="p-4 sm:p-5 mb-5" aria-labelledby="grant-title">
-      <h2 id="grant-title" className="text-base font-bold text-text-main">Give Premium by hand</h2>
+      <h2 id="grant-title" className="text-base font-semibold text-text-main">Give Premium by hand</h2>
       <p className="text-sm text-text-muted mt-1">
         For cash, a transfer the reader never entered, or a gift. It is saved as an accepted payment,
         so the amount counts in this month&apos;s total, and Revoke takes the days back.

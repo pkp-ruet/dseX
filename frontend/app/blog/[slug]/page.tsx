@@ -153,7 +153,7 @@ export default async function BlogPostPage({ params }: Props) {
       {/* More in this category */}
       {related.length > 0 && (
         <section className="space-y-4 pt-2">
-          <h2 className="text-base font-bold tracking-tight text-text-main">
+          <h2 className="text-base font-semibold tracking-tight text-text-main">
             আরও পড়ুন: {category?.label ?? "বাংলা ব্লগ"}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">

@@ -41,7 +41,7 @@ function Stat({ label, value, sub, accent }: {
       <span className="text-base font-extrabold leading-none tabular-nums text-text-main sm:text-xl">
         {value}
       </span>
-      <span className="text-xs font-bold tabular-nums text-text-muted">
+      <span className="text-xs tabular-nums text-text-muted">
         {sub || " "}
       </span>
     </div>
@@ -101,7 +101,7 @@ export default function SectorHero({ summary: s }: { summary: SectorSummary }) {
             <span className="h-1.5 w-1.5 rounded-full" style={{ background: chip.color }} />
             <T en={`Scored as ${chip.label}`} bn={`${chip.labelBn} হিসেবে স্কোর করা`} />
           </span>
-          <span className="text-sm font-bold tabular-nums text-text-muted">
+          <span className="text-sm tabular-nums text-text-muted">
             <T
               en={`${s.company_count} companies · ${crore(s.total_mcap_mn)} market value`}
               bn={`${s.company_count}টি কোম্পানি · বাজার মূলধন ${croreBn(s.total_mcap_mn)}`}
@@ -153,17 +153,17 @@ export default function SectorHero({ summary: s }: { summary: SectorSummary }) {
         {/* Tier mix */}
         <div className="rounded-xl border border-border bg-surface-2 p-3">
           <div className="mb-2 flex items-center justify-between gap-2">
-            <span className="text-xs font-semibold text-text-muted">
+            <span className="text-xs text-text-muted">
               <T en="Grade mix" bn="গ্রেডের ভাগ" />
             </span>
-            <span className="text-xs font-bold tabular-nums text-text-muted">
+            <span className="text-xs tabular-nums text-text-muted">
               <T en={`${s.company_count} companies`} bn={`${s.company_count}টি কোম্পানি`} />
             </span>
           </div>
           <TierBar counts={s.tier_counts} total={s.company_count} />
           <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
             {TIER_ORDER.filter((t) => s.tier_counts[t]).map((t) => (
-              <span key={t} className="inline-flex items-center gap-1.5 text-xs font-bold text-text-muted">
+              <span key={t} className="inline-flex items-center gap-1.5 text-xs text-text-muted">
                 <TierPill tier={t} />
                 {s.tier_counts[t]}
               </span>

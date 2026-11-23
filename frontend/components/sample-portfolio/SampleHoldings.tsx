@@ -33,7 +33,7 @@ export default function SampleHoldings({
 
   return (
     <section id="smp-shares" className="dash-section smp-card soft-card" aria-labelledby="smp-shares-h">
-      <h2 id="smp-shares-h" className="text-lg font-bold text-text-main">
+      <h2 id="smp-shares-h" className="text-lg font-semibold text-text-main">
         <T en="The money and the shares" bn="টাকা আর শেয়ার" />
       </h2>
       <div className="smp-stats">

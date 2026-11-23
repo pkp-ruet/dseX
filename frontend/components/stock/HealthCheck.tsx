@@ -188,7 +188,7 @@ export function PillarBars({ scoreRow }: { scoreRow: ScoreRow }) {
         const name = PILLAR_NAMES[b.key] ?? { en: b.key, bn: b.key };
         return (
           <div key={b.key} className="flex items-center gap-3">
-            <span className="w-[8.5rem] sm:w-[10rem] shrink-0 text-xs font-semibold leading-tight text-text-muted">
+            <span className="w-[8.5rem] sm:w-[10rem] shrink-0 text-xs leading-tight text-text-muted">
               <T en={name.en} bn={name.bn} />
             </span>
             <div
@@ -198,7 +198,7 @@ export function PillarBars({ scoreRow }: { scoreRow: ScoreRow }) {
             >
               <div className="h-full rounded-full" style={{ width: `${Math.max(2, Math.min(100, v * 10))}%`, background: color }} />
             </div>
-            <span className="w-16 shrink-0 text-right text-xs font-bold" style={{ color }}>
+            <span className="w-16 shrink-0 text-right text-xs font-semibold" style={{ color }}>
               <T en={pillarWord(v).en} bn={pillarWord(v).bn} />
             </span>
           </div>
@@ -275,7 +275,7 @@ function HealthRow({ row, scoreRow, detail, plain = false }: {
           <StatusGlyph kind={tone.glyph} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-base sm:text-lg font-bold leading-tight text-text-main">
+          <p className="text-base sm:text-lg font-semibold leading-tight text-text-main">
             <T en={row.headline} bn={row.headlineBn} />
           </p>
           <p className="text-sm leading-snug mt-0.5 text-text-muted">
@@ -302,10 +302,10 @@ function HealthRow({ row, scoreRow, detail, plain = false }: {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
               {numbers.map((n) => (
                 <Card key={n.en} padding="none" className="rounded-xl p-3">
-                  <p className="text-xs font-semibold mb-1 text-text-muted">
+                  <p className="text-xs mb-1 text-text-muted">
                     <T en={n.en} bn={n.bn} />
                   </p>
-                  <p className="text-lg font-bold tabular-nums nums text-text-main">{n.value}</p>
+                  <p className="text-lg font-semibold tabular-nums nums text-text-main">{n.value}</p>
                 </Card>
               ))}
             </div>

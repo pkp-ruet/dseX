@@ -28,10 +28,10 @@ export default function GradeMedal({
     return (
       <div className="cv-medal" data-tier="none">
         <span className="min-w-0">
-          <span className="block text-xs font-bold text-text-main">
+          <span className="block text-xs font-semibold text-text-main">
             <T en="Our grade" bn="আমাদের গ্রেড" />
           </span>
-          <b className="block text-lg font-bold leading-tight text-text-main">
+          <b className="block text-lg font-semibold leading-tight text-text-main">
             <T en="Not graded yet" bn="এখনো গ্রেড দেওয়া হয়নি" />
           </b>
           <span className="block text-sm text-text-main">
@@ -46,7 +46,7 @@ export default function GradeMedal({
     <a href={open ? `#${ANALYSIS_ID}` : "#ch-premium"} className="cv-medal" data-tier={tier}>
       <ScoreBadge score={score} size="md" />
       <span className="min-w-0">
-        <span className="block text-xs font-bold text-text-main">
+        <span className="block text-xs font-semibold text-text-main">
           <T en="Our grade" bn="আমাদের গ্রেড" />
         </span>
         <b className="cv-medal-word">

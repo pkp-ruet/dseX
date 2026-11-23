@@ -59,7 +59,7 @@
   background: rgb(var(--chip-rgb) / 0.12);
   color: var(--chip-c);
   font-size: var(--fs-sm);
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.2;
   /* A long answer ("Results around 12 Nov", "Yes, 2 serious problems") wraps
      inside the pill; it never spills over the text beside it (2026-10-30). */
@@ -80,7 +80,7 @@
   background: var(--chip-c);
   color: var(--on-fill);
   font-size: var(--fs-2xs);
-  font-weight: 700;
+  font-weight: 600;
 }
 .rp-chip.rp-tone-neutral .rp-chip-mark { background: rgb(var(--text-muted-rgb) / 0.6); }
 .rp-chip[data-size="lg"] { min-height: 40px; padding: 5px 16px 5px 6px; font-size: var(--fs-md); }
@@ -120,7 +120,7 @@
 .rp-answer {
   margin-top: var(--space-2);
   font-size: var(--fs-base);
-  font-weight: 600;
+  font-weight: 400;
   line-height: 1.45;
   color: var(--text);
 }
@@ -153,7 +153,7 @@
   height: 28px;
   border-radius: 999px;
   font-size: var(--fs-xs);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-muted);
   background: var(--surface-2);
 }

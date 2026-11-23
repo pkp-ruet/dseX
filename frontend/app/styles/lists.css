@@ -21,7 +21,7 @@
   flex-shrink: 0;
   border-radius: var(--radius-md);
   font-size: var(--fs-xs);
-  font-weight: 800;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1;
   color: var(--acc, var(--primary));
@@ -40,7 +40,7 @@
   height: 2.25rem;
   flex-shrink: 0;
   border-radius: var(--radius-md);
-  font-weight: 800;
+  font-weight: 600;
   font-size: var(--fs-sm);
   line-height: 1;
   color: var(--acc, var(--primary));
@@ -58,7 +58,7 @@
   padding: 2px 8px;
   border-radius: 999px;
   font-size: var(--fs-2xs);
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.5;
   font-variant-numeric: tabular-nums;
   background: color-mix(in srgb, currentColor 13%, transparent);

@@ -37,7 +37,7 @@
 .pf-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
 .pf-card--flush .pf-card-head { padding: 18px 16px 0; }
 @media (min-width: 640px) { .pf-card--flush .pf-card-head { padding: 22px 24px 0; } }
-.pf-card-title { margin: 0; font-size: var(--fs-md); font-weight: 700; line-height: 1.3; color: var(--text); }
+.pf-card-title { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: 1.3; color: var(--text); }
 .pf-card-bn { margin: 2px 0 0; font-size: var(--fs-sm); line-height: 1.6; color: var(--text-muted); }
 .pf-card-note { margin: 4px 0 0; max-width: 62ch; font-size: var(--fs-sm); line-height: 1.55; color: var(--text-muted); }
 .pf-card-foot { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--cell-rule); }
@@ -100,7 +100,7 @@
 @media (min-width: 640px) { .pf-answer { padding: 20px 22px; } }
 .pf-answer-q { margin: 0; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted); }
 .pf-answer-a {
-  margin: 0; font-size: var(--fs-title); font-weight: 700; line-height: 1.2;
+  margin: 0; font-size: var(--fs-title); font-weight: 600; line-height: 1.2;
   letter-spacing: -0.01em; color: var(--text); font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
 }
 .pf-answer-x { margin: 0; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums; }
@@ -116,7 +116,7 @@
 .pf-grade-letter {
   display: grid; place-items: center; flex-shrink: 0; width: 36px; height: 36px;
   border-radius: var(--radius-md); border: 1.5px solid currentColor;
-  font-size: var(--fs-md); font-weight: 700; line-height: 1;
+  font-size: var(--fs-md); font-weight: 600; line-height: 1;
 }
 .pf-grade-text { min-width: 0; flex: 1 1 auto; font-size: var(--fs-sm); line-height: 1.45; }
 .pf-grade-text b { display: block; font-weight: 700; }
@@ -220,14 +220,14 @@
 .pf-hold-more .pf-hold-facts { margin-top: 0; }
 .pf-hold-name {
   display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  font-size: var(--fs-md); font-weight: 700; line-height: 1.3; color: var(--text); text-decoration: none;
+  font-size: var(--fs-md); font-weight: 600; line-height: 1.3; color: var(--text); text-decoration: none;
 }
 a.pf-hold-name:hover { color: var(--primary-ink); }
 .pf-hold-sub { margin: 2px 0 0; font-size: var(--fs-sm); color: var(--text-muted); font-variant-numeric: tabular-nums; }
-.pf-hold-code { font-weight: 700; color: var(--text); }
+.pf-hold-code { font-weight: 600; color: var(--text); }
 .pf-hold-val { text-align: right; }
-.pf-hold-val b { display: block; font-size: var(--fs-md); font-weight: 700; line-height: 1.3; color: var(--text); font-variant-numeric: tabular-nums; }
-.pf-hold-val span { display: block; margin-top: 2px; font-size: var(--fs-sm); font-weight: 700; font-variant-numeric: tabular-nums; }
+.pf-hold-val b { display: block; font-size: var(--fs-md); font-weight: 600; line-height: 1.3; color: var(--text); font-variant-numeric: tabular-nums; }
+.pf-hold-val span { display: block; margin-top: 2px; font-size: var(--fs-sm); font-weight: 600; font-variant-numeric: tabular-nums; }
 .pf-hold-mid { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 10px; }
 .pf-hold-facts {
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;
@@ -236,7 +236,7 @@ a.pf-hold-name:hover { color: var(--primary-ink); }
 @media (min-width: 768px) { .pf-hold-facts { grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.4fr); } }
 .pf-fact { min-width: 0; }
 .pf-fact-k { display: block; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted); }
-.pf-fact-v { display: block; margin-top: 2px; font-size: var(--fs-sm); font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pf-fact-v { display: block; margin-top: 2px; font-size: var(--fs-sm); font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pf-fact--range { grid-column: 1 / -1; }
 @media (min-width: 768px) { .pf-fact--range { grid-column: auto; } }
 .pf-range { position: relative; height: 4px; margin-top: 10px; border-radius: 999px; background: var(--surface-2); }
@@ -252,7 +252,7 @@ a.pf-hold-name:hover { color: var(--primary-ink); }
 .pf-note { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; }
 .pf-note-icon { flex: 0 0 auto; margin-top: 2px; color: var(--text-muted); }
 .pf-note-body { min-width: 0; flex: 1 1 auto; }
-.pf-note-title { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+.pf-note-title { margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
 .pf-note-text { margin: 2px 0 0; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
 
 /* ---- Empty portfolio ---- */
@@ -265,9 +265,9 @@ a.pf-hold-name:hover { color: var(--primary-ink); }
 .pf-step { display: flex; gap: 12px; align-items: flex-start; }
 .pf-step-n {
   display: grid; place-items: center; flex-shrink: 0; width: 28px; height: 28px; border-radius: 999px;
-  border: 1.5px solid var(--text); font-size: var(--fs-2xs); font-weight: 700; color: var(--text);
+  border: 1.5px solid var(--text); font-size: var(--fs-2xs); font-weight: 600; color: var(--text);
 }
-.pf-step-t { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+.pf-step-t { margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
 .pf-step-d { margin: 2px 0 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--text-muted); }
 .pf-empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 28px; }
 
@@ -305,7 +305,7 @@ a.pfr-figs-k:active { opacity: 0.7; }
 /* Long values: the name on its own line, the value under it, read left to
    right; side by side again from 640px, the value in its own column. */
 .pfr-figs--stack li { display: grid; gap: 2px; }
-.pfr-figs--stack .pfr-figs-k { font-weight: 700; }
+.pfr-figs--stack .pfr-figs-k { font-weight: 600; }
 .pfr-figs--stack b { margin-left: 0; font-weight: 400; text-align: left; }
 @media (min-width: 640px) {
   .pfr-figs--stack li { grid-template-columns: minmax(0, 12rem) minmax(0, 1fr); gap: var(--space-4); }
@@ -318,7 +318,7 @@ a.pfr-figs-k:active { opacity: 0.7; }
 .pfq { padding: var(--space-6) 0; }
 .pfq + .pfq { border-top: 1px solid var(--border); }
 .pfq-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
-.pfq-head h3 { min-width: 0; font-size: var(--fs-md); font-weight: 700; line-height: 1.35; color: var(--text); }
+.pfq-head h3 { min-width: 0; font-size: var(--fs-md); font-weight: 600; line-height: 1.35; color: var(--text); }
 .pfq-head .rp-chip { max-width: 55%; }
 @media (max-width: 639px) {
   .pfq-head { flex-direction: column; gap: var(--space-2); }
@@ -352,7 +352,7 @@ a.pfr-figs-k:active { opacity: 0.7; }
   min-height: 52px; padding: var(--space-2) var(--space-3) var(--space-2) var(--space-4);
   border: 1.5px solid rgb(var(--primary-rgb) / 0.45); border-radius: var(--radius-md);
   background: rgb(var(--primary-rgb) / 0.08); cursor: pointer; list-style: none;
-  font-size: var(--fs-md); font-weight: 700; line-height: 1.25; color: var(--primary-ink);
+  font-size: var(--fs-md); font-weight: 600; line-height: 1.25; color: var(--primary-ink);
 }
 .pfq-more > summary::-webkit-details-marker { display: none; }
 .pfq-more > summary:hover { background: rgb(var(--primary-rgb) / 0.13); }
@@ -362,7 +362,7 @@ a.pfr-figs-k:active { opacity: 0.7; }
 .pfq-more-opened { display: none; }
 .pfq-more[open] .pfq-more-closed, .pfq-more[open] .pfq-more-hint { display: none; }
 .pfq-more[open] .pfq-more-opened { display: block; }
-.pfq-more-hint { font-size: var(--fs-sm); font-weight: 400; line-height: 1.35; color: var(--text); }
+.pfq-more-hint { font-size: var(--fs-sm); font-weight: 400; line-height: 1.35; color: var(--text-muted); }
 .pfq-more-icon {
   flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
   background: var(--primary); color: var(--on-fill);
@@ -389,7 +389,7 @@ a.pfr-figs-k:active { opacity: 0.7; }
 .smp-note {
   max-width: 70ch; padding: var(--space-3) var(--space-4);
   border-left: 3px solid var(--primary); border-radius: var(--radius-sm);
-  background: var(--surface-2); font-size: var(--fs-sm); line-height: 1.55; color: var(--text);
+  background: var(--surface-2); font-size: var(--fs-sm); line-height: 1.55; color: var(--text-muted);
 }
 .smp-card { display: grid; gap: var(--space-4); padding: var(--space-4); }
 @media (min-width: 640px) { .smp-card { padding: var(--space-6); } }
@@ -440,9 +440,9 @@ a.pfr-figs-k:active { opacity: 0.7; }
 
 /* The free card's "Not sure yet?" row (`PortfolioPromo` → `TryFirst`). */
 .pfx-try { padding: var(--space-4); border-top: 1px solid var(--border); background: var(--surface-2); }
-.pfx-try-k { font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+.pfx-try-k { font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
 .pfx-try-acts { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
-.pfx-try-note { margin-top: var(--space-2); font-size: var(--fs-xs); color: var(--text); }
+.pfx-try-note { margin-top: var(--space-2); font-size: var(--fs-xs); color: var(--text-muted); }
 .pfx-taste {
   margin-top: var(--space-4); padding: var(--space-4); border-radius: var(--radius-md);
   border: 1px solid rgb(var(--gold-rgb) / 0.55); background: var(--surface);
@@ -463,7 +463,7 @@ a.pfr-figs-k:active { opacity: 0.7; }
 .pf-gbox {
   display: inline-grid; place-items: center; flex: none;
   width: 34px; height: 34px; border: 2px solid currentColor; border-radius: var(--radius-sm);
-  background: var(--surface); font-size: var(--fs-md); font-weight: 700; line-height: 1;
+  background: var(--surface); font-size: var(--fs-md); font-weight: 600; line-height: 1;
 }
 .pf-gbox[data-size="sm"] { width: 26px; height: 26px; border-width: 1.5px; border-radius: var(--radius-sm); font-size: var(--fs-sm); }
 
@@ -489,13 +489,13 @@ a.pfr-figs-k:active { opacity: 0.7; }
 .pf-fold-top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px var(--space-2); }
 .pf-fold-name { font-weight: 700; color: var(--text); text-decoration: none; }
 a.pf-fold-name:hover { color: var(--primary-ink); text-decoration: underline; }
-.pf-fold-tag { font-size: var(--fs-xs); font-weight: 700; color: var(--primary-ink); }
+.pf-fold-tag { font-size: var(--fs-xs); font-weight: 600; color: var(--primary-ink); }
 @media (prefers-reduced-motion: reduce) { .pf-fold > summary > svg { transition: none; } }
 
 /* Before you save (the Add stock and Bought more sheets) */
 .bys { display: grid; gap: var(--space-2); padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-2); }
 .bys-h { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }
-.bys-title { font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+.bys-title { font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
 .bys-fact { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
 .bys-fact > svg { flex: none; margin-top: 2px; }
 .bys-fact--bad > svg { color: var(--negative); }
@@ -514,7 +514,7 @@ a.pf-fold-name:hover { color: var(--primary-ink); text-decoration: underline; }
   font-size: var(--fs-sm); line-height: 1.45; color: var(--text);
 }
 .bys-lock > svg { flex: none; margin-top: 2px; color: var(--gold-ink); }
-.bys-lock-link { font-weight: 700; color: var(--gold-ink); text-decoration: underline; }
+.bys-lock-link { font-weight: 600; color: var(--gold-ink); text-decoration: underline; }
 
 /* ===================================================================
    The simple portfolio page (2026-11-23, plan
@@ -557,7 +557,7 @@ a.pf-fold-name:hover { color: var(--primary-ink); text-decoration: underline; }
   flex: none; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 999px;
   border: 2.5px solid currentColor; font-size: var(--fs-xl); font-weight: 700; line-height: 1;
 }
-.pfh-word { margin: 0; font-size: var(--fs-md); font-weight: 700; line-height: 1.35; color: var(--text); }
+.pfh-word { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: 1.35; color: var(--text); }
 .pfh-line { margin: 2px 0 0; font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
 .pfh-checks { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--cell-rule); }
 .pfh-checks > li + li { border-top: 1px solid var(--cell-rule); }
@@ -580,13 +580,13 @@ a.pf-fold-name:hover { color: var(--primary-ink); text-decoration: underline; }
 .pfh-check:hover .pfh-see { text-decoration: underline; }
 .pfh-mark {
   display: grid; place-items: center; width: 22px; height: 22px; border-radius: 999px;
-  background: var(--text-muted); color: var(--on-fill); font-size: var(--fs-2xs); font-weight: 700; line-height: 1;
+  background: var(--text-muted); color: var(--on-fill); font-size: var(--fs-2xs); font-weight: 600; line-height: 1;
 }
 .pfh-mark[data-tone="good"] { background: var(--positive); }
 .pfh-mark[data-tone="fair"] { background: var(--watch); }
 .pfh-mark[data-tone="bad"] { background: var(--negative); }
 .pfh-mark[data-tone="lock"] { background: var(--gold-light); color: var(--gold-ink); }
-.pfh-prem { font-size: var(--fs-xs); font-weight: 700; color: var(--gold-ink); }
+.pfh-prem { font-size: var(--fs-xs); font-weight: 600; color: var(--gold-ink); }
 .pfh-sheet { display: grid; gap: var(--space-4); }
 .pfh-sheet-head { display: grid; gap: 6px; justify-items: start; }
 .pfh-sheet-head p { margin: 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
@@ -602,9 +602,9 @@ a.pf-fold-name:hover { color: var(--primary-ink); text-decoration: underline; }
 .pft-item + .pft-item { border-top: 1px solid var(--cell-rule); }
 .pft-n {
   display: grid; place-items: center; width: 28px; height: 28px; border-radius: 999px;
-  background: var(--text); color: var(--surface); font-size: var(--fs-sm); font-weight: 700;
+  background: var(--text); color: var(--surface); font-size: var(--fs-sm); font-weight: 600;
 }
-.pft-title { margin: 2px 0 0; font-size: var(--fs-md); font-weight: 700; line-height: 1.35; color: var(--text); }
+.pft-title { margin: 2px 0 0; font-size: var(--fs-md); font-weight: 600; line-height: 1.35; color: var(--text); }
 .pft-line { margin: 2px 0 0; font-size: var(--fs-sm); line-height: 1.45; color: var(--text); font-variant-numeric: tabular-nums; }
 .pft-why { margin: 6px 0 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
 .pft-how { margin-top: 8px; }
@@ -633,7 +633,7 @@ a.pf-fold-name:hover { color: var(--primary-ink); text-decoration: underline; }
 .pft-how-body .btn-link { justify-self: start; }
 .pft-trades { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
 .pft-trades li { display: flex; gap: 8px; align-items: baseline; }
-.pft-trades b { flex: none; font-size: var(--fs-xs); font-weight: 700; }
+.pft-trades b { flex: none; font-size: var(--fs-xs); font-weight: 600; }
 .pft-trades b[data-side="sell"] { color: var(--negative); }
 .pft-trades b[data-side="buy"] { color: var(--positive); }
 .pft-grade {
@@ -642,7 +642,7 @@ a.pf-fold-name:hover { color: var(--primary-ink); text-decoration: underline; }
 }
 .pft-extra { margin: 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
 .pft-whatif { padding: 0 12px 12px; }
-.pft-fine { margin: 0; font-size: var(--fs-xs); color: var(--text); }
+.pft-fine { margin: 0; font-size: var(--fs-xs); color: var(--text-muted); }
 @media (prefers-reduced-motion: reduce) { .pft-how > summary > svg { transition: none; } }
 
 /* ---- The free card where "What to do" sits ---- */
@@ -651,7 +651,7 @@ a.pf-fold-name:hover { color: var(--primary-ink); text-decoration: underline; }
 .pfk-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .pfk-tag {
   display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 999px;
-  background: var(--gold-light); color: var(--gold-ink); font-size: var(--fs-xs); font-weight: 700;
+  background: var(--gold-light); color: var(--gold-ink); font-size: var(--fs-xs); font-weight: 600;
 }
 .pfk-found { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: 1.45; color: var(--text); }
 .pfk-ticks { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
@@ -679,7 +679,7 @@ a.pf-fold-name:hover { color: var(--primary-ink); text-decoration: underline; }
   grid-area: go; justify-self: end; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
   min-height: 32px; padding: 0 10px 0 12px; border: 1px solid rgb(var(--primary-rgb) / 0.45); border-radius: 999px;
   background: rgb(var(--primary-rgb) / 0.1); color: var(--primary-ink);
-  font-size: var(--fs-sm); font-weight: 700;
+  font-size: var(--fs-sm); font-weight: 600;
   transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 .pf-hold-row:hover .pf-hold-go { background: rgb(var(--primary-rgb) / 0.18); border-color: var(--primary); }
@@ -690,7 +690,7 @@ a.pf-fold-name:hover { color: var(--primary-ink); text-decoration: underline; }
   font-size: var(--fs-sm); line-height: 1.45; color: var(--text);
 }
 .pf-hold-st { grid-area: st; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 2px; }
-.pf-st { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); font-weight: 700; line-height: 1.3; }
+.pf-st { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); font-weight: 600; line-height: 1.3; }
 .pf-st > i { flex: none; width: 8px; height: 8px; border-radius: 999px; background: var(--text-muted); }
 .pf-st[data-tone="good"] { color: var(--positive); }
 .pf-st[data-tone="good"] > i { background: var(--positive); }
@@ -708,11 +708,11 @@ a.pf-fold-name:hover { color: var(--primary-ink); text-decoration: underline; }
 .pfs { display: grid; gap: var(--space-4); }
 .pfs-money { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .pfs-money > .min-w-0 { display: grid; gap: 6px; justify-items: start; }
-.pfs-sub { margin: 0; font-size: var(--fs-sm); color: var(--text); font-variant-numeric: tabular-nums; }
+.pfs-sub { margin: 0; font-size: var(--fs-sm); color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .pfs-val { text-align: right; }
 .pfs-val b { display: block; font-size: var(--fs-lg); font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
 .pfs-val span { display: block; margin-top: 2px; font-size: var(--fs-sm); font-weight: 600; }
-.pfs-k { margin: 0 0 4px; font-size: var(--fs-xs); font-weight: 700; color: var(--text); }
+.pfs-k { margin: 0 0 4px; font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
 .pfs-take {
   padding: 10px 12px; border-left: 3px solid var(--text-muted);
   border-radius: 0 var(--radius) var(--radius) 0; background: var(--surface-2);
@@ -720,7 +720,7 @@ a.pf-fold-name:hover { color: var(--primary-ink); text-decoration: underline; }
 .pfs-take[data-tone="good"] { border-left-color: var(--positive); }
 .pfs-take[data-tone="fair"] { border-left-color: var(--watch); }
 .pfs-take[data-tone="bad"] { border-left-color: var(--negative); }
-.pfs-take-w { margin: 0; font-size: var(--fs-md); font-weight: 700; color: var(--text); }
+.pfs-take-w { margin: 0; font-size: var(--fs-md); font-weight: 600; color: var(--text); }
 .pfs-take-why { margin: 4px 0 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
 .pfs-lock {
   display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: var(--radius);
@@ -733,7 +733,7 @@ a.pf-fold-name:hover { color: var(--primary-ink); text-decoration: underline; }
 .pfs-box .pfs-kv + .pfs-p { margin: 8px 0 0; }
 .pfs-kv { display: grid; gap: 6px; margin: 0; }
 .pfs-kv > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; font-size: var(--fs-sm); }
-.pfs-kv dt { flex: 1 1 9rem; min-width: 0; color: var(--text); }
+.pfs-kv dt { flex: 1 1 9rem; min-width: 0; color: var(--text-muted); }
 .pfs-kv dd { margin: 0; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
 .pfs-kv dd span { font-weight: 600; }
 .pfs-events { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
@@ -747,7 +747,7 @@ a.pf-fold-name:hover { color: var(--primary-ink); text-decoration: underline; }
 /* ---- More details: a heading, the four tabs always on screen ---- */
 .pfm-wrap { margin-top: var(--space-6); display: grid; gap: var(--space-3); }
 .pfm-head { display: grid; gap: 2px; }
-.pfm-head-sub { margin: 0; font-size: var(--fs-sm); color: var(--text); }
+.pfm-head-sub { margin: 0; font-size: var(--fs-sm); color: var(--text-muted); }
 @media (prefers-reduced-motion: reduce) { .pfs-chev { transition: none; } }
 .smp-row .pf-st { display: flex; margin-top: 4px; }
 .smp-why { display: block; margin-top: 2px; font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }

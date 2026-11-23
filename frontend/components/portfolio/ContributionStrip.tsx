@@ -88,9 +88,9 @@ export default function ContributionStrip({ rows, lang = "en" }: Props) {
                   className="flex min-h-10 min-w-0 flex-col justify-center hover:text-primary-ink active:opacity-70"
                 >
                   <span className="truncate text-sm font-semibold text-text-main">{name}</span>
-                  {name !== code && <span className="text-xs font-semibold text-text-muted">{code}</span>}
+                  {name !== code && <span className="text-xs text-text-muted">{code}</span>}
                 </Link>
-                <span className={`pv pf-num text-sm font-bold ${toneCls(r.pnl)}`}>{signed(r.pnl)}</span>
+                <span className={`pv pf-num text-sm font-semibold ${toneCls(r.pnl)}`}>{signed(r.pnl)}</span>
               </div>
               <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-2" aria-hidden="true">
                 <div

@@ -46,10 +46,10 @@ export const metadata: Metadata = {
 function MarketStat({ label, value }: { label: ReactNode; value: string }) {
   return (
     <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface-2 p-2.5 sm:p-3">
-      <span className="text-xs font-semibold text-text-muted">
+      <span className="text-xs text-text-muted">
         {label}
       </span>
-      <span className="text-base font-extrabold leading-none tabular-nums text-text-main sm:text-lg">
+      <span className="text-base font-semibold leading-none tabular-nums text-text-main sm:text-lg">
         {value}
       </span>
     </div>
@@ -159,7 +159,7 @@ export default async function SectorsPage() {
         ))}
       </div>
 
-      <p className="mb-8 text-xs font-semibold text-text-muted">
+      <p className="mb-8 text-xs text-text-muted">
         <T
           en="Sectors with fewer than three scored companies are left out, because the middle value of one or two companies says very little. Mutual funds are not scored, so they have no sector page. Looking for one company instead? "
           bn="তিনটির কম স্কোর পাওয়া কোম্পানির সেক্টর এখানে রাখা হয়নি, কারণ এক বা দুটি কোম্পানির মধ্যম মান তেমন কিছু বলে না। মিউচুয়াল ফান্ডের স্কোর হয় না, তাই সেগুলোর সেক্টর পেজ নেই। একটি কোম্পানি খুঁজছেন? "

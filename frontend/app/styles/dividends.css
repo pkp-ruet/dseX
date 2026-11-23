@@ -43,7 +43,7 @@
 .dc-tabrow > [role="tab"] {
   flex-direction: column; gap: 3px;
   min-height: 56px; padding: 6px 4px; border-radius: var(--radius);
-  font-size: var(--fs-2xs); font-weight: 700; line-height: 1.2;
+  font-size: var(--fs-2xs); font-weight: 600; line-height: 1.2;
   white-space: normal; text-align: center; color: var(--text);
 }
 .dc-tabrow > [role="tab"]:hover { background: var(--surface-2); color: var(--text); }
@@ -56,7 +56,7 @@
   .dc-tabrow > [role="tab"] {
     flex-direction: row; gap: 8px;
     min-height: 44px; padding: 0 16px;
-    font-size: var(--fs-sm); font-weight: 700; white-space: nowrap;
+    font-size: var(--fs-sm); font-weight: 600; white-space: nowrap;
   }
   .dc-tab-long { display: inline; }
   .dc-tab-short { display: none; }
@@ -72,7 +72,7 @@
 .dc-panel { padding-top: var(--space-4); }
 .dc-panel[data-active="false"] { display: none; }
 .dc-panel-head { margin-bottom: var(--space-3); }
-.dc-panel-title { margin: 0; font-size: var(--fs-base); font-weight: 700; line-height: 1.35; color: var(--text); }
+.dc-panel-title { margin: 0; font-size: var(--fs-base); font-weight: 600; line-height: 1.35; color: var(--text); }
 .dc-panel-lead { margin: 2px 0 0; max-width: 62ch; font-size: var(--fs-sm); line-height: 1.55; color: var(--text-muted); }
 
 /* One card per list; the dates inside it split by hairlines (.dc-group). */
@@ -133,7 +133,7 @@
 .dc-next-icon { flex: 0 0 auto; display: inline-flex; color: var(--primary-ink); }
 .dc-next-link {
   flex: 0 0 auto; display: inline-flex; align-items: center; min-height: 40px;
-  font-weight: 700; color: var(--primary-ink);
+  font-weight: 600; color: var(--primary-ink);
 }
 .dc-next-link:hover { text-decoration: underline; }
 
@@ -162,11 +162,11 @@
 .dc-tile--soon .dc-tile-m, .dc-tile--soon .dc-tile-d { color: var(--surface); }
 
 .dc-day-text { min-width: 0; flex: 1 1 auto; }
-.dc-day-title { margin: 0; font-size: var(--fs-base); font-weight: 700; line-height: 1.35; color: var(--text); }
-.dc-day-when { font-weight: 600; color: var(--text-muted); }
+.dc-day-title { margin: 0; font-size: var(--fs-base); font-weight: 600; line-height: 1.35; color: var(--text); }
+.dc-day-when { font-weight: 400; color: var(--text-muted); }
 .dc-day-sub {
   display: flex; align-items: center; gap: 6px; margin: 4px 0 0;
-  font-size: var(--fs-sm); font-weight: 600; line-height: 1.4; color: var(--text-muted);
+  font-size: var(--fs-sm); font-weight: 400; line-height: 1.4; color: var(--text-muted);
 }
 .dc-day-n { flex: 0 0 auto; align-self: flex-start; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .dc-tone--neutral { color: var(--text); }
@@ -212,14 +212,14 @@ button.dc-row:focus-visible { outline: 2px solid var(--primary); outline-offset:
 }
 .dc-meta {
   display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 4px;
-  font-size: var(--fs-2xs); font-weight: 600; line-height: 1.5; color: var(--text-muted);
+  font-size: var(--fs-2xs); font-weight: 400; line-height: 1.5; color: var(--text-muted);
 }
 .dc-meta .ms-own { margin-left: 0; vertical-align: 0; }
 .dc-code { letter-spacing: 0.02em; }
 .dc-sep { color: var(--border); }
 
 .dc-fig { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; text-align: right; }
-.dc-amt { font-size: var(--fs-title); font-weight: 700; line-height: 1.2; color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dc-amt { font-size: var(--fs-title); font-weight: 600; line-height: 1.2; color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .dc-amt--words { font-size: var(--fs-sm); }
 .dc-amt--muted { font-size: var(--fs-sm); color: var(--text-muted); }
 .dc-amt-x { font-size: var(--fs-2xs); font-weight: 600; line-height: 1.4; color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -240,7 +240,7 @@ button.dc-row:focus-visible { outline: 2px solid var(--primary); outline-offset:
 /* "Your dividend income by month" — signed-in readers with shares. */
 .dc-income { margin-top: var(--space-4); padding: var(--space-4); }
 @media (min-width: 640px) { .dc-income { padding: var(--space-6); } }
-.dc-income-title { font-size: var(--fs-md); font-weight: 700; line-height: 1.3; color: var(--text); }
+.dc-income-title { font-size: var(--fs-md); font-weight: 600; line-height: 1.3; color: var(--text); }
 .dc-income-big {
   margin-top: var(--space-2); font-size: var(--fs-2xl); font-weight: 700; line-height: 1.1;
   letter-spacing: -0.01em; color: var(--text); font-variant-numeric: tabular-nums;
@@ -251,11 +251,11 @@ button.dc-row:focus-visible { outline: 2px solid var(--primary); outline-offset:
   display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3);
   padding: 10px 0; border-top: 1px solid var(--cell-rule);
 }
-.dc-income-month { display: block; font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+.dc-income-month { display: block; font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
 .dc-income-codes { display: block; margin-top: 2px; font-size: var(--fs-xs); font-weight: 600; line-height: 1.5; color: var(--text-muted); }
 .dc-income-codes a { color: inherit; text-decoration: none; }
 .dc-income-codes a:hover { text-decoration: underline; }
-.dc-income-amt { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; text-align: right; font-size: var(--fs-sm); font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+.dc-income-amt { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; text-align: right; font-size: var(--fs-sm); font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
 .dc-income-exp { font-size: var(--fs-xs); font-weight: 600; }
 
 /* The free week (THE Premium line step 2, 2026-11-22): the next 7 days of
@@ -266,7 +266,7 @@ button.dc-row:focus-visible { outline: 2px solid var(--primary); outline-offset:
    lies past the free week, and the reader's own dividends — the total free,
    which shares and when masked. */
 .dcp-you { border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); padding: 14px; }
-.dcp-you-k { margin: 0; font-size: var(--fs-xs); font-weight: 700; color: var(--text); }
+.dcp-you-k { margin: 0; font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
 .dcp-you-big { margin: 4px 0 0; font-size: var(--fs-xl); font-weight: 700; line-height: 1.2; color: var(--text); font-variant-numeric: tabular-nums; }
 .dcp-you-line { margin: 4px 0 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
 .dcp-you-rows { display: grid; gap: 0; margin: var(--space-3) 0 0; padding: 0; list-style: none; }
@@ -274,7 +274,7 @@ button.dc-row:focus-visible { outline: 2px solid var(--primary); outline-offset:
   display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
   padding: 8px 0; border-top: 1px solid var(--cell-rule);
 }
-.dcp-you-date { flex: none; font-size: var(--fs-xs); font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+.dcp-you-date { flex: none; font-size: var(--fs-xs); font-weight: 400; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .dcp-you-more { margin: 4px 0 0; font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
 @media (min-width: 640px) { .dcp-you { padding: 16px 18px; } }
 .dcp-gets-k { margin-top: var(--space-6); }
@@ -301,9 +301,9 @@ button.dc-row:focus-visible { outline: 2px solid var(--primary); outline-offset:
 .dc-step-n {
   display: inline-flex; align-items: center; justify-content: center;
   width: 28px; height: 28px; border: 1.5px solid var(--text); border-radius: 999px;
-  font-size: var(--fs-sm); font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums;
+  font-size: var(--fs-sm); font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums;
 }
-.dc-step-t { margin: 0; font-size: var(--fs-base); font-weight: 700; color: var(--text); }
+.dc-step-t { margin: 0; font-size: var(--fs-base); font-weight: 600; color: var(--text); }
 @media (min-width: 640px) { .dc-step-t { margin-top: 4px; } }
 .dc-step-b { grid-column: 2; margin: 0; font-size: var(--fs-sm); line-height: 1.55; color: var(--text-muted); }
 
@@ -316,7 +316,7 @@ button.dc-row:focus-visible { outline: 2px solid var(--primary); outline-offset:
 .dc-qa summary::-webkit-details-marker { display: none; }
 .dc-qa summary:hover { background: var(--surface-2); }
 @media (min-width: 640px) { .dc-qa summary { padding-inline: 20px; } }
-.dc-qa h3 { margin: 0; font-size: var(--fs-base); font-weight: 700; line-height: 1.4; color: var(--text); }
+.dc-qa h3 { margin: 0; font-size: var(--fs-base); font-weight: 600; line-height: 1.4; color: var(--text); }
 .dc-qa p { margin: 0; padding: 0 16px 16px; max-width: 72ch; font-size: var(--fs-sm); line-height: 1.65; color: var(--text); }
 @media (min-width: 640px) { .dc-qa p { padding: 0 20px 18px; } }
 
@@ -341,4 +341,4 @@ button.dc-row:focus-visible { outline: 2px solid var(--primary); outline-offset:
 }
 .dc-more:hover { background: var(--surface-2); }
 .dc-more:active { background: var(--surface-2); opacity: 0.85; }
-.dcp-you-code { font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+.dcp-you-code { font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
