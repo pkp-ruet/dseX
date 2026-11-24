@@ -1,113 +1,62 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { T } from "@/components/i18n/T";
 import { IconBell, IconCheck } from "@/components/ui/icons";
 import { useLang } from "@/context/LangContext";
-import { apiAddDividendReminder, apiGetDividendReminders, apiRemoveDividendReminder } from "@/lib/api";
-import { isLimitError, usePremium } from "@/lib/premium";
-import { toast } from "@/lib/toast";
+import { isLoggedIn } from "@/lib/auth";
 import { trackEvent } from "@/lib/track";
+import { getWatchRulesState, loadWatchRules, openWatchRules, subscribeWatchRules } from "@/components/watch-rules/store";
 
-/** The page's Premium card — where a free reader's tap points. */
+/** The page's Premium card — where a free reader's tap on a locked part points. */
 export const CALENDAR_PREMIUM_ANCHOR = "dc-premium";
 
-/* One shared copy of the reader's reminders per page: every row's bell reads
-   it, one request fills it. */
-let codes: Set<string> | null = null;
-let loading: Promise<void> | null = null;
-const subs = new Set<() => void>();
-const emit = () => subs.forEach((f) => f());
-
-function load(): Promise<void> {
-  if (codes) return Promise.resolve();
-  loading ??= apiGetDividendReminders()
-    .then((r) => {
-      codes = new Set(r.codes.map((c) => c.toUpperCase()));
-      emit();
-    })
-    .catch(() => {
-      loading = null;
-    });
-  return loading;
-}
-
-function goToPremium() {
-  document.getElementById(CALENDAR_PREMIUM_ANCHOR)?.scrollIntoView({ behavior: "smooth", block: "start" });
+/** True when the reader already has the "last day to buy" rule on this share. */
+function hasLastDay(code: string): boolean {
+  return (getWatchRulesState()?.rules ?? []).some((r) => r.code === code && r.kind === "last_day");
 }
 
 /**
- * "Remind me" on a cash record date (2026-10-31, the Premium Desk plan): on
- * the last day to buy, the morning brief says "Last day to buy X to get its
- * ৳N dividend" — on any share, not only the ones you hold or follow. Premium;
- * a free reader's tap says so in a toast and points at the page's card.
+ * "Remind me on the last day to buy" on a cash record date. Since 2026-11-25
+ * (one Watch button) it opens the share's Watch sheet with "Tomorrow is the
+ * last day to buy for a dividend" ticked: one way to ask for news on a share,
+ * on every page. It was its own Premium list of reminders read by the morning
+ * brief (2026-10-31); the few set before stay read there.
  */
-export default function RemindButton({ code, labeled = false }: { code: string; labeled?: boolean }) {
-  const { isPremium, state } = usePremium();
+export default function RemindButton({
+  code,
+  name,
+  ltp = null,
+  labeled = false,
+}: {
+  code: string;
+  name?: string | null;
+  ltp?: number | null;
+  labeled?: boolean;
+}) {
   const { bn } = useLang();
-  const [, force] = useState(0);
-  const [busy, setBusy] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
   const up = code.toUpperCase();
+  const [on, setOn] = useState(false);
 
   useEffect(() => {
-    const f = () => force((n) => n + 1);
-    subs.add(f);
-    if (isPremium) void load();
-    return () => {
-      subs.delete(f);
-    };
-  }, [isPremium]);
+    if (isLoggedIn()) loadWatchRules().then(() => setOn(hasLastDay(up)));
+    return subscribeWatchRules(() => setOn(hasLastDay(up)));
+  }, [up]);
 
-  const on = isPremium && !!codes?.has(up);
-
-  const tap = async () => {
-    if (!isPremium) {
-      trackEvent("premium_lock_tap", { area: "dividend-calendar", lock: "dividend-reminder", state });
-      toast({
-        message: (
-          <T
-            en="Reminders on any share are part of Premium."
-            bn="যেকোনো শেয়ারে রিমাইন্ডার প্রিমিয়ামের অংশ।"
-          />
-        ),
-        action: { label: <T en="See what it adds" bn="কী যোগ হয় দেখুন" />, onClick: goToPremium },
-      });
+  const tap = () => {
+    if (!isLoggedIn()) {
+      router.push(`/register?next=${encodeURIComponent(pathname || "/dividend-calendar")}`);
       return;
     }
-    if (busy) return;
-    setBusy(true);
-    try {
-      const r = on ? await apiRemoveDividendReminder(up) : await apiAddDividendReminder(up);
-      codes = new Set(r.codes.map((c) => c.toUpperCase()));
-      emit();
-      trackEvent("dividend_reminder", { code: up, on: on ? "off" : "on" });
-      toast({
-        tone: "success",
-        message: on ? (
-          <T en={`Reminder for ${up} removed`} bn={`${up}-এর রিমাইন্ডার বাদ দেওয়া হয়েছে`} />
-        ) : (
-          <T
-            en={`We'll tell you on the last day to buy ${up}`}
-            bn={`${up} কেনার শেষ দিনে আমরা জানাব`}
-          />
-        ),
-      });
-    } catch (err) {
-      toast({
-        tone: "error",
-        message: isLimitError(err) ? (
-          <T en="You have 50 reminders, the most we keep." bn="আপনার 50টি রিমাইন্ডার আছে, এর বেশি রাখা যায় না।" />
-        ) : (
-          <T en="That didn't save. Please try again." bn="সংরক্ষণ হয়নি। আবার চেষ্টা করুন।" />
-        ),
-      });
-    } finally {
-      setBusy(false);
-    }
+    trackEvent("dividend_reminder", { code: up, on: on ? "edit" : "open" });
+    openWatchRules(up, name, { ltp, tick: ["last_day"] });
   };
 
   const label = on
-    ? bn ? `${up}: রিমাইন্ডার চালু, বন্ধ করুন` : `${up}: reminder on, tap to remove`
+    ? bn ? `${up}: রিমাইন্ডার চালু, বদলান` : `${up}: reminder on, tap to change`
     : bn ? `${up} কেনার শেষ দিনে মনে করিয়ে দিন` : `Remind me on the last day to buy ${up}`;
   if (labeled) {
     // Inside an opened calendar row: the row's first action since 2026-11-05
@@ -119,7 +68,6 @@ export default function RemindButton({ code, labeled = false }: { code: string; 
         data-on={on ? "true" : "false"}
         aria-pressed={on}
         onClick={tap}
-        disabled={busy}
       >
         {on ? <IconCheck size={16} /> : <IconBell size={16} />}
         {on ? (
@@ -139,7 +87,6 @@ export default function RemindButton({ code, labeled = false }: { code: string; 
       aria-label={label}
       title={label}
       onClick={tap}
-      disabled={busy}
     >
       {on ? <IconCheck size={16} /> : <IconBell size={16} />}
     </button>

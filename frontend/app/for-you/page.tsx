@@ -7,7 +7,7 @@ import { T } from "@/components/i18n/T";
 export const metadata: Metadata = {
   title: "Based on your shares",
   description:
-    "DSE companies to watch next, picked from the shares you own, follow and read about, each with why it fits you.",
+    "DSE companies to look at next, picked from the shares you own, follow and read about, each with why it fits you.",
   alternates: { canonical: "/for-you" },
   robots: { index: false, follow: false },
 };
@@ -20,8 +20,8 @@ export default function ForYouPage() {
         title={<T en="Based on your shares" bn="আপনার শেয়ার দেখে বাছাই" />}
         lead={
           <T
-            en="Companies to watch next, picked from the shares you own, follow and read about. Each one says why."
-            bn="পরে নজরে রাখার মতো কোম্পানি, বাছাই হয়েছে আপনার কেনা, ফলো করা আর পড়ে দেখা শেয়ার দেখে। প্রতিটির সাথে বলা আছে কেন।"
+            en="Companies to look at next, picked from the shares you own, follow and read about. Each one says why."
+            bn="পরে দেখে রাখার মতো কোম্পানি, বাছাই হয়েছে আপনার কেনা, ফলো করা আর পড়ে দেখা শেয়ার দেখে। প্রতিটির সাথে বলা আছে কেন।"
           />
         }
       />

@@ -131,7 +131,7 @@ export const AnswerCard = forwardRef<
 
 /** Said when a lock has no question of its own. */
 const FALLBACK_LINE: Bi = {
-  en: "Our reading of these figures, and what to watch next",
+  en: "Our reading of these figures, and what to keep an eye on next",
   bn: "এই সংখ্যাগুলোর অর্থ, আর এরপর যা খেয়াল রাখবেন",
 };
 

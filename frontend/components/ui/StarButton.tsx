@@ -58,9 +58,9 @@ export default function StarButton({ code, size = "sm", className = "" }: Props)
       const c = code.toUpperCase();
       toast({
         message: nowWatched ? (
-          <T en={`${c} is now on your watchlist`} bn={`${c} আপনার ওয়াচলিস্টে যোগ হয়েছে`} />
+          <T en={`You're watching ${c}. It's on your watchlist.`} bn={`${c}-এ নজর রাখছেন। এটি আপনার ওয়াচলিস্টে আছে।`} />
         ) : (
-          <T en={`${c} is off your watchlist`} bn={`${c} ওয়াচলিস্ট থেকে সরানো হয়েছে`} />
+          <T en={`You stopped watching ${c}`} bn={`${c}-এ নজর রাখা বন্ধ করেছেন`} />
         ),
         tone: nowWatched ? "success" : "neutral",
         action: nowWatched

@@ -34,8 +34,11 @@ const nextConfig: NextConfig = {
     return [
       // Your Desk became Notifications (2026-11-06); old push links keep working.
       { source: "/desk", destination: "/notifications", permanent: true },
-      // Price alerts became a section of Updates (2026-11-20, the app map).
-      { source: "/alerts", destination: "/watch-rules#alerts", permanent: true },
+      // One Watch button (2026-11-25): the Watch rules page folded into the
+      // watchlist, price alerts with it (they were a section of Updates from
+      // 2026-11-20, then of Watch rules from 2026-11-22).
+      { source: "/alerts", destination: "/watchlist#alerts", permanent: true },
+      { source: "/watch-rules", destination: "/watchlist", permanent: true },
       {
         source: "/dse-top-20",
         destination: "/dse-trending-stocks",

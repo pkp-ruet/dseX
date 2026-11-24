@@ -57,6 +57,16 @@ def test_kept_rules_stay_on_before_older_ones_and_survive_a_save():
     assert c["dividend"].get("keep") is True and "keep" not in c["results"]
 
 
+def test_watching_is_following_a_share_off_the_watchlist_loses_its_rules():
+    rules = [{"code": "GP", "kind": "results"}, {"code": "ACI", "kind": "dividend"},
+             {"code": "GP", "kind": "grade_down"}, {"code": "BXPHARMA", "kind": "results"}]
+    assert wr.drop_codes(rules, ["gp"]) == [{"code": "ACI", "kind": "dividend"}, {"code": "BXPHARMA", "kind": "results"}]
+    assert wr.drop_codes(rules, []) == rules and wr.drop_codes(rules, None) == rules
+    # Older rules on shares the reader never followed: each named once, in order.
+    assert wr.unfollowed_codes(rules, ["aci"]) == ["GP", "BXPHARMA"]
+    assert wr.unfollowed_codes(rules, ["GP", "ACI", "BXPHARMA"]) == []
+
+
 def test_next_trading_day_skips_friday_and_saturday():
     assert wr.next_trading_day(date(2026, 11, 26)) == date(2026, 11, 29)  # Thu -> Sun
     assert wr.next_trading_day(TODAY) == date(2026, 11, 23)

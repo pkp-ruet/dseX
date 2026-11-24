@@ -5,7 +5,7 @@
  *
  *   Market     "What happened?"        Market today · Results · Calendar · Sectors
  *   Find       "What should I look at?" Buy List · All companies · Screener · Compare · Research
- *   My shares  "How are my shares?"    Portfolio · Watchlist · Updates · Watch rules · For you
+ *   My shares  "How are my shares?"    Portfolio · Watchlist · Updates · For you
  *   Learn                              Guides and blog · How we score
  *
  * The menu (Navbar), the footer, the bottom bar, the place pages
@@ -168,9 +168,11 @@ export const PLACES: Place[] = [
         key: "watchlist",
         href: "/watchlist",
         name: { en: "Watchlist", bn: "ওয়াচলিস্ট" },
-        line: { en: "The shares you follow", bn: "যে শেয়ারগুলো আপনি অনুসরণ করেন" },
-        ask: { en: "How are the shares I follow?", bn: "যেগুলো অনুসরণ করি সেগুলো কেমন?" },
+        line: { en: "The shares you watch, and what we tell you about them", bn: "যে শেয়ারে নজর রাখেন, আর সেগুলো নিয়ে কী জানাব" },
+        ask: { en: "How are the shares I watch?", bn: "যেগুলোতে নজর রাখি সেগুলো কেমন?" },
         icon: "watchlist",
+        // The Watch rules page and price alerts folded in here (2026-11-25).
+        paths: ["/watch-rules", "/alerts"],
       },
       {
         key: "updates",
@@ -179,15 +181,6 @@ export const PLACES: Place[] = [
         line: { en: "News and dates on your shares", bn: "আপনার শেয়ারের খবর আর তারিখ" },
         ask: { en: "What's new on my shares?", bn: "আমার শেয়ারে নতুন কী?" },
         icon: "updates",
-      },
-      {
-        key: "rules",
-        href: "/watch-rules",
-        name: { en: "Watch rules", bn: "নজরের নিয়ম" },
-        line: { en: "Choose what we tell you, and your price alerts", bn: "কী জানাব তা বেছে নিন, আর আপনার প্রাইস অ্যালার্ট" },
-        ask: { en: "What do I want to hear about?", bn: "কোন খবর জানতে চাই?" },
-        icon: "rules",
-        paths: ["/alerts"],
       },
       {
         key: "foryou",

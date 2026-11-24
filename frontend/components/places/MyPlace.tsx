@@ -11,7 +11,6 @@ import { getCachedWatchlist, loadWatchlist, subscribeWatchlist } from "@/lib/wat
 import { limitFor } from "@/lib/premium";
 import { authHref } from "@/lib/next-path";
 import { placeByKey } from "@/lib/places";
-import { loadWatchRules } from "@/components/watch-rules/store";
 
 /**
  * My shares (2026-11-20, the app map): the place page the bottom bar's
@@ -26,16 +25,12 @@ export default function MyPlace() {
   const [held, setHeld] = useState<number | null>(null);
   const [followed, setFollowed] = useState<number | null>(null);
   const [unread, setUnread] = useState<number | null>(null);
-  const [ruled, setRuled] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isLoggedIn) return;
     let live = true;
     loadMainHoldings()
       .then((h) => live && setHeld(new Set(h.map((x) => x.trading_code.toUpperCase())).size))
-      .catch(() => {});
-    loadWatchRules()
-      .then((s) => live && s && setRuled(new Set(s.rules.map((r) => r.code)).size))
       .catch(() => {});
     apiGetUnreadNotifications()
       .then((r) => live && setUnread(r.unread))
@@ -56,10 +51,9 @@ export default function MyPlace() {
       followed != null
         ? {
             value: cap != null ? `${followed} / ${cap}` : followed,
-            unit: { en: "followed", bn: "অনুসরণ করছেন" },
+            unit: { en: "watched", bn: "নজরে" },
           }
         : null,
-    rules: ruled != null ? { value: ruled, unit: { en: "shares watched", bn: "শেয়ারে নজর" } } : null,
     updates: unread != null ? { value: unread, unit: { en: "new", bn: "নতুন" }, tone: unread > 0 ? "up" : undefined } : null,
   };
 
@@ -69,8 +63,8 @@ export default function MyPlace() {
         held != null && followed != null ? (
           <p className="pl-line">
             <T
-              en={<><strong>{held} shares in your portfolio, {followed} followed.</strong>{unread ? ` ${unread} new updates since you last looked.` : ""}</>}
-              bn={<><strong>পোর্টফোলিওতে {held}টি শেয়ার, অনুসরণ করছেন {followed}টি।</strong>{unread ? ` শেষবার দেখার পর ${unread}টি নতুন আপডেট।` : ""}</>}
+              en={<><strong>{held} shares in your portfolio, {followed} watched.</strong>{unread ? ` ${unread} new updates since you last looked.` : ""}</>}
+              bn={<><strong>পোর্টফোলিওতে {held}টি শেয়ার, নজরে রাখছেন {followed}টি।</strong>{unread ? ` শেষবার দেখার পর ${unread}টি নতুন আপডেট।` : ""}</>}
             />
           </p>
         ) : null

@@ -1,5 +1,4 @@
 import Link from "@/components/ui/Link";
-import WatchRulesHint from "@/components/watch-rules/WatchRulesHint";
 import CoverActions from "@/components/stock/CoverActions";
 import CategoryChip from "@/components/stock/CategoryChip";
 import YourPosition from "@/components/stock/YourPosition";
@@ -278,15 +277,7 @@ export default function HeroSection({ detail }: Props) {
 
       {/* The buttons sit under the card, so a screenshot of the card stops at
           its edge. */}
-      <CoverActions
-        code={code}
-        name={name}
-        ltp={ltp}
-        w52High={latest_price.w52_high}
-        w52Low={latest_price.w52_low}
-        score={score}
-      />
-      <WatchRulesHint code={code} name={name} />
+      <CoverActions code={code} name={name} ltp={ltp} score={score} />
 
       {/* The reader's own stake (signed-in holder / watcher) — their own
           facts, free for every reader. */}

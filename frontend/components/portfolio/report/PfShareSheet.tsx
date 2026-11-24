@@ -12,8 +12,7 @@ import { money, taka, takaGroup } from "@/lib/formatters";
 import type { PortfolioWatchEvent } from "@/lib/api";
 import type { TierKey } from "@/lib/constants";
 import type { PfStatus, PfWayItem } from "@/lib/portfolio-report";
-import WatchlistAlertCell from "@/components/watchlist/WatchlistAlertCell";
-import WatchRulesButton from "@/components/watch-rules/WatchRulesButton";
+import WatchButton from "@/components/watch-rules/WatchButton";
 import { KIND_TAG, LEVEL_TONE } from "../watchKinds";
 
 export interface ShareSheetRow {
@@ -233,7 +232,7 @@ export default function PfShareSheet({
           </Button>
           {!readOnly && (
             <Button type="button" variant="link" size="sm" onClick={() => setMore((m) => !m)} aria-expanded={more}>
-              <T en="Alert, watch rules, edit" bn="অ্যালার্ট, নজরের নিয়ম, সম্পাদনা" />
+              <T en="Watch, edit" bn="নজর, সম্পাদনা" />
               <span className={more ? "pfs-chev pfs-chev--open" : "pfs-chev"}>
                 <IconChevronDown size={14} />
               </span>
@@ -242,8 +241,7 @@ export default function PfShareSheet({
         </div>
         {!readOnly && more && (
           <div className="pfs-more">
-            <WatchlistAlertCell code={row.code} ltp={row.ltp} w52High={row.w52High} w52Low={row.w52Low} />
-            <WatchRulesButton code={row.code} name={row.name} />
+            <WatchButton code={row.code} name={row.name} ltp={row.ltp} />
             <Button type="button" variant="quiet" size="sm" onClick={onEdit}>
               <T en="Fix a mistake" bn="ভুল ঠিক করুন" />
             </Button>

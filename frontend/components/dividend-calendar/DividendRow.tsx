@@ -178,7 +178,7 @@ export default function DividendRow({
       <>
         {canRemind && (
           <div className="dc-x-remind">
-            <RemindButton code={e.trading_code} labeled />
+            <RemindButton code={e.trading_code} name={name} ltp={e.ltp ?? null} labeled />
           </div>
         )}
         {facts.length > 0 && (

@@ -235,8 +235,8 @@ function QuickLook({ row, onOpen }: { row: ScreenerRow; onOpen?: (code: string) 
         <Link href={`/compare-stocks?s=${code}`} className="btn-quiet btn-sm" onClick={() => onOpen?.(row.code)}>
           <T en="Compare" bn="তুলনা করুন" />
         </Link>
-        <Button variant="quiet" size="sm" onClick={() => openWatchRules(row.code, row.name)}>
-          <T en="Alert me" bn="অ্যালার্ট দিন" />
+        <Button variant="quiet" size="sm" onClick={() => openWatchRules(row.code, row.name, { ltp: price })}>
+          <T en="Watch" bn="নজর রাখুন" />
         </Button>
       </div>
     </div>

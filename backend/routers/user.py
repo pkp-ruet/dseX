@@ -15,6 +15,7 @@ from backend.services.auth_service import (
     sanitize_user,
     touch_watchlist_visit,
 )
+from backend.services import watch_rules
 from backend.services.entitlements import (
     HARD_LIMITS,
     LIMIT_WATCHLIST,
@@ -61,10 +62,24 @@ def _check_watchlist_limit(user: dict, new_codes: list[str]) -> None:
         )
 
 
+def _drop_rules_off(user: dict, codes: list[str]) -> None:
+    """Watching a share = being on the watchlist (2026-11-25): rules on a
+    share that is no longer followed go with it."""
+    rules = [r for r in user.get("watch_rules") or [] if isinstance(r, dict)]
+    if not rules:
+        return
+    on = {c.upper() for c in codes}
+    gone = {str(r.get("code") or "").upper() for r in rules} - on
+    if gone:
+        get_db().users.update_one({"user_id": user["user_id"]},
+                                  {"$set": {"watch_rules": watch_rules.drop_codes(rules, gone)}})
+
+
 @router.put("/watchlist")
 def set_watchlist(body: WatchlistBody, current_user: dict = Depends(get_current_user)):
     _check_watchlist_limit(current_user, body.codes)
     codes, meta = update_user_watchlist(current_user["user_id"], body.codes)
+    _drop_rules_off(current_user, codes)
     return {"codes": codes, "meta": meta}
 
 
@@ -79,6 +94,7 @@ def add_to_watchlist(body: WatchlistBody, current_user: dict = Depends(get_curre
 @router.patch("/watchlist/remove")
 def remove_from_watchlist(body: WatchlistBody, current_user: dict = Depends(get_current_user)):
     codes, meta = remove_from_user_watchlist(current_user["user_id"], body.codes)
+    _drop_rules_off(current_user, codes)
     return {"codes": codes, "meta": meta}
 
 

@@ -15,8 +15,9 @@ export const metadata: Metadata = {
 /**
  * Updates (2026-11-20, the app map): THE one feed of news on the reader's
  * shares. The dates coming up (from the watchlist's old "Coming up" card),
- * what we noticed in the last 30 days, then one line to Watch rules (where
- * the price alerts moved 2026-11-22; /alerts 301s there). Same URL as Notifications, so
+ * what we noticed in the last 30 days, then one line to the watchlist, where
+ * each share's Watch sheet sets what we tell you (rules and price alerts,
+ * 2026-11-25; /alerts and /watch-rules 301 there). Same URL as Notifications, so
  * every push and the navbar bell still land here.
  */
 export default function UpdatesPage() {
@@ -32,17 +33,17 @@ export default function UpdatesPage() {
         }
       />
       <NotificationsClient />
-      <Link href="/watch-rules" className="wrp-link">
+      <Link href="/watchlist" className="wrp-link">
         <span className="wrp-link-ic" aria-hidden="true">
           <IconEye size={22} />
         </span>
         <span className="wrp-link-text">
           <strong>
-            <T en="Watch rules and price alerts" bn="নজরের নিয়ম আর প্রাইস অ্যালার্ট" />
+            <T en="Choose what we tell you" bn="কী জানাব, বেছে নিন" />
           </strong>
           <T
-            en="Choose what we tell you about each share: results, a dividend, its grade, a big fall."
-            bn="প্রতিটি শেয়ার নিয়ে কী জানাব বেছে নিন: আর্থিক ফল, ডিভিডেন্ড, গ্রেড, বড় দরপতন।"
+            en="On your watchlist, tap Watching on any share: results, a dividend, its grade, a big fall, a price."
+            bn="ওয়াচলিস্টে যেকোনো শেয়ারের নজরে বোতামে চাপুন: আর্থিক ফল, ডিভিডেন্ড, গ্রেড, বড় দরপতন, একটি দাম।"
           />
         </span>
         <IconChevronRight size={18} />

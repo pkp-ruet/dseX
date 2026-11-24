@@ -6,6 +6,11 @@
 alerts; Premium as many as they need, up to `watch_rules.MAX_RULES`. A save
 over the cap is a 403 `limit_reached:alerts` (the limit popup's "alerts"
 kind); a list already over it (a lapsed Premium) can shrink or stay.
+
+Watching a share = being on the watchlist (2026-11-25, one Watch button):
+saving rules on a share adds it to the watchlist, taking a share off the
+watchlist drops its rules (`routers/user.py`), and the first read moves any
+older rule's share onto the watchlist.
 """
 import re
 from datetime import datetime, timezone
@@ -15,6 +20,8 @@ from pydantic import BaseModel, Field
 
 from backend.routers.auth import get_current_user
 from backend.services import entitlements
+from backend.services.auth_service import add_to_user_watchlist, get_user_watchlist
+from backend.services.entitlements import HARD_LIMITS, watchlist_add_blocked
 from backend.services import watch_rules as wr
 from backend.services.db_service import get_db
 
@@ -67,9 +74,25 @@ def _out(rules: list[dict], user: dict, armed: int) -> dict:
     }
 
 
+def _follow(uid: str, codes: list[str]) -> None:
+    """Put these shares on the reader's watchlist, within the hard cap."""
+    if not codes:
+        return
+    current = get_user_watchlist(uid)
+    room = HARD_LIMITS["watchlist"] - len(current)
+    new = [c for c in codes if c not in current][: max(0, room)]
+    if new:
+        add_to_user_watchlist(uid, new)
+
+
 @router.get("")
 def list_rules(current_user: dict = Depends(get_current_user)):
-    return _out(_stored(current_user), current_user, _armed(current_user["user_id"]))
+    rules = _stored(current_user)
+    # Rules made before 2026-11-25 could sit on a share that isn't followed.
+    missing = wr.unfollowed_codes(rules, get_user_watchlist(current_user["user_id"])) if rules else []
+    if missing:
+        _follow(current_user["user_id"], missing)
+    return _out(rules, current_user, _armed(current_user["user_id"]))
 
 
 @router.post("/keep")
@@ -101,5 +124,13 @@ def set_rules(code: str, body: RulesIn, current_user: dict = Depends(get_current
     limit = entitlements.limits_for(current_user)["alerts"]
     if wr.over_limit(len(have) + armed, len(rules) + armed, limit):
         raise HTTPException(status_code=403, detail=wr.LIMIT_DETAIL)
+    followed = get_user_watchlist(uid)
+    if new and code not in followed:
+        if watchlist_add_blocked(followed, followed + [code], HARD_LIMITS["watchlist"]):
+            raise HTTPException(
+                status_code=400,
+                detail=f"A watchlist can hold up to {HARD_LIMITS['watchlist']} stocks.",
+            )
+        add_to_user_watchlist(uid, [code])
     get_db().users.update_one({"user_id": uid}, {"$set": {"watch_rules": rules}})
     return _out(rules, current_user, armed)

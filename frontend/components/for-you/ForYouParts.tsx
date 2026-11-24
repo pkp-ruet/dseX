@@ -29,12 +29,12 @@ const NOTE = {
   bn: "এগুলো আপনার বেছে নেওয়া শেয়ারের মতো কোম্পানি। পড়ে দেখুন, ভালো লাগলে ফলো করুন।",
 };
 
-/** "Worth watching · Updated after the close, 18 Nov 2026". */
+/** "Worth a look · Updated after the close, 18 Nov 2026". */
 function IntroEyebrow({ asOf }: { asOf?: string | null }) {
   return (
     <p className="fu-eyebrow">
       <IconEye size={15} />
-      <T en="Worth watching" bn="নজরে রাখার মতো" />
+      <T en="Worth a look" bn="দেখে রাখার মতো" />
       {asOf && (
         <span className="fu-eyebrow-date">
           <T en={` · Updated ${formatDate(asOf)}`} bn={` · হালনাগাদ ${bnDate(asOf)}`} />
@@ -73,7 +73,7 @@ export function ForYouIntro({
         </h2>
       ) : (
         <h2 id="fu-intro-t" className="sr-only">
-          <T en="Worth watching" bn="নজরে রাখার মতো" />
+          <T en="Worth a look" bn="দেখে রাখার মতো" />
         </h2>
       )}
       <p className="fu-intro-note">

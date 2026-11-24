@@ -202,8 +202,8 @@ function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level,
   return (
     <div>
       <div className="rs-split" role="img" aria-label={t(
-        `${counts.good ?? 0} better, ${counts.watch ?? 0} mixed, ${counts.bad ?? 0} weaker, ${counts.neutral ?? 0} about the same`,
-        `${counts.good ?? 0}টি ভালো, ${counts.watch ?? 0}টি মিশ্র, ${counts.bad ?? 0}টি দুর্বল, ${counts.neutral ?? 0}টি প্রায় আগের মতো`,
+        `${counts.good ?? 0} better, ${counts.watch ?? 0} uneven, ${counts.bad ?? 0} weaker, ${counts.neutral ?? 0} about the same`,
+        `${counts.good ?? 0}টি ভালো, ${counts.watch ?? 0}টি ভালো-মন্দ মেশানো, ${counts.bad ?? 0}টি দুর্বল, ${counts.neutral ?? 0}টি প্রায় আগের মতো`,
       )}>
         {RESULT_LEVEL_ORDER.map((lv) =>
           (counts[lv] ?? 0) > 0 ? (

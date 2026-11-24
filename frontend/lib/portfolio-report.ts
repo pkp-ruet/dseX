@@ -683,7 +683,8 @@ function buildAnswer(inp: ReportInput, f: Facts, lights: PfLight[], issue: Sprea
   let word: Bi;
   let tone: Tone;
   if (bad.length >= 2 || f.seriousPct > 10) {
-    word = B("At risk", "ঝুঁকিতে");
+    // "Needs care", not "At risk": "At risk" is a dividend's word (2026-11-25).
+    word = B("Needs care", "যত্ন দরকার");
     tone = "bad";
   } else if (bad.length === 1 || a.grade === "D" || a.grade === "F") {
     word = B("Needs work", "কাজ দরকার");

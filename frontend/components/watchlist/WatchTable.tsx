@@ -13,8 +13,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import TierPill from "@/components/ui/TierPill";
 import { IconArrowRight, IconChevronDown } from "@/components/ui/icons";
-import WatchlistAlertCell from "./WatchlistAlertCell";
-import WatchRulesButton from "@/components/watch-rules/WatchRulesButton";
+import WatchButton from "@/components/watch-rules/WatchButton";
 import { UpdateRow } from "./WatchUpdates";
 
 /*
@@ -167,16 +166,17 @@ function Drawer({ row, bn, onRemove }: { row: WatchRow; bn: boolean; onRemove: (
           <IconArrowRight size={14} />
         </Link>
         <span className="wl-spacer" />
-        <WatchlistAlertCell code={code} ltp={item.ltp} w52High={hi} w52Low={lo} />
-        <WatchRulesButton code={code} name={companyShort(item.company_name) || code} />
+        {/* One Watch button (2026-11-25): what we tell you, the price alert
+            and Stop watching all live in its sheet. */}
+        <WatchButton code={code} name={companyShort(item.company_name) || code} ltp={item.ltp} />
         <Button
           type="button"
           variant="quiet"
           size="sm"
           onClick={() => onRemove(code)}
-          aria-label={bn ? `${code} অনুসরণ বন্ধ করুন` : `Stop following ${code}`}
+          aria-label={bn ? `${code}-এ নজর রাখা বন্ধ করুন` : `Stop watching ${code}`}
         >
-          <T en="Stop following" bn="অনুসরণ বন্ধ" />
+          <T en="Stop watching" bn="নজর বন্ধ" />
         </Button>
       </div>
     </div>

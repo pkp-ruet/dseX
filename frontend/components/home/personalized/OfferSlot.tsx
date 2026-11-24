@@ -973,7 +973,7 @@ export default function OfferSlot({
       onSeen: () => trackEvent("watch_rules_slide_view", { premium: isPremium ? 1 : 0 }),
       node: (
         <>
-          {eyebrow(<IconEye size={14} />, bn ? "নজরের নিয়ম" : "Watch rules")}
+          {eyebrow(<IconEye size={14} />, bn ? "নজর রাখুন" : "Watch")}
           <h3 className="hm-sl-title">
             {bn ? "আপনার শেয়ার নিয়ে কী জানাব, আপনি বেছে নিন" : "Choose what we tell you about your shares"}
           </h3>
@@ -987,7 +987,7 @@ export default function OfferSlot({
                 : `Its grade drops, results come out, a dividend is declared, a big fall: we tell you. ${FREE_LIMITS.alerts ?? 3} rules are free.`}
           </p>
           <div className="hm-sl-acts">
-            <Button href="/watch-rules?src=home" onClick={() => trackEvent("watch_rules_prompt_tap", { from: "home-slide" })}>
+            <Button href="/watchlist?src=home" onClick={() => trackEvent("watch_rules_prompt_tap", { from: "home-slide" })}>
               {bn ? "নিয়ম বেছে নিন" : "Set my rules"}
             </Button>
             <button

@@ -33,7 +33,8 @@ export const JOBS: Record<Job, { name: Bi; line: Bi }> = {
     line: { en: "Whole lists of shares worth a look", bn: "দেখার মতো শেয়ারের পুরো তালিকা" },
   },
   watch: {
-    name: { en: "Watch", bn: "নজর রাখুন" },
+    // "Alerts", not "Watch": Watch is the share's button (2026-11-25).
+    name: { en: "Alerts", bn: "অ্যালার্ট" },
     line: { en: "Your shares checked every day", bn: "আপনার শেয়ার প্রতিদিন যাচাই" },
   },
 };

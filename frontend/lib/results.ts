@@ -13,7 +13,8 @@ export const RESULT_LEVEL: Record<
           tone: "positive", pill: "text-positive bg-positive/10",
           means: "Profit per share is up 10% or more on the same months last year, or the company is back to a profit.",
           meansBn: "শেয়ারপ্রতি মুনাফা গত বছরের একই সময়ের চেয়ে 10% বা তার বেশি বেড়েছে, অথবা কোম্পানি আবার মুনাফায় ফিরেছে।" },
-  watch: { en: "Mixed, worth watching", bn: "মিশ্র, নজর রাখার মতো", short: "Mixed", shortBn: "মিশ্র",
+  // "Uneven", not "Mixed": "Mixed" is a company group (2026-11-25, one word, one idea).
+  watch: { en: "Uneven, worth a close look", bn: "ভালো-মন্দ মেশানো, ভালো করে দেখে নিন", short: "Uneven", shortBn: "ভালো-মন্দ",
            tone: "watch", pill: "text-watch bg-watch/10",
            means: "Profit is down 10% to 25%, or it is up but the cash didn't come in, or the latest quarter slowed down.",
            meansBn: "মুনাফা 10% থেকে 25% কমেছে, অথবা বেড়েছে কিন্তু নগদ আসেনি, অথবা সর্বশেষ প্রান্তিকে গতি কমেছে।" },

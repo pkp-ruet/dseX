@@ -2,7 +2,7 @@
  * Price-alert client — server-of-truth (no localStorage), mirroring watchlist.ts.
  *
  * Only logged-in users have alerts; unauthenticated callers get an empty list and
- * any mutation is a no-op (the PriceAlertButton gates auth and prompts sign-up
+ * any mutation is a no-op (the Watch button gates auth and prompts sign-up
  * before reaching this module).
  *
  * An in-memory cache renders synchronously after the first `loadAlerts()` fetch.

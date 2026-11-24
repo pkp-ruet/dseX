@@ -104,6 +104,27 @@ def replace_code(rules: list[dict], code: str, new: list[dict], now: Any) -> lis
     return others + mine
 
 
+def drop_codes(rules: list[dict], codes: Any) -> list[dict]:
+    """The stored list without the rules on these shares. Watching a share is
+    being on the watchlist (2026-11-25, one Watch button): a share that leaves
+    the watchlist takes its rules with it."""
+    gone = {str(c).upper() for c in codes or [] if c}
+    return [r for r in rules if str(r.get("code") or "").upper() not in gone]
+
+
+def unfollowed_codes(rules: list[dict], watchlist: Any) -> list[str]:
+    """Shares with rules that are not on the watchlist, in the order their
+    first rule was made (rules made before 2026-11-25 could sit on a share
+    the reader only owned)."""
+    on = {str(c).upper() for c in watchlist or [] if c}
+    out: list[str] = []
+    for r in rules:
+        c = str(r.get("code") or "").upper()
+        if c and c not in on and c not in out:
+            out.append(c)
+    return out
+
+
 def set_keep(rules: list[dict], code: str, kind: str, keep: bool) -> Optional[list[dict]]:
     """The stored list with one rule marked "keep on" (or not), None when the
     reader has no such rule. A kept rule stays on before older ones when a

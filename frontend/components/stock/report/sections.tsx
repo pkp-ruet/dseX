@@ -319,7 +319,7 @@ export function SafetyPremium({ s }: { s: SafetySection }) {
         <Meter
           min={0}
           max={150}
-          label={`Its loans next to the money it has kept from past years: ${m.saved_pct < 50 ? "comfortable" : m.saved_pct <= 100 ? "worth watching" : "heavy"}`}
+          label={`Its loans next to the money it has kept from past years: ${m.saved_pct < 50 ? "comfortable" : m.saved_pct <= 100 ? "worth a look" : "heavy"}`}
           zones={[
             { key: "ok", from: 0, to: 50, tone: "good", name: <T en="Comfortable" bn="স্বস্তিতে" /> },
             { key: "watch", from: 50, to: 100, tone: "fair", name: <T en="Watch" bn="নজরে রাখুন" /> },

@@ -25,7 +25,6 @@ import {
   subscribeWatchlist,
   loadWatchlist,
   addToWatchlist,
-  removeFromWatchlist,
   setWatchlist,
 } from "@/lib/watchlist";
 import { getCachedAlerts, loadAlerts, subscribeAlerts } from "@/lib/price-alerts";
@@ -45,6 +44,9 @@ import PriceAlertTip from "./PriceAlertTip";
 import EmptyStateActions from "./EmptyStateActions";
 import ShareWatchlistButton from "./ShareWatchlistButton";
 import WatchTable, { sinceFollowed, type WatchRow } from "./WatchTable";
+import WatchPlanLine from "./WatchPlanLine";
+import AlertsClient from "@/components/alerts/AlertsClient";
+import { stopWatching } from "@/components/watch-rules/store";
 import { toast } from "@/lib/toast";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
 
@@ -539,17 +541,16 @@ function WatchlistTableInner() {
     });
   }, [scoreRows, updates, extremes, meta, view, sortKey]);
 
-  // Remove with a short undo window (shared toast) instead of an instant, silent
-  // delete. The undo restores the original added-on date + price meta instead
-  // of re-stamping today.
-  function handleRemove(code: string) {
+  // Stop watching with a short undo window (shared toast). Since 2026-11-25
+  // watching = on the watchlist, so the share's rules and price alert go
+  // with it; the undo brings all three back, with the original added-on
+  // date + price instead of re-stamping today.
+  async function handleRemove(code: string) {
     const upper = code.toUpperCase();
-    const m = getCachedWatchlistMeta()[upper];
-    const restore: WatchlistMeta | undefined = m ? { [upper]: m } : undefined;
-    removeFromWatchlist(upper);
+    const undo = await stopWatching(upper);
     toast({
-      message: <T en={`${upper} was removed from your watchlist`} bn={`${upper} ওয়াচলিস্ট থেকে সরানো হয়েছে`} />,
-      action: { label: <T en="Undo" bn="ফিরিয়ে আনুন" />, onClick: () => addToWatchlist(upper, restore) },
+      message: <T en={`You stopped watching ${upper}`} bn={`${upper}-এ নজর রাখা বন্ধ করেছেন`} />,
+      action: { label: <T en="Undo" bn="ফিরিয়ে আনুন" />, onClick: () => void undo() },
     });
   }
 
@@ -609,14 +610,14 @@ function WatchlistTableInner() {
                 <>
                   <strong>{codes.length}</strong>
                   {limits.watchlist !== null && <span className="nums"> of {limits.watchlist}</span>}{" "}
-                  {codes.length === 1 && limits.watchlist === null ? "share" : "shares"} followed
+                  {codes.length === 1 && limits.watchlist === null ? "share" : "shares"} you watch
                 </>
               }
               bn={
                 <>
                   <strong>{codes.length}</strong>
-                  {limits.watchlist !== null && <span className="nums">/{limits.watchlist}</span>}টি শেয়ার
-                  অনুসরণ করছেন
+                  {limits.watchlist !== null && <span className="nums">/{limits.watchlist}</span>}টি শেয়ারে
+                  নজর রাখছেন
                 </>
               }
             />
@@ -626,6 +627,7 @@ function WatchlistTableInner() {
       )}
 
       {limits.watchlist !== null && codes.length >= limits.watchlist && <CapNote limit={limits.watchlist} />}
+      {codes.length > 0 && <WatchPlanLine />}
 
       <section aria-labelledby="wl-stocks">
         <SectionHeader
@@ -639,8 +641,8 @@ function WatchlistTableInner() {
           }
           lead={
             <T
-              en="Search any DSE company to follow it. Tap a share to see everything we know about it."
-              bn="ডিএসইর যেকোনো কোম্পানি খুঁজে অনুসরণ করুন। কোনো শেয়ারের সব তথ্য দেখতে তাতে চাপুন।"
+              en="Search any DSE company to watch it. Tap a share to see everything we know about it, and to choose what we tell you."
+              bn="ডিএসইর যেকোনো কোম্পানি খুঁজে নজরে রাখুন। কোনো শেয়ারের সব তথ্য দেখতে আর কী জানাব বেছে নিতে তাতে চাপুন।"
             />
           }
         />
@@ -748,6 +750,25 @@ function WatchlistTableInner() {
 
       {codes.length > 0 && !error && (
         <WatchlistNews codes={codes} news={news} loading={newsLoading} />
+      )}
+
+      {/* Price alerts (2026-11-25: moved here from the Watch rules page, which
+          folded into the watchlist; /alerts and /watch-rules 301 here). Set
+          and changed in each share's Watch sheet; listed here once any exist. */}
+      {alerts.length > 0 && (
+        <section id="alerts" className="wl-section stock-anchor" aria-labelledby="wl-alerts">
+          <SectionHeader
+            id="wl-alerts"
+            title={<T en="Your price alerts" bn="আপনার প্রাইস অ্যালার্ট" />}
+            lead={
+              <T
+                en="We tell you on the day a share reaches your price. Each armed alert counts as a rule."
+                bn="শেয়ারের দাম আপনার ঠিক করা দামে পৌঁছালে সেদিনই জানাই। চালু প্রতিটি অ্যালার্ট একটি নিয়ম হিসেবে গোনা হয়।"
+              />
+            }
+          />
+          <AlertsClient shared />
+        </section>
       )}
 
       {ready && (

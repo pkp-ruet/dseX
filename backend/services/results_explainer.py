@@ -392,18 +392,18 @@ def explain(interim: dict, row: Optional[dict] = None, score_before: Optional[fl
             m_bn = "এক বছর আগের চেয়ে ব্যবসা ভালো চলছে।"
         if q_pct is not None and q_pct <= -MOVE_PCT:
             level = "watch"
-            m_en += " However, the latest quarter was slower, so the next report is worth watching."
+            m_en += " However, the latest quarter was slower, so the next report is worth a close look."
             m_bn += " তবে সর্বশেষ প্রান্তিকে গতি কমেছে, তাই পরের প্রতিবেদনের দিকে নজর রাখা ভালো।"
     elif pct is not None and pct <= -MOVE_PCT:
         level = "watch"
-        m_en = "Profit is lower than last year. The next report is worth watching."
+        m_en = "Profit is lower than last year. The next report is worth a close look."
         m_bn = "মুনাফা গত বছরের চেয়ে কম। পরের প্রতিবেদনের দিকে নজর রাখা ভালো।"
     else:
         level = "watch" if cash_bad else "neutral"
         m_en = "Profit is about the same as a year ago."
         m_bn = "মুনাফা এক বছর আগের মতোই আছে।"
         if cash_bad:
-            m_en += " The cash going out is the thing to watch."
+            m_en += " The cash going out is the thing to keep an eye on."
             m_bn += " নগদ বেরিয়ে যাওয়ার দিকটি নজরে রাখার মতো।"
 
     end_d = _as_date(interim.get("period_end"))

@@ -143,9 +143,10 @@ function AlertCard({
 }
 
 /**
- * The reader's price alerts — a section of the Watch rules page (`#alerts`)
- * since 2026-11-22 (Updates 2026-11-20 → 11-22); /alerts 301s there. The Updates page asks a
- * signed-out reader to sign in once, so this section then shows nothing.
+ * The reader's price alerts — a section of the watchlist (`#alerts`) since
+ * 2026-11-25 (Updates 2026-11-20 → 11-22, Watch rules 11-22 → 11-25); /alerts
+ * 301s there. Alerts are set in each share's Watch sheet. `shared`: the cap
+ * is shared with rules and said once, by the watchlist's plan line.
  */
 export default function AlertsClient({ shared = false }: { shared?: boolean }) {
   const { isLoggedIn, isLoading } = useAuth();

@@ -126,7 +126,7 @@ export function HowWeChoose({ rules }: { rules: BuyList["rules"] }) {
           />
         </p>
         <p>
-          <T en="Want companies to watch next, picked from your own shares?" bn="আপনার নিজের শেয়ার দেখে পরে নজরে রাখার মতো কোম্পানি চান?" />{" "}
+          <T en="Want companies to look at next, picked from your own shares?" bn="আপনার নিজের শেয়ার দেখে পরে দেখে রাখার মতো কোম্পানি চান?" />{" "}
           <Link prefetch={false} href="/for-you" className="font-semibold text-primary-ink hover:underline">
             <T en="Open Based on your shares" bn="আপনার শেয়ার দেখে বাছাই পেজে যান" /> →
           </Link>

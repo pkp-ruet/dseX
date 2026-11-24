@@ -100,7 +100,7 @@ export default function InShort({
         </div>
         <div>
           <h3 className="an-k">
-            <T en="What to watch" bn="যা খেয়াল রাখবেন" />
+            <T en="Keep an eye on" bn="যা খেয়াল রাখবেন" />
           </h3>
           {watch.length > 0 ? (
             <ul className="an-pts">

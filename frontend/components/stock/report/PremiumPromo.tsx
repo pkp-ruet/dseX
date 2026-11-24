@@ -147,7 +147,7 @@ export default function PremiumPromo({
         ...(stake ? [stake] : []),
         ...(bn
           ? ["কী ভালো", "কী খেয়াল রাখবেন", "আজকের দাম কি ন্যায্য"]
-          : ["What's good", "What to watch", "Is today's price fair"]
+          : ["What's good", "What to keep an eye on", "Is today's price fair"]
         ).slice(0, stake ? 2 : 3),
       ],
     });
@@ -185,7 +185,7 @@ export default function PremiumPromo({
             <b className="pv">{takaGroup(held)}</b>
             <span>
               <T
-                en={`${first ? `${first}, you` : "You"} have this much in ${code}. See what's good about it, what to watch, and whether today's price is fair.`}
+                en={`${first ? `${first}, you` : "You"} have this much in ${code}. See what's good about it, what to keep an eye on, and whether today's price is fair.`}
                 bn={`${first ? `${first}, ` : ""}${code}-এ আপনার এতটা টাকা আছে। এর ভালো দিক কী, কী খেয়াল রাখবেন, আর আজকের দাম ন্যায্য কি না, দেখে নিন।`}
               />
             </span>
@@ -193,7 +193,7 @@ export default function PremiumPromo({
         ) : (
           <h2 id="sp-t" className="sp-title">
             <T
-              en={`What's good about ${name}, what to watch, and is today's price fair?`}
+              en={`What's good about ${name}, what to keep an eye on, and is today's price fair?`}
               bn={`${name}: কী ভালো, কী খেয়াল রাখবেন, আর আজকের দাম কি ন্যায্য?`}
             />
           </h2>
@@ -222,7 +222,7 @@ export default function PremiumPromo({
           <li className="spa-row">
             <span className="spa-mk" data-tone="fair" aria-hidden="true">!</span>
             <span className="min-w-0">
-              <b className="spa-name"><T en="What to watch" bn="যা খেয়াল রাখবেন" /></b>
+              <b className="spa-name"><T en="Keep an eye on" bn="যা খেয়াল রাখবেন" /></b>
               <Ghosts n={nWatch ?? 1} />
             </span>
             {nWatch != null && <span className="spa-cnt"><T en={things(nWatch).en} bn={things(nWatch).bn} /></span>}

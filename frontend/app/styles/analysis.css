@@ -200,8 +200,8 @@
 .cv-next b { font-weight: 700; }
 .cv-url { font-size: var(--fs-2xs); font-weight: 600; color: var(--primary-ink); }
 
-/* The buttons under the card (components/stock/CoverActions.tsx): four equal
-   tiles on phones (More opens the other three in place), one row from 640px. */
+/* The buttons under the card (components/stock/CoverActions.tsx): Watch ·
+   Portfolio · Compare · Share, four equal tiles on phones, one row from 640px. */
 .cv-acts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-2); margin-top: var(--space-3); }
 .cv-acts .btn-quiet {
   width: 100%;
@@ -217,14 +217,10 @@
   white-space: normal;
 }
 .cv-acts .btn-quiet svg { width: 18px; height: 18px; }
-.cv-acts-extra { display: none; grid-column: 1 / -1; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); }
-.cv-acts[data-more] .cv-acts-extra { display: grid; }
 @media (min-width: 640px) {
   .cv-acts { display: flex; flex-wrap: wrap; }
   .cv-acts .btn-quiet { width: auto; flex-direction: row; gap: 6px; min-height: 40px; padding: 0 14px; font-size: var(--fs-xs); }
   .cv-acts .btn-quiet svg { width: 14px; height: 14px; }
-  .cv-acts .cv-acts-more { display: none; }
-  .cv-acts .cv-acts-extra, .cv-acts[data-more] .cv-acts-extra { display: contents; }
 }
 
 /* ===================================================================== analysis */

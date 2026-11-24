@@ -22,7 +22,7 @@ const PROMO_AFTER = 2;
  * "Based on your shares" (`/for-you`; Discover until 2026-11-18). One
  * `GET /api/user/for-you` — backend services/for_you.py.
  *
- * Every reader: one intro card ("Worth watching", the count, the note, the
+ * Every reader: one intro card ("Worth a look", the count, the note, the
  * shares the picks came from), then one section per share. Premium: every group open, each company
  * with why it fits, what it shares, read · follow · not for me. Free: the
  * same groups with each share's reason and each pick's business, the names
@@ -209,7 +209,7 @@ function GuestCard() {
   return (
     <div className="fu-intro soft-card">
       <h2 className="fu-intro-h">
-        <T en="Companies to watch next, picked from your shares" bn="আপনার শেয়ার দেখে বাছাই করা, পরে নজরে রাখার মতো কোম্পানি" />
+        <T en="Companies to look at next, picked from your shares" bn="আপনার শেয়ার দেখে বাছাই করা, পরে দেখে রাখার মতো কোম্পানি" />
       </h2>
       <p className="fu-intro-note">
         <T
