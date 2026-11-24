@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
@@ -153,6 +153,25 @@ def admin_list_feedback(_: dict = Depends(get_current_admin_user)):
     """All feedback (newest first) + summary stats."""
     from backend.services.feedback_service import list_feedback, feedback_stats
     return {"stats": feedback_stats(), "items": list_feedback()}
+
+
+@router.get("/feedback/unseen")
+def admin_feedback_unseen(admin: dict = Depends(get_current_admin_user)):
+    """How many reviews and finished survey answers arrived since this admin
+    last opened that tab of /admin/feedback (the analytics page's badge)."""
+    from backend.services.feedback_service import unseen_counts
+    return unseen_counts(admin.get("admin_seen"))
+
+
+class FeedbackSeenRequest(BaseModel):
+    what: Literal["reviews", "survey"]
+
+
+@router.post("/feedback/seen")
+def admin_feedback_seen(payload: FeedbackSeenRequest, admin: dict = Depends(get_current_admin_user)):
+    from backend.services.feedback_service import mark_seen
+    mark_seen(admin["user_id"], payload.what)
+    return {"ok": True}
 
 
 class FeatureFeedbackRequest(BaseModel):

@@ -2877,6 +2877,23 @@ export async function apiGetAdminFeedback(): Promise<AdminFeedbackResponse> {
   return apiAuthFetch<AdminFeedbackResponse>("/api/admin/feedback");
 }
 
+/** Reviews and finished survey answers since this admin last opened each tab. */
+export interface AdminFeedbackUnseen {
+  reviews: number;
+  survey: number;
+  total: number;
+  reviews_since: string;
+  survey_since: string;
+}
+
+export async function apiGetFeedbackUnseen(): Promise<AdminFeedbackUnseen> {
+  return apiAuthFetch<AdminFeedbackUnseen>("/api/admin/feedback/unseen");
+}
+
+export async function apiMarkFeedbackSeen(what: "reviews" | "survey"): Promise<{ ok: boolean }> {
+  return apiAuthFetch("/api/admin/feedback/seen", { method: "POST", body: JSON.stringify({ what }) });
+}
+
 // ---------------------------------------------------------------------------
 // The reader survey (backend/routers/survey.py, lib/survey.ts)
 // ---------------------------------------------------------------------------

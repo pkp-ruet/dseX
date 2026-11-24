@@ -1,12 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "@/components/ui/Link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import {
   apiGetAdminFeedback,
   apiFeatureFeedback,
+  apiGetFeedbackUnseen,
+  apiMarkFeedbackSeen,
+  type AdminFeedbackUnseen,
   type AdminFeedbackResponse,
   type AdminFeedbackItem,
 } from "@/lib/api";
@@ -14,6 +17,7 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Tabs from "@/components/ui/Tabs";
 import AdminSurvey from "@/components/admin/AdminSurvey";
+import { NewBadge, isAfter } from "@/components/admin/FeedbackUnseen";
 
 function fmtTime(iso: string | null): string {
   if (!iso) return "—";
@@ -75,6 +79,25 @@ export default function AdminFeedbackClient() {
       window.history.replaceState(null, "", k === "survey" ? "#survey" : window.location.pathname);
     } catch {}
   }, []);
+
+  // What was new when this admin opened the page (the analytics page's badge):
+  // read first, then each tab is marked seen once it is shown. The counts and
+  // "New" marks stay for this visit.
+  const [unseen, setUnseen] = useState<AdminFeedbackUnseen | null>(null);
+  const marked = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!isAdmin) return;
+    apiGetFeedbackUnseen()
+      .then(setUnseen)
+      .catch(() =>
+        setUnseen({ reviews: 0, survey: 0, total: 0, reviews_since: "", survey_since: "" }),
+      );
+  }, [isAdmin]);
+  useEffect(() => {
+    if (!unseen || marked.current.has(tab)) return;
+    marked.current.add(tab);
+    apiMarkFeedbackSeen(tab).catch(() => undefined);
+  }, [unseen, tab]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -176,8 +199,8 @@ export default function AdminFeedbackClient() {
 
       <Tabs
         tabs={[
-          { key: "reviews", label: "Reviews" },
-          { key: "survey", label: "Survey" },
+          { key: "reviews", label: <>Reviews<NewBadge n={unseen?.reviews ?? 0} /></> },
+          { key: "survey", label: <>Survey<NewBadge n={unseen?.survey ?? 0} /></> },
         ]}
         value={tab}
         onChange={chooseTab}
@@ -186,7 +209,7 @@ export default function AdminFeedbackClient() {
       />
 
       {tab === "survey" ? (
-        <AdminSurvey />
+        <AdminSurvey newSince={unseen?.survey_since || null} />
       ) : (
       <>
       {loadError && (
@@ -237,7 +260,12 @@ export default function AdminFeedbackClient() {
           items.map((f) => (
             <Card key={f.id} padding="none" className="rounded-xl px-4 py-3">
               <div className="flex items-center justify-between gap-3">
-                <Stars n={f.rating} />
+                <span className="flex items-center gap-2">
+                  <Stars n={f.rating} />
+                  {unseen?.reviews_since && isAfter(f.created_at, unseen.reviews_since) && (
+                    <span className="rounded-full bg-primary px-2 text-xs font-semibold text-on-fill">New</span>
+                  )}
+                </span>
                 <span className="text-xs text-text-muted">{fmtTime(f.created_at)}</span>
               </div>
               {f.comment && (

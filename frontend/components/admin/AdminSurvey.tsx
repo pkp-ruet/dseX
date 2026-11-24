@@ -5,6 +5,7 @@ import { apiGetAdminSurvey, type AdminSurveyResponse, type AdminSurveyText } fro
 import { LABELS, priceLabel, questionText } from "@/lib/survey";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import { isAfter } from "@/components/admin/FeedbackUnseen";
 
 /**
  * The admin Survey tab (/admin/feedback#survey, 2026-11-24): the reader
@@ -60,7 +61,7 @@ function toCsv(columns: string[], rows: Record<string, string | number | boolean
   return [columns.join(","), ...rows.map((r) => columns.map((c) => esc(r[c])).join(","))].join("\n");
 }
 
-export default function AdminSurvey() {
+export default function AdminSurvey({ newSince = null }: { newSince?: string | null }) {
   const [data, setData] = useState<AdminSurveyResponse | null>(null);
   const [error, setError] = useState("");
   const [textSeg, setTextSeg] = useState<string>("all");
@@ -77,6 +78,12 @@ export default function AdminSurvey() {
   const texts: AdminSurveyText[] = useMemo(
     () => (data?.texts ?? []).filter((t) => textSeg === "all" || t.segment === textSeg),
     [data, textSeg],
+  );
+
+  // Answers finished since this admin last opened the tab (marked "New").
+  const newFinished = useMemo(
+    () => (newSince && data ? data.rows.filter((r) => isAfter(String(r.finished || ""), newSince)).length : 0),
+    [data, newSince],
   );
 
   function downloadCsv() {
@@ -106,6 +113,11 @@ export default function AdminSurvey() {
         <p className="text-sm text-text-muted">
           Round {data.round} · Premium ending and ended first · everyone from {fmtDay(data.everyone_from)} ·
           the pop-up stops after {fmtDay(data.closes_on)}
+          {newFinished > 0 && (
+            <span className="block text-text-main">
+              <span className="font-semibold">{newFinished} new</span> finished since you last looked.
+            </span>
+          )}
         </p>
         <div className="flex gap-2">
           <Button type="button" variant="quiet" size="sm" onClick={load}>Reload</Button>
@@ -301,6 +313,9 @@ export default function AdminSurvey() {
           texts.map((t, i) => (
             <Card key={i} padding="none" className="rounded-xl px-4 py-3 flex flex-col gap-1.5">
               <p className="text-xs text-text-muted">
+                {newSince && isAfter(t.at, newSince) && (
+                  <span className="mr-2 rounded-full bg-primary px-2 font-semibold text-on-fill">New</span>
+                )}
                 {SEG_SHORT[t.segment] ?? t.segment}
                 {t.years ? ` · buying shares ${LABELS.years[t.years]?.en.toLowerCase()}` : ""}
                 {` · ${t.device?.mobile ? "phone" : "computer"}${t.device?.browser ? `, ${t.device.browser}` : ""}${t.device?.standalone ? ", installed app" : ""}`}

@@ -18,6 +18,7 @@ import ErrorState from "@/components/ui/ErrorState";
 import Skeleton from "@/components/ui/Skeleton";
 import Link from "@/components/ui/Link";
 import GrowthChart from "./analytics/GrowthChart";
+import { NewBadge, feedbackHref, unseenWords, useFeedbackUnseen } from "./FeedbackUnseen";
 
 const ADMIN_LINKS = [
   { href: "/admin/payments", label: "Payments" },
@@ -373,6 +374,8 @@ export default function AdminAnalyticsClient() {
   const [data, setData] = useState<AdminAnalyticsResponse | null>(null);
   const [failed, setFailed] = useState(false);
   const [busy, setBusy] = useState(false);
+  // New reviews / survey answers since this admin last looked: a badge on Feedback.
+  const unseen = useFeedbackUnseen(isAdmin);
 
   useEffect(() => {
     if (isLoading) return;
@@ -421,9 +424,23 @@ export default function AdminAnalyticsClient() {
       />
 
       <nav aria-label="Admin pages" className="mb-6 flex flex-wrap gap-2">
-        {ADMIN_LINKS.map((l) => (
-          <Button key={l.href} href={l.href} variant="quiet" size="sm">{l.label}</Button>
-        ))}
+        {ADMIN_LINKS.map((l) =>
+          l.href === "/admin/feedback" ? (
+            <Button
+              key={l.href}
+              href={feedbackHref(unseen)}
+              variant="quiet"
+              size="sm"
+              title={unseen && unseen.total > 0 ? unseenWords(unseen) : undefined}
+              aria-label={unseen && unseen.total > 0 ? `Feedback, ${unseenWords(unseen)}` : undefined}
+            >
+              {l.label}
+              <NewBadge n={unseen?.total ?? 0} />
+            </Button>
+          ) : (
+            <Button key={l.href} href={l.href} variant="quiet" size="sm">{l.label}</Button>
+          ),
+        )}
       </nav>
 
       {failed && !data && <ErrorState title="Couldn't load analytics" size="inline" onRetry={() => load()} />}

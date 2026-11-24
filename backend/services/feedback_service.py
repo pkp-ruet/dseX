@@ -7,7 +7,7 @@ Collects a star rating (1-5) + optional comment from two surfaces:
 
 Stored in the `feedback` collection. Admins read it via /api/admin/feedback.
 """
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from bson import ObjectId
@@ -122,6 +122,54 @@ def set_featured(feedback_id: str, featured: bool) -> bool:
         {"$set": {"featured": bool(featured)}},
     )
     return res.matched_count > 0
+
+
+# ---------------------------------------------------------------------------
+# What arrived since an admin last looked (the "N new" on the analytics
+# page's Feedback button). Kept per admin on `users.admin_seen`
+# {reviews: dt, survey: dt}; set when the feedback page shows that tab.
+# ---------------------------------------------------------------------------
+
+SEEN_KINDS = ("reviews", "survey")
+NEW_SINCE_DAYS = 7  # an admin who has never looked: count the last week
+
+
+def _utc(v) -> Optional[datetime]:
+    if isinstance(v, datetime):
+        return v if v.tzinfo else v.replace(tzinfo=timezone.utc)
+    return None
+
+
+def since_for(seen: Optional[dict], kind: str, now: datetime) -> datetime:
+    """When `kind` was last looked at, or a week ago for a first look."""
+    got = _utc((seen or {}).get(kind)) if isinstance(seen, dict) else None
+    return got or (now - timedelta(days=NEW_SINCE_DAYS))
+
+
+def unseen_counts(seen: Optional[dict]) -> dict:
+    """New reviews (every source, payment reports too) and survey answers
+    finished since the admin last looked."""
+    now = datetime.now(timezone.utc)
+    db = get_db()
+    rev_since = since_for(seen, "reviews", now)
+    sur_since = since_for(seen, "survey", now)
+    reviews = db[COLLECTION].count_documents({"created_at": {"$gt": rev_since}})
+    survey = db["survey_responses"].count_documents({"finished_at": {"$gt": sur_since}})
+    return {
+        "reviews": reviews,
+        "survey": survey,
+        "total": reviews + survey,
+        "reviews_since": rev_since.isoformat(),
+        "survey_since": sur_since.isoformat(),
+    }
+
+
+def mark_seen(user_id: str, kind: str) -> None:
+    if kind not in SEEN_KINDS:
+        return
+    get_db()["users"].update_one(
+        {"user_id": user_id}, {"$set": {f"admin_seen.{kind}": datetime.now(timezone.utc)}}
+    )
 
 
 # ---------------------------------------------------------------------------
