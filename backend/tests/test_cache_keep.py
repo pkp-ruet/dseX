@@ -139,6 +139,124 @@ def test_scores_snapshot_ignores_price_scrapes(clock):
     assert not entry_current(T0, stamp, 300, True)
 
 
+# --- The data mark (2026-11-24): a clear the refresh call never delivered ---
+
+@pytest.fixture
+def mark(monkeypatch, clock):
+    """The web process's look at the data mark, on, with a fake row."""
+    row = {"mark": (0, 0), "reads": 0}
+
+    def read():
+        row["reads"] += 1
+        return row["mark"]
+
+    monkeypatch.setitem(db_service._mark, "on", True)
+    monkeypatch.setitem(db_service._mark, "checked", 0.0)
+    monkeypatch.setitem(db_service._mark, "seen", None)
+    monkeypatch.setattr(db_service, "_read_mark", read)
+    return row
+
+
+def test_mark_moved_names_the_clear():
+    from backend.services.db_service import mark_moved
+    assert mark_moved(None, (3, 9)) is None          # first look: adopt it
+    assert mark_moved((3, 9), (3, 9)) is None
+    assert mark_moved((3, 9), (3, 10)) == "prices"
+    assert mark_moved((3, 9), (4, 10)) == "all"
+    assert mark_moved((3, 9), None) is None          # read failed
+
+
+def test_jobs_and_tests_never_read_the_mark(monkeypatch):
+    from backend.services.db_service import sync_data_mark
+    monkeypatch.setitem(db_service._mark, "on", False)
+    monkeypatch.setattr(db_service, "_read_mark", lambda: pytest.fail("read the mark"))
+    assert sync_data_mark() is None
+
+
+def test_a_missed_price_clear_reaches_a_kept_price_cache(clock, mark):
+    # 2026-11-24: the 11:12 AM index stayed up all day because no refresh
+    # call arrived. With the job's mark it is rebuilt within a minute.
+    load, calls = _counter(prices=True)
+    load()                                  # first look adopts (0, 0)
+    clock["t"] += 2 * 3600
+    load()
+    assert calls["n"] == 1                  # kept: nothing changed
+    mark["mark"] = (0, 1)                   # a price job ran; its call was lost
+    clock["t"] += 30
+    load()
+    assert calls["n"] == 1                  # looked 30 s ago: not yet
+    clock["t"] += 31
+    load()
+    assert calls["n"] == 2                  # the next look clears it
+    assert db_service._mark["seen"] == (0, 1)
+
+
+def test_the_mark_is_read_at_most_once_a_minute(clock, mark):
+    from backend.services.db_service import sync_data_mark
+    sync_data_mark()
+    clock["t"] += 30
+    sync_data_mark()
+    assert mark["reads"] == 1
+    clock["t"] += 31
+    sync_data_mark()
+    assert mark["reads"] == 2
+
+
+def test_a_moved_mark_clears_the_right_caches(clock, mark):
+    from backend.services.db_service import sync_data_mark
+    price_load, price_calls = _counter(prices=True)
+    other_load, other_calls = _counter()
+    price_load(), other_load()              # first look happened here: (0, 0)
+
+    mark["mark"] = (0, 1)
+    clock["t"] += 61
+    assert sync_data_mark() == "prices"
+    price_load(), other_load()
+    assert (price_calls["n"], other_calls["n"]) == (2, 1)
+
+    mark["mark"] = (1, 2)
+    clock["t"] += 61
+    assert sync_data_mark() == "all"
+    price_load(), other_load()
+    assert (price_calls["n"], other_calls["n"]) == (3, 2)
+
+
+def test_a_failed_read_is_tried_again_and_clears_nothing(clock, mark):
+    from backend.services.db_service import sync_data_mark
+    sync_data_mark()                        # adopt (0, 0)
+    mark["mark"] = None
+    clock["t"] += 61
+    assert sync_data_mark() is None
+    assert db_service._mark["seen"] == (0, 0)
+    mark["mark"] = (0, 1)
+    clock["t"] += 61
+    assert sync_data_mark() == "prices"
+
+
+def test_the_refresh_call_takes_the_mark_as_seen(clock, mark):
+    # The job writes the mark, then its call clears: no second clear after.
+    from backend.services.db_service import adopt_data_mark, sync_data_mark
+    sync_data_mark()
+    mark["mark"] = (0, 1)
+    clear_price_caches()
+    adopt_data_mark()
+    clock["t"] += 61
+    assert sync_data_mark() is None
+
+
+def test_every_clear_runs_the_after_clear_hooks(monkeypatch):
+    ran = []
+    monkeypatch.setattr(db_service, "_AFTER_CLEAR", [lambda: ran.append(1)])
+    clear_price_caches()
+    clear_all_caches()
+    assert ran == [1, 1]
+
+
+def test_the_stock_reports_are_dropped_by_every_clear():
+    from backend.services import stock_report_service
+    assert stock_report_service.clear_cache in db_service._AFTER_CLEAR
+
+
 def test_reader_data_caches_are_opted_out():
     from backend.services import daily_email_service, feedback_service
     for fn in (db_service.load_popular_stocks, db_service.load_stock_visit_counts,

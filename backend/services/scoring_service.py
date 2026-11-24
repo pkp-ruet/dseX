@@ -1580,7 +1580,9 @@ def build_scores_df() -> pd.DataFrame:
     reload, not N. Self-heals by computing + persisting once if no snapshot
     exists yet (fresh deploy or before the first daily job)."""
     global _scores_cache
-    from backend.services.db_service import cache_stamp, entry_current
+    from backend.services.db_service import cache_stamp, entry_current, sync_data_mark
+
+    sync_data_mark()   # a recompute whose refresh call never arrived
 
     def _current(entry) -> bool:
         # The snapshot changes only when scores are recomputed, and every

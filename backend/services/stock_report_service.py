@@ -55,6 +55,14 @@ def clear_cache() -> None:
     _ext_cache.update(at=0.0, data=None)
 
 
+# Every cache clear (the refresh call or a missed one the data mark catches)
+# drops the reports too: they are keyed by the price day, so an intraday price
+# change wouldn't reach them otherwise.
+from backend.services import db_service as _db_service  # noqa: E402
+
+_db_service.after_clear(clear_cache)
+
+
 # ---------------------------------------------------------------- shared loaders
 
 _ext_cache: dict[str, Any] = {"at": 0.0, "data": None}

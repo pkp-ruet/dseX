@@ -126,7 +126,7 @@ def startup():
     from backend.services.portfolio_daily import ensure_indexes as ensure_portfolio_daily_indexes
     from backend.services.payments import ensure_payment_indexes
     from backend.services import banner_events
-    from backend.services.db_service import get_db as _get_db
+    from backend.services.db_service import get_db as _get_db, watch_data_mark
 
     def _banner_indexes():
         banner_events.ensure_indexes(_get_db())
@@ -143,6 +143,9 @@ def startup():
         ("payments", ensure_payment_indexes),
         ("banner_events", _banner_indexes),
         ("stock_visits", _ensure_stock_visits),
+        # Pick up a job's data change even when its refresh call never arrives
+        # (db_service "The data mark").
+        ("data_mark", watch_data_mark),
     ):
         _startup_step(name, fn)
 

@@ -236,21 +236,48 @@ def cmd_snapshot_signals(_args):
           f"(buy {res.get('buy', 0)}, sell {res.get('sell', 0)}, none {res.get('none', 0)}).")
 
 
+def _mark_data_changed(scope: str = "all") -> bool:
+    """Bump the data mark (`app_settings` `_id: "data_version"`).
+
+    The backend looks at it once a minute and clears whatever this job's refresh
+    call didn't reach (backend db_service "The data mark"). Written before the
+    call, so a backend that does get the call takes the new mark as seen."""
+    from datetime import datetime, timezone
+    from db.connection import get_db
+
+    inc = {"prices": 1} if scope == "prices" else {"prices": 1, "all": 1}
+    try:
+        get_db().app_settings.update_one(
+            {"_id": "data_version"},
+            {"$inc": inc, "$set": {"scope": scope, "at": datetime.now(timezone.utc)}},
+            upsert=True,
+        )
+        return True
+    except Exception as e:
+        print(f"::warning::Data mark not written: {e}")
+        return False
+
+
 def _clear_backend_caches(scope: str = "all") -> bool:
     """Tell the backend its data changed (`POST /api/scores/refresh`).
 
-    The backend keeps a cache until this call says its data changed (up to 6
-    hours, db_service.KEEP_UNCHANGED_SECONDS), so a lost call matters more than
-    it did under the old 5-15 minute timers: try twice. Needs REVALIDATE_SECRET
-    here and on the Render service; the call wakes a sleeping instance, hence
-    the long timeout."""
+    The backend keeps a cache until it hears the data changed (up to 6 hours,
+    db_service.KEEP_UNCHANGED_SECONDS). It hears it two ways: this call (at once)
+    and the data mark written first (within a minute, even when this call fails).
+    Needs REVALIDATE_SECRET here and on the Render service; the call wakes a
+    sleeping instance, hence the long timeout. A failure prints a GitHub
+    `::warning::` so it shows on the run's page instead of passing silently
+    (on 2026-11-24 every call of the day failed and nothing said so)."""
     import os
     import time
+    import urllib.error
     import urllib.request
 
+    _mark_data_changed(scope)
     secret = os.getenv("REVALIDATE_SECRET")
     if not secret:
-        print("Backend cache clear skipped: REVALIDATE_SECRET is not set.")
+        print("::warning::Backend cache clear skipped: REVALIDATE_SECRET is not set "
+              "for this job. The backend still sees the data mark within a minute.")
         return False
     backend_url = os.getenv("BACKEND_URL", "https://dsex.onrender.com")
     url = (f"{backend_url.rstrip('/')}/api/scores/refresh"
@@ -265,10 +292,18 @@ def _clear_backend_caches(scope: str = "all") -> bool:
             print("Backend price caches cleared." if scope == "prices"
                   else "Backend caches cleared.")
             return True
+        except urllib.error.HTTPError as e:
+            if e.code == 403:
+                # A wrong key won't be right on the second try.
+                print("::warning::Backend refused the cache clear (403): REVALIDATE_SECRET "
+                      "for this job differs from the one on Render. The backend still "
+                      "sees the data mark within a minute.")
+                return False
+            print(f"::warning::Backend cache clear failed (try {attempt} of 2): {e}")
         except Exception as e:
-            print(f"Warning: backend cache clear failed (try {attempt} of 2): {e}")
-            if attempt == 1:
-                time.sleep(10)
+            print(f"::warning::Backend cache clear failed (try {attempt} of 2): {e}")
+        if attempt == 1:
+            time.sleep(10)
     return False
 
 
@@ -319,7 +354,7 @@ def _trigger_post_scrape_hooks(scope: str = "all"):
             urllib.request.urlopen(req, timeout=10)
             print("Frontend revalidate triggered (tag=market-data).")
         except Exception as e:
-            print(f"Warning: frontend revalidate failed: {e}")
+            print(f"::warning::Frontend revalidate failed: {e}")
 
 
 def cmd_scrape_quick(args):

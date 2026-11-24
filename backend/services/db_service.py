@@ -143,6 +143,25 @@ def entry_current(at: float, stamp: tuple, ttl_seconds: float, keep: bool,
     return keep and unchanged and age < max(ttl_seconds, KEEP_UNCHANGED_SECONDS)
 
 
+# Caches kept outside `_ttl_cache` that a clear must drop too (the stock
+# report's own cache registers here when it is first imported).
+_AFTER_CLEAR: list = []
+
+
+def after_clear(fn) -> None:
+    """Run `fn()` after every clear, full or prices only."""
+    if fn not in _AFTER_CLEAR:
+        _AFTER_CLEAR.append(fn)
+
+
+def _run_after_clear() -> None:
+    for fn in list(_AFTER_CLEAR):
+        try:
+            fn()
+        except Exception:  # noqa: BLE001 — a clear must never fail half-way
+            logging.getLogger(__name__).exception("cache clear hook failed")
+
+
 def clear_all_caches() -> None:
     """Drop every `_ttl_cache` entry in the process (post-scrape refresh)."""
     with _gen_lock:
@@ -150,6 +169,7 @@ def clear_all_caches() -> None:
         _GEN["prices"] += 1
     for clear in _ALL_CACHES:
         clear()
+    _run_after_clear()
 
 
 def clear_price_caches() -> None:
@@ -161,6 +181,97 @@ def clear_price_caches() -> None:
         _GEN["prices"] += 1
     for clear in _PRICE_CACHES:
         clear()
+    _run_after_clear()
+
+
+# ---------------------------------------------------------------------------
+# The data mark (2026-11-24). Every job that writes market data bumps a small
+# row in Mongo (`app_settings` `_id: "data_version"`, counters `all` and
+# `prices`, written by main.py `_mark_data_changed`) before it calls
+# `POST /api/scores/refresh`. The web process looks at that row at most once a
+# minute and makes any clear it missed, so a refresh call that never arrives
+# (a wrong key, a network error, a second worker) costs a minute, not hours.
+# On 2026-11-24 no refresh call reached the backend all day: with the caches
+# kept until a clear, the site showed the 11:12 AM prices until the 6-hour
+# limit; under the old 60-second timers the same failure had gone unseen.
+# Only the web process looks (`watch_data_mark()` at startup): jobs and tests
+# never read the row.
+# ---------------------------------------------------------------------------
+DATA_MARK_ID = "data_version"
+MARK_CHECK_SECONDS = 60
+_mark = {"on": False, "checked": 0.0, "seen": None}
+_mark_lock = threading.Lock()
+
+
+def watch_data_mark() -> None:
+    """Turn the minute-by-minute look at the data mark on (FastAPI startup)."""
+    _mark["on"] = True
+
+
+def _read_mark() -> Optional[tuple]:
+    """(all, prices) counters, (0, 0) before any job wrote them, None on error."""
+    try:
+        doc = get_db().app_settings.find_one(
+            {"_id": DATA_MARK_ID}, {"_id": 0, "all": 1, "prices": 1})
+    except Exception:  # noqa: BLE001 — look again next minute
+        return None
+    doc = doc or {}
+    return (int(doc.get("all") or 0), int(doc.get("prices") or 0))
+
+
+def mark_moved(seen: Optional[tuple], mark: Optional[tuple]) -> Optional[str]:
+    """The clear a moved mark asks for: "all", "prices" or None.
+    Nothing on the first look (`seen` None): every cache was built after start."""
+    if seen is None or mark is None:
+        return None
+    if mark[0] != seen[0]:
+        return "all"
+    if mark[1] != seen[1]:
+        return "prices"
+    return None
+
+
+def sync_data_mark(now: Optional[float] = None, read=None) -> Optional[str]:
+    """Make a clear this process missed (see the data mark above). Called at the
+    start of every cached read: a clock check, and one tiny read a minute by
+    whichever thread gets there first (the others don't wait for it)."""
+    if not _mark["on"]:
+        return None
+    now = time.time() if now is None else now
+    if now - _mark["checked"] < MARK_CHECK_SECONDS:
+        return None
+    if not _mark_lock.acquire(blocking=False):
+        return None
+    try:
+        if now - _mark["checked"] < MARK_CHECK_SECONDS:
+            return None
+        _mark["checked"] = now
+        mark = (read or _read_mark)()
+        if mark is None:
+            return None
+        moved = mark_moved(_mark["seen"], mark)
+        _mark["seen"] = mark
+    finally:
+        _mark_lock.release()
+    if moved == "all":
+        clear_all_caches()
+    elif moved == "prices":
+        clear_price_caches()
+    if moved:
+        logging.getLogger(__name__).warning(
+            "Data mark moved (%s): cleared caches the refresh call did not reach.", moved)
+    return moved
+
+
+def adopt_data_mark(read=None) -> None:
+    """After the refresh call cleared the caches: take the job's mark as seen,
+    so the next look doesn't clear the same change a second time."""
+    mark = (read or _read_mark)()
+    if mark is None:
+        return
+    with _mark_lock:
+        _mark["seen"] = mark
+        _mark["checked"] = time.time()
 
 
 def _ttl_cache(ttl_seconds: int = 300, max_entries: int = 50, prices: bool = False,
@@ -209,6 +320,7 @@ def _ttl_cache(ttl_seconds: int = 300, max_entries: int = 50, prices: bool = Fal
             return False, None
 
         def wrapper(*args, **kwargs):
+            sync_data_mark()      # outside `_lock`: a missed clear takes every cache's lock
             key = (args, tuple(sorted(kwargs.items())))
             with _lock:
                 hit, val = _fresh(key)

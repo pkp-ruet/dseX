@@ -52,28 +52,20 @@ def refresh_scores(
                      and hmac.compare_digest(x_revalidate_secret, secret))
     if not (is_admin or by_secret):
         raise HTTPException(status_code=403, detail="Not allowed")
+    # The stock reports' own cache is dropped by every clear
+    # (stock_report_service registers it with db_service.after_clear).
+    from backend.services.db_service import adopt_data_mark, clear_price_caches
     if scope == "prices" and not recompute:
-        from backend.services.db_service import clear_price_caches
         clear_price_caches()
-        _clear_report_cache()
+        adopt_data_mark()
         return {"status": "price caches cleared"}
     if recompute:
         if not is_admin:
             raise HTTPException(status_code=403, detail="Recompute is admin-only")
         invalidate_scores_cache()
     reload_after_scrape()
-    _clear_report_cache()
+    adopt_data_mark()
     return {"status": "recomputed" if recompute else "caches cleared"}
-
-
-def _clear_report_cache() -> None:
-    """The stock report keeps its own 300s cache keyed by (code, price day), so
-    an intraday price change wouldn't reach it (services/stock_report_service.py)."""
-    try:
-        from backend.services.stock_report_service import clear_cache
-        clear_cache()
-    except Exception:
-        pass
 
 
 # The finished response, rebuilt only when one of its inputs is a new object
