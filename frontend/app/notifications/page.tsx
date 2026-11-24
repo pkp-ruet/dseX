@@ -33,7 +33,7 @@ export default function UpdatesPage() {
         }
       />
       <NotificationsClient />
-      <Link href="/my?view=watch" className="wrp-link">
+      <Link href="/my" className="wrp-link">
         <span className="wrp-link-ic" aria-hidden="true">
           <IconEye size={22} />
         </span>

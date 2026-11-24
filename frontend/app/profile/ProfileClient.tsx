@@ -273,7 +273,7 @@ export default function ProfileClient() {
                 <T en={`${watchCount} ${watchCount === 1 ? "share" : "shares"}`} bn={`${watchCount}টি শেয়ার`} />
               </p>
             </div>
-            <Link href="/my?view=watch" className="btn-quiet btn-sm">
+            <Link href="/my" className="btn-quiet btn-sm">
               <T en="Open" bn="খুলুন" />
             </Link>
           </div>

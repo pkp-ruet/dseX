@@ -180,7 +180,7 @@ export default function YourPosition({ code, ltp }: Props) {
             <span className="font-medium text-text-muted">{t("sinceAdded")}</span>
           </span>
         )}
-        <Link href="/my?view=watch" className="ml-auto inline-flex items-center min-h-10 text-xs font-semibold text-primary-ink hover:underline">
+        <Link href="/my" className="ml-auto inline-flex items-center min-h-10 text-xs font-semibold text-primary-ink hover:underline">
           {t("watchlist")} →
         </Link>
       </div>

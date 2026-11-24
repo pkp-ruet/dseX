@@ -4,11 +4,10 @@ import { useMemo } from "react";
 import Link from "@/components/ui/Link";
 import type { Lang } from "@/context/LangContext";
 import type { NotificationItem, PortfolioHolding, ScoreItem } from "@/lib/api";
-import { changePct, changeTone, money, takaGroup } from "@/lib/formatters";
+import { changePct, changeTone, money } from "@/lib/formatters";
 import { FEED_KIND, dhakaDay } from "@/lib/feed";
 import { daysFrom, whenWord, type Bi, type DateItem } from "@/lib/home-dates";
 import { shortName } from "@/lib/market-notices";
-import { useMoneyShown } from "@/lib/home-money";
 import { IconChevronRight } from "@/components/ui/icons";
 
 /** Shares shown before "All your shares". */
@@ -29,13 +28,14 @@ interface Row {
 /**
  * "Your shares" (2026-11-25, step 2 of the simplify review — the third of
  * the home's four blocks): the shares the reader owns (most money first),
- * then the ones they watch, five at most. Each row: the company, what they
- * hold, today's price and move, and at most one plain status — the next date
- * on the share this week, else the newest open feed row from the last three
- * days (the same row Updates shows; a free reader's hidden ones never name
- * the share here either). Taka values only while the band shows the reader's
- * money (`useMoneyShown`). Every row opens the share's page; the foot opens
- * My shares. Data already on the page: no request of its own.
+ * then the ones they watch, five at most. Each row: the company, "You own
+ * it" or "You watch it", today's price and move, and at most one plain status
+ * — the next date on the share this week, else the newest open feed row from
+ * the last three days (the same row Updates shows; a free reader's hidden ones
+ * never name the share here either). No money since 2026-11-25: the row reads
+ * like My shares' row (the money is on the portfolio and the band's button).
+ * Every row opens the share's page; the foot opens My shares. Data already on
+ * the page: no request of its own.
  */
 export default function YourShares({
   lang,
@@ -59,7 +59,6 @@ export default function YourShares({
 }) {
   const bn = lang === "bn";
   const pick = (b: Bi) => (bn ? b.bn : b.en);
-  const [moneyShown] = useMoneyShown();
 
   const { rows, total } = useMemo(() => {
     const qty = new Map<string, number>();
@@ -116,20 +115,12 @@ export default function YourShares({
                   <span className="hm-srow2-name">{r.name}</span>
                   <span className="hm-srow2-sub">
                     {r.code} ·{" "}
-                    {r.qty > 0
-                      ? bn
-                        ? `আপনার ${r.qty}টি`
-                        : `You own ${r.qty}`
-                      : bn
-                        ? "নজরে রাখছেন"
-                        : "You watch it"}
+                    {r.qty > 0 ? (bn ? "আপনার আছে" : "You own it") : bn ? "নজরে রাখছেন" : "You watch it"}
                   </span>
                   {r.status && <span className={`hm-st hm-st--${r.status.tone}`}>{pick(r.status.text)}</span>}
                 </span>
                 <span className="hm-srow2-num nums">
-                  <span className="hm-srow2-val">
-                    {moneyShown && r.value != null ? takaGroup(r.value) : money(r.price)}
-                  </span>
+                  <span className="hm-srow2-val">{money(r.price)}</span>
                   <span className={`hm-srow2-chg ${changeTone(r.change)}`}>{changePct(r.change)}</span>
                 </span>
                 <span className="hm-chev" aria-hidden>

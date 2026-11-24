@@ -122,7 +122,7 @@ export default function ForYouClient() {
 
   const addButtons = (
     <div className="fu-start-acts">
-      <Button href="/my?view=watch" size="sm">
+      <Button href="/my" size="sm">
         <T en="Watch a share" bn="একটি শেয়ারে নজর রাখুন" />
       </Button>
       <Button href="/portfolio" variant="quiet" size="sm">

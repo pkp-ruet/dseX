@@ -45,7 +45,7 @@ const nextConfig: NextConfig = {
       // One Watch button (2026-11-25): the Watch rules page folded into the
       // watchlist, then into My shares, price alerts with it (they were a section of Updates from
       // 2026-11-20, then of Watch rules from 2026-11-22).
-      { source: "/alerts", destination: "/my#alerts", permanent: true },
+      { source: "/alerts", destination: "/my", permanent: true },
       { source: "/watch-rules", destination: "/my", permanent: true },
       // My shares (2026-11-25): the watchlist folded into one list with the
       // shares you own (a shared ?codes= link keeps its query).

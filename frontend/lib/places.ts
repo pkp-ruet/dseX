@@ -193,14 +193,15 @@ export const PLACES: Place[] = [
     go: { en: "Go to My shares", bn: "আমার শেয়ারে যান" },
     pages: [
       {
-        // My shares (2026-11-25, step 3 of the simplify review): the place's
-        // own page is the one list of owned + watched shares; the watchlist
-        // page, Watch rules and the price alerts folded into it.
+        // My shares (2026-11-25): what is happening on every share the reader
+        // owns or watches (New · Coming up · Nothing new), the same row for
+        // both, no money; the watchlist page, Watch rules and the price alerts
+        // folded into it, the money is on Portfolio.
         key: "shares",
         href: "/my",
         name: { en: "My shares", bn: "আমার শেয়ার" },
-        line: { en: "Every share you own or watch, in one list", bn: "আপনার কেনা আর নজরে রাখা সব শেয়ার, এক তালিকায়" },
-        ask: { en: "How are my shares?", bn: "আমার শেয়ারগুলো কেমন আছে?" },
+        line: { en: "What's new and what's coming on the shares you own and watch", bn: "আপনার কেনা আর নজরে রাখা শেয়ারে নতুন কী, সামনে কী" },
+        ask: { en: "What is happening with my shares?", bn: "আমার শেয়ারগুলোতে কী হচ্ছে?" },
         icon: "watchlist",
         paths: ["/watchlist", "/watch-rules", "/alerts"],
       },
