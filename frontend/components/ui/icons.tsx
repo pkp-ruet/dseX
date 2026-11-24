@@ -302,7 +302,7 @@ export const IconCompare = (p: { size?: number }) => (
   </I>
 );
 
-// ── The home page's icon grid (2026-11-17) ──
+// ── Page icons (the home's icon grid 2026-11-17 → 11-25; still used by pages and menus) ──
 /** A pulse line — "the market today". */
 export const IconActivity = (p: { size?: number }) => (
   <I {...p}>

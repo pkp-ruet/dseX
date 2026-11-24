@@ -6,16 +6,14 @@ import type { Lang } from "@/context/LangContext";
 import type { PortfolioHolding, ScoreItem } from "@/lib/api";
 import { analyzePortfolio } from "@/lib/portfolio-analysis";
 import { computedRows } from "@/lib/home-portfolio";
-import type { ReportKeys } from "@/lib/auth";
 import { bdGroup, takaGroup } from "@/lib/formatters";
 import { bstHour } from "@/lib/market-hours";
-import { daysToEnd, inRenewWindow, renewStage } from "@/lib/renewal";
 import { t } from "@/lib/home-copy";
 import { trackEvent } from "@/lib/track";
 import { useMoneyShown } from "@/lib/home-money";
 import MarketStatusPill from "@/components/home/personalized/MarketStatusPill";
 import { openGlobalSearch } from "@/components/layout/GlobalSearch";
-import { IconBook, IconChevronRight, IconCrown, IconEye, IconEyeOff, IconPlus, IconSearch } from "@/components/ui/icons";
+import { IconChevronRight, IconCrown, IconEye, IconEyeOff, IconPlus, IconSearch } from "@/components/ui/icons";
 
 function greetingForHour(h: number, lang: Lang): string {
   if (h < 12) return t(lang, "goodMorning");
@@ -26,37 +24,6 @@ function greetingForHour(h: number, lang: Lang): string {
 /** ± taka with the South-Asian grouping: "+৳12,300" / "−৳3,200". */
 function signedTaka(v: number): string {
   return `${v >= 0 ? "+" : "−"}৳${bdGroup(Math.abs(v))}`;
-}
-
-/** A Premium reader's chip: only a reminder in the renewal banner's window
- *  (the last 10 Dhaka days), else nothing — the end date is not news every day. */
-function renewWords(premiumUntil: string | null | undefined, bn: boolean): { text: string; urgent: boolean } | null {
-  if (!premiumUntil || !inRenewWindow(premiumUntil)) return null;
-  const days = daysToEnd(premiumUntil);
-  const when =
-    days <= 0
-      ? { en: "today", bn: "আজ" }
-      : days === 1
-        ? { en: "tomorrow", bn: "আগামীকাল" }
-        : { en: `in ${days} days`, bn: `${days} দিনে` };
-  return {
-    text: bn ? `প্রিমিয়াম ${when.bn} শেষ হচ্ছে · নবায়ন করুন` : `Premium ends ${when.en} · Renew`,
-    urgent: renewStage(days) !== "calm",
-  };
-}
-
-/** A free reader's plan line: the free analyses left this month. "See
- *  Premium" follows it as the link's own words. */
-function planWords(keys: ReportKeys | null | undefined, bn: boolean): string {
-  if (!keys) return bn ? "ফ্রি প্ল্যান" : "Free plan";
-  if (keys.left > 0) {
-    return bn
-      ? `ফ্রি প্ল্যান · ${keys.per_month}টির মধ্যে ${keys.left}টি বিশ্লেষণ বাকি`
-      : `Free plan · ${keys.left} of ${keys.per_month} analyses left`;
-  }
-  return bn
-    ? `ফ্রি প্ল্যান · এ মাসের ${keys.per_month}টি বিশ্লেষণ পড়া শেষ`
-    : `Free plan · all ${keys.per_month} analyses read this month`;
 }
 
 /**
@@ -88,14 +55,16 @@ function planWords(keys: ReportKeys | null | undefined, bn: boolean): string {
  * chip is a plain link ("Free plan · 6 of 10 analyses left  See Premium"),
  * and the money button is one full-width card with a chevron (on the right
  * of the greeting from 900px).
+ *
+ * The four-block home (2026-11-25): the plan chip left the band (the free
+ * plan line and the renewal reminder were a second Premium message on a
+ * page that keeps one; the renewal banner and the home's one card cover them).
  */
 export default function HomeHeader({
   name,
   dateStr,
   isNew,
   premium,
-  premiumUntil,
-  reportKeys,
   holdings,
   priceMap,
   todayMove,
@@ -107,10 +76,6 @@ export default function HomeHeader({
   /** First render right after signup: greet as new. */
   isNew: boolean;
   premium: boolean;
-  /** When the reader's Premium ends (null for admins and free readers). */
-  premiumUntil?: string | null;
-  /** A free reader's analyses this month (`user.report_keys`). */
-  reportKeys?: ReportKeys | null;
   /** null while unknown, [] once we know there are none. */
   holdings: PortfolioHolding[] | null;
   priceMap: Map<string, ScoreItem>;
@@ -124,8 +89,6 @@ export default function HomeHeader({
   const [shown, setShown] = useMoneyShown();
 
   const greeting = isNew ? t(lang, "welcome") : greetingForHour(bstHour(), lang);
-  // Premium readers see the chip only in their last 10 days, as a reminder.
-  const renew = premium ? renewWords(premiumUntil, bn) : null;
   const initial = (name ?? "").trim().charAt(0).toUpperCase() || "T";
 
   // The money, worked out only once the reader asks to see it.
@@ -247,26 +210,6 @@ export default function HomeHeader({
             {greeting}
             {name ? `, ${name}` : ""}
           </h1>
-          {!premium ? (
-            <Link href="/premium?src=home-plan" className="hm-plan" data-card="plan">
-              <IconBook size={15} />
-              <span className="hm-plan-txt">{planWords(reportKeys, bn)}</span>
-              <span className="hm-plan-go">
-                {bn ? "প্রিমিয়াম দেখুন" : "See Premium"}
-                <IconChevronRight size={14} />
-              </span>
-            </Link>
-          ) : renew ? (
-            <Link
-              href="/premium?plan=yearly&src=home-plan#pay"
-              className={`hm-plan hm-plan--prem ${renew.urgent ? "hm-plan--soon" : ""}`}
-              data-card="plan-renew"
-            >
-              <IconCrown size={14} />
-              <span className="hm-plan-txt">{renew.text}</span>
-              <IconChevronRight size={14} />
-            </Link>
-          ) : null}
         </div>
         <div className="hm-pill-wrap">{pill}</div>
         <button

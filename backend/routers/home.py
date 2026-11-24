@@ -3,13 +3,19 @@ GET /api/user/home — the logged-in homepage in ONE request.
 
 The dashboard used to fire eleven requests on mount (portfolio, watchlist,
 alerts, signal events, picks, tips, news, near-extremes, dividends, index,
-market state) and every card popped in on its own. Keys nothing rendered
-(tips, market news, popular, report codes, Bengali summaries, signal events)
-left the bundle on 2026-11-05 (audit EL11). On a budget Android phone
+market state) and every card popped in on its own. On a budget Android phone
 talking to a cold Render instance that was the page's biggest problem. This
 bundle returns everything personal plus the *personal slices* of the public
-data (dividends / 52-week extremes / news for the user's own codes), so the
-frontend needs only this + `/api/scores` + `/api/market/state`.
+data, so the frontend needs only this + `/api/scores` + `/api/market/state`.
+
+The four-block home (2026-11-25, step 2 of the simplify review): money,
+"New on your shares" (the newest rows of the Updates feed itself, `feed`),
+your shares, the market line, and one card. Keys nothing reads any more left
+the bundle the same day: `for_you`, `news`, `dividends`, `movers`, `research`,
+`buy_list`, `calendar`, `rank_moves`, `new_results`, `brief`, `week_watch`,
+`screener` (the stories, the icon grid's badges, the swipe slot and Today for
+you were their readers). Before that, EL11 (2026-11-05) took out tips, market
+news, popular, report codes, Bengali summaries and signal events.
 
 Every part is guarded: one failing piece degrades to its empty value instead
 of failing the whole page. Nothing here is cached as a unit — each piece
@@ -24,41 +30,18 @@ from typing import Any, Callable, TypeVar
 from fastapi import APIRouter, Depends
 
 from backend.routers.auth import get_current_user
-from backend.routers.dividends import compute_upcoming_dividends
 from backend.routers.market_analysis import get_near_extremes
 from backend.routers.portfolio import get_portfolio
-from backend.services import price_alert_service
+from backend.services import notifications_service, price_alert_service
 from backend.services.auth_service import get_user_watchlist, get_user_watchlist_meta
 from backend.services.corporate_actions_service import build_dividend_calendar
-from backend.services import custom_lists_service
-from backend.services import screener_service
-from backend.services.rank_today_service import week_rank_moves
-from backend.services.db_service import load_ex_day_moves
-from backend.services.results_explainer import results_for
-from backend.services.db_service import (
-    load_market_index,
-    load_market_movers,
-    load_news_for_codes,
-)
-from backend.services.research_reports_service import summary_snapshot
-from backend.services.buy_list_service import home_summary as buy_list_summary
-from backend.services.portfolio_daily import recent_events
-from backend.services.portfolio_watch import digest
-from backend.services.recommend_service import for_user
-from backend.services.morning_brief_service import results_calendar, today_brief
+from backend.services.db_service import load_ex_day_moves, load_market_index
+from backend.services.morning_brief_service import results_calendar
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/user", tags=["home"])
 
 T = TypeVar("T")
-
-NEWS_LIMIT = 20
-# Dividend board on the dashboard: record dates inside this many days.
-CALENDAR_DAYS = 14
-CALENDAR_LIMIT = 12
-DECLARED_LIMIT = 5
-# "This week on your stocks": watcher events from the last N days.
-WATCH_DAYS = 7
 
 
 def _safe(label: str, fn: Callable[[], T], default: T) -> T:
@@ -87,93 +70,34 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
     watched = {c.upper() for c in codes}
     mine = {c for c in (held | watched) if c}
 
-    # "Picked for you" — the recommendation engine, ranked against the
-    # holdings + watchlist already loaded above (no second read).
-    for_you = _safe("for_you", lambda: for_user(current_user, holdings=holdings, watchlist=codes, top=3), None)
-
-    mine_t = tuple(sorted(mine))
-
-    news = _safe("news", lambda: load_news_for_codes(mine_t)[:NEWS_LIMIT] if mine_t else [], [])
-    dividends = _safe(
-        "dividends",
-        lambda: _dump(compute_upcoming_dividends(codes=mine, limit=None))
-        if mine
-        else {"upcoming_declarations": [], "upcoming_record_dates": []},
-        {"upcoming_declarations": [], "upcoming_record_dates": []},
-    )
-
-    # The dividend calendar (cached 900s): the user's own record-date rows with
-    # the cash per share worked out ("GP pays you ৳1,200" is one multiply), plus
-    # the market-wide board for the next two weeks and the latest declarations.
+    # The reader's own record-date rows from the dividend calendar (cached
+    # 900s), cash per share worked out: the dates line and the share rows.
     cal = _safe("calendar", lambda: build_dividend_calendar() or {}, {})
     record_rows = cal.get("record_dates") or []
     dividend_cash = [e for e in record_rows if (e.get("trading_code") or "").upper() in mine] if mine else []
-    calendar = {
-        "record_dates": [
-            e for e in record_rows
-            if e.get("record_days_left") is not None and 0 <= e["record_days_left"] <= CALENDAR_DAYS
-        ][:CALENDAR_LIMIT],
-        "recent_declarations": (cal.get("recent_declarations") or [])[:DECLARED_LIMIT],
-    }
 
-    # Market chapter — all from services that are already cached.
-    movers = _safe("movers", load_market_movers, None)
-
-    # The research card: one figure per Premium report, from the last built
-    # copy (never waits on a cold build; None until the first one is ready).
-    research = _safe("research", summary_snapshot, None)
-    # The Buy List card (2026-11-08): the count, the top three and today's
-    # free pick. Built on the engine pool `for_you` just warmed.
-    buy_list = _safe("buy_list", buy_list_summary, None)
-    # This week's rank change for every company (the ranking card's pills).
-    rank_moves = _safe("rank_moves", week_rank_moves, None)
-    # The screener card: the ready-made screens (count + top three, all free)
-    # and the reader's saved screens with who joined at the last daily check.
-    screener = {
-        "ready": _safe("screener_ready", screener_service.ready_summary, []),
-        "saved": _safe("screener_saved", lambda: custom_lists_service.saved_news(user_id), []),
-    }
-    # Quarterly results on the reader's own stocks, posted in the last three
-    # weeks — headline + profit line (the rest is on the stock page).
-    new_results = _safe("new_results", lambda: results_for(mine), [])
+    # Results meetings on the reader's stocks in the next two weeks.
+    results_soon = _safe("results_soon", lambda: results_calendar(mine)["meetings"] if mine else [], [])
     # The day's move on the reader's stocks when a record date fell in between,
     # with the dividend / bonus taken out (audit EL3): {code: change %}.
     ex_moves = _safe("ex_moves", lambda: {c: m["change_pct"] for c, m in load_ex_day_moves().items()
                                           if c in mine}, {})
-    # Results meetings on the reader's stocks in the next two weeks (dates +
-    # what to expect — the expectation is Premium, a screen-only lock) and
-    # today's before-the-bell brief (Premium readers; the morning job).
-    results_soon = _safe("results_soon", lambda: results_calendar(mine)["meetings"] if mine else [], [])
-    brief = _safe("brief", lambda: today_brief(user_id), None)
+    # "New on your shares": the Updates feed's own newest rows.
+    feed = _safe("feed", lambda: notifications_service.home_feed(user_id), None)
 
     near = _safe("near_extremes", lambda: _dump(get_near_extremes()), None)
     market_index = _safe("market_index", load_market_index, None)
     alerts = _safe("alerts", lambda: price_alert_service.list_alerts(user_id), [])
-    # What the watcher spotted on the reader's stocks this week. Free readers
-    # see the counts, Premium readers the list (screen-only lock, like the rest).
-    week_events = _safe("week_events", lambda: recent_events(user_id, days=WATCH_DAYS), [])
-    week_watch = _safe("week_watch", lambda: digest(week_events), None)
 
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "holdings": holdings,
         "watchlist": {"codes": codes, "meta": meta},
         "alerts": alerts,
-        "for_you": for_you,
-        "news": news,
         "market_index": market_index,
-        "dividends": dividends,
         "near_extremes": near,
         "dividend_cash": dividend_cash,
-        "movers": movers,
-        "research": research,
-        "buy_list": buy_list,
-        "calendar": calendar,
-        "rank_moves": rank_moves,
-        "new_results": new_results,
         "ex_moves": ex_moves,
         "results_soon": results_soon,
-        "brief": brief,
-        "week_watch": week_watch,
-        "screener": screener,
+        "feed": feed,
     }

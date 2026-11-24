@@ -4,22 +4,13 @@ import {
   getScores,
   getTrust,
   getMarketState,
-  getMarketMovers,
   getMarketIndex,
   getLatestResults,
-  getBuyList,
   getRiskRegister,
   type TrustStats,
 } from "@/lib/api";
 import { buildLandingPortfolios, type SampleView } from "@/lib/landing-portfolio";
-import {
-  exampleRows,
-  guestWhen,
-  sampleMoney,
-  showcasePick,
-  todayRows,
-} from "@/lib/guest-home";
-import { guestStories } from "@/lib/guest-stories";
+import { exampleRows, guestWhen, sampleMoney, sampleShares } from "@/lib/guest-home";
 import { bstDateStr } from "@/lib/market-hours";
 import HomePersonalizationGate from "@/components/home/HomePersonalizationGate";
 import GuestHome, { type GuestHomeData } from "@/components/home/guest/GuestHome";
@@ -87,30 +78,23 @@ const JSON_LD = {
 async function guestData(p: {
   scores: ReturnType<typeof getScores>;
   market: ReturnType<typeof getMarketState>;
-  movers: ReturnType<typeof getMarketMovers>;
   index: ReturnType<typeof getMarketIndex>;
   results: ReturnType<typeof getLatestResults>;
-  buyList: ReturnType<typeof getBuyList>;
   risks: ReturnType<typeof getRiskRegister>;
 }): Promise<GuestHomeData> {
   const none = () => null;
-  const [scores, market, movers, index, results, buyList, risks] = await Promise.all([
+  const [scores, market, index, results, risks] = await Promise.all([
     p.scores.catch(none),
     p.market.catch(none),
-    p.movers.catch(none),
     p.index.catch(none),
     p.results.catch(none),
-    p.buyList.catch(none),
     p.risks.catch(none),
   ]);
   const items = scores ? flattenTiers(scores) : [];
   const byCode = new Map(items.map((s) => [s.trading_code.toUpperCase(), s]));
-  const ranked = items
-    .filter((s) => s.score != null)
-    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0) || a.trading_code.localeCompare(b.trading_code));
 
-  // The real portfolio check on the well-spread sample; any failure just
-  // leaves the band and the slot without it.
+  // The real portfolio check's grade on the well-spread sample; any failure
+  // just leaves the band's money without it.
   let sample: SampleView | null = null;
   try {
     sample = scores ? buildLandingPortfolios(scores).find((x) => x.slug === "diversified") ?? null : null;
@@ -119,24 +103,13 @@ async function guestData(p: {
   }
 
   const todayIso = bstDateStr();
-  const when = guestWhen(market, todayIso);
-  const examples = exampleRows(todayIso, results, market, risks);
-  const storyInput = { when, todayIso, market, marketIndex: index, movers, examples };
-
   return {
-    when,
+    when: guestWhen(market, todayIso),
     money: sampleMoney(byCode, sample?.grade ?? null),
-    stories: {
-      en: guestStories({ ...storyInput, lang: "en" }),
-      bn: guestStories({ ...storyInput, lang: "bn" }),
-    },
     marketIndex: index,
     market,
-    examples,
-    today: todayRows(todayIso, buyList, ranked, results, market),
-    sample,
-    showcase: showcasePick(byCode),
-    buyListNew: buyList?.changes?.week_joined?.length ?? 0,
+    examples: exampleRows(todayIso, results, market, risks),
+    shares: sampleShares(byCode),
   };
 }
 
@@ -173,10 +146,8 @@ export default function HomePage() {
   const guest = guestData({
     scores: getScores(),
     market: getMarketState(3600),
-    movers: getMarketMovers(),
     index: getMarketIndex(),
     results: getLatestResults(3600),
-    buyList: getBuyList(3600),
     risks: getRiskRegister(),
   });
   const trust = getTrust().catch(() => null);

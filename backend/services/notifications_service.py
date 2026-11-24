@@ -130,6 +130,19 @@ def feed(uid: str) -> dict:
             "premium": bool(_safe("is_premium", lambda: entitlements.shares_open(u), False))}
 
 
+HOME_ROWS = 40
+
+
+def home_feed(uid: str) -> dict:
+    """The feed for the home page (2026-11-25, "one feed, told once"): the
+    newest rows, light (a letter's parts and a brief's items stay on the
+    Updates page), so the home's "New on your shares" shows exactly what
+    Updates shows. Enough rows to count a free reader's hidden ones."""
+    out = feed(uid)
+    items = [{k: v for k, v in r.items() if k not in ("parts", "items")} for r in out["items"][:HOME_ROWS]]
+    return {"items": items, "unread": out["unread"], "has_shares": out["has_shares"], "premium": out["premium"]}
+
+
 def _remember(uid: str, n: int) -> None:
     with _count_lock:
         if len(_count_cache) >= _COUNT_CACHE_MAX:

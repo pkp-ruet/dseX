@@ -199,3 +199,17 @@ button.nt-row:active { background: var(--surface-2); }
 .nt-lock-line { margin: 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
 .nt-lock .btn-primary { justify-self: start; margin-top: var(--space-1); }
 @media (min-width: 640px) { .nt-lock { padding: 18px 20px; } }
+
+/* "Coming up" (components/notifications/ComingUp.tsx, 2026-11-25): a day-style
+   head with a count and one note line, the feed's own rows, then "Show all". */
+.nt-count {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; margin-left: 8px;
+  padding: 0 7px; border-radius: 999px; background: var(--surface-2); font-size: var(--fs-2xs); font-weight: 600;
+  font-variant-numeric: tabular-nums; color: var(--text); vertical-align: 1px;
+}
+.nt-day-note { margin: -4px 0 0; font-size: var(--fs-xs); line-height: 1.45; color: var(--text-muted); }
+.nt-empty { margin: 0; padding: var(--space-4); font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
+.nt-more {
+  justify-self: start; min-height: 40px; padding: 0 var(--space-2); border: 0; background: none;
+  font: inherit; font-size: var(--fs-sm); font-weight: 600; color: var(--primary-ink); cursor: pointer;
+}

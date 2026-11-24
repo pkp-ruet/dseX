@@ -3,222 +3,121 @@
 import { useMemo } from "react";
 import Link from "@/components/ui/Link";
 import type { Lang } from "@/context/LangContext";
-import type { CorporateActionEvent, LatestResultRow, ScoreItem, UpcomingResult, WatchlistNewsItem } from "@/lib/api";
-import { KIND_WORD, readNotice, shortName, type NoticeKind } from "@/lib/market-notices";
-import { RESULT_LEVEL } from "@/lib/results";
-import { buildDates, daysFrom, whenWord, type Bi, type DateItem } from "@/lib/home-dates";
+import type { CorporateActionEvent, HomeFeed, UpcomingResult } from "@/lib/api";
+import { kindsPhrase, visibleFeed } from "@/lib/feed";
+import { buildDates, daysFrom, whenWord, type Bi } from "@/lib/home-dates";
+import FeedRow, { itemRowProps } from "@/components/feed/FeedRow";
 import { DateTile } from "@/components/dividend-calendar/DateGroup";
+import Skeleton from "@/components/ui/Skeleton";
 import { IconChevronRight, IconLock } from "@/components/ui/icons";
-import { freeN } from "@/lib/premium-line";
 
-/** Newest updates shown before the link to Updates. */
-const NEWS_ROWS = 3;
-/** Updates a free reader sees open (THE Premium line: the "updates" area). */
-const FREE_ROWS = freeN("updates") ?? NEWS_ROWS;
-/** Dates shown before the link to Updates. */
-const DATE_ROWS = 3;
-/** A result counts as news for this many days. */
-const RESULT_DAYS = 7;
-/** A notice counts as news for this many days. */
-const NOTICE_DAYS = 14;
-
-/** Notice kinds the dates already say (board meetings, trading around a record date). */
-const LEFT_OUT = new Set<NoticeKind>(["board", "record", "results"]);
-const WARN = new Set<NoticeKind>(["auditor"]);
-
-interface NewsItem {
-  key: string;
-  iso: string;
-  code: string;
-  name: string;
-  kind: Bi;
-  /** Colour for the kind word: a better result green, a weaker one or the auditor's words amber. */
-  tone: "good" | "warn" | null;
-  text: Bi;
-  href: string;
-}
+/** Rows shown before the link to Updates. */
+const ROWS = 3;
 
 /**
- * "On your shares" (2026-11-20, the app map — block 4 of the six-block home):
- * a window into Updates. The newest three things on the reader's own shares
- * (results posted this week, then notices to DSE read as plain sentences) and
- * this week's dates (results meetings, last day to buy, record dates, AGMs),
- * then one link to Updates for everything. It replaced four blocks: "Your
- * dates this week", "Latest on your shares", "Results this week" and
- * "Dividends coming to you" (that one lives on the portfolio). Since THE
- * Premium line step 3 (2026-11-22) a free reader sees the newest update open
- * and the rest counted in one gold line; the dates stay free (they are this
- * week's dates, free on the calendar too). Data from
- * the home bundle — no request of its own. Renders nothing for a reader with
- * no shares and no watchlist.
+ * "New on your shares" (2026-11-25, step 2 of the simplify review: one feed,
+ * told once). The newest rows of the Updates feed itself — the same items,
+ * the same row (`FeedRow`), the same free / Premium rule (`visibleFeed`) —
+ * so the home never says something Updates doesn't. A free reader's hidden
+ * watcher rows are one gold line (counted by kind, never which share). Then
+ * the next date this week on their shares (results meeting, last day to buy,
+ * record date, AGM), and one link to Updates. It replaced the home's own
+ * reading of results and DSE notices (2026-11-20) and the story rings.
+ * Renders nothing for a reader with no shares and no watchlist.
  */
 export default function OnYourShares({
   lang,
-  mine,
+  feed,
+  loading,
   todayIso,
-  news,
-  results,
   resultsSoon,
   ownDividends,
-  priceMap,
-  loading,
-  premium,
 }: {
   lang: Lang;
-  /** Holdings ∪ watchlist, upper-case. */
-  mine: Set<string>;
+  feed: HomeFeed | null | undefined;
+  loading: boolean;
   todayIso: string;
-  news: WatchlistNewsItem[];
-  /** Results on the reader's own shares (bundle `new_results`). */
-  results: LatestResultRow[];
   resultsSoon: UpcomingResult[];
   ownDividends: CorporateActionEvent[];
-  priceMap: Map<string, ScoreItem>;
-  loading: boolean;
-  premium: boolean;
 }) {
   const bn = lang === "bn";
   const pick = (b: Bi) => (bn ? b.bn : b.en);
-
-  const items = useMemo(() => {
-    const out: NewsItem[] = [];
-    for (const r of results) {
-      const iso = (r.post_date || "").slice(0, 10);
-      const code = r.code.toUpperCase();
-      if (!iso || !mine.has(code) || daysFrom(iso, todayIso) > RESULT_DAYS) continue;
-      const lvl = RESULT_LEVEL[r.level];
-      out.push({
-        key: `r-${code}-${iso}`,
-        iso,
-        code,
-        name: shortName(r.name, code),
-        kind: { en: `Results · ${lvl.short}`, bn: `আর্থিক ফল · ${lvl.shortBn}` },
-        tone: r.level === "good" ? "good" : r.level === "bad" ? "warn" : null,
-        text: { en: r.headline_en, bn: r.headline_bn || r.headline_en },
-        href: `/stock/${encodeURIComponent(code)}#results`,
-      });
-    }
-    const seen = new Set<string>();
-    for (const n of news) {
-      const code = (n.trading_code || "").trim().toUpperCase();
-      const iso = (n.post_date || "").slice(0, 10);
-      if (!code || !iso || !mine.has(code) || daysFrom(iso, todayIso) > NOTICE_DAYS) continue;
-      const read = readNotice(n.title, code);
-      if (!read || LEFT_OUT.has(read.kind)) continue;
-      const key = `${code}|${read.text.en}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      out.push({
-        key,
-        iso,
-        code,
-        name: shortName(priceMap.get(code)?.company_name, code),
-        kind: KIND_WORD[read.kind],
-        tone: WARN.has(read.kind) ? "warn" : null,
-        text: read.text,
-        href: `/stock/${encodeURIComponent(code)}#news`,
-      });
-    }
-    return out.sort((a, b) => (a.iso === b.iso ? 0 : a.iso < b.iso ? 1 : -1));
-  }, [results, news, mine, todayIso, priceMap]);
-
-  const dates: DateItem[] = useMemo(
-    () => (loading ? [] : buildDates(todayIso, resultsSoon, ownDividends)),
-    [loading, todayIso, resultsSoon, ownDividends],
+  const premium = !!feed?.premium;
+  const { shown, hidden } = useMemo(
+    () => (feed ? visibleFeed(feed.items, premium) : { shown: [], hidden: [] }),
+    [feed, premium],
   );
+  const dates = useMemo(() => buildDates(todayIso, resultsSoon, ownDividends), [todayIso, resultsSoon, ownDividends]);
+  const rows = shown.slice(0, ROWS);
+  const next = dates[0] ?? null;
+  const kinds = hidden.length ? kindsPhrase(hidden) : null;
+  const unread = feed?.unread ?? 0;
 
-  if (mine.size === 0) return null;
-  if (!loading && items.length === 0 && dates.length === 0) {
-    return (
-      <section className={`hm-ours ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined} data-card="on-your-shares">
-        <div className="hm-head">
-          <h2 className="hm-head-h">{bn ? "আপনার শেয়ারে" : "On your shares"}</h2>
-        </div>
-        <Link href="/notifications" className="hm-tcard hm-ours-quiet">
-          <span>
-            {bn
-              ? "এ সপ্তাহে আপনার শেয়ারে নতুন কিছু বা কোনো তারিখ নেই। চুপচাপ সপ্তাহ স্বাভাবিক।"
-              : "Nothing new and no dates on your shares this week. Quiet weeks are normal."}
-          </span>
-          <span className="hm-ours-all">{bn ? "সব আপডেট ›" : "All updates ›"}</span>
-        </Link>
-      </section>
-    );
-  }
-
-  const total = items.length + dates.length;
-  // Two halves, each with a small label (spacious pass, 2026-11-23): what is
-  // new on the reader's shares, then this week's dates. Side by side from 1024px.
   return (
     <section className={`hm-ours ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined} data-card="on-your-shares">
       <div className="hm-head">
-        <h2 className="hm-head-h">{bn ? "আপনার শেয়ারে" : "On your shares"}</h2>
+        <h2 className="hm-head-h">{bn ? "আপনার শেয়ারে নতুন" : "New on your shares"}</h2>
       </div>
       <div className="hm-tcard">
-        <div className="hm-ours-body">
-          {items.length > 0 && (
-            <div className="hm-ours-new">
-              <p className="hm-ours-sub">{bn ? "নতুন" : "New"}</p>
-              <ul className="hm-nlist">
-                {items.slice(0, premium ? NEWS_ROWS : FREE_ROWS).map((r) => (
-                  <li key={r.key}>
-                    <Link href={r.href} className="hm-nrow">
-                      <span className="hm-nrow-txt">
-                        <span className="hm-nrow-top">
-                          <span className={`hm-kind${r.tone ? ` hm-kind--${r.tone}` : ""}`}>{pick(r.kind)}</span>
-                          <span className="hm-nrow-day nums">{pick(whenWord(todayIso, r.iso))}</span>
-                        </span>
-                        <span className="hm-nrow-co">{r.name}</span>
-                        <span className="hm-nrow-text">{pick(r.text)}</span>
-                      </span>
-                      <span className="hm-chev" aria-hidden>
-                        <IconChevronRight size={16} />
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-              {!premium && items.length > FREE_ROWS && (
-                <Link href="/premium?src=home-ours#pay" className="hm-ours-lock" data-card="ours-premium">
-                  <IconLock size={15} />
-                  <span>
-                    {bn
-                      ? `আপনার শেয়ারে আরও ${items.length - FREE_ROWS}টি খবর। কোন শেয়ারে, প্রিমিয়ামে দেখুন।`
-                      : `${items.length - FREE_ROWS} more ${items.length - FREE_ROWS === 1 ? "update" : "updates"} on your shares. See which with Premium.`}
-                  </span>
-                </Link>
+        {loading && !feed ? (
+          <div className="hm-ours-quiet" aria-busy="true">
+            <Skeleton width="70%" height={14} />
+            <Skeleton width="45%" height={12} />
+          </div>
+        ) : rows.length > 0 ? (
+          <ul className="nt-list hm-feed">
+            {rows.map((i) => (
+              <FeedRow key={i.id} href={i.url} {...itemRowProps(i, "day")} />
+            ))}
+          </ul>
+        ) : (
+          <p className="hm-ours-quiet">
+            {hidden.length
+              ? bn
+                ? "এ মাসে আপনার শেয়ারে যা চোখে পড়েছে, নিচে গোনা আছে।"
+                : "What we noticed on your shares this month is counted below."
+              : bn
+                ? "সম্প্রতি আপনার শেয়ারে নতুন কিছু নেই। চুপচাপ সময় স্বাভাবিক।"
+                : "Nothing new on your shares lately. Quiet weeks are normal."}
+          </p>
+        )}
+
+        {!premium && kinds && (
+          <Link href="/premium?src=home-ours#pay" className="hm-ours-lock" data-card="ours-premium">
+            <IconLock size={15} />
+            <span>
+              {bn
+                ? `গত 30 দিনে আপনার শেয়ারে আরও ${hidden.length}টি খবর: ${kinds.bn}। কোন শেয়ারে, প্রিমিয়ামে দেখুন।`
+                : `${hidden.length} more on your shares in the last 30 days: ${kinds.en}. See which with Premium.`}
+            </span>
+          </Link>
+        )}
+
+        {next && (
+          <Link href="/notifications#coming" className="hm-next" data-card="next-date">
+            <DateTile iso={next.iso} small soon={daysFrom(todayIso, next.iso) <= 1} />
+            <span className="hm-next-txt">
+              <span className="hm-next-k">{bn ? "সামনে" : "Coming up"}</span>
+              <span className="hm-next-what">
+                <b>{next.code}</b> · {pick(whenWord(todayIso, next.iso))} · {pick(next.what)}
+              </span>
+              {dates.length > 1 && (
+                <span className="hm-next-more">
+                  {bn ? `এ সপ্তাহে আরও ${dates.length - 1}টি তারিখ` : `${dates.length - 1} more ${dates.length === 2 ? "date" : "dates"} this week`}
+                </span>
               )}
-            </div>
-          )}
-          {dates.length > 0 && (
-            <div className="hm-ours-dates">
-              <p className="hm-ours-sub">{bn ? "এ সপ্তাহে" : "This week"}</p>
-              <ul className="hm-dlist">
-                {dates.slice(0, DATE_ROWS).map((d) => (
-                  <li key={`${d.code}-${d.iso}-${d.what.en}`}>
-                    <Link href={d.href} className="hm-drow">
-                      <DateTile iso={d.iso} small soon={daysFrom(todayIso, d.iso) <= 1} />
-                      <span className="hm-drow-txt">
-                        <b className="hm-drow-code">{d.code}</b>
-                        <span className="hm-drow-what">
-                          {pick(whenWord(todayIso, d.iso))} · {pick(d.what)}
-                        </span>
-                      </span>
-                      <span className="hm-chev" aria-hidden>
-                        <IconChevronRight size={16} />
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
+            </span>
+            <span className="hm-chev" aria-hidden>
+              <IconChevronRight size={16} />
+            </span>
+          </Link>
+        )}
+
         <Link href="/notifications" className="hm-dmore hm-ours-all">
-          {total > NEWS_ROWS + DATE_ROWS || items.length > NEWS_ROWS || dates.length > DATE_ROWS
+          {unread > 0
             ? bn
-              ? "আপডেটে সব দেখুন"
-              : "See everything in Updates"
+              ? `সব আপডেট · ${unread}টি নতুন`
+              : `All updates · ${unread} new`
             : bn
               ? "সব আপডেট"
               : "All updates"}

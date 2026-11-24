@@ -2,23 +2,21 @@
  * Loads the logged-in homepage bundle.
  *
  * One request to `/api/user/home` in the normal case. If that endpoint is not
- * there yet (the Vercel frontend usually deploys before the Render backend) or
- * fails, the same shape is assembled from the individual endpoints the page
- * used before — so the dashboard never blanks during a deploy.
+ * there yet (a frontend deploy that lands before the backend) or fails, the
+ * same shape is assembled from the individual endpoints — so the home never
+ * blanks during a deploy. An older backend's bundle has no `feed`: the home
+ * then reads the feed itself (`apiGetNotifications`).
  */
 import {
   apiGetHomeBundle,
+  apiGetNotifications,
   apiGetPortfolio,
   apiGetWatchlist,
   apiGetAlerts,
-  apiGetForYou,
-  getWatchlistNews,
   getMarketIndex,
-  getDividendsUpcoming,
   getNearExtremes,
-  getMarketMovers,
-  getDividendCalendar,
   type HomeBundle,
+  type HomeFeed,
 } from "@/lib/api";
 
 async function settle<T>(p: Promise<T>, fallback: T): Promise<T> {
@@ -29,58 +27,45 @@ async function settle<T>(p: Promise<T>, fallback: T): Promise<T> {
   }
 }
 
+/** The Updates feed, light, for the home (a letter's parts and a brief's items stay on Updates). */
+async function loadFeed(): Promise<HomeFeed | null> {
+  const f = await settle(apiGetNotifications(), null);
+  if (!f) return null;
+  return {
+    items: f.items.slice(0, 40).map(({ parts: _p, items: _i, ...rest }) => rest),
+    unread: f.unread,
+    has_shares: f.has_shares,
+    premium: f.premium,
+  };
+}
+
 async function legacyBundle(): Promise<HomeBundle> {
-  const [portfolio, watchlist, alerts, forYou, index, dividends, extremes] = await Promise.all([
+  const [portfolio, watchlist, alerts, index, extremes, feed] = await Promise.all([
     settle(apiGetPortfolio(), { holdings: [] }),
     settle(apiGetWatchlist(), { codes: [] }),
     settle(apiGetAlerts(), { alerts: [] }),
-    settle(apiGetForYou(), null),
     settle(getMarketIndex(), null),
-    settle(getDividendsUpcoming(), { upcoming_declarations: [], upcoming_record_dates: [] }),
     settle(getNearExtremes(), null),
-  ]);
-  const codes = Array.from(
-    new Set([
-      ...(watchlist.codes ?? []).map((c) => c.toUpperCase()),
-      ...(portfolio.holdings ?? []).map((h) => h.trading_code.toUpperCase()),
-    ]),
-  ).sort();
-  const [news, movers, calendar] = await Promise.all([
-    codes.length ? settle(getWatchlistNews(codes), []) : Promise.resolve([]),
-    settle(getMarketMovers(), null),
-    settle(getDividendCalendar(), null),
+    loadFeed(),
   ]);
   return {
     generated_at: new Date().toISOString(),
     holdings: portfolio.holdings ?? [],
     watchlist,
     alerts: alerts.alerts ?? [],
-    news,
     market_index: index,
-    dividends,
     near_extremes: extremes,
     dividend_cash: [],
-    movers,
-    // The research figures come only with the bundle; the card shows the
-    // reports without them.
-    research: null,
-    calendar: {
-      record_dates: (calendar?.record_dates ?? []).filter(
-        (e) => e.record_days_left != null && e.record_days_left >= 0 && e.record_days_left <= 14,
-      ).slice(0, 12),
-      recent_declarations: (calendar?.recent_declarations ?? []).slice(0, 5),
-    },
-    new_results: [],
-    week_watch: null,
-    // The ready-made screens come only with the bundle; the card hides without them.
-    screener: null,
-    for_you: forYou,
+    feed,
   };
 }
 
 export async function loadHomeBundle(): Promise<HomeBundle> {
   try {
-    return await apiGetHomeBundle();
+    const b = await apiGetHomeBundle();
+    // A backend from before 2026-11-25 sends no feed.
+    if (!("feed" in b)) return { ...b, feed: await loadFeed() };
+    return b;
   } catch (err) {
     // AUTH_EXPIRED must surface (apiAuthFetch already logged the user out).
     if (err instanceof Error && err.message === "AUTH_EXPIRED") throw err;

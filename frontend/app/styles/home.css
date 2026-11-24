@@ -1,36 +1,21 @@
 /* ===================================================================
-   The signed-in home (2026-11-17, bKash-style; mockup
-   https://claude.ai/artifact/PzbGUGyZQpwFEpCTTo5jDJ; round 2, 2026-11-18,
-   https://claude.ai/artifact/VjM6tbPk1kKo3BJjCD3Frk). In page order:
+   The signed-in home: four blocks and one card (2026-11-25, step 2 of the
+   simplify review https://claude.ai/artifact/VG8A1sU8F5q9grFDCsrHnb). In
+   page order:
 
-     1 the band: date, greeting, plan chip, money, search       (.hm-band)
-     2 what you can do: 8 icons + See more + What is each one?  (.hm-grid)
-     3 your shares today (the story rings) + the market line    (.hm-side)
-     4 on your shares: newest three + this week's dates         (.hm-ours)
-     5 one offer slot, swipe only                               (.hm-slot)
-     6 today for you: Buy List · For you · Strongest            (.hm-today)
+     1 the band: date, greeting, money, search                 (.hm-band)
+     2 New on your shares: the Updates feed's own rows         (.hm-ours)
+     3 Your shares: owned and watched, one status each         (.hm-shares)
+     + at most one card (first step / notifications / taste /
+       the portfolio check)                                    (.hm-one)
+     4 the market in one line                                  (.hm-mline)
 
-   Six blocks since 2026-11-20 (the app map): home owns nothing, every
-   block is a window into a place. Nothing above the story rings appears
-   after the page loads (the slot reads localStorage first), so the rings
-   never jump.
-   One colour for every icon (clay); gold only marks Premium (crowns, rings,
-   the Premium slides) and "new" counts. Phones: one column. From 1024px the
-   offer slot sits beside the market line + the story rings card (dense flow
-   pulls it up into the row the stories start); the two columns share a top
-   and a bottom line, and the slot's pager sits inside its card.
-
-   The spacious pass (2026-11-23, user: "redesign homepage to make it look
-   more spacious and clean"; mockup
-   https://claude.ai/artifact/V1QgJF34Gyq9iG5QKhv3A5, "Yes, build it"): same
-   blocks, same words. 40px between blocks on phones and 56px from 1024px;
-   the band sits open on the canvas and the icon card no longer overlaps it;
-   "See more" and "What is each one?" are the icon card's last row; headings
-   are 20px with their note under them; rows get 16–20px of padding; a
-   divider inside a card starts after the icon; "On your shares" has two
-   small labels (New, This week) and plain coloured kind words; from 1024px
-   "Today for you" is three cards. Don't bring back the overlap, the hanging
-   pills or the boxed band.
+   Home owns nothing: each block is a door to one page. Gone 2026-11-25: the
+   icon grid (the bottom bar is the menu), the story rings, the swipe slot,
+   Today for you and the plan chip. Spacing from the spacious pass
+   (2026-11-23): 40px between blocks on phones, 56px from 1024px; the band
+   open on the canvas; headings 20px. The guest home (below) uses the same
+   blocks with labelled examples.
    =================================================================== */
 
 .hm {
@@ -39,73 +24,37 @@
   padding-top: var(--space-6);
 }
 /* Every block may shrink to the screen: a grid item's default minimum is its
-   content's width, and the story rings row is many screens wide. */
+   content's width. */
 .hm > * { min-width: 0; }
-/* The band and the icon card: one pair, 32px apart. */
+/* The band (the icon card left it 2026-11-25). */
 .hm-top { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-8); min-width: 0; }
-/* The column MUST be minmax(0, 1fr): an implicit `auto` column grows to the
-   story rings row's full width and pushed the rings and the market line off
-   the right edge of a phone (2026-11-17). */
-.hm-side { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); min-width: 0; }
-.hm-side > * { min-width: 0; }
-/* No stories to show: no empty card, no extra gap. */
-.hm-stories { min-width: 0; }
-.hm-stories:empty { display: none; }
-.hm-stories .story-rail { gap: var(--space-4); }
+.hm-mline { min-width: 0; }
+/* The four-block home (2026-11-25): band · New on your shares · Your shares ·
+   the market line, and at most one card. From 1024px the two share blocks sit
+   side by side; the band, the card and the market line span the page. */
 @media (min-width: 1024px) {
   .hm {
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); grid-auto-flow: row dense;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-auto-flow: row dense;
     column-gap: var(--space-8); row-gap: calc(var(--space-12) + var(--space-2));
     align-items: start; padding-top: var(--space-8);
   }
-  .hm-top, .hm-today, .hm-ours { grid-column: 1 / -1; }
-  /* The slot and the stories column are one pair (2026-11-18, user: the side
-     by side "is not looking clean on desktop"): both stretch to the same
-     bottom line, the market line on top of the right one, the story rings in
-     a card that takes the rest of its height. */
-  .hm-slot { grid-column: 1; align-self: stretch; }
-  .hm-side { grid-column: 2; align-self: stretch; grid-template-rows: auto 1fr; gap: var(--space-6); }
-  .hm-side .hm-mkt { order: -1; }
-  .hm:not(:has(.hm-slot)) .hm-side { grid-column: 1 / -1; }
-  .hm-stories {
-    display: flex; flex-direction: column;
-    padding: var(--space-6) var(--space-6) var(--space-4);
-    border: 1px solid rgb(var(--border-rgb) / 0.7); border-radius: var(--radius-lg);
-    background: var(--surface);
-  }
-  .hm-stories > div { flex: 1 1 auto; display: flex; flex-direction: column; }
-  /* The rings sit in the middle of the space under the heading. */
-  .hm-stories .story-rail { margin-block: auto; }
+  .hm-top, .hm-one, .hm-mline, .hm > [data-l] { grid-column: 1 / -1; }
+  .hm-ours { grid-column: 1; }
+  .hm-shares { grid-column: 2; }
+  .hm:not(:has(.hm-shares)) .hm-ours, .hm:not(:has(.hm-ours)) .hm-shares { grid-column: 1 / -1; }
 }
 
 /* ONE heading for every block (round 2, 2026-11-18; spacious pass
    2026-11-23): the 20px title, an optional note under it in the secondary
-   ink (`.hm-head-txt` holds the two), and an optional control on the right
-   (the story rings' arrows, the guest's Example tag). */
+   ink, and an optional control on the right (the guest's Example tag). */
 .hm-head {
   display: flex; align-items: flex-start; justify-content: space-between;
   gap: var(--space-1) var(--space-3); margin-bottom: var(--space-4);
 }
-.hm-head-txt { display: grid; gap: var(--space-1); min-width: 0; }
-.hm-head-h { font-size: var(--fs-lg); font-weight: 700; line-height: 1.3; color: var(--text); text-wrap: balance; }
-.hm-head-note { font-size: var(--fs-xs); font-weight: 400; line-height: 1.45; color: var(--text-muted); }
-.hm-head > .hm-g-ex { margin-top: 3px; }
 
-/* The story rings' arrows (mouse only; phones swipe). 32px with a 40px tap
-   area, so the heading stays one line. */
-.hm-rail-nav { display: none; }
-@media (hover: hover) and (pointer: fine) {
-  .hm-rail-nav { display: flex; gap: var(--space-2); }
-}
-.hm-rail-btn {
-  position: relative; width: 32px; height: 32px; border-radius: 50%;
-  display: grid; place-items: center;
-  border: 1px solid var(--border); background: var(--surface); color: var(--text);
-}
-.hm-rail-btn::after { content: ""; position: absolute; inset: -4px; }
-.hm-rail-btn:hover:not(:disabled) { border-color: rgb(var(--primary-rgb) / 0.45); }
-.hm-rail-btn:disabled { opacity: 0.35; cursor: default; }
-.hm-rail-btn--prev svg { transform: rotate(180deg); }
+.hm-head-h { font-size: var(--fs-lg); font-weight: 700; line-height: 1.3; color: var(--text); text-wrap: balance; }
+
+.hm-head > .hm-g-ex { margin-top: 3px; }
 
 /* ---------- 1 · The band ----------
    Open on the canvas since the spacious pass (2026-11-23): no tinted box, so
@@ -140,31 +89,6 @@
    be the biggest number on the screen. 20px under the greeting. */
 .hm-pill-wrap { grid-column: 1 / -1; min-width: 0; margin-top: var(--space-2); }
 
-/* The reader's plan, under the greeting: the free analyses left this month as
-   a plain link (one tap to /premium); a Premium reader only sees it as the
-   renewal reminder chip in their last 10 days. */
-.hm-plan {
-  position: relative;
-  display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; max-width: 100%;
-  margin-top: var(--space-1); min-height: 40px;
-  font-size: var(--fs-xs); font-weight: 400; line-height: 1.4; color: var(--text-muted);
-}
-.hm-plan > svg { flex: none; color: var(--gold-ink); }
-.hm-plan-txt { min-width: 0; }
-.hm-plan-go { display: inline-flex; align-items: center; gap: 2px; font-weight: 600; color: var(--primary-ink); white-space: nowrap; }
-.hm-plan:hover .hm-plan-go { text-decoration: underline; text-underline-offset: 3px; }
-/* The renewal reminder stays a chip: it is the one line here that asks for something. */
-.hm-plan--prem {
-  flex-wrap: nowrap; min-height: 32px; margin-top: var(--space-2); padding: 0 var(--space-3) 0 var(--space-2);
-  border-radius: 999px; background: var(--gold-light); box-shadow: inset 0 0 0 1px rgb(var(--gold-rgb) / 0.9);
-  font-weight: 600; color: var(--text);
-}
-/* A 40px tap area around the 32px chip. */
-.hm-plan--prem::after { content: ""; position: absolute; inset: -4px 0; }
-.hm-plan--prem .hm-plan-txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-/* The last 3 days of Premium: amber, like the renewal banner. */
-.hm-plan--soon { background: rgb(var(--watch-rgb) / 0.14); box-shadow: inset 0 0 0 1px rgb(var(--watch-rgb) / 0.6); }
-.hm-plan--soon > svg { color: var(--watch); }
 /* The money: one calm card, full width ("See my portfolio" / "Add your
    shares", or the value once shown). */
 .hm-pill {
@@ -231,108 +155,8 @@
   .hm-search { min-height: 56px; font-size: var(--fs-base); }
 }
 
-/* ---------- 2 · What you can do ----------
-   One card of its own since the spacious pass (2026-11-23): 32px under the
-   band instead of overlapping it, more room between the rows, and "See more"
-   + "What is each one?" as its last row. */
-.hm-grid {
-  position: relative; overflow: hidden;
-  border: 1px solid rgb(var(--border-rgb) / 0.7); border-radius: var(--radius-xl);
-  background: var(--surface); box-shadow: var(--shadow-soft);
-}
-.hm-grid-list {
-  list-style: none; margin: 0; padding: var(--space-6) 6px calc(var(--space-4) + 6px);
-  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
-  row-gap: var(--space-6); column-gap: var(--space-1);
-}
-@media (min-width: 640px) {
-  .hm-grid-list {
-    grid-template-columns: repeat(8, minmax(0, 1fr));
-    padding: var(--space-8) var(--space-4) var(--space-6);
-    row-gap: var(--space-8); column-gap: var(--space-2);
-  }
-}
-.hm-svc {
-  display: flex; flex-direction: column; align-items: center; gap: 10px;
-  padding: 6px 2px; border-radius: var(--radius-md);
-  text-align: center; color: var(--text);
-}
-.hm-svc:hover, .hm-svc:active { background: var(--surface-2); }
-.hm-svc-ic {
-  position: relative; width: 52px; height: 52px; border-radius: 50%;
-  display: grid; place-items: center;
-  background: rgb(var(--primary-rgb) / 0.1); color: var(--primary);
-}
-@media (min-width: 640px) {
-  .hm-svc-ic { width: 56px; height: 56px; }
-}
-/* A member's Premium pages: a thin gold ring where a free reader sees a crown. */
-.hm-svc-ic--member { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--gold); }
-.hm-svc-name { font-size: var(--fs-xs); font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
-.hm-badge {
-  position: absolute; top: -4px; right: -8px;
-  min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px;
-  background: var(--gold-light); color: var(--gold-ink);
-  box-shadow: 0 0 0 2px var(--surface), inset 0 0 0 1px rgb(var(--gold-rgb) / 0.9);
-  font-size: var(--fs-2xs); font-weight: 600; line-height: 20px; text-align: center;
-}
-.hm-crown {
-  position: absolute; right: -6px; bottom: -3px; width: 21px; height: 21px; border-radius: 50%;
-  display: grid; place-items: center;
-  background: var(--surface); color: var(--gold-ink);
-  box-shadow: 0 0 0 1.5px rgb(var(--gold-rgb) / 0.9);
-}
-/* "See more" and "What is each one?": the card's last row, two halves split
-   by a hairline (they hung off the card's bottom edge as pills until the
-   spacious pass). */
-.hm-hang {
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
-  border-top: 1px solid rgb(var(--border-rgb) / 0.7);
-}
-.hm-more {
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-  min-height: 52px; padding: 0 var(--space-3);
-  font-size: var(--fs-xs); font-weight: 600; color: var(--primary-ink); white-space: nowrap;
-}
-.hm-more:hover, .hm-more:active { background: var(--surface-2); }
-.hm-more:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
-.hm-more svg { flex: none; transition: transform 0.15s ease; }
-.hm-more[aria-expanded="true"] svg { transform: rotate(180deg); }
-.hm-help { border-left: 1px solid rgb(var(--border-rgb) / 0.7); }
-/* Under 360px "What is each one?" doesn't fit its half: it keeps only its icon
-   (the button carries the words as its aria-label). */
-@media (max-width: 359px) {
-  .hm-help-txt { display: none; }
-}
-
-/* "What is each one?" (inside ui/Sheet): the map, one group per place. */
-.hm-sheet-group + .hm-sheet-group { margin-top: var(--space-4); }
-.hm-sheet-place { margin: 0; font-size: var(--fs-sm); font-weight: 600; }
-.hm-sheet-place a {
-  display: inline-flex; align-items: center; gap: var(--space-1); min-height: 40px;
-  color: var(--text); text-decoration: none;
-}
-.hm-sheet-place a svg { color: var(--primary); }
-.hm-sheet-list { list-style: none; margin: 0; padding: 0; }
-.hm-sheet-row {
-  display: grid; grid-template-columns: 40px minmax(0, 1fr) 16px; gap: var(--space-3); align-items: center;
-  padding: var(--space-3) 0; color: var(--text);
-}
-.hm-sheet-list li + li .hm-sheet-row { border-top: 1px solid var(--border); }
-.hm-sheet-row:hover .hm-sheet-name { text-decoration: underline; }
-.hm-sheet-ic {
-  width: 40px; height: 40px; border-radius: var(--radius-md);
-  display: grid; place-items: center;
-  background: rgb(var(--primary-rgb) / 0.12); color: var(--primary);
-}
-.hm-sheet-name { display: flex; align-items: center; gap: 6px; font-size: var(--fs-sm); font-weight: 600; }
-.hm-sheet-line { display: block; font-size: var(--fs-xs); line-height: 1.45; }
-.hm-crown-sm {
-  display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%;
-  background: var(--gold-light); color: var(--gold-ink);
-}
-
-/* ---------- 3 · The offer slot ---------- */
+/* ---------- The one card (2026-11-25: was the swipe slot) ----------
+   `HomeCard`: one `.hm-slide` inside `.hm-slot.hm-one`, full width. */
 .hm-slot { min-width: 0; }
 .hm-track {
   position: relative;
@@ -357,87 +181,28 @@
 .hm-sl-title { font-size: var(--fs-lg); font-weight: 600; line-height: 1.3; color: var(--text); text-wrap: balance; }
 .hm-sl-body { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
 .hm-sl-small { font-size: var(--fs-xs); line-height: 1.5; color: var(--text-muted); }
-.hm-sl-price { display: flex; align-items: baseline; gap: var(--space-2); color: var(--text); }
-.hm-sl-price b { font-size: var(--fs-xl); line-height: 1; }
-.hm-sl-price s { font-size: var(--fs-sm); font-weight: 600; }
+
 .hm-sl-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
 .hm-sl-list li { display: flex; align-items: flex-start; gap: 10px; min-width: 0; overflow-wrap: anywhere; }
 .hm-sl-list svg { flex: none; margin-top: 3px; color: var(--primary); }
 .hm-slide--gold .hm-sl-list svg { color: var(--gold-ink); }
-.hm-sl-num {
-  flex: none; width: 20px; height: 20px; margin-top: 1px; border-radius: 50%;
-  display: grid; place-items: center;
-  border: 1px solid var(--border); background: var(--surface);
-  font-size: var(--fs-2xs); font-weight: 600;
-}
-.hm-sl-inline { font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
-/* A row with a second line (the results slide: share · day, then what to look for). */
-.hm-sl-two { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; min-width: 0; }
-/* "After the close": good / worth a look / bad, as a dot in the icon's place. */
-.hm-sl-lvl { flex: none; width: 16px; height: 20px; display: grid; place-items: center; color: var(--text); }
-.hm-sl-lvl::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-.hm-sl-lvl--good { color: var(--positive); }
-.hm-sl-lvl--watch { color: var(--watch); }
-.hm-sl-lvl--bad { color: var(--negative); }
+
 .hm-sl-acts { margin-top: auto; padding-top: var(--space-1); display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); }
 .hm-sl-link {
   min-height: 40px; padding: 0 6px;
   font-size: var(--fs-xs); font-weight: 600; color: var(--text);
   text-decoration: underline; text-underline-offset: 3px;
 }
-.hm-slot-foot { display: flex; align-items: center; justify-content: center; gap: var(--space-3); margin-top: var(--space-4); min-height: 16px; }
-.hm-dots { display: flex; gap: 6px; }
-.hm-dot { width: 7px; height: 7px; border-radius: 999px; background: rgb(var(--text-rgb) / 0.25); transition: width 0.2s ease; }
-.hm-dot[data-on] { width: 18px; background: var(--primary); }
-.hm-arrows { display: none; }
-.hm-arrow {
-  width: 40px; height: 40px; border-radius: 50%;
-  display: grid; place-items: center;
-  border: 1px solid var(--border); background: var(--surface); color: var(--text);
-}
-.hm-arrow:hover { border-color: rgb(var(--primary-rgb) / 0.45); }
-.hm-arrow:disabled { visibility: hidden; }
-.hm-arrow--prev svg { transform: rotate(180deg); }
-.hm-count { min-width: 40px; text-align: center; font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
+
 @media (min-width: 1024px) {
-  /* One whole slide at a time (beside the stories the peek read as a cut-off
-     card, 2026-11-17). The slot fills its row, and the pager (‹ 1 / 4 ›)
-     sits inside the card's bottom-right corner, on the buttons' row, instead
-     of hanging under the card (2026-11-18). */
+  /* Roomier on wide screens. */
   .hm-slot { position: relative; display: flex; flex-direction: column; }
   .hm-track { flex: 1 1 auto; }
   .hm-slide { flex-basis: 100%; gap: var(--space-4); padding: calc(var(--space-6) + var(--space-1)); }
   .hm-sl-title { font-size: var(--fs-xl); line-height: 1.25; }
-  .hm-slot-foot {
-    position: absolute;
-    right: calc(var(--space-6) + var(--space-1) + 1px); bottom: calc(var(--space-6) + var(--space-1) + 1px);
-    margin: 0; min-height: 0;
-  }
-  .hm-dots { display: none; }
-  .hm-arrows { display: flex; align-items: center; gap: 2px; }
-  .hm-arrow:disabled { visibility: visible; opacity: 0.35; cursor: default; }
-  .hm-arrow:disabled:hover { border-color: var(--border); }
-  /* Room for the pager (three 40px parts), so a button never runs under it. */
-  .hm-slot--multi .hm-sl-acts { padding-right: 140px; }
-  .hm-slot--multi .hm-slide:not(:has(> .hm-sl-acts)) { padding-bottom: calc(var(--space-6) + var(--space-1) + 48px); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .hm-dot, .hm-more svg { transition: none; }
 }
 
-/* Chips (slides + today rows) */
-.hm-chips { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
-/* A long chip ("OLYMPIC · বৃহস্পতি · ৳4.5") shortens with "…" on a 320px
-   phone instead of pushing past the row. */
-.hm-chip {
-  display: inline-block; max-width: 100%; padding: 3px 9px; border-radius: 999px;
-  overflow: hidden; text-overflow: ellipsis;
-  background: var(--surface-2); color: var(--text);
-  font-size: var(--fs-2xs); font-weight: 600; white-space: nowrap;
-}
-.hm-chip--gold { background: var(--gold-light); box-shadow: inset 0 0 0 1px rgb(var(--gold-rgb) / 0.75); }
-
-/* ---------- 5 · The market in one line ---------- */
+/* ---------- 4 · The market in one line (`MarketLine`) ---------- */
 .hm-mkt {
   display: flex; align-items: center; gap: var(--space-4);
   padding: calc(var(--space-4) + 2px) var(--space-4) calc(var(--space-4) + 2px) calc(var(--space-4) + var(--space-1));
@@ -457,41 +222,13 @@
 .hm-spark { flex: none; display: block; }
 .hm-chev { flex: none; display: grid; place-items: center; color: var(--primary-ink); }
 
-/* ---------- 6 · Today for you ----------
-   Summary rows with the same parts — icon · title (+ "N new") · one caption ·
-   a big number · › (tidied 2026-11-17). No chips, no lock lines. Phones: one
-   card, the rows split by dividers that start after the icon. From 1024px
-   each row is its own card, side by side (spacious pass, 2026-11-23). */
-.hm-today-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+/* The home's card (every block's body) and its "see all" row. */
 .hm-tcard {
   min-width: 0; margin: 0; padding: 0; list-style: none;
   border: 1px solid rgb(var(--border-rgb) / 0.7); border-radius: var(--radius-lg);
   background: var(--surface); box-shadow: var(--shadow-soft); overflow: hidden;
 }
 
-/* Your dates this week */
-.hm-tcard-head {
-  display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-}
-.hm-tcard-h { font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
-.hm-tcard-count { flex: none; font-size: var(--fs-2xs); font-weight: 600; color: var(--text); }
-.hm-dlist { list-style: none; margin: 0; padding: 0; }
-/* Date rows: the tiles keep them apart, so no divider between them. */
-.hm-drow {
-  display: grid; grid-template-columns: 44px minmax(0, 1fr) 16px; gap: var(--space-4); align-items: center;
-  min-height: 68px; padding: var(--space-2) var(--space-4) var(--space-2) calc(var(--space-4) + var(--space-1));
-  color: var(--text);
-}
-.hm-drow:hover, .hm-drow:active { background: var(--surface-2); }
-.hm-drow-txt { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; min-width: 0; }
-.hm-drow-code { font-size: var(--fs-sm); font-weight: 600; }
-.hm-drow-what { font-size: var(--fs-xs); line-height: 1.4; }
-.hm-dnote {
-  padding: var(--space-3) var(--space-4); border-top: 1px solid var(--border);
-  font-size: var(--fs-xs); font-weight: 600; line-height: 1.45; color: var(--text);
-}
-/* "See all 6 dates": the rest opens in place (it was plain "+2 more" text). */
 .hm-dmore {
   display: flex; width: 100%; align-items: center; justify-content: space-between; gap: var(--space-2);
   min-height: 52px; padding: 0 var(--space-4) 0 calc(var(--space-4) + var(--space-1));
@@ -505,90 +242,9 @@
   .hm-dmore svg { transition: none; }
 }
 
-/* The summary rows. A divider starts after the icon (20px + 44px + 12px). */
-.hm-sum > li + li::before {
-  content: ""; display: block; height: 1px;
-  margin-left: calc(var(--space-4) + var(--space-1) + 44px + var(--space-3));
-  background: rgb(var(--border-rgb) / 0.7);
-}
-.hm-srow {
-  display: grid; grid-template-columns: 44px minmax(0, 1fr) auto 16px; gap: var(--space-3); align-items: center;
-  min-height: 84px;
-  padding: calc(var(--space-4) + var(--space-1)) var(--space-4) calc(var(--space-4) + var(--space-1)) calc(var(--space-4) + var(--space-1));
-  color: var(--text);
-}
-a.hm-srow:hover, a.hm-srow:active { background: var(--surface-2); }
-.hm-srow-ic {
-  position: relative; width: 44px; height: 44px; border-radius: var(--radius-md);
-  display: grid; place-items: center;
-  background: rgb(var(--primary-rgb) / 0.1); color: var(--primary);
-}
-.hm-srow-txt { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); min-width: 0; }
-.hm-srow-title { display: flex; flex-wrap: wrap; align-items: center; gap: 2px var(--space-2); font-size: var(--fs-base); font-weight: 600; }
-.hm-new {
-  display: inline-flex; align-items: center; padding: 0 7px; border-radius: 999px;
-  background: var(--gold-light); box-shadow: inset 0 0 0 1px rgb(var(--gold-rgb) / 0.8);
-  font-size: var(--fs-2xs); font-weight: 600; line-height: 18px; color: var(--text);
-}
-.hm-srow-cap {
-  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
-  font-size: var(--fs-xs); line-height: 1.4; color: var(--text-muted); overflow-wrap: anywhere;
-}
-.hm-srow-num { display: grid; justify-items: end; text-align: right; line-height: 1.15; }
-.hm-srow-num b { font-size: var(--fs-lg); font-weight: 700; }
-.hm-srow-num span { font-size: var(--fs-2xs); font-weight: 400; color: var(--text-muted); white-space: nowrap; }
-
-/* From 1024px: each row its own card, side by side — icon top left, the
-   title and caption, then the big number at the bottom. Two by two with four
-   rows (four in a line left each too narrow). */
-@media (min-width: 1024px) {
-  .hm-tcard.hm-sum {
-    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-6);
-    border: 0; border-radius: 0; background: none; box-shadow: none; overflow: visible;
-  }
-  .hm-tcard.hm-sum:has(> li:nth-child(4)),
-  .hm-tcard.hm-sum:has(> li:nth-child(2)):not(:has(> li:nth-child(3))) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .hm-tcard.hm-sum:not(:has(> li:nth-child(2))) { grid-template-columns: minmax(0, 1fr); }
-  .hm-sum > li {
-    display: flex; min-width: 0; overflow: hidden;
-    border: 1px solid rgb(var(--border-rgb) / 0.7); border-radius: var(--radius-lg);
-    background: var(--surface); box-shadow: var(--shadow-soft);
-  }
-  .hm-sum > li + li::before { display: none; }
-  .hm-sum .hm-srow {
-    flex: 1 1 auto; min-height: 0;
-    grid-template-columns: 44px minmax(0, 1fr) 16px; grid-template-rows: auto 1fr auto;
-    grid-template-areas: "ic . chev" "txt txt txt" "num num num";
-    align-items: start; row-gap: var(--space-4); padding: var(--space-6);
-  }
-  .hm-sum .hm-srow-ic { grid-area: ic; }
-  .hm-sum .hm-srow-txt { grid-area: txt; }
-  .hm-sum .hm-srow-num { grid-area: num; display: flex; align-items: baseline; gap: 6px; text-align: left; }
-  .hm-sum .hm-srow-num b { font-size: var(--fs-xl); }
-  .hm-sum .hm-srow > .hm-chev { grid-area: chev; align-self: center; justify-self: end; }
-}
-
-/* ---------- 4 · On your shares (2026-11-20, the app map) ----------
-   The newest three things on the reader's shares (results, notices to DSE as
-   plain sentences: kind word and day, then the company, then the sentence)
-   and this week's dates, then one link to Updates. Since the spacious pass
-   (2026-11-23) each half has a small label (New, This week); from 1024px the
-   two sit side by side in the card. */
+/* ---------- 2 · New on your shares: the card's parts (rows below, `.hm-feed`) ---------- */
 .hm-ours { min-width: 0; }
-.hm-ours-body { display: grid; grid-template-columns: minmax(0, 1fr); }
-.hm-ours-new { display: flex; flex-direction: column; min-width: 0; }
-.hm-ours-dates { min-width: 0; padding-bottom: var(--space-2); }
-.hm-ours-new + .hm-ours-dates { border-top: 1px solid rgb(var(--border-rgb) / 0.7); }
-@media (min-width: 1024px) {
-  .hm-ours-body:has(> .hm-ours-new + .hm-ours-dates) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .hm-ours-new + .hm-ours-dates { border-top: 0; border-left: 1px solid rgb(var(--border-rgb) / 0.7); }
-  /* The Premium line closes the left half. */
-  .hm-ours-new > .hm-ours-lock { margin-top: auto; }
-}
-.hm-ours-sub {
-  margin: 0; padding: calc(var(--space-4) + 2px) var(--space-4) 0 calc(var(--space-4) + var(--space-1));
-  font-size: var(--fs-xs); font-weight: 400; color: var(--text-muted);
-}
+
 .hm-ours-all { text-decoration: none; color: var(--primary); font-weight: 600; }
 /* A free reader's count of the rest (THE Premium line, step 3). */
 .hm-ours-lock {
@@ -603,31 +259,6 @@ a.hm-srow:hover, a.hm-srow:active { background: var(--surface-2); }
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-3);
   padding: calc(var(--space-4) + var(--space-1)); color: var(--text); font-size: var(--fs-sm); line-height: 1.5; text-decoration: none;
 }
-.hm-nlist { list-style: none; margin: 0; padding: 0; }
-/* A divider between notices, starting at the text. */
-.hm-nlist > li + li::before {
-  content: ""; display: block; height: 1px; margin-left: calc(var(--space-4) + var(--space-1));
-  background: rgb(var(--border-rgb) / 0.7);
-}
-.hm-nrow {
-  display: grid; grid-template-columns: minmax(0, 1fr) 16px; gap: var(--space-3); align-items: center;
-  padding: var(--space-4) var(--space-4) var(--space-4) calc(var(--space-4) + var(--space-1)); color: var(--text);
-}
-.hm-nrow:hover, .hm-nrow:active { background: var(--surface-2); }
-.hm-nrow-txt { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); min-width: 0; }
-.hm-nrow-top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); min-width: 0; }
-/* The kind word: plain small words, coloured only when they mean something
-   (a better result green; a weaker one or the auditor's words amber). */
-.hm-kind { min-width: 0; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted); }
-.hm-kind--good { color: var(--positive); }
-.hm-kind--warn, .hm-kind--watch { color: var(--watch); }
-.hm-kind--bad { color: var(--negative); }
-.hm-nrow-co {
-  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  font-size: var(--fs-base); font-weight: 600;
-}
-.hm-nrow-day { flex: none; font-size: var(--fs-2xs); font-weight: 400; color: var(--text-muted); }
-.hm-nrow-text { font-size: var(--fs-sm); line-height: 1.5; }
 
 /* ---------- The review block (end of the signed-in home, 2026-11-18) ----------
    `components/feedback/FeedbackSection.tsx`: the home's heading, one card. */
@@ -670,8 +301,8 @@ a.hm-srow:hover, a.hm-srow:active { background: var(--surface-2); }
 html[data-signed-in="1"] .home-boot { display: block; }
 html[data-signed-in="1"] .home-landing { display: none; }
 
-/* The 7-day taste (THE Premium line, step 6): one calm note under the icon
-   grid while Premium is open on the reader's shares. */
+/* The 7-day taste (THE Premium line, step 6): one calm note (the home's one
+   card) while Premium is open on the reader's shares. */
 .taste-note {
   display: grid; gap: var(--space-3); padding: calc(var(--space-4) + var(--space-1));
   border: 1px solid rgb(var(--gold-rgb) / 0.45); border-radius: var(--radius-lg);
@@ -687,20 +318,12 @@ html[data-signed-in="1"] .home-landing { display: none; }
 /* ===================================================================
    The guest home (2026-11-23, mockup v2
    https://claude.ai/artifact/2rXAyT319sXtJXWBjE6rMG): a visitor who is not
-   signed in gets the six blocks above, in the same places, through
-   components/home/guest/*. Only what differs is styled here (`hm-g-*`):
-   the band's words and example money card, the example tags, the
-   "On your shares" foot, and the "New here?" half under the home.
-   Blocks that render once per language sit in a `[data-l]` wrapper; the
-   rules below keep the layout reading through it.
+   signed in gets the four blocks above (since 2026-11-25), in the same
+   places, through components/home/guest/*. Only what differs is styled here
+   (`hm-g-*`): the band's words and example money card, the example tags,
+   the "New on your shares" foot, and the "New here?" half under the home.
+   The market line renders once per language in a `[data-l]` wrapper.
    =================================================================== */
-
-/* The wrappers TBlock adds must not break the signed-in layout rules. */
-.hm-stories > [data-l] { min-width: 0; }
-@media (min-width: 1024px) {
-  .hm-stories > [data-l] > div { flex: 1 1 auto; display: flex; flex-direction: column; }
-  .hm-side > .hm-g-mkt { order: -1; }
-}
 
 /* 1 · The band: what TopStockBD is, the ask, the example money card. */
 .hm-g-band { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
@@ -741,8 +364,7 @@ html[data-signed-in="1"] .home-landing { display: none; }
   font-size: var(--fs-2xs); font-weight: 600; color: var(--text); white-space: nowrap;
 }
 
-/* 4 · On your shares: the example rows (their kind words are the signed-in
-   block's, `.hm-kind--good|watch|bad`), then the ask. */
+/* 2 · New on your shares: the example rows (the feed's own row), then the ask. */
 .hm-g-ours-foot {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3) var(--space-4);
   padding: calc(var(--space-4) + 2px) var(--space-4) calc(var(--space-4) + 2px) calc(var(--space-4) + var(--space-1));
@@ -812,7 +434,47 @@ html[data-signed-in="1"] .home-landing { display: none; }
 }
 
 /* 5 · The slot fills its column from 1024px through the language wrapper. */
-@media (min-width: 1024px) {
-  .hm-g-slot > [data-l] { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; }
-  .hm-g-slot > [data-l] > .hm-slot { flex: 1 1 auto; }
+
+/* ---------- 2 · New on your shares (2026-11-25: the Updates feed's own rows) ----------
+   `FeedRow` (`nt-*`, app/styles/notifications.css) inside the home's card,
+   then a free reader's counted line, the next date, and the link to Updates. */
+.hm-feed { margin: 0; }
+.hm-next {
+  display: grid; grid-template-columns: 44px minmax(0, 1fr) 16px; gap: var(--space-4); align-items: center;
+  min-height: 68px; padding: var(--space-3) var(--space-4) var(--space-3) calc(var(--space-4) + var(--space-1));
+  border-top: 1px solid rgb(var(--border-rgb) / 0.7); color: var(--text);
 }
+.hm-next:hover, .hm-next:active { background: var(--surface-2); }
+.hm-next-txt { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; min-width: 0; }
+.hm-next-k { font-size: var(--fs-2xs); font-weight: 400; color: var(--text-muted); }
+.hm-next-what { font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
+.hm-next-what b { font-weight: 600; }
+.hm-next-more { font-size: var(--fs-2xs); font-weight: 400; color: var(--text-muted); }
+
+/* ---------- 3 · Your shares (2026-11-25) ----------
+   One row a share: the company, what they hold, at most one status; today's
+   price (or their money in it) and move on the right. */
+.hm-shares { min-width: 0; }
+.hm-slist { list-style: none; margin: 0; padding: 0; }
+.hm-slist > li + li { border-top: 1px solid rgb(var(--border-rgb) / 0.7); }
+.hm-srow2 {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto 16px; gap: var(--space-3); align-items: center;
+  min-height: 64px; padding: var(--space-3) var(--space-4) var(--space-3) calc(var(--space-4) + var(--space-1));
+  color: var(--text);
+}
+.hm-srow2:hover, .hm-srow2:active { background: var(--surface-2); }
+.hm-srow2-txt { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; min-width: 0; }
+.hm-srow2-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-base); font-weight: 600; }
+.hm-srow2-sub { font-size: var(--fs-2xs); font-weight: 400; color: var(--text-muted); }
+.hm-srow2-num { display: grid; justify-items: end; gap: 2px; font-variant-numeric: tabular-nums; }
+.hm-srow2-val { font-size: var(--fs-sm); font-weight: 600; }
+.hm-srow2-chg { font-size: var(--fs-2xs); font-weight: 400; }
+.hm-st {
+  justify-self: start; max-width: 100%; margin-top: 4px; padding: 1px 8px; border-radius: 999px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: var(--fs-2xs); font-weight: 600;
+}
+.hm-st--info { color: var(--primary-ink); background: rgb(var(--primary-rgb) / 0.1); }
+.hm-st--good { color: var(--positive); background: rgb(var(--positive-rgb) / 0.1); }
+.hm-st--watch { color: var(--watch); background: rgb(var(--watch-rgb) / 0.12); }
+.hm-st--bad { color: var(--negative); background: rgb(var(--negative-rgb) / 0.1); }

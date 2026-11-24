@@ -2480,46 +2480,30 @@ export interface HomeBundle {
   holdings: PortfolioHolding[];
   watchlist: WatchlistResponse;
   alerts: PriceAlert[];
-  /** Latest news on holdings ∪ watchlist (newest first, capped server-side). */
-  news: WatchlistNewsItem[];
   market_index: MarketIndexData | null;
-  /** Upcoming declarations + record dates for the user's own codes only, uncapped. */
-  dividends: DividendsUpcoming;
   near_extremes: NearExtremesData | null;
   /** Calendar record-date rows (cash per share worked out) for the user's codes. */
   dividend_cash: CorporateActionEvent[];
-  /** Market chapter (added 2026-09-16) — optional so a bundle assembled by the
-   *  legacy fallback still type-checks. */
-  movers?: MarketMoversData | null;
-  /** One figure per Premium research report (2026-11-06, the dashboard's
-   *  research card) — null until the backend's first build is ready. */
-  research?: ResearchSummary | null;
-  /** The Buy List card (2026-11-08): count, top three, today's free pick. */
-  buy_list?: BuyListHome | null;
-  calendar?: {
-    /** Record dates inside the next two weeks, market-wide. */
-    record_dates: CorporateActionEvent[];
-    recent_declarations: CorporateActionEvent[];
-  };
-  /** This week's rank change for every company (2026-11-01, the ranking card). */
-  rank_moves?: RankingsToday["moves"];
-  /** Quarterly results on the reader's own stocks, posted in the last three weeks. */
-  new_results?: LatestResultRow[];
   /** The day's move on the reader's stocks whose record date fell since the
    *  previous close, with the dividend / bonus taken out (2026-11-04). */
   ex_moves?: Record<string, number>;
   /** Results meetings on the reader's stocks in the next two weeks (2026-10-29). */
   results_soon?: UpcomingResult[];
-  /** Today's before-the-bell brief — Premium readers, once the morning job has run. */
-  brief?: MorningBrief | null;
-  /** What the watcher spotted on the reader's stocks in the last 7 days
-   *  (`portfolio_watch.digest`). Free readers see the counts, Premium the list. */
-  week_watch?: WeekWatch | null;
-  /** The screener card (2026-11-01): the ready-made screens with counts + top
-   *  three, and the reader's saved screens as of the last daily check. */
-  screener?: { ready: ScreenerReadyCard[]; saved: ScreenerSaved[] } | null;
-  /** "Picked for you" (2026-10-28) — the recommendation engine's list. */
-  for_you?: ForYou | null;
+  /** "New on your shares" (2026-11-25): the Updates feed's own newest rows
+   *  (a letter's parts and a brief's items left out). The stories, the icon
+   *  grid's badges, the swipe slot and Today for you left the home the same
+   *  day, and with them `for_you`, `news`, `dividends`, `movers`, `research`,
+   *  `buy_list`, `calendar`, `rank_moves`, `new_results`, `brief`,
+   *  `week_watch` and `screener`. */
+  feed?: HomeFeed | null;
+}
+
+export interface HomeFeed {
+  items: NotificationItem[];
+  unread: number;
+  has_shares: boolean;
+  /** The "your shares" layer is open: Premium or the 7-day taste. */
+  premium: boolean;
 }
 
 export interface WeekWatch {

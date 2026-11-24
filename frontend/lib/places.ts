@@ -9,8 +9,8 @@
  *   Learn                              Guides and blog · How we score
  *
  * The menu (Navbar), the footer, the bottom bar, the place pages
- * (/market, /find, /my), the back link above inner pages, the home's
- * "See more" and the search shortcuts all read this file, so a page has ONE
+ * (/market, /find, /my), the back link above inner pages, the guest home's
+ * "New here?" and the search shortcuts all read this file, so a page has ONE
  * name everywhere. Plain data (no React), so server components can import it.
  * A new page goes into a place here, never straight into a menu.
  */
@@ -246,7 +246,7 @@ export function placeOf(pathname: string): { place: Place; page: PlacePage | nul
   return null;
 }
 
-/** Every page, flat (search shortcuts, the home's "See more"). */
+/** Every page, flat (search shortcuts, admin areas). */
 export const ALL_PAGES: (PlacePage & { place: PlaceKey })[] = PLACES.flatMap((pl) =>
   pl.pages.map((p) => ({ ...p, place: pl.key })),
 );

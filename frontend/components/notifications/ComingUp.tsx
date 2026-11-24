@@ -2,12 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { T } from "@/components/i18n/T";
-import { UpdateList } from "@/components/watchlist/WatchUpdates";
+import Skeleton from "@/components/ui/Skeleton";
+import FeedRow, { type FeedTone } from "@/components/feed/FeedRow";
 import { getInsightScores, getWatchlistUpdates, type ScoreItem, type WatchlistUpdates } from "@/lib/api";
 import { loadMainHoldings } from "@/lib/main-holdings";
 import { getCachedWatchlist, loadWatchlist } from "@/lib/watchlist";
 import { getCachedAlerts, loadAlerts } from "@/lib/price-alerts";
-import { buildWatchUpdates } from "@/lib/watch-updates";
+import { buildWatchUpdates, whenWords, type UpdateTone } from "@/lib/watch-updates";
+
+/** Rows shown before "Show all". */
+const FIRST_ROWS = 5;
+const TONE: Record<UpdateTone, FeedTone> = { positive: "good", negative: "bad", watch: "watch", primary: "info", muted: "neutral" };
 
 /**
  * "Coming up" on the Updates page (2026-11-20, the app map): the dates ahead
@@ -15,7 +20,8 @@ import { buildWatchUpdates } from "@/lib/watch-updates";
  * to buy before a record date, record dates, AGMs, and price alerts close to
  * their price. It moved here from the watchlist's "Coming up" card, so the
  * dates on your shares have one home. The same rules as before
- * (lib/watch-updates.ts), free facts only.
+ * (lib/watch-updates.ts), free facts only. Since 2026-11-25 ("one feed, told
+ * once") its rows are the feed's own row (`FeedRow`), under a day-style head.
  */
 export default function ComingUp() {
   const [codes, setCodes] = useState<string[] | null>(null);
@@ -23,6 +29,7 @@ export default function ComingUp() {
   const [updates, setUpdates] = useState<WatchlistUpdates | null>(null);
   const [loading, setLoading] = useState(true);
   const [alertsTick, setAlertsTick] = useState(0);
+  const [all, setAll] = useState(false);
 
   useEffect(() => {
     let live = true;
@@ -70,27 +77,57 @@ export default function ComingUp() {
   }, [codes, scores, updates, alertsTick]);
 
   if (codes && codes.length === 0) return null;
+  const busy = loading || !codes;
+  const fold = !all && coming.length > FIRST_ROWS + 1;
+  const shown = fold ? coming.slice(0, FIRST_ROWS) : coming;
 
   return (
-    <section className="nt-coming" aria-labelledby="nt-coming">
-      <UpdateList
-        id="nt-coming"
-        title={<T en="Coming up" bn="সামনে যা আছে" />}
-        note={
-          <T
-            en="Dates ahead on the shares you own or follow, soonest first."
-            bn="আপনার কেনা বা অনুসরণ করা শেয়ারের সামনের তারিখ, কাছেরগুলো আগে।"
-          />
-        }
-        items={coming}
-        loading={loading || !codes}
-        empty={
-          <T
-            en="No record date, AGM or results date ahead on your shares yet."
-            bn="আপনার শেয়ারগুলোর সামনে এখনো কোনো রেকর্ড ডেট, এজিএম বা ফলের তারিখ নেই।"
-          />
-        }
-      />
+    <section id="coming" className="nt-day stock-anchor" aria-labelledby="nt-coming">
+      <h2 id="nt-coming" className="nt-day-head">
+        <T en="Coming up" bn="সামনে যা আছে" />
+        {coming.length > 0 && <span className="nt-count">{coming.length}</span>}
+      </h2>
+      <p className="nt-day-note">
+        <T
+          en="Dates ahead on the shares you own or follow, soonest first."
+          bn="আপনার কেনা বা অনুসরণ করা শেয়ারের সামনের তারিখ, কাছেরগুলো আগে।"
+        />
+      </p>
+      {coming.length === 0 ? (
+        busy ? (
+          <div className="nt-list soft-card nt-empty" aria-busy="true">
+            <Skeleton width="70%" height={14} />
+            <Skeleton width="50%" height={12} className="mt-2" />
+          </div>
+        ) : (
+          <p className="nt-list soft-card nt-empty">
+            <T
+              en="No record date, AGM or results date ahead on your shares yet."
+              bn="আপনার শেয়ারগুলোর সামনে এখনো কোনো রেকর্ড ডেট, এজিএম বা ফলের তারিখ নেই।"
+            />
+          </p>
+        )
+      ) : (
+        <ul className="nt-list soft-card">
+          {shown.map((u) => (
+            <FeedRow
+              key={u.id}
+              href={u.href}
+              kind={u.label}
+              tone={TONE[u.tone]}
+              code={u.code}
+              when={whenWords(u)}
+              title={u.title}
+              body={u.line ?? null}
+            />
+          ))}
+        </ul>
+      )}
+      {fold && (
+        <button type="button" className="nt-more" onClick={() => setAll(true)}>
+          <T en={`Show all ${coming.length}`} bn={`সব ${coming.length}টি দেখুন`} />
+        </button>
+      )}
     </section>
   );
 }

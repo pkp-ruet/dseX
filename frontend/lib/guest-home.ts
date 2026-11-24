@@ -3,13 +3,9 @@ import type {
   MarketStateData,
   ScoreItem,
 } from "@/lib/api";
-import type { BuyList } from "@/lib/buy-list";
 import type { RiskRegister } from "@/lib/research-reports";
 import { SAMPLE_PORTFOLIOS } from "@/lib/sample-portfolios";
-import { SHOWCASE } from "@/lib/premium-line";
-import { daysFrom, whenWord } from "@/lib/home-dates";
-import { dayShort } from "@/components/dividend-calendar/dates";
-import { getTier, TIER_LABELS, TIER_LABELS_BN } from "@/lib/constants";
+import { whenWord } from "@/lib/home-dates";
 import { money } from "@/lib/formatters";
 
 /**
@@ -28,8 +24,6 @@ export interface Bi {
   en: string;
   bn: string;
 }
-
-const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
 /** "Square Pharmaceuticals PLC." → "Square Pharmaceuticals". */
 export function shortCompany(name: string | null | undefined, code: string): string {
@@ -169,140 +163,34 @@ export function exampleRows(
 
 // --------------------------------------------------- 6 · today on the site
 
-export type TodayIcon = "buylist" | "rank" | "results" | "calendar";
+// ------------------------------------------------------------ 3 · your shares
 
-export interface TodayRow {
-  key: string;
-  href: string;
-  icon: TodayIcon;
-  premiumPage: boolean;
-  title: Bi;
-  fresh: number;
-  caption: Bi;
-  value: string;
-  unit: Bi;
-}
-
-function names(codes: string[], total: number): string {
-  const shown = codes.slice(0, 3).join(", ");
-  return total > 3 ? `${shown} +${total - 3}` : shown;
-}
-
-export function todayRows(
-  todayIso: string,
-  buyList: BuyList | null,
-  ranked: ScoreItem[],
-  results: LatestResults | null,
-  market: MarketStateData | null,
-): TodayRow[] {
-  const out: TodayRow[] = [];
-
-  if (buyList) {
-    const n = buyList.count;
-    const free = buyList.free_pick;
-    out.push({
-      key: "buylist",
-      href: "/buy-list",
-      icon: "buylist",
-      premiumPage: true,
-      title: { en: "Today's Buy List", bn: "আজকের কেনার তালিকা" },
-      fresh: buyList.changes?.week_joined?.length ?? 0,
-      caption: free
-        ? { en: `${free} is free today · the rest with Premium`, bn: `আজ ফ্রি: ${free} · বাকিগুলো প্রিমিয়ামে` }
-        : { en: "The few shares we would buy today", bn: "আজ আমরা যে কয়টি শেয়ার কিনতাম" },
-      value: String(n),
-      unit: { en: plural(n, "share", "shares"), bn: "শেয়ার" },
-    });
-  }
-
-  if (ranked.length) {
-    const top = ranked.slice(0, 3).map((s) => s.trading_code);
-    out.push({
-      key: "ranking",
-      href: "/dsestockranking",
-      icon: "rank",
-      premiumPage: false,
-      title: { en: "Strongest companies", bn: "সবচেয়ে শক্তিশালী কোম্পানি" },
-      fresh: 0,
-      caption: { en: `Top: ${top.join(", ")}`, bn: `শীর্ষে: ${top.join(", ")}` },
-      value: String(ranked.length),
-      unit: { en: "ranked", bn: "র‍্যাঙ্ক করা" },
-    });
-  }
-
-  const week = (results?.results ?? []).filter((r) => {
-    const d = daysFrom(r.post_date.slice(0, 10), todayIso);
-    return d >= 0 && d <= 6;
-  });
-  if (week.length) {
-    const better = week.filter((r) => r.level === "good").length;
-    const weaker = week.filter((r) => r.level === "bad").length;
-    const latest = week.map((r) => r.code);
-    out.push({
-      key: "results",
-      href: "/results",
-      icon: "results",
-      premiumPage: false,
-      title: { en: "Results this week", bn: "এ সপ্তাহের আর্থিক ফল" },
-      fresh: 0,
-      caption: {
-        en: `Latest: ${names(latest, latest.length)} · ${better} better, ${weaker} weaker`,
-        bn: `সর্বশেষ: ${names(latest, latest.length)} · ${better}টি ভালো, ${weaker}টি দুর্বল`,
-      },
-      value: String(week.length),
-      unit: { en: plural(week.length, "report", "reports"), bn: "রিপোর্ট" },
-    });
-  }
-
-  // The calendar's free week (THE Premium line, step 2): last days to buy in
-  // the next 7 days are open to everyone.
-  const soon = nextCashRecord(market).filter((d) => (d.buy_days_left ?? 99) <= 7);
-  if (soon.length) {
-    const first = soon[0];
-    const companies = new Set(soon.map((d) => d.trading_code)).size;
-    const day = dayShort(first.buy_by);
-    out.push({
-      key: "dividends",
-      href: "/dividend-calendar#this-week",
-      icon: "calendar",
-      premiumPage: false,
-      title: { en: "Dividends this week", bn: "এ সপ্তাহের ডিভিডেন্ড" },
-      fresh: 0,
-      caption: {
-        en: `Next last day to buy: ${first.trading_code}, ${day.en}`,
-        bn: `পরের কেনার শেষ দিন: ${first.trading_code}, ${day.bn}`,
-      },
-      value: String(companies),
-      unit: { en: plural(companies, "company", "companies"), bn: "কোম্পানি" },
-    });
-  }
-  return out;
-}
-
-// --------------------------------------------------------- 5 · the slides
-
-/** One of the five companies whose full analysis is open to everyone. */
-export interface ShowcasePick {
+/** "Your shares" for a guest (2026-11-25): the same sample portfolio as the
+ *  band's money, at today's prices, most money first. Tagged Example. */
+export interface ExampleShare {
   code: string;
   name: string;
-  group: Bi;
+  qty: number;
+  value: number;
+  change: number | null;
 }
 
-export function showcasePick(byCode: Map<string, ScoreItem>): ShowcasePick | null {
-  for (const code of SHOWCASE) {
-    const s = byCode.get(code);
-    if (!s || s.score == null) continue;
-    const tier = getTier(s.score);
-    return {
-      code,
-      name: shortCompany(s.company_name, code),
-      group: { en: TIER_LABELS[tier], bn: TIER_LABELS_BN[tier] },
-    };
+export function sampleShares(byCode: Map<string, ScoreItem>, limit = 5): ExampleShare[] {
+  const out: ExampleShare[] = [];
+  for (const h of SAMPLE_PORTFOLIOS.diversified.holdings) {
+    const s = byCode.get(h.trading_code);
+    if (!s || s.ltp == null) return []; // a sample missing a price would lie about itself
+    out.push({
+      code: h.trading_code,
+      name: shortCompany(s.company_name, h.trading_code),
+      qty: h.qty,
+      value: h.qty * s.ltp,
+      change: s.change_pct ?? null,
+    });
   }
-  return null;
+  return out.sort((a, b) => b.value - a.value).slice(0, limit);
 }
 
-/** Shown under the examples so a guest knows the rows are not theirs. */
 export const EXAMPLE_TAG: Bi = { en: "Example", bn: "উদাহরণ" };
 
 export function guestWhen(market: MarketStateData | null, todayIso: string): "today" | "last" {

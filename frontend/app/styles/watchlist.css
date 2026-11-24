@@ -72,20 +72,8 @@
 .wl-cap-title { margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
 .wl-cap-text { margin: 4px 0 0; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
 
-/* ---- Updates: what happened · coming up (WatchUpdates.tsx), also the
-   list inside an open row ---- */
-.wl-ups-grid { display: grid; gap: var(--space-4); }
-@media (min-width: 900px) { .wl-ups-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } }
-.wl-ups { padding: 0; overflow: hidden; }
-.wl-ups-head { padding: 16px 16px 12px; border-bottom: 1px solid var(--cell-rule); }
-@media (min-width: 640px) { .wl-ups-head { padding: 18px 22px 14px; } }
-.wl-ups-title { display: flex; align-items: center; gap: 8px; margin: 0; font-size: var(--fs-base); font-weight: 600; color: var(--text); }
-.wl-ups-count {
-  min-width: 26px; padding: 1px 8px; border-radius: 999px; text-align: center;
-  font-size: var(--fs-2xs); font-weight: 600; color: var(--text); background: var(--surface-2);
-  font-variant-numeric: tabular-nums;
-}
-.wl-ups-note { margin: 2px 0 0; font-size: var(--fs-xs); color: var(--text-muted); }
+/* ---- The list of updates inside an open watchlist row (WatchUpdates.tsx
+   `UpdateRow`; Updates' own lists use the feed row since 2026-11-25) ---- */
 .wl-ups-empty { margin: 0; padding: 16px; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
 @media (min-width: 640px) { .wl-ups-empty { padding: 18px 22px; } }
 

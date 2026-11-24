@@ -18,88 +18,11 @@ import ErrorState from "@/components/ui/ErrorState";
 import Skeleton from "@/components/ui/Skeleton";
 import { IconChevronDown, IconLock } from "@/components/ui/icons";
 import { Locked } from "@/components/premium/AnswerLock";
-import { dayShort } from "@/components/dividend-calendar/dates";
+import FeedRow, { FeedRowBody, itemRowProps } from "@/components/feed/FeedRow";
+import { dayHead, dhakaDay, kindsPhrase, visibleFeed } from "@/lib/feed";
 import { NOTIFICATIONS_SEEN_EVENT } from "@/components/notifications/NotificationBell";
 import { trackEvent } from "@/lib/track";
 import ComingUp from "@/components/notifications/ComingUp";
-
-type Pair = { en: string; bn: string };
-
-/** What each row is, in two words. */
-const KIND: Record<string, Pair> = {
-  results: { en: "Results", bn: "আর্থিক ফল" },
-  grade: { en: "Grade change", bn: "গ্রেড বদল" },
-  red_flag: { en: "Warning", bn: "সতর্কতা" },
-  record: { en: "Record date", bn: "রেকর্ড ডেট" },
-  category: { en: "Category change", bn: "ক্যাটাগরি বদল" },
-  drop: { en: "Big fall", bn: "বড় দরপতন" },
-  low52: { en: "Yearly low", bn: "বছরের সর্বনিম্ন" },
-  breakeven: { en: "Back to your price", bn: "কেনা দামে ফেরা" },
-  price_view: { en: "Our price view", bn: "দাম নিয়ে মত" },
-  alert: { en: "Price alert", bn: "প্রাইস অ্যালার্ট" },
-  brief: { en: "9 AM brief", bn: "সকাল 9টার খবর" },
-  letter: { en: "Friday letter", bn: "শুক্রবারের চিঠি" },
-  screen: { en: "Saved screen", bn: "সেভ করা স্ক্রিন" },
-  rule: { en: "Your rule", bn: "আপনার নিয়ম" },
-  plan: { en: "Your plan", bn: "আপনার পরিকল্পনা" },
-};
-
-/** The watcher's kinds: the "your shares" layer of THE Premium line. A free
- *  reader sees the week's one marked `free`; the rest are counted. `plan` =
- *  the portfolio builder's plan watch (2026-11-23). */
-const WATCH_KINDS = new Set(["results", "grade", "red_flag", "record", "category", "drop", "low52", "breakeven", "plan", "price_view"]);
-
-/** Counted words: [one, many, Bengali]. */
-const COUNT_WORDS: Record<string, [string, string, string]> = {
-  results: ["results report", "results reports", "আর্থিক ফল"],
-  grade: ["grade change", "grade changes", "গ্রেড বদল"],
-  red_flag: ["warning", "warnings", "সতর্কতা"],
-  record: ["record date", "record dates", "রেকর্ড ডেট"],
-  category: ["category change", "category changes", "ক্যাটাগরি বদল"],
-  drop: ["big fall", "big falls", "বড় দরপতন"],
-  low52: ["yearly low", "yearly lows", "বছরের সর্বনিম্ন দাম"],
-  breakeven: ["return to your price", "returns to your price", "কেনা দামে ফেরা"],
-  price_view: ["change in our view of a price", "changes in our view of the price", "দাম নিয়ে আমাদের মতে বদল"],
-  plan: ["change in your portfolio plan", "changes in your portfolio plan", "পরিকল্পনায় বদল"],
-};
-
-/** "2 results reports, 1 warning and 1 big fall" in both languages. */
-function kindsPhrase(items: NotificationItem[]): Pair {
-  const by = new Map<string, number>();
-  for (const i of items) by.set(i.kind, (by.get(i.kind) ?? 0) + 1);
-  const top = [...by.entries()].sort((a, b) => b[1] - a[1]);
-  const en = top.map(([k, n]) => `${n} ${(COUNT_WORDS[k] ?? ["update", "updates"])[n === 1 ? 0 : 1]}`);
-  const bn = top.map(([k, n]) => `${n}টি ${(COUNT_WORDS[k] ?? ["", "", "খবর"])[2]}`);
-  const join = (xs: string[], and: string) => (xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} ${and} ${xs[xs.length - 1]}`);
-  return { en: join(en, "and"), bn: join(bn, "ও") };
-}
-
-const DHAKA_DAY = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dhaka" });
-const DHAKA_TIME = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Dhaka", hour: "numeric", minute: "2-digit" });
-const DHAKA_HOUR = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Dhaka", hour: "2-digit", hour12: false });
-
-function dhakaDay(iso: string): string {
-  return DHAKA_DAY.format(new Date(iso));
-}
-
-/** "4:05 PM" / "বিকেল 4:05". */
-function timeWords(iso: string): Pair {
-  const d = new Date(iso);
-  const en = DHAKA_TIME.format(d);
-  const h = Number(DHAKA_HOUR.format(d));
-  const part = h < 5 ? "রাত" : h < 12 ? "সকাল" : h < 15 ? "দুপুর" : h < 18 ? "বিকেল" : h < 20 ? "সন্ধ্যা" : "রাত";
-  const bn = `${part} ${en.replace(/\s?[AP]M$/, "")}`;
-  return { en, bn };
-}
-
-/** "Today" / "Yesterday" / "Tue 4 Nov". */
-function dayHead(day: string): Pair {
-  const today = DHAKA_DAY.format(new Date());
-  const yest = DHAKA_DAY.format(new Date(Date.now() - 86_400_000));
-  if (day === today) return { en: "Today", bn: "আজ" };
-  if (day === yest) return { en: "Yesterday", bn: "গতকাল" };
-  return dayShort(day);
-}
 
 /**
  * Updates (`/notifications`, named "Updates" since 2026-11-20, the app map —
@@ -180,21 +103,9 @@ export default function NotificationsClient() {
   const premium = isPremium || sharesOpen || feed.premium;
   // THE Premium line, step 3 (2026-11-22): what the watcher caught on a free
   // reader's shares is counted by kind; the week's one marked `free` stays
-  // open. Screen-only, like every lock (the API still sends every row).
-  const hidden = premium ? [] : feed.items.filter((i) => WATCH_KINDS.has(i.kind) && !i.free);
-  const hiddenIds = new Set(hidden.map((i) => i.id));
-  // A paused rule that fires is told once a day at most (step 6): the
-  // first one each day stays, the rest are left out.
-  const pausedDays = new Set<string>();
-  const shown = feed.items.filter((i) => {
-    if (hiddenIds.has(i.id)) return false;
-    if (!premium && i.kind === "rule" && i.paused) {
-      const d = dhakaDay(i.at);
-      if (pausedDays.has(d)) return false;
-      pausedDays.add(d);
-    }
-    return true;
-  });
+  // open; a paused rule is told once a day. Same rules as the home's rows
+  // (lib/feed.ts). Screen-only, like every lock (the API sends every row).
+  const { shown, hidden } = visibleFeed(feed.items, premium);
 
   if (feed.items.length === 0) {
     return feed.has_shares ? (
@@ -335,29 +246,6 @@ function LockedUpdates({ items }: { items: NotificationItem[] }) {
   );
 }
 
-function Meta({ i }: { i: NotificationItem }) {
-  const kind = KIND[i.kind] ?? { en: "Update", bn: "খবর" };
-  const t = timeWords(i.at);
-  return (
-    <span className="nt-meta">
-      {i.new && (
-        <span className="nt-new">
-          <T en="New" bn="নতুন" />
-        </span>
-      )}
-      <span>
-        <T en={kind.en} bn={kind.bn} />
-      </span>
-      {i.code && <span className="nt-code">{i.code}</span>}
-      <span>
-        <T en={t.en} bn={t.bn} />
-      </span>
-    </span>
-  );
-}
-
-const DOT: Record<string, string> = { good: "nt-dot--good", bad: "nt-dot--bad", watch: "nt-dot--watch" };
-
 function Row({
   i,
   premium,
@@ -371,48 +259,23 @@ function Row({
 }) {
   // A paused rule (past a free reader's cap): only that it fired (THE
   // Premium line, step 4). Screen-only, like every lock.
-  const paused = i.kind === "rule" && i.paused && !premium;
-  const body = (
-    <>
-      <span className={`nt-dot ${paused ? "" : DOT[i.level] ?? ""}`} aria-hidden="true" />
-      <span className="nt-text">
-        <Meta i={i} />
-        {paused ? (
-          <>
-            <span className="nt-title">
-              <T en={`A rule you set on ${i.code} fired`} bn={`${i.code}-এ আপনার দেওয়া একটি নিয়ম কাজ করেছে`} />
-            </span>
-            <span className="nt-body">
-              <T
-                en="This rule is paused on a free account. Premium shows what happened, and tells you the same evening."
-                bn="ফ্রি অ্যাকাউন্টে এই নিয়মটি বন্ধ আছে। কী হয়েছে, প্রিমিয়াম দেখায়, আর সেদিন সন্ধ্যায়ই জানায়।"
-              />
-            </span>
-          </>
-        ) : (
-          <>
-            <span className="nt-title">
-              <T en={i.title_en} bn={i.title_bn || i.title_en} />
-            </span>
-            {i.body_en && (
-              <span className="nt-body">
-                <T en={i.body_en} bn={i.body_bn || i.body_en} />
-              </span>
-            )}
-          </>
-        )}
-      </span>
-    </>
-  );
-  if (paused) {
+  if (i.kind === "rule" && i.paused && !premium) {
     return (
-      <li id={i.id} className="nt-item" data-new={i.new || undefined}>
-        <Link href={`${PREMIUM_PATH}?src=paused-rule#pay`} prefetch={false} className="nt-row">
-          {body}
-        </Link>
-      </li>
+      <FeedRow
+        id={i.id}
+        href={`${PREMIUM_PATH}?src=paused-rule#pay`}
+        {...itemRowProps(i, "time")}
+        plain
+        title={{ en: `A rule you set on ${i.code} fired`, bn: `${i.code}-এ আপনার দেওয়া একটি নিয়ম কাজ করেছে` }}
+        body={{
+          en: "This rule is paused on a free account. Premium shows what happened, and tells you the same evening.",
+          bn: "ফ্রি অ্যাকাউন্টে এই নিয়মটি বন্ধ আছে। কী হয়েছে, প্রিমিয়াম দেখায়, আর সেদিন সন্ধ্যায়ই জানায়।",
+        }}
+      />
     );
   }
+
+  const body = <FeedRowBody {...itemRowProps(i, "time")} />;
 
   if (i.kind === "letter" && i.parts?.length) {
     return (
@@ -440,7 +303,7 @@ function Row({
           {i.items.map((s, k) => (
             <li key={k}>
               <Link href={s.url} prefetch={false} className="nt-sub-row">
-                <span className={`nt-dot nt-dot--sm ${DOT[s.level] ?? ""}`} aria-hidden="true" />
+                <span className={`nt-dot nt-dot--sm ${SUB_DOT[s.level] ?? ""}`} aria-hidden="true" />
                 <T en={s.title_en} bn={s.title_bn || s.title_en} />
               </Link>
             </li>
@@ -450,14 +313,10 @@ function Row({
     );
   }
 
-  return (
-    <li id={i.id} className="nt-item" data-new={i.new || undefined}>
-      <Link href={i.url} prefetch={false} className="nt-row">
-        {body}
-      </Link>
-    </li>
-  );
+  return <FeedRow id={i.id} href={i.url} {...itemRowProps(i, "time")} />;
 }
+
+const SUB_DOT: Record<string, string> = { good: "nt-dot--good", bad: "nt-dot--bad", watch: "nt-dot--watch" };
 
 function Letter({ parts, premium }: { parts: LetterPart[]; premium: boolean }) {
   const locked = parts.filter((p) => !p.free).length;

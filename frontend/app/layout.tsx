@@ -20,7 +20,6 @@ import "./styles/research-reports.css";
 import "./styles/market.css";
 import "./styles/watchlist.css";
 import "./styles/portfolio.css";
-import "./styles/stories.css";
 import "./styles/results.css";
 import "./styles/dividends.css";
 import "./styles/landing.css";

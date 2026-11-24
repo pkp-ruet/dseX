@@ -28,9 +28,9 @@ import {
  * iOS-not-installed users get an "Add to Home Screen" hint instead of a dead-end
  * button. Mounted globally in app/layout.tsx.
  *
- * Not on the signed-in home page (2026-11-18): there the same ask is a slide in
- * the home's offer slot (`OfferSlot`, same gate and keys), so nothing floats
- * over the page.
+ * Not on the signed-in home page (2026-11-18): there the same ask is the
+ * home's one card (`HomeCard`, same gate and keys), so nothing floats over
+ * the page.
  */
 export default function PushOptInPrompt() {
   const { isLoggedIn } = useAuth();

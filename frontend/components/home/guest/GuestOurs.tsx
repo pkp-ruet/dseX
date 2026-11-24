@@ -1,11 +1,11 @@
-import Link from "@/components/ui/Link";
 import { T } from "@/components/i18n/T";
 import Button from "@/components/ui/Button";
-import { IconChevronRight } from "@/components/ui/icons";
+import FeedRow from "@/components/feed/FeedRow";
 import { EXAMPLE_TAG, type ExampleRow } from "@/lib/guest-home";
 
 /**
- * Block 4 for a guest: "On your shares", in the signed-in block's own rows,
+ * Block 2 for a guest: "New on your shares", in the feed's own row
+ * (`FeedRow`, the same as Updates and the signed-in home since 2026-11-25),
  * filled with three real things from today on well-known shares and tagged
  * as an example — then what it takes to make the block yours.
  */
@@ -15,36 +15,16 @@ export default function GuestOurs({ rows }: { rows: ExampleRow[] }) {
     <section className="hm-ours" data-card="guest-ours" aria-labelledby="guest-ours-h">
       <div className="hm-head">
         <h2 className="hm-head-h" id="guest-ours-h">
-          <T en="On your shares" bn="আপনার শেয়ারে" />
+          <T en="New on your shares" bn="আপনার শেয়ারে নতুন" />
         </h2>
         <span className="hm-g-ex">
           <T en={EXAMPLE_TAG.en} bn={EXAMPLE_TAG.bn} />
         </span>
       </div>
       <div className="hm-tcard">
-        <ul className="hm-nlist">
+        <ul className="nt-list hm-feed">
           {rows.map((r) => (
-            <li key={r.key}>
-              <Link href={r.href} className="hm-nrow">
-                <span className="hm-nrow-txt">
-                  <span className="hm-nrow-top">
-                    <span className={`hm-kind hm-kind--${r.tone}`}>
-                      <T en={r.kind.en} bn={r.kind.bn} />
-                    </span>
-                    <span className="hm-nrow-day nums">
-                      <T en={r.when.en} bn={r.when.bn} />
-                    </span>
-                  </span>
-                  <span className="hm-nrow-co">{r.name}</span>
-                  <span className="hm-nrow-text">
-                    <T en={r.text.en} bn={r.text.bn} />
-                  </span>
-                </span>
-                <span className="hm-chev" aria-hidden>
-                  <IconChevronRight size={16} />
-                </span>
-              </Link>
-            </li>
+            <FeedRow key={r.key} href={r.href} kind={r.kind} tone={r.tone} code={r.code} when={r.when} title={r.text} />
           ))}
         </ul>
         <div className="hm-g-ours-foot">
@@ -54,8 +34,8 @@ export default function GuestOurs({ rows }: { rows: ExampleRow[] }) {
             </b>
             <span>
               <T
-                en="Add the shares you own, or follow a few. We check them after every close."
-                bn="আপনার কেনা শেয়ারগুলো যোগ করুন, বা কয়েকটি অনুসরণ করুন। প্রতিদিন বাজার বন্ধের পর আমরা সেগুলো যাচাই করি।"
+                en="Add the shares you own, or watch a few. We check them after every close."
+                bn="আপনার কেনা শেয়ারগুলো যোগ করুন, বা কয়েকটিতে নজর রাখুন। প্রতিদিন বাজার বন্ধের পর আমরা সেগুলো যাচাই করি।"
               />
             </span>
           </p>
