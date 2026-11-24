@@ -123,7 +123,7 @@
   line-height: 1.3;
   color: var(--text);
 }
-.ls-h-note { font-size: var(--fs-sm); font-weight: 400; color: var(--text-muted); }
+
 .ls-crown {
   display: inline-flex;
   align-items: center;
@@ -196,9 +196,99 @@
 .ls-row-n b { display: block; font-size: var(--fs-md); font-weight: 600; color: var(--text); }
 .ls-row-go { display: inline-flex; color: var(--text-muted); }
 
-/* The two tools, one line each. */
-.ls-tools { display: grid; gap: var(--space-2); }
-@media (min-width: 640px) { .ls-tools { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* Start here (2026-11-25): the Buy List card, then All companies + For you.
+   From 1024px the two sit side by side. */
+.ls-start { display: grid; gap: var(--space-3); }
+@media (min-width: 1024px) {
+  .ls-start { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: stretch; }
+  .ls-start > .ls-rows { display: grid; align-content: stretch; }
+  .ls-start .ls-rows > li { display: flex; }
+  .ls-start .ls-rows .ls-row { width: 100%; }
+}
+
+/* The six wants: a card each, two a row on phones, three from 640px. A card
+   opens its first list; the want's other lists are chips in the pop-up. */
+.ls-wants {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+@media (min-width: 640px) { .ls-wants { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); } }
+.ls-wants > li { display: flex; }
+.ls-want {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  width: 100%;
+  padding: var(--space-4) 14px;
+  text-align: left;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+}
+@media (min-width: 640px) { .ls-want { padding: var(--space-4) 20px; } }
+.ls-want:hover { border-color: rgb(var(--primary-rgb) / 0.5); }
+.ls-want:active { background: var(--surface-2); }
+.ls-want:focus-visible { outline: none; box-shadow: var(--ring); }
+.ls-want-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.ls-want-ic {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius);
+  background: rgb(var(--primary-rgb) / 0.1);
+  color: var(--primary-ink);
+}
+.ls-want-watch { display: inline-flex; color: var(--primary-ink); }
+.ls-want-t { font-size: var(--fs-base); font-weight: 600; line-height: 1.3; }
+.ls-want-l { font-size: var(--fs-xs); line-height: 1.45; color: var(--text-muted); }
+.ls-want-new { font-size: var(--fs-xs); font-weight: 600; color: var(--positive); }
+
+/* More on this: under a want's list in the pop-up, the report or page on the same subject. */
+.ls-more { display: grid; gap: var(--space-2); }
+.ls-more-h { margin: 0; font-size: var(--fs-sm); color: var(--text-muted); }
+.ls-more-list { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.ls-more-a {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--text);
+}
+.ls-more-a:hover { background: rgb(var(--primary-rgb) / 0.08); }
+.ls-more-a:focus-visible { outline: none; box-shadow: var(--ring); }
+.ls-more-t { font-size: var(--fs-sm); font-weight: 600; line-height: 1.35; }
+
+/* Before you buy: the two reports about trouble, one line. */
+.ls-careful {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  margin: 0;
+  padding: 14px var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+  color: var(--text);
+  scroll-margin-top: 72px;
+}
+.ls-careful-ic { display: inline-flex; margin-top: 2px; color: var(--watch); }
+.ls-careful a { font-weight: 600; color: var(--primary-ink); }
+.ls-careful a:hover { text-decoration: underline; }
 
 .ls-foot { margin: 0; font-size: var(--fs-xs); color: var(--text-muted); }
 

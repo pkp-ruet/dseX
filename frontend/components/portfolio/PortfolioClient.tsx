@@ -1442,6 +1442,13 @@ export default function PortfolioClient({ view = "portfolio" }: { view?: "portfo
               {L("Updates", "আপডেট")}
               <IconChevronRight size={14} />
             </Link>
+            {/* "Check my shares" moved here from the Lists page (2026-11-25): each share against our lists. */}
+            {total > 0 && (
+              <Link href="/lists?mine=1" className="ms-go" data-card="my-on-lists">
+                {L("Which are on our lists", "কোনগুলো আমাদের তালিকায়")}
+                <IconChevronRight size={14} />
+              </Link>
+            )}
           </div>
         </div>
 

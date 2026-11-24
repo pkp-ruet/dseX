@@ -123,10 +123,10 @@ export const FEATURES: Feature[] = [
   },
   {
     key: "screener",
-    name: { en: "Ready lists", bn: "তৈরি তালিকা" },
+    name: { en: "Lists by what you want", bn: "আপনি যা চান, সেই তালিকা" },
     line: {
-      en: "16 ready lists, from 52-week high to our own picks, and lists saved with a daily alert.",
-      bn: "16টি তৈরি তালিকা, 52 সপ্তাহের সর্বোচ্চ থেকে আমাদের নিজের বাছাই পর্যন্ত, আর প্রতিদিনের অ্যালার্টসহ সেভ করা তালিকা।",
+      en: "16 lists in six groups, from good cash dividends to the 52-week low, with a daily alert on the ones you watch.",
+      bn: "ছয় ভাগে 16টি তালিকা, ভালো নগদ ডিভিডেন্ড থেকে 52 সপ্তাহের সর্বনিম্ন দাম পর্যন্ত, আর যেগুলোতে নজর রাখেন সেগুলোর প্রতিদিনের অ্যালার্ট।",
     },
     free: { en: "how many shares each list has", bn: "প্রতিটি তালিকায় কতটি শেয়ার" },
   },

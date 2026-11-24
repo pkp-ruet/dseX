@@ -4,11 +4,13 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType }
 import Button from "@/components/ui/Button";
 import Sheet from "@/components/ui/Sheet";
 import EmptyState from "@/components/ui/EmptyState";
+import Link from "@/components/ui/Link";
 import {
-  IconActivity, IconArrowDown, IconArrowUp, IconBell, IconBlocks, IconBriefcase, IconCalendar, IconCheck,
-  IconCheckCircle, IconClose, IconCoin, IconCrown, IconGift, IconList, IconPie, IconTag, IconTarget,
-  IconTrendDown, IconTrendUp, IconTrophy, IconWallet,
+  IconActivity, IconBell, IconBlocks, IconCheck, IconChevronRight, IconClose, IconCoin, IconCrown, IconList,
+  IconPie, IconTag, IconTrendUp,
 } from "@/components/ui/icons";
+import { REPORT_ICON } from "@/components/research-reports/reportIcons";
+import { PAGE_ICON } from "@/components/places/pageIcons";
 import PageGate from "@/components/premium/PageGate";
 import { PageLockScope } from "@/components/premium/LockScope";
 import { showLimitNotice } from "@/components/premium/LimitNotice";
@@ -35,28 +37,31 @@ import {
   apiCreateCustomList, apiGetCustomLists, apiUpdateCustomList,
   type SavedCustomList, type ScreenerFilter, type ScreenerReady, type ScreenerSpec, type ScreenerUniverse,
 } from "@/lib/api";
+import { groupWants, wantOf, type Want, type WantIcon, type WantMore } from "@/lib/wants";
+import { reportDef } from "@/lib/research-reports";
+import { pageByKey } from "@/lib/places";
 
 type Order = { sort: string; dir: "asc" | "desc" };
 
-/** One icon per list, so the tiles can be told apart at a glance. */
-const LIST_ICON: Record<string, ComponentType<{ size?: number }>> = {
-  strong_cheap: IconTag,
-  low_pe: IconTarget,
-  below_book: IconWallet,
-  big_steady: IconBlocks,
-  biggest: IconTrophy,
-  most_traded: IconActivity,
-  steady_dividends: IconCoin,
-  high_dividend: IconGift,
-  dividend_soon: IconCalendar,
-  profit_growing: IconTrendUp,
-  no_loans: IconCheckCircle,
-  owners_hold: IconPie,
-  owners_buying: IconBriefcase,
-  near_high: IconArrowUp,
-  near_low: IconArrowDown,
-  strong_near_low: IconTrendDown,
+/** One icon per want, so the cards can be told apart at a glance. */
+const WANT_ICON: Record<WantIcon, ComponentType<{ size?: number }>> = {
+  cash: IconCoin,
+  cheap: IconTag,
+  growing: IconTrendUp,
+  big: IconBlocks,
+  owners: IconPie,
+  range: IconActivity,
+  more: IconList,
 };
+
+/** A link under a want's list: the report (or page) on the same subject. */
+function moreLink(m: WantMore): { href: string; name: Bi; Icon: ComponentType<{ size?: number }>; premium: boolean } {
+  if (m.kind === "report") {
+    return { href: `/stock-insights/${m.slug}`, name: reportDef(m.slug).title, Icon: REPORT_ICON[m.slug], premium: true };
+  }
+  const p = pageByKey(m.key);
+  return { href: p.href, name: p.name, Icon: PAGE_ICON[p.key] ?? IconList, premium: !!p.premium };
+}
 
 /** A price dropdown choice as a filter. */
 const priceFilter = (p: { min: number | null; max: number | null }): ScreenerFilter => ({
@@ -111,6 +116,18 @@ const tt = (en: string, bn: string) => <T en={en} bn={bn} />;
  * and "Check my shares" shows, for each share they own or follow, the lists
  * it is on and the one thing it misses on the closest others (Premium; free
  * readers get the counts); (3) a member taps a row for its quick look.
+ *
+ * 2026-11-25 (user: "this page's main goal is help user to find their next
+ * stock. how can we simplify this page", then "Yes, build it"): the 16 tiles
+ * became six wants (`lib/wants.ts`: Pays good cash · Cheap for what it earns ·
+ * Profit is growing · Big and steady · Owners believe in it · Near its 52-week
+ * high or low). A want card opens its first list; the want's other lists are
+ * chips in the list bar, and the report or page on the same subject sits
+ * under the list ("More on this"). "How we pick each list" and "See every
+ * share" left the page (each list has its own "How we pick"; All companies
+ * has the same boxes). "Check my shares" left it too: it opens from My
+ * shares (`/lists?mine=1`); `?all=1` and a saved screen still open every
+ * share.
  */
 export default function ScreenerClient({ data }: { data: ScreenerUniverse }) {
   return (
@@ -137,6 +154,8 @@ function ScreenerInner({ data }: { data: ScreenerUniverse }) {
   /** Every list with a tile, in the backend's order. */
   const cards = useMemo(() => listScreens(data.ready), [data.ready]);
   const goalById = useMemo(() => new Map(cards.map((g) => [g.id, g] as const)), [cards]);
+  /** The six wants, holding the lists the backend sends today. */
+  const wants = useMemo(() => groupWants(cards.map((g) => g.id)), [cards]);
 
   // --- What the pop-up shows ------------------------------------------------
   const [listId, setListId] = useState<string | null>(null);
@@ -147,7 +166,6 @@ function ScreenerInner({ data }: { data: ScreenerUniverse }) {
   const [limit, setLimit] = useState(PAGE);
   /** A row to bring back into view once the pop-up has drawn it. */
   const [backTo, setBackTo] = useState<string | null>(null);
-  const [howOpen, setHowOpen] = useState(false);
   const [saved, setSaved] = useState<SavedCustomList[] | null>(null);
   const [watchBusy, setWatchBusy] = useState(false);
   /** "Check my shares": the reader's shares against every list. */
@@ -155,6 +173,7 @@ function ScreenerInner({ data }: { data: ScreenerUniverse }) {
   const personal = usePersonalCodesCtx();
   const open = listId != null || every;
   const list = listId ? goalById.get(listId) : undefined;
+  const want: Want | undefined = wantOf(wants, listId);
 
   const viewKey = `${listId ?? ""}|${every ? "all" : ""}|${encodeFilters(own)}|${order?.sort ?? ""}`;
 
@@ -198,19 +217,18 @@ function ScreenerInner({ data }: { data: ScreenerUniverse }) {
     setLimit(PAGE);
     trackEvent("screener_list", { id });
   };
-  const openMine = () => {
-    pushSheet();
-    setMineOpen(true);
-    trackEvent("screener_mine", { state: isPremium ? "premium" : "free", shares: myCodes.length });
+  /** A want card: its first list, the others as chips in the bar. */
+  const openWant = (w: Want) => {
+    trackEvent("lists_want", { id: w.id });
+    openList(w.lists[0]);
   };
-  const openEvery = () => {
-    pushSheet();
-    setListId(null);
-    setEvery(true);
-    setOwn([]);
+  /** A chip in the bar: another list of the same want, keeping sector and price. */
+  const switchList = (id: string) => {
+    if (id === listId) return;
+    setListId(id);
     setOrder(null);
     setLimit(PAGE);
-    trackEvent("screener_list", { id: "every" });
+    trackEvent("screener_list", { id, from: "chip" });
   };
   /** A saved screen in the pop-up, as it was made. `push` false when the URL opened it. */
   function openSaved(l: SavedCustomList, push = true) {
@@ -284,6 +302,11 @@ function ScreenerInner({ data }: { data: ScreenerUniverse }) {
       opened = true;
     }
     if (f && !opened) setEvery(true);
+    // "Check my shares" opens from My shares (2026-11-25).
+    if (params.get("mine") === "1" && !opened) {
+      setMineOpen(true);
+      trackEvent("screener_mine", { from: "link" });
+    }
   }, [params, goalById, data.ready, defs, ranges]);
 
   // Back from a stock page: the same list, scrolled to the row that was tapped.
@@ -320,6 +343,7 @@ function ScreenerInner({ data }: { data: ScreenerUniverse }) {
       f: own.length ? encodeFilters(own) : null,
       sort: order ? order.sort : null,
       dir: order ? order.dir : null,
+      mine: mineOpen ? "1" : null,
     },
     params !== null,
   );
@@ -359,20 +383,23 @@ function ScreenerInner({ data }: { data: ScreenerUniverse }) {
       applyScreen(rows, { v: 2, filters: withSafety(mergeFilters([...listRules(id), ...ownFilters])), sort: "name", dir: "asc" }).length,
     [rows, listRules],
   );
-  /** Each tile's count: the list as it is (safety rules on). */
-  const listCounts = useMemo(() => new Map(cards.map((g) => [g.id, countOf(g.id, [])] as const)), [cards, countOf]);
-
   // --- What changed this week (2026-11-23) --------------------------------
   const changes = useMemo(() => data.changes ?? {}, [data.changes]);
   const rowByCode = useMemo(() => new Map(rows.map((r) => [r.code, r] as const)), [rows]);
+  /** Each list's newcomers this week that still pass it. */
   const listNew = useMemo(
     () => new Map(cards.map((g) => {
       const joined = changes[g.id]?.joined ?? [];
-      if (!joined.length) return [g.id, 0] as const;
+      if (!joined.length) return [g.id, [] as string[]] as const;
       const fs = withSafety(g.spec.filters);
-      return [g.id, joined.filter((c) => { const r = rowByCode.get(c); return !!r && matches(r.v, fs); }).length] as const;
+      return [g.id, joined.filter((c) => { const r = rowByCode.get(c); return !!r && matches(r.v, fs); })] as const;
     })),
     [cards, changes, rowByCode],
+  );
+  /** A want card's "N new this week": each share once across its lists. */
+  const wantNew = useMemo(
+    () => new Map(wants.map((w) => [w.id, new Set(w.lists.flatMap((id) => listNew.get(id) ?? [])).size] as const)),
+    [wants, listNew],
   );
   const listChange = listId ? changes[listId] : undefined;
   const newCodes = useMemo(() => new Set(listChange?.joined ?? []), [listChange]);
@@ -457,13 +484,14 @@ function ScreenerInner({ data }: { data: ScreenerUniverse }) {
     });
   }, [mineOpen, myCodes, rowByCode, cards]);
   const mineOnAny = useMemo(() => {
+    if (!mineOpen) return 0;
     let n = 0;
     for (const code of myCodes) {
       const r = rowByCode.get(code);
       if (r && cards.some((g) => matches(r.v, withSafety(g.spec.filters)))) n++;
     }
     return n;
-  }, [myCodes, rowByCode, cards]);
+  }, [mineOpen, myCodes, rowByCode, cards]);
 
   // Every list is Premium (2026-11-24, "Lock them too"); every share by sector
   // and price alone is public figures, open to everyone.
@@ -580,7 +608,21 @@ function ScreenerInner({ data }: { data: ScreenerUniverse }) {
   };
 
   const n = result.length;
-  const sheetTitle = list ? tt(list.title_en, list.title_bn) : tt("Every share", "সব শেয়ার");
+  // Opened through a want, the pop-up is named for the want; the list is its chip.
+  const sheetTitle = want
+    ? tt(want.name.en, want.name.bn)
+    : list ? tt(list.title_en, list.title_bn) : tt("Every share", "সব শেয়ার");
+  /** The want's lists as chips in the bar, each with what it shows with this sector and price. */
+  const wantChips = want && want.lists.length > 1
+    ? {
+        value: listId ?? "",
+        options: want.lists.map((id) => {
+          const g = goalById.get(id);
+          return { value: id, label: { en: g?.title_en ?? id, bn: g?.title_bn ?? id }, count: countOf(id, own) };
+        }),
+        onChange: switchList,
+      }
+    : null;
   const sheetSub = (
     <span className="nums">
       {tt(`${n} ${n === 1 ? "share" : "shares"}`, `${n}টি শেয়ার`)}
@@ -628,100 +670,45 @@ function ScreenerInner({ data }: { data: ScreenerUniverse }) {
   return (
     <PageLockScope anchor={SCREENER_ANCHOR}>
       <>
-        {/* The ready lists on /lists. A tap opens one in the pop-up. */}
-        <section className="ls-sec" id="ready" aria-labelledby="scr-q">
-          <h2 id="scr-q" className="ls-h">
-            {tt("Ready lists", "তৈরি তালিকা")}
+        {/* The six wants on /lists. A card opens its first list in the pop-up. */}
+        <section className="ls-sec" id="wants" aria-labelledby="ls-want-h">
+          <h2 id="ls-want-h" className="ls-h">
+            {tt("What do you want from a share?", "শেয়ারে আপনি কী চান?")}
             {!isPremium && (
               <span className="ls-crown"><IconCrown size={12} />{tt("Premium", "প্রিমিয়াম")}</span>
             )}
           </h2>
-          <p className="ls-h-note">
-            {tt(`${cards.length} lists, from 52-week highs to steady dividends. Tap one to open it.`,
-                `${cards.length}টি তালিকা, 52 সপ্তাহের সর্বোচ্চ দাম থেকে নিয়মিত ডিভিডেন্ড পর্যন্ত। খুলতে একটিতে চাপুন।`)}
-          </p>
-          <div className="scr-builder">
-          <div className="scr-part">
-            <div className="scr-tiles">
-              {cards.map((g) => {
-                const c = listCounts.get(g.id) ?? 0;
-                const fresh = listNew.get(g.id) ?? 0;
-                const watched = isPremium && watchedLists.has(g.id);
-                const Icon = LIST_ICON[g.id] ?? IconList;
-                return (
-                  <button
-                    key={g.id}
-                    type="button"
-                    className="scr-tile"
-                    aria-haspopup="dialog"
-                    onClick={() => openList(g.id)}
-                  >
-                    <span className="scr-tile-ic" aria-hidden="true"><Icon size={16} /></span>
-                    <span className="scr-tile-name">{tt(g.title_en, g.title_bn)}</span>
-                    <span className={`scr-tile-n nums${c === 0 ? " is-zero" : ""}`}>
-                      <b>{c}</b>
-                      {tt(c === 1 ? " share" : " shares", "টি শেয়ার")}
+          <ul className="ls-wants">
+            {wants.map((w) => {
+              const Icon = WANT_ICON[w.icon];
+              const fresh = wantNew.get(w.id) ?? 0;
+              const watched = isPremium && w.lists.some((id) => watchedLists.has(id));
+              const titles = w.lists.map((id) => goalById.get(id)).filter((g): g is ScreenerReady => !!g);
+              return (
+                <li key={w.id}>
+                  <button type="button" className="ls-want" aria-haspopup="dialog" onClick={() => openWant(w)} data-card={`lists-want-${w.id}`}>
+                    <span className="ls-want-top">
+                      <span className="ls-want-ic" aria-hidden="true"><Icon size={18} /></span>
                       {watched && (
-                        <span className="scr-tile-watch" title={t("You watch this list", "এই তালিকা আপনার নজরে")}>
+                        <span className="ls-want-watch" title={t("You watch a list here", "এখানের একটি তালিকা আপনার নজরে")}>
                           <IconBell size={14} />
-                          <span className="sr-only">{t("You watch this list", "এই তালিকা আপনার নজরে")}</span>
+                          <span className="sr-only">{t("You watch a list here", "এখানের একটি তালিকা আপনার নজরে")}</span>
                         </span>
                       )}
                     </span>
+                    <span className="ls-want-t">{tt(w.name.en, w.name.bn)}</span>
+                    <span className="ls-want-l">
+                      {tt(titles.map((g) => g.title_en).join(" · "), titles.map((g) => g.title_bn).join(" · "))}
+                    </span>
                     {fresh > 0 && (
-                      <span className="scr-tile-new nums">
-                        {tt(`${fresh} new this week`, `এ সপ্তাহে ${fresh}টি নতুন`)}
-                      </span>
+                      <span className="ls-want-new nums">{tt(`${fresh} new this week`, `এ সপ্তাহে ${fresh}টি নতুন`)}</span>
                     )}
                   </button>
-                );
-              })}
-            </div>
-            <div className="scr-links">
-              <button type="button" className="scr-link" onClick={() => setHowOpen(true)}>
-                {tt("How we pick each list", "প্রতিটি তালিকা কীভাবে বাছাই করি")}
-              </button>
-              <button type="button" className="scr-link" onClick={openEvery} aria-haspopup="dialog">
-                {tt("See every share by sector and price", "সেক্টর ও দাম দিয়ে সব শেয়ার দেখুন")}
-              </button>
-            </div>
-            {myCodes.length > 0 && (
-              <button type="button" className="scr-mine-btn" onClick={openMine} aria-haspopup="dialog">
-                <span className="scr-mine-t">{tt("Check my shares", "আমার শেয়ার যাচাই করুন")}</span>
-                <span className="scr-mine-n nums">
-                  {tt(`${mineOnAny} of your ${myCodes.length} shares are on our lists`,
-                      `আপনার ${myCodes.length}টির মধ্যে ${mineOnAny}টি শেয়ার আমাদের তালিকায় আছে`)}
-                </span>
-              </button>
-            )}
-          </div>
-          </div>
+                </li>
+              );
+            })}
+          </ul>
         </section>
-
-        {/* How we pick each list (from the page) */}
-        <Sheet open={howOpen} onClose={() => setHowOpen(false)} title={tt("How we pick each list", "প্রতিটি তালিকা কীভাবে বাছাই করি")}>
-          <div className="space-y-4">
-            <dl className="scr-how-list">
-              {cards.map((g) => (
-                <div key={g.id}>
-                  <dt>{tt(g.title_en, g.title_bn)}</dt>
-                  <dd>
-                    {g.spec.filters.map((f) => {
-                      const d = defs.get(f.key);
-                      if (!d) return null;
-                      const w = valueWords(f, d);
-                      return <span key={f.key}>{tt(`${d.name_en}: ${w.en}`, `${d.name_bn}: ${w.bn}`)}</span>;
-                    })}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-            <p className="text-sm text-text-main">
-              {tt("Every list also leaves out Z-category shares and shares that trade under ৳10 lakh a day.",
-                  "প্রতিটি তালিকা থেকে Z ক্যাটাগরির শেয়ার আর দিনে ৳10 লাখের কম লেনদেন হওয়া শেয়ারও বাদ থাকে।")}
-            </p>
-          </div>
-        </Sheet>
 
         {/* Check my shares: each share the reader owns or follows against every list */}
         <Sheet
@@ -729,10 +716,19 @@ function ScreenerInner({ data }: { data: ScreenerUniverse }) {
           onClose={closeSheet}
           size="xl"
           title={tt("Your shares in our lists", "আমাদের তালিকায় আপনার শেয়ার")}
-          subtitle={tt(`${mineOnAny} of your ${myCodes.length} shares are on at least one list`,
-                       `আপনার ${myCodes.length}টির মধ্যে ${mineOnAny}টি অন্তত একটি তালিকায় আছে`)}
+          subtitle={myCodes.length > 0
+            ? tt(`${mineOnAny} of your ${myCodes.length} shares are on at least one list`,
+                 `আপনার ${myCodes.length}টির মধ্যে ${mineOnAny}টি অন্তত একটি তালিকায় আছে`)
+            : undefined}
         >
-          {isPremium ? (
+          {myCodes.length === 0 ? (
+            <EmptyState
+              title={tt("No shares to check yet", "যাচাই করার মতো শেয়ার এখনো নেই")}
+              message={tt("Add the shares you own or watch on My shares, and this shows which of our lists each one is on.",
+                          "আমার শেয়ারে আপনার কেনা বা নজরে রাখা শেয়ার যোগ করুন, তখন এখানে দেখবেন কোনটি আমাদের কোন তালিকায় আছে।")}
+              actions={[{ href: "/my", label: tt("Go to My shares", "আমার শেয়ারে যান") }]}
+            />
+          ) : isPremium ? (
             <ul className="scm-list">
               {myLists.map(({ code, row, on, near }) => (
                 <li key={code} className="scm-row">
@@ -834,6 +830,7 @@ function ScreenerInner({ data }: { data: ScreenerUniverse }) {
             {/* Sector, price and order: THE list bar, the same boxes as on every list */}
             <ListBar
               idPrefix="scl"
+              chips={wantChips}
               sector={sectorDef ? {
                 value: sectorValue,
                 all: sectorCounts.all,
@@ -902,8 +899,35 @@ function ScreenerInner({ data }: { data: ScreenerUniverse }) {
               </div>
             )}
 
+            {/* More on this: the report or page on the same subject as the want */}
+            {want && want.more.length > 0 && (
+              <div className="ls-more">
+                <p className="ls-more-h">{tt("More on this", "এ নিয়ে আরও")}</p>
+                <ul className="ls-more-list">
+                  {want.more.map((m) => {
+                    const l = moreLink(m);
+                    return (
+                      <li key={l.href}>
+                        <Link href={l.href} className="ls-more-a" data-card={`lists-more-${want.id}`}>
+                          <span className={`ls-row-ic${l.premium ? " ls-row-ic--gold" : ""}`} aria-hidden="true"><l.Icon size={16} /></span>
+                          <span className="ls-more-t">
+                            {m.kind === "report" ? tt(`Our report: ${l.name.en}`, `আমাদের রিপোর্ট: ${l.name.bn}`) : tt(l.name.en, l.name.bn)}
+                          </span>
+                          <span className="ls-row-go" aria-hidden="true"><IconChevronRight size={16} /></span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
             <details className="scl-how">
-              <summary>{tt("How we pick this list", "এই তালিকা কীভাবে বাছাই করি")}</summary>
+              <summary>
+                {list && want && want.lists.length > 1
+                  ? tt(`How we pick “${list.title_en}”`, `“${list.title_bn}” কীভাবে বাছাই করি`)
+                  : tt("How we pick this list", "এই তালিকা কীভাবে বাছাই করি")}
+              </summary>
               <ul>
                 {(list?.spec.filters ?? []).map((f) => {
                   const d = defs.get(f.key);

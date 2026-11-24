@@ -76,7 +76,7 @@ export default function ScreenerPremium({
           : { en: count === 1 ? "See the share" : `See the ${count} shares`, bn: count === 1 ? "শেয়ারটি দেখুন" : `${count}টি শেয়ার দেখুন` }
       }
       context={{
-        label: { en: "Our ready lists", bn: "আমাদের তৈরি তালিকা" },
+        label: { en: "Our lists", bn: "আমাদের তালিকা" },
         stakes: [mine ? { en: `${count} of your shares checked`, bn: `আপনার ${count}টি শেয়ার যাচাই` } : { en: `${count} shares match`, bn: `${count}টি শেয়ার মিলেছে` }],
       }}
     >

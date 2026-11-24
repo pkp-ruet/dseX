@@ -47,7 +47,7 @@ const PREMIUM_LIST: Bi[] = [
   { en: "The full check of your portfolio, with a plan", bn: "আপনার পোর্টফোলিওর পুরো যাচাই, একটি পরিকল্পনাসহ" },
   { en: "Every update on your shares the same evening, and a 9 AM brief", bn: "আপনার শেয়ারের সব আপডেট সেদিন সন্ধ্যাতেই, আর সকাল 9টার ব্রিফ" },
   { en: "The whole dividend calendar, with reminders", bn: "পুরো ডিভিডেন্ড ক্যালেন্ডার, রিমাইন্ডারসহ" },
-  { en: "Our research reports, our ready lists, and companies picked from your shares", bn: "আমাদের গবেষণা রিপোর্ট, তৈরি তালিকা, আর আপনার শেয়ার দেখে বাছাই করা কোম্পানি" },
+  { en: "Our research reports, our lists of shares, and companies picked from your shares", bn: "আমাদের গবেষণা রিপোর্ট, শেয়ারের তালিকা, আর আপনার শেয়ার দেখে বাছাই করা কোম্পানি" },
 ];
 
 /**

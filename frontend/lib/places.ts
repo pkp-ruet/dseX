@@ -109,7 +109,7 @@ export const PLACES: Place[] = [
         key: "lists",
         href: "/lists",
         name: { en: "Lists", bn: "তালিকা" },
-        line: { en: "Every list of shares, each opened the same way", bn: "শেয়ারের সব তালিকা, প্রতিটি একইভাবে খোলে" },
+        line: { en: "Our picks, and lists by what you want from a share", bn: "আমাদের বাছাই, আর শেয়ারে আপনি যা চান সেই অনুযায়ী তালিকা" },
         ask: { en: "Which shares should I look at?", bn: "কোন শেয়ারগুলো দেখব?" },
         icon: "lists",
         // The screener and the Find doors page folded into it (2026-11-25).
