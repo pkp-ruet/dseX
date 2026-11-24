@@ -277,6 +277,25 @@ export default function ProfileClient() {
               <T en="Open" bn="খুলুন" />
             </Link>
           </div>
+
+          {/* The reader survey (2026-11-24) */}
+          <div id="feedback" className="p-4 flex items-center justify-between gap-3 scroll-mt-24">
+            <div>
+              <span className="text-xs text-text-muted">
+                <T en="Your feedback" bn="আপনার মতামত" />
+              </span>
+              <p className="text-text-main font-medium mt-1">
+                {user.survey?.state === "done" ? (
+                  <T en="Thank you for answering" bn="উত্তর দেওয়ার জন্য ধন্যবাদ" />
+                ) : (
+                  <T en="9 short questions, about 2 minutes" bn="9টি ছোট প্রশ্ন, মোটামুটি 2 মিনিট" />
+                )}
+              </p>
+            </div>
+            <Link href="/feedback?src=profile" className="btn-quiet btn-sm">
+              {user.survey?.state === "done" ? <T en="Open" bn="খুলুন" /> : <T en="Answer" bn="উত্তর দিন" />}
+            </Link>
+          </div>
         </div>
 
         {/* Notifications */}

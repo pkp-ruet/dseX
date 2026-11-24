@@ -12,6 +12,8 @@ import {
 } from "@/lib/api";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import Tabs from "@/components/ui/Tabs";
+import AdminSurvey from "@/components/admin/AdminSurvey";
 
 function fmtTime(iso: string | null): string {
   if (!iso) return "—";
@@ -62,6 +64,17 @@ export default function AdminFeedbackClient() {
   const [data, setData] = useState<AdminFeedbackResponse | null>(null);
   const [loadError, setLoadError] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
+  // Reviews (stars + comments) or the reader survey; `#survey` opens the survey.
+  const [tab, setTab] = useState<"reviews" | "survey">("reviews");
+  useEffect(() => {
+    if (window.location.hash === "#survey") setTab("survey");
+  }, []);
+  const chooseTab = useCallback((k: "reviews" | "survey") => {
+    setTab(k);
+    try {
+      window.history.replaceState(null, "", k === "survey" ? "#survey" : window.location.pathname);
+    } catch {}
+  }, []);
 
   useEffect(() => {
     if (isLoading) return;
@@ -140,9 +153,9 @@ export default function AdminFeedbackClient() {
             User Feedback
           </h1>
           <p className="text-xs sm:text-sm text-text-muted mt-1">
-            Star ratings and comments from the homepage band and the signed-in popup.
-            Use <span className="font-semibold text-text-main">Publish</span> to show a
-            review on the landing page — nothing goes public until you do.
+            Reviews: star ratings and comments from the home page block (and the old pop-up, retired
+            2026-11-24). Use <span className="font-semibold text-text-main">Publish</span> to show a
+            review on the landing page — nothing goes public until you do. Survey: the reader survey&apos;s answers.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -161,6 +174,21 @@ export default function AdminFeedbackClient() {
         </div>
       </div>
 
+      <Tabs
+        tabs={[
+          { key: "reviews", label: "Reviews" },
+          { key: "survey", label: "Survey" },
+        ]}
+        value={tab}
+        onChange={chooseTab}
+        ariaLabel="Feedback"
+        className="mb-5"
+      />
+
+      {tab === "survey" ? (
+        <AdminSurvey />
+      ) : (
+      <>
       {loadError && (
         <div className="mb-4 rounded-lg border px-3 py-2.5 text-sm text-negative" style={{ borderColor: "color-mix(in srgb, var(--negative) 40%, transparent)", background: "color-mix(in srgb, var(--negative) 10%, transparent)" }}>
           {loadError}
@@ -259,6 +287,8 @@ export default function AdminFeedbackClient() {
           ))
         )}
       </section>
+      </>
+      )}
     </div>
   );
 }

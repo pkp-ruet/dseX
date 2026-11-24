@@ -14,6 +14,7 @@ from backend.routers import buy_list
 from backend.routers import compare
 from backend.routers import watch_rules
 from backend.routers import portfolio_builder
+from backend.routers import survey
 
 app = FastAPI(title="dseX API", version="1.0.0")
 
@@ -92,6 +93,7 @@ app.include_router(buy_list.router)
 app.include_router(compare.router)
 app.include_router(watch_rules.router)
 app.include_router(portfolio_builder.router)
+app.include_router(survey.router)
 
 
 def _startup_step(name, fn) -> None:
@@ -126,6 +128,7 @@ def startup():
     from backend.services.portfolio_daily import ensure_indexes as ensure_portfolio_daily_indexes
     from backend.services.payments import ensure_payment_indexes
     from backend.services import banner_events
+    from backend.services.survey_service import ensure_indexes as ensure_survey_indexes
     from backend.services.db_service import get_db as _get_db, watch_data_mark
 
     def _banner_indexes():
@@ -142,6 +145,7 @@ def startup():
         ("portfolio_daily", ensure_portfolio_daily_indexes),
         ("payments", ensure_payment_indexes),
         ("banner_events", _banner_indexes),
+        ("survey", ensure_survey_indexes),
         ("stock_visits", _ensure_stock_visits),
         # Pick up a job's data change even when its refresh call never arrives
         # (db_service "The data mark").

@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useLang } from "@/context/LangContext";
 import { apiSubmitFeedback } from "@/lib/api";
-import { dismissFeedback } from "@/lib/feedback";
 import { T } from "@/components/i18n/T";
 import StarRating from "@/components/feedback/StarRating";
 import Button from "@/components/ui/Button";
@@ -47,8 +46,6 @@ export default function FeedbackSection() {
         source: "homepage",
         page: "/",
       });
-      // A signed-in user who reviews here shouldn't also get nagged by the popup.
-      if (user?.user_id) dismissFeedback(user.user_id);
       setStatus("done");
     } catch {
       setFailed(true);

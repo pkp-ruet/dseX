@@ -13,6 +13,7 @@ import type { StockReport } from "@/lib/stock-report";
 import type { BuyList, BuyListHome } from "@/lib/buy-list";
 import type { RenewalHave } from "@/lib/renewal";
 import type { BuilderAnswers, BuildResult, KeptPlan, KeptPlans } from "@/lib/portfolio-builder";
+import type { SurveyState, Answers as SurveyAnswers, AnswerValue as SurveyAnswerValue } from "@/lib/survey";
 
 /**
  * Backend base URL (no trailing slash).
@@ -2874,6 +2875,74 @@ export interface AdminFeedbackResponse {
 
 export async function apiGetAdminFeedback(): Promise<AdminFeedbackResponse> {
   return apiAuthFetch<AdminFeedbackResponse>("/api/admin/feedback");
+}
+
+// ---------------------------------------------------------------------------
+// The reader survey (backend/routers/survey.py, lib/survey.ts)
+// ---------------------------------------------------------------------------
+
+export async function apiGetSurvey(): Promise<SurveyState> {
+  return apiAuthFetch<SurveyState>("/api/user/survey");
+}
+
+/** shown · later · never — the pop-up's own state on the account. */
+export async function apiSurveyEvent(action: "shown" | "later" | "never"): Promise<{ state: string; shows: number }> {
+  return apiAuthFetch("/api/user/survey/event", { method: "POST", body: JSON.stringify({ action }) });
+}
+
+export interface SurveySaveBody {
+  /** Answers to merge in; null clears one. */
+  answers: Record<string, SurveyAnswerValue | null>;
+  step: number;
+  finish?: boolean;
+  contact?: boolean;
+  lang?: "en" | "bn";
+  device?: { mobile: boolean; browser: string; standalone: boolean; width: number };
+  from_path?: string;
+}
+
+export async function apiSaveSurvey(body: SurveySaveBody): Promise<{ status: string; answers: SurveyAnswers; step: number }> {
+  return apiAuthFetch("/api/user/survey", { method: "PATCH", body: JSON.stringify(body) });
+}
+
+export interface AdminSurveyChoice { key: string | number; n: number; pct: number | null; by: Record<string, number> }
+export interface AdminSurveyQuestion { n: number; n_by: Record<string, number>; choices: AdminSurveyChoice[] }
+export interface AdminSurveyFunnel { shown: number; started: number; finished: number }
+export interface AdminSurveyRenew {
+  segment: string; ends_on: string | null; plan: string | null; worth: string | null;
+  continue: string | null; next_plan: string | null; stay: string[]; ended_why: string | null;
+  renewed: boolean; contact: boolean; name: string | null; email: string | null; phone: string | null;
+}
+export interface AdminSurveyText {
+  segment: string; at: string | null; lang: string | null;
+  device: { mobile?: boolean; browser?: string; standalone?: boolean; width?: number };
+  years: string | null; problems: string[]; like_text: string | null; problem_text: string | null; wish_text: string | null;
+  contact: boolean; name: string | null; email: string | null; phone: string | null;
+}
+export interface AdminSurveyResponse {
+  round: string;
+  everyone_from: string;
+  closes_on: string;
+  generated_at: string;
+  funnel: AdminSurveyFunnel & { by: Record<string, AdminSurveyFunnel> };
+  stops: Record<string, number>;
+  very_disappointed_pct: number | null;
+  questions: Record<string, AdminSurveyQuestion>;
+  price: {
+    n_good: number; n_high: number; wont_pay: number; good_mid: number | null; high_mid: number | null;
+    rows: { price: number; good_pct: number | null; too_pct: number | null }[];
+    by_segment: Record<string, { n: number; good_mid: number | null; high_mid: number | null }>;
+  };
+  renew: AdminSurveyRenew[];
+  said_yes: number;
+  said_yes_renewed: number;
+  texts: AdminSurveyText[];
+  rows: Record<string, string | number | boolean>[];
+  columns: string[];
+}
+
+export async function apiGetAdminSurvey(): Promise<AdminSurveyResponse> {
+  return apiAuthFetch<AdminSurveyResponse>("/api/admin/survey");
 }
 
 /** Approve / un-approve one review for public display on the landing page.

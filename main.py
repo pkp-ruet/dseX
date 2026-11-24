@@ -525,6 +525,18 @@ def cmd_morning_brief(args):
     print(f"Morning brief done: {counts}")
 
 
+def cmd_survey_email(args):
+    """The reader survey's one email to Premium readers whose plan ends within
+    14 days or has ended (backend/services/survey_service.py). Dry run unless
+    `--write`; `--all` also emails readers who have push on. Idempotent."""
+    from backend.services.survey_service import email_ending_and_ended
+
+    counts = email_ending_and_ended(write=bool(getattr(args, "write", False)),
+                                    include_push=bool(getattr(args, "all", False)))
+    mode = "sent" if getattr(args, "write", False) else "dry run, nothing sent"
+    print(f"Survey email ({mode}): {counts}")
+
+
 def cmd_weekly_letter(args):
     """The Friday letter (~10 AM Dhaka): build, store and send every reader's
     letter — push, or email without a push device. Idempotent per week.
@@ -836,6 +848,13 @@ def main():
     letter_parser.add_argument("--no-send", action="store_true", help="Store the letters without sending")
     letter_parser.add_argument("--user", default=None, help="Print one reader's letter by email (no store, no send)")
 
+    survey_parser = sub.add_parser(
+        "survey-email",
+        help="Reader survey: one email to Premium readers whose plan ends soon or has ended (dry run unless --write)",
+    )
+    survey_parser.add_argument("--write", action="store_true", help="Send the emails (default: count only)")
+    survey_parser.add_argument("--all", action="store_true", help="Also email readers who have push on")
+
     all_parser = sub.add_parser("scrape-all", help="Run all scrapers sequentially")
     all_parser.add_argument(
         "--full",
@@ -870,6 +889,7 @@ def main():
         "portfolio-daily":       cmd_portfolio_daily,
         "morning-brief":         cmd_morning_brief,
         "weekly-letter":         cmd_weekly_letter,
+        "survey-email":          cmd_survey_email,
         "scrape-all":            cmd_scrape_all,
     }
 

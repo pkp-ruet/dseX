@@ -33,6 +33,7 @@ import "./styles/home.css";
 import "./styles/notifications.css";
 import "./styles/places.css";
 import "./styles/watch-rules.css";
+import "./styles/survey.css";
 
 // One Latin family, three weights (2026-10 redesign): regular, semibold, bold.
 // font-medium renders as regular and font-extrabold/black as bold — fewer font
@@ -72,7 +73,7 @@ import Toaster from "@/components/ui/Toaster";
 import LimitSheet from "@/components/premium/LimitSheet";
 import WatchRulesHost from "@/components/watch-rules/WatchRulesHost";
 import PingTracker from "@/components/analytics/PingTracker";
-import FeedbackPrompt from "@/components/feedback/FeedbackPrompt";
+import SurveyHost from "@/components/survey/SurveyHost";
 import PushOptInPrompt from "@/components/push/PushOptInPrompt";
 import RenewBanner from "@/components/premium/RenewBanner";
 import InstallPrompt from "@/components/pwa/InstallPrompt";
@@ -185,7 +186,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Toaster />
             <LimitSheet />
             <WatchRulesHost />
-            <FeedbackPrompt />
+            <SurveyHost />
             <PushOptInPrompt />
             <InstallPrompt />
           </GoogleAuthProvider>

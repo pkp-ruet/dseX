@@ -54,6 +54,9 @@ export interface AuthUser {
   offer?: OwnOfferState | null;
   /** The portfolio builder's one free plan (backend `portfolio_builder.builder_state`). */
   builder?: { free_used: boolean; count: number };
+  /** The reader survey (backend `survey.me_state`): `ask` = the browser may ask
+   *  the server whether to open it. null once the round has closed. */
+  survey?: { round: string; state: "open" | "later" | "done" | "declined"; ask: boolean } | null;
 }
 
 export interface OwnOfferState {

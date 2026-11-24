@@ -15,6 +15,7 @@ import {
   IconCrown,
   IconDownload,
   IconGrid,
+  IconPen,
   IconSearch,
 } from "@/components/ui/icons";
 import Button from "@/components/ui/Button";
@@ -519,6 +520,27 @@ export default function Navbar() {
                     </span>
                   </span>
                 </InstallAppButton>
+                {/* The reader survey (2026-11-24), always open here. */}
+                {isLoggedIn && (
+                  <Link
+                    href="/feedback?src=menu"
+                    className="mobile-menu-shortcut"
+                    aria-current={pathname === "/feedback" ? "page" : undefined}
+                    onClick={closeMenu}
+                  >
+                    <span className="mobile-menu-shortcut-icon">
+                      <IconPen size={20} />
+                    </span>
+                    <span className="mobile-menu-shortcut-text">
+                      <span className="mobile-menu-shortcut-label">
+                        <T en="Share your feedback" bn="আপনার মতামত দিন" />
+                      </span>
+                      <span className="mobile-menu-shortcut-sub">
+                        <T en="9 short questions, about 2 minutes" bn="9টি ছোট প্রশ্ন, মোটামুটি 2 মিনিট" />
+                      </span>
+                    </span>
+                  </Link>
+                )}
               </div>
             </section>
 

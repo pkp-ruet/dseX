@@ -160,6 +160,8 @@ def plan_fields(user: dict) -> dict:
         "offer": offer_state(user, now, is_premium(user), offer_open()),
         # The portfolio builder's one free plan (portfolio_builder.builder_state).
         "builder": _builder_state(user),
+        # The reader survey: should the browser ask the server about it (survey.me_state).
+        "survey": _survey_state(user, now),
     }
 
 
@@ -167,6 +169,15 @@ def _builder_state(user: dict) -> dict:
     from backend.services.portfolio_builder import builder_state
 
     return builder_state(user)
+
+
+def _survey_state(user: dict, now: datetime) -> Optional[dict]:
+    from backend.services import survey
+
+    try:
+        return survey.me_state(user, now, admin=is_admin(user))
+    except Exception:  # noqa: BLE001 — never fail /me over the survey
+        return None
 
 
 def _taste_state(user: dict, now: datetime) -> Optional[dict]:
