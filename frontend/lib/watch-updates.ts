@@ -345,7 +345,7 @@ export function buildWatchUpdates({
       label: pair(KIND_WORD[read.kind].en, KIND_WORD[read.kind].bn),
       title: pair(read.text.en, read.text.bn),
       short: days === 0 ? pair("News today", "আজ খবর") : pair("New notice", "নতুন খবর"),
-      href: "#wl-news",
+      href: `/stock/${encodeURIComponent(code)}#news`,
     });
   }
 

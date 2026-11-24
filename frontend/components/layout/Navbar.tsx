@@ -454,7 +454,7 @@ export default function Navbar() {
                         <>
                           <span className="mobile-menu-item-icon">
                             <MenuIcon name={it.icon} />
-                            {it.key === "watchlist" && <WatchlistDot />}
+                            {it.key === "shares" && <WatchlistDot />}
                           </span>
                           <span className="mobile-menu-item-text">
                             <span className="mobile-menu-item-label">

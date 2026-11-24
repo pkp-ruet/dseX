@@ -24,6 +24,8 @@ interface Props {
   /** Which portfolio (absent = the main one). */
   pid?: string;
   lang?: AnalysisLang;
+  /** A share to start from (My shares: "I own it" on a watched share). */
+  initialCode?: string;
 }
 
 const emptyForm = () => ({ trading_code: "", price: "", qty: "" });
@@ -33,10 +35,15 @@ const emptyForm = () => ({ trading_code: "", price: "", qty: "" });
  * sheet on phones, dialog from 640px. Code with type-ahead (company name
  * beside each code), price prefilled with today's price, quantity.
  */
-export default function AddHoldingModal({ allCodes, priceMap, existingCodes, holdings = [], onClose, onAdded, pid, lang = "en" }: Props) {
+export default function AddHoldingModal({ allCodes, priceMap, existingCodes, holdings = [], onClose, onAdded, pid, lang = "en", initialCode }: Props) {
   const bn = lang === "bn";
   const L = (en: string, b: string) => (bn ? b : en);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState(() => {
+    if (!initialCode) return emptyForm();
+    const code = initialCode.toUpperCase();
+    const ltp = priceMap.get(code)?.ltp ?? null;
+    return { trading_code: code, price: ltp != null ? String(ltp) : "", qty: "" };
+  });
   const [error, setError] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [activeSuggestion, setActiveSuggestion] = useState(-1);

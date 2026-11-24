@@ -14,7 +14,7 @@ const FIRST_ROWS = 6;
  * News on the reader's stocks, inside the portfolio's "News on your stocks"
  * card (2026-10-26): headline only, one hairline row each — company code,
  * date, the headline. "Read more" opens the full announcement in place.
- * The watchlist page keeps its own list (`watchlist/WatchlistNews`).
+ * Since 2026-11-25 it lists the news on the shares they watch too (the watchlist page folded into My shares).
  */
 export default function PortfolioNews({
   news,

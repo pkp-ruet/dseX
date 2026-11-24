@@ -31,7 +31,7 @@ export default function WatchlistDot() {
   const { lang } = useLang();
 
   useEffect(() => {
-    if (pathname === "/watchlist") {
+    if (pathname === "/my") {
       _hasFresh = false;
       setShow(false);
       return;

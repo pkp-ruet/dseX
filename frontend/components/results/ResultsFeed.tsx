@@ -162,7 +162,7 @@ function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level,
             />
           }
           actions={[
-            { href: "/watchlist", label: <T en="Build your watchlist" bn="ওয়াচলিস্ট বানান" /> },
+            { href: "/my?view=watch", label: <T en="Watch a few shares" bn="কয়েকটি শেয়ারে নজর রাখুন" /> },
             { href: "/portfolio", label: <T en="Add your portfolio" bn="পোর্টফোলিও যোগ করুন" /> },
           ]}
         />

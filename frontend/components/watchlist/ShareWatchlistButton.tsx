@@ -15,7 +15,7 @@ export default function ShareWatchlistButton({ codes }: Props) {
     if (codes.length === 0) return;
     const origin =
       typeof window !== "undefined" ? window.location.origin : "https://topstockbd.com";
-    const url = `${origin}/watchlist?codes=${codes.map((c) => c.toUpperCase()).join(",")}`;
+    const url = `${origin}/my?codes=${codes.map((c) => c.toUpperCase()).join(",")}`;
     try {
       if (navigator.clipboard) {
         await navigator.clipboard.writeText(url);

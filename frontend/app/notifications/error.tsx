@@ -20,7 +20,7 @@ export default function NotificationsError({
     <ErrorState
       title={<T en="We couldn't load your notifications" bn="আপনার নোটিফিকেশন এখন লোড করা যাচ্ছে না" />}
       onRetry={reset}
-      links={[{ href: "/watchlist", label: <T en="Your watchlist" bn="আপনার ওয়াচলিস্ট" /> }]}
+      links={[{ href: "/my?view=watch", label: <T en="My shares" bn="আমার শেয়ার" /> }]}
     />
   );
 }

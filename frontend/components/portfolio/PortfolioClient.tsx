@@ -3,6 +3,7 @@
 import { authHref } from "@/lib/next-path";
 import Link from "@/components/ui/Link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import {
   getScores,
@@ -31,7 +32,12 @@ import {
   apiGetWatchEvents,
   apiPortfolioAction,
   apiDeleteLogEntry,
+  apiGetNotifications,
+  apiVisitWatchlist,
   MAIN_PORTFOLIO_ID,
+  type NotificationItem,
+  type NotificationsFeed,
+  type WatchlistMeta,
   type PortfolioSignalEvent,
   type PortfolioLogEntry,
   type PortfolioResponse,
@@ -44,7 +50,7 @@ import {
   type GlanceRow,
   type UpcomingResult,
 } from "@/lib/api";
-import { companyShort, takaGroup } from "@/lib/formatters";
+import { changePct, changeTone, companyShort, money, takaGroup } from "@/lib/formatters";
 import {
   signalInfoFromApi,
   portfolioTodayMove,
@@ -99,7 +105,18 @@ import PfShareSheet, { type ShareSheetRow } from "./report/PfShareSheet";
 import PfFirstNote from "./report/PfFirstNote";
 import PfMoneyRoom from "./report/PfMoneyRoom";
 import TierPill from "@/components/ui/TierPill";
-import type { TierKey } from "@/lib/constants";
+import { getTier, type TierKey } from "@/lib/constants";
+import { visibleFeed } from "@/lib/feed";
+import { getCachedWatchlist, getCachedWatchlistMeta, loadWatchlist, setWatchlist, subscribeWatchlist } from "@/lib/watchlist";
+import { getCachedAlerts, loadAlerts, subscribeAlerts } from "@/lib/price-alerts";
+import { stopWatching } from "@/components/watch-rules/store";
+import WatchShareSheet, { type WatchSheetRow } from "./WatchShareSheet";
+import WatchSearch from "./WatchSearch";
+import WatchPlanLine from "@/components/watchlist/WatchPlanLine";
+import ShareWatchlistButton from "@/components/watchlist/ShareWatchlistButton";
+import EmptyStateActions from "@/components/watchlist/EmptyStateActions";
+import AlertsClient from "@/components/alerts/AlertsClient";
+import SectionHeader from "@/components/ui/SectionHeader";
 import { buildNextMove, gradeLifts, gradePath } from "@/lib/portfolio-next";
 import { buildPortfolioReport } from "@/lib/portfolio-report";
 import { SAMPLE_PORTFOLIOS } from "@/lib/sample-portfolios";
@@ -287,8 +304,30 @@ function PortfolioSkeleton() {
   );
 }
 
-export default function PortfolioClient() {
+/** A feed row counts as new on a share's row for this many days. */
+const NEW_DAYS = 7;
+type ListView = "all" | "own" | "watch";
+const CODE_RX = /^[A-Z0-9&.-]{1,20}$/;
+
+/**
+ * Two pages, one component (2026-11-25, step 3 of the simplify review: the
+ * user chose a separate /my page and one sheet for every row):
+ *  - `view="portfolio"` (/portfolio): the money, the check, what to do and
+ *    the details. For the main portfolio its share list is one card that
+ *    links to My shares; an extra portfolio keeps its own list here.
+ *  - `view="shares"` (/my, "My shares"): ONE list of every share the reader
+ *    owns (main portfolio) and watches, with All · I own · I watch; a tap
+ *    opens one sheet (owned: `PfShareSheet`, watched: `WatchShareSheet`);
+ *    adding, buying, selling, fixing and watching all happen here. The
+ *    watchlist page folded into it (/watchlist 301s here).
+ * Both read the same data and dialogs, so a sale or a new share shows on
+ * both. Each share's updates are the Updates feed's own rows ("one feed,
+ * told once"): a row's "N new" and its sheet's list read the feed.
+ */
+export default function PortfolioClient({ view = "portfolio" }: { view?: "portfolio" | "shares" }) {
   const { isLoading, isLoggedIn } = useAuth();
+  const router = useRouter();
+  const shares = view === "shares";
 
   // SWR hydrate. Per-user data is cached; scores + codes are shared.
   const userId = getStoredUser()?.user_id ?? null;
@@ -344,6 +383,54 @@ export default function PortfolioClient() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const isMain = pid === MAIN_PORTFOLIO_ID;
 
+  // The shares the reader watches (both views: My shares lists them, the
+  // portfolio's Activity tab reads their news), the Updates feed (each
+  // share's "N new" and its sheet's list), and the price alerts (My shares).
+  const [watchCodes, setWatchCodes] = useState<string[]>(() => getCachedWatchlist());
+  const [watchMeta, setWatchMeta] = useState<WatchlistMeta>(() => getCachedWatchlistMeta());
+  const [feed, setFeed] = useState<NotificationsFeed | null>(null);
+  const [alertCount, setAlertCount] = useState(0);
+  const [listView, setListView] = useState<ListView>("all");
+  const [watchSheet, setWatchSheet] = useState<string | null>(null);
+  const [addInitial, setAddInitial] = useState<string | undefined>(undefined);
+  const [sharedCodes, setSharedCodes] = useState<string[]>([]);
+  const pendingShare = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    const sync = () => {
+      setWatchCodes(getCachedWatchlist());
+      setWatchMeta(getCachedWatchlistMeta());
+    };
+    loadWatchlist().then(sync).catch(() => {});
+    apiGetNotifications().then(setFeed).catch(() => {});
+    loadAlerts().then(() => setAlertCount(getCachedAlerts().length)).catch(() => {});
+    const offW = subscribeWatchlist(sync);
+    const offA = subscribeAlerts(() => setAlertCount(getCachedAlerts().length));
+    return () => {
+      offW();
+      offA();
+    };
+  }, [isLoggedIn]);
+
+  // My shares: ?view=own|watch, ?share=CODE (opens its sheet: the portfolio's
+  // to-do and old links land here), ?codes=A,B (a shared watchlist link); the
+  // visit clears the navbar's news dot (it was the watchlist page's job).
+  useEffect(() => {
+    if (!shares || !isLoggedIn) return;
+    const qs = new URLSearchParams(window.location.search);
+    const v = qs.get("view");
+    if (v === "own" || v === "watch") setListView(v);
+    pendingShare.current = qs.get("share")?.toUpperCase() ?? null;
+    const codes = (qs.get("codes") ?? "")
+      .split(",")
+      .map((c) => c.trim().toUpperCase())
+      .filter((c) => CODE_RX.test(c))
+      .slice(0, 50);
+    setSharedCodes(codes);
+    apiVisitWatchlist().catch(() => {});
+  }, [shares, isLoggedIn]);
+
   function applyHoldings(next: PortfolioHolding[], nextLog?: PortfolioLogEntry[]) {
     setHoldings(next);
     if (nextLog) setLog(nextLog);
@@ -358,9 +445,9 @@ export default function PortfolioClient() {
     if (res.portfolios) setPortfolios(res.portfolios);
   }
 
-  // Restore the last-open portfolio for this reader.
+  // Restore the last-open portfolio for this reader (My shares is always the main one).
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || shares) return;
     try {
       const saved = localStorage.getItem(pidKey(userId));
       if (saved && saved !== MAIN_PORTFOLIO_ID) {
@@ -551,8 +638,6 @@ export default function PortfolioClient() {
     if (codes.length === 0) {
       setRanges(new Map());
       setGlance(new Map());
-      setNews([]);
-      setNewsLoading(false);
       return;
     }
     let cancelled = false;
@@ -566,6 +651,25 @@ export default function PortfolioClient() {
       if (cancelled) return;
       setRanges(new Map(items.map((it) => [it.trading_code.toUpperCase(), it])));
     });
+    return () => {
+      cancelled = true;
+    };
+  }, [holdingCodesKey]);
+
+  // News on the shares they own and watch (the Activity tab; since
+  // 2026-11-25 watched shares' news lives here, not on a watchlist page).
+  const newsCodesKey = useMemo(
+    () => [...new Set([...holdings.map((h) => h.trading_code.toUpperCase()), ...watchCodes.map((c) => c.toUpperCase())])].sort().join(","),
+    [holdings, watchCodes],
+  );
+  useEffect(() => {
+    const codes = newsCodesKey ? newsCodesKey.split(",") : [];
+    if (codes.length === 0) {
+      setNews([]);
+      setNewsLoading(false);
+      return;
+    }
+    let cancelled = false;
     setNewsLoading(true);
     getWatchlistNews(codes)
       .then((items) => {
@@ -577,7 +681,7 @@ export default function PortfolioClient() {
     return () => {
       cancelled = true;
     };
-  }, [holdingCodesKey]);
+  }, [newsCodesKey]);
 
   const rows = useMemo(
     () => holdings.map((h) => compute(h, priceMap, ranges)),
@@ -681,19 +785,27 @@ export default function PortfolioClient() {
     () => events.filter((e) => heldUpper.has(e.trading_code.toUpperCase())),
     [events, heldUpper],
   );
-  // Each holding card's own update tags: one per kind, worst first, two at most.
-  const updateTags = useMemo(() => {
-    const rank = { bad: 0, watch: 1, good: 2 } as const;
-    const by = new Map<string, PortfolioWatchEvent[]>();
-    for (const e of [...myWatch].sort((a, b) => rank[a.level] - rank[b.level] || b.day.localeCompare(a.day))) {
-      if (e.kind === "answer" || e.kind === "buylist") continue; // Buy / Sell news: Premium chapters only
-      const code = e.code.toUpperCase();
-      const list = by.get(code) ?? [];
-      if (list.length < 2 && !list.some((x) => x.kind === e.kind)) list.push(e);
-      by.set(code, list);
+  // Each share's updates: the Updates feed's own rows the reader may see
+  // (a free reader's counted ones never name a share), newest first.
+  const feedOf = useMemo(() => {
+    const by = new Map<string, NotificationItem[]>();
+    if (!feed) return by;
+    for (const i of visibleFeed(feed.items, feed.premium).shown) {
+      if (!i.code || i.kind === "letter" || i.kind === "brief") continue;
+      const code = i.code.toUpperCase();
+      by.set(code, [...(by.get(code) ?? []), i]);
     }
     return by;
-  }, [myWatch]);
+  }, [feed]);
+  const newOf = useMemo(() => {
+    const cut = Date.now() - NEW_DAYS * 86_400_000;
+    const by = new Map<string, number>();
+    for (const [code, items] of feedOf) {
+      const n = items.filter((i) => Date.parse(i.at) >= cut).length;
+      if (n > 0) by.set(code, n);
+    }
+    return by;
+  }, [feedOf]);
 
   // Search + filter chips, shown from FILTER_FROM stocks. A filter whose chip
   // has gone (its count fell to 0) falls back to "All".
@@ -703,21 +815,21 @@ export default function PortfolioClient() {
   const filterCounts = useMemo(() => {
     const counts: Record<HoldFilter, number> = { all: rows.length, loss: 0, updates: 0 };
     for (const r of rows) {
-      const hasUpdates = updateTags.has(r.holding.trading_code.toUpperCase());
+      const hasUpdates = newOf.has(r.holding.trading_code.toUpperCase());
       for (const f of FILTERS) if (f.key !== "all" && matchesFilter(r, f.key, hasUpdates)) counts[f.key]++;
     }
     return counts;
-  }, [rows, updateTags]);
+  }, [rows, newOf]);
   const activeFilter: HoldFilter = showFilters && filterCounts[filter] > 0 ? filter : "all";
   const q = showFilters ? query.trim().toLowerCase() : "";
   const visibleRows = useMemo(() => {
     if (activeFilter === "all" && !q) return sortedRows;
     return sortedRows.filter((r) => {
       const code = r.holding.trading_code.toUpperCase();
-      if (!matchesFilter(r, activeFilter, updateTags.has(code))) return false;
+      if (!matchesFilter(r, activeFilter, newOf.has(code))) return false;
       return !q || code.toLowerCase().includes(q) || (r.company_name ?? "").toLowerCase().includes(q);
     });
-  }, [sortedRows, activeFilter, q, updateTags]);
+  }, [sortedRows, activeFilter, q, newOf]);
 
   // A tap on a share opens its whole story in a sheet (2026-11-23; it was a
   // drawer that opened in the list).
@@ -887,8 +999,72 @@ export default function PortfolioClient() {
     if (r) act(r);
   }
   function openShareByCode(code: string) {
+    // The main portfolio's shares live on My shares (2026-11-25): open the sheet there.
+    if (!shares && isMain) {
+      router.push(`/my?share=${encodeURIComponent(code.toUpperCase())}`);
+      return;
+    }
     const r = rows.find((x) => x.holding.trading_code.toUpperCase() === code.toUpperCase());
     if (r) setSheetId(r.holding.id);
+  }
+
+  // The shares they watch but don't own (My shares lists them after the owned ones).
+  const watchRows = useMemo<WatchSheetRow[]>(
+    () =>
+      watchCodes
+        .map((c) => c.toUpperCase())
+        .filter((c) => !heldUpper.has(c))
+        .map((code) => {
+          const s = priceMap.get(code);
+          return {
+            code,
+            name: companyShort(s?.company_name) || code,
+            ltp: s?.ltp ?? null,
+            change: s?.change_pct ?? null,
+            tier: s?.score != null ? getTier(s.score) : null,
+            meta: watchMeta[code] ?? null,
+          };
+        }),
+    [watchCodes, heldUpper, priceMap, watchMeta],
+  );
+  const watchSheetRow = watchRows.find((w) => w.code === watchSheet) ?? null;
+
+  // ?share=CODE: open that share's sheet once the list is in.
+  useEffect(() => {
+    const c = pendingShare.current;
+    if (!c || dataLoading) return;
+    const r = rows.find((x) => x.holding.trading_code.toUpperCase() === c);
+    if (r) {
+      pendingShare.current = null;
+      setSheetId(r.holding.id);
+    } else if (watchRows.some((w) => w.code === c)) {
+      pendingShare.current = null;
+      setWatchSheet(c);
+    }
+  }, [dataLoading, rows, watchRows]);
+
+  async function stopWatchingShare(code: string) {
+    setWatchSheet(null);
+    const undo = await stopWatching(code);
+    toast({
+      tone: "neutral",
+      message: <T en={`You stopped watching ${code}`} bn={`${code}-এ নজর রাখা বন্ধ করেছেন`} />,
+      action: { label: <T en="Undo" bn="ফিরিয়ে আনুন" />, onClick: () => void undo() },
+    });
+  }
+
+  async function importShared() {
+    const merged = Array.from(new Set([...watchCodes.map((c) => c.toUpperCase()), ...sharedCodes]));
+    await setWatchlist(merged);
+    dismissShared();
+  }
+  function dismissShared() {
+    setSharedCodes([]);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("codes");
+      window.history.replaceState(null, "", url.toString());
+    } catch {}
   }
 
   const bn = lang === "bn";
@@ -1017,19 +1193,30 @@ export default function PortfolioClient() {
     return (
       <section className="soft-card pf-empty mx-auto mt-4 w-full max-w-md">
         <h2 className="pf-empty-title">
-          <T en="Sign in to see your portfolio" bn="পোর্টফোলিও দেখতে সাইন ইন করুন" />
+          {shares ? (
+            <T en="Sign in to see your shares" bn="আপনার শেয়ার দেখতে সাইন ইন করুন" />
+          ) : (
+            <T en="Sign in to see your portfolio" bn="পোর্টফোলিও দেখতে সাইন ইন করুন" />
+          )}
         </h2>
         <p className="pf-empty-text">
-          <T
-            en="Your shares, your profit or loss and your dividends, all in one place."
-            bn="আপনার শেয়ার, মুনাফা বা লোকসান আর ডিভিডেন্ড, সব এক জায়গায়।"
-          />
+          {shares ? (
+            <T
+              en="Every share you own or watch, in one list, with what's new on each."
+              bn="আপনার কেনা আর নজরে রাখা সব শেয়ার, এক তালিকায়, প্রতিটির নতুন খবরসহ।"
+            />
+          ) : (
+            <T
+              en="Your shares, your profit or loss and your dividends, all in one place."
+              bn="আপনার শেয়ার, মুনাফা বা লোকসান আর ডিভিডেন্ড, সব এক জায়গায়।"
+            />
+          )}
         </p>
         <div className="pf-empty-actions">
-          <Button href={authHref("/login", "/portfolio")} variant="primary">
+          <Button href={authHref("/login", shares ? "/my" : "/portfolio")} variant="primary">
             <T en="Sign in" bn="সাইন ইন" />
           </Button>
-          <Button href={authHref("/register", "/portfolio")} variant="quiet">
+          <Button href={authHref("/register", shares ? "/my" : "/portfolio")} variant="quiet">
             <T en="Create an account" bn="অ্যাকাউন্ট খুলুন" />
           </Button>
         </div>
@@ -1058,8 +1245,402 @@ export default function PortfolioClient() {
   const L = (en: string, b: string) => (bn ? b : en);
   const sortLabel = (key: SortKey) => (bn ? SORT_LABEL_BN[key] : COLUMNS.find((c) => c.key === key)?.label ?? key);
 
+  const ownedRow = (row: ComputedRow) => {
+    const code = row.holding.trading_code;
+    const name = row.company_name ?? code;
+    const fresh = newOf.get(code.toUpperCase()) ?? 0;
+    const ins = insightOf.get(code.toUpperCase());
+    const tierOf = ins && ins.tierKey !== "unscored" ? (ins.tierKey as TierKey) : null;
+    const st = report.status[code.toUpperCase()] ?? null;
+    return (
+      <article key={row.holding.id} className="pf-hold">
+        <button
+          type="button"
+          className="pf-hold-row"
+          onClick={() => {
+            setSheetId(row.holding.id);
+            trackEvent("pf_open", { what: "share", key: st?.kind ?? "none" });
+          }}
+          aria-label={L(`${name}: open`, `${name}: খুলুন`)}
+        >
+          <span className="pf-hold-who">
+            <span className="pf-hold-name">{name}</span>
+            <span className={`pf-hold-sub ${bnCls}`}>
+              <span className="pf-hold-code">{code}</span>
+              {" · "}
+              <span className="pv">
+                {bn
+                  ? `${row.holding.qty.toLocaleString("en-IN")}টি শেয়ার`
+                  : `${row.holding.qty.toLocaleString("en-IN")} share${row.holding.qty === 1 ? "" : "s"}`}
+              </span>
+            </span>
+          </span>
+          <span className="pf-hold-val">
+            <b className="pv">{row.current_value != null ? takaGroup(row.current_value) : "—"}</b>
+            {row.pnl != null && (
+              <span className={`pv ${row.pnl > 0 ? "pf-up" : row.pnl < 0 ? "pf-down" : "pf-flat"}`}>
+                {row.pnl > 0 ? "+" : row.pnl < 0 ? "−" : ""}
+                {takaGroup(Math.abs(row.pnl))}
+              </span>
+            )}
+          </span>
+          <span className={`pf-hold-st ${bnCls}`}>
+            {reportOpen && st ? (
+              <span className="pf-st" data-tone={st.tone}>
+                <i aria-hidden="true" />
+                {bn ? st.word.bn : st.word.en}
+              </span>
+            ) : tierOf ? (
+              <TierPill tier={tierOf} />
+            ) : null}
+            {fresh > 0 && (
+              <span className="pf-hold-new">{bn ? `${fresh}টি নতুন` : `${fresh} new`}</span>
+            )}
+          </span>
+          {/* What the row opens, in words (2026-11-23) */}
+          <span className="pf-hold-go" aria-hidden="true">
+            {L("Details", "বিস্তারিত")}
+            <IconChevronRight size={14} />
+          </span>
+          {/* A share that needs something shows why, open (2026-11-23) */}
+          {reportOpen && st?.why && st.kind !== "ok" && (
+            <span className={`pf-hold-why ${bnCls}`}>{bn ? st.why.bn : st.why.en}</span>
+          )}
+        </button>
+      </article>
+    );
+  };
+
+  const watchedRow = (w: WatchSheetRow) => {
+    const fresh = newOf.get(w.code) ?? 0;
+    const since =
+      w.meta?.price_at_add != null && w.meta.price_at_add > 0 && w.ltp != null
+        ? ((w.ltp - w.meta.price_at_add) / w.meta.price_at_add) * 100
+        : null;
+    return (
+      <article key={`w-${w.code}`} className="pf-hold">
+        <button
+          type="button"
+          className="pf-hold-row"
+          onClick={() => {
+            setWatchSheet(w.code);
+            trackEvent("pf_open", { what: "watched", key: "none" });
+          }}
+          aria-label={L(`${w.name}: open`, `${w.name}: খুলুন`)}
+        >
+          <span className="pf-hold-who">
+            <span className="pf-hold-name">{w.name}</span>
+            <span className={`pf-hold-sub ${bnCls}`}>
+              <span className="pf-hold-code">{w.code}</span>
+              {" · "}
+              {since != null
+                ? L(`${changePct(since, 1)} since you started watching`, `নজর রাখার পর ${changePct(since, 1)}`)
+                : L("You watch it", "নজরে রাখছেন")}
+            </span>
+          </span>
+          <span className="pf-hold-val">
+            <b>{money(w.ltp)}</b>
+            <span className={changeTone(w.change)}>{changePct(w.change)}</span>
+          </span>
+          <span className={`pf-hold-st ${bnCls}`}>
+            {w.tier && <TierPill tier={w.tier} />}
+            {fresh > 0 && <span className="pf-hold-new">{bn ? `${fresh}টি নতুন` : `${fresh} new`}</span>}
+          </span>
+          <span className="pf-hold-go" aria-hidden="true">
+            {L("Details", "বিস্তারিত")}
+            <IconChevronRight size={14} />
+          </span>
+        </button>
+      </article>
+    );
+  };
+
+  const shareSheet = (
+    <PfShareSheet
+      open={sheetRow != null}
+      row={sheetRow}
+      status={sheetRow ? report.status[sheetRow.code.toUpperCase()] ?? null : null}
+      way={sheetRow ? wayOf.get(sheetRow.code.toUpperCase()) ?? null : null}
+      updates={sheetRow ? feedOf.get(sheetRow.code.toUpperCase()) ?? [] : []}
+      premium={reportOpen}
+      readOnly={readOnly}
+      premiumHref={shares ? "/portfolio#pf-premium" : "#pf-premium"}
+      onClose={() => setSheetId(null)}
+      onBuy={() => sheetFor((r) => openTx("buy", r))}
+      onSell={() => sheetFor((r) => openTx("sell", r))}
+      onEdit={() => sheetFor((r) => startEdit(r.holding))}
+      onRemove={() => sheetFor((r) => handleDelete(r.holding.id))}
+    />
+  );
+
+  /** My shares (/my): one list of what they own and what they watch. */
+  const renderShares = () => {
+    const total = holdings.length + watchRows.length;
+    const showSearch = total >= FILTER_FROM;
+    const sq = showSearch ? query.trim().toLowerCase() : "";
+    const match = (code: string, name: string) =>
+      !sq || code.toLowerCase().includes(sq) || name.toLowerCase().includes(sq);
+    const ownList =
+      listView === "watch"
+        ? []
+        : sortedRows.filter((r) => {
+            const code = r.holding.trading_code.toUpperCase();
+            if (listView === "own" && showFilters && !matchesFilter(r, activeFilter, newOf.has(code))) return false;
+            return match(code, r.company_name ?? "");
+          });
+    const watchList = listView === "own" ? [] : watchRows.filter((w) => match(w.code, w.name));
+    const both = holdings.length > 0 && watchRows.length > 0;
+    const owned = heldUpper;
+    const watchedSet = new Set(watchCodes.map((c) => c.toUpperCase()));
+    const newShared = sharedCodes.filter((c) => !watchedSet.has(c));
+    const VIEWS: { key: ListView; en: string; bn: string; n: number }[] = [
+      { key: "all", en: "All", bn: "সব", n: total },
+      { key: "own", en: "I own", bn: "আমার আছে", n: holdings.length },
+      { key: "watch", en: "I watch", bn: "নজরে রাখি", n: watchRows.length },
+    ];
+    return (
+      <PageLockScope anchor="pf-premium">
+        {newShared.length > 0 && (
+          <div className={`soft-card pf-note mb-4 ${bnCls}`}>
+            <p className="pf-note-text">
+              {L(
+                `Someone shared a list of ${newShared.length} ${newShared.length === 1 ? "share" : "shares"}: ${newShared.slice(0, 5).join(", ")}${newShared.length > 5 ? "…" : ""}. Watch them too?`,
+                `কেউ ${newShared.length}টি শেয়ারের একটি তালিকা পাঠিয়েছেন: ${newShared.slice(0, 5).join(", ")}${newShared.length > 5 ? "…" : ""}। এগুলোতেও নজর রাখবেন?`,
+              )}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" variant="primary" size="sm" onClick={importShared}>
+                {L("Watch them", "নজর রাখুন")}
+              </Button>
+              <Button type="button" variant="quiet" size="sm" onClick={dismissShared}>
+                {L("No, thanks", "না, ধন্যবাদ")}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {rowError && <p className="form-error mb-3">{rowError}</p>}
+
+        {/* One line on what is here, and the two pages it leads to. */}
+        <div className={`ms-top ${bnCls}`} lang={bn ? "bn" : undefined}>
+          <p className="ms-line">
+            {total === 0
+              ? L("Nothing here yet.", "এখানে এখনো কিছু নেই।")
+              : L(
+                  `You own ${holdings.length} ${holdings.length === 1 ? "share" : "shares"} and watch ${watchRows.length}.`,
+                  `আপনার ${holdings.length}টি শেয়ার আছে, আর ${watchRows.length}টিতে নজর রাখছেন।`,
+                )}
+          </p>
+          <div className="ms-links">
+            {holdings.length > 0 && (
+              <Link href="/portfolio" className="ms-go">
+                {L("Your money and your check", "আপনার টাকা আর যাচাই")}
+                <IconChevronRight size={14} />
+              </Link>
+            )}
+            <Link href="/notifications" className="ms-go">
+              {L("Updates", "আপডেট")}
+              <IconChevronRight size={14} />
+            </Link>
+          </div>
+        </div>
+
+        <WatchPlanLine />
+
+        {total === 0 ? (
+          <section className={`soft-card pf-empty ${bnCls}`} lang={bn ? "bn" : undefined}>
+            <h2 className="pf-empty-title">{L("Add the shares you own, or watch a few", "আপনার শেয়ার যোগ করুন, বা কয়েকটিতে নজর রাখুন")}</h2>
+            <p className="pf-empty-text">
+              {L(
+                "We check them after every close and tell you when results, a dividend or a warning comes.",
+                "প্রতিদিন বাজার বন্ধের পর আমরা সেগুলো দেখি, আর আর্থিক ফল, ডিভিডেন্ড বা সতর্কতা এলে জানাই।",
+              )}
+            </p>
+            <div className="pf-empty-actions">
+              <Button type="button" variant="primary" size="lg" onClick={openAdd}>
+                {L("Add a share I own", "আমার একটি শেয়ার যোগ করুন")}
+              </Button>
+            </div>
+            <EmptyStateActions />
+          </section>
+        ) : (
+          <section id="pf-shares" className="pf-block flex flex-col gap-3" aria-labelledby="pf-shares-h">
+            <div className="pf-hold-bar">
+              <h2 id="pf-shares-h" className={`pfh-title ${bnCls}`} lang={bn ? "bn" : undefined}>
+                {L("Your shares", "আপনার শেয়ারগুলো")} <span className="pf-num font-semibold">{total}</span>
+              </h2>
+              <div className="pf-hold-tools">
+                {holdings.length > 1 && listView !== "watch" && (
+                  <>
+                    <label htmlFor="pf-sort" className="sr-only">{L("Sort your shares", "শেয়ারগুলো সাজান")}</label>
+                    <select
+                      id="pf-sort"
+                      value={sort ? `${sort.key}:${sort.dir}` : ""}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        if (!v) return setSort(null);
+                        const [key, dir] = v.split(":") as [SortKey, "asc" | "desc"];
+                        setSort({ key, dir });
+                      }}
+                      className={`pf-sort ${bnCls}`}
+                    >
+                      <option value="">{L("Sort: as added", "সাজানো: যোগের ক্রমে")}</option>
+                      {SORT_OPTIONS.map((o) => (
+                        <option key={`${o.key}:${o.dir}`} value={`${o.key}:${o.dir}`}>
+                          {L("Sort: ", "সাজানো: ")}
+                          {sortLabel(o.key)}
+                          {o.key === "code" ? "" : o.dir === "desc" ? L(" (high first)", " (বেশি আগে)") : L(" (low first)", " (কম আগে)")}
+                        </option>
+                      ))}
+                    </select>
+                  </>
+                )}
+                <Button type="button" onClick={openAdd} variant="quiet" size="md" className="pf-add">
+                  <span className="pf-add-dot"><IconPlus size={14} /></span>
+                  <span className={bnCls}>{L("I own a share", "আমার শেয়ার")}</span>
+                </Button>
+              </div>
+            </div>
+
+            {both && (
+              <div className="ms-views" role="group" aria-label={L("Show", "দেখান")}>
+                {VIEWS.map((v) => (
+                  <Chip key={v.key} active={listView === v.key} onClick={() => setListView(v.key)}>
+                    <span className={bnCls}>{bn ? v.bn : v.en}</span>
+                    <span className="pf-num">{v.n}</span>
+                  </Chip>
+                ))}
+              </div>
+            )}
+
+            {showSearch && (
+              <div className="pf-find">
+                <div className="pf-search">
+                  <label htmlFor="pf-search" className="sr-only">{L("Find a share", "শেয়ার খুঁজুন")}</label>
+                  <span className="pf-search-icon"><IconSearch size={16} /></span>
+                  <input
+                    id="pf-search"
+                    type="search"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder={L("Find by name or code", "নাম বা কোড দিয়ে খুঁজুন")}
+                    autoComplete="off"
+                    enterKeyHint="search"
+                    className={`input-field ${bnCls}`}
+                  />
+                  {query && (
+                    <button type="button" className="pf-search-clear" onClick={() => setQuery("")} aria-label={L("Clear search", "খোঁজা মুছুন")}>
+                      <IconClose size={16} />
+                    </button>
+                  )}
+                </div>
+                {listView === "own" && showFilters && (
+                  <div className="pf-filters" role="group" aria-label={L("Show", "দেখান")}>
+                    {FILTERS.filter((f) => f.key === "all" || filterCounts[f.key] > 0).map((f) => (
+                      <Chip key={f.key} active={activeFilter === f.key} onClick={() => setFilter(f.key)}>
+                        <span className={bnCls}>{bn ? f.bn : f.en}</span>
+                        <span className="pf-num">{filterCounts[f.key]}</span>
+                      </Chip>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div id="pf-holds" className="soft-card pf-holds pf-rise">
+              {ownList.length + watchList.length === 0 && (
+                <div className={`pf-holds-none ${bnCls}`}>
+                  <p>{L("No shares match.", "কোনো শেয়ার মেলেনি।")}</p>
+                  <Button
+                    type="button"
+                    variant="link"
+                    size="sm"
+                    onClick={() => {
+                      setQuery("");
+                      setFilter("all");
+                      setListView("all");
+                    }}
+                  >
+                    {L("Show all", "সব দেখুন")}
+                  </Button>
+                </div>
+              )}
+              {ownList.map(ownedRow)}
+              {ownList.length > 0 && watchList.length > 0 && (
+                <p className={`ms-sep ${bnCls}`}>{L("Shares you watch", "যেগুলোতে নজর রাখছেন")}</p>
+              )}
+              {watchList.map(watchedRow)}
+            </div>
+            {holdings.length > 1 && listView !== "watch" && (
+              <div className="pf-hold-foot">
+                <Button type="button" onClick={openEditPicker} variant="link" size="sm">
+                  {L("Fix a mistake in your shares", "শেয়ারের ভুল ঠিক করুন")}
+                </Button>
+              </div>
+            )}
+          </section>
+        )}
+
+        <WatchSearch priceMap={priceMap} watched={watchedSet} owned={owned} />
+
+        {watchRows.length > 0 && (
+          <div className="ms-share">
+            <ShareWatchlistButton codes={watchRows.map((w) => w.code)} />
+          </div>
+        )}
+
+        {/* Price alerts (2026-11-25: moved here with the watchlist; /alerts
+            301s to #alerts). Set in each share's Watch sheet. */}
+        {alertCount > 0 && (
+          <section id="alerts" className="pf-block stock-anchor" aria-labelledby="ms-alerts">
+            <SectionHeader
+              id="ms-alerts"
+              title={<T en="Your price alerts" bn="আপনার প্রাইস অ্যালার্ট" />}
+              lead={
+                <T
+                  en="We tell you on the day a share reaches your price. Each armed alert counts as a rule."
+                  bn="শেয়ারের দাম আপনার ঠিক করা দামে পৌঁছালে সেদিনই জানাই। চালু প্রতিটি অ্যালার্ট একটি নিয়ম হিসেবে গোনা হয়।"
+                />
+              }
+            />
+            <AlertsClient shared />
+          </section>
+        )}
+
+        {suggestions.length > 0 && (
+          <p className={`pf-pending ${bnCls}`}>
+            <Link href="/portfolio#pf-corrections">
+              {L(
+                `${suggestions.length} bonus or dividend ${suggestions.length === 1 ? "entry is" : "entries are"} waiting for you to confirm, on your portfolio.`,
+                `${suggestions.length}টি বোনাস বা ডিভিডেন্ড আপনার নিশ্চিত করার অপেক্ষায়, আপনার পোর্টফোলিওতে।`,
+              )}
+            </Link>
+          </p>
+        )}
+
+        {shareSheet}
+        <WatchShareSheet
+          open={watchSheetRow != null}
+          row={watchSheetRow}
+          updates={watchSheetRow ? feedOf.get(watchSheetRow.code) ?? [] : []}
+          onClose={() => setWatchSheet(null)}
+          onOwn={() => {
+            const c = watchSheetRow?.code;
+            setWatchSheet(null);
+            if (c) {
+              setAddInitial(c);
+              openAdd();
+            }
+          }}
+          onStop={() => watchSheetRow && stopWatchingShare(watchSheetRow.code)}
+        />
+      </PageLockScope>
+    );
+  };
+
   return (
     <div className="flex flex-col" data-privacy={privacy ? "on" : "off"}>
+      {shares ? renderShares() : (<>
       {/* Top row: which portfolio (main + any extra, Premium) */}
       {(portfolios.length > 1 || holdings.length > 0) && (
         <div className="pf-topbar mb-4">
@@ -1214,7 +1795,54 @@ export default function PortfolioClient() {
             </OpenScope>
           </Locked>
 
-          {/* ── Your shares: each once, with one status ── */}
+          {/* ── Your shares: on My shares since 2026-11-25 (one list with the
+              shares they watch); an extra portfolio keeps its own list here ── */}
+          {isMain ? (
+            <section id="pf-shares" className="dash-section pf-block" aria-labelledby="pf-shares-h">
+              <div className="soft-card ms-link">
+                <div className="min-w-0">
+                  <h2 id="pf-shares-h" className={`pfh-title ${bnCls}`} lang={bn ? "bn" : undefined}>
+                    {L("Your shares", "আপনার শেয়ারগুলো")}{" "}
+                    <span className="pf-num font-semibold">{holdings.length}</span>
+                  </h2>
+                  <p className={`ms-link-p ${bnCls}`}>
+                    {watchRows.length > 0
+                      ? L(
+                          `Each of your ${holdings.length} shares, and the ${watchRows.length} you watch, is on My shares, with its status and everything you can do with it.`,
+                          `আপনার ${holdings.length}টি শেয়ার আর নজরে রাখা ${watchRows.length}টি, প্রতিটির অবস্থা আর যা যা করতে পারেন, সব আমার শেয়ার পেজে।`,
+                        )
+                      : L(
+                          `Each of your ${holdings.length} shares is on My shares, with its status and everything you can do with it.`,
+                          `আপনার ${holdings.length}টি শেয়ারের প্রতিটি, অবস্থা আর যা যা করতে পারেন, সব আমার শেয়ার পেজে।`,
+                        )}
+                  </p>
+                </div>
+                <div className="ms-link-acts">
+                  <Button href="/my" variant="primary" size="md">
+                    {L("See my shares", "আমার শেয়ার দেখুন")}
+                    <IconChevronRight size={14} />
+                  </Button>
+                  {!readOnly && (
+                    <Button type="button" onClick={openAdd} variant="quiet" size="md">
+                      <IconPlus size={14} />
+                      {L("Add a share", "শেয়ার যোগ করুন")}
+                    </Button>
+                  )}
+                </div>
+              </div>
+              {!readOnly && (
+                <p className="pf-empty-text mt-3">
+                  {L("Have new money to add? ", "নতুন টাকা যোগ করবেন? ")}
+                  <Link href="/portfolio-builder?start=mine&src=portfolio" className="font-semibold text-primary">
+                    {L(
+                      "We'll split it across strong companies without making any share or business too big.",
+                      "কোনো শেয়ার বা ব্যবসা বেশি বড় না করে আমরা তা শক্তিশালী কোম্পানিতে ভাগ করে দেব।",
+                    )}
+                  </Link>
+                </p>
+              )}
+            </section>
+          ) : (
           <section id="pf-shares" className="dash-section pf-block flex flex-col gap-3" aria-labelledby="pf-shares-h">
             <div className="pf-hold-bar">
               <h2 id="pf-shares-h" className={`pfh-title ${bnCls}`} lang={bn ? "bn" : undefined}>
@@ -1306,73 +1934,7 @@ export default function PortfolioClient() {
                   </Button>
                 </div>
               )}
-              {visibleRows.map((row) => {
-                const code = row.holding.trading_code;
-                const name = row.company_name ?? code;
-                const tags = updateTags.get(code.toUpperCase()) ?? [];
-                const ins = insightOf.get(code.toUpperCase());
-                const tierOf = ins && ins.tierKey !== "unscored" ? (ins.tierKey as TierKey) : null;
-                const st = report.status[code.toUpperCase()] ?? null;
-                return (
-                  <article key={row.holding.id} className="pf-hold">
-                    <button
-                      type="button"
-                      className="pf-hold-row"
-                      onClick={() => {
-                        setSheetId(row.holding.id);
-                        trackEvent("pf_open", { what: "share", key: st?.kind ?? "none" });
-                      }}
-                      aria-label={L(`${name}: open`, `${name}: খুলুন`)}
-                    >
-                      <span className="pf-hold-who">
-                        <span className="pf-hold-name">{name}</span>
-                        <span className={`pf-hold-sub ${bnCls}`}>
-                          <span className="pf-hold-code">{code}</span>
-                          {" · "}
-                          <span className="pv">
-                            {bn
-                              ? `${row.holding.qty.toLocaleString("en-IN")}টি শেয়ার`
-                              : `${row.holding.qty.toLocaleString("en-IN")} share${row.holding.qty === 1 ? "" : "s"}`}
-                          </span>
-                        </span>
-                      </span>
-                      <span className="pf-hold-val">
-                        <b className="pv">{row.current_value != null ? takaGroup(row.current_value) : "—"}</b>
-                        {row.pnl != null && (
-                          <span className={`pv ${row.pnl > 0 ? "pf-up" : row.pnl < 0 ? "pf-down" : "pf-flat"}`}>
-                            {row.pnl > 0 ? "+" : row.pnl < 0 ? "−" : ""}
-                            {takaGroup(Math.abs(row.pnl))}
-                          </span>
-                        )}
-                      </span>
-                      <span className={`pf-hold-st ${bnCls}`}>
-                        {reportOpen && st ? (
-                          <span className="pf-st" data-tone={st.tone}>
-                            <i aria-hidden="true" />
-                            {bn ? st.word.bn : st.word.en}
-                          </span>
-                        ) : tierOf ? (
-                          <TierPill tier={tierOf} />
-                        ) : null}
-                        {tags.length > 0 && (
-                          <span className="pf-hold-new">
-                            {bn ? `${tags.length}টি আপডেট` : `${tags.length} update${tags.length === 1 ? "" : "s"}`}
-                          </span>
-                        )}
-                      </span>
-                      {/* What the row opens, in words (2026-11-23) */}
-                      <span className="pf-hold-go" aria-hidden="true">
-                        {L("Details", "বিস্তারিত")}
-                        <IconChevronRight size={14} />
-                      </span>
-                      {/* A share that needs something shows why, open (2026-11-23) */}
-                      {reportOpen && st?.why && st.kind !== "ok" && (
-                        <span className={`pf-hold-why ${bnCls}`}>{bn ? st.why.bn : st.why.en}</span>
-                      )}
-                    </button>
-                  </article>
-                );
-              })}
+              {visibleRows.map(ownedRow)}
             </div>
             {!readOnly && holdings.length > 1 && (
               <div className="pf-hold-foot">
@@ -1394,6 +1956,7 @@ export default function PortfolioClient() {
               </p>
             )}
           </section>
+          )}
 
           {/* ── More details: four tabs, folded, all free ── */}
           <div className="pf-block">
@@ -1486,22 +2049,10 @@ export default function PortfolioClient() {
             </p>
           )}
 
-          <PfShareSheet
-            open={sheetRow != null}
-            row={sheetRow}
-            status={sheetRow ? report.status[sheetRow.code.toUpperCase()] ?? null : null}
-            way={sheetRow ? wayOf.get(sheetRow.code.toUpperCase()) ?? null : null}
-            events={sheetRow ? myWatch.filter((e) => e.code.toUpperCase() === sheetRow.code.toUpperCase() && e.kind !== "answer" && e.kind !== "buylist") : []}
-            premium={reportOpen}
-            readOnly={readOnly}
-            onClose={() => setSheetId(null)}
-            onBuy={() => sheetFor((r) => openTx("buy", r))}
-            onSell={() => sheetFor((r) => openTx("sell", r))}
-            onEdit={() => sheetFor((r) => startEdit(r.holding))}
-            onRemove={() => sheetFor((r) => handleDelete(r.holding.id))}
-          />
+          {shareSheet}
         </PageLockScope>
       )}
+      </>)}
 
       {/* Add stock — bottom-sheet on mobile, centered modal on desktop */}
       {addOpen && (
@@ -1510,7 +2061,11 @@ export default function PortfolioClient() {
           priceMap={priceMap}
           existingCodes={existingCodes}
           holdings={holdings}
-          onClose={() => setAddOpen(false)}
+          initialCode={addInitial}
+          onClose={() => {
+            setAddOpen(false);
+            setAddInitial(undefined);
+          }}
           onAdded={applyHoldings}
           pid={pid}
           lang={lang}

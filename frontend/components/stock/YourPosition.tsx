@@ -27,7 +27,7 @@ const L = {
   portfolio: { en: "Open portfolio", bn: "পোর্টফোলিও দেখুন" },
   watching: { en: "On your watchlist", bn: "আপনার ওয়াচলিস্টে আছে" },
   sinceAdded: { en: "since you added it", bn: "যোগ করার পর থেকে" },
-  watchlist: { en: "Open watchlist", bn: "ওয়াচলিস্ট দেখুন" },
+  watchlist: { en: "See my shares", bn: "আমার শেয়ার দেখুন" },
 } as const;
 
 const t = (k: keyof typeof L) => <T en={L[k].en} bn={L[k].bn} />;
@@ -180,7 +180,7 @@ export default function YourPosition({ code, ltp }: Props) {
             <span className="font-medium text-text-muted">{t("sinceAdded")}</span>
           </span>
         )}
-        <Link href="/watchlist" className="ml-auto inline-flex items-center min-h-10 text-xs font-semibold text-primary-ink hover:underline">
+        <Link href="/my?view=watch" className="ml-auto inline-flex items-center min-h-10 text-xs font-semibold text-primary-ink hover:underline">
           {t("watchlist")} →
         </Link>
       </div>

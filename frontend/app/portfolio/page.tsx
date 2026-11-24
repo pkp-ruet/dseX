@@ -17,8 +17,8 @@ export default function PortfolioPage() {
         title={<T en="My portfolio" bn="আমার পোর্টফোলিও" />}
         lead={
           <T
-            en="Your profit or loss, dividends and next steps on the shares you own, updated every day."
-            bn="আপনার কেনা শেয়ারের মুনাফা বা লোকসান, ডিভিডেন্ড আর পরবর্তী পদক্ষেপ, প্রতিদিন হালনাগাদ।"
+            en="Your money, your check and what to do on the shares you own, updated every day. The shares themselves are on My shares."
+            bn="আপনার টাকা, পোর্টফোলিও যাচাই আর কী করবেন, প্রতিদিন হালনাগাদ। শেয়ারগুলো আছে আমার শেয়ার পেজে।"
           />
         }
         actions={<ViewAnalysisButton />}

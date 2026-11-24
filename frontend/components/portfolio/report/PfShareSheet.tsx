@@ -4,16 +4,16 @@ import { useState } from "react";
 import Sheet from "@/components/ui/Sheet";
 import Button from "@/components/ui/Button";
 import TierPill from "@/components/ui/TierPill";
-import Chip from "@/components/ui/Chip";
 import { tx } from "@/components/report/chip";
 import { IconChevronDown, IconChevronRight, IconCrown } from "@/components/ui/icons";
 import { T } from "@/components/i18n/T";
 import { money, taka, takaGroup } from "@/lib/formatters";
-import type { PortfolioWatchEvent } from "@/lib/api";
+import type { NotificationItem } from "@/lib/api";
 import type { TierKey } from "@/lib/constants";
 import type { PfStatus, PfWayItem } from "@/lib/portfolio-report";
 import WatchButton from "@/components/watch-rules/WatchButton";
-import { KIND_TAG, LEVEL_TONE } from "../watchKinds";
+import FeedRow, { itemRowProps } from "@/components/feed/FeedRow";
+import Link from "@/components/ui/Link";
 
 export interface ShareSheetRow {
   code: string;
@@ -41,12 +41,17 @@ const signed = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${takaGroup(Ma
  * what happened on it lately, the facts, then Bought more / Sold and "More"
  * (alert, watch rules, edit, remove). Everything that used to sit in five
  * places on the page for one share now sits here.
+ *
+ * Since 2026-11-25 ("one feed, told once") "Lately on this share" is the
+ * Updates feed's own rows for this share (`FeedRow`, the reader's visible
+ * ones), with a link to all of them; it opens on My shares (/my) and, for an
+ * extra portfolio, on the portfolio page.
  */
 export default function PfShareSheet({
   row,
   status,
   way,
-  events,
+  updates,
   open,
   premium,
   readOnly,
@@ -55,11 +60,13 @@ export default function PfShareSheet({
   onSell,
   onEdit,
   onRemove,
+  premiumHref = "#pf-premium",
 }: {
   row: ShareSheetRow | null;
   status: PfStatus | null;
   way: PfWayItem | null;
-  events: PortfolioWatchEvent[];
+  /** The feed rows on this share the reader may see, newest first. */
+  updates: NotificationItem[];
   open: boolean;
   /** The reader sees our analysis (Premium, or the sample's open scope). */
   premium: boolean;
@@ -69,6 +76,8 @@ export default function PfShareSheet({
   onSell: () => void;
   onEdit: () => void;
   onRemove: () => void;
+  /** Where the "Our take is in Premium" line points (the portfolio's one Premium card). */
+  premiumHref?: string;
 }) {
   const [more, setMore] = useState(false);
   if (!row) return null;
@@ -130,7 +139,7 @@ export default function PfShareSheet({
             {status.why && <p className="pfs-take-why">{tx(status.why)}</p>}
           </div>
         ) : !premium ? (
-          <a href="#pf-premium" className="pfs-lock" onClick={onClose}>
+          <a href={premiumHref} className="pfs-lock" onClick={onClose}>
             <IconCrown size={14} />
             <span>
               <T en="Our take on this share, and what to do with it, is in Premium." bn="এই শেয়ার নিয়ে আমাদের মত আর কী করবেন, তা প্রিমিয়ামে।" />
@@ -176,22 +185,23 @@ export default function PfShareSheet({
           </div>
         )}
 
-        {/* What happened lately */}
-        {events.length > 0 && (
+        {/* What happened lately: the feed's own rows */}
+        {updates.length > 0 && (
           <div>
             <p className="pfs-k">
               <T en="Lately on this share" bn="সম্প্রতি এই শেয়ারে" />
             </p>
-            <ul className="pfs-events">
-              {events.map((e) => (
-                <li key={e.id}>
-                  <Chip tone={LEVEL_TONE[e.level]}>
-                    <T en={KIND_TAG[e.kind].en} bn={KIND_TAG[e.kind].bn} />
-                  </Chip>
-                  {(premium || e.free) && <span>{tx({ en: e.title_en, bn: e.title_bn || e.title_en })}</span>}
-                </li>
+            <ul className="nt-list pfs-feed">
+              {updates.slice(0, 4).map((i) => (
+                <FeedRow key={i.id} href={i.url} {...itemRowProps(i, "day")} />
               ))}
             </ul>
+            {updates.length > 4 && (
+              <Link href="/notifications" className="pfs-feed-all">
+                <T en={`All ${updates.length} in Updates`} bn={`আপডেটে সব ${updates.length}টি`} />
+                <IconChevronRight size={14} />
+              </Link>
+            )}
           </div>
         )}
 

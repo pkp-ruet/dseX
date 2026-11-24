@@ -35,10 +35,13 @@ const nextConfig: NextConfig = {
       // Your Desk became Notifications (2026-11-06); old push links keep working.
       { source: "/desk", destination: "/notifications", permanent: true },
       // One Watch button (2026-11-25): the Watch rules page folded into the
-      // watchlist, price alerts with it (they were a section of Updates from
+      // watchlist, then into My shares, price alerts with it (they were a section of Updates from
       // 2026-11-20, then of Watch rules from 2026-11-22).
-      { source: "/alerts", destination: "/watchlist#alerts", permanent: true },
-      { source: "/watch-rules", destination: "/watchlist", permanent: true },
+      { source: "/alerts", destination: "/my#alerts", permanent: true },
+      { source: "/watch-rules", destination: "/my", permanent: true },
+      // My shares (2026-11-25): the watchlist folded into one list with the
+      // shares you own (a shared ?codes= link keeps its query).
+      { source: "/watchlist", destination: "/my", permanent: true },
       {
         source: "/dse-top-20",
         destination: "/dse-trending-stocks",

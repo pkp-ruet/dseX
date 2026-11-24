@@ -151,7 +151,7 @@ export default function HomeCard({
         </p>
         <div className="hm-sl-acts">
           <Button href="/portfolio">{bn ? "আমার শেয়ার যোগ করুন" : "Add the shares I own"}</Button>
-          <Button href="/watchlist" variant="quiet">
+          <Button href="/my" variant="quiet">
             {bn ? "শেয়ারে নজর রাখুন" : "Watch a share"}
           </Button>
           <Button href={bn ? "/blog" : "/learn"} variant="link">

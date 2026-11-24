@@ -64,7 +64,7 @@ export default function StarButton({ code, size = "sm", className = "" }: Props)
         ),
         tone: nowWatched ? "success" : "neutral",
         action: nowWatched
-          ? watchItAction(c, null, "follow") ?? { label: <T en="View" bn="দেখুন" />, onClick: () => router.push("/watchlist") }
+          ? watchItAction(c, null, "follow") ?? { label: <T en="View" bn="দেখুন" />, onClick: () => router.push("/my?view=watch") }
           : undefined,
       });
     });

@@ -5,7 +5,7 @@
  *
  *   Market     "What happened?"        Market today · Results · Calendar · Sectors
  *   Find       "What should I look at?" Buy List · All companies · Screener · Compare · Research
- *   My shares  "How are my shares?"    Portfolio · Watchlist · Updates · For you
+ *   My shares  "How are my shares?"    My shares (/my) · Portfolio · Updates · For you
  *   Learn                              Guides and blog · How we score
  *
  * The menu (Navbar), the footer, the bottom bar, the place pages
@@ -156,23 +156,25 @@ export const PLACES: Place[] = [
     question: { en: "How are my shares?", bn: "আমার শেয়ারগুলো কেমন আছে?" },
     pages: [
       {
+        // My shares (2026-11-25, step 3 of the simplify review): the place's
+        // own page is the one list of owned + watched shares; the watchlist
+        // page, Watch rules and the price alerts folded into it.
+        key: "shares",
+        href: "/my",
+        name: { en: "My shares", bn: "আমার শেয়ার" },
+        line: { en: "Every share you own or watch, in one list", bn: "আপনার কেনা আর নজরে রাখা সব শেয়ার, এক তালিকায়" },
+        ask: { en: "How are my shares?", bn: "আমার শেয়ারগুলো কেমন আছে?" },
+        icon: "watchlist",
+        paths: ["/watchlist", "/watch-rules", "/alerts"],
+      },
+      {
         key: "portfolio",
         href: "/portfolio",
         name: { en: "Portfolio", bn: "পোর্টফোলিও" },
-        line: { en: "Your money, your shares and your check", bn: "আপনার টাকা, শেয়ার আর পোর্টফোলিও যাচাই" },
+        line: { en: "Your money, your check and what to do", bn: "আপনার টাকা, পোর্টফোলিও যাচাই আর কী করবেন" },
         ask: { en: "How is my money doing?", bn: "আমার টাকা কেমন আছে?" },
         icon: "portfolio",
         paths: ["/sample-portfolio"],
-      },
-      {
-        key: "watchlist",
-        href: "/watchlist",
-        name: { en: "Watchlist", bn: "ওয়াচলিস্ট" },
-        line: { en: "The shares you watch, and what we tell you about them", bn: "যে শেয়ারে নজর রাখেন, আর সেগুলো নিয়ে কী জানাব" },
-        ask: { en: "How are the shares I watch?", bn: "যেগুলোতে নজর রাখি সেগুলো কেমন?" },
-        icon: "watchlist",
-        // The Watch rules page and price alerts folded in here (2026-11-25).
-        paths: ["/watch-rules", "/alerts"],
       },
       {
         key: "updates",
