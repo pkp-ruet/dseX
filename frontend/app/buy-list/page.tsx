@@ -3,7 +3,7 @@ import PageHeader from "@/components/ui/PageHeader";
 import Link from "@/components/ui/Link";
 import EmptyState from "@/components/ui/EmptyState";
 import PageGate from "@/components/premium/PageGate";
-import BuyListRows from "@/components/buy-list/BuyListRows";
+import BuyListView from "@/components/buy-list/BuyListView";
 import BuyListPromo from "@/components/buy-list/BuyListPromo";
 import {
   AlsoPassed,
@@ -67,7 +67,8 @@ export default async function BuyListPage() {
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
-          { "@type": "ListItem", position: 2, name: "Buy List", item: URL },
+          { "@type": "ListItem", position: 2, name: "Lists", item: `${BASE_URL}/lists` },
+          { "@type": "ListItem", position: 3, name: "Buy List", item: URL },
         ],
       },
     ],
@@ -121,7 +122,7 @@ export default async function BuyListPage() {
                 <ListChanges data={data} />
               </div>
               {data.items.length > 0 ? (
-                <BuyListRows items={data.items} />
+                <BuyListView items={data.items} />
               ) : (
                 <EmptyState
                   title={<T en="No share passes all five questions today" bn="আজ কোনো শেয়ার পাঁচটি প্রশ্নে পাস করেনি" />}

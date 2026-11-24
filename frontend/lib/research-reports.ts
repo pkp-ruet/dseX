@@ -497,7 +497,7 @@ export function reportJsonLd(slug: ReportSlug, title: string, description: strin
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
-          { "@type": "ListItem", position: 2, name: "Premium research", item: `${BASE_URL}/stock-insights` },
+          { "@type": "ListItem", position: 2, name: "Lists", item: `${BASE_URL}/lists` },
           { "@type": "ListItem", position: 3, name: title, item: url },
         ],
       },

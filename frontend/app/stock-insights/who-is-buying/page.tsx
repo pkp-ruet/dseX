@@ -4,7 +4,8 @@ import ResearchPromo from "@/components/research-reports/ResearchPromo";
 import OwnersView from "@/components/research-reports/OwnersView";
 import { T } from "@/components/i18n/T";
 import { bdGroup } from "@/lib/formatters";
-import { getOwnersReport } from "@/lib/api";
+import { flattenTiers, getOwnersReport, getScores } from "@/lib/api";
+import { quotesFor } from "@/lib/lists";
 import { monthWords, reportJsonLd, reportMetadata, tkWords } from "@/lib/research-reports";
 
 export const revalidate = 3600;
@@ -22,7 +23,9 @@ export const metadata: Metadata = reportMetadata("who-is-buying", TITLE, DESCRIP
 ]);
 
 export default async function WhoIsBuyingPage() {
-  const data = await getOwnersReport();
+  // The report is the page; today's prices beside its companies are secondary.
+  const [data, scores] = await Promise.all([getOwnersReport(), getScores().catch(() => null)]);
+  const quotes = scores ? quotesFor(flattenTiers(scores), [...data.trades.buying, ...data.trades.selling].map((r) => r.code)) : null;
   const t = data.totals;
   const month = monthWords(data.month);
   const ex = data.trades.buying[0] ?? data.trades.selling[0] ?? null;
@@ -115,7 +118,7 @@ export default async function WhoIsBuyingPage() {
           },
         ]}
       >
-        <OwnersView data={data} />
+        <OwnersView data={data} quotes={quotes} />
       </ReportShell>
     </>
   );

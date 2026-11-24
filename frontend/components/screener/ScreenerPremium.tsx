@@ -47,7 +47,7 @@ export default function ScreenerPremium({
       lock={mine ? "screener-mine" : "screener"}
       src="screener"
       track={{ count, goal: goal ?? "", variant: mine ? "mine" : "masked", joined }}
-      tag={{ en: "Screener", bn: "স্ক্রিনার" }}
+      tag={{ en: "Lists", bn: "তালিকা" }}
       title={
         <span className="nums">
           {mine ? (
@@ -76,7 +76,7 @@ export default function ScreenerPremium({
           : { en: count === 1 ? "See the share" : `See the ${count} shares`, bn: count === 1 ? "শেয়ারটি দেখুন" : `${count}টি শেয়ার দেখুন` }
       }
       context={{
-        label: { en: "The stock screener", bn: "স্টক স্ক্রিনার" },
+        label: { en: "Our ready lists", bn: "আমাদের তৈরি তালিকা" },
         stakes: [mine ? { en: `${count} of your shares checked`, bn: `আপনার ${count}টি শেয়ার যাচাই` } : { en: `${count} shares match`, bn: `${count}টি শেয়ার মিলেছে` }],
       }}
     >

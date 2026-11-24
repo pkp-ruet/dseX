@@ -36,7 +36,7 @@ export default function ReportShell({
     <div className="rr-page">
       <PageHeader
         eyebrow={
-          <Link href="/stock-insights" className="rr-eyebrow">
+          <Link href="/lists#research" className="rr-eyebrow">
             <span className="rr-crown" aria-hidden="true">
               <IconCrown size={14} />
             </span>

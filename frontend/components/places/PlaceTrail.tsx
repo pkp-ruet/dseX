@@ -14,24 +14,24 @@ const LAST_PLACE = "dsex.lastPlace";
  * a tab row (a 2026-10-26 tab row above the find pages was removed the same
  * day): you move between places with the bottom bar, and back to a place
  * from here. The stock page belongs to every place, so it points back to the
- * place the reader last came from in this tab, Find by default. Rendered once
+ * place the reader last came from in this tab, Lists by default. Rendered once
  * in the root layout, above each page.
  */
 export default function PlaceTrail() {
   const pathname = usePathname();
   const here = placeOf(pathname);
   const isStock = pathname.startsWith("/stock/");
-  const [from, setFrom] = useState<PlaceKey>("find");
+  const [from, setFrom] = useState<PlaceKey>("lists");
 
   useEffect(() => {
     try {
       if (here && here.place.key !== "learn") sessionStorage.setItem(LAST_PLACE, here.place.key);
       if (isStock) {
         const k = sessionStorage.getItem(LAST_PLACE) as PlaceKey | null;
-        if (k === "market" || k === "find" || k === "mine") setFrom(k);
+        if (k === "market" || k === "lists" || k === "mine") setFrom(k);
       }
     } catch {
-      // Storage blocked: the stock page points back to Find.
+      // Storage blocked: the stock page points back to Lists.
     }
   }, [pathname, here, isStock]);
 

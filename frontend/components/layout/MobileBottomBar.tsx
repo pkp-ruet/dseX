@@ -9,8 +9,8 @@ import { placeByKey, placeOf, type PlaceKey } from "@/lib/places";
 
 /**
  * FIVE tabs = the map (2026-11-20, lib/places.ts): Home · Market · Search ·
- * Find · My shares. Each place tab opens its one-screen place page
- * (/market, /find, /my) and stays lit on every page inside that place.
+ * Lists · My shares (Find became Lists 2026-11-25). Each place tab opens its
+ * place's page (/market, /lists, /my) and stays lit on every page inside it.
  * Learn, Premium and the account live in the navbar's menu. The Explore tab
  * (which opened a 20-row menu) is gone; never add a sixth tab.
  */
@@ -26,10 +26,10 @@ const MarketIcon = (
     <path d="M15 7h6v6" />
   </svg>
 );
-const FindIcon = (
-  <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16z" />
-    <path d="M15.6 8.4l-2 5.2-5.2 2 2-5.2 5.2-2z" />
+const ListsIcon = (
+  <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M9 6h11M9 12h11M9 18h11" />
+    <path d="M4 6h.01M4 12h.01M4 18h.01" strokeWidth="3" />
   </svg>
 );
 const MineIcon = (
@@ -40,7 +40,7 @@ const MineIcon = (
 
 const ICONS: Record<Exclude<PlaceKey, "learn">, React.ReactNode> = {
   market: MarketIcon,
-  find: FindIcon,
+  lists: ListsIcon,
   mine: MineIcon,
 };
 
@@ -106,7 +106,7 @@ export default function MobileBottomBar() {
         </span>
       </button>
 
-      {tab("find")}
+      {tab("lists")}
       {tab("mine")}
     </nav>
   );

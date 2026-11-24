@@ -3,7 +3,8 @@ import ReportShell, { RESEARCH_ANCHOR } from "@/components/research-reports/Repo
 import ResearchPromo from "@/components/research-reports/ResearchPromo";
 import DividendsView from "@/components/research-reports/DividendsView";
 import { T } from "@/components/i18n/T";
-import { getDividendReliability } from "@/lib/api";
+import { flattenTiers, getDividendReliability, getScores } from "@/lib/api";
+import { quotesFor } from "@/lib/lists";
 import { reportJsonLd, reportMetadata } from "@/lib/research-reports";
 
 export const revalidate = 3600;
@@ -21,7 +22,9 @@ export const metadata: Metadata = reportMetadata("dividends-you-can-count-on", T
 ]);
 
 export default async function DividendsYouCanCountOnPage() {
-  const data = await getDividendReliability();
+  // The report is the page; today's prices beside its companies are secondary.
+  const [data, scores] = await Promise.all([getDividendReliability(), getScores().catch(() => null)]);
+  const quotes = scores ? quotesFor(flattenTiers(scores), data.items.map((i) => i.code)) : null;
   const c = data.counts;
   const ex = data.items.find((i) => i.code === data.lists.steady[0]) ?? null;
 
@@ -101,7 +104,7 @@ export default async function DividendsYouCanCountOnPage() {
           },
         ]}
       >
-        <DividendsView data={data} />
+        <DividendsView data={data} quotes={quotes} />
       </ReportShell>
     </>
   );

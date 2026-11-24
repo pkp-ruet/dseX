@@ -1,24 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import Chip from "@/components/ui/Chip";
-import Button from "@/components/ui/Button";
-import EmptyState from "@/components/ui/EmptyState";
+import { useMemo } from "react";
+import ListView from "@/components/lists/ListView";
+import { Locked } from "@/components/premium/AnswerLock";
 import PageQuestions, { type PageQuestion } from "@/components/premium/PageQuestions";
-import { PersonalCodesProvider, usePersonalCodesCtx } from "@/components/market-analysis/PersonalCodes";
+import { PersonalCodesProvider } from "@/components/market-analysis/PersonalCodes";
 import type { LatestResultRow } from "@/lib/api";
-import { RESULT_LEVEL, RESULT_LEVEL_ORDER } from "@/lib/results";
-import { usePremium } from "@/lib/premium";
+import { RESULT_LEVEL, RESULT_LEVEL_ORDER, epsTk, quarterLabel, resultMove } from "@/lib/results";
+import { getTier } from "@/lib/constants";
+import { SORT_NAME, SORT_PRICE, type ListChip, type ListRow, type ListSort } from "@/lib/lists";
 import { useLang } from "@/context/LangContext";
 import { T } from "@/components/i18n/T";
 import { bnDate } from "@/lib/bn";
-import { useUrlParams, useUrlSync } from "@/lib/use-url-state";
-import ResultRow from "./ResultRow";
 
 const PAGE = 50;
 type Level = LatestResultRow["level"];
-type Filter = "all" | "mine" | Level;
-const FILTERS: Filter[] = ["all", "mine", ...RESULT_LEVEL_ORDER];
 
 const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -31,31 +27,30 @@ function enDay(iso: string): string {
   return `${WEEKDAYS[d.getUTCDay()]}, ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
 
-/** Rows grouped by the day they were posted (rows arrive newest first). */
-function byDay(rows: LatestResultRow[]): { day: string; items: LatestResultRow[] }[] {
-  const groups: { day: string; items: LatestResultRow[] }[] = [];
-  for (const r of rows) {
-    const last = groups[groups.length - 1];
-    if (last && last.day === r.post_date) last.items.push(r);
-    else groups.push({ day: r.post_date, items: [r] });
-  }
-  return groups;
-}
+const SORTS: ListSort[] = [
+  { id: "date", label: { en: "Newest first", bn: "নতুনগুলো আগে" }, dir: "desc" },
+  { id: "move", label: { en: "Profit grew most", bn: "মুনাফা সবচেয়ে বেশি বেড়েছে" }, dir: "desc" },
+  SORT_PRICE,
+  SORT_NAME,
+];
+
+const MOVE_TONE = { positive: "positive", negative: "negative", muted: "" } as const;
 
 /**
- * Every company's latest quarterly report, newest first, grouped by the day
- * it was posted (redesigned clean 2026-10-28, styles `rs-*` in
- * app/styles/results.css). One bar shows how the reports split; the chips
- * filter: All · My stocks (holdings ∪ watchlist) · Better · Mixed · Weaker ·
- * About the same. Each row taps through to the stock page's results card.
+ * Every company's latest report, newest first (redesigned clean 2026-10-28,
+ * styles `rs-*` in app/styles/results.css). One bar shows how the reports
+ * split. Since 2026-11-25 the list opens in THE list view (step 4 of the
+ * simplify review; Results moved from Market to Lists): the level chips —
+ * Better · Uneven · Weaker · About the same · Your shares (holdings ∪
+ * watchlist, only when the reader has some) — then Sector · Share price ·
+ * Sort by over the shared rows: company · level and which report · the EPS
+ * line · price today · the profit move as the key figure. In its own order
+ * (newest first) the rows sit under a heading per posting day.
  *
- * Free since 2026-10-29 (the Free vs Premium plan — facts are free): every
- * report and the level filters (in the URL, `?level=good|watch|bad|neutral|mine`);
- * the My stocks filter too since 2026-10-31 (the Premium Desk plan). Premium
- * adds what each report means (one sentence under every row, a screen-only
- * `Locked` in `ResultRow`), named by the page's question card (`#rs-premium`).
- * Results meetings coming up moved to the Calendar (2026-11-20, the app map:
- * dates have one home there).
+ * Free since 2026-10-29 (facts are free): every report and every filter
+ * (`?level=good|watch|bad|neutral|mine` in the URL, as before). Premium adds
+ * what each report means (one sentence under every row, a screen-only
+ * `Locked`), named by the page's question card (`#rs-premium`).
  */
 export default function ResultsFeed(props: { rows: LatestResultRow[]; counts: Record<Level, number> }) {
   return (
@@ -68,134 +63,30 @@ export default function ResultsFeed(props: { rows: LatestResultRow[]; counts: Re
 function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level, number> }) {
   const { bn } = useLang();
   const t = (en: string, b: string) => (bn ? b : en);
-  const { isLoading, state } = usePremium();
-  const { portfolio, watchlist } = usePersonalCodesCtx();
-  const urlParams = useUrlParams();
-  const [mounted, setMounted] = useState(false);
-  const [filter, setFilter] = useState<Filter>("all");
-  const [shown, setShown] = useState(PAGE);
-  useEffect(() => setMounted(true), []);
-
-  // A shared `?level=` opens that filter.
-  useEffect(() => {
-    if (!urlParams || isLoading) return;
-    const lv = urlParams.get("level");
-    if (lv && (FILTERS as string[]).includes(lv)) setFilter(lv as Filter);
-  }, [urlParams, isLoading]);
-  useUrlSync({ level: filter === "all" ? null : filter }, urlParams !== null && !isLoading);
-
-  const mine = useMemo(() => {
-    const codes = new Set([...portfolio, ...watchlist]);
-    return rows.filter((r) => codes.has(r.code.toUpperCase()));
-  }, [rows, portfolio, watchlist]);
-  const signedIn = state !== "guest";
-
-  const rowsFor = (f: Filter) => (f === "all" ? rows : f === "mine" ? mine : rows.filter((r) => r.level === f));
-  const countFor = (f: Filter) => (f === "all" ? rows.length : f === "mine" ? mine.length : counts[f] ?? 0);
-  const filtered = rowsFor(filter);
-  const dayCount: Record<string, number> = {};
-  for (const r of filtered) dayCount[r.post_date] = (dayCount[r.post_date] ?? 0) + 1;
-
-  const label = (f: Filter) =>
-    f === "all" ? { en: "All", bn: "সব" }
-      : f === "mine" ? { en: "My stocks", bn: "আমার শেয়ার" }
-        : { en: RESULT_LEVEL[f].short, bn: RESULT_LEVEL[f].shortBn };
-
-  const choose = (f: Filter) => {
-    if (f === filter) return;
-    setFilter(f);
-    setShown(PAGE);
-  };
-
-  // ---- the list ----
-  const list = (items: LatestResultRow[]) => (
-    <div>
-      {byDay(items).map((g) => (
-        <section key={g.day} className="rs-day" aria-label={enDay(g.day)}>
-          <h2 className="rs-day-head">
-              <T en={enDay(g.day)} bn={bnDate(g.day, true)} />
-              <span className="rs-day-n">
-                <T
-                  en={`${dayCount[g.day]} ${dayCount[g.day] === 1 ? "report" : "reports"}`}
-                  bn={`${dayCount[g.day]}টি প্রতিবেদন`}
-                />
-              </span>
-            </h2>
-          <ul className="soft-card rs-list">
-            {g.items.map((r) => (
-              <li key={r.code}>
-                <ResultRow r={r} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
-    </div>
+  const list = useMemo<ListRow<LatestResultRow>[]>(
+    () =>
+      rows.map((r) => {
+        const move = resultMove(r);
+        return {
+          code: r.code,
+          name: r.name,
+          sector: r.sector,
+          tier: r.score != null ? getTier(r.score) : null,
+          price: r.price,
+          change: r.change_pct,
+          fig: { en: move.en, bn: move.bn, tone: MOVE_TONE[move.tone], words: move.words },
+          sort: { date: r.post_date, move: r.eps_yoy_pct },
+          tags: [r.level],
+          hash: "#results",
+          data: r,
+        };
+      }),
+    [rows],
   );
-
-  let body;
-  if (filtered.length === 0) {
-    body =
-      filter === "mine" && !signedIn ? (
-        <EmptyState
-          className="mt-6"
-          title={<T en="Sign in to see your stocks here" bn="আপনার শেয়ার এখানে দেখতে সাইন ইন করুন" />}
-          message={
-            <T
-              en="A free account keeps your watchlist and portfolio, and this filter shows only their results."
-              bn="ফ্রি অ্যাকাউন্টে আপনার ওয়াচলিস্ট আর পোর্টফোলিও থাকে, আর এই ফিল্টারে শুধু সেগুলোর ফল দেখায়।"
-            />
-          }
-          actions={[
-            { href: "/register", label: <T en="Create a free account" bn="ফ্রি অ্যাকাউন্ট খুলুন" /> },
-            { href: "/login", label: <T en="Sign in" bn="সাইন ইন" /> },
-          ]}
-        />
-      ) : filter === "mine" ? (
-        <EmptyState
-          className="mt-6"
-          title={<T en="None of your stocks has a report here" bn="আপনার কোনো শেয়ারের প্রতিবেদন এখানে নেই" />}
-          message={
-            <T
-              en="When a company you own or follow posts its results, it shows here."
-              bn="আপনার কেনা বা অনুসরণ করা কোনো কোম্পানি আর্থিক ফল প্রকাশ করলে তা এখানে দেখাবে।"
-            />
-          }
-          actions={[
-            { href: "/my?view=watch", label: <T en="Watch a few shares" bn="কয়েকটি শেয়ারে নজর রাখুন" /> },
-            { href: "/portfolio", label: <T en="Add your portfolio" bn="পোর্টফোলিও যোগ করুন" /> },
-          ]}
-        />
-      ) : (
-        <EmptyState
-          className="mt-6"
-          title={<T en="No reports here" bn="এখানে কোনো প্রতিবেদন নেই" />}
-          message={
-            <T
-              en="No company's latest report falls in this group right now."
-              bn="এই ভাগে এখন কোনো কোম্পানির সর্বশেষ প্রতিবেদন নেই।"
-            />
-          }
-        />
-      );
-  } else {
-    // Every report, for every reader (2026-10-29: facts are free), 50 at a time.
-    body = (
-      <>
-        {list(filtered.slice(0, shown))}
-        {filtered.length > shown && (
-          <div className="rs-more">
-            <Button variant="quiet" onClick={() => setShown((n) => n + PAGE)}>
-              <T
-                en={`Show more (${filtered.length - shown} left)`}
-                bn={`আরও দেখুন (${filtered.length - shown}টি বাকি)`}
-              />
-            </Button>
-          </div>
-        )}
-      </>
-    );
-  }
+  const chips: ListChip[] = RESULT_LEVEL_ORDER.map((lv) => ({
+    id: lv,
+    label: { en: RESULT_LEVEL[lv].short, bn: RESULT_LEVEL[lv].shortBn },
+  }));
 
   const questions = resultQuestions(rows, counts);
 
@@ -212,25 +103,6 @@ function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level,
         )}
       </div>
 
-      <div className="rs-filters" role="group" aria-label={t("Filter results", "ফল বাছাই")}>
-        {FILTERS.map((f) => {
-          const l = label(f);
-          const isLevel = f !== "all" && f !== "mine";
-          const showCount = f !== "mine" || (mounted && signedIn);
-          return (
-            <Chip
-              key={f}
-              active={filter === f}
-              onClick={() => choose(f)}
-              icon={isLevel ? <span className={`rs-dot rs-lv--${f}`} /> : undefined}
-            >
-              <T en={l.en} bn={l.bn} />
-              {showCount && <span className="rs-chip-n">{countFor(f)}</span>}
-            </Chip>
-          );
-        })}
-      </div>
-
       <p className="rs-key">
         <T
           en="EPS is profit per share for the months the report covers (3, 6 or 9, or the full year), next to the same months a year ago. The big figure is how much it changed. Tap a company for the full read."
@@ -238,7 +110,25 @@ function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level,
         />
       </p>
 
-      {body}
+      <ListView
+        id="results"
+        track="results"
+        rows={list}
+        figHead={{ en: "Profit change", bn: "মুনাফার বদল" }}
+        sorts={SORTS}
+        defaultSort="date"
+        chips={chips}
+        chipParam="level"
+        mineChip
+        sync
+        pageSize={PAGE}
+        groupOf={(r) => ({ id: r.data!.post_date, title: { en: enDay(r.data!.post_date), bn: bnDate(r.data!.post_date, true) } })}
+        renderLines={(r) => <ResultLines r={r.data!} />}
+        empty={{
+          title: { en: "No reports here", bn: "এখানে কোনো প্রতিবেদন নেই" },
+          message: { en: "No company's latest report fits these choices right now.", bn: "এই বাছাইয়ে এখন কোনো কোম্পানির সর্বশেষ প্রতিবেদন নেই।" },
+        }}
+      />
 
       <PageQuestions
         id="rs-premium"
@@ -253,6 +143,52 @@ function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level,
         label={{ en: "What each report means", bn: "প্রতিটি প্রতিবেদনের মানে" }}
       />
     </div>
+  );
+}
+
+/** A report's own lines under the company: the level and which report, the
+ *  EPS against a year ago, and (Premium, `Locked`) what it means. */
+function ResultLines({ r }: { r: LatestResultRow }) {
+  const lv = RESULT_LEVEL[r.level];
+  const q = quarterLabel(r);
+  const hasEps = r.eps_cum != null && r.eps_cum_prev != null;
+  return (
+    <span className="lv-lines">
+      <span className="rs-meta">
+        <span className={`rs-level rs-lv--${r.level}`}>
+          <span className="rs-dot" aria-hidden="true" />
+          <T en={lv.short} bn={lv.shortBn} />
+        </span>
+        <span className="rs-sep" aria-hidden="true">·</span>
+        <T en={q.en} bn={q.bn} />
+      </span>
+      {hasEps ? (
+        <span className="rs-eps">
+          <span>
+            <T en="EPS" bn="ইপিএস" /> <b>{epsTk(r.eps_cum!)}</b>
+          </span>
+          <span className="rs-sep" aria-hidden="true">·</span>
+          <span>
+            <T en="a year ago" bn="এক বছর আগে" /> <b>{epsTk(r.eps_cum_prev!)}</b>
+          </span>
+        </span>
+      ) : r.profit_en || r.profit_bn ? (
+        <span className="rs-fallback block">
+          <T en={r.profit_en ?? ""} bn={r.profit_bn ?? ""} />
+        </span>
+      ) : null}
+      {(r.meaning_en || r.pace) && (
+        <Locked as="span" className="rs-meaning">
+          {r.meaning_en && <T en={r.meaning_en} bn={r.meaning_bn || r.meaning_en} />}
+          {r.pace && (
+            <span className={`rs-pace rs-pace--${r.pace.word}`}>
+              <T en={r.pace.headline_en} bn={r.pace.headline_bn} />{" "}
+              <T en={r.pace.en} bn={r.pace.bn || r.pace.en} />
+            </span>
+          )}
+        </Locked>
+      )}
+    </span>
   );
 }
 

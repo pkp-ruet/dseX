@@ -72,7 +72,7 @@ def test_push_names_the_newcomers():
     p = push_payload([({"id": "x1", "name": "Cheap banks"}, ["CITYBANK", "EBL"])], "en")
     assert p["title"] == "2 new shares on your screen 'Cheap banks'"
     assert p["body"] == "Matched every filter today: CITYBANK, EBL"
-    assert p["url"] == "/screener?tab=saved&list=x1&src=alert"
+    assert p["url"] == "/lists?tab=saved&list=x1&src=alert"
     assert push_payload([({"id": "x1", "name": "a"}, [])], "en") is None
     # With reasons, one screen says why.
     why = {"GP": {"en": "GP: Our price check is now Low price.", "bn": "GP: আমাদের দাম যাচাই এখন কম দাম।"}}

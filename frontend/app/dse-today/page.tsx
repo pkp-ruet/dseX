@@ -166,7 +166,7 @@ export default async function MarketTodayPage() {
       </div>
 
       {/* Looking for shares? The Find place holds the doors (2026-11-20). */}
-      <PlaceNext place="find" />
+      <PlaceNext place="lists" />
 
       <PageGuide
         title="About this page"

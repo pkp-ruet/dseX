@@ -1,40 +1,34 @@
 "use client";
 
-import { useState } from "react";
 import Link from "@/components/ui/Link";
 import Button from "@/components/ui/Button";
-import TierPill from "@/components/ui/TierPill";
-import { IconChevronDown } from "@/components/ui/icons";
-import MaskedName from "@/components/premium/MaskedName";
-import { PersonalMark } from "@/components/market-analysis/PersonalCodes";
+import ListRows, { LIST_PAGE } from "@/components/lists/ListRows";
 import { openWatchRules } from "@/components/watch-rules/store";
 import { T } from "@/components/i18n/T";
 import type { ScreenerFilterDef } from "@/lib/api";
 import { TIER_LABELS, type TierKey } from "@/lib/constants";
-import { changePct, changeTone, money } from "@/lib/formatters";
+import { money } from "@/lib/formatters";
+import type { FigTone, ListRow } from "@/lib/lists";
 import { cell, keyHead, type Bi, type Figure, type ScreenerRow } from "@/lib/screener";
 
 /** Rows per "Show more". */
-export const PAGE = 30;
+export const PAGE = LIST_PAGE;
 
 const tierOf = (v: unknown): TierKey | null =>
   typeof v === "string" && v in TIER_LABELS ? (v as TierKey) : null;
 
 /**
- * A list's shares in the screener's pop-up (2026-11-24, user: "design a new
- * table with relevant key information which look clean and easy to read").
- * Columns: **#** · **Company** (name + "New" + the reader's H / ★, then code ·
- * sector · our group, then why it is on the list) · **Price today** (under
- * the key figure on phones) · **the key figure** big, its plain name once in
- * the header. `limit` rows, then "Show more".
+ * A list's shares in the /lists pop-up (2026-11-24 design, "clean and easy
+ * to read"; since 2026-11-25 drawn by the shared `ListRows`, so the screener
+ * lists and every other list on the site have one row). This adapter turns
+ * the screener's packed rows into list rows: the list's key figure, why it is
+ * on the list, the reader's H / ★.
  *
- * Three modes (2026-11-24, user: "Build 1, 2 and 3"):
  * - `masked` — a reader without Premium sees the rows as they are, every
- *   figure and the reason, but the company as a grey bar: no name, code,
- *   sector, price or link (the row-lock pattern; never a share's name);
+ *   figure and the reason, but the company as a grey bar;
  * - `peek` — a Premium reader taps a row to open its quick look in place
  *   (our six analysis words, the fair price range, the one serious warning,
- *   then Read our analysis · Compare · Alert me); one open at a time;
+ *   then Read our analysis · Compare · Watch); one open at a time;
  * - neither — every share by sector and price for a free reader: each row a
  *   link to its stock page.
  * `onOpen(code)` runs before a tap leaves the page, so the pop-up can come
@@ -63,101 +57,36 @@ export default function ScreenerList({
   masked?: boolean;
   peek?: boolean;
 }) {
-  const [openCode, setOpenCode] = useState<string | null>(null);
-  const shown = rows.slice(0, limit);
-  const left = rows.length - shown.length;
   const def = defs.get(keyFig);
   const head = keyHead(keyFig, def);
+  const list: ListRow<ScreenerRow>[] = rows.slice(0, masked ? limit : rows.length).map((r) => {
+    const v = r.v[keyFig];
+    const num = typeof v === "number" ? v : null;
+    const tone: FigTone = def?.signed && num ? (num > 0 ? "positive" : "negative") : "";
+    return {
+      code: r.code,
+      name: r.name,
+      sector: typeof r.v.sector === "string" ? r.v.sector : null,
+      tier: tierOf(r.v.grade),
+      price: typeof r.v.price === "number" ? r.v.price : null,
+      change: typeof r.v.change === "number" ? r.v.change : null,
+      fig: def ? { en: cell(v ?? null, def), bn: cell(v ?? null, def, true), tone } : null,
+      why: reasonOf?.(r) ?? null,
+      isNew: newCodes?.has(r.code) ?? false,
+      data: r,
+    };
+  });
 
   return (
-    <div className={`scl${masked ? " scl--masked" : ""}`}>
-      <div className="scl-head" aria-hidden="true">
-        <span className="scl-h-rank">#</span>
-        <span className="scl-h-main"><T en="Company" bn="কোম্পানি" /></span>
-        <span className="scl-h-px">{masked ? null : <T en="Price today" bn="আজকের দাম" />}</span>
-        <span className="scl-h-fig"><T en={head.en} bn={head.bn} /></span>
-      </div>
-      <ol className="scl-list">
-        {shown.map((r, i) => {
-          const tier = tierOf(r.v.grade);
-          const why = reasonOf?.(r) ?? null;
-          const isNew = newCodes?.has(r.code) ?? false;
-          const v = r.v[keyFig];
-          const num = typeof v === "number" ? v : null;
-          const value = def ? cell(v ?? null, def) : "—";
-          const valueBn = def ? cell(v ?? null, def, true) : "—";
-          const tone = def?.signed ? changeTone(num) : "";
-          const price = typeof r.v.price === "number" ? r.v.price : null;
-          const change = typeof r.v.change === "number" ? r.v.change : null;
-          const isOpen = peek && openCode === r.code;
-
-          const inner = (
-            <>
-              <span className="scl-rank nums">{i + 1}</span>
-              <span className="scl-main">
-                <span className="scl-name">
-                  {masked ? <MaskedName name={r.name} /> : <span className="scl-name-t">{r.name}</span>}
-                  {!masked && <PersonalMark code={r.code} />}
-                  {isNew && <span className="scr-new"><T en="New" bn="নতুন" /></span>}
-                </span>
-                <span className="scl-meta">
-                  {!masked && <span className="scl-code">{r.code}</span>}
-                  {!masked && r.v.sector ? <span className="scl-sector">{String(r.v.sector)}</span> : null}
-                  {tier && <TierPill tier={tier} />}
-                </span>
-                {why && <span className="scl-why"><T en={why.en} bn={why.bn} /></span>}
-              </span>
-              {!masked && (
-                <span className="scl-px nums">
-                  <span className="scl-px-v">{money(price)}</span>
-                  {change != null && <span className={`scl-px-c ${changeTone(change)}`}>{changePct(change)}</span>}
-                </span>
-              )}
-              <span className="scl-fig">
-                <span className={`scl-fig-v nums ${tone}`}>
-                  {value === valueBn ? value : <T en={value} bn={valueBn} />}
-                </span>
-                {peek && (
-                  <span className={`scl-chev${isOpen ? " is-open" : ""}`} aria-hidden="true">
-                    <IconChevronDown size={16} />
-                  </span>
-                )}
-              </span>
-            </>
-          );
-
-          return (
-            <li key={r.code} id={`scl-${r.code}`} className={`scl-row${isOpen ? " is-open" : ""}`}>
-              {masked ? (
-                <div className="scl-link">{inner}</div>
-              ) : peek ? (
-                <button
-                  type="button"
-                  className="scl-link"
-                  aria-expanded={isOpen}
-                  aria-controls={`scl-q-${r.code}`}
-                  onClick={() => setOpenCode(isOpen ? null : r.code)}
-                >
-                  {inner}
-                </button>
-              ) : (
-                <Link href={`/stock/${encodeURIComponent(r.code)}`} className="scl-link" onClick={() => onOpen?.(r.code)}>
-                  {inner}
-                </Link>
-              )}
-              {isOpen && <QuickLook row={r} onOpen={onOpen} />}
-            </li>
-          );
-        })}
-      </ol>
-      {left > 0 && onMore && (
-        <div className="scl-more">
-          <Button variant="quiet" onClick={onMore}>
-            <T en={`Show ${Math.min(left, PAGE)} more of ${left}`} bn={`আরও ${Math.min(left, PAGE)}টি দেখুন (বাকি ${left}টি)`} />
-          </Button>
-        </div>
-      )}
-    </div>
+    <ListRows
+      rows={list}
+      figHead={head}
+      limit={limit}
+      onMore={onMore}
+      masked={masked}
+      renderOpen={peek ? (row) => <QuickLook row={row.data!} onOpen={onOpen} /> : undefined}
+      onLeave={onOpen}
+    />
   );
 }
 

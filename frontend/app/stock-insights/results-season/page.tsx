@@ -3,7 +3,8 @@ import ReportShell, { RESEARCH_ANCHOR } from "@/components/research-reports/Repo
 import ResearchPromo from "@/components/research-reports/ResearchPromo";
 import SeasonView from "@/components/research-reports/SeasonView";
 import { T } from "@/components/i18n/T";
-import { getResultsSeason } from "@/lib/api";
+import { flattenTiers, getResultsSeason, getScores } from "@/lib/api";
+import { quotesFor } from "@/lib/lists";
 import { reportJsonLd, reportMetadata, type ResultsSeason } from "@/lib/research-reports";
 
 export const revalidate = 3600;
@@ -26,6 +27,9 @@ export default async function ResultsSeasonPage() {
     first.seasons.slice(1).map((s) => getResultsSeason(s.id).catch(() => null)),
   );
   const seasons = [first, ...rest.filter((s): s is ResultsSeason => !!s)];
+  // Today's prices beside the companies are secondary.
+  const scores = await getScores().catch(() => null);
+  const quotes = scores ? quotesFor(flattenTiers(scores), seasons.flatMap((x) => x.rows.map((r) => r.code))) : null;
   const c = first.counts;
   const n = first.reported;
 
@@ -98,7 +102,7 @@ export default async function ResultsSeasonPage() {
           },
         ]}
       >
-        <SeasonView seasons={seasons} />
+        <SeasonView seasons={seasons} quotes={quotes} />
       </ReportShell>
     </>
   );

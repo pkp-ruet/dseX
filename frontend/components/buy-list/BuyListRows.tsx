@@ -23,7 +23,7 @@ function watchWords(item: BuyListItem) {
  * results coming › a quiet note (a smaller auditor note). Each says what it
  * is; colour only for what matters (2026-11-22).
  */
-function Tag({ item }: { item: BuyListItem }) {
+export function Tag({ item }: { item: BuyListItem }) {
   if (item.grace) {
     return (
       <span className="bl-tag bl-tag--watch">
@@ -68,7 +68,7 @@ function Tag({ item }: { item: BuyListItem }) {
 
 /** Buy now or wait: today's price against the price it is worth buying
  *  under. A share kept on the list above that price says what to wait for. */
-function Status({ item }: { item: BuyListItem }) {
+export function Status({ item }: { item: BuyListItem }) {
   const { price, buy_below: buy } = item;
   if (price == null) return null;
   if (buy == null) {

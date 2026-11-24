@@ -3,20 +3,29 @@
  * https://claude.ai/artifact/MUgUUziXftVp1gmXDQoMUm). Every page belongs to
  * one of four places, each answering one reader question:
  *
- *   Market     "What happened?"        Market today · Results · Calendar · Sectors
- *   Find       "What should I look at?" Buy List · All companies · Screener · Compare · Research
- *   My shares  "How are my shares?"    My shares (/my) · Portfolio · Updates · For you
- *   Learn                              Guides and blog · How we score
+ *   Market     "What happened?"         Market today · Calendar · Sectors
+ *   Lists      "Which shares to look at?" Lists (/lists): the Buy List, All companies,
+ *                                       Results, For you and the research reports open
+ *                                       from it; plus two tools, Compare · Portfolio builder
+ *   My shares  "How are my shares?"     My shares (/my) · Portfolio · Updates
+ *   Learn                               Guides and blog · How we score
+ *
+ * Lists (2026-11-25, step 4 of the simplify review): Find became Lists. Every
+ * list of shares opens from one page (/lists) and in one view
+ * (components/lists/ListView.tsx); the list pages keep their own addresses
+ * (search finds them) but leave the menus (`menu: false`): they stay in the
+ * map so the back link, the lit tab, the search shortcuts and the admin areas
+ * still know them.
  *
  * The menu (Navbar), the footer, the bottom bar, the place pages
- * (/market, /find, /my), the back link above inner pages, the guest home's
+ * (/market, /lists, /my), the back link above inner pages, the guest home's
  * "New here?" and the search shortcuts all read this file, so a page has ONE
  * name everywhere. Plain data (no React), so server components can import it.
  * A new page goes into a place here, never straight into a menu.
  */
 
 export type Bi = { en: string; bn: string };
-export type PlaceKey = "market" | "find" | "mine" | "learn";
+export type PlaceKey = "market" | "lists" | "mine" | "learn";
 
 export interface PlacePage {
   key: string;
@@ -34,6 +43,11 @@ export interface PlacePage {
   premium?: boolean;
   /** Other paths that belong to this page (sub-pages, folded pages). */
   paths?: string[];
+  /** false: in the map (back link, lit tab, search, admin) but not in the
+   *  menu, the footer or a place page's doors: the lists that open from /lists. */
+  menu?: boolean;
+  /** A tool reached where it is needed (Compare, the portfolio builder). */
+  tool?: boolean;
 }
 
 export interface Place {
@@ -42,6 +56,8 @@ export interface Place {
   href: string;
   name: Bi;
   question: Bi;
+  /** "Go to Lists" / "তালিকায় যান" (PlaceNext). */
+  go: Bi;
   pages: PlacePage[];
 }
 
@@ -51,6 +67,7 @@ export const PLACES: Place[] = [
     href: "/market",
     name: { en: "Market", bn: "বাজার" },
     question: { en: "What happened in the market?", bn: "বাজারে কী হলো?" },
+    go: { en: "Go to Market", bn: "বাজারে যান" },
     pages: [
       {
         key: "today",
@@ -60,14 +77,6 @@ export const PLACES: Place[] = [
         ask: { en: "How did the market do today?", bn: "আজ বাজার কেমন গেল?" },
         icon: "today",
         paths: ["/dse-trending-stocks", "/dse-popular-stocks", "/todays-news"],
-      },
-      {
-        key: "results",
-        href: "/results",
-        name: { en: "Results", bn: "আর্থিক ফল" },
-        line: { en: "Each company's latest profit", bn: "প্রতিটি কোম্পানির সর্বশেষ মুনাফা" },
-        ask: { en: "Who made more profit?", bn: "কার মুনাফা বাড়ল?" },
-        icon: "results",
       },
       {
         key: "calendar",
@@ -90,11 +99,22 @@ export const PLACES: Place[] = [
     ],
   },
   {
-    key: "find",
-    href: "/find",
-    name: { en: "Find", bn: "খুঁজুন" },
-    question: { en: "What should I look at?", bn: "কোন শেয়ার দেখব?" },
+    key: "lists",
+    href: "/lists",
+    name: { en: "Lists", bn: "তালিকা" },
+    question: { en: "Which shares should I look at?", bn: "কোন শেয়ারগুলো দেখব?" },
+    go: { en: "Go to Lists", bn: "তালিকায় যান" },
     pages: [
+      {
+        key: "lists",
+        href: "/lists",
+        name: { en: "Lists", bn: "তালিকা" },
+        line: { en: "Every list of shares, each opened the same way", bn: "শেয়ারের সব তালিকা, প্রতিটি একইভাবে খোলে" },
+        ask: { en: "Which shares should I look at?", bn: "কোন শেয়ারগুলো দেখব?" },
+        icon: "lists",
+        // The screener and the Find doors page folded into it (2026-11-25).
+        paths: ["/find", "/screener", "/my-lists", "/stock-recommendation"],
+      },
       {
         key: "buylist",
         href: "/buy-list",
@@ -103,14 +123,7 @@ export const PLACES: Place[] = [
         ask: { en: "What would we buy today?", bn: "আজ আমরা কী কিনতাম?" },
         icon: "buylist",
         premium: true,
-      },
-      {
-        key: "builder",
-        href: "/portfolio-builder",
-        name: { en: "Portfolio builder", bn: "পোর্টফোলিও বানান" },
-        line: { en: "A whole portfolio for your money, first plan free", bn: "আপনার টাকায় পুরো পোর্টফোলিও, প্রথমটি ফ্রি" },
-        ask: { en: "How should I invest my money?", bn: "আমার টাকা কীভাবে বিনিয়োগ করব?" },
-        icon: "builder",
+        menu: false,
       },
       {
         key: "companies",
@@ -120,15 +133,37 @@ export const PLACES: Place[] = [
         ask: { en: "Which companies are the strongest?", bn: "কোন কোম্পানিগুলো সবচেয়ে শক্তিশালী?" },
         icon: "rankings",
         paths: ["/stocks"],
+        menu: false,
       },
       {
-        key: "screener",
-        href: "/screener",
-        name: { en: "Screener", bn: "স্ক্রিনার" },
-        line: { en: "Shares that fit what you want", bn: "আপনার চাওয়ার সাথে মেলে এমন শেয়ার" },
-        ask: { en: "Which shares fit what I want?", bn: "কোন শেয়ার আমার চাওয়ার সাথে মেলে?" },
-        icon: "find",
+        key: "results",
+        href: "/results",
+        name: { en: "Results", bn: "আর্থিক ফল" },
+        line: { en: "Each company's latest profit", bn: "প্রতিটি কোম্পানির সর্বশেষ মুনাফা" },
+        ask: { en: "Who made more profit?", bn: "কার মুনাফা বাড়ল?" },
+        icon: "results",
+        menu: false,
+      },
+      {
+        key: "foryou",
+        href: "/for-you",
+        name: { en: "For you", bn: "আপনার জন্য" },
+        line: { en: "Companies like the ones you hold", bn: "আপনার শেয়ারের মতো কোম্পানি" },
+        ask: { en: "What else should I look at?", bn: "আর কোনগুলো দেখব?" },
+        icon: "picks",
         premium: true,
+        menu: false,
+      },
+      {
+        key: "research",
+        href: "/lists#research",
+        name: { en: "Research", bn: "গবেষণা" },
+        line: { en: "Six reports on the whole market", bn: "পুরো বাজার নিয়ে ছয়টি রিপোর্ট" },
+        ask: { en: "Who is in trouble, who pays well?", bn: "কে সমস্যায়, কে ভালো ডিভিডেন্ড দেয়?" },
+        icon: "browse",
+        premium: true,
+        paths: ["/stock-insights"],
+        menu: false,
       },
       {
         key: "compare",
@@ -137,15 +172,16 @@ export const PLACES: Place[] = [
         line: { en: "Put shares side by side", bn: "শেয়ার পাশাপাশি মিলিয়ে দেখুন" },
         ask: { en: "Which of these is stronger?", bn: "এগুলোর মধ্যে কোনটা শক্তিশালী?" },
         icon: "compare",
+        tool: true,
       },
       {
-        key: "research",
-        href: "/stock-insights",
-        name: { en: "Research", bn: "গবেষণা" },
-        line: { en: "Six reports on the whole market", bn: "পুরো বাজার নিয়ে ছয়টি রিপোর্ট" },
-        ask: { en: "Who is in trouble, who pays well?", bn: "কে সমস্যায়, কে ভালো ডিভিডেন্ড দেয়?" },
-        icon: "lists",
-        premium: true,
+        key: "builder",
+        href: "/portfolio-builder",
+        name: { en: "Portfolio builder", bn: "পোর্টফোলিও বানান" },
+        line: { en: "A whole portfolio for your money, first plan free", bn: "আপনার টাকায় পুরো পোর্টফোলিও, প্রথমটি ফ্রি" },
+        ask: { en: "How should I invest my money?", bn: "আমার টাকা কীভাবে বিনিয়োগ করব?" },
+        icon: "builder",
+        tool: true,
       },
     ],
   },
@@ -154,6 +190,7 @@ export const PLACES: Place[] = [
     href: "/my",
     name: { en: "My shares", bn: "আমার শেয়ার" },
     question: { en: "How are my shares?", bn: "আমার শেয়ারগুলো কেমন আছে?" },
+    go: { en: "Go to My shares", bn: "আমার শেয়ারে যান" },
     pages: [
       {
         // My shares (2026-11-25, step 3 of the simplify review): the place's
@@ -184,15 +221,6 @@ export const PLACES: Place[] = [
         ask: { en: "What's new on my shares?", bn: "আমার শেয়ারে নতুন কী?" },
         icon: "updates",
       },
-      {
-        key: "foryou",
-        href: "/for-you",
-        name: { en: "For you", bn: "আপনার জন্য" },
-        line: { en: "Companies like the ones you hold", bn: "আপনার শেয়ারের মতো কোম্পানি" },
-        ask: { en: "What else should I watch?", bn: "আর কোনগুলো নজরে রাখব?" },
-        icon: "picks",
-        premium: true,
-      },
     ],
   },
   {
@@ -200,6 +228,7 @@ export const PLACES: Place[] = [
     href: "/learn",
     name: { en: "Learn", bn: "শিখুন" },
     question: { en: "How does the market work?", bn: "শেয়ার বাজার কীভাবে চলে?" },
+    go: { en: "Go to Learn", bn: "শিখুন-এ যান" },
     pages: [
       {
         key: "guides",
@@ -246,6 +275,11 @@ export function placeOf(pathname: string): { place: Place; page: PlacePage | nul
     }
   }
   return null;
+}
+
+/** The pages a menu, the footer or a place page lists (not the lists that open from /lists). */
+export function menuPages(place: Place): PlacePage[] {
+  return place.pages.filter((p) => p.menu !== false);
 }
 
 /** Every page, flat (search shortcuts, admin areas). */

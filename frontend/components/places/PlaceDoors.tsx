@@ -3,7 +3,7 @@ import Link from "@/components/ui/Link";
 import { T } from "@/components/i18n/T";
 import { IconChevronRight, IconCrown } from "@/components/ui/icons";
 import { PAGE_ICON } from "@/components/places/pageIcons";
-import type { Bi, Place } from "@/lib/places";
+import { menuPages, type Bi, type Place } from "@/lib/places";
 
 /** Today's number beside a door: a figure and what it counts. */
 export interface DoorFigure {
@@ -28,7 +28,7 @@ export default function PlaceDoors({
 }) {
   return (
     <ul className="pl-doors">
-      {place.pages.map((page) => {
+      {menuPages(place).map((page) => {
         const Icon = PAGE_ICON[page.key];
         const f = figures[page.key];
         return (

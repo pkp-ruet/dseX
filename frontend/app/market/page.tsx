@@ -4,7 +4,6 @@ import PlaceDoors, { type DoorFigure } from "@/components/places/PlaceDoors";
 import { T } from "@/components/i18n/T";
 import {
   getDividendCalendar,
-  getLatestResults,
   getMarketIndex,
   getMarketState,
   getUpcomingResults,
@@ -15,7 +14,7 @@ import { placeByKey } from "@/lib/places";
 
 /**
  * Market (2026-11-20, the app map): the place page the bottom bar's Market
- * tab opens. One screen: today's mood in one line, then the four pages of
+ * tab opens. One screen: today's mood in one line, then the three pages of
  * the place, each with today's number. Every figure is secondary
  * (`.catch(() => null)`): the doors are the page, so a slow backend only
  * drops a number.
@@ -23,9 +22,9 @@ import { placeByKey } from "@/lib/places";
 export const revalidate = 900;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
-const TITLE = "DSE Market: Today, Results, Dividend Dates and Sectors";
+const TITLE = "DSE Market: Today, Dividend and Results Dates, and Sectors";
 const DESCRIPTION =
-  "Everything about the Dhaka Stock Exchange market in one place: how the market did today, every company's latest results, dividend and results dates coming up, and how each sector is doing.";
+  "Everything about the Dhaka Stock Exchange market in one place: how the market did today, dividend and results dates coming up, and how each sector is doing.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -56,10 +55,9 @@ const jsonLd = [
 ];
 
 export default async function MarketPlacePage() {
-  const [state, index, results, calendar, meetings] = await Promise.all([
+  const [state, index, calendar, meetings] = await Promise.all([
     getMarketState().catch(() => null),
     getMarketIndex().catch(() => null),
-    getLatestResults().catch(() => null),
     getDividendCalendar().catch(() => null),
     getUpcomingResults().catch(() => null),
   ]);
@@ -72,11 +70,6 @@ export default async function MarketPlacePage() {
       unit: { en: "DSEX", bn: "ডিএসইএক্স" },
       tone: index.dsex_change_pct > 0 ? "up" : index.dsex_change_pct < 0 ? "down" : undefined,
     };
-  }
-  if (results?.results.length) {
-    const newest = results.results.reduce((m, r) => (r.post_date > m ? r.post_date : m), "");
-    const n = results.results.filter((r) => r.post_date === newest).length;
-    figures.results = { value: n, unit: { en: "on the latest day", bn: "সর্বশেষ দিনে" } };
   }
   const week =
     (calendar ? recountCalendar(calendar).stats.record_dates_this_week : 0) +
@@ -101,7 +94,7 @@ export default async function MarketPlacePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <PageHeader
         title={<T en={place.name.en} bn={place.name.bn} />}
-        lead={<T en="What happened on the DSE, in four pages." bn="ডিএসইতে কী হলো, চারটি পেজে।" />}
+        lead={<T en="What happened on the DSE, in three pages." bn="ডিএসইতে কী হলো, তিনটি পেজে।" />}
       />
       {mood && (
         <p className="pl-line">

@@ -23,6 +23,7 @@ import "./styles/results.css";
 import "./styles/dividends.css";
 import "./styles/landing.css";
 import "./styles/screener.css";
+import "./styles/list-view.css";
 import "./styles/compare.css";
 import "./styles/portfolio-builder.css";
 import "./styles/picks.css";

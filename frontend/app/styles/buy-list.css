@@ -366,3 +366,5 @@
   background: rgb(var(--gold-rgb) / 0.1); font-size: var(--fs-sm); line-height: 1.5; color: var(--text-muted);
 }
 @media (min-width: 640px) { .fbl-note { padding-inline: calc(var(--space-4) + var(--space-1)); } }
+/* The Buy List's two lines inside THE list view (2026-11-25). */
+.bl-lv-lines { display: flex; flex-wrap: wrap; align-items: center; gap: 6px var(--space-2); }

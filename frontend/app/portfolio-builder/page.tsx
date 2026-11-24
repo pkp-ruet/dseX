@@ -69,7 +69,7 @@ export default function PortfolioBuilderPage() {
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
-          { "@type": "ListItem", position: 2, name: "Find", item: `${BASE_URL}/find` },
+          { "@type": "ListItem", position: 2, name: "Lists", item: `${BASE_URL}/lists` },
           { "@type": "ListItem", position: 3, name: "Portfolio builder", item: URL },
         ],
       },

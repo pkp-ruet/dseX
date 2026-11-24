@@ -123,7 +123,7 @@ export const FEATURES: Feature[] = [
   },
   {
     key: "screener",
-    name: { en: "Stock screener", bn: "স্টক স্ক্রিনার" },
+    name: { en: "Ready lists", bn: "তৈরি তালিকা" },
     line: {
       en: "16 ready lists, from 52-week high to our own picks, and lists saved with a daily alert.",
       bn: "16টি তৈরি তালিকা, 52 সপ্তাহের সর্বোচ্চ থেকে আমাদের নিজের বাছাই পর্যন্ত, আর প্রতিদিনের অ্যালার্টসহ সেভ করা তালিকা।",

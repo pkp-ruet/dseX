@@ -24,7 +24,7 @@ import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
 import LangSwitch from "@/components/layout/LangSwitch";
 import ThemeSwitch, { ThemeToggleButton } from "@/components/layout/ThemeSwitch";
-import { PLACES, TAB_PLACES, placeOf, type PlacePage } from "@/lib/places";
+import { PLACES, TAB_PLACES, menuPages, placeOf, type PlacePage } from "@/lib/places";
 
 const OPEN_DRAWER_EVENT = "dsex:open-drawer";
 
@@ -446,7 +446,7 @@ export default function Navbar() {
                   )}
                 </h2>
                 <ul className="mobile-menu-list">
-                  {place.pages.map((it) => (
+                  {menuPages(place).map((it) => (
                     <li key={it.key}>
                       {pageLink(
                         it,

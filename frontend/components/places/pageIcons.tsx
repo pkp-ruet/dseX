@@ -28,7 +28,7 @@ export const PAGE_ICON: Record<string, ComponentType<{ size?: number }>> = {
   buylist: IconClipboardCheck,
   builder: IconBlocks,
   companies: IconTrophy,
-  screener: IconTune,
+  lists: IconTune,
   compare: IconCompare,
   research: IconBook,
   portfolio: IconBriefcase,

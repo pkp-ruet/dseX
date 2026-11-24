@@ -52,7 +52,8 @@ def plan_of(premium_until, premium_source, now: datetime) -> str:
 AREAS: list[tuple[str, str, str]] = [
     ("home", "Home / dashboard", r"^/$"),
     # The place pages the bottom bar opens (2026-11-20, frontend lib/places.ts).
-    ("places", "Place pages (Market, Find)", r"^/(market|find)/?$"),
+    # /find was one until the Lists page replaced it (2026-11-25).
+    ("places", "Place pages (Market, old Find)", r"^/(market|find)/?$"),
     ("stock", "Stock pages", r"^/stock/"),
     ("statement", "Yearly statement", r"^/portfolio/statement"),
     ("portfolio", "Portfolio", r"^/portfolio(/|$)"),
@@ -62,7 +63,8 @@ AREAS: list[tuple[str, str, str]] = [
     ("notifications", "Updates (notifications)", r"^/(notifications|desk)"),
     ("alerts", "Watch rules and price alerts", r"^/(watch-rules|alerts)"),
     ("ranking", "Company ranking", r"^/dsestockranking"),
-    ("screener", "Stock screener", r"^/(screener|my-lists|stock-recommendation)"),
+    # Lists (2026-11-25): the Lists page, where the screener's ready lists open.
+    ("screener", "Lists page (and the old screener)", r"^/(lists|screener|my-lists|stock-recommendation)"),
     ("compare", "Compare stocks", r"^/compare-stocks"),
     ("lists", "Premium research", r"^/stock-insights"),
     ("dividends", "Dividend calendar", r"^/dividend-calendar"),

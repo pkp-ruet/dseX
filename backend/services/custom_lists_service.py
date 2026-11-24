@@ -272,7 +272,7 @@ def push_payload(changes: list[tuple], lang: str = "bn") -> Optional[dict]:
         names = ", ".join(joined[:3]) + ("…" if len(joined) > 3 else "")
         title = (f"'{d['name']}' স্ক্রিনে নতুন {len(joined)}টি শেয়ার" if bn
                  else f"{len(joined)} new {'share' if len(joined) == 1 else 'shares'} on your screen '{d['name']}'")
-        url = f"/screener?tab=saved&list={d['id']}&src=alert"
+        url = f"/lists?tab=saved&list={d['id']}&src=alert"
         lines = [(why.get(c) or {}).get("bn" if bn else "en") for c in joined[:2]]
         lines = [x for x in lines if x]
         if lines:

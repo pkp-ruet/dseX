@@ -6,7 +6,9 @@ import { PersonalCodesProvider } from "@/components/market-analysis/PersonalCode
 import { T } from "@/components/i18n/T";
 import { sectorBn } from "@/lib/bn";
 import { dayWords, perShare, signedPct, type ResultsSeason, type SeasonRow } from "@/lib/research-reports";
-import { CompanyMeta, CompanyName, RrSection, ShowMore, useMine } from "./parts";
+import ListView from "@/components/lists/ListView";
+import { SORT_NAME, SORT_PRICE, asTier, withQuote, type ListChip, type ListRow, type ListSort, type Quotes } from "@/lib/lists";
+import { CompanyName, RrSection, ShowMore } from "./parts";
 
 const SECTORS_SHOWN = 10;
 
@@ -26,8 +28,30 @@ const BUCKETS: { key: keyof ResultsSeason["counts"]; en: string; bn: string; cls
   { key: "loss", en: "Still a loss", bn: "এখনো লোকসান", cls: "loss" },
 ];
 
-/** The results season report's body (Premium): one tab per season. */
-export default function SeasonView({ seasons }: { seasons: ResultsSeason[] }) {
+const SORTS: ListSort[] = [
+  { id: "pct", label: { en: "Profit grew most", bn: "মুনাফা সবচেয়ে বেশি বেড়েছে" }, dir: "desc" },
+  { id: "fell", label: { en: "Profit fell most", bn: "মুনাফা সবচেয়ে বেশি কমেছে" }, dir: "asc" },
+  { id: "posted", label: { en: "Newest report first", bn: "নতুন প্রতিবেদন আগে" }, dir: "desc" },
+  SORT_PRICE,
+  SORT_NAME,
+];
+
+const CHIPS: ListChip[] = [
+  { id: "up", label: { en: "Profit up", bn: "মুনাফা বেড়েছে" } },
+  { id: "same", label: { en: "About the same", bn: "প্রায় একই" } },
+  { id: "down", label: { en: "Profit down", bn: "মুনাফা কমেছে" } },
+  { id: "loss", label: { en: "Still a loss", bn: "এখনো লোকসান" } },
+  { id: "to_profit", label: { en: "Back to a profit", bn: "লোকসান থেকে মুনাফায়" } },
+  { id: "to_loss", label: { en: "Turned to a loss", bn: "মুনাফা থেকে লোকসানে" } },
+  { id: "cash_out", label: { en: "No cash came in", bn: "নগদ আসেনি" } },
+];
+
+/** The results season report's body (Premium): one tab per season. Each
+ *  season's companies open in THE list view (2026-11-25): the old lists —
+ *  grew most, fell most, back to a profit, turned to a loss, no cash came in,
+ *  your shares — are its chips and orders; the split, the sectors and the
+ *  dividends stay around it. */
+export default function SeasonView({ seasons, quotes }: { seasons: ResultsSeason[]; quotes?: Quotes | null }) {
   const [id, setId] = useState(seasons[0]?.season.id ?? "");
   const cur = seasons.find((x) => x.season.id === id) ?? seasons[0];
   if (!cur) return null;
@@ -45,18 +69,36 @@ export default function SeasonView({ seasons }: { seasons: ResultsSeason[] }) {
         </div>
       )}
       <div role="tabpanel" aria-labelledby={`rr-season-${cur.season.id}`}>
-        <Season key={cur.season.id} data={cur} />
+        <Season key={cur.season.id} data={cur} quotes={quotes} />
       </div>
     </PersonalCodesProvider>
   );
 }
 
-function Season({ data }: { data: ResultsSeason }) {
-  const mine = useMine();
-  const byCode = useMemo(() => new Map(data.rows.map((r) => [r.code, r])), [data.rows]);
-  const rowsOf = (codes: string[]) => codes.map((c) => byCode.get(c)).filter((r): r is SeasonRow => !!r);
-  const mineRows = data.rows.filter((r) => mine.has(r.code));
+function Season({ data, quotes }: { data: ResultsSeason; quotes?: Quotes | null }) {
   const n = data.reported;
+  const rows = useMemo<ListRow<SeasonRow>[]>(() => {
+    const list = data.rows.map((r) =>
+      withQuote<SeasonRow>(
+        {
+          code: r.code,
+          name: r.name,
+          sector: r.sector,
+          tier: asTier(r.tier),
+          fig: r.pct != null
+            ? { en: signedPct(r.pct), bn: signedPct(r.pct), tone: r.bucket === "up" ? "positive" : r.bucket === "down" ? "negative" : "" }
+            : { en: MOVE_WORDS[r.move].en, bn: MOVE_WORDS[r.move].bn, tone: r.bucket === "loss" ? "negative" : r.move === "to_profit" ? "positive" : "", words: true },
+          // Words-only moves (a loss on either side) sort after every percentage.
+          sort: { pct: r.pct, fell: r.pct, posted: r.posted },
+          tags: [r.bucket, r.move, ...(r.cash_out ? ["cash_out"] : [])],
+          hash: "#an-profit",
+          data: r,
+        },
+        quotes,
+      ),
+    );
+    return list.sort((a, b) => (b.data!.pct ?? -1e9) - (a.data!.pct ?? -1e9));
+  }, [data.rows, quotes]);
   const med = data.median_pct;
 
   return (
@@ -117,64 +159,48 @@ function Season({ data }: { data: ResultsSeason }) {
         </div>
       </RrSection>
 
-      {mineRows.length > 0 && (
-        <RrSection id="rr-mine" title={<T en="Your shares" bn="আপনার শেয়ার" />}>
-          <ul className="rr-card rr-list">
-            {mineRows.map((r) => (
-              <MoveRow key={r.code} r={r} />
-            ))}
-          </ul>
-        </RrSection>
-      )}
+      <RrSection
+        id="rr-season-list"
+        title={<T en="Every company this season" bn="এই মৌসুমের সব কোম্পানি" />}
+        lead={
+          <T
+            en="Profit a share against the same months a year earlier. Pick a group, or sort by who grew or fell most."
+            bn="এক বছর আগের একই মাসগুলোর তুলনায় শেয়ারপ্রতি মুনাফা। একটি ভাগ বাছুন, অথবা কার সবচেয়ে বেশি বেড়েছে বা কমেছে, সেভাবে সাজান।"
+          />
+        }
+      >
+        <ListView
+          id="season"
+          track="report-season"
+          rows={rows}
+          figHead={{ en: "Profit change", bn: "মুনাফার বদল" }}
+          sorts={SORTS}
+          defaultSort="pct"
+          chips={CHIPS.filter((c) => rows.some((r) => r.tags?.includes(c.id)))}
+          mineChip
+          sync
+          renderLines={(r) => {
+            const p = periodWords(r.data!.months);
+            return (
+              <span className="lv-lines">
+                <span className="lv-line">
+                  <T
+                    en={`Profit ${p.en}: ${perShare(r.data!.eps)} a share, against ${perShare(r.data!.eps_prev)} a year earlier.`}
+                    bn={`${p.bn} শেয়ারপ্রতি মুনাফা ${perShare(r.data!.eps)}, এক বছর আগে ছিল ${perShare(r.data!.eps_prev)}।`}
+                  />
+                </span>
+                {r.data!.cash_out && (
+                  <span className="lv-line text-watch">
+                    <T en="Profit up on paper, but no cash came in from the business." bn="কাগজে মুনাফা বেড়েছে, কিন্তু ব্যবসা থেকে নগদ আসেনি।" />
+                  </span>
+                )}
+              </span>
+            );
+          }}
+        />
+      </RrSection>
 
       <SectorBlock data={data} />
-
-      <div className="rr-two">
-        <RrSection id="rr-top-up" title={<T en="Profit grew most" bn="মুনাফা সবচেয়ে বেশি বেড়েছে" />}>
-          <ul className="rr-card rr-list">
-            {rowsOf(data.top_up).map((r) => (
-              <MoveRow key={r.code} r={r} />
-            ))}
-          </ul>
-        </RrSection>
-        <RrSection id="rr-top-down" title={<T en="Profit fell most" bn="মুনাফা সবচেয়ে বেশি কমেছে" />}>
-          <ul className="rr-card rr-list">
-            {rowsOf(data.top_down).map((r) => (
-              <MoveRow key={r.code} r={r} />
-            ))}
-          </ul>
-        </RrSection>
-      </div>
-
-      {(data.turned_profit.length > 0 || data.turned_loss.length > 0) && (
-        <div className="rr-two">
-          {data.turned_profit.length > 0 && (
-            <RrSection id="rr-to-profit" title={<T en="Back to a profit" bn="লোকসান থেকে মুনাফায়" />}>
-              <NameList rows={rowsOf(data.turned_profit)} />
-            </RrSection>
-          )}
-          {data.turned_loss.length > 0 && (
-            <RrSection id="rr-to-loss" title={<T en="Turned to a loss" bn="মুনাফা থেকে লোকসানে" />}>
-              <NameList rows={rowsOf(data.turned_loss)} />
-            </RrSection>
-          )}
-        </div>
-      )}
-
-      {data.cash_out.length > 0 && (
-        <RrSection
-          id="rr-cash"
-          title={<T en="Profit up, but no cash came in" bn="মুনাফা বেড়েছে, কিন্তু নগদ আসেনি" />}
-          lead={
-            <T
-              en="These companies earned more on paper, but their business paid out more cash than it took in. Profit that never turns into cash deserves a closer look."
-              bn="এসব কোম্পানির কাগজে মুনাফা বেড়েছে, কিন্তু ব্যবসায় যত নগদ এসেছে, খরচ হয়েছে তার বেশি। যে মুনাফা নগদে আসে না, তা ভালো করে দেখা দরকার।"
-            />
-          }
-        >
-          <NameList rows={rowsOf(data.cash_out)} />
-        </RrSection>
-      )}
 
       {data.dividends && data.dividends.declared > 0 && <DividendBlock data={data} />}
 
@@ -249,43 +275,6 @@ function periodWords(months: number) {
   return months === 12
     ? { en: "for the year", bn: "পুরো বছরে" }
     : { en: `in ${months} months`, bn: `${months} মাসে` };
-}
-
-function MoveRow({ r }: { r: SeasonRow }) {
-  const tone = r.bucket === "up" ? "rr-up" : r.bucket === "down" || r.bucket === "loss" ? "rr-down" : "";
-  const p = periodWords(r.months);
-  return (
-    <li className="rr-co">
-      <div className="rr-co-head">
-        <CompanyName code={r.code} name={r.name} hash="#an-profit" />
-        <span className={`rr-move nums ${tone}`}>
-          {r.pct != null ? signedPct(r.pct) : <T en={MOVE_WORDS[r.move].en} bn={MOVE_WORDS[r.move].bn} />}
-        </span>
-      </div>
-      <CompanyMeta sector={r.sector} tier={r.tier} />
-      <p className="rr-co-line">
-        <T
-          en={`Profit ${p.en}: ${perShare(r.eps)} a share, against ${perShare(r.eps_prev)} a year earlier.`}
-          bn={`${p.bn} শেয়ারপ্রতি মুনাফা ${perShare(r.eps)}, এক বছর আগে ছিল ${perShare(r.eps_prev)}।`}
-        />
-      </p>
-    </li>
-  );
-}
-
-function NameList({ rows }: { rows: SeasonRow[] }) {
-  const [open, setOpen] = useState(false);
-  const shown = open ? rows : rows.slice(0, 6);
-  return (
-    <>
-      <ul className="rr-card rr-list">
-        {shown.map((r) => (
-          <MoveRow key={r.code} r={r} />
-        ))}
-      </ul>
-      <ShowMore open={open} total={rows.length} shown={6} onToggle={() => setOpen((v) => !v)} />
-    </>
-  );
 }
 
 function ComingList({ rows }: { rows: ResultsSeason["coming"] }) {

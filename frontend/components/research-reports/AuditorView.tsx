@@ -1,39 +1,66 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Chip from "@/components/ui/Chip";
+import Link from "@/components/ui/Link";
+import ListView from "@/components/lists/ListView";
 import { PersonalCodesProvider } from "@/components/market-analysis/PersonalCodes";
 import { T } from "@/components/i18n/T";
 import { sectorBn } from "@/lib/bn";
 import { dayWords, type AuditItem, type AuditorTracker } from "@/lib/research-reports";
-import { Bar, CompanyMeta, CompanyName, RrSection, ShowMore, useMine } from "./parts";
+import { SORT_NAME, SORT_PRICE, asTier, withQuote, type FigTone, type ListRow, type ListSort, type Quotes } from "@/lib/lists";
+import { Bar, RrSection, ShowMore } from "./parts";
 
-const SHOWN = 8;
 const SECTORS_SHOWN = 8;
 
-const TONE: Record<string, "negative" | "watch" | "ink"> = {
-  going_concern: "negative",
-  serious: "negative",
-  minor: "watch",
-  unknown: "ink",
+const SORTS: ListSort[] = [
+  { id: "worst", label: { en: "Worst first", bn: "সবচেয়ে খারাপটি আগে" }, dir: "asc" },
+  { id: "posted", label: { en: "Newest report first", bn: "নতুন প্রতিবেদন আগে" }, dir: "desc" },
+  SORT_PRICE,
+  SORT_NAME,
+];
+
+/** The key figure: how serious the auditor's warning is, in one or two words. */
+const GROUP_FIG: Record<string, { en: string; bn: string; tone: FigTone }> = {
+  going_concern: { en: "May not keep running", bn: "চালু থাকা নিয়ে সন্দেহ", tone: "negative" },
+  serious: { en: "Serious", bn: "গুরুতর", tone: "negative" },
+  minor: { en: "Smaller", bn: "ছোট", tone: "watch" },
+  unknown: { en: "Not readable", bn: "পড়া যায়নি", tone: "" },
 };
 
-/** The auditor report's body (Premium): the reasons, the sectors, then every
- *  company by how serious its auditor's warning is. */
-export default function AuditorView({ data }: { data: AuditorTracker }) {
+/** The auditor report's body (Premium): the reasons and the sectors as the
+ *  top card, then every company in THE list view (2026-11-25), grouped by how
+ *  serious its auditor's warning is; a tap opens the auditor's own words. */
+export default function AuditorView({ data, quotes }: { data: AuditorTracker; quotes?: Quotes | null }) {
   return (
     <PersonalCodesProvider>
-      <Inner data={data} />
+      <Inner data={data} quotes={quotes} />
     </PersonalCodesProvider>
   );
 }
 
-function Inner({ data }: { data: AuditorTracker }) {
-  const mine = useMine();
-  const [onlyMine, setOnlyMine] = useState(false);
-  const mineCount = useMemo(
-    () => data.groups.reduce((a, g) => a + g.items.filter((i) => mine.has(i.code)).length, 0),
-    [data.groups, mine],
+function Inner({ data, quotes }: { data: AuditorTracker; quotes?: Quotes | null }) {
+  const groupByKey = useMemo(() => new Map(data.groups.map((g, i) => [g.key, { g, i }] as const)), [data.groups]);
+  const rows = useMemo<ListRow<AuditItem>[]>(
+    () =>
+      data.groups.flatMap((g, gi) =>
+        g.items.map((i, k) =>
+          withQuote(
+            {
+              code: i.code,
+              name: i.name,
+              sector: i.sector,
+              tier: asTier(i.tier),
+              fig: { ...GROUP_FIG[i.group], words: true },
+              sort: { worst: gi * 10000 + k, posted: i.posted },
+              tags: [i.group],
+              isNew: i.new,
+              data: i,
+            },
+            quotes,
+          ),
+        ),
+      ),
+    [data.groups, quotes],
   );
   const serious = data.reasons.filter((r) => r.serious);
   const minor = data.reasons.filter((r) => !r.serious);
@@ -69,21 +96,23 @@ function Inner({ data }: { data: AuditorTracker }) {
           />
         }
       >
-        {mineCount > 0 && (
-          <div className="rr-chips" role="group" aria-label="Filter">
-            <Chip active={!onlyMine} onClick={() => setOnlyMine(false)}>
-              <T en={`All · ${data.companies}`} bn={`সব · ${data.companies}`} />
-            </Chip>
-            <Chip active={onlyMine} onClick={() => setOnlyMine(true)}>
-              <T en={`Your shares · ${mineCount}`} bn={`আপনার শেয়ার · ${mineCount}`} />
-            </Chip>
-          </div>
-        )}
-        {data.groups.map((g) => {
-          const rows = onlyMine ? g.items.filter((i) => mine.has(i.code)) : g.items;
-          if (rows.length === 0) return null;
-          return <GroupCard key={g.key} group={g} rows={rows} />;
-        })}
+        <ListView
+          id="auditors"
+          track="report-auditors"
+          rows={rows}
+          figHead={{ en: "How serious", bn: "কতটা গুরুতর" }}
+          sorts={SORTS}
+          defaultSort="worst"
+          chips={data.groups.map((g) => ({ id: g.key, label: g.title }))}
+          mineChip
+          sync
+          groupOf={(r) => {
+            const hit = groupByKey.get(r.data!.group);
+            return hit ? { id: hit.g.key, title: hit.g.title, line: hit.g.means } : null;
+          }}
+          renderLines={(r) => <AuditLines item={r.data!} />}
+          renderOpen={(r) => <AuditOpen item={r.data!} />}
+        />
       </RrSection>
     </>
   );
@@ -151,47 +180,14 @@ function SectorBlock({ data }: { data: AuditorTracker }) {
   );
 }
 
-function GroupCard({ group, rows }: { group: AuditorTracker["groups"][number]; rows: AuditItem[] }) {
-  const [open, setOpen] = useState(false);
-  const shown = open ? rows : rows.slice(0, SHOWN);
-  const tone = TONE[group.key];
-  return (
-    <div className={`rr-group rr-group--${tone}`}>
-      <div className="rr-group-head">
-        <h3 className="rr-h3">
-          <T en={group.title.en} bn={group.title.bn} />
-          <span className="rr-group-n nums">{rows.length}</span>
-        </h3>
-        <p className="rr-group-m">
-          <T en={group.means.en} bn={group.means.bn} />
-        </p>
-      </div>
-      <ul className="rr-card rr-list">
-        {shown.map((i) => (
-          <AuditRow key={i.code} item={i} />
-        ))}
-      </ul>
-      <ShowMore open={open} total={rows.length} shown={SHOWN} onToggle={() => setOpen((v) => !v)} />
-    </div>
-  );
-}
-
-function AuditRow({ item: i }: { item: AuditItem }) {
+/** Under the company: which accounts, when, and what the auditor pointed to. */
+function AuditLines({ item: i }: { item: AuditItem }) {
   const posted = dayWords(i.posted);
   const reasonsEn = joinWords(i.reasons.map((r) => r.en), "and");
   const reasonsBn = joinWords(i.reasons.map((r) => r.bn), "আর");
   return (
-    <li className="rr-co">
-      <div className="rr-co-head">
-        <CompanyName code={i.code} name={i.name} hash="#an-safety" />
-        {i.new && (
-          <span className="rr-new">
-            <T en="New" bn="নতুন" />
-          </span>
-        )}
-      </div>
-      <CompanyMeta sector={i.sector} tier={i.tier} />
-      <p className="rr-co-line">
+    <span className="lv-lines">
+      <span className="lv-line">
         {i.year ? (
           <T en={`Accounts for ${i.year}, posted ${posted.en}.`} bn={`${i.year} সালের হিসাব, প্রকাশ ${posted.bn}।`} />
         ) : (
@@ -202,33 +198,44 @@ function AuditRow({ item: i }: { item: AuditItem }) {
         ) : i.group === "going_concern" ? (
           <T en="The auditor doubts the company can keep running." bn="কোম্পানি চালু থাকতে পারবে কি না, নিরীক্ষক সন্দিহান।" />
         ) : null}
-      </p>
+      </span>
       {i.earlier.length > 0 && (
-        <p className="rr-co-line rr-co-line--watch">
+        <span className="lv-line text-watch">
           <T
             en={`The auditor raised this on its ${i.earlier.join(", ")} accounts too.`}
             bn={`${i.earlier.join(", ")} সালের হিসাবেও নিরীক্ষক একই কথা বলেছিলেন।`}
           />
-        </p>
+        </span>
       )}
-      {(i.excerpt || i.url) && (
-        <details className="rr-words">
-          <summary>
+    </span>
+  );
+}
+
+/** A row opened: the auditor's own words, the PDF, and our analysis. */
+function AuditOpen({ item: i }: { item: AuditItem }) {
+  return (
+    <div className="rr-open">
+      {i.excerpt && (
+        <>
+          <p className="rr-open-k">
             <T en="In the auditor's own words" bn="নিরীক্ষকের নিজের ভাষায়" />
-          </summary>
-          {i.excerpt && (
-            <blockquote lang="en" className="rr-quote">
-              {i.excerpt}
-            </blockquote>
-          )}
-          {i.url && (
-            <a href={i.url} target="_blank" rel="noopener noreferrer" className="rr-pdf">
-              <T en="Read the auditor's full report (PDF, in English)" bn="নিরীক্ষকের পুরো প্রতিবেদন পড়ুন (PDF, ইংরেজিতে)" />
-            </a>
-          )}
-        </details>
+          </p>
+          <blockquote lang="en" className="rr-quote">
+            {i.excerpt}
+          </blockquote>
+        </>
       )}
-    </li>
+      <div className="rr-open-acts">
+        <Link href={`/stock/${encodeURIComponent(i.code)}#an-safety`} className="btn-primary btn-sm">
+          <T en="Read our analysis" bn="আমাদের বিশ্লেষণ পড়ুন" />
+        </Link>
+        {i.url && (
+          <a href={i.url} target="_blank" rel="noopener noreferrer" className="btn-quiet btn-sm">
+            <T en="The auditor's report (PDF, in English)" bn="নিরীক্ষকের প্রতিবেদন (PDF, ইংরেজিতে)" />
+          </a>
+        )}
+      </div>
+    </div>
   );
 }
 

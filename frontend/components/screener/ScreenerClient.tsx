@@ -6,7 +6,7 @@ import Sheet from "@/components/ui/Sheet";
 import EmptyState from "@/components/ui/EmptyState";
 import {
   IconActivity, IconArrowDown, IconArrowUp, IconBell, IconBlocks, IconBriefcase, IconCalendar, IconCheck,
-  IconCheckCircle, IconChevronDown, IconClose, IconCoin, IconCrown, IconGift, IconList, IconPie, IconTag, IconTarget,
+  IconCheckCircle, IconClose, IconCoin, IconCrown, IconGift, IconList, IconPie, IconTag, IconTarget,
   IconTrendDown, IconTrendUp, IconTrophy, IconWallet,
 } from "@/components/ui/icons";
 import PageGate from "@/components/premium/PageGate";
@@ -15,6 +15,7 @@ import { showLimitNotice } from "@/components/premium/LimitNotice";
 import { PersonalCodesProvider, usePersonalCodesCtx } from "@/components/market-analysis/PersonalCodes";
 import { T } from "@/components/i18n/T";
 import ScreenerList, { PAGE } from "./ScreenerList";
+import ListBar from "@/components/lists/ListBar";
 import ScreenerPremium, { SCREENER_ANCHOR } from "./ScreenerPremium";
 import AlmostThere from "./AlmostThere";
 import ListLeft from "./ListLeft";
@@ -69,7 +70,11 @@ const BACK_KEY = "dsex.scr.back";
 const tt = (en: string, bn: string) => <T en={en} bn={bn} />;
 
 /**
- * The stock screener (`/screener`; Premium since 2026-11-14).
+ * The ready lists on `/lists` (the stock screener until 2026-11-25, when it
+ * stopped being a page: step 4 of the simplify review folded /screener into
+ * the Lists page, and its pop-up list became THE list view of the site —
+ * `ListBar` + `ListRows`, shared with the Buy List, All companies, Results,
+ * For you and the research reports). Premium since 2026-11-14.
  *
  * 2026-11-24 (user: "instead of show a table at bottom … instant popping up
  * the list", then "yes build it. also dont use previous table. design a new
@@ -575,7 +580,6 @@ function ScreenerInner({ data }: { data: ScreenerUniverse }) {
   };
 
   const n = result.length;
-  const label = (en: string, b: string, c: number) => `${t(en, b)} (${c})`;
   const sheetTitle = list ? tt(list.title_en, list.title_bn) : tt("Every share", "সব শেয়ার");
   const sheetSub = (
     <span className="nums">
@@ -623,18 +627,21 @@ function ScreenerInner({ data }: { data: ScreenerUniverse }) {
 
   return (
     <PageLockScope anchor={SCREENER_ANCHOR}>
-      <div className="space-y-8">
-        {/* The page: the lists. A tap opens one in the pop-up. */}
-        <section className="scr-builder" aria-labelledby="scr-q">
+      <>
+        {/* The ready lists on /lists. A tap opens one in the pop-up. */}
+        <section className="ls-sec" id="ready" aria-labelledby="scr-q">
+          <h2 id="scr-q" className="ls-h">
+            {tt("Ready lists", "তৈরি তালিকা")}
+            {!isPremium && (
+              <span className="ls-crown"><IconCrown size={12} />{tt("Premium", "প্রিমিয়াম")}</span>
+            )}
+          </h2>
+          <p className="ls-h-note">
+            {tt(`${cards.length} lists, from 52-week highs to steady dividends. Tap one to open it.`,
+                `${cards.length}টি তালিকা, 52 সপ্তাহের সর্বোচ্চ দাম থেকে নিয়মিত ডিভিডেন্ড পর্যন্ত। খুলতে একটিতে চাপুন।`)}
+          </p>
+          <div className="scr-builder">
           <div className="scr-part">
-            <div className="scr-part-head">
-              <h2 id="scr-q" className="scr-label scr-label--lists">
-                {tt("Pick a list", "একটি তালিকা বাছুন")}
-                {!isPremium && (
-                  <span className="scr-sub-pro"><IconCrown size={12} />{tt("Premium", "প্রিমিয়াম")}</span>
-                )}
-              </h2>
-            </div>
             <div className="scr-tiles">
               {cards.map((g) => {
                 const c = listCounts.get(g.id) ?? 0;
@@ -687,6 +694,7 @@ function ScreenerInner({ data }: { data: ScreenerUniverse }) {
                 </span>
               </button>
             )}
+          </div>
           </div>
         </section>
 
@@ -823,48 +831,30 @@ function ScreenerInner({ data }: { data: ScreenerUniverse }) {
               )
             )}
 
-            {/* Sector, price and order: three identical boxes that stay in sight while the shares scroll */}
-            <div className="scl-bar">
-              <div className={`scl-controls${showSort ? " scl-controls--3" : ""}`}>
-                {sectorDef && (
-                  <label className="scl-ctl" htmlFor="scl-sector">
-                    <span className="scl-ctl-l">{tt("Sector", "সেক্টর")}</span>
-                    <select id="scl-sector" className="scl-ctl-s" value={sectorValue} onChange={(e) => pickSector(e.target.value)}>
-                      <option value="">{label("All sectors", "সব সেক্টর", sectorCounts.all)}</option>
-                      {sectorDef.options.map((o) => (
-                        <option key={o.value} value={o.value}>{label(o.en, o.bn, sectorCounts.by.get(o.value) ?? 0)}</option>
-                      ))}
-                    </select>
-                    <span className="scl-ctl-chev" aria-hidden="true"><IconChevronDown size={16} /></span>
-                  </label>
-                )}
-                {priceDef && (
-                  <label className="scl-ctl" htmlFor="scl-price">
-                    <span className="scl-ctl-l">{tt("Share price", "শেয়ারের দাম")}</span>
-                    <select id="scl-price" className="scl-ctl-s" value={priceIndex >= 0 ? String(priceIndex) : ""}
-                      onChange={(e) => pickPrice(e.target.value)}>
-                      <option value="">{label("Any price", "যেকোনো দাম", priceCounts.all)}</option>
-                      {pricePresets.map((pr, i) => (
-                        <option key={pr.en} value={String(i)}>{label(pr.en, pr.bn, priceCounts.by[i] ?? 0)}</option>
-                      ))}
-                    </select>
-                    <span className="scl-ctl-chev" aria-hidden="true"><IconChevronDown size={16} /></span>
-                  </label>
-                )}
-                {showSort && (
-                  <label className="scl-ctl scl-ctl--sort" htmlFor="scl-sort">
-                    <span className="scl-ctl-l">{tt("Sort by", "ক্রম")}</span>
-                    <select id="scl-sort" className="scl-ctl-s" value={sortNow.sort} onChange={(e) => sortBy(e.target.value)}>
-                      <option value="name">{t("Company, A to Z", "কোম্পানি, নাম অনুযায়ী")}</option>
-                      {orders.map((r) => (
-                        <option key={r.key} value={r.key}>{t(r.short_en, r.short_bn)}</option>
-                      ))}
-                    </select>
-                    <span className="scl-ctl-chev" aria-hidden="true"><IconChevronDown size={16} /></span>
-                  </label>
-                )}
-              </div>
-            </div>
+            {/* Sector, price and order: THE list bar, the same boxes as on every list */}
+            <ListBar
+              idPrefix="scl"
+              sector={sectorDef ? {
+                value: sectorValue,
+                all: sectorCounts.all,
+                options: sectorDef.options.map((o) => ({ value: o.value, label: { en: o.en, bn: o.bn }, count: sectorCounts.by.get(o.value) ?? 0 })),
+                onChange: pickSector,
+              } : null}
+              price={priceDef ? {
+                value: priceIndex >= 0 ? String(priceIndex) : "",
+                all: priceCounts.all,
+                options: pricePresets.map((pr, i) => ({ value: String(i), label: { en: pr.en, bn: pr.bn }, count: priceCounts.by[i] ?? 0 })),
+                onChange: pickPrice,
+              } : null}
+              sort={showSort ? {
+                value: sortNow.sort,
+                options: [
+                  { value: "name", label: { en: "Company, A to Z", bn: "কোম্পানি, নাম অনুযায়ী" } },
+                  ...orders.map((r) => ({ value: r.key, label: { en: r.short_en, bn: r.short_bn } })),
+                ],
+                onChange: sortBy,
+              } : null}
+            />
 
             {/* Filters a saved screen or a link brought that the dropdowns can't show */}
             {extra.length > 0 && (
@@ -933,7 +923,7 @@ function ScreenerInner({ data }: { data: ScreenerUniverse }) {
             </p>
           </div>
         </Sheet>
-      </div>
+      </>
     </PageLockScope>
   );
 }

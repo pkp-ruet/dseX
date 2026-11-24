@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import ListView from "@/components/lists/ListView";
 import Chip from "@/components/ui/Chip";
 import { PersonalCodesProvider } from "@/components/market-analysis/PersonalCodes";
 import { T } from "@/components/i18n/T";
@@ -14,22 +15,34 @@ import {
   type OwnersReport,
   type OwnerTradeRow,
 } from "@/lib/research-reports";
+import { SORT_NAME, SORT_PRICE, asTier, withQuote, type ListRow, type ListSort, type Quotes } from "@/lib/lists";
 import { CompanyMeta, CompanyName, RrSection, ShowMore, useMine } from "./parts";
+
+const TRADE_SORTS: ListSort[] = [
+  { id: "tk", label: { en: "Biggest buys first", bn: "সবচেয়ে বড় কেনা আগে" }, dir: "desc" },
+  { id: "sold", label: { en: "Biggest sales first", bn: "সবচেয়ে বড় বেচা আগে" }, dir: "asc" },
+  { id: "last", label: { en: "Newest first", bn: "নতুনগুলো আগে" }, dir: "desc" },
+  SORT_PRICE,
+  SORT_NAME,
+];
 
 const SHOWN = 8;
 const pp = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(Math.round(v * 100) / 100)}`;
 const abs2 = (v: number | null) => Math.abs(Math.round((v ?? 0) * 100) / 100);
 
-/** The owners report's body (Premium). */
-export default function OwnersView({ data }: { data: OwnersReport }) {
+/** The owners report's body (Premium). The owners' own trades are the
+ *  report's list, in THE list view (2026-11-25: a report opens like every
+ *  list); big investors, everyone moving together and the 30% rule stay as
+ *  cards around it. */
+export default function OwnersView({ data, quotes }: { data: OwnersReport; quotes?: Quotes | null }) {
   return (
     <PersonalCodesProvider>
-      <Inner data={data} />
+      <Inner data={data} quotes={quotes} />
     </PersonalCodesProvider>
   );
 }
 
-function Inner({ data }: { data: OwnersReport }) {
+function Inner({ data, quotes }: { data: OwnersReport; quotes?: Quotes | null }) {
   const mine = useMine();
   const [onlyMine, setOnlyMine] = useState(false);
   const keep = <R extends { code: string }>(rows: R[]) => (onlyMine ? rows.filter((r) => mine.has(r.code)) : rows);
@@ -53,6 +66,35 @@ function Inner({ data }: { data: OwnersReport }) {
           </Chip>
         </div>
       )}
+
+      <RrSection
+        id="rr-trades"
+        title={<T en="Owners buying and selling their own shares" bn="মালিকেরা নিজেদের শেয়ার কিনছেন ও বেচছেন" />}
+        lead={
+          <T
+            en="Every completed buy and sale they reported to DSE in the last 12 months, added up per company. Taka at today's price."
+            bn="গত 12 মাসে তাঁরা ডিএসইকে জানিয়ে যত কেনাবেচা শেষ করেছেন, কোম্পানি ধরে যোগ করা। টাকা আজকের দামে।"
+          />
+        }
+      >
+        <TradeView rows={keep([...data.trades.buying, ...data.trades.selling])} quotes={quotes} />
+        {(keep(data.trades.pending).length > 0 || keep(data.trades.lapsed).length > 0) && (
+          <div className="rr-two rr-two--tight">
+            <DeclList
+              title={{ en: "Announced, not done yet", bn: "ঘোষণা দিয়েছেন, এখনো শেষ হয়নি" }}
+              rows={keep(data.trades.pending)}
+            />
+            <DeclList
+              title={{ en: "Announced, but not done", bn: "ঘোষণা দিয়েও করেননি" }}
+              note={{
+                en: "A sale announced and then dropped can mean the owner found no buyer at their price.",
+                bn: "ঘোষণা দিয়ে বিক্রি না করা মানে হতে পারে, ওই দামে ক্রেতা পাননি।",
+              }}
+              rows={keep(data.trades.lapsed)}
+            />
+          </div>
+        )}
+      </RrSection>
 
       <RrSection
         id="rr-money"
@@ -90,38 +132,6 @@ function Inner({ data }: { data: OwnersReport }) {
             empty={{ en: "No company this month.", bn: "এ মাসে কোনো কোম্পানি নেই।" }}
           />
         </div>
-      </RrSection>
-
-      <RrSection
-        id="rr-trades"
-        title={<T en="Owners buying and selling their own shares" bn="মালিকেরা নিজেদের শেয়ার কিনছেন ও বেচছেন" />}
-        lead={
-          <T
-            en="Every completed buy and sale they reported to DSE in the last 12 months, added up per company. Taka at today's price."
-            bn="গত 12 মাসে তাঁরা ডিএসইকে জানিয়ে যত কেনাবেচা শেষ করেছেন, কোম্পানি ধরে যোগ করা। টাকা আজকের দামে।"
-          />
-        }
-      >
-        <div className="rr-two rr-two--tight">
-          <TradeList title={{ en: "Owners bought", bn: "মালিকেরা কিনেছেন" }} rows={keep(data.trades.buying)} tone="up" />
-          <TradeList title={{ en: "Owners sold", bn: "মালিকেরা বেচেছেন" }} rows={keep(data.trades.selling)} tone="down" />
-        </div>
-        {(keep(data.trades.pending).length > 0 || keep(data.trades.lapsed).length > 0) && (
-          <div className="rr-two rr-two--tight">
-            <DeclList
-              title={{ en: "Announced, not done yet", bn: "ঘোষণা দিয়েছেন, এখনো শেষ হয়নি" }}
-              rows={keep(data.trades.pending)}
-            />
-            <DeclList
-              title={{ en: "Announced, but not done", bn: "ঘোষণা দিয়েও করেননি" }}
-              note={{
-                en: "A sale announced and then dropped can mean the owner found no buyer at their price.",
-                bn: "ঘোষণা দিয়ে বিক্রি না করা মানে হতে পারে, ওই দামে ক্রেতা পাননি।",
-              }}
-              rows={keep(data.trades.lapsed)}
-            />
-          </div>
-        )}
       </RrSection>
 
       <RrSection
@@ -204,43 +214,72 @@ function MoneyList({ title, rows, tone, empty }: {
   );
 }
 
-function TradeList({ title, rows, tone }: { title: { en: string; bn: string }; rows: OwnerTradeRow[]; tone: "up" | "down" }) {
-  const [open, setOpen] = useState(false);
-  const shown = open ? rows : rows.slice(0, SHOWN);
+/** The owners' own trades of the last 12 months, one row a company: net
+ *  taka at today's price as the key figure, bought or sold as the chips. */
+function TradeView({ rows, quotes }: { rows: OwnerTradeRow[]; quotes?: Quotes | null }) {
+  const list = useMemo<ListRow<OwnerTradeRow>[]>(
+    () =>
+      rows
+        .map((r) => {
+          const tk = tkWords(r.net_tk == null ? null : Math.abs(r.net_tk));
+          const buy = r.net_shares > 0;
+          const sign = buy ? "+" : "−";
+          return withQuote<OwnerTradeRow>(
+            {
+              code: r.code,
+              name: r.name,
+              sector: r.sector,
+              tier: asTier(r.tier),
+              fig: tk.en
+                ? { en: `${sign}${tk.en}`, bn: `${sign}${tk.bn}`, tone: buy ? "positive" : "negative" }
+                : { en: buy ? "Bought" : "Sold", bn: buy ? "কিনেছেন" : "বেচেছেন", tone: buy ? "positive" : "negative", words: true },
+              sort: { tk: r.net_tk, sold: r.net_tk, last: r.last },
+              tags: [buy ? "buy" : "sell"],
+              hash: "#ownership",
+              data: r,
+            },
+            quotes,
+          );
+        })
+        .sort((a, b) => (b.data!.net_tk ?? 0) - (a.data!.net_tk ?? 0)),
+    [rows, quotes],
+  );
+  if (list.length === 0) {
+    return (
+      <p className="rr-fine">
+        <T en="None in the last 12 months." bn="গত 12 মাসে নেই।" />
+      </p>
+    );
+  }
   return (
-    <div className="rr-card rr-col">
-      <ListHead title={title} n={rows.length} tone={tone} />
-      {rows.length === 0 ? (
-        <p className="rr-fine">
-          <T en="None in the last 12 months." bn="গত 12 মাসে নেই।" />
-        </p>
-      ) : (
-        <ul className="rr-mini">
-          {shown.map((r) => {
-            const tk = tkWords(r.net_tk);
-            const last = dayWords(r.last);
-            const who = r.people[0];
-            return (
-              <li key={r.code}>
-                <span className="min-w-0">
-                  <CompanyName code={r.code} name={r.name} hash="#ownership" />
-                  <span className="rr-mini-sub">
-                    <T
-                      en={`${bdGroup(Math.abs(r.net_shares))} shares net · last ${last.en}${who ? ` · ${who.role_en}${who.name ? `: ${who.name}` : ""}` : ""}`}
-                      bn={`নিট ${bdGroup(Math.abs(r.net_shares))}টি শেয়ার · সর্বশেষ ${last.bn}${who ? ` · ${who.role_bn}${who.name ? `: ${who.name}` : ""}` : ""}`}
-                    />
-                  </span>
-                </span>
-                <span className={`rr-mini-v nums ${tone === "up" ? "rr-up" : "rr-down"}`}>
-                  <T en={tk.en || "–"} bn={tk.bn || "–"} />
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-      <ShowMore open={open} total={rows.length} shown={SHOWN} onToggle={() => setOpen((v) => !v)} />
-    </div>
+    <ListView
+      id="owners"
+      track="report-owners"
+      rows={list}
+      figHead={{ en: "Net, at today's price", bn: "নিট, আজকের দামে" }}
+      sorts={TRADE_SORTS}
+      defaultSort="tk"
+      chips={[
+        { id: "buy", label: { en: "Owners bought", bn: "মালিকেরা কিনেছেন" } },
+        { id: "sell", label: { en: "Owners sold", bn: "মালিকেরা বেচেছেন" } },
+      ]}
+      sync
+      renderLines={(row) => {
+        const r = row.data!;
+        const last = dayWords(r.last);
+        const who = r.people[0];
+        return (
+          <span className="lv-lines">
+            <span className="lv-line lv-line--muted">
+              <T
+                en={`${bdGroup(Math.abs(r.net_shares))} shares net · last ${last.en}${who ? ` · ${who.role_en}${who.name ? `: ${who.name}` : ""}` : ""}`}
+                bn={`নিট ${bdGroup(Math.abs(r.net_shares))}টি শেয়ার · সর্বশেষ ${last.bn}${who ? ` · ${who.role_bn}${who.name ? `: ${who.name}` : ""}` : ""}`}
+              />
+            </span>
+          </span>
+        );
+      }}
+    />
   );
 }
 

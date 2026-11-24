@@ -3,7 +3,8 @@ import ReportShell, { RESEARCH_ANCHOR } from "@/components/research-reports/Repo
 import ResearchPromo from "@/components/research-reports/ResearchPromo";
 import QualityView from "@/components/research-reports/QualityView";
 import { T } from "@/components/i18n/T";
-import { getEarningsQuality } from "@/lib/api";
+import { flattenTiers, getEarningsQuality, getScores } from "@/lib/api";
+import { quotesFor } from "@/lib/lists";
 import { reportJsonLd, reportMetadata } from "@/lib/research-reports";
 
 export const revalidate = 3600;
@@ -21,7 +22,9 @@ export const metadata: Metadata = reportMetadata("is-the-profit-real", TITLE, DE
 ]);
 
 export default async function IsTheProfitRealPage() {
-  const data = await getEarningsQuality();
+  // The report is the page; today's prices beside its companies are secondary.
+  const [data, scores] = await Promise.all([getEarningsQuality(), getScores().catch(() => null)]);
+  const quotes = scores ? quotesFor(flattenTiers(scores), data.items.map((i) => i.code)) : null;
   const c = data.counts;
   const graded = c.backed + c.partly + c.paper + c.none;
   const paper = c.paper + c.none;
@@ -102,7 +105,7 @@ export default async function IsTheProfitRealPage() {
           },
         ]}
       >
-        <QualityView data={data} />
+        <QualityView data={data} quotes={quotes} />
       </ReportShell>
     </>
   );

@@ -18,7 +18,7 @@ export default function PlaceNext({ place: key }: { place: Exclude<PlaceKey, "le
         <T en={place.question.en} bn={place.question.bn} />
       </span>
       <span className="pl-next-go">
-        <T en={`Go to ${place.name.en}`} bn={`${place.name.bn}-এ যান`} />
+        <T en={place.go.en} bn={place.go.bn} />
         <IconChevronRight size={16} />
       </span>
     </Link>

@@ -299,7 +299,7 @@ export default async function DividendCalendarPage() {
           <>
             After the record date the share price often drops by about the dividend. Open a company for its
             full dividend history. With Premium, the{" "}
-            <Link href="/screener?ready=high_dividend">high dividend list</Link> in the stock screener shows the
+            <Link href="/lists?ready=high_dividend">high dividend list</Link> in the stock screener shows the
             shares paying the most at today&apos;s price.
           </>,
         ]}
@@ -320,7 +320,7 @@ export default async function DividendCalendarPage() {
           <>
             রেকর্ড ডেটের পর শেয়ারের দাম প্রায়ই ডিভিডেন্ডের সমান কমে যায়। কোম্পানির পুরো ডিভিডেন্ডের ইতিহাস দেখতে তার
             পেজ খুলুন। প্রিমিয়ামে স্টক স্ক্রিনারের{" "}
-            <Link href="/screener?ready=high_dividend">বেশি ডিভিডেন্ড তালিকা</Link> আজকের দামে সবচেয়ে বেশি দেওয়া
+            <Link href="/lists?ready=high_dividend">বেশি ডিভিডেন্ড তালিকা</Link> আজকের দামে সবচেয়ে বেশি দেওয়া
             শেয়ারগুলো দেখায়।
           </>,
         ]}

@@ -1,7 +1,7 @@
 "use client";
 
 import { authHref } from "@/lib/next-path";
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { apiGetForYou, apiHideForYou, type ForYou, type ForYouPick } from "@/lib/api";
 import { usePremium } from "@/lib/premium";
@@ -13,20 +13,20 @@ import ErrorState from "@/components/ui/ErrorState";
 import Skeleton from "@/components/ui/Skeleton";
 import ForYouPremium, { FOR_YOU_PREMIUM_ANCHOR } from "@/components/for-you/ForYouPremium";
 import HowWePick from "@/components/for-you/HowWePick";
-import { ForYouGroupCard, ForYouIntro, StarterList } from "@/components/for-you/ForYouParts";
-
-/** The Premium card sits after this many groups, so a long list can't bury it. */
-const PROMO_AFTER = 2;
+import { ForYouIntro, SectionHead } from "@/components/for-you/ForYouParts";
+import ForYouList, { ForYouLockedList } from "@/components/for-you/ForYouList";
 
 /**
  * "Based on your shares" (`/for-you`; Discover until 2026-11-18). One
  * `GET /api/user/for-you` — backend services/for_you.py.
  *
  * Every reader: one intro card ("Worth a look", the count, the note, the
- * shares the picks came from), then one section per share. Premium: every group open, each company
- * with why it fits, what it shares, read · follow · not for me. Free: the
- * same groups with each share's reason and each pick's business, the names
- * locked, and one Premium card. No shares yet: a free starter list.
+ * shares the picks came from), then the picks in THE list view (2026-11-25,
+ * step 4 of the simplify review; For you moved from My shares to Lists): a
+ * heading per share of the reader's, each row why it fits, a tap opens what
+ * it shares and read · follow · not for me. Free: the same list with each
+ * pick's business, the names locked, and one Premium card under it. No
+ * shares yet: a free starter list in the same view.
  */
 export default function ForYouClient() {
   const { isLoggedIn, isLoading } = useAuth();
@@ -136,18 +136,21 @@ export default function ForYouClient() {
     return (
       <>
         <ForYouIntro />
-        <StarterList
-          picks={starter.length > 0 ? starter : items}
-          title={<T en="Strong companies to start with" bn="শুরু করার মতো শক্তিশালী কোম্পানি" />}
-          lead={
-            <T
-              en="Follow a share, add your portfolio or open a few stock pages, and we'll pick companies based on them. Until then, these strong, well-known companies are a good place to start."
-              bn="একটি শেয়ার ফলো করুন, পোর্টফোলিও যোগ করুন বা কয়েকটি শেয়ারের পেজ খুলুন, আমরা সেগুলো দেখে কোম্পানি বাছাই করব। ততদিন এই শক্তিশালী, পরিচিত কোম্পানিগুলো দিয়ে শুরু করতে পারেন।"
-            />
-          }
-          actions={addButtons}
-          onHide={onHide}
-        />
+        <section className="fu-sec" aria-labelledby="fu-start-t">
+          <SectionHead
+            id="fu-start-t"
+            title={<T en="Strong companies to start with" bn="শুরু করার মতো শক্তিশালী কোম্পানি" />}
+            line={
+              <T
+                en="Follow a share, add your portfolio or open a few stock pages, and we'll pick companies based on them. Until then, these strong, well-known companies are a good place to start."
+                bn="একটি শেয়ার ফলো করুন, পোর্টফোলিও যোগ করুন বা কয়েকটি শেয়ারের পেজ খুলুন, আমরা সেগুলো দেখে কোম্পানি বাছাই করব। ততদিন এই শক্তিশালী, পরিচিত কোম্পানিগুলো দিয়ে শুরু করতে পারেন।"
+              />
+            }
+          >
+            {addButtons}
+          </SectionHead>
+          <ForYouList id="for-you-start" picks={starter.length > 0 ? starter : items} onHide={onHide} />
+        </section>
         <HowWePick funnel={data.funnel} />
       </>
     );
@@ -163,21 +166,25 @@ export default function ForYouClient() {
     return (
       <>
         <ForYouIntro />
-        <StarterList
-          picks={starter}
-          title={<T en="Nothing tied to your shares today" bn="আজ আপনার শেয়ারের সাথে মেলে এমন কিছু নেই" />}
-          lead={
-            data.note ? (
-              <T en={data.note.en} bn={data.note.bn} />
-            ) : (
-              <T
-                en="No strong company tied to your shares passes all our checks today. We don't fill the list with others. Until something does, these strong, well-known companies are worth knowing."
-                bn="আজ আপনার শেয়ারের সাথে যুক্ত কোনো শক্তিশালী কোম্পানি আমাদের সব যাচাই পার হয়নি। অন্য কিছু দিয়ে তালিকা ভরাই না। ততদিন এই শক্তিশালী, পরিচিত কোম্পানিগুলো চিনে রাখার মতো।"
-              />
-            )
-          }
-          onHide={onHide}
-        />
+        {starter.length > 0 && (
+          <section className="fu-sec" aria-labelledby="fu-start-t">
+            <SectionHead
+              id="fu-start-t"
+              title={<T en="Nothing tied to your shares today" bn="আজ আপনার শেয়ারের সাথে মেলে এমন কিছু নেই" />}
+              line={
+                data.note ? (
+                  <T en={data.note.en} bn={data.note.bn} />
+                ) : (
+                  <T
+                    en="No strong company tied to your shares passes all our checks today. We don't fill the list with others. Until something does, these strong, well-known companies are worth knowing."
+                    bn="আজ আপনার শেয়ারের সাথে যুক্ত কোনো শক্তিশালী কোম্পানি আমাদের সব যাচাই পার হয়নি। অন্য কিছু দিয়ে তালিকা ভরাই না। ততদিন এই শক্তিশালী, পরিচিত কোম্পানিগুলো চিনে রাখার মতো।"
+                  />
+                )
+              }
+            />
+            <ForYouList id="for-you-start" picks={starter} onHide={onHide} />
+          </section>
+        )}
         <HowWePick funnel={data.funnel} />
       </>
     );
@@ -186,19 +193,18 @@ export default function ForYouClient() {
   const shown: ForYou = isPremium
     ? { ...data, counts: { ...(data.counts ?? { total: 0, new: 0, own: 0, strong: 0 }), total: items.length } }
     : data;
-  const lockHref = `#${FOR_YOU_PREMIUM_ANCHOR}`;
-  const promoAt = Math.min(PROMO_AFTER, groups.length);
-
   return (
     <>
       <ForYouIntro data={{ ...shown, groups: groups.map((x) => x.g) }} linkGroups />
       <div className="fu-groups">
-        {groups.map(({ g, picks }, i) => (
-          <Fragment key={g.key}>
-            <ForYouGroupCard group={g} picks={picks} open={isPremium} onHide={isPremium ? onHide : undefined} lockHref={lockHref} />
-            {!isPremium && i + 1 === promoAt && <ForYouPremium data={data} />}
-          </Fragment>
-        ))}
+        {isPremium ? (
+          <ForYouList id="for-you" picks={groups.flatMap((x) => x.picks)} groups={groups.map((x) => x.g)} onHide={onHide} />
+        ) : (
+          <>
+            <ForYouLockedList id="for-you" groups={groups.map((x) => x.g)} />
+            <ForYouPremium data={data} />
+          </>
+        )}
       </div>
       <HowWePick funnel={data.funnel} />
     </>

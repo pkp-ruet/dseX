@@ -1,14 +1,21 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import ListView from "@/components/lists/ListView";
 import { PersonalCodesProvider } from "@/components/market-analysis/PersonalCodes";
 import { T } from "@/components/i18n/T";
-import { useLang } from "@/context/LangContext";
 import { sectorBn } from "@/lib/bn";
 import { croreWords, type CashLabel, type EarningsQuality, type QualityItem } from "@/lib/research-reports";
-import { Bar, CompanyMeta, CompanyName, RrSection, ShowMore, useMine } from "./parts";
+import { SORT_NAME, SORT_PRICE, asTier, withQuote, type ListRow, type ListSort, type Quotes } from "@/lib/lists";
+import { Bar, RrSection, ShowMore } from "./parts";
 
-const SHOWN = 6;
+const SORTS: ListSort[] = [
+  { id: "least", label: { en: "Least cash first", bn: "সবচেয়ে কম নগদ আগে" }, dir: "asc" },
+  { id: "most", label: { en: "Most cash first", bn: "সবচেয়ে বেশি নগদ আগে" }, dir: "desc" },
+  { id: "profit", label: { en: "Biggest profit first", bn: "সবচেয়ে বড় মুনাফা আগে" }, dir: "desc" },
+  SORT_PRICE,
+  SORT_NAME,
+];
 const LABEL_CLS: Record<CashLabel, string> = {
   backed: "up",
   partly: "same",
@@ -61,26 +68,48 @@ const LISTS: { key: ListKey; title: { en: string; bn: string }; lead: { en: stri
   },
 ];
 
-/** The earnings-quality report's body (Premium). */
-export default function QualityView({ data }: { data: EarningsQuality }) {
+/** The earnings-quality report's body (Premium): how much profit came in
+ *  as cash as the top card, then every company in THE list view (2026-11-25:
+ *  a report opens like every list; the five flag lists, the company search
+ *  and "Your shares" are its chips and search), then the sectors. */
+export default function QualityView({ data, quotes }: { data: EarningsQuality; quotes?: Quotes | null }) {
   return (
     <PersonalCodesProvider>
-      <Inner data={data} />
+      <Inner data={data} quotes={quotes} />
     </PersonalCodesProvider>
   );
 }
 
-function Inner({ data }: { data: EarningsQuality }) {
-  const mine = useMine();
-  const { bn } = useLang();
-  const byCode = useMemo(() => new Map(data.items.map((i) => [i.code, i])), [data.items]);
-  const [q, setQ] = useState("");
+function Inner({ data, quotes }: { data: EarningsQuality; quotes?: Quotes | null }) {
   const graded = data.counts.backed + data.counts.partly + data.counts.paper + data.counts.none;
-  const mineItems = data.items.filter((i) => mine.has(i.code));
-  const query = q.trim().toLowerCase();
-  const found = query.length >= 2
-    ? data.items.filter((i) => i.code.toLowerCase().includes(query) || i.name.toLowerCase().includes(query)).slice(0, 6)
-    : [];
+  const rows = useMemo<ListRow<QualityItem>[]>(() => {
+    const tagsOf = new Map<string, string[]>();
+    for (const l of LISTS) for (const c of data.lists[l.key]) tagsOf.set(c, [...(tagsOf.get(c) ?? []), l.key]);
+    return data.items
+      .map((i) =>
+        withQuote<QualityItem>(
+          {
+            code: i.code,
+            name: i.name,
+            sector: i.sector,
+            tier: asTier(i.tier),
+            fig: i.cash_per_100 != null
+              ? {
+                  en: `৳${i.cash_per_100}`,
+                  bn: `৳${i.cash_per_100}`,
+                  tone: i.label === "backed" ? "positive" : i.label === "paper" || i.label === "none" ? "negative" : "",
+                }
+              : { en: "A loss", bn: "লোকসান", tone: "negative", words: true },
+            sort: { least: i.cash_per_100, most: i.cash_per_100, profit: i.profit_cr },
+            tags: tagsOf.get(i.code) ?? [],
+            hash: "#an-profit",
+            data: i,
+          },
+          quotes,
+        ),
+      )
+      .sort((a, b) => (a.data!.cash_per_100 ?? 1e9) - (b.data!.cash_per_100 ?? 1e9));
+  }, [data.items, data.lists, quotes]);
 
   return (
     <>
@@ -140,149 +169,88 @@ function Inner({ data }: { data: EarningsQuality }) {
       </RrSection>
 
       <RrSection
-        id="rr-q-lookup"
-        title={<T en="Check any company" bn="যেকোনো কোম্পানি দেখুন" />}
+        id="rr-q-list"
+        title={<T en="Every company" bn="সব কোম্পানি" />}
+        lead={
+          <T
+            en="Cash that came in for every ৳100 of profit, least first. The chips pick out the report's warnings, and the best cash makers."
+            bn="প্রতি ৳100 মুনাফায় কত নগদ এসেছে, সবচেয়ে কমটি আগে। চিপগুলো প্রতিবেদনের সতর্কতা আর সেরা নগদ উপার্জনকারীদের আলাদা করে।"
+          />
+        }
       >
-        <label htmlFor="rr-q-search" className="sr-only">
-          <T en="Company name or code" bn="কোম্পানির নাম বা কোড" />
-        </label>
-        <input
-          id="rr-q-search"
-          className="input-field rr-search"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder={bn ? "কোম্পানির নাম বা কোড লিখুন" : "Type a company name or code"}
-          autoComplete="off"
+        <ListView
+          id="quality"
+          track="report-quality"
+          rows={rows}
+          figHead={{ en: "Cash for ৳100 of profit", bn: "৳100 মুনাফায় নগদ" }}
+          sorts={SORTS}
+          defaultSort="least"
+          chips={LISTS.filter((l) => data.lists[l.key].length > 0).map((l) => ({ id: l.key, label: l.title }))}
+          mineChip
+          search
+          sync
+          renderLines={(r) => <QualityLines i={r.data!} />}
+          empty={{
+            title: { en: "No company here", bn: "এখানে কোনো কোম্পানি নেই" },
+            message: {
+              en: "Not in this report, or not with these choices. Banks, finance companies, insurers and companies with too few or doubtful cash figures are left out.",
+              bn: "এই প্রতিবেদনে নেই, বা এই বাছাইয়ে মেলেনি। ব্যাংক, আর্থিক প্রতিষ্ঠান, বীমা কোম্পানি আর যাদের নগদের হিসাব কম বা সন্দেহজনক, তারা বাদ।",
+            },
+          }}
         />
-        {found.length > 0 && (
-          <ul className="rr-card rr-list">
-            {found.map((i) => (
-              <QualityRow key={i.code} i={i} />
-            ))}
-          </ul>
-        )}
-        {query.length >= 2 && found.length === 0 && (
-          <p className="rr-fine">
-            <T
-              en="Not in this report. Banks, finance companies, insurers and companies with too few or doubtful cash figures are left out."
-              bn="এই প্রতিবেদনে নেই। ব্যাংক, আর্থিক প্রতিষ্ঠান, বীমা কোম্পানি আর যাদের নগদের হিসাব কম বা সন্দেহজনক, তারা বাদ।"
-            />
-          </p>
-        )}
-        {mineItems.length > 0 && query.length < 2 && (
-          <>
-            <h3 className="rr-h3 rr-h3--sub">
-              <T en="Your shares" bn="আপনার শেয়ার" />
-            </h3>
-            <ul className="rr-card rr-list">
-              {mineItems.map((i) => (
-                <QualityRow key={i.code} i={i} />
-              ))}
-            </ul>
-          </>
-        )}
       </RrSection>
-
-      {LISTS.map((l) => (
-        <FlagList key={l.key} id={`rr-q-${l.key}`} def={l} rows={data.lists[l.key].map((c) => byCode.get(c)).filter((x): x is QualityItem => !!x)} />
-      ))}
 
       <SectorBlock data={data} />
     </>
   );
 }
 
-function FlagList({ id, def, rows }: { id: string; def: (typeof LISTS)[number]; rows: QualityItem[] }) {
-  const [open, setOpen] = useState(false);
-  if (rows.length === 0) return null;
-  const shown = open ? rows : rows.slice(0, SHOWN);
-  return (
-    <RrSection
-      id={id}
-      title={
-        <>
-          <T en={def.title.en} bn={def.title.bn} /> <span className="rr-group-n nums">{rows.length}</span>
-        </>
-      }
-      lead={<T en={def.lead.en} bn={def.lead.bn} />}
-    >
-      <ul className="rr-card rr-list">
-        {shown.map((i) => (
-          <QualityRow key={i.code} i={i} />
-        ))}
-      </ul>
-      <ShowMore open={open} total={rows.length} shown={SHOWN} onToggle={() => setOpen((v) => !v)} />
-    </RrSection>
-  );
-}
-
-function QualityRow({ i }: { i: QualityItem }) {
+/** A company's lines: how much profit came in as cash, and the report's warnings on it. */
+function QualityLines({ i }: { i: QualityItem }) {
   const span = i.from === i.to ? `${i.to}` : `${i.from}–${i.to}`;
   const div = croreWords(i.dividends_cr);
   const free = croreWords(Math.abs(i.free_cr));
   return (
-    <li className="rr-co">
-      <div className="rr-co-head">
-        <CompanyName code={i.code} name={i.name} hash="#an-profit" />
-        {i.cash_per_100 != null && (
-          <span className={`rr-move nums ${i.label === "backed" ? "rr-up" : i.label === "paper" || i.label === "none" ? "rr-down" : ""}`}>
-            ৳{i.cash_per_100}
-            <small>
-              <T en=" of ৳100" bn=" / ৳100" />
-            </small>
-          </span>
+    <span className="lv-lines">
+      <span className="lv-line">
+        <span className={`lv-dot ${i.label === "backed" ? "lv-dot--green" : i.label === "partly" ? "lv-dot--amber" : "lv-dot--red"}`} aria-hidden="true" />
+        {i.cash_per_100 == null ? (
+          <T en={`It made a loss over ${span} in all.`} bn={`${span} সময়ে মোটের ওপর লোকসান হয়েছে।`} />
+        ) : (
+          <T
+            en={`Of every ৳100 of profit in ${span}, ৳${Math.max(0, i.cash_per_100)} came in as cash${i.cash_per_100 < 0 ? ": the business paid out more cash than it took in" : ""}.`}
+            bn={`${span} সময়ে প্রতি ৳100 মুনাফার মধ্যে নগদে এসেছে ৳${Math.max(0, i.cash_per_100)}${i.cash_per_100 < 0 ? ": ব্যবসায় যত নগদ এসেছে, খরচ হয়েছে তার বেশি" : ""}।`}
+          />
         )}
-      </div>
-      <CompanyMeta sector={i.sector} tier={i.tier} />
-      <ul className="rr-probs">
-        <li>
-          <span className={`rr-dot ${i.label === "backed" ? "rr-dot--green" : i.label === "partly" ? "rr-dot--amber" : "rr-dot--red"}`} aria-hidden="true" />
-          <span className="min-w-0">
-            {i.cash_per_100 == null ? (
-              <T en={`It made a loss over ${span} in all.`} bn={`${span} সময়ে মোটের ওপর লোকসান হয়েছে।`} />
-            ) : (
-              <T
-                en={`Of every ৳100 of profit in ${span}, ৳${Math.max(0, i.cash_per_100)} came in as cash${i.cash_per_100 < 0 ? ": the business paid out more cash than it took in" : ""}.`}
-                bn={`${span} সময়ে প্রতি ৳100 মুনাফার মধ্যে নগদে এসেছে ৳${Math.max(0, i.cash_per_100)}${i.cash_per_100 < 0 ? ": ব্যবসায় যত নগদ এসেছে, খরচ হয়েছে তার বেশি" : ""}।`}
-              />
-            )}
-          </span>
-        </li>
-        {i.flags.includes("outside") && i.core_per_100 != null && (
-          <li>
-            <span className="rr-dot rr-dot--amber" aria-hidden="true" />
-            <span className="min-w-0">
-              <T
-                en={`In ${i.to}, only ৳${i.core_per_100} of every ৳100 of profit came from its own business.`}
-                bn={`${i.to} সালে প্রতি ৳100 মুনাফার মাত্র ৳${i.core_per_100} এসেছে নিজের ব্যবসা থেকে।`}
-              />
-            </span>
-          </li>
-        )}
-        {i.flags.includes("dividend_unfunded") && (
-          <li>
-            <span className="rr-dot rr-dot--amber" aria-hidden="true" />
-            <span className="min-w-0">
-              <T
-                en={`It paid ${div.en} in cash dividends, while the business ${i.free_cr >= 0 ? `had ${free.en}` : `was ${free.en} short`} after investment.`}
-                bn={`নগদ ডিভিডেন্ড দিয়েছে ${div.bn}, অথচ বিনিয়োগের পর ব্যবসায় ${i.free_cr >= 0 ? `ছিল ${free.bn}` : `ঘাটতি ছিল ${free.bn}`}।`}
-              />
-            </span>
-          </li>
-        )}
-        {i.flags.includes("debt_up") && i.debt_growth_pct != null && (
-          <li>
-            <span className="rr-dot rr-dot--amber" aria-hidden="true" />
-            <span className="min-w-0">
-              <T
-                en={`Loans grew ${i.debt_growth_pct}% while sales grew ${i.sales_growth_pct}%.`}
-                bn={`ঋণ বেড়েছে ${i.debt_growth_pct}%, আর বিক্রি বেড়েছে ${i.sales_growth_pct}%।`}
-              />
-            </span>
-          </li>
-        )}
-      </ul>
-    </li>
+      </span>
+      {i.flags.includes("outside") && i.core_per_100 != null && (
+        <span className="lv-line">
+          <span className="lv-dot lv-dot--amber" aria-hidden="true" />
+          <T
+            en={`In ${i.to}, only ৳${i.core_per_100} of every ৳100 of profit came from its own business.`}
+            bn={`${i.to} সালে প্রতি ৳100 মুনাফার মাত্র ৳${i.core_per_100} এসেছে নিজের ব্যবসা থেকে।`}
+          />
+        </span>
+      )}
+      {i.flags.includes("dividend_unfunded") && (
+        <span className="lv-line">
+          <span className="lv-dot lv-dot--amber" aria-hidden="true" />
+          <T
+            en={`It paid ${div.en} in cash dividends, while the business ${i.free_cr >= 0 ? `had ${free.en}` : `was ${free.en} short`} after investment.`}
+            bn={`নগদ ডিভিডেন্ড দিয়েছে ${div.bn}, অথচ বিনিয়োগের পর ব্যবসায় ${i.free_cr >= 0 ? `ছিল ${free.bn}` : `ঘাটতি ছিল ${free.bn}`}।`}
+          />
+        </span>
+      )}
+      {i.flags.includes("debt_up") && i.debt_growth_pct != null && (
+        <span className="lv-line">
+          <span className="lv-dot lv-dot--amber" aria-hidden="true" />
+          <T
+            en={`Loans grew ${i.debt_growth_pct}% while sales grew ${i.sales_growth_pct}%.`}
+            bn={`ঋণ বেড়েছে ${i.debt_growth_pct}%, আর বিক্রি বেড়েছে ${i.sales_growth_pct}%।`}
+          />
+        </span>
+      )}
+    </span>
   );
 }
 

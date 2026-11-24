@@ -1,13 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
+import ListView from "@/components/lists/ListView";
 import { PersonalCodesProvider } from "@/components/market-analysis/PersonalCodes";
 import { T } from "@/components/i18n/T";
-import { useLang } from "@/context/LangContext";
 import type { DividendItem, DividendReliability } from "@/lib/research-reports";
-import { CompanyMeta, CompanyName, RrSection, ShowMore, useMine } from "./parts";
+import { SORT_NAME, SORT_PRICE, asTier, withQuote, type ListRow, type ListSort, type Quotes } from "@/lib/lists";
+import { RrSection } from "./parts";
 
-const SHOWN = 6;
+const SORTS: ListSort[] = [
+  { id: "yield", label: { en: "Highest yield after tax", bn: "কর বাদে সবচেয়ে বেশি আয়" }, dir: "desc" },
+  { id: "years", label: { en: "Paid most years", bn: "সবচেয়ে বেশি বছর দিয়েছে" }, dir: "desc" },
+  SORT_PRICE,
+  SORT_NAME,
+];
 
 type ListKey = keyof DividendReliability["lists"];
 const LISTS: { key: ListKey; title: { en: string; bn: string }; lead: { en: string; bn: string } }[] = [
@@ -61,26 +67,44 @@ const LISTS: { key: ListKey; title: { en: string; bn: string }; lead: { en: stri
   },
 ];
 
-/** The dividend reliability report's body (Premium). */
-export default function DividendsView({ data }: { data: DividendReliability }) {
+/** The dividend reliability report's body (Premium): the counts as the top
+ *  card, then every company in THE list view (2026-11-25: a report opens
+ *  like every list; the six lists, the company search and "Your shares" are
+ *  its chips and search). */
+export default function DividendsView({ data, quotes }: { data: DividendReliability; quotes?: Quotes | null }) {
   return (
     <PersonalCodesProvider>
-      <Inner data={data} />
+      <Inner data={data} quotes={quotes} />
     </PersonalCodesProvider>
   );
 }
 
-function Inner({ data }: { data: DividendReliability }) {
-  const mine = useMine();
-  const { bn } = useLang();
-  const byCode = useMemo(() => new Map(data.items.map((i) => [i.code, i])), [data.items]);
-  const [q, setQ] = useState("");
-  const query = q.trim().toLowerCase();
-  const found = query.length >= 2
-    ? data.items.filter((i) => i.code.toLowerCase().includes(query) || i.name.toLowerCase().includes(query)).slice(0, 6)
-    : [];
-  const mineItems = data.items.filter((i) => mine.has(i.code));
+function Inner({ data, quotes }: { data: DividendReliability; quotes?: Quotes | null }) {
   const c = data.counts;
+  const rows = useMemo<ListRow<DividendItem>[]>(() => {
+    const tagsOf = new Map<string, string[]>();
+    for (const l of LISTS) for (const code of data.lists[l.key]) tagsOf.set(code, [...(tagsOf.get(code) ?? []), l.key]);
+    return data.items
+      .map((i) =>
+        withQuote<DividendItem>(
+          {
+            code: i.code,
+            name: i.name,
+            sector: i.sector,
+            tier: asTier(i.tier),
+            fig: i.yield_after_tax != null && i.latest_cash_pct > 0
+              ? { en: `${i.yield_after_tax}%`, bn: `${i.yield_after_tax}%`, tone: i.safety?.level === "risk" ? "watch" : "positive" }
+              : { en: "No cash", bn: "নগদ নেই", tone: "", words: true },
+            sort: { yield: i.latest_cash_pct > 0 ? i.yield_after_tax : null, years: i.paid_years * 100 + (i.yield_after_tax ?? 0) },
+            tags: tagsOf.get(i.code) ?? [],
+            hash: "#dividends",
+            data: i,
+          },
+          quotes,
+        ),
+      )
+      .sort((a, b) => (b.sort!.yield as number ?? -1) - (a.sort!.yield as number ?? -1));
+  }, [data.items, data.lists, quotes]);
 
   return (
     <>
@@ -113,85 +137,38 @@ function Inner({ data }: { data: DividendReliability }) {
         </dl>
       </RrSection>
 
-      <RrSection id="rr-d-lookup" title={<T en="Check any company" bn="যেকোনো কোম্পানি দেখুন" />}>
-        <label htmlFor="rr-d-search" className="sr-only">
-          <T en="Company name or code" bn="কোম্পানির নাম বা কোড" />
-        </label>
-        <input
-          id="rr-d-search"
-          className="input-field rr-search"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder={bn ? "কোম্পানির নাম বা কোড লিখুন" : "Type a company name or code"}
-          autoComplete="off"
+      <RrSection
+        id="rr-d-list"
+        title={<T en="Every company" bn="সব কোম্পানি" />}
+        lead={
+          <T
+            en={`Cash a year after ${data.tax_pct}% tax on today's price, highest first. The chips pick out who looks steady, who may pay less, who cut, stopped, raised, or gave shares instead.`}
+            bn={`আজকের দামে ${data.tax_pct}% কর বাদে বছরে নগদ, সবচেয়ে বেশিটি আগে। চিপগুলো আলাদা করে কারা স্থিতিশীল, কারা কম দিতে পারে, কারা কমিয়েছে, বন্ধ করেছে, বাড়িয়েছে বা নগদের বদলে শেয়ার দিয়েছে।`}
+          />
+        }
+      >
+        <ListView
+          id="dividends"
+          track="report-dividends"
+          rows={rows}
+          figHead={{ en: "A year, after tax", bn: "বছরে, কর বাদে" }}
+          sorts={SORTS}
+          defaultSort="yield"
+          chips={LISTS.filter((l) => data.lists[l.key].length > 0).map((l) => ({ id: l.key, label: l.title }))}
+          mineChip
+          search
+          sync
+          renderLines={(r) => <DivLines i={r.data!} showOriginal={r.tags?.includes("bonus_instead")} />}
+          empty={{
+            title: { en: "No company here", bn: "এখানে কোনো কোম্পানি নেই" },
+            message: {
+              en: "Not in this report, or not with these choices: too little dividend history, or not graded.",
+              bn: "এই প্রতিবেদনে নেই, বা এই বাছাইয়ে মেলেনি: ডিভিডেন্ডের ইতিহাস খুব কম, বা রেটিং নেই।",
+            },
+          }}
         />
-        {found.length > 0 && (
-          <ul className="rr-card rr-list">
-            {found.map((i) => (
-              <DivRow key={i.code} i={i} tax={data.tax_pct} />
-            ))}
-          </ul>
-        )}
-        {query.length >= 2 && found.length === 0 && (
-          <p className="rr-fine">
-            <T en="Not in this report: too little dividend history, or not graded." bn="এই প্রতিবেদনে নেই: ডিভিডেন্ডের ইতিহাস খুব কম, বা রেটিং নেই।" />
-          </p>
-        )}
-        {mineItems.length > 0 && query.length < 2 && (
-          <>
-            <h3 className="rr-h3 rr-h3--sub">
-              <T en="Your shares" bn="আপনার শেয়ার" />
-            </h3>
-            <ul className="rr-card rr-list">
-              {mineItems.map((i) => (
-                <DivRow key={i.code} i={i} tax={data.tax_pct} />
-              ))}
-            </ul>
-          </>
-        )}
       </RrSection>
-
-      {LISTS.map((l) => (
-        <DivList
-          key={l.key}
-          id={`rr-d-${l.key}`}
-          def={l}
-          tax={data.tax_pct}
-          showOriginal={l.key === "bonus_instead"}
-          rows={data.lists[l.key].map((code) => byCode.get(code)).filter((x): x is DividendItem => !!x)}
-        />
-      ))}
     </>
-  );
-}
-
-function DivList({ id, def, rows, tax, showOriginal }: {
-  id: string;
-  def: (typeof LISTS)[number];
-  rows: DividendItem[];
-  tax: number;
-  showOriginal?: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  if (rows.length === 0) return null;
-  const shown = open ? rows : rows.slice(0, SHOWN);
-  return (
-    <RrSection
-      id={id}
-      title={
-        <>
-          <T en={def.title.en} bn={def.title.bn} /> <span className="rr-group-n nums">{rows.length}</span>
-        </>
-      }
-      lead={<T en={def.lead.en} bn={def.lead.bn} />}
-    >
-      <ul className="rr-card rr-list">
-        {shown.map((i) => (
-          <DivRow key={i.code} i={i} tax={tax} showOriginal={showOriginal} />
-        ))}
-      </ul>
-      <ShowMore open={open} total={rows.length} shown={SHOWN} onToggle={() => setOpen((v) => !v)} />
-    </RrSection>
   );
 }
 
@@ -215,75 +192,61 @@ function RecordBars({ rec }: { rec: DividendItem["record"] }) {
   );
 }
 
-function DivRow({ i, tax, showOriginal }: { i: DividendItem; tax: number; showOriginal?: boolean }) {
+/** A company's lines: years paid, its 5-year record, the safety check, and the bonus-share note. */
+function DivLines({ i, showOriginal }: { i: DividendItem; showOriginal?: boolean }) {
   const recEn = i.record.map((r) => `${r.year}: ${r.cash_pct}%${r.stock_pct ? ` + ${r.stock_pct}% bonus` : ""}`).join(" · ");
   const recBn = i.record.map((r) => `${r.year}: ${r.cash_pct}%${r.stock_pct ? ` + ${r.stock_pct}% বোনাস` : ""}`).join(" · ");
   const [first, last] = [i.per_original[0], i.per_original[i.per_original.length - 1]];
   return (
-    <li className="rr-co">
-      <div className="rr-co-head">
-        <CompanyName code={i.code} name={i.name} hash="#dividends" />
-        {i.yield_after_tax != null && i.latest_cash_pct > 0 && (
-          <span className="rr-move nums">
-            {i.yield_after_tax}%
-            <small>
-              <T en={` a year after ${tax}% tax`} bn={` বছরে, ${tax}% কর বাদে`} />
-            </small>
-          </span>
-        )}
-      </div>
-      <CompanyMeta sector={i.sector} tier={i.tier}>
-        <span>
-          <T
-            en={`Paid cash ${i.paid_years} of ${i.n_years} years`}
-            bn={`${i.n_years} বছরের ${i.paid_years} বছর নগদ দিয়েছে`}
-          />
-        </span>
-      </CompanyMeta>
-      <div className="rr-rec-row">
+    <span className="lv-lines">
+      <span className="lv-line lv-line--muted">
+        <T
+          en={`Paid cash ${i.paid_years} of ${i.n_years} years`}
+          bn={`${i.n_years} বছরের ${i.paid_years} বছর নগদ দিয়েছে`}
+        />
+      </span>
+      <span className="rr-rec-row">
         <RecordBars rec={i.record} />
         <span className="rr-rec-text">
           <T en={`Cash as % of the share's face value. ${recEn}`} bn={`নগদ, শেয়ারের অভিহিত মূল্যের %। ${recBn}`} />
         </span>
-      </div>
-      <ul className="rr-probs">
+      </span>
         {i.safety && (
-          <li>
+          <span className="lv-line">
             <span
-              className={`rr-dot ${i.safety.level === "safe" ? "rr-dot--green" : i.safety.level === "watch" ? "rr-dot--amber" : "rr-dot--red"}`}
+              className={`lv-dot ${i.safety.level === "safe" ? "lv-dot--green" : i.safety.level === "watch" ? "lv-dot--amber" : "lv-dot--red"}`}
               aria-hidden="true"
             />
-            <span className="min-w-0">
+            <span>
               <b>
                 <T en={i.safety.word_en} bn={i.safety.word_bn} />.
               </b>{" "}
               <T en={i.safety.line_en} bn={i.safety.line_bn} />
             </span>
-          </li>
+          </span>
         )}
         {showOriginal && first && last && (
-          <li>
-            <span className="rr-dot" aria-hidden="true" />
-            <span className="min-w-0">
+          <span className="lv-line">
+            <span className="lv-dot" aria-hidden="true" />
+            <span>
               <T
                 en={`One share held since ${first.year} paid ৳${first.tk.toFixed(2)} in cash then, and ৳${last.tk.toFixed(2)} in ${last.year} with its bonus shares.`}
                 bn={`${first.year} থেকে রাখা একটি শেয়ারে তখন নগদ এসেছিল ৳${first.tk.toFixed(2)}, বোনাস শেয়ারসহ ${last.year} সালে ৳${last.tk.toFixed(2)}।`}
               />
             </span>
-          </li>
+          </span>
         )}
         {(i.cash_label === "paper" || i.cash_label === "none") && (
-          <li>
-            <span className="rr-dot rr-dot--amber" aria-hidden="true" />
-            <span className="min-w-0">
+          <span className="lv-line">
+            <span className="lv-dot lv-dot--amber" aria-hidden="true" />
+            <span>
               <T
                 en="Less than half of its profit came in as cash, which makes the dividend harder to keep paying."
                 bn="মুনাফার অর্ধেকেরও কম নগদে এসেছে, তাই ডিভিডেন্ড ধরে রাখা কঠিন।"
               />
             </span>
-          </li>
+          </span>
         )}
-      </ul>
-    </li>
+    </span>
   );
 }

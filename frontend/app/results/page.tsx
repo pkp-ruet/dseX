@@ -78,7 +78,8 @@ export default async function ResultsPage() {
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
-          { "@type": "ListItem", position: 2, name: "Quarterly results", item: `${BASE_URL}${PATH}` },
+          { "@type": "ListItem", position: 2, name: "Lists", item: `${BASE_URL}/lists` },
+          { "@type": "ListItem", position: 3, name: "Latest results", item: `${BASE_URL}${PATH}` },
         ],
       },
       {
@@ -187,7 +188,7 @@ export default async function ResultsPage() {
           },
         ]}
       />
-      <PlaceNext place="find" />
+      <PlaceNext place="market" />
     </>
   );
 }

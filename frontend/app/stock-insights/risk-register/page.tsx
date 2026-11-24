@@ -4,7 +4,8 @@ import ResearchPromo from "@/components/research-reports/ResearchPromo";
 import RiskRegisterView from "@/components/research-reports/RiskRegisterView";
 import { T } from "@/components/i18n/T";
 import { sectorBn } from "@/lib/bn";
-import { getRiskRegister } from "@/lib/api";
+import { flattenTiers, getRiskRegister, getScores } from "@/lib/api";
+import { quotesFor } from "@/lib/lists";
 import { reportJsonLd, reportMetadata } from "@/lib/research-reports";
 
 export const revalidate = 3600;
@@ -23,7 +24,9 @@ export const metadata: Metadata = reportMetadata("risk-register", TITLE, DESCRIP
 ]);
 
 export default async function RiskRegisterPage() {
-  const data = await getRiskRegister();
+  // The report is the page; today's prices beside its companies are secondary.
+  const [data, scores] = await Promise.all([getRiskRegister(), getScores().catch(() => null)]);
+  const quotes = scores ? quotesFor(flattenTiers(scores), [...data.items.map((i) => i.code), ...data.close_to_z.map((z) => z.code)]) : null;
   const ex = data.items[0];
   const week = `${data.week.added.length} / ${data.week.fixed.length}`;
 
@@ -117,7 +120,7 @@ export default async function RiskRegisterPage() {
           },
         ]}
       >
-        <RiskRegisterView data={data} />
+        <RiskRegisterView data={data} quotes={quotes} />
       </ReportShell>
     </>
   );

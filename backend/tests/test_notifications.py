@@ -60,7 +60,7 @@ def test_a_saved_screen_change_is_one_row_with_its_reasons():
     row = out["items"][0]
     assert row["kind"] == "screen" and row["new"] is True
     assert row["title_en"] == "1 new share on your screen “Strong and cheap”"
-    assert row["url"] == "/screener?tab=saved&list=x1"
+    assert row["url"] == "/lists?tab=saved&list=x1"
     assert [i["level"] for i in row["items"]] == ["good", "watch"]
     assert nt.screen_row({"id": "x1", "joined": [], "left": []}) is None
 

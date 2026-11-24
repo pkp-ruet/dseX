@@ -34,7 +34,9 @@ const GROUPS: { id: string; title: { en: string; bn: string }; links: FootLink[]
   ...PLACES.map((pl) => ({
     id: `ft-${pl.key}`,
     title: pl.name,
-    links: pl.pages.map((p) => ({ key: p.key, href: p.href, hrefBn: p.hrefBn, en: p.name.en, bn: p.name.bn })),
+    // Every page with an address of its own: the lists that open from /lists
+    // stay here (a link from every page, for search), the research anchor does not.
+    links: pl.pages.filter((p) => !p.href.includes("#")).map((p) => ({ key: p.key, href: p.href, hrefBn: p.hrefBn, en: p.name.en, bn: p.name.bn })),
   })),
   { id: "ft-account", title: { en: "Account", bn: "অ্যাকাউন্ট" }, links: accountLinks },
 ];

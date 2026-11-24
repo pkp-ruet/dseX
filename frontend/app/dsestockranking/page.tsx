@@ -56,8 +56,9 @@ function dayLabel(iso: string, weekday = false): string {
 
 /** The company ranking (simple leaderboard since 2026-11-01, user decision):
  *  rank, how far each company moved this week, the company, its latest
- *  price. No groups, scores,
- *  filters or explanations — the analysis lives on each stock page. */
+ *  price. No groups or scores — the analysis lives on each stock page.
+ *  Since 2026-11-25 it opens like every list (THE list view: search, then
+ *  Sector · Share price · Sort by), reached from the Lists page. */
 export default async function DseStockRankingPage() {
   // No catch on the main fetch: a throw lets ISR keep serving the last good
   // page. The week's moves are secondary: without them the arrows don't show.
@@ -73,6 +74,7 @@ export default async function DseStockRankingPage() {
       rank: idx + 1,
       code: i.trading_code,
       name: i.company_name ?? i.trading_code,
+      sector: i.sector ?? null,
       move: !moves ? null : newCodes.has(i.trading_code) ? "new" : moves.places[i.trading_code] ?? 0,
       price: i.ltp ?? null,
       change: i.change_pct ?? null,
@@ -107,7 +109,8 @@ export default async function DseStockRankingPage() {
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
-          { "@type": "ListItem", position: 2, name: "Company ranking", item: `${BASE_URL}/dsestockranking` },
+          { "@type": "ListItem", position: 2, name: "Lists", item: `${BASE_URL}/lists` },
+          { "@type": "ListItem", position: 3, name: "Company ranking", item: `${BASE_URL}/dsestockranking` },
         ],
       },
     ],
@@ -178,7 +181,7 @@ export default async function DseStockRankingPage() {
         )}
       </div>
 
-      <RankList rows={rows} total={rows.length} />
+      <RankList rows={rows} />
 
       <p className="rk-foot">
         <T

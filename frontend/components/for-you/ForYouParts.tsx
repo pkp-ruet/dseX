@@ -1,13 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
-import Link from "@/components/ui/Link";
-import type { ForYou, ForYouGroup, ForYouPick } from "@/lib/api";
-import { changePct, changeTone, formatDate, money } from "@/lib/formatters";
-import { bnDate, sectorBn } from "@/lib/bn";
+import type { ForYou } from "@/lib/api";
+import { formatDate } from "@/lib/formatters";
+import { bnDate } from "@/lib/bn";
 import { T } from "@/components/i18n/T";
-import StarButton from "@/components/ui/StarButton";
-import { IconArrowRight, IconCheck, IconEye, IconLock } from "@/components/ui/icons";
+import { IconEye } from "@/components/ui/icons";
 
 /**
  * The parts of "Based on your shares" (`/for-you`, was Discover until
@@ -120,25 +118,8 @@ export function ForYouIntro({
   );
 }
 
-/** The section heading says why, in the reader's own terms. */
-function groupTitle(g: ForYouGroup): { en: string; bn: string } {
-  const a = g.anchor ?? "";
-  switch (g.rel) {
-    case "own":
-      return { en: `Because you own ${a}`, bn: `যেহেতু আপনার কাছে ${a} আছে` };
-    case "follow":
-      return { en: `Because you follow ${a}`, bn: `যেহেতু আপনি ${a} ফলো করেন` };
-    case "read":
-      return g.days && g.days >= 2
-        ? { en: `Because you looked at ${a} on ${g.days} days`, bn: `যেহেতু আপনি ${g.days} দিন ${a} দেখেছেন` }
-        : { en: `Because you looked at ${a}`, bn: `যেহেতু আপনি সম্প্রতি ${a} দেখেছেন` };
-    default:
-      return { en: "To fill a gap in your money", bn: "আপনার টাকার একটি ফাঁক পূরণে" };
-  }
-}
-
 /** A section's heading on the page: title, count, reason. */
-function SectionHead({
+export function SectionHead({
   id,
   title,
   count,
@@ -166,168 +147,5 @@ function SectionHead({
       <p className="fu-sec-line">{line}</p>
       {children}
     </header>
-  );
-}
-
-/** One of the reader's shares and what it led to. `open` = Premium (names);
- *  closed = each pick's business behind a lock, never its name. */
-export function ForYouGroupCard({
-  group,
-  picks,
-  open,
-  onHide,
-  lockHref,
-}: {
-  group: ForYouGroup;
-  picks: ForYouPick[];
-  open: boolean;
-  onHide?: (p: ForYouPick) => void;
-  lockHref: string;
-}) {
-  const t = groupTitle(group);
-  const headId = `fu-g-${group.key}-t`;
-  return (
-    <section id={`fu-g-${group.key}`} className="fu-sec" aria-labelledby={headId}>
-      <SectionHead
-        id={headId}
-        title={<T en={t.en} bn={t.bn} />}
-        count={group.n}
-        line={<T en={group.line.en} bn={group.line.bn} />}
-      />
-      {open ? (
-        <ul className="fu-cards">
-          {picks.map((p) => (
-            <PickRow key={p.code} pick={p} onHide={onHide} />
-          ))}
-        </ul>
-      ) : (
-        <ul className="fu-list soft-card">
-          {group.sectors.map((s, i) => (
-              <li key={i}>
-                <a href={lockHref} className="fu-locked">
-                  <IconLock size={15} />
-                  <span className="min-w-0 flex-1">
-                    <T
-                      en={`A company in ${s.en}`}
-                      bn={`${s.bn || sectorBn(s.en)} সেক্টরের একটি কোম্পানি`}
-                    />
-                  </span>
-                  <span className="fu-locked-tag">
-                    <T en="Premium" bn="প্রিমিয়াম" />
-                  </span>
-                </a>
-              </li>
-            ))}
-        </ul>
-      )}
-    </section>
-  );
-}
-
-/** One company: name and price, why it fits, what it shares, then read ·
- *  follow · not for me. */
-export function PickRow({ pick, onHide }: { pick: ForYouPick; onHide?: (p: ForYouPick) => void }) {
-  return (
-    <li id={`pick-${pick.code}`} className="fu-pick soft-card">
-      <div className="fu-pick-top">
-        <div className="min-w-0 flex-1">
-          <p className="fu-pick-name">
-            <Link prefetch={false} href={`/stock/${pick.code}`}>
-              {pick.name || pick.code}
-            </Link>
-            {pick.new && (
-              <span className="fu-new">
-                <T en="New" bn="নতুন" />
-              </span>
-            )}
-          </p>
-          <p className="fu-pick-code">
-            {pick.code}
-            {pick.sector && (
-              <>
-                <span aria-hidden="true"> · </span>
-                <T en={pick.sector} bn={pick.sector_bn || sectorBn(pick.sector)} />
-              </>
-            )}
-          </p>
-        </div>
-        <p className="fu-pick-px">
-          <span className="nums">{money(pick.price)}</span>
-          {pick.change_pct != null && (
-            <span className={`nums ${changeTone(pick.change_pct)}`}>{changePct(pick.change_pct)}</span>
-          )}
-        </p>
-      </div>
-      <p className="fu-why">
-        <T en={pick.why_en} bn={pick.why_bn} />
-      </p>
-      {pick.chips.length > 0 && (
-        <div className="fu-common">
-          {pick.chips_label && (
-            <p className="fu-common-k">
-              <T en={pick.chips_label.en} bn={pick.chips_label.bn} />
-            </p>
-          )}
-          <ul className="fu-traits">
-            {pick.chips.map((c) => (
-              <li key={c.en}>
-                {c.tone !== "neutral" && (
-                  <span className="fu-tick" aria-hidden="true">
-                    <IconCheck size={12} />
-                  </span>
-                )}
-                <T en={c.en} bn={c.bn} />
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      <div className="fu-acts">
-        <Link prefetch={false} href={`/stock/${pick.code}#ch-analysis`} className="fu-read" data-pick={pick.code}>
-          <T en="Read our analysis" bn="বিশ্লেষণ পড়ুন" />
-          <IconArrowRight size={14} />
-        </Link>
-        <span className="fu-acts-end">
-          {onHide && (
-            <button type="button" className="fu-hide" onClick={() => onHide(pick)}>
-              <T en="Not for me" bn="আমার জন্য নয়" />
-            </button>
-          )}
-          <span className="fu-follow">
-            <T en="Follow" bn="ফলো" />
-            <StarButton code={pick.code} />
-          </span>
-        </span>
-      </div>
-    </li>
-  );
-}
-
-/** A list with its own heading (the starter list, the guest card's sample). */
-export function StarterList({
-  picks,
-  title,
-  lead,
-  actions,
-  onHide,
-}: {
-  picks: ForYouPick[];
-  title: ReactNode;
-  lead: ReactNode;
-  actions?: ReactNode;
-  onHide?: (p: ForYouPick) => void;
-}) {
-  if (picks.length === 0) return null;
-  return (
-    <section className="fu-sec" aria-labelledby="fu-start-t">
-      <SectionHead id="fu-start-t" title={title} line={lead}>
-        {actions}
-      </SectionHead>
-      <ul className="fu-cards">
-        {picks.map((p) => (
-          <PickRow key={p.code} pick={p} onHide={onHide} />
-        ))}
-      </ul>
-    </section>
   );
 }

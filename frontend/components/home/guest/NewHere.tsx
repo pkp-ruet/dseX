@@ -12,14 +12,14 @@ const ANALYSES = n(freeN("analysis"), 10);
 const COMPARE = n(freeN("compare"), 10);
 
 /** The icon for each place: the page that best stands for it. */
-const PLACE_ICON: Record<string, string> = { market: "today", find: "screener", mine: "portfolio", learn: "guides" };
+const PLACE_ICON: Record<string, string> = { market: "today", lists: "lists", mine: "portfolio", learn: "guides" };
 
 /** What a page shows for free when most of it is Premium (THE Premium line,
  *  `lib/premium-line.ts`). Pages not listed here are free. */
 const FREE_PART: Record<string, Bi> = {
   calendar: { en: `Next ${WEEK} days free`, bn: `সামনের ${WEEK} দিন ফ্রি` },
   buylist: { en: "1 share a day free", bn: "দিনে 1টি শেয়ার ফ্রি" },
-  screener: { en: "Your own filters free", bn: "নিজের ফিল্টার ফ্রি" },
+  lists: { en: "How many each list has, free", bn: "প্রতিটি তালিকায় কয়টি, তা ফ্রি" },
   research: { en: "Key numbers free", bn: "মূল সংখ্যাগুলো ফ্রি" },
   foryou: { en: "How many, free", bn: "কয়টি, তা ফ্রি" },
 };
@@ -47,7 +47,7 @@ const PREMIUM_LIST: Bi[] = [
   { en: "The full check of your portfolio, with a plan", bn: "আপনার পোর্টফোলিওর পুরো যাচাই, একটি পরিকল্পনাসহ" },
   { en: "Every update on your shares the same evening, and a 9 AM brief", bn: "আপনার শেয়ারের সব আপডেট সেদিন সন্ধ্যাতেই, আর সকাল 9টার ব্রিফ" },
   { en: "The whole dividend calendar, with reminders", bn: "পুরো ডিভিডেন্ড ক্যালেন্ডার, রিমাইন্ডারসহ" },
-  { en: "Our research reports, our screener lists, and companies picked from your shares", bn: "আমাদের গবেষণা রিপোর্ট, স্ক্রিনারের তালিকা, আর আপনার শেয়ার দেখে বাছাই করা কোম্পানি" },
+  { en: "Our research reports, our ready lists, and companies picked from your shares", bn: "আমাদের গবেষণা রিপোর্ট, তৈরি তালিকা, আর আপনার শেয়ার দেখে বাছাই করা কোম্পানি" },
 ];
 
 /**

@@ -4,7 +4,8 @@ import ResearchPromo from "@/components/research-reports/ResearchPromo";
 import AuditorView from "@/components/research-reports/AuditorView";
 import { T } from "@/components/i18n/T";
 import { sectorBn } from "@/lib/bn";
-import { getAuditorTracker } from "@/lib/api";
+import { flattenTiers, getAuditorTracker, getScores } from "@/lib/api";
+import { quotesFor } from "@/lib/lists";
 import { reportJsonLd, reportMetadata } from "@/lib/research-reports";
 
 export const revalidate = 3600;
@@ -22,7 +23,9 @@ export const metadata: Metadata = reportMetadata("auditor-warnings", TITLE, DESC
 ]);
 
 export default async function AuditorWarningsPage() {
-  const data = await getAuditorTracker();
+  // The report is the page; today's prices beside its companies are secondary.
+  const [data, scores] = await Promise.all([getAuditorTracker(), getScores().catch(() => null)]);
+  const quotes = scores ? quotesFor(flattenTiers(scores), data.groups.flatMap((g) => g.items.map((i) => i.code))) : null;
   const ex = data.groups[0]?.items[0];
 
   return (
@@ -126,7 +129,7 @@ export default async function AuditorWarningsPage() {
           },
         ]}
       >
-        <AuditorView data={data} />
+        <AuditorView data={data} quotes={quotes} />
       </ReportShell>
     </>
   );

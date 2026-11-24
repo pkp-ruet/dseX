@@ -74,8 +74,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     data("", "daily", 1.0),
     // The place pages (2026-11-20, lib/places.ts); /my is personal and noindex.
+    // Lists (2026-11-25) replaced /find, /screener and the research hub (all 301).
     data("/market", "daily", 0.85),
-    data("/find", "daily", 0.85),
+    data("/lists", "daily", 0.9),
     data("/dsestockranking", "daily", 0.9),
     data("/buy-list", "daily", 0.9),
     data("/stocks", "daily", 0.85),
@@ -86,14 +87,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     data("/dse-trending-stocks", "daily", 0.9),
     data("/dividend-calendar", "daily", 0.85),
     data("/sectors", "daily", 0.85),
-    data("/stock-insights", "weekly", 0.85),
     data("/stock-insights/risk-register", "daily", 0.8),
     data("/stock-insights/auditor-warnings", "weekly", 0.8),
     data("/stock-insights/results-season", "daily", 0.8),
     data("/stock-insights/who-is-buying", "weekly", 0.8),
     data("/stock-insights/is-the-profit-real", "monthly", 0.8),
     data("/stock-insights/dividends-you-can-count-on", "weekly", 0.8),
-    data("/screener", "daily", 0.85),
     content("/compare-stocks", "monthly", 0.7),
     content("/portfolio-builder", "monthly", 0.7),
     content("/learn", "monthly", 0.8),

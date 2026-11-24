@@ -32,6 +32,14 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      // Lists (2026-11-25, step 4 of the simplify review): the Find doors page,
+      // the stock screener and the research hub folded into one Lists page.
+      // The incoming query rides along, so an old screener link's ?ready= or a
+      // saved-screen push's ?list= opens the same list there. The six report
+      // pages keep their own addresses under /stock-insights/.
+      { source: "/find", destination: "/lists", permanent: true },
+      { source: "/screener", destination: "/lists", permanent: true },
+      { source: "/stock-insights", destination: "/lists", permanent: true },
       // Your Desk became Notifications (2026-11-06); old push links keep working.
       { source: "/desk", destination: "/notifications", permanent: true },
       // One Watch button (2026-11-25): the Watch rules page folded into the
@@ -52,22 +60,22 @@ const nextConfig: NextConfig = {
       // hub became Premium research). Each old URL goes to the closest page
       // left: a screener ready-made screen, a sector, the ranking or the hub.
       ...([
-        ["top-stocks-bangladesh-2025", "/screener?ready=biggest"],
-        ["largest-companies-dse", "/screener?ready=biggest"],
-        ["top-dividend-stocks-bangladesh", "/screener?ready=high_dividend"],
-        ["most-traded-stocks-dse", "/screener?ready=most_traded"],
-        ["top-performing-stocks-dse", "/screener?sort=ret_1y&dir=desc"],
-        ["dividend-cash-machines-dse", "/screener?ready=a_payers"],
-        ["cheap-quality-stocks-dse", "/screener?ready=low_pe"],
-        ["profits-rising-stocks-dse", "/screener?ready=profit_up"],
-        ["debt-free-growth-stocks-dse", "/screener?ready=no_loans"],
-        ["fallen-strong-stocks-dse", "/screener?ready=near_low"],
-        ["sponsors-buying-stocks-dse", "/stock-insights"],
-        ["highest-eps-stocks-bangladesh", "/stock-insights"],
-        ["most-profitable-companies-bangladesh", "/screener?ready=biggest"],
-        ["best-growth-stocks-bangladesh", "/screener?ready=profit_up"],
-        ["high-growth-stocks-2026", "/screener?ready=profit_up"],
-        ["undervalued-stocks-2026", "/screener?ready=low_pe"],
+        ["top-stocks-bangladesh-2025", "/lists?ready=biggest"],
+        ["largest-companies-dse", "/lists?ready=biggest"],
+        ["top-dividend-stocks-bangladesh", "/lists?ready=high_dividend"],
+        ["most-traded-stocks-dse", "/lists?ready=most_traded"],
+        ["top-performing-stocks-dse", "/lists?sort=ret_1y&dir=desc"],
+        ["dividend-cash-machines-dse", "/lists?ready=a_payers"],
+        ["cheap-quality-stocks-dse", "/lists?ready=low_pe"],
+        ["profits-rising-stocks-dse", "/lists?ready=profit_up"],
+        ["debt-free-growth-stocks-dse", "/lists?ready=no_loans"],
+        ["fallen-strong-stocks-dse", "/lists?ready=near_low"],
+        ["sponsors-buying-stocks-dse", "/stock-insights/who-is-buying"],
+        ["highest-eps-stocks-bangladesh", "/lists"],
+        ["most-profitable-companies-bangladesh", "/lists?ready=biggest"],
+        ["best-growth-stocks-bangladesh", "/lists?ready=profit_up"],
+        ["high-growth-stocks-2026", "/lists?ready=profit_up"],
+        ["undervalued-stocks-2026", "/lists?ready=low_pe"],
         ["best-bank-stocks-bangladesh", "/sector/bank"],
         ["best-bank-stocks-2026", "/sector/bank"],
         ["best-pharma-stocks-bangladesh", "/sector/pharmaceuticals-and-chemicals"],
@@ -92,7 +100,7 @@ const nextConfig: NextConfig = {
       // Discover became "Based on your shares" (2026-11-18).
       { source: "/discover", destination: "/for-you", permanent: true },
       // TopStock AI was removed (2026-11-23); it sat under Find.
-      { source: "/assistant", destination: "/find", permanent: true },
+      { source: "/assistant", destination: "/lists", permanent: true },
       // One market page (2026-11-05): DSE today, Market analysis and the
       // Bengali daily page (/share-bazar) merged into /dse-today, "Market today".
       { source: "/market-analysis", destination: "/dse-today", permanent: true },
@@ -105,11 +113,11 @@ const nextConfig: NextConfig = {
       // The quiz gave way to the screener's goal starts and the list builder
       // became its Saved tab (2026-10-26). The incoming query rides along, so a
       // saved-list push's ?list= still opens it.
-      { source: "/stock-recommendation", destination: "/screener", permanent: true },
-      { source: "/my-lists", destination: "/screener?tab=saved", permanent: true },
+      { source: "/stock-recommendation", destination: "/lists", permanent: true },
+      { source: "/my-lists", destination: "/lists?tab=saved", permanent: true },
       {
         source: "/stock-lists",
-        destination: "/stock-insights",
+        destination: "/lists",
         permanent: true,
       },
     ];

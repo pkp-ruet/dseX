@@ -186,7 +186,7 @@ def screen_row(entry: dict) -> Optional[dict]:
         m = len(left)
         title_en = f"{m} {'share' if m == 1 else 'shares'} left your screen “{name}”"
         title_bn = f"আপনার “{name}” স্ক্রিন থেকে {m}টি শেয়ার বাদ পড়েছে"
-    url = f"/screener?tab=saved&list={entry['id']}"
+    url = f"/lists?tab=saved&list={entry['id']}"
     items = []
     for x, level in [(j, "good") for j in joined] + [(x, "watch") for x in left]:
         en = x.get("en") or x["code"]

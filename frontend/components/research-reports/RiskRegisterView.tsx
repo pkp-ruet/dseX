@@ -1,41 +1,87 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Chip from "@/components/ui/Chip";
+import ListView from "@/components/lists/ListView";
 import { PersonalCodesProvider } from "@/components/market-analysis/PersonalCodes";
 import { T } from "@/components/i18n/T";
-import { dayWords, type RiskChange, type RiskRegister } from "@/lib/research-reports";
-import { Bar, CompanyMeta, CompanyName, RrSection, ShowMore, useMine } from "./parts";
+import { dayWords, type RiskChange, type RiskItem, type RiskRegister } from "@/lib/research-reports";
+import { SORT_NAME, SORT_PRICE, asTier, withQuote, type ListRow, type ListSort, type Quotes } from "@/lib/lists";
+import { Bar, CompanyName, RrSection } from "./parts";
 
-const SHOWN = 15;
 const s = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
-/** The register's body (Premium): this week, the kinds, every company,
- *  and who is close to the Z category. */
-export default function RiskRegisterView({ data }: { data: RiskRegister }) {
+const SORTS: ListSort[] = [
+  { id: "n", label: { en: "Most problems first", bn: "সবচেয়ে বেশি সমস্যা আগে" }, dir: "desc" },
+  SORT_PRICE,
+  SORT_NAME,
+];
+
+type CloseZ = RiskRegister["close_to_z"][number];
+
+/** The register's body (Premium): this week and the kinds as the list's top
+ *  card, then every company in THE list view (2026-11-25, step 4 of the
+ *  simplify review: a report opens like every list), then who is close to
+ *  the Z category, in the same view. */
+export default function RiskRegisterView({ data, quotes }: { data: RiskRegister; quotes?: Quotes | null }) {
   return (
     <PersonalCodesProvider>
-      <Inner data={data} />
+      <Inner data={data} quotes={quotes} />
     </PersonalCodesProvider>
   );
 }
 
-function Inner({ data }: { data: RiskRegister }) {
-  const mine = useMine();
-  const [kind, setKind] = useState<string>("all");
-  const [open, setOpen] = useState(false);
+function Inner({ data, quotes }: { data: RiskRegister; quotes?: Quotes | null }) {
+  const [kind, setKind] = useState<string>("");
 
-  const mineItems = useMemo(() => data.items.filter((i) => mine.has(i.code)), [data.items, mine]);
-  const items = useMemo(() => {
-    if (kind === "mine") return mineItems;
-    if (kind === "all") return data.items;
-    return data.items.filter((i) => i.problems.some((p) => p.key === kind));
-  }, [data.items, kind, mineItems]);
-  const shown = open ? items : items.slice(0, SHOWN);
+  const rows = useMemo<ListRow<RiskItem>[]>(
+    () =>
+      data.items.map((i) =>
+        withQuote(
+          {
+            code: i.code,
+            name: i.name,
+            sector: i.sector,
+            tier: asTier(i.tier),
+            price: i.price,
+            fig: {
+              en: `${i.problems.length} ${s(i.problems.length, "problem", "problems")}`,
+              bn: `${i.problems.length}টি সমস্যা`,
+              tone: i.problems.length > 1 ? "negative" : "",
+              words: true,
+            },
+            sort: { n: i.problems.length },
+            tags: i.problems.map((p) => p.key),
+            hash: "#an-safety",
+            data: i,
+          },
+          quotes,
+        ),
+      ),
+    [data.items, quotes],
+  );
+  const zRows = useMemo<ListRow<CloseZ>[]>(
+    () =>
+      data.close_to_z.map((z) =>
+        withQuote(
+          {
+            code: z.code,
+            name: z.name,
+            sector: z.sector,
+            fig: z.level === "red"
+              ? { en: "Very close", bn: "খুব কাছে", tone: "negative", words: true }
+              : { en: "Close", bn: "কাছে", tone: "watch", words: true },
+            sort: { lv: z.level === "red" ? 2 : 1 },
+            hash: "#an-safety",
+            data: z,
+          },
+          quotes,
+        ),
+      ),
+    [data.close_to_z, quotes],
+  );
 
   const pick = (k: string) => {
     setKind(k);
-    setOpen(false);
     document.getElementById("rr-companies")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -56,7 +102,7 @@ function Inner({ data }: { data: RiskRegister }) {
         <ul className="rr-card rr-kinds">
           {data.kinds.map((k) => (
             <li key={k.key}>
-              <button type="button" className="rr-kind" onClick={() => pick(k.key)}>
+              <button type="button" className="rr-kind" aria-pressed={kind === k.key} onClick={() => pick(k.key)}>
                 <span className="rr-kind-top">
                   <b>
                     <T en={k.title.en} bn={k.title.bn} />
@@ -83,57 +129,35 @@ function Inner({ data }: { data: RiskRegister }) {
           />
         }
       >
-        <div className="rr-chips" role="group" aria-label="Filter">
-          <Chip active={kind === "all"} onClick={() => pick("all")}>
-            <T en={`All · ${data.flagged}`} bn={`সব · ${data.flagged}`} />
-          </Chip>
-          {mineItems.length > 0 && (
-            <Chip active={kind === "mine"} onClick={() => pick("mine")}>
-              <T en={`Your shares · ${mineItems.length}`} bn={`আপনার শেয়ার · ${mineItems.length}`} />
-            </Chip>
-          )}
-          {data.kinds.map((k) => (
-            <Chip key={k.key} active={kind === k.key} onClick={() => pick(k.key)}>
-              <T en={`${k.title.en} · ${k.n}`} bn={`${k.title.bn} · ${k.n}`} />
-            </Chip>
-          ))}
-        </div>
-
-        <ul className="rr-card rr-list">
-          {shown.map((i) => (
-            <li key={i.code} className="rr-co">
-              <div className="rr-co-head">
-                <CompanyName code={i.code} name={i.name} hash="#an-safety" />
-                <span className={`rr-count${i.problems.length > 1 ? " rr-count--many" : ""}`}>
-                  <T
-                    en={`${i.problems.length} problem${s(i.problems.length, "", "s")}`}
-                    bn={`${i.problems.length}টি সমস্যা`}
-                  />
+        <ListView
+          id="risks"
+          track="report-risks"
+          rows={rows}
+          figHead={{ en: "Serious problems", bn: "গুরুতর সমস্যা" }}
+          sorts={SORTS}
+          defaultSort="n"
+          chips={data.kinds.map((k) => ({ id: k.key, label: k.title }))}
+          chipCounts
+          chipValue={kind}
+          onChipChange={setKind}
+          mineChip
+          sync
+          renderLines={(r) => (
+            <span className="lv-lines">
+              {r.data!.problems.map((p) => (
+                <span key={p.key} className="lv-line">
+                  <span className="lv-dot lv-dot--red" aria-hidden="true" />
+                  <b><T en={p.title.en} bn={p.title.bn} /></b>{" "}
+                  <T en={p.en} bn={p.bn} />
                 </span>
-              </div>
-              <CompanyMeta sector={i.sector} tier={i.tier} />
-              <ul className="rr-probs">
-                {i.problems.map((p) => (
-                  <li key={p.key}>
-                    <span className="rr-dot rr-dot--red" aria-hidden="true" />
-                    <span className="min-w-0">
-                      <b>
-                        <T en={p.title.en} bn={p.title.bn} />
-                      </b>{" "}
-                      <T en={p.en} bn={p.bn} />
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </li>
-          ))}
-          {items.length === 0 && (
-            <li className="rr-empty">
-              <T en="None of your shares are on the list." bn="আপনার কোনো শেয়ার এই তালিকায় নেই।" />
-            </li>
+              ))}
+            </span>
           )}
-        </ul>
-        <ShowMore open={open} total={items.length} shown={SHOWN} onToggle={() => setOpen((v) => !v)} />
+          empty={{
+            title: { en: "No company here", bn: "এখানে কোনো কোম্পানি নেই" },
+            message: { en: "None of these companies fits your choices. Pick another kind, sector or price.", bn: "আপনার বাছাইয়ে কোনো কোম্পানি মেলেনি। অন্য ধরন, সেক্টর বা দাম বাছুন।" },
+          }}
+        />
       </RrSection>
 
       {data.close_to_z.length > 0 && (
@@ -147,27 +171,24 @@ function Inner({ data }: { data: RiskRegister }) {
             />
           }
         >
-          <ul className="rr-card rr-list">
-            {data.close_to_z.map((z) => (
-              <li key={z.code} className="rr-co">
-                <div className="rr-co-head">
-                  <CompanyName code={z.code} name={z.name} hash="#an-safety" />
-                </div>
-                <CompanyMeta sector={z.sector} />
-                <ul className="rr-probs">
-                  {z.reasons.map((r) => (
-                    <li key={r.en}>
-                      <span className={`rr-dot ${r.level === "red" ? "rr-dot--red" : "rr-dot--amber"}`} aria-hidden="true" />
-                      <span className="min-w-0">
-                        <T en={r.en} bn={r.bn} />
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            ))}
-          </ul>
-        </RrSection>
+          <ListView
+            id="close-z"
+            rows={zRows}
+            figHead={{ en: "How close", bn: "কতটা কাছে" }}
+            sorts={[{ id: "lv", label: { en: "Closest first", bn: "সবচেয়ে কাছেরটি আগে" }, dir: "desc" }, SORT_PRICE, SORT_NAME]}
+            defaultSort="lv"
+            renderLines={(r) => (
+              <span className="lv-lines">
+                {r.data!.reasons.map((x) => (
+                  <span key={x.en} className="lv-line">
+                    <span className={`lv-dot ${x.level === "red" ? "lv-dot--red" : "lv-dot--amber"}`} aria-hidden="true" />
+                    <T en={x.en} bn={x.bn} />
+                  </span>
+                ))}
+              </span>
+            )}
+          />
+      </RrSection>
       )}
     </>
   );
