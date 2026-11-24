@@ -38,7 +38,7 @@ export function countByDate(events: CorporateActionEvent[], key: "record_date" |
 /** The eligibility answer for a record date, from the last normal-market buy
  *  day (the same for every company on that date). Colour only when it is
  *  close (2026-11-04): amber in the last 3 days, red once it has passed. */
-export function buyByLine(e: CorporateActionEvent): { tone: Tone; text: Pair } | null {
+export function buyByLine(e: Pick<CorporateActionEvent, "buy_by" | "buy_days_left">): { tone: Tone; text: Pair } | null {
   if (e.buy_days_left == null || !e.buy_by) return null;
   const d = dayShort(e.buy_by);
   if (e.buy_days_left > 1) {
@@ -92,8 +92,10 @@ export function DateHead({
   iso: string;
   days: number | null | undefined;
   kind: Kind;
-  /** Any event on this date — the buy-by day is the same for all of them. */
-  first: CorporateActionEvent;
+  /** Any event on this date — the buy-by day is the same for all of them
+   *  (only its last day to buy is read, so the locked calendar can pass
+   *  just that). */
+  first: Pick<CorporateActionEvent, "buy_by" | "buy_days_left">;
   count: number;
   flush?: boolean;
 }) {

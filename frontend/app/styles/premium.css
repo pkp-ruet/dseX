@@ -973,3 +973,50 @@ details[open] > .pm-fold-summary .pm-fold-chev { transform: rotate(180deg); }
   background: rgb(var(--gold-rgb) / 0.1); font-size: var(--fs-sm); font-weight: 600; line-height: 1.45; color: var(--text);
 }
 @media (min-width: 640px) { .pm-three-item { padding: 18px 20px; } }
+
+/* ===================================================================
+   One way to show Premium (2026-11-25, components/premium/PremiumSheet.tsx;
+   first on the dividend calendar). A small gold lock where a locked thing
+   would be (`.glock`), a whole locked row as one button (`.lkr`), and the one
+   Premium sheet every lock opens (`.psh-*`, inside ui/Sheet).
+   =================================================================== */
+.glock {
+  flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  width: 32px; height: 32px; padding: 0; border: 1px solid rgb(var(--gold-rgb) / 0.45); border-radius: 50%;
+  background: var(--gold-light); color: var(--gold-ink); font: inherit; text-decoration: none; cursor: pointer;
+}
+button.glock, a.glock { width: 40px; height: 40px; }
+.glock--label, button.glock--label, a.glock--label {
+  width: auto; min-height: 40px; height: auto; padding: 0 14px; border-radius: 999px;
+  font-size: var(--fs-sm); font-weight: 600; line-height: 1.2;
+}
+button.glock:hover, a.glock:hover { background: rgb(var(--gold-rgb) / 0.22); }
+button.glock:active, a.glock:active { opacity: 0.85; }
+.glock:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+.lkr {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px;
+  width: 100%; min-height: 52px; padding: 10px 16px;
+  border: 0; background: transparent; color: inherit; font: inherit; text-align: left; text-decoration: none; cursor: pointer;
+}
+@media (min-width: 640px) { .lkr { padding: 12px 20px; } }
+.lkr:hover { background: var(--surface-2); }
+.lkr:active { background: var(--surface-2); opacity: 0.85; }
+.lkr:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+.lkr-main { display: grid; gap: 4px; min-width: 0; justify-items: start; }
+
+.psh-tag { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: var(--gold-ink); }
+.psh-what {
+  display: flex; align-items: flex-start; gap: 10px; margin: 0; padding: 12px 14px;
+  border: 1px solid rgb(var(--gold-rgb) / 0.40); border-radius: var(--radius-md); background: var(--gold-light);
+  font-size: var(--fs-base); line-height: 1.5; color: var(--text);
+}
+.psh-what-icon { flex: none; display: inline-flex; margin-top: 3px; color: var(--gold-ink); }
+.psh-what-k { display: block; font-size: var(--fs-xs); font-weight: 600; line-height: 1.4; color: var(--gold-ink); }
+.psh-lead { margin: var(--space-4) 0 0; font-size: var(--fs-base); line-height: 1.55; color: var(--text); }
+.psh-body { margin-top: var(--space-4); }
+.psh-body .pc-ticks { grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
+.psh-fine { margin: var(--space-4) 0 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--text-muted); }
+.psh-foot { display: grid; gap: var(--space-3); width: 100%; }
+.psh-price b { display: block; font-size: var(--fs-md); font-weight: 700; line-height: 1.3; color: var(--text); font-variant-numeric: tabular-nums; }
+.psh-price span { display: block; margin-top: 2px; font-size: var(--fs-sm); line-height: 1.4; color: var(--text-muted); }

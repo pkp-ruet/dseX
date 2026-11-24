@@ -1,5 +1,6 @@
 /**
- * What the dividend calendar's Premium card says (2026-11-04; made simple
+ * The dividend calendar's Premium counts (the card, 2026-11-04; since
+ * 2026-11-25 the locked calendar and its Premium sheet read them; made simple
  * 2026-11-05; THE Premium line step 2, 2026-11-22: the next 7 days of record
  * dates are free for everyone above the card, so the card no longer carries a
  * free example — it counts what lies past the week, and the reader's own
@@ -96,5 +97,109 @@ export function buildCalendarPromo(data: DividendCalendarData): CalendarPromo {
     after: data.record_dates.filter(
       (e) => !e.is_no_dividend && e.record_days_left != null && e.record_days_left > FREE_WEEK_DAYS,
     ).length,
+  };
+}
+
+/* ---- The locked calendar (2026-11-25, one way to show Premium) ----
+ * Since step 5 of the "One job, one place" review a free reader no longer
+ * gets a Premium card under the free week: the rest of the calendar shows
+ * with its dates and counts, and a gold lock where each company and amount
+ * would be. This is that view's data, built on the server: dates, counts and
+ * each grey bar's width (from the name's length), never a name or an amount. */
+
+/** Rows a locked list shows before its "And N more" lock. */
+export const LOCKED_ROWS = 8;
+/** Rows the two lists without dates (coming next, just declared) show. */
+export const LOCKED_LIST_ROWS = 6;
+
+/** A grey bar's width from the hidden name's length (MaskedName's rule). */
+function barWidth(name: string | null | undefined): number {
+  return Math.max(96, Math.min(190, (name ?? "").length * 6));
+}
+
+export type LockedDay = {
+  date: string;
+  days: number | null;
+  /** The date's last day to buy (the same for every company on it). */
+  buy_by: string | null;
+  buy_days_left: number | null;
+  /** Companies on this date in all. */
+  n: number;
+  /** Grey-bar widths of the rows shown. */
+  rows: number[];
+};
+
+export type LockedDays = {
+  /** Events in all, and on how many dates. */
+  total: number;
+  dates: number;
+  days: LockedDay[];
+  /** Events past the rows shown. */
+  more: number;
+};
+
+export type LockedList = {
+  total: number;
+  rows: { w: number; date: string | null }[];
+  more: number;
+};
+
+export type LockedCalendar = {
+  record: LockedDays;
+  coming: LockedList;
+  recent: LockedList;
+  agms: LockedDays;
+};
+
+function lockedDays(events: CorporateActionEvent[], kind: "record" | "agm"): LockedDays {
+  const key = kind === "agm" ? "agm_date" : "record_date";
+  const sorted = [...events].sort((a, b) => (a[key] as string).localeCompare(b[key] as string));
+  const byDate: { date: string; items: CorporateActionEvent[] }[] = [];
+  for (const e of sorted) {
+    const d = e[key] as string;
+    const last = byDate[byDate.length - 1];
+    if (last && last.date === d) last.items.push(e);
+    else byDate.push({ date: d, items: [e] });
+  }
+  const days: LockedDay[] = [];
+  let shown = 0;
+  for (const g of byDate) {
+    if (shown >= LOCKED_ROWS) break;
+    const take = g.items.slice(0, LOCKED_ROWS - shown);
+    shown += take.length;
+    const first = g.items[0];
+    days.push({
+      date: g.date,
+      days: kind === "agm" ? first.agm_days_left : first.record_days_left,
+      buy_by: kind === "record" ? first.buy_by : null,
+      buy_days_left: kind === "record" ? first.buy_days_left : null,
+      n: g.items.length,
+      rows: take.map((e) => barWidth(e.company_name ?? e.trading_code)),
+    });
+  }
+  return { total: sorted.length, dates: byDate.length, days, more: sorted.length - shown };
+}
+
+export function buildLockedCalendar(data: DividendCalendarData): LockedCalendar {
+  // Past the free week: dividend-paying record dates (the week's own rule).
+  const record = data.record_dates.filter(
+    (e) => !e.is_no_dividend && e.record_date && e.record_days_left != null && e.record_days_left > FREE_WEEK_DAYS,
+  );
+  const agms = data.agms.filter((e) => e.agm_date && (e.agm_days_left == null || e.agm_days_left >= 0));
+  const forecast = data.forecast ?? [];
+  const recent = data.recent_declarations.slice(0, RECENT_LIMIT);
+  return {
+    record: lockedDays(record, "record"),
+    agms: lockedDays(agms, "agm"),
+    coming: {
+      total: forecast.length,
+      rows: forecast.slice(0, LOCKED_LIST_ROWS).map((f) => ({ w: barWidth(f.company_name ?? f.trading_code), date: null })),
+      more: Math.max(0, forecast.length - LOCKED_LIST_ROWS),
+    },
+    recent: {
+      total: recent.length,
+      rows: recent.slice(0, LOCKED_LIST_ROWS).map((e) => ({ w: barWidth(e.company_name ?? e.trading_code), date: e.declaration_date })),
+      more: Math.max(0, recent.length - LOCKED_LIST_ROWS),
+    },
   };
 }

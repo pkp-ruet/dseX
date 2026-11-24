@@ -7,10 +7,10 @@ import { formatDate } from "@/lib/formatters";
 import CalendarSummary from "@/components/dividend-calendar/CalendarSummary";
 import ComingNext from "@/components/dividend-calendar/ComingNext";
 import PageGate from "@/components/premium/PageGate";
-import DividendPromo from "@/components/dividend-calendar/DividendPromo";
+import CalendarLocks from "@/components/dividend-calendar/CalendarLocks";
 import ThisWeek from "@/components/dividend-calendar/ThisWeek";
 import { CALENDAR_PREMIUM_ANCHOR } from "@/components/dividend-calendar/RemindButton";
-import { buildCalendarPromo } from "@/lib/dividend-promo";
+import { buildCalendarPromo, buildLockedCalendar } from "@/lib/dividend-promo";
 import RecordDateBoard from "@/components/dividend-calendar/RecordDateBoard";
 import AgmBoard from "@/components/dividend-calendar/AgmBoard";
 import RecentDeclarations, { RECENT_LIMIT } from "@/components/dividend-calendar/RecentDeclarations";
@@ -84,6 +84,8 @@ export default async function DividendCalendarPage() {
   const forecast = data.forecast ?? [];
 
   const promo = buildCalendarPromo(data);
+  // The locked calendar's dates and counts (no names, no amounts).
+  const locked = buildLockedCalendar(data);
 
   // The lists as tabs, in the order a reader tracking dividends needs them
   // (2026-11-05): what can I still get, who pays next, what's new, the AGMs.
@@ -245,15 +247,18 @@ export default async function DividendCalendarPage() {
       {/* THE Premium line, step 2 (2026-11-22): the next week of record dates
           is free for every reader and for Google; the rest of the calendar,
           Coming next, the reader's own dividends and the reminders are
-          Premium. A free reader gets the week, then the page's one card
-          (#dc-premium); the full calendar is in the HTML, open, under one
-          lock, and a Premium reader sees only it (the week is in its tab). */}
+          Premium. A free reader gets the week, then the rest of the calendar
+          locked (#dc-premium, 2026-11-25: dates and counts, a gold lock where
+          each company and amount would be, every lock opening one Premium
+          sheet; it replaced the Premium card). The full calendar is in the
+          HTML, open, under one lock, and a Premium reader sees only it (the
+          week is in its tab). */}
       <PageGate
         anchor={CALENDAR_PREMIUM_ANCHOR}
         promo={
           <>
             <ThisWeek events={data.record_dates} />
-            <DividendPromo promo={promo} yours={yours} />
+            <CalendarLocks promo={promo} locked={locked} yours={yours} />
           </>
         }
       >

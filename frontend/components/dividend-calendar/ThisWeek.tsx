@@ -9,8 +9,8 @@ import { FREE_WEEK_DAYS, weekEvents } from "@/lib/dividend-promo";
  * record date in the next `FREE_WEEK_DAYS` days, in full, for every reader
  * and for Google — the calendar's door. The rest of the calendar, who
  * declares next, the reader's own dividends in taka and the reminders are
- * Premium (the card under it). Rows are the calendar's own; a free tap on
- * "Remind me" points at the card.
+ * Premium (the locked calendar under it, `CalendarLocks`, since 2026-11-25).
+ * Rows are the calendar's own; "Remind me" opens the share's Watch sheet.
  */
 export default function ThisWeek({ events }: { events: CorporateActionEvent[] }) {
   const week = weekEvents(events);

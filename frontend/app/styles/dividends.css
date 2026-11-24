@@ -262,26 +262,25 @@ button.dc-row:focus-visible { outline: 2px solid var(--primary); outline-offset:
    record dates, above the Premium card, for every reader. */
 .dc-week { margin-bottom: var(--space-6); }
 
-/* THE Premium card (#dc-premium, `DividendPromo`, since 2026-11-22): what
-   lies past the free week, and the reader's own dividends — the total free,
-   which shares and when masked. */
-.dcp-you { border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); padding: 14px; }
-.dcp-you-k { margin: 0; font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
-.dcp-you-big { margin: 4px 0 0; font-size: var(--fs-xl); font-weight: 700; line-height: 1.2; color: var(--text); font-variant-numeric: tabular-nums; }
-.dcp-you-line { margin: 4px 0 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
-.dcp-you-rows { display: grid; gap: 0; margin: var(--space-3) 0 0; padding: 0; list-style: none; }
-.dcp-you-rows li {
-  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
-  padding: 8px 0; border-top: 1px solid var(--cell-rule);
+/* The rest of the calendar, locked (#dc-premium, `CalendarLocks`,
+   2026-11-25, one way to show Premium): the calendar's own tabs, date heads
+   and rows, with a grey bar where each company is and a gold lock where its
+   amount is (`.lkr` / `.glock` in premium.css). It replaced the Premium card. */
+.dcl-cal { margin-top: 0; }
+.dcl-lead { margin: 0 0 var(--space-3); }
+.dcl-sub { display: block; font-size: var(--fs-2xs); line-height: 1.4; color: var(--text-muted); }
+.dcl-tail { border-top: 1px solid var(--cell-rule); }
+.dcl-more-t { font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
+/* The reader's own dividends: the total free, which shares behind a lock. */
+.dcl-you {
+  display: grid; gap: var(--space-2); justify-items: start;
+  margin: 0 0 var(--space-4); padding: var(--space-4);
+  border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface);
 }
-.dcp-you-date { flex: none; font-size: var(--fs-xs); font-weight: 400; color: var(--text-muted); font-variant-numeric: tabular-nums; }
-.dcp-you-more { margin: 4px 0 0; font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
-@media (min-width: 640px) { .dcp-you { padding: 16px 18px; } }
-.dcp-gets-k { margin-top: var(--space-6); }
-.dcp-gets { display: grid; gap: var(--space-2); margin: var(--space-3) 0 0; padding: 0; list-style: none; }
-.dcp-gets li { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--fs-base); line-height: 1.45; color: var(--text); }
-.dcp-gets .dcp-tick { flex: none; display: inline-flex; margin-top: 3px; color: var(--positive); }
-@media (min-width: 640px) { .dcp-gets { grid-template-columns: 1fr 1fr; gap: var(--space-3) var(--space-6); } }
+.dcl-you-line { margin: 0; max-width: 62ch; font-size: var(--fs-base); line-height: 1.5; color: var(--text); }
+.dcl-you-codes { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0; font-size: var(--fs-sm); color: var(--text-muted); }
+.dcl-you-codes b { font-weight: 600; color: var(--text); }
+@media (min-width: 640px) { .dcl-you { padding: var(--space-4) var(--space-6); } }
 
 /* ---- How a dividend reaches you: four steps, then two folding questions ---- */
 .dc-steps {
@@ -341,4 +340,3 @@ button.dc-row:focus-visible { outline: 2px solid var(--primary); outline-offset:
 }
 .dc-more:hover { background: var(--surface-2); }
 .dc-more:active { background: var(--surface-2); opacity: 0.85; }
-.dcp-you-code { font-size: var(--fs-sm); font-weight: 600; color: var(--text); }

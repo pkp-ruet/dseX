@@ -62,17 +62,11 @@ export default function PremiumCard({
   fine?: Bi;
   className?: string;
 }) {
-  const { user } = useAuth();
   const { state } = usePremium();
   const { bn } = useLang();
   const ref = useRef<HTMLElement>(null);
   const seen = useRef(false);
-  const offer = user?.offer ?? null;
-  const href = offer
-    ? `/premium?plan=offer&src=${src}#pay`
-    : user
-      ? `${PREMIUM_PATH}?src=${src}#pay`
-      : `${PREMIUM_PATH}?src=${src}`;
+  const href = usePremiumHref(src);
   const params = JSON.stringify(track ?? {});
 
   useEffect(() => {
@@ -119,56 +113,95 @@ export default function PremiumCard({
 
       <div className="sp-foot">
         <div className="sp-price">
-          {offer ? (
-            <>
-              <b>
-                <T en={`Your first month: ৳${offer.amount}`} bn={`আপনার প্রথম মাস: ৳${offer.amount}`} />
-              </b>
-              <span>
-                <T en={`Instead of ৳${offer.list_amount}, once.`} bn={`৳${offer.list_amount}-এর বদলে, একবারই।`} />
-              </span>
-            </>
-          ) : (
-            <>
-              <b>
-                <T en={`৳${LOWEST_PRICE} a month`} bn={`মাসে ৳${LOWEST_PRICE}`} />
-              </b>
-              <span>
-                <T en={`About ৳${FROM_MONTH} a month on the yearly plan.`} bn={`বছরের প্ল্যানে মাসে প্রায় ৳${FROM_MONTH}।`} />
-              </span>
-            </>
-          )}
+          <PremiumPrice />
         </div>
         <div className="sp-cta">
           <Button href={href} onClick={onTap} size="lg" block>
-            {offer ? (
-              <T en={`Get your first month for ৳${offer.amount}`} bn={`প্রথম মাস ৳${offer.amount}-এ নিন`} />
-            ) : (
-              <T en={cta.en} bn={cta.bn} />
-            )}
+            <PremiumCtaWords cta={cta} />
           </Button>
         </div>
       </div>
 
       <p className="sp-fine">
-        {fine && (
-          <>
-            <T en={fine.en} bn={fine.bn} />{" "}
-          </>
-        )}
-        {state === "guest" ? (
-          <T
-            en="Create a free account, then pay by bKash, Nagad or bank transfer. Nothing renews by itself."
-            bn="একটি ফ্রি অ্যাকাউন্ট খুলুন, তারপর bKash, Nagad বা ব্যাংক ট্রান্সফারে টাকা দিন। মেয়াদ শেষে নিজে থেকে নবায়ন হয় না।"
-          />
-        ) : (
-          <T
-            en="Pay by bKash, Nagad or bank transfer. Nothing renews by itself."
-            bn="bKash, Nagad বা ব্যাংক ট্রান্সফারে টাকা দিতে পারবেন। মেয়াদ শেষে নিজে থেকে নবায়ন হয় না।"
-          />
-        )}
+        <PremiumFine fine={fine} />
       </p>
     </section>
+  );
+}
+
+/* The card's foot in parts, shared with the Premium sheet
+   (components/premium/PremiumSheet.tsx, 2026-11-25), so the price, the
+   button's words and the fine print read the same in both. */
+
+/** Where the button goes: the reader's own ৳99 month, else the plans. */
+export function usePremiumHref(src: string): string {
+  const { user } = useAuth();
+  const offer = user?.offer ?? null;
+  return offer
+    ? `/premium?plan=offer&src=${src}#pay`
+    : user
+      ? `${PREMIUM_PATH}?src=${src}#pay`
+      : `${PREMIUM_PATH}?src=${src}`;
+}
+
+/** The price, or the reader's own ৳99 month: a bold line and one under it. */
+export function PremiumPrice() {
+  const { user } = useAuth();
+  const offer = user?.offer ?? null;
+  return offer ? (
+    <>
+      <b>
+        <T en={`Your first month: ৳${offer.amount}`} bn={`আপনার প্রথম মাস: ৳${offer.amount}`} />
+      </b>
+      <span>
+        <T en={`Instead of ৳${offer.list_amount}, once.`} bn={`৳${offer.list_amount}-এর বদলে, একবারই।`} />
+      </span>
+    </>
+  ) : (
+    <>
+      <b>
+        <T en={`৳${LOWEST_PRICE} a month`} bn={`মাসে ৳${LOWEST_PRICE}`} />
+      </b>
+      <span>
+        <T en={`About ৳${FROM_MONTH} a month on the yearly plan.`} bn={`বছরের প্ল্যানে মাসে প্রায় ৳${FROM_MONTH}।`} />
+      </span>
+    </>
+  );
+}
+
+/** The button's words: the page's own, or the reader's ৳99 month. */
+export function PremiumCtaWords({ cta }: { cta: Bi }) {
+  const { user } = useAuth();
+  const offer = user?.offer ?? null;
+  return offer ? (
+    <T en={`Get your first month for ৳${offer.amount}`} bn={`প্রথম মাস ৳${offer.amount}-এ নিন`} />
+  ) : (
+    <T en={cta.en} bn={cta.bn} />
+  );
+}
+
+/** How to pay, and that nothing renews (+ one optional line first). */
+export function PremiumFine({ fine }: { fine?: Bi }) {
+  const { state } = usePremium();
+  return (
+    <>
+      {fine && (
+        <>
+          <T en={fine.en} bn={fine.bn} />{" "}
+        </>
+      )}
+      {state === "guest" ? (
+        <T
+          en="Create a free account, then pay by bKash, Nagad or bank transfer. Nothing renews by itself."
+          bn="একটি ফ্রি অ্যাকাউন্ট খুলুন, তারপর bKash, Nagad বা ব্যাংক ট্রান্সফারে টাকা দিন। মেয়াদ শেষে নিজে থেকে নবায়ন হয় না।"
+        />
+      ) : (
+        <T
+          en="Pay by bKash, Nagad or bank transfer. Nothing renews by itself."
+          bn="bKash, Nagad বা ব্যাংক ট্রান্সফারে টাকা দিতে পারবেন। মেয়াদ শেষে নিজে থেকে নবায়ন হয় না।"
+        />
+      )}
+    </>
   );
 }
 
