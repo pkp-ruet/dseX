@@ -24,10 +24,9 @@ def test_plans_are_the_advertised_prices():
     }
 
 
-def test_only_the_year_shows_a_cut_price():
-    # Two plans since 2026-11-26: the year is shown as cut from ৳1,499.
-    assert PAID_PLANS["yearly"]["list_amount"] == 1499
-    assert "list_amount" not in PAID_PLANS["quarterly"]
+def test_no_plan_shows_a_cut_price():
+    # The year's "cut from ৳1,499" line was removed 2026-11-26 (user decision).
+    assert all("list_amount" not in p for p in PAID_PLANS.values())
 
 
 def test_sender_number_forms():

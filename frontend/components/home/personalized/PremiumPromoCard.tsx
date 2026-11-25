@@ -15,8 +15,8 @@ const tk = (n: number) => `৳${n.toLocaleString("en-IN")}`;
  * The home page's one Premium card (2026-11-26, user decision), right after
  * the market line, for signed-in readers without Premium. Three parts on one
  * line from 640px (stacked on phones): what it is (crown + "Get Premium for
- * one year"), the price (৳999 a year, ৳1,499 struck through, about ৳83 a
- * month), one button to the plans. This is the only place outside `/premium`
+ * one year"), the price (৳999 a year, about ৳83 a month; the struck-through
+ * ৳1,499 was removed the same day), one button to the plans. This is the only place outside `/premium`
  * that names a price; every other Premium card, lock and wall says what
  * Premium shows and nothing about cost. No feature list, no countdown, no
  * close button. Styles `.hm-promo*` in `app/styles/home.css`.
@@ -37,7 +37,6 @@ export default function PremiumPromoCard({ lang }: { lang: Lang }) {
   if (!show) return null;
 
   const year = YEARLY_PLAN.amount;
-  const was = YEARLY_PLAN.listAmount;
   const perMonth = Math.round(year / 12);
 
   return (
@@ -65,16 +64,7 @@ export default function PremiumPromoCard({ lang }: { lang: Lang }) {
           <span>{bn ? "/ বছর" : "/ year"}</span>
         </p>
         <p className="hm-promo-sub">
-          {was && was > year ? (
-            <>
-              <s className="nums">
-                <span className="sr-only">{bn ? "আগের দাম " : "Regular price "}</span>
-                {tk(was)}
-              </s>
-              {" · "}
-            </>
-          ) : null}
-          {bn ? `মাসে প্রায় ${tk(perMonth)}` : `about ${tk(perMonth)} a month`}
+          {bn ? `মাসে প্রায় ${tk(perMonth)}` : `About ${tk(perMonth)} a month`}
         </p>
       </div>
 

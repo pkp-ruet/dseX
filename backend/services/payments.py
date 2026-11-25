@@ -28,15 +28,15 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 # plan → (taka charged, days). Two plans since 2026-11-26 (user decision):
-# 3 months ৳299 · 1 year ৳999, the yearly one shown as cut from ৳1,499
-# (`list_amount`, struck through on the plan card and the home page's Premium card).
-# Mirrored by frontend `lib/premium-plans.ts`.
+# 3 months ৳299 · 1 year ৳999. Mirrored by frontend `lib/premium-plans.ts`.
+# (The year was shown as cut from ৳1,499 for a day; that line was removed
+# 2026-11-26, user decision.)
 # No longer sold — old payments keep their key with their own amount + days
 # stored on the payment row: "monthly" (৳199 / 30 days, until 2026-11-26) and
 # "halfyearly" (৳999 / 180 days, 2026-10-27 → 11-13).
 PAID_PLANS: dict[str, dict] = {
     "quarterly": {"amount": 299, "days": 90},
-    "yearly": {"amount": 999, "days": 365, "list_amount": 1499},
+    "yearly": {"amount": 999, "days": 365},
 }
 # The reader's own ৳99 first month ("offer", 2026-10-29 → 11-22) was removed
 # on 2026-11-26 (user decision); old payments keep the key "offer" with their

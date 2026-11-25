@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { T } from "@/components/i18n/T";
 import { readPremiumContext, type PremiumContext } from "@/lib/premium-context";
 import { usePremium } from "@/lib/premium";
-import { LOWEST_PRICE } from "@/lib/premium-plans";
 import { trackEvent } from "@/lib/track";
 
 const FROM: Record<string, { en: string; bn: string }> = {
@@ -40,35 +39,28 @@ export default function PremiumContextCard() {
   const from = FROM[ctx.from] ?? { en: "What you just tried to open", bn: "আপনি যা খুলতে চেয়েছিলেন" };
   const stakes = ctx.stakes ?? [];
 
+  // A short note above the plans (2026-11-26): where they came from, what they
+  // tried to open and its stakes. No button or price — the plans sit right
+  // under it.
   return (
-    <div className="premium-card" role="note">
-      <div className="flex-1 min-w-0">
-        <p className="text-xs text-text-muted">
-          <T en={from.en} bn={from.bn} />
-        </p>
-        {ctx.label && <p className="mt-1 font-semibold text-text-main">{ctx.label}</p>}
-        {stakes.length > 0 && (
-          <ul className="mt-2 flex flex-col gap-1.5">
-            {stakes.map((s, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm font-semibold text-text-main">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
-                <span>{s}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-        <p className="mt-2 text-sm text-text-muted">
-          <T
-            en={`Premium opens all of it. Plans start at ৳${LOWEST_PRICE}, paid by bKash or Nagad.`}
-            bn={`প্রিমিয়ামে সবটা খুলে যায়। প্ল্যান ৳${LOWEST_PRICE} থেকে, বিকাশ বা নগদে পেমেন্ট।`}
-          />
-        </p>
-      </div>
-      <div className="premium-card-action">
-        <a href="#pay" className="btn-primary btn-sm">
-          <T en="Choose a plan" bn="প্ল্যান বেছে নিন" />
-        </a>
-      </div>
+    <div className="pm-came" role="note">
+      <p className="text-sm text-text-muted">
+        <T en={from.en} bn={from.bn} />
+      </p>
+      {ctx.label && <p className="mt-1 font-semibold text-text-main">{ctx.label}</p>}
+      {stakes.length > 0 && (
+        <ul className="mt-2 flex flex-col gap-1.5">
+          {stakes.map((s, i) => (
+            <li key={i} className="flex items-start gap-2 text-sm text-text-main">
+              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
+              <span>{s}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="mt-2 text-sm text-text-main">
+        <T en="Premium opens all of it." bn="প্রিমিয়ামে সবটা খুলে যায়।" />
+      </p>
     </div>
   );
 }

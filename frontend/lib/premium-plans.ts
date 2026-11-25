@@ -1,10 +1,10 @@
 /**
  * The paid plans — mirrors backend `services/payments.py:PAID_PLANS` (amount +
  * days); this file adds the words. A plain module (no "use client") so the
- * server-rendered /premium page and its client PayBox share it.
+ * server-rendered /premium page and its client PlanPicker / PaySheet share it.
  *
- * 2026-11-26: two plans — 3 months ৳299 · 1 year ৳999, the year shown as cut
- * from ৳1,499 (`listAmount`, struck through on its card). The 1-month plan is
+ * 2026-11-26: two plans — 3 months ৳299 · 1 year ৳999 (no struck-through
+ * "regular price": the ৳1,499 line was removed the same day). The 1-month plan is
  * no longer sold, nor the reader's own ৳99 first month (removed the same day);
  * both are kept in `RETIRED_PLANS` so old payments still read as a name.
  */
@@ -16,8 +16,6 @@ export interface PaidPlan {
   bn: string;
   amount: number;
   days: number;
-  /** Regular price, struck through (only the year has one). */
-  listAmount?: number;
   per: string;
   perBn: string;
   note: string;
@@ -43,7 +41,6 @@ export const PAID_PLANS: PaidPlan[] = [
     bn: "1 বছর",
     amount: 999,
     days: 365,
-    listAmount: 1499,
     per: "for 365 days",
     perBn: "365 দিনের জন্য",
     note: "About ৳83 a month.",

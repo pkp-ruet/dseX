@@ -1,35 +1,21 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import PageHeader from "@/components/ui/PageHeader";
 import SectionHeader from "@/components/ui/SectionHeader";
+import Button from "@/components/ui/Button";
 import { T } from "@/components/i18n/T";
-import {
-  IconBell, IconBook, IconBriefcase, IconCalendar, IconCheck, IconChevronDown, IconClipboardCheck,
-  IconCompare, IconCompass, IconCrown, IconFileText, IconNews, IconPie, IconStar, IconTune,
-} from "@/components/ui/icons";
-import PremiumPlanCta from "@/components/premium/PremiumPlanCta";
+import { IconCheck, IconChevronDown, IconCrown } from "@/components/ui/icons";
 import PremiumContextCard from "@/components/premium/PremiumContextCard";
-import PremiumPromises from "@/components/premium/PremiumPromises";
-import PayBox from "@/components/premium/PayBox";
+import PlanPicker, { BuyWords } from "@/components/premium/PlanPicker";
+import PaySheet from "@/components/premium/PaySheet";
+import YourPayments from "@/components/premium/YourPayments";
 import PaymentHelp from "@/components/premium/PaymentHelp";
-import { useLang } from "@/context/LangContext";
-import { FAQS, FEATURES, HERO, PER_MONTH, PROMISES, SECTIONS, type Bi, type FeatureKey } from "@/lib/premium-copy";
-
-const ICON: Record<FeatureKey, ReactNode> = {
-  analysis: <IconFileText size={20} />,
-  portfolio: <IconPie size={20} />,
-  watchlist: <IconStar size={20} />,
-  dividends: <IconCalendar size={20} />,
-  buylist: <IconClipboardCheck size={20} />,
-  screener: <IconTune size={20} />,
-  compare: <IconCompare size={20} />,
-  alerts: <IconBell size={20} />,
-  news: <IconNews size={20} />,
-  foryou: <IconCompass size={20} />,
-  research: <IconBook size={20} />,
-  portfolios: <IconBriefcase size={20} />,
-};
+import { useAuth } from "@/context/AuthContext";
+import { apiGetMyPayments, getPremiumPlans, type PremiumPayment, type PremiumPlansResponse } from "@/lib/api";
+import { FAQS, FEATURES, HERO, SECTIONS, type Bi } from "@/lib/premium-copy";
+import { PAID_PLANS, type PlanKey } from "@/lib/premium-plans";
+import { trackEvent } from "@/lib/track";
 
 /** One copy pair on screen — the reader sees only their language. */
 function Tx({ b }: { b: Bi }) {
@@ -37,93 +23,139 @@ function Tx({ b }: { b: Bi }) {
 }
 
 /**
- * The /premium page body. 2026-11-18 (user: "everything sounds abstract. give
- * a simple list … a simple easy to understand page"): the price and one
- * button → ONE list of what Premium gives, each row its name, one line and
- * what the free plan gets → the plans and pay box → three questions, with
- * payment help folded under them. No refund line here (user decision).
+ * The /premium page body. 2026-11-26 (user: "bring price table to top. after
+ * that a simple premium feature list", then the payment-sheet mockup
+ * https://claude.ai/artifact/AWU7kotVBn4cDA65Uao1kg → "build it"):
+ *   1 the header, the reader's "you came from" note, the two plans and ONE
+ *     button (`PlanPicker`, `#pay`);
+ *   2 "What you get": a tick, the name and one line per feature, then the
+ *     button again for the year;
+ *   3 the questions, payment help folded, the reader's past payments.
+ * The button opens `PaySheet` (method → send → confirm → done). A guest's
+ * sign-up comes back with `?buy=1`, which opens the sheet on arrival.
  *
- * One language per page (2026-10-28): every pair renders through `<T>`, so
- * the server HTML carries both and CSS shows the reader's language. The
- * page's metadata and FAQ JSON-LD stay in app/premium/page.tsx, built from
- * the same copy (lib/premium-copy.ts).
+ * One language per page (2026-10-28): every pair renders through `<T>`. The
+ * metadata and FAQ JSON-LD stay in app/premium/page.tsx.
  */
 export default function PremiumBody() {
-  const { bn } = useLang();
+  const { isLoggedIn, isLoading } = useAuth();
+  const [plan, setPlan] = useState<PlanKey>("yearly");
+  const [open, setOpen] = useState(false);
+  const [info, setInfo] = useState<PremiumPlansResponse | null>(null);
+  const [mine, setMine] = useState<PremiumPayment[]>([]);
+  const autoOpened = useRef(false);
+
+  // ?plan=quarterly|yearly picks the plan (the renewal alert, sign-in return).
+  useEffect(() => {
+    const want = new URLSearchParams(window.location.search).get("plan");
+    if (want && PAID_PLANS.some((p) => p.key === want)) setPlan(want as PlanKey);
+  }, []);
+
+  useEffect(() => {
+    getPremiumPlans()
+      .then(setInfo)
+      .catch(() => setInfo({ plans: [], methods: [] }));
+  }, []);
+
+  const loadMine = useCallback(() => {
+    apiGetMyPayments()
+      .then((r) => setMine(r.items))
+      .catch(() => setMine([]));
+  }, []);
+
+  useEffect(() => {
+    if (isLoggedIn) loadMine();
+    else setMine([]);
+  }, [isLoggedIn, loadMine]);
+
+  const pending = mine.find((p) => p.status === "pending") ?? null;
+  const guest = !isLoading && !isLoggedIn;
+  const closed = !!info && info.methods.length === 0;
+
+  const buy = useCallback(
+    (key?: PlanKey) => {
+      if (key) setPlan(key);
+      trackEvent("premium_pay_open", { plan: key ?? plan, guest: guest ? 1 : 0 });
+      setOpen(true);
+    },
+    [plan, guest],
+  );
+
+  // Back from sign-up / sign-in with ?buy=1: open the sheet once, then drop
+  // the flag so a reload doesn't open it again.
+  useEffect(() => {
+    if (autoOpened.current || isLoading || !isLoggedIn) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("buy") !== "1") return;
+    autoOpened.current = true;
+    params.delete("buy");
+    const q = params.toString();
+    window.history.replaceState(null, "", `${window.location.pathname}${q ? `?${q}` : ""}${window.location.hash}`);
+    if (!pending) setOpen(true);
+  }, [isLoading, isLoggedIn, pending]);
 
   // Payment help is folded; a link to #payment-help opens it.
   const helpRef = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
-    const open = () => {
+    const openHelp = () => {
       if (window.location.hash === "#payment-help" && helpRef.current) helpRef.current.open = true;
     };
-    open();
-    window.addEventListener("hashchange", open);
-    return () => window.removeEventListener("hashchange", open);
+    openHelp();
+    window.addEventListener("hashchange", openHelp);
+    return () => window.removeEventListener("hashchange", openHelp);
   }, []);
 
   return (
     <div className="pm-page">
-      {/* 1 · What it is and what it costs */}
-      <section className="pm-hero">
+      {/* 1 · The plans and one button */}
+      <section id="pay" className="pm-hero scroll-mt-24" aria-labelledby="pm-h1">
         <PageHeader
           eyebrow={
             <span className="pm-eyebrow">
               <IconCrown size={14} /> <Tx b={HERO.eyebrow} />
             </span>
           }
-          title={<Tx b={HERO.title} />}
+          title={<span id="pm-h1"><Tx b={HERO.title} /></span>}
           lead={<Tx b={HERO.lead} />}
         />
-        <p className="pm-price">
-          <span className="pm-price-num">৳{PER_MONTH}</span>
-          <span className="pm-price-per"><Tx b={HERO.perMonth} /></span>
-        </p>
-        <p className="pm-price-alt"><Tx b={HERO.orPlans} /></p>
-        <div className="mt-6">
-          <PremiumPlanCta />
-        </div>
-        <ul className="pm-promises" aria-label={bn ? SECTIONS.promises.bn : SECTIONS.promises.en}>
-          {PROMISES.map((p) => (
-            <li key={p.en}>
-              <span className="pm-tick" aria-hidden><IconCheck size={14} /></span>
-              <span><Tx b={p} /></span>
-            </li>
-          ))}
-        </ul>
+        <PremiumContextCard />
+        <PlanPicker
+          plan={plan}
+          onPlan={setPlan}
+          onBuy={() => buy()}
+          guest={guest}
+          pending={pending}
+          closed={closed}
+        />
       </section>
 
-      <PremiumContextCard />
-
-      {/* 2 · The three promises, in the reader's own figures (step 7) */}
-      <PremiumPromises />
-
-      {/* 2 · The list: one row per feature, with what the free plan gets */}
+      {/* 2 · What you get */}
       <section aria-labelledby="list-h" id="what" className="pm-section scroll-mt-24">
-        <SectionHeader id="list-h" size="lg" title={<Tx b={SECTIONS.list} />} />
+        <SectionHeader id="list-h" size="lg" title={<Tx b={SECTIONS.list} />} lead={<Tx b={SECTIONS.listNote} />} />
         <ul className="pm-list">
           {FEATURES.map((f) => (
             <li key={f.key} id={`pm-${f.key}`} className="pm-feat">
-              <span className="pm-feat-icon" aria-hidden>{ICON[f.key]}</span>
+              <span className="pm-tick" aria-hidden>
+                <IconCheck size={14} />
+              </span>
               <div className="min-w-0">
                 <h3 className="pm-feat-name"><Tx b={f.name} /></h3>
                 <p className="pm-feat-line"><Tx b={f.line} /></p>
-                <p className="pm-feat-free">
-                  <Tx b={SECTIONS.free} />: <Tx b={f.free} />
-                </p>
               </div>
             </li>
           ))}
         </ul>
+        {!pending && !closed && (
+          <div className="pm-again">
+            <Button size="lg" onClick={() => buy("yearly")}>
+              <BuyWords plan="yearly" guest={guest} />
+            </Button>
+            <p className="text-sm text-text-muted"><Tx b={SECTIONS.orQuarter} /></p>
+          </div>
+        )}
       </section>
 
-      {/* 3 · Plans + pay */}
-      <section id="pay" aria-labelledby="price-h" className="pm-section scroll-mt-24">
-        <SectionHeader id="price-h" size="lg" title={<Tx b={SECTIONS.plan} />} />
-        <PayBox />
-      </section>
-
-      {/* 4 · Questions, then payment help folded until needed */}
+      {/* 3 · Questions, payment help folded, past payments */}
       <section aria-labelledby="faq-h" className="pm-section">
         <SectionHeader id="faq-h" size="lg" title={<Tx b={SECTIONS.faq} />} />
         <div className="pm-faq">
@@ -152,7 +184,11 @@ export default function PremiumBody() {
             <PaymentHelp />
           </div>
         </details>
+
+        <YourPayments items={mine} />
       </section>
+
+      <PaySheet open={open} onClose={() => setOpen(false)} plan={plan} info={info} guest={guest} onPaid={loadMine} />
     </div>
   );
 }
