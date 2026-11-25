@@ -11,7 +11,6 @@ import { useAuth } from "@/context/AuthContext";
 import { useLang } from "@/context/LangContext";
 import { FREE_LIMITS, PREMIUM_PATH, storedLimit, type LimitKind } from "@/lib/premium";
 import { areaOf, savePremiumContext } from "@/lib/premium-context";
-import { FROM_MONTH } from "@/lib/premium-plans";
 import { trackEvent } from "@/lib/track";
 import { LIMIT_EVENT } from "./LimitNotice";
 
@@ -76,7 +75,7 @@ const ALSO: Bi[] = [
  * banner in popup"; it was a toast). Mounted once in the root layout and
  * opened by `showLimitNotice(kind)`: what the limit is, what the reader can
  * still do, then a Premium banner in the `.ans` gold look — what Premium
- * gives here, the price (their own ৳99 month when they have it) and one
+ * gives here, the price and one
  * button. Fires `premium_lock_view` / `premium_lock_tap` with `lock: "limit-<kind>"`.
  */
 export default function LimitSheet() {
@@ -104,8 +103,7 @@ export default function LimitSheet() {
   const make = COPY[kind];
   if (!make || n == null) return null;
   const c = make(n);
-  const offer = user?.offer ?? null;
-  const href = offer ? "/premium?plan=offer&src=limit#pay" : user ? `${PREMIUM_PATH}#pay` : PREMIUM_PATH;
+  const href = user ? `${PREMIUM_PATH}#pay` : PREMIUM_PATH;
   const close = () => setKind(null);
 
   function onTap() {
@@ -155,22 +153,9 @@ export default function LimitSheet() {
         <div className="ans-foot">
           <Link href={href} prefetch={false} className="btn-primary ans-cta" onClick={onTap}>
             <IconCrown size={16} />
-            {offer ? (
-              <T en={`Get your first month for ৳${offer.amount}`} bn={`প্রথম মাস ৳${offer.amount}-এ নিন`} />
-            ) : (
-              <T en="See Premium" bn="প্রিমিয়াম দেখুন" />
-            )}
+            <T en="See Premium" bn="প্রিমিয়াম দেখুন" />
           </Link>
           <span className="ans-price">
-            {offer ? (
-              <b>
-                <T en={`৳${offer.amount} instead of ৳${offer.list_amount}, once`} bn={`৳${offer.list_amount}-এর বদলে ৳${offer.amount}, একবারই`} />
-              </b>
-            ) : (
-              <b>
-                <T en={`From ৳${FROM_MONTH} a month`} bn={`মাসে ৳${FROM_MONTH} থেকে`} />
-              </b>
-            )}
             <T en="bKash, Nagad or bank · no auto-renewal" bn="বিকাশ, নগদ বা ব্যাংক · নিজে থেকে নবায়ন হয় না" />
           </span>
         </div>

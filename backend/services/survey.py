@@ -61,7 +61,7 @@ QUESTIONS: dict[str, tuple] = {
                          "nothing", "other"), PICK_MAX, "nothing"),
     "worth": (ONE, ("more", "yes", "unsure", "no"), None, None),
     "continue": (ONE, ("yes", "probably", "unsure", "probably_not", "no"), None, None),
-    "next_plan": (ONE, ("monthly", "quarterly", "yearly"), None, None),
+    "next_plan": (ONE, ("quarterly", "yearly"), None, None),
     "stay": (MANY, STAY_CHOICES, PICK_MAX, None),
     "ended_why": (ONE, ("didnt_know", "price", "unused", "no_help", "money", "market", "later",
                         "other"), None, None),

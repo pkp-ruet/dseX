@@ -1,18 +1,16 @@
 /**
- * The Premium renewal banner's rules (2026-11-13), pure. The banner shows on
- * top of every page while a reader's Premium ends within `RENEW_BANNER_DAYS`
- * (backend `payments.RENEW_BANNER_DAYS`), always offering the yearly plan.
- * A new plan's days start after the days still left (`payments.extend_until`),
- * so the banner names the exact date one more year would run to.
+ * Premium end dates, pure. Dates are Dhaka calendar days: Premium ending at
+ * 20:00 UTC ends on the next day for the reader.
  *
- * Dates are Dhaka calendar days: Premium ending at 20:00 UTC ends on the next
- * day for the reader.
+ * 2026-11-26 (user decision): the renewal banner on every page, its "what
+ * you'd lose" list and the renewal push were removed. A reader whose Premium
+ * ends within `RENEW_ALERT_DAYS` sees one line under the home page's greeting
+ * (`components/home/personalized/RenewAlert.tsx`), nothing else.
  */
 import { bnDate } from "@/lib/bn";
 
-export const RENEW_BANNER_DAYS = 10;
-/** The last days, when the banner turns amber. */
-export const RENEW_URGENT_DAYS = 3;
+/** The home page's renew alert shows in the last this-many days. */
+export const RENEW_ALERT_DAYS = 7;
 const DAY_MS = 86_400_000;
 const DHAKA_MS = 6 * 3_600_000;
 
@@ -49,91 +47,11 @@ export function extendedUntil(untilIso: string | null | undefined, days: number,
   return new Date(base + days * DAY_MS).toISOString();
 }
 
-export type RenewStage = "calm" | "soon" | "last";
-
-/** 10 to 4 days: calm (gold) · last 3 days: soon (amber) · today / tomorrow: last. */
-export function renewStage(days: number): RenewStage {
-  if (days <= 1) return "last";
-  if (days <= RENEW_URGENT_DAYS) return "soon";
-  return "calm";
-}
-
-/** Should the banner show? Premium (not an admin), ending within the window. */
-export function inRenewWindow(untilIso: string | null | undefined, now: number = Date.now()): boolean {
-  if (!untilIso) return false;
+/** Days left when Premium ends within the alert window, else null. */
+export function endsSoon(untilIso: string | null | undefined, now: number = Date.now()): number | null {
+  if (!untilIso) return null;
   const t = new Date(untilIso).getTime();
-  if (!Number.isFinite(t) || t <= now) return false;
-  return daysToEnd(untilIso, now) <= RENEW_BANNER_DAYS;
+  if (!Number.isFinite(t) || t <= now) return null;
+  const d = daysToEnd(untilIso, now);
+  return d <= RENEW_ALERT_DAYS ? Math.max(0, d) : null;
 }
-
-/** The close button's two choices, kept in localStorage per reader and end
- *  date, so a renewal (a new end date) starts fresh.
- *  "Remind me later": the value is the Dhaka day it was closed on; the banner
- *  comes back the next day. "Don't show again": hidden until this end date. */
-export function laterKey(uid: string, untilIso: string): string {
-  return `dsex.renew.later.${uid}.${dhakaDay(untilIso)}`;
-}
-
-export function neverKey(uid: string, untilIso: string): string {
-  return `dsex.renew.never.${uid}.${dhakaDay(untilIso)}`;
-}
-
-export interface RenewalHave {
-  watchlist: number;
-  extra_portfolios: number;
-  saved_screens: number;
-  alerts: number;
-  dividend_reminders: number;
-}
-
-type Line = { en: string; bn: string };
-const s = (n: number, one: string, many: string) => (n === 1 ? one : many);
-
-/** What this reader set up that a free account limits — at most three lines,
- *  only where it applies. */
-export function personalLosses(have: RenewalHave | null | undefined, free: { watchlist: number | null; alerts: number | null }): Line[] {
-  if (!have) return [];
-  const out: Line[] = [];
-  if (have.extra_portfolios > 0) {
-    const n = have.extra_portfolios;
-    out.push({
-      en: `Your ${n} extra ${s(n, "portfolio becomes", "portfolios become")} read-only.`,
-      bn: `আপনার আরও ${n}টি পোর্টফোলিও শুধু দেখা যাবে, বদলানো যাবে না।`,
-    });
-  }
-  if (free.watchlist != null && have.watchlist > free.watchlist) {
-    out.push({
-      en: `You follow ${have.watchlist} shares. A free account follows ${free.watchlist}, so you can't add more.`,
-      bn: `আপনি ${have.watchlist}টি শেয়ার ফলো করছেন। ফ্রি অ্যাকাউন্টে ${free.watchlist}টি, তাই নতুন যোগ করতে পারবেন না।`,
-    });
-  }
-  if (have.saved_screens > 0) {
-    const n = have.saved_screens;
-    out.push({
-      en: `Your ${n} saved ${s(n, "screen stops", "screens stop")} sending you new matches.`,
-      bn: `আপনার ${n}টি সেভ করা স্ক্রিন আর নতুন মিলের খবর পাঠাবে না।`,
-    });
-  }
-  if (have.dividend_reminders > 0) {
-    const n = have.dividend_reminders;
-    out.push({
-      en: `Your ${n} dividend ${s(n, "reminder stops", "reminders stop")}.`,
-      bn: `আপনার ${n}টি ডিভিডেন্ড রিমাইন্ডার বন্ধ হয়ে যাবে।`,
-    });
-  }
-  if (free.alerts != null && have.alerts > free.alerts) {
-    out.push({
-      en: `You have ${have.alerts} price alerts on. A free account can set only ${free.alerts}.`,
-      bn: `আপনার ${have.alerts}টি প্রাইস অ্যালার্ট চালু আছে। ফ্রি অ্যাকাউন্টে মাত্র ${free.alerts}টি রাখা যায়।`,
-    });
-  }
-  return out.slice(0, 3);
-}
-
-/** What every Premium reader loses, said plainly. */
-export const ALWAYS_LOST: Line[] = [
-  { en: "Our full analysis on every share", bn: "প্রতিটি শেয়ারের পুরো বিশ্লেষণ" },
-  { en: "Your portfolio check and your plan", bn: "আপনার পোর্টফোলিও চেক ও পরিকল্পনা" },
-  { en: "News on your shares the same day, and the 9 AM brief", bn: "আপনার শেয়ারের খবর সেদিনই, আর সকাল 9টার ব্রিফ" },
-  { en: "Today's Buy List and our research", bn: "আজকের কেনার তালিকা ও আমাদের গবেষণা" },
-];

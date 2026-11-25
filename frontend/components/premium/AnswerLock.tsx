@@ -10,7 +10,6 @@ import { IconArrowRight, IconCheck, IconCrown, IconLock } from "@/components/ui/
 import { useLang } from "@/context/LangContext";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
 import { areaOf, savePremiumContext } from "@/lib/premium-context";
-import { FROM_MONTH } from "@/lib/premium-plans";
 import { JOB_EXPLAIN, JOBS, type Bi, type Job } from "@/lib/premium-jobs";
 import { trackEvent } from "@/lib/track";
 
@@ -307,12 +306,7 @@ export default function AnswerLock({
             )}
             {!brief && (
               <span className="ans-price">
-                <b>
-                  <T en={`From ৳${FROM_MONTH} a month`} bn={`মাসে ৳${FROM_MONTH} থেকে`} />
-                </b>
-                <span>
-                  <T en="No auto-renewal" bn="নিজে থেকে নবায়ন হয় না" />
-                </span>
+                <T en="No auto-renewal" bn="নিজে থেকে নবায়ন হয় না" />
               </span>
             )}
           </>

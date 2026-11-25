@@ -15,7 +15,6 @@ import {
 } from "@/components/market-analysis/PersonalCodes";
 import { useLang } from "@/context/LangContext";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
-import { FROM_MONTH } from "@/lib/premium-plans";
 import { areaOf, savePremiumContext } from "@/lib/premium-context";
 import { trackEvent } from "@/lib/track";
 
@@ -23,7 +22,6 @@ export type Pair = { en: string; bn: string };
 export type LockTile = { value: string; label: Pair };
 
 /** Re-exported: the cheapest month on any plan lives with the plans. */
-export { FROM_MONTH };
 
 type Props = {
   variant?: "full" | "line";
@@ -204,7 +202,7 @@ function Panel({
           <T en={button.en} bn={button.bn} />
         </Link>
         <span className="lk-price">
-          <T en={`From ৳${FROM_MONTH} a month · no auto-renewal`} bn={`মাসে ৳${FROM_MONTH} থেকে · নিজে থেকে নবায়ন হয় না`} />
+          <T en="No auto-renewal" bn="নিজে থেকে নবায়ন হয় না" />
         </span>
       </div>
     </div>

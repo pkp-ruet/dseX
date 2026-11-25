@@ -10,7 +10,6 @@ from backend.services.payments import (
     manual_spec,
     normalize_sender,
     ref_code,
-    renewal_payload,
     revoke_until,
     revoked_payload,
     user_search_query,
@@ -21,13 +20,14 @@ NOW = datetime(2026, 10, 25, 6, 0, tzinfo=timezone.utc)
 
 def test_plans_are_the_advertised_prices():
     assert {k: (v["amount"], v["days"]) for k, v in PAID_PLANS.items()} == {
-        "monthly": (199, 30), "quarterly": (499, 90), "yearly": (1499, 365),
+        "quarterly": (299, 90), "yearly": (999, 365),
     }
 
 
-def test_plans_are_flat_prices():
-    # No struck-through "regular" price on any plan since 2026-11-13.
-    assert all("list_amount" not in v for v in PAID_PLANS.values())
+def test_only_the_year_shows_a_cut_price():
+    # Two plans since 2026-11-26: the year is shown as cut from ৳1,499.
+    assert PAID_PLANS["yearly"]["list_amount"] == 1499
+    assert "list_amount" not in PAID_PLANS["quarterly"]
 
 
 def test_sender_number_forms():
@@ -78,21 +78,7 @@ def test_payloads_are_bilingual_and_link_to_premium():
     for build in (revoked_payload, accepted_payload):
         assert build("en")["url"].startswith("/premium")
         assert build("en")["title"] != build("bn")["title"]
-    assert "1 day" in renewal_payload(1, "en")["title"]
-    assert "3 days" in renewal_payload(3, "en")["title"]
-    assert renewal_payload(3, "bn")["url"].startswith("/notifications")
 
-
-def test_renewal_reminder_says_what_premium_caught():
-    caught = [{"kind": "results", "count": 2}, {"kind": "record", "count": 1}]
-    body = renewal_payload(3, "en", caught)["body"]
-    assert body.startswith("This month it found 2 results reports and 1 record date on your shares.")
-    assert "bKash" in body and "bank transfer" in body
-    assert "২" not in renewal_payload(3, "bn", caught)["body"]  # Western digits in Bengali copy
-    # Nothing caught → the plain reminder.
-    assert body.endswith("See them all in your notifications.")
-    assert renewal_payload(3, "en", [])["body"] == (
-        "To keep it on, choose a plan again and pay by bKash, Nagad or bank transfer. See them all in your notifications.")
 
 
 def test_plan_change_moves_the_end_date_by_the_difference():
@@ -123,10 +109,10 @@ def test_account_search_reads_phone_email_or_name():
 def test_manual_payment_spec():
     import pytest
 
-    assert manual_spec("monthly", None, None) == {"plan": "monthly", "days": 30, "amount": 199}
+    assert manual_spec("quarterly", None, None) == {"plan": "quarterly", "days": 90, "amount": 299}
     assert manual_spec("yearly", None, 1500) == {"plan": "yearly", "days": 365, "amount": 1500}
     assert manual_spec("custom", 45, 0) == {"plan": "custom", "days": 45, "amount": 0}
-    for args in (("custom", None, 100), ("weekly", 7, 50), ("monthly", 0, None), ("monthly", None, -1)):
+    for args in (("custom", None, 100), ("weekly", 7, 50), ("monthly", None, None), ("quarterly", 0, None), ("quarterly", None, -1)):
         with pytest.raises(ValueError):
             manual_spec(*args)
 
@@ -136,78 +122,11 @@ def test_gift_push_does_not_mention_a_payment():
     assert gift_payload("bn")["url"].startswith("/premium")
 
 
-# --- the reader's own offer ---------------------------------------------------
+# --- the ৳99 first month is gone (2026-11-26) ---------------------------------
 
-from backend.services.payments import (  # noqa: E402
-    ALL_PLANS,
-    offer_dismiss_update,
-    offer_state,
-)
+from backend.services.payments import ALL_PLANS  # noqa: E402
 
 
-def test_own_offer_is_99_for_a_month_and_not_a_public_plan():
-    assert (ALL_PLANS["offer"]["amount"], ALL_PLANS["offer"]["days"]) == (99, 30)
-    assert "offer" not in PAID_PLANS
-
-
-def test_offer_shows_for_a_free_reader_until_an_admin_ends_it():
-    st = offer_state({}, NOW, premium=False, is_open=True)
-    assert st["amount"] == 99 and st["list_amount"] == 199 and st["banner"] is True
-    assert "ends" not in st  # no end date is ever shown
-    assert offer_state({}, NOW, premium=False, is_open=False) is None
-
-
-def test_offer_is_not_for_premium_readers_or_twice():
-    assert offer_state({}, NOW, premium=True, is_open=True) is None
-    assert offer_state({"offer_used_at": NOW}, NOW, premium=False, is_open=True) is None
-
-
-def test_offer_banner_buttons():
-    never = offer_dismiss_update("never", NOW)
-    st = offer_state(never, NOW, premium=False, is_open=True)
-    assert st is not None and st["banner"] is False  # still in the pay box
-
-    later = offer_dismiss_update("later", NOW)
-    assert offer_state(later, NOW + timedelta(days=1), premium=False, is_open=True)["banner"] is False
-    assert offer_state(later, NOW + timedelta(days=4), premium=False, is_open=True)["banner"] is True
-
-
-def test_one_more_year_counts_from_the_current_end_date():
-    from backend.services.payments import days_to_end, dhaka_day_words, year_until
-
-    ends = NOW + timedelta(days=6)
-    assert year_until(ends, NOW) == ends + timedelta(days=365)
-    # Already ended: the year starts today.
-    assert year_until(NOW - timedelta(days=2), NOW) == NOW + timedelta(days=365)
-    # The date is the Dhaka calendar day: 20:00 UTC is the next morning there.
-    late = datetime(2027, 11, 19, 20, 0, tzinfo=timezone.utc)
-    assert dhaka_day_words(late, "en") == "20 Nov 2027"
-    assert dhaka_day_words(late, "bn") == "20 নভেম্বর 2027"
-    # Days left are Dhaka calendar days: 23:00 Dhaka today ends today.
-    assert days_to_end(datetime(2026, 10, 25, 17, 0, tzinfo=timezone.utc), NOW) == 0
-    assert days_to_end(late, datetime(2027, 11, 9, 18, 30, tzinfo=timezone.utc)) == 10
-
-
-def test_renewal_reminder_offers_the_year_with_its_end_date():
-    end = datetime(2027, 11, 22, 4, 0, tzinfo=timezone.utc)
-    en = renewal_payload(4, "en", [], end)["body"]
-    assert "Add one year for ৳1,499 and it runs till 22 Nov 2027." in en
-    assert "You keep the days you have left." in en
-    bn = renewal_payload(4, "bn", [], end)["body"]
-    assert "22 নভেম্বর 2027" in bn and "২" not in bn
-
-
-def test_renewal_banner_counts_what_a_free_account_limits():
-    from backend.services.payments import renewal_found, renewal_have
-
-    have = renewal_have({"watchlist": ["GP"] * 14, "extra_portfolios": [{}, {}],
-                         "custom_lists": [{}], "dividend_reminders": []}, 8)
-    assert have == {"watchlist": 14, "extra_portfolios": 2, "saved_screens": 1,
-                    "alerts": 8, "dividend_reminders": 0}
-    assert renewal_have({}) == {"watchlist": 0, "extra_portfolios": 0, "saved_screens": 0,
-                                "alerts": 0, "dividend_reminders": 0}
-    assert renewal_found([]) is None
-    found = renewal_found([{"kind": "results", "count": 2}, {"kind": "record", "count": 1}])
-    assert found["total"] == 3
-    assert found["en"] == "In the last 30 days Premium found 2 results reports and 1 record date on your shares."
-    assert "২" not in found["bn"]
+def test_the_99_offer_can_no_longer_be_bought():
+    assert "offer" not in ALL_PLANS and "offer" not in PAID_PLANS
+    assert ALL_PLANS == PAID_PLANS

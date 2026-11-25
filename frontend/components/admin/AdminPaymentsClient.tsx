@@ -12,12 +12,11 @@ import {
   type AdminPayment,
   type AdminPaymentsResponse,
 } from "@/lib/api";
-import { METHOD_LABEL, OWN_OFFER_PLAN, PAID_PLANS, TRANSFER_LABEL, planByKey } from "@/lib/premium-plans";
+import { METHOD_LABEL, PAID_PLANS, TRANSFER_LABEL, planByKey } from "@/lib/premium-plans";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Tabs from "@/components/ui/Tabs";
 import AdminGrantPremium from "@/components/admin/AdminGrantPremium";
-import AdminOfferSwitch from "@/components/admin/AdminOfferSwitch";
 import { toast } from "@/lib/toast";
 
 type StatusTab = "pending" | "accepted" | "revoked" | "all";
@@ -196,7 +195,6 @@ ${effect}`,
         </Card>
       )}
 
-      <AdminOfferSwitch />
 
       <AdminGrantPremium onDone={refetch} />
 
@@ -288,7 +286,7 @@ ${effect}`,
                     value={plans[p.id] ?? p.plan}
                     onChange={(e) => setPlans((m) => ({ ...m, [p.id]: e.target.value }))}
                   >
-                    {[...PAID_PLANS, OWN_OFFER_PLAN].map((pl) => (
+                    {PAID_PLANS.map((pl) => (
                       <option key={pl.key} value={pl.key}>{pl.name} · ৳{pl.amount}</option>
                     ))}
                   </select>

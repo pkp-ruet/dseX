@@ -1,12 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Button from "@/components/ui/Button";
 import type { Lang } from "@/context/LangContext";
-import { useAuth } from "@/context/AuthContext";
-import { usePremium } from "@/lib/premium";
-import type { PortfolioHolding, ScoreItem } from "@/lib/api";
-import { portfolioGlance } from "@/lib/home-portfolio";
+import type { PortfolioHolding } from "@/lib/api";
 import {
   canShowPushPromptByHistory,
   dismissPushPromptForever,
@@ -19,17 +16,9 @@ import {
 } from "@/lib/push";
 import { toast } from "@/lib/toast";
 import { trackEvent } from "@/lib/track";
-import TasteNote from "@/components/premium/TasteNote";
-import { IconAlert, IconBell, IconCrown, IconStar } from "@/components/ui/icons";
+import { IconBell, IconStar } from "@/components/ui/icons";
 
-type Bi = { en: string; bn: string };
 type Tone = "plain" | "gold" | "clay";
-
-/** "Not now" on the Premium card: back in 7 days (the key the old Premium
- *  banner and the slot used, so a choice made there still holds). */
-const premKey = (uid: string) => `dsex.premiumBanner.${uid}`;
-const PREM_LATER_DAYS = 7;
-const DAY_MS = 86_400_000;
 
 /**
  * The home's ONE card (2026-11-25, step 2 of the simplify review; replaced
@@ -37,20 +26,19 @@ const DAY_MS = 86_400_000;
  * there is something to do, first match wins:
  *   1 a brand-new account: add the shares you own, or watch a few;
  *   2 notifications off on this phone (a reader with shares): turn them on
- *     (same gate and keys as the floating `PushOptInPrompt`);
- *   3 the 7-day taste is running: the taste note;
- *   4 a free reader: the portfolio check (user decision 2026-11-25: one
- *     Premium card stays) — with shares, what a glance finds; with only a
- *     watchlist, "get your portfolio checked". "Not now" hides it 7 days.
- * Premium readers usually see nothing. Install and renewal have their own
- * prompts (`InstallPrompt`, `RenewBanner`).
+ *     (same gate and keys as the floating `PushOptInPrompt`).
+ * The 7-day taste note ("Premium is open on your shares for 4 more days")
+ * left 2026-11-26 (user decision); the taste itself still runs.
+ * The free reader's portfolio-check card left 2026-11-26 (user decision): the
+ * home page's one Premium card is `PremiumPromoCard`, after the market line.
+ * Install and renewal have their own prompts (`InstallPrompt`, `RenewAlert`
+ * under the greeting).
  */
 export default function HomeCard({
   lang,
   brandNew,
   hasShares,
   holdings,
-  priceMap,
 }: {
   lang: Lang;
   brandNew: boolean;
@@ -58,63 +46,28 @@ export default function HomeCard({
   hasShares: boolean;
   /** The main portfolio: null while unknown, [] once we know there is none. */
   holdings: PortfolioHolding[] | null;
-  priceMap: Map<string, ScoreItem>;
 }) {
   const bn = lang === "bn";
-  const pick = (b: Bi) => (bn ? b.bn : b.en);
-  const { user, isLoggedIn } = useAuth();
-  const { isPremium, taste } = usePremium();
-  const uid = user?.user_id ?? "";
 
   // Storage and the browser's push state are read after mount.
   const [ready, setReady] = useState(false);
-  const [premHidden, setPremHidden] = useState(true);
   const [pushMode, setPushMode] = useState<"prompt" | "ios" | null>(null);
   const [pushBusy, setPushBusy] = useState(false);
   const [pushFailed, setPushFailed] = useState(false);
 
   useEffect(() => {
-    try {
-      const raw = uid ? localStorage.getItem(premKey(uid)) : null;
-      const until = raw ? (JSON.parse(raw) as { until?: number }).until ?? 0 : 0;
-      setPremHidden(until > Date.now());
-    } catch {
-      setPremHidden(false);
-    }
     if (canShowPushPromptByHistory()) {
       if (isPushSupported() && getPermission() === "default") setPushMode("prompt");
       else if (isIOS() && !isStandalone()) setPushMode("ios");
     }
     setReady(true);
-  }, [uid]);
-
-  const freeReader = isLoggedIn && !isPremium;
-  const glance = useMemo(
-    () => (freeReader && holdings && holdings.length > 0 ? portfolioGlance(holdings, priceMap) : null),
-    [freeReader, holdings, priceMap],
-  );
+  }, []);
 
   // Which card, worked out before any return so its view is counted once.
-  const kind: "start" | "push" | "taste" | "portfolio" | "portfolio-add" | null =
-    !ready || holdings === null
-      ? null
-      : brandNew
-        ? "start"
-        : pushMode && hasShares
-          ? "push"
-          : taste?.active
-            ? "taste"
-            : freeReader && !premHidden
-              ? glance
-                ? "portfolio"
-                : holdings.length === 0
-                  ? "portfolio-add"
-                  : null
-              : null;
+  const kind: "start" | "push" | null =
+    !ready || holdings === null ? null : brandNew ? "start" : pushMode && hasShares ? "push" : null;
   useEffect(() => {
-    if (kind === "portfolio") trackEvent("premium_lock_view", { area: "home", lock: "home-portfolio" });
-    else if (kind === "portfolio-add") trackEvent("premium_lock_view", { area: "home", lock: "home-portfolio-add" });
-    else if (kind === "push") trackEvent("push_slide_view", { mode: pushMode ?? "" });
+    if (kind === "push") trackEvent("push_slide_view", { mode: pushMode ?? "" });
     // Once per card shown.
   }, [kind]);
 
@@ -229,90 +182,5 @@ export default function HomeCard({
     );
   }
 
-  // 3 · The 7-day taste.
-  if (taste?.active) return <TasteNote taste={taste} lang={lang} />;
-
-  // 4 · One Premium card: the portfolio check.
-  if (!freeReader || premHidden) return null;
-  const later = () => {
-    try {
-      localStorage.setItem(premKey(uid), JSON.stringify({ until: Date.now() + PREM_LATER_DAYS * DAY_MS, how: "later" }));
-    } catch {}
-    setPremHidden(true);
-    trackEvent("premium_lock_dismiss", { area: "home", lock: "home-portfolio" });
-  };
-  const pfEyebrow = eyebrow(<IconCrown size={14} />, bn ? "প্রিমিয়াম · আপনার পোর্টফোলিও যাচাই" : "Premium · your portfolio check");
-  if (glance) {
-    const n = glance.findings.length;
-    const shares = glance.shares;
-    return frame(
-      "portfolio",
-      "gold",
-      <>
-        {pfEyebrow}
-        <h3 className="hm-sl-title">
-          {bn
-            ? `আপনার ${shares}টি শেয়ার যাচাই করেছি: গ্রেড ${glance.grade}`
-            : `We checked your ${shares} ${shares === 1 ? "share" : "shares"}: grade ${glance.grade}`}
-        </h3>
-        {n > 0 ? (
-          <ul className="hm-sl-list">
-            {glance.findings.map((f) => (
-              <li key={f.en}>
-                <IconAlert size={16} />
-                <span>{pick(f)}</span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="hm-sl-body">
-            {bn
-              ? "এক নজরে চোখে পড়ার মতো কিছু নেই। পুরো যাচাই প্রতিটি শেয়ার দেখে বলে কোনটা রাখবেন, কোনটা ঠিক করবেন।"
-              : "Nothing stands out at a glance. The full check goes through every share and tells you what to keep and what to fix."}
-          </p>
-        )}
-        <p className="hm-sl-small">
-          {bn ? "কোন শেয়ার, কেন, আর প্রতিটির বেলায় কী করবেন, প্রিমিয়াম দেখায়।" : "Premium shows you which shares, why, and what to do about each."}
-        </p>
-        <div className="hm-sl-acts">
-          <Button
-            href="/portfolio?src=home-portfolio#pf-premium"
-            onClick={() => trackEvent("premium_lock_tap", { area: "home", lock: "home-portfolio", findings: n })}
-          >
-            {bn ? "পুরো যাচাই দেখুন" : "See my full check"}
-          </Button>
-          <button type="button" className="hm-sl-link" onClick={later}>
-            {bn ? "এখন না" : "Not now"}
-          </button>
-        </div>
-      </>,
-    );
-  }
-  if (holdings.length === 0) {
-    return frame(
-      "portfolio",
-      "gold",
-      <>
-        {pfEyebrow}
-        <h3 className="hm-sl-title">{bn ? "প্রতিদিন আপনার পোর্টফোলিও যাচাই করান" : "Get your portfolio checked every day"}</h3>
-        <p className="hm-sl-body">
-          {bn
-            ? "আপনার শেয়ারগুলো যোগ করুন। পোর্টফোলিওর গ্রেড ফ্রি, আর কোন শেয়ার রাখবেন, ঠিক করবেন বা বদলাবেন, প্রিমিয়াম বলে।"
-            : "Add the shares you own. The grade is free, and Premium tells you which shares to keep, fix or switch."}
-        </p>
-        <div className="hm-sl-acts">
-          <Button
-            href="/portfolio?src=home-portfolio"
-            onClick={() => trackEvent("premium_lock_tap", { area: "home", lock: "home-portfolio-add" })}
-          >
-            {bn ? "আপনার শেয়ার যোগ করুন" : "Add your shares"}
-          </Button>
-          <button type="button" className="hm-sl-link" onClick={later}>
-            {bn ? "এখন না" : "Not now"}
-          </button>
-        </div>
-      </>,
-    );
-  }
   return null;
 }

@@ -7,7 +7,6 @@ import { T } from "@/components/i18n/T";
 import { useAuth } from "@/context/AuthContext";
 import { useLang } from "@/context/LangContext";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
-import { FROM_MONTH, LOWEST_PRICE } from "@/lib/premium-plans";
 import { savePremiumContext } from "@/lib/premium-context";
 import { trackEvent } from "@/lib/track";
 
@@ -18,7 +17,7 @@ type Bi = { en: string; bn: string };
  * Premium page and part sells itself with this shell, so a reader learns one
  * shape: a gold band (crown · "Premium · <what>", the headline, one lead
  * line), the page's own body (a free example, counts, what Premium shows),
- * then ONE foot — the price (or the reader's own ৳99 month), one button and
+ * then ONE foot — the price, one button and
  * the fine print. Built on the stock page's `.sp` card (report-visuals.css).
  * At most one per page. It handles the view / tap events
  * (`premium_lock_view` / `premium_lock_tap`) and hands /premium the reason
@@ -54,7 +53,7 @@ export default function PremiumCard({
   lead?: ReactNode;
   /** The page's own body: a free example, counts, `PremiumTicks`. */
   children?: ReactNode;
-  /** The button's words when the reader has no offer. */
+  /** The button's words. */
   cta: Bi;
   /** What /premium shows as "you came from". */
   context: { label: Bi; stakes: Bi[] };
@@ -112,9 +111,6 @@ export default function PremiumCard({
       {children && <div className="sp-body">{children}</div>}
 
       <div className="sp-foot">
-        <div className="sp-price">
-          <PremiumPrice />
-        </div>
         <div className="sp-cta">
           <Button href={href} onClick={onTap} size="lg" block>
             <PremiumCtaWords cta={cta} />
@@ -130,54 +126,20 @@ export default function PremiumCard({
 }
 
 /* The card's foot in parts, shared with the Premium sheet
-   (components/premium/PremiumSheet.tsx, 2026-11-25), so the price, the
-   button's words and the fine print read the same in both. */
+   (components/premium/PremiumSheet.tsx, 2026-11-25), so the button's words
+   and the fine print read the same in both. No price on any Premium card,
+   lock or sheet (2026-11-26, user decision): the price lives on /premium and
+   the home page's one Premium card. */
 
-/** Where the button goes: the reader's own ৳99 month, else the plans. */
+/** Where the button goes: the plans. */
 export function usePremiumHref(src: string): string {
   const { user } = useAuth();
-  const offer = user?.offer ?? null;
-  return offer
-    ? `/premium?plan=offer&src=${src}#pay`
-    : user
-      ? `${PREMIUM_PATH}?src=${src}#pay`
-      : `${PREMIUM_PATH}?src=${src}`;
+  return user ? `${PREMIUM_PATH}?src=${src}#pay` : `${PREMIUM_PATH}?src=${src}`;
 }
 
-/** The price, or the reader's own ৳99 month: a bold line and one under it. */
-export function PremiumPrice() {
-  const { user } = useAuth();
-  const offer = user?.offer ?? null;
-  return offer ? (
-    <>
-      <b>
-        <T en={`Your first month: ৳${offer.amount}`} bn={`আপনার প্রথম মাস: ৳${offer.amount}`} />
-      </b>
-      <span>
-        <T en={`Instead of ৳${offer.list_amount}, once.`} bn={`৳${offer.list_amount}-এর বদলে, একবারই।`} />
-      </span>
-    </>
-  ) : (
-    <>
-      <b>
-        <T en={`৳${LOWEST_PRICE} a month`} bn={`মাসে ৳${LOWEST_PRICE}`} />
-      </b>
-      <span>
-        <T en={`About ৳${FROM_MONTH} a month on the yearly plan.`} bn={`বছরের প্ল্যানে মাসে প্রায় ৳${FROM_MONTH}।`} />
-      </span>
-    </>
-  );
-}
-
-/** The button's words: the page's own, or the reader's ৳99 month. */
+/** The button's words: the page's own. */
 export function PremiumCtaWords({ cta }: { cta: Bi }) {
-  const { user } = useAuth();
-  const offer = user?.offer ?? null;
-  return offer ? (
-    <T en={`Get your first month for ৳${offer.amount}`} bn={`প্রথম মাস ৳${offer.amount}-এ নিন`} />
-  ) : (
-    <T en={cta.en} bn={cta.bn} />
-  );
+  return <T en={cta.en} bn={cta.bn} />;
 }
 
 /** How to pay, and that nothing renews (+ one optional line first). */

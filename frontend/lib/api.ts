@@ -11,7 +11,6 @@ import type {
 } from "@/lib/research-reports";
 import type { StockReport } from "@/lib/stock-report";
 import type { BuyList, BuyListHome } from "@/lib/buy-list";
-import type { RenewalHave } from "@/lib/renewal";
 import type { BuilderAnswers, BuildResult, KeptPlan, KeptPlans } from "@/lib/portfolio-builder";
 import type { SurveyState, Answers as SurveyAnswers, AnswerValue as SurveyAnswerValue } from "@/lib/survey";
 
@@ -1810,8 +1809,6 @@ export interface PremiumPlansResponse {
   plans: { key: string; amount: number; days: number }[];
   /** Only methods that are set up on the backend. */
   methods: PayMethodInfo[];
-  /** The reader's own ৳99 month while an admin keeps it open, else null. */
-  own_offer?: { key: "offer"; amount: number; days: number; list_amount: number } | null;
 }
 export interface PremiumPayment {
   id: string;
@@ -1849,34 +1846,6 @@ export async function apiSubmitPayment(body: {
   return apiAuthFetch("/api/user/premium/payments", { method: "POST", body: JSON.stringify(body) });
 }
 
-/** The renewal banner's data (backend `payments.renewal_state`), null when it shouldn't show. */
-export interface RenewalState {
-  premium_until: string;
-  premium_source: string | null;
-  plan: { key: "yearly"; amount: number; list_amount: number | null; days: number; until: string };
-  found: { total: number; en: string; bn: string } | null;
-  have: RenewalHave;
-  free: { watchlist: number; alerts: number };
-}
-
-export async function apiGetRenewal(): Promise<{ renewal: RenewalState | null }> {
-  return apiAuthFetch("/api/user/premium/renewal");
-}
-
-export type PremiumBannerAction = "view" | "pay" | "more" | "later" | "never";
-
-/** What the reader did with the homepage Premium banner (counted on the admin
- *  analytics page). Fire and forget: a failure is ignored. */
-export function apiPremiumBannerEvent(action: PremiumBannerAction): void {
-  apiAuthFetch("/api/user/premium/banner", { method: "POST", body: JSON.stringify({ action, banner: "home" }) })
-    .catch(() => {});
-}
-
-/** The offer banner's "Not interested" (`never`) or "Remind me later" (`later`). */
-export async function apiDismissOffer(action: "never" | "later"): Promise<{ user: AuthUser }> {
-  return apiAuthFetch("/api/user/premium/offer", { method: "POST", body: JSON.stringify({ action }) });
-}
-
 export async function apiGetMyPayments(): Promise<{ ref_code: string; items: PremiumPayment[] }> {
   return apiAuthFetch("/api/user/premium/payments");
 }
@@ -1907,25 +1876,6 @@ export interface AdminPaymentsResponse {
   month: { pending: number; accepted: number };
 }
 
-export interface AdminOfferState {
-  open: boolean;
-  changed_at: string | null;
-  changed_by: string | null;
-  amount: number;
-  days: number;
-  list_amount: number;
-  payments: { pending: number; accepted: number; revoked: number };
-  not_interested: number;
-}
-
-export async function apiGetAdminOffer(): Promise<AdminOfferState> {
-  return apiAuthFetch("/api/admin/offer");
-}
-
-/** Start (`true`) or end (`false`) the ৳99 offer for everyone. */
-export async function apiSetAdminOffer(open: boolean): Promise<AdminOfferState> {
-  return apiAuthFetch("/api/admin/offer", { method: "POST", body: JSON.stringify({ open }) });
-}
 
 export async function apiGetAdminPayments(status: string): Promise<AdminPaymentsResponse> {
   return apiAuthFetch(`/api/admin/payments?status=${encodeURIComponent(status)}`);
@@ -3105,8 +3055,6 @@ export interface AdminAnalyticsResponse {
   groups: { free: AdminGroupFigures; premium: AdminGroupFigures };
   areas: { key: string; label: string; free: number; premium: number; free_pct: number; premium_pct: number }[];
   stocks: { code: string; users: number; views: number }[];
-  /** The homepage Premium banner, last 30 days (readers; % = of readers who saw it). */
-  banner?: AdminBannerFigures;
 }
 
 /** One plan's renewals: each payment of that plan, by what came after it ran out. */
@@ -3124,21 +3072,6 @@ export interface AdminRenewalRow {
   decided: number;   // kept + lapsed
   rate: number | null; // kept / decided, in %
   to: { key: string; label: string; n: number }[]; // which plan they paid for next
-}
-
-export interface AdminBannerFigures {
-  days: number;
-  seen: number;
-  views: number;
-  avg_days: number;
-  pay: number; pay_pct: number;
-  more: number; more_pct: number;
-  later: number; later_pct: number;
-  never: number; never_pct: number;
-  paid_after_view: number; paid_after_view_pct: number;
-  paid_after_tap: number; paid_after_tap_pct: number;
-  paid_year_after_view: number; paid_year_after_view_pct: number;
-  paid_after_tap_of_taps_pct: number;
 }
 
 export async function apiGetAdminAnalytics(fresh = false): Promise<AdminAnalyticsResponse> {

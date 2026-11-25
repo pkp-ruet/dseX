@@ -10,7 +10,6 @@ import { useAuth } from "@/context/AuthContext";
 import { useLang } from "@/context/LangContext";
 import { takaGroup } from "@/lib/formatters";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
-import { FROM_MONTH, LOWEST_PRICE } from "@/lib/premium-plans";
 import { savePremiumContext } from "@/lib/premium-context";
 import { trackEvent } from "@/lib/track";
 import type { Bi, StockAnalysis } from "@/lib/stock-report";
@@ -115,8 +114,7 @@ export default function PremiumPromo({
   const more = read.length - shown.length;
   const back = comesBack(keys?.month);
 
-  const offer = user?.offer ?? null;
-  const href = offer ? "/premium?plan=offer&src=stock#pay" : user ? `${PREMIUM_PATH}#pay` : PREMIUM_PATH;
+  const href = user ? `${PREMIUM_PATH}#pay` : PREMIUM_PATH;
 
   useEffect(() => {
     const el = ref.current;
@@ -255,34 +253,9 @@ export default function PremiumPromo({
         </p>
       </div>
       <div className="sp-foot">
-        <div className="sp-price">
-          {offer ? (
-            <>
-              <b>
-                <T en={`Your first month: ৳${offer.amount}`} bn={`আপনার প্রথম মাস: ৳${offer.amount}`} />
-              </b>
-              <span>
-                <T en={`Instead of ৳${offer.list_amount}, once.`} bn={`৳${offer.list_amount}-এর বদলে, একবারই।`} />
-              </span>
-            </>
-          ) : (
-            <>
-              <b>
-                <T en={`৳${LOWEST_PRICE} a month`} bn={`মাসে ৳${LOWEST_PRICE}`} />
-              </b>
-              <span>
-                <T en={`About ৳${FROM_MONTH} a month on the yearly plan.`} bn={`বছরের প্ল্যানে মাসে প্রায় ৳${FROM_MONTH}।`} />
-              </span>
-            </>
-          )}
-        </div>
         <div className="sp-cta">
           <Button href={href} onClick={onTap} size="lg" block>
-            {offer ? (
-              <T en={`Get your first month for ৳${offer.amount}`} bn={`প্রথম মাস ৳${offer.amount}-এ নিন`} />
-            ) : (
-              <T en="Read our analysis" bn="আমাদের বিশ্লেষণ পড়ুন" />
-            )}
+            <T en="Read our analysis" bn="আমাদের বিশ্লেষণ পড়ুন" />
           </Button>
         </div>
       </div>

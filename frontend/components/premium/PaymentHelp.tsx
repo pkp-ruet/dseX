@@ -91,8 +91,8 @@ export default function PaymentHelp() {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder={L(
-                "For example: I sent ৳199 by bKash but Premium did not start",
-                "যেমন: বিকাশে ৳199 পাঠিয়েছি, কিন্তু প্রিমিয়াম চালু হয়নি",
+                "For example: I sent ৳999 by bKash but Premium did not start",
+                "যেমন: বিকাশে ৳999 পাঠিয়েছি, কিন্তু প্রিমিয়াম চালু হয়নি",
               )}
               className="input-field mt-2"
             />

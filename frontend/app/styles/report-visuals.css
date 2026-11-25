@@ -400,8 +400,6 @@
 .sp-also > li > span { color: var(--gold-ink); display: inline-flex; }
 
 .sp-foot { display: grid; gap: var(--space-4); padding: var(--space-4); border-top: 1px solid var(--border); }
-.sp-price b { display: block; font-size: var(--fs-lg); font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
-.sp-price span { display: block; margin-top: 2px; font-size: var(--fs-sm); color: var(--text); }
 .sp-cta { display: grid; gap: var(--space-2); }
 .sp-fine { padding: 0 var(--space-4) var(--space-6); font-size: var(--fs-sm); line-height: 1.5; color: var(--text-muted); }
 
@@ -410,7 +408,7 @@
   .sp-title { font-size: var(--fs-2xl); }
   .sp-body { padding: var(--space-8) var(--space-8) var(--space-6); }
   .sp-rows { grid-template-columns: 1fr 1fr; gap: var(--space-6) var(--space-8); }
-  .sp-foot { grid-template-columns: minmax(0, 1fr) minmax(260px, 340px); align-items: center; padding: var(--space-6) var(--space-8); }
+  .sp-foot { grid-template-columns: minmax(0, 340px); padding: var(--space-6) var(--space-8); }
   .sp-fine { padding: 0 var(--space-8) var(--space-8); }
 }
 

@@ -8,7 +8,7 @@ import { useLang } from "@/context/LangContext";
 import { useAuth } from "@/context/AuthContext";
 import { IconCheck, IconChevron, IconClose, IconInfo } from "@/components/ui/icons";
 import { apiSaveSurvey } from "@/lib/api";
-import { planByKey } from "@/lib/premium-plans";
+import { PAID_PLANS } from "@/lib/premium-plans";
 import {
   EXCLUSIVE,
   LABELS,
@@ -265,7 +265,9 @@ export default function SurveyFlow({
   if (screen === THANKS) {
     const cont = answers.continue as string | undefined;
     const renew = (seg === "ending" || seg === "premium") && (cont === "yes" || cont === "probably");
-    const plan = planByKey((answers.next_plan as string | undefined) ?? "yearly") ?? planByKey("yearly");
+    // Only a plan still sold (an older answer may name the retired month).
+    const plan =
+      PAID_PLANS.find((p) => p.key === answers.next_plan) ?? PAID_PLANS.find((p) => p.key === "yearly");
     return (
       <>
         {top}

@@ -23,7 +23,6 @@ import { dayWords, dhakaDay, extendedUntil } from "@/lib/renewal";
 import {
   METHOD_BN,
   METHOD_LABEL,
-  OWN_OFFER_PLAN,
   PAID_PLANS,
   TRANSFER_LABEL,
   planByKey,
@@ -62,8 +61,6 @@ const TRANSFERS: { key: BankTransfer; en: string; bn: string }[] = [
   { key: "beftn", en: "Can take until the next working day", bn: "পরের কার্যদিবস পর্যন্ত লাগতে পারে" },
 ];
 
-const BASE_MONTHLY = PAID_PLANS.find((p) => p.key === "monthly")?.amount ?? PAID_PLANS[0].amount;
-
 const STATUS: Record<PremiumPayment["status"], { en: string; bn: string; tone: string }> = {
   pending: { en: "Being checked", bn: "যাচাই চলছে", tone: "text-text-muted" },
   accepted: { en: "Received", bn: "পাওয়া গেছে", tone: "text-positive" },
@@ -75,7 +72,6 @@ const ERRORS: Record<string, { en: string; bn: string }> = {
   payment_pending: { en: "We are still checking your last payment. You can buy again once that is done.", bn: "আপনার আগের পেমেন্ট এখনো যাচাই হচ্ছে। তা শেষ হলে আবার কিনতে পারবেন।" },
   bad_method: { en: "That payment method is not open right now. Please choose another one.", bn: "এই মাধ্যমটি এখন বন্ধ। অন্য একটি বেছে নিন।" },
   bad_transfer: { en: "Please choose how you sent the money: NPSB or BEFTN.", bn: "কীভাবে টাকা পাঠিয়েছেন বেছে নিন: NPSB না BEFTN।" },
-  offer_closed: { en: "Your ৳99 offer is no longer open. Please choose another plan.", bn: "আপনার ৳99 অফারটি আর খোলা নেই। অন্য একটি প্ল্যান বেছে নিন।" },
   bad_account_last4: { en: "Please type the last 4 digits of the account you sent it from.", bn: "যে অ্যাকাউন্ট থেকে পাঠিয়েছেন, তার শেষ 4টি সংখ্যা লিখুন।" },
 };
 
@@ -104,19 +100,14 @@ export default function PayBox() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<{ en: string; bn: string } | null>(null);
   const [mine, setMine] = useState<{ items: PremiumPayment[] } | null>(null);
-  // The reader's own ৳99 month, while it is theirs (backend decides).
-  const offer = isLoggedIn && !isPremium ? user?.offer ?? null : null;
 
-  // The homepage banner links here with ?plan=offer, the renewal banner with
-  // ?plan=yearly; any paid plan's key picks it.
+  // The renewal banner links here with ?plan=yearly; any paid plan's key picks it.
   useEffect(() => {
     const want = new URLSearchParams(window.location.search).get("plan");
-    if (want === "offer") {
-      if (offer) setPlan("offer");
-    } else if (want && PAID_PLANS.some((p) => p.key === want)) {
+    if (want && PAID_PLANS.some((p) => p.key === want)) {
       setPlan(want as PlanKey);
     }
-  }, [offer]);
+  }, []);
 
   useEffect(() => {
     getPremiumPlans()
@@ -136,8 +127,7 @@ export default function PayBox() {
     else setMine(null);
   }, [isLoggedIn, loadMine]);
 
-  // Once the offer is used (or an admin ends it) its card goes, so fall back to the yearly plan.
-  const planKey: PlanKey = plan === "offer" && !offer ? "yearly" : plan;
+  const planKey: PlanKey = plan;
   const chosen = planByKey(planKey) ?? PAID_PLANS[PAID_PLANS.length - 1];
   const methodInfo = info?.methods.find((m) => m.key === method) ?? null;
   const number = methodInfo?.number ?? null;
@@ -200,25 +190,16 @@ export default function PayBox() {
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Plans; the reader's own offer, while it is theirs, is a card of its own on top */}
+      {/* Plans */}
       <div role="radiogroup" aria-label={L("Choose a plan", "প্ল্যান বেছে নিন")} className="flex flex-col gap-3 sm:gap-4">
-      {offer && (
-        <OwnOfferCard
-          on={planKey === "offer"}
-          amount={offer.amount}
-          listAmount={offer.list_amount}
-          onPick={() => setPlan("offer")}
-        />
-      )}
       <div className="pay-plans">
         {PAID_PLANS.map((p) => {
           const on = p.key === planKey;
-          // 30 / 90 / 365 days → 1 / 3 / 12 months. The saving is against
-          // paying the one-month price that many times (flat prices, no
-          // struck-through regular price since 2026-11-13).
+          // 90 / 365 days → 3 / 12 months. The saving is against the plan's
+          // struck-through price (only the year has one, 2026-11-26).
           const months = Math.max(1, Math.round(p.days / 30));
           const perMonth = Math.round(p.amount / months);
-          const save = BASE_MONTHLY * months - p.amount;
+          const save = p.listAmount ? p.listAmount - p.amount : 0;
           return (
             <button
               key={p.key}
@@ -241,6 +222,14 @@ export default function PayBox() {
               </span>
               <span className="pay-plan-price tabular-nums">
                 ৳{p.amount.toLocaleString("en-IN")}
+                {p.listAmount && (
+                  <s className="pay-plan-was">
+                    <span className="sr-only">
+                      <T en="Regular price " bn="আগের দাম " />
+                    </span>
+                    ৳{p.listAmount.toLocaleString("en-IN")}
+                  </s>
+                )}
               </span>
               <span className="block text-sm text-text-muted">
                 <T en={p.per} bn={p.perBn} />
@@ -270,7 +259,7 @@ export default function PayBox() {
       </div>
 
       {/* A Premium reader renewing early: the new days start after the ones left. */}
-      {isPremium && premiumUntil && planKey !== "offer" ? (
+      {isPremium && premiumUntil ? (
         <p className="pay-stack" role="note">
           <T
             en={`Your Premium runs till ${dayWords(dhakaDay(premiumUntil)).en}. This plan adds ${chosen.days} days after that, so Premium runs till `}
@@ -622,61 +611,3 @@ export default function PayBox() {
   );
 }
 
-/** The reader's own ৳99 month as a plan card: wide, gold-flagged, its own
- *  words ("It's your own offer, for a very limited time"). No end date. */
-function OwnOfferCard({
-  on,
-  amount,
-  listAmount,
-  onPick,
-}: {
-  on: boolean;
-  amount: number;
-  listAmount: number;
-  onPick: () => void;
-}) {
-  const p = OWN_OFFER_PLAN;
-  return (
-    <button
-      type="button"
-      role="radio"
-      aria-checked={on}
-      onClick={onPick}
-      className={`pay-plan pay-plan-best pay-plan-own ${on ? "pay-plan-on" : ""}`}
-    >
-      <span className="pay-plan-flag">
-        <T en="Your own offer" bn="শুধু আপনার অফার" />
-      </span>
-      <span className="pay-own-row">
-        <span className="min-w-0">
-          <span className="flex items-center gap-2">
-            <span className="pay-radio" aria-hidden />
-            <span className="font-semibold text-text-main">
-              <T en={p.name} bn={p.bn} />
-            </span>
-          </span>
-          <span className="mt-2 block text-sm text-text-main">
-            <T en={p.note} bn={p.noteBn} />
-          </span>
-        </span>
-        <span className="pay-plan-price pay-own-price tabular-nums">
-          ৳{amount}
-          <s className="pay-plan-was">
-            <span className="sr-only">
-              <T en="Regular price " bn="আগের দাম " />
-            </span>
-            ৳{listAmount}
-          </s>
-        </span>
-      </span>
-      <span className="pay-plan-foot">
-        <span className="text-sm text-text-muted">
-          <T en={p.per} bn={p.perBn} />
-        </span>
-        <span className="pay-own-ends tabular-nums">
-          <T en="Limited time" bn="সীমিত সময়" />
-        </span>
-      </span>
-    </button>
-  );
-}

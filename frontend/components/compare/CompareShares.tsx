@@ -10,7 +10,6 @@ import { useAuth } from "@/context/AuthContext";
 import { useLang } from "@/context/LangContext";
 import { changePct, money } from "@/lib/formatters";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
-import { FROM_MONTH } from "@/lib/premium-plans";
 import { savePremiumContext } from "@/lib/premium-context";
 import { toast } from "@/lib/toast";
 import { trackEvent } from "@/lib/track";
@@ -363,12 +362,7 @@ function PendingLock({
   const { user } = useAuth();
   const { state } = usePremium();
   const { bn } = useLang();
-  const offer = user?.offer ?? null;
-  const href = offer
-    ? "/premium?plan=offer&src=compare-add#pay"
-    : user
-      ? `${PREMIUM_PATH}?src=compare-add#pay`
-      : `${PREMIUM_PATH}?src=compare-add`;
+  const href = user ? `${PREMIUM_PATH}?src=compare-add#pay` : `${PREMIUM_PATH}?src=compare-add`;
   const picked = pending.map((c) => names[c] ?? c);
   const mine = codes.map((c) => names[c] ?? c);
   const key = pending.join(",");
@@ -409,22 +403,13 @@ function PendingLock({
       </p>
       <div className="cmp-lock-acts">
         <Button href={href} onClick={onTap}>
-          {offer ? (
-            <T en={`Get your first month for ৳${offer.amount}`} bn={`প্রথম মাস ৳${offer.amount}-এ নিন`} />
-          ) : (
-            <T en="Get Premium" bn="প্রিমিয়াম নিন" />
-          )}
+          <T en="Get Premium" bn="প্রিমিয়াম নিন" />
         </Button>
         <button type="button" className="cmp-lock-later" onClick={onDismiss}>
           <T en="Not now" bn="এখন না" />
         </button>
       </div>
       <p className="cmp-lock-fine">
-        {offer ? (
-          <T en={`Instead of ৳${offer.list_amount}, once.`} bn={`৳${offer.list_amount}-এর বদলে, একবারই।`} />
-        ) : (
-          <T en={`About ৳${FROM_MONTH} a month on the yearly plan.`} bn={`বছরের প্ল্যানে মাসে প্রায় ৳${FROM_MONTH}।`} />
-        )}{" "}
         <T
           en={`Or take a share off above, and ${picked[0]} takes its place.`}
           bn={`অথবা ওপরের একটি শেয়ার বাদ দিন, তার জায়গায় ${picked[0]} আসবে।`}

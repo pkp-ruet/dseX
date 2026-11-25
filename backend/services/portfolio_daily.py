@@ -651,9 +651,6 @@ def run_portfolio_daily(not_before_dhaka_hour: Optional[int] = None) -> dict:
 
     counts["recaps"] = _send_trial_recaps(now, day, push_ok)
     counts["taste_recaps"] = _send_taste_recaps(now, day, push_ok)
-    from backend.services.payments import send_renewal_reminders
-
-    counts["renewals"] = send_renewal_reminders(now, day, push_ok)
     try:
         from backend.services.custom_lists_service import run_alerts
         counts["custom_lists"] = run_alerts(now, day, push_ok)

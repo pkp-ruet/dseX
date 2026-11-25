@@ -49,23 +49,11 @@ export interface AuthUser {
   shares_open?: boolean;
   /** Ten full stock analyses a month for a free reader, opened by the stock page itself (backend/services/report_keys.py). */
   report_keys?: ReportKeys;
-  /** The reader's own ৳99 month (backend `payments.offer_state`), or null
-   *  when it isn't theirs (ended, Premium, already used). */
-  offer?: OwnOfferState | null;
   /** The portfolio builder's one free plan (backend `portfolio_builder.builder_state`). */
   builder?: { free_used: boolean; count: number };
   /** The reader survey (backend `survey.me_state`): `ask` = the browser may ask
    *  the server whether to open it. null once the round has closed. */
   survey?: { round: string; state: "open" | "later" | "done" | "declined"; ask: boolean } | null;
-}
-
-export interface OwnOfferState {
-  key: "offer";
-  amount: number;
-  days: number;
-  list_amount: number;
-  /** False after "Not interested", and for a few days after "Remind me later". */
-  banner: boolean;
 }
 
 export interface ReportKeys {

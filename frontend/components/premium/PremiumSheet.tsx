@@ -10,7 +10,7 @@ import { useLang } from "@/context/LangContext";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
 import { savePremiumContext } from "@/lib/premium-context";
 import { trackEvent } from "@/lib/track";
-import { PremiumCtaWords, PremiumFine, PremiumPrice, usePremiumHref } from "@/components/premium/PremiumCard";
+import { PremiumCtaWords, PremiumFine, usePremiumHref } from "@/components/premium/PremiumCard";
 
 type Bi = { en: string; bn: string };
 
@@ -39,7 +39,7 @@ export type PremiumPitch = {
   lead?: Bi;
   /** The page's own body: `PremiumTicks`, a count. */
   body?: ReactNode;
-  /** The button's words when the reader has no offer. */
+  /** The button's words. */
   cta: Bi;
   /** What /premium shows as "you came from". */
   context: { label: Bi; stakes: Bi[] };
@@ -149,9 +149,6 @@ function PremiumSheet({ pitch, lock, onClose }: { pitch: PremiumPitch; lock: Loc
       }
       footer={
         <div className="psh-foot">
-          <div className="psh-price">
-            <PremiumPrice />
-          </div>
           <Button href={href} onClick={onTap} size="lg" block>
             <PremiumCtaWords cta={pitch.cta} />
           </Button>

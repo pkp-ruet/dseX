@@ -53,7 +53,7 @@
 
 .hm-head > .hm-g-ex { margin-top: 3px; }
 
-/* ---------- 1 · The band ----------
+/* ---------- 1 Â· The band ----------
    Open on the canvas since the spacious pass (2026-11-23): no tinted box, so
    the greeting, the money card and the search read as the page's top.
    Clean pass (2026-11-25): no avatar (the navbar has the account), the date
@@ -199,7 +199,7 @@
   .hm-sl-title { font-size: var(--fs-xl); line-height: 1.25; }
 }
 
-/* ---------- 4 · The market in one line (`MarketLine`) ---------- */
+/* ---------- 4 Â· The market in one line (`MarketLine`) ---------- */
 .hm-mkt {
   display: flex; align-items: center; gap: var(--space-4);
   padding: calc(var(--space-4) + 2px) var(--space-4) calc(var(--space-4) + 2px) calc(var(--space-4) + var(--space-1));
@@ -289,19 +289,6 @@
 html[data-signed-in="1"] .home-boot { display: block; }
 html[data-signed-in="1"] .home-landing { display: none; }
 
-/* The 7-day taste (THE Premium line, step 6): one calm note (the home's one
-   card) while Premium is open on the reader's shares. */
-.taste-note {
-  display: grid; gap: var(--space-3); padding: calc(var(--space-4) + var(--space-1));
-  border: 1px solid rgb(var(--gold-rgb) / 0.45); border-radius: var(--radius-lg);
-  background: rgb(var(--gold-rgb) / 0.08);
-}
-.taste-k { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-size: var(--fs-xs); font-weight: 600; color: var(--gold-ink); }
-.taste-h { margin: 0; font-size: var(--fs-title); font-weight: 600; line-height: 1.3; color: var(--text); text-wrap: balance; }
-.taste-list { display: grid; gap: 4px; margin: 0; padding-left: 18px; font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
-.taste-foot { margin: 0; font-size: var(--fs-xs); line-height: 1.5; color: var(--text-muted); }
-.taste-acts { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-@media (min-width: 1024px) { .taste-note { grid-column: 1 / -1; } }
 
 /* ===================================================================
    The guest home (2026-11-23, mockup v2
@@ -313,7 +300,7 @@ html[data-signed-in="1"] .home-landing { display: none; }
    The market line renders once per language in a `[data-l]` wrapper.
    =================================================================== */
 
-/* 1 · The band: what TopStockBD is, the ask, the example money card. */
+/* 1 Â· The band: what TopStockBD is, the ask, the example money card. */
 .hm-g-band { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
 @media (min-width: 900px) {
   .hm-g-band { grid-template-columns: minmax(0, 1fr) minmax(0, 300px); column-gap: var(--space-8); align-items: end; }
@@ -411,9 +398,9 @@ html[data-signed-in="1"] .home-landing { display: none; }
   background: rgb(var(--positive-rgb) / 0.1); font-size: var(--fs-sm); font-weight: 600; color: var(--text);
 }
 
-/* 5 · The slot fills its column from 1024px through the language wrapper. */
+/* 5 Â· The slot fills its column from 1024px through the language wrapper. */
 
-/* ---------- 2 · Your shares (2026-11-25) ----------
+/* ---------- 2 Â· Your shares (2026-11-25) ----------
    One row a share: the company, what they hold, at most one status; today's
    price (or their money in it) and move on the right. */
 .hm-shares { min-width: 0; }
@@ -461,7 +448,7 @@ html[data-signed-in="1"] .home-landing { display: none; }
 .hm-head-txt { display: grid; gap: var(--space-1); min-width: 0; }
 .hm-head-note { font-size: var(--fs-xs); font-weight: 400; line-height: 1.45; color: var(--text-muted); }
 
-/* ---------- A · Recently opened ---------- */
+/* ---------- A Â· Recently opened ---------- */
 .hm-top > .hm-recent { margin-top: calc(-1 * var(--space-4)); }
 .hm-recent { display: grid; gap: var(--space-2); min-width: 0; }
 .hm-recent-h { font-size: var(--fs-2xs); font-weight: 400; color: var(--text-muted); }
@@ -480,7 +467,7 @@ html[data-signed-in="1"] .home-landing { display: none; }
 .hm-rchip-c { font-size: var(--fs-xs); font-weight: 600; }
 .hm-rchip-m { font-size: var(--fs-2xs); font-weight: 400; }
 
-/* ---------- B · Shortcuts ---------- */
+/* ---------- B Â· Shortcuts ---------- */
 .hm-sc {
   min-width: 0; padding: calc(var(--space-4) + var(--space-1)) var(--space-2) var(--space-4);
   border: 1px solid rgb(var(--border-rgb) / 0.7); border-radius: var(--radius-lg);
@@ -518,7 +505,7 @@ html[data-signed-in="1"] .home-landing { display: none; }
   .hm-sc-ic { width: 56px; height: 56px; }
 }
 
-/* ---------- C · This week on the DSE ---------- */
+/* ---------- C Â· This week on the DSE ---------- */
 .hm-week { min-width: 0; }
 .hm-wk-days {
   display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--space-2);
@@ -565,7 +552,7 @@ html[data-signed-in="1"] .home-landing { display: none; }
 .hm-wk-line--soon { color: var(--watch); font-weight: 600; }
 .hm-wk-line--past { color: var(--text-muted); }
 
-/* ---------- D · Today's lists ---------- */
+/* ---------- D Â· Today's lists ---------- */
 .hm-lists { min-width: 0; }
 .hm-tl > li + li { border-top: 1px solid rgb(var(--border-rgb) / 0.7); }
 .hm-tl-row {
@@ -588,7 +575,7 @@ html[data-signed-in="1"] .home-landing { display: none; }
 .hm-tl-big { font-size: var(--fs-2xl); font-weight: 700; line-height: 1; }
 .hm-tl-u { font-size: var(--fs-2xs); font-weight: 400; color: var(--text-muted); }
 
-/* ---------- E · Explore TopStockBD ---------- */
+/* ---------- E Â· Explore TopStockBD ---------- */
 .hm-explore { min-width: 0; }
 .hm-ex-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
 .hm-ex-card {
@@ -630,3 +617,62 @@ html[data-signed-in="1"] .home-landing { display: none; }
   .hm:not(:has(.hm-lists)) .hm-week, .hm:not(:has(.hm-week)) .hm-lists { grid-column: 1 / -1; }
   .hm-ex-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-4); }
 }
+
+/* â”€â”€ Premium on the home page (2026-11-26) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   RenewAlert: one line under the greeting while Premium ends within 7 days.
+   PremiumPromoCard: the home page's one Premium card, after the market line,
+   for readers without Premium â€” the only price outside /premium. */
+.hm-renew {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2);
+  margin-top: var(--space-3); padding: 10px var(--space-3);
+  border: 1px solid rgb(var(--gold-rgb) / 0.45); border-radius: var(--radius);
+  background: rgb(var(--gold-rgb) / 0.08);
+  font-size: var(--fs-sm); line-height: 1.4; color: var(--text);
+}
+.hm-renew svg { flex: none; color: var(--gold-ink); }
+.hm-renew--last { border-color: rgb(var(--watch-rgb) / 0.45); background: rgb(var(--watch-rgb) / 0.07); }
+.hm-renew--last svg { color: var(--watch); }
+.hm-renew-txt { min-width: 0; }
+.hm-renew-go {
+  display: inline-flex; align-items: center; min-height: 40px; margin-left: auto; padding: 0 var(--space-1);
+  font-weight: 600; color: var(--primary-ink); text-decoration: underline; text-underline-offset: 3px;
+}
+/* The Premium card: what it is Â· the price Â· the button. Phones stack the
+   three, the price and button split by a hairline; from 640px one row, the
+   price right-aligned beside the button. */
+.hm-promo {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4);
+  padding: var(--space-4) var(--space-4) calc(var(--space-4) + var(--space-1));
+  border: 1px solid rgb(var(--gold-rgb) / 0.45); border-radius: var(--radius-lg);
+  background: rgb(var(--gold-rgb) / 0.08);
+}
+.hm-promo-what { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
+.hm-promo-ic {
+  flex: none; display: grid; place-items: center; width: 44px; height: 44px;
+  border-radius: var(--radius-md); background: var(--surface);
+  border: 1px solid rgb(var(--gold-rgb) / 0.45); color: var(--gold-ink);
+}
+.hm-promo-k { margin: 0; font-size: var(--fs-2xs); line-height: 1.4; color: var(--gold-ink); }
+.hm-promo-h { margin: 2px 0 0; font-size: var(--fs-title); font-weight: 600; line-height: 1.3; color: var(--text); text-wrap: balance; }
+.hm-promo-price {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-1) var(--space-3);
+  padding-top: var(--space-4); border-top: 1px solid rgb(var(--gold-rgb) / 0.3);
+}
+.hm-promo-amt { display: flex; align-items: baseline; gap: 6px; margin: 0; }
+.hm-promo-amt b { font-size: var(--fs-xl); font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; color: var(--text); }
+.hm-promo-amt span { font-size: var(--fs-sm); color: var(--text-muted); }
+.hm-promo-sub { margin: 0; font-size: var(--fs-xs); line-height: 1.4; color: var(--text-muted); }
+.hm-promo-sub s { color: var(--text-muted); }
+.hm-promo-go { min-width: 0; }
+@media (min-width: 640px) {
+  .hm-promo {
+    grid-template-columns: minmax(0, 1fr) auto minmax(160px, 200px);
+    align-items: center; column-gap: var(--space-6);
+    padding: calc(var(--space-4) + var(--space-1)) var(--space-6);
+  }
+  .hm-promo-price {
+    display: grid; justify-items: end; gap: 2px;
+    padding: 0 0 0 var(--space-6); border-top: 0; border-left: 1px solid rgb(var(--gold-rgb) / 0.3);
+  }
+}
+@media (min-width: 1024px) { .hm-promo { grid-column: 1 / -1; } }

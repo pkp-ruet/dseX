@@ -5,6 +5,7 @@ import Link from "@/components/ui/Link";
 import type { Lang } from "@/context/LangContext";
 import type { PortfolioHolding, ScoreItem } from "@/lib/api";
 import { computedRows } from "@/lib/home-portfolio";
+import RenewAlert from "@/components/home/personalized/RenewAlert";
 import { bdGroup, takaGroup } from "@/lib/formatters";
 import { bnDate } from "@/lib/bn";
 import { bstHour, formatBstDateLabel } from "@/lib/market-hours";
@@ -252,6 +253,7 @@ export default function HomeHeader({
             {greeting}
             {name ? `, ${name}` : ""}
           </h1>
+          <RenewAlert lang={lang} />
         </div>
         <div className="hm-money-wrap">{card}</div>
         <button

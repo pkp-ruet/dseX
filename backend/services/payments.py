@@ -27,30 +27,21 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-# plan → (taka charged, days). Flat prices since 2026-11-13 (user decision):
-# 1 month ৳199 · 3 months ৳499 · 1 year ৳1,499, no struck-through "regular"
-# price and no limited-time offer. Mirrored by frontend `lib/premium-plans.ts`.
-# The 6-month plan ("halfyearly", ৳999 / 180 days, 2026-10-27 → 11-13) is no
-# longer sold — old payments keep that key with their own amount + days stored
-# on the payment row.
+# plan → (taka charged, days). Two plans since 2026-11-26 (user decision):
+# 3 months ৳299 · 1 year ৳999, the yearly one shown as cut from ৳1,499
+# (`list_amount`, struck through on the plan card and the home page's Premium card).
+# Mirrored by frontend `lib/premium-plans.ts`.
+# No longer sold — old payments keep their key with their own amount + days
+# stored on the payment row: "monthly" (৳199 / 30 days, until 2026-11-26) and
+# "halfyearly" (৳999 / 180 days, 2026-10-27 → 11-13).
 PAID_PLANS: dict[str, dict] = {
-    "monthly": {"amount": 199, "days": 30},
-    "quarterly": {"amount": 499, "days": 90},
-    "yearly": {"amount": 1499, "days": 365},
+    "quarterly": {"amount": 299, "days": 90},
+    "yearly": {"amount": 999, "days": 365, "list_amount": 1499},
 }
-# The reader's own offer (2026-10-29): one month for ৳99 instead of ৳199, once
-# per account, for a reader who isn't Premium, while an admin keeps it open
-# (`/admin/payments`, `set_offer_open`; no end date is ever shown). Shown as a
-# banner on top of the homepage and as its own card in the pay box; kept out
-# of `PAID_PLANS`, so the public plan list and the admin plan pickers stay as
-# they were. `offer_state()` decides who sees it. Mirrored by frontend
-# `lib/premium-plans.ts` `OWN_OFFER_PLAN`.
-OWN_OFFER_KEY = "offer"
-OWN_OFFER = {"amount": 99, "days": 30, "list_amount": 199}
-OFFER_SETTING_ID = "own_offer"  # its row in `app_settings`
-OFFER_CACHE_SECONDS = 30  # other workers see an admin's switch within this
-OFFER_REMIND_DAYS = 3  # "Remind me later" hides the banner this long
-ALL_PLANS: dict[str, dict] = {**PAID_PLANS, OWN_OFFER_KEY: OWN_OFFER}
+# The reader's own ৳99 first month ("offer", 2026-10-29 → 11-22) was removed
+# on 2026-11-26 (user decision); old payments keep the key "offer" with their
+# own amount + days, and the `offer_*` fields on user documents are unread.
+ALL_PLANS: dict[str, dict] = dict(PAID_PLANS)
 MOBILE_METHODS = ("bkash", "nagad")
 METHODS = (*MOBILE_METHODS, "bank")
 # How a bank transfer was sent: NPSB lands in seconds, BEFTN by the next
@@ -75,17 +66,7 @@ ERR_SAME_PLAN = "same_plan"
 ERR_DAYS = "bad_days"
 ERR_AMOUNT = "bad_amount"
 ERR_USER = "user_not_found"
-ERR_OFFER = "offer_closed"
 
-RENEW_WINDOW_DAYS = (2, 5)  # remind once, 2–5 days before a paid plan ends
-# The renewal banner on top of every page (2026-11-13): shown while Premium
-# ends within this many days; it always offers the yearly plan, counted from
-# the current end date (`extend_until`), so renewing early loses nothing.
-RENEW_BANNER_DAYS = 10
-RENEW_PLAN = "yearly"
-DHAKA = timezone(timedelta(hours=6))
-_BN_MONTHS = ("জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট",
-              "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর")
 
 _SENDER_RE = re.compile(r"^01[3-9]\d{8}$")
 
@@ -158,28 +139,6 @@ def shift_until(current, delta_days: int, now: datetime) -> datetime:
     return revoke_until(current, -delta_days, now)
 
 
-def offer_state(user: dict, now: datetime, premium: bool, is_open: bool) -> Optional[dict]:
-    """The reader's own offer as the browser sees it, or None when it isn't
-    theirs: an admin ended it (`is_open` False), they are Premium (`premium`),
-    or they already used it. `banner` is False after "Not interested", and
-    until the reminder day after "Remind me later"; the pay box still shows
-    the offer then."""
-    if not is_open or premium or user.get("offer_used_at"):
-        return None
-    remind = _as_utc(user.get("offer_remind_after"))
-    banner = not user.get("offer_dismissed_at") and not (remind and remind > now)
-    return {"key": OWN_OFFER_KEY, **OWN_OFFER, "banner": banner}
-
-
-def offer_dismiss_update(action: str, now: datetime) -> dict:
-    """The `$set` for the banner's two quiet buttons. Raises ValueError."""
-    if action == "never":
-        return {"offer_dismissed_at": now}
-    if action == "later":
-        return {"offer_remind_after": now + timedelta(days=OFFER_REMIND_DAYS)}
-    raise ValueError("bad_action")
-
-
 def user_search_query(q: str) -> Optional[dict]:
     """The Mongo filter for the admin's account search: a phone number (any
     form, or 4+ of its digits), else part of the email or name, or an exact
@@ -222,98 +181,6 @@ def gift_payload(lang: str = "bn") -> dict:
     body = ("আমরা আপনার অ্যাকাউন্টে প্রিমিয়াম চালু করে দিয়েছি। সব সুবিধা এখন খোলা।" if bn
             else "We switched Premium on for your account. Everything in Premium is open now.")
     return {"title": title, "body": body, "url": "/premium?src=granted", "tag": "premium-payment"}
-
-
-def dhaka_day_words(when: datetime, lang: str = "en") -> str:
-    """"19 Nov 2027" / "19 নভেম্বর 2027" — the Dhaka calendar date."""
-    d = (_as_utc(when) or when).astimezone(DHAKA)
-    if lang != "en":
-        return f"{d.day} {_BN_MONTHS[d.month - 1]} {d.year}"
-    return f"{d.day} {d.strftime('%b')} {d.year}"
-
-
-def days_to_end(until: datetime, now: datetime) -> int:
-    """Whole Dhaka calendar days from today to the end day (0 = ends today),
-    the count the banner shows (frontend `lib/renewal.ts` `daysToEnd`)."""
-    return ((_as_utc(until) or until).astimezone(DHAKA).date()
-            - (_as_utc(now) or now).astimezone(DHAKA).date()).days
-
-
-def year_until(current, now: datetime) -> datetime:
-    """Where Premium would end after one more year bought today: 365 days on
-    top of the days still left (the same rule a payment uses)."""
-    return extend_until(current, PAID_PLANS[RENEW_PLAN]["days"], now)
-
-
-def renewal_have(user: dict, armed_alerts: int = 0) -> dict:
-    """What this reader set up with Premium that a free account limits — the
-    banner's "what you'd lose" lines, from the user document."""
-    return {
-        "watchlist": len(user.get("watchlist") or []),
-        "extra_portfolios": len(user.get("extra_portfolios") or []),
-        "saved_screens": len(user.get("custom_lists") or []),
-        "alerts": int(armed_alerts or 0),
-        "dividend_reminders": len(user.get("dividend_reminders") or []),
-    }
-
-
-def renewal_found(caught: list[dict]) -> Optional[dict]:
-    """"In the last 30 days Premium found 2 results reports and 1 record date
-    on your shares." in both languages, or None when it found nothing."""
-    from backend.services.portfolio_watch import kinds_phrase
-
-    total = sum(int(k.get("count") or 0) for k in caught or [])
-    if not total:
-        return None
-    return {
-        "total": total,
-        "en": f"In the last 30 days Premium found {kinds_phrase(caught, 'en')} on your shares.",
-        "bn": f"গত 30 দিনে প্রিমিয়াম আপনার শেয়ারে পেয়েছে {kinds_phrase(caught, 'bn')}।",
-    }
-
-
-def renewal_payload(days_left: int, lang: str = "bn", caught: Optional[list[dict]] = None,
-                    year_end: Optional[datetime] = None) -> dict:
-    """The renewal reminder. Plans never renew by themselves, so the reminder
-    says what Premium did this period — `caught` is the watcher's counts by
-    kind on the reader's stocks (``portfolio_watch.digest()["kinds"]``). With
-    `year_end` it offers the yearly plan and names the date it would run to."""
-    from backend.services.portfolio_watch import kinds_phrase
-
-    bn = lang != "en"
-    title = (f"আপনার প্রিমিয়াম শেষ হতে আর {days_left} দিন বাকি" if bn
-             else f"Your Premium ends in {days_left} day{'' if days_left == 1 else 's'}")
-    if year_end is not None:
-        price = f"৳{PAID_PLANS[RENEW_PLAN]['amount']:,}"
-        again = (f"{price} দিয়ে এক বছর যোগ করলে প্রিমিয়াম চলবে {dhaka_day_words(year_end, 'bn')} পর্যন্ত। "
-                 "বাকি দিনগুলো হারাবেন না।" if bn
-                 else f"Add one year for {price} and it runs till {dhaka_day_words(year_end, 'en')}. "
-                 "You keep the days you have left.")
-    else:
-        again = ("চালু রাখতে চাইলে বিকাশ, নগদ বা ব্যাংক ট্রান্সফারে আবার একটি প্ল্যান নিন।" if bn
-                 else "To keep it on, choose a plan again and pay by bKash, Nagad or bank transfer.")
-    phrase = kinds_phrase(caught or [], "bn" if bn else "en")
-    # The reminder opens the reader's notifications (the Desk until
-    # 2026-11-06): what Premium found for them is listed there.
-    seeit = (" সবকিছু দেখুন আপনার নোটিফিকেশনে।" if bn else " See them all in your notifications.")
-    if phrase:
-        did = (f"এই মাসে প্রিমিয়াম আপনার শেয়ারে পেয়েছে {phrase}। " if bn
-               else f"This month it found {phrase} on your shares. ")
-        body = did + again + seeit
-    else:
-        body = again + seeit
-    return {"title": title, "body": body, "url": "/notifications?src=renew", "tag": "premium-renew"}
-
-
-def _caught_this_period(user_id: str, now: datetime) -> list[dict]:
-    """The watcher's counts on this reader's stocks over the last 30 days."""
-    from backend.services.portfolio_watch import digest
-
-    rows = list(_db()["portfolio_watch_events"].find(
-        {"user_id": user_id, "created_at": {"$gte": now - timedelta(days=30)}},
-        {"_id": 0, "kind": 1, "code": 1, "level": 1},
-    ))
-    return digest(rows)["kinds"]
 
 
 def revoked_payload(lang: str = "bn") -> dict:
@@ -429,19 +296,6 @@ def submit_payment(user: dict, plan: str, method: str, sender_raw: str = "",
     uid = user["user_id"]
     now = datetime.now(timezone.utc)
     spec = ALL_PLANS[plan]
-    offer = plan == OWN_OFFER_KEY
-    if offer:
-        from backend.services.entitlements import is_premium
-
-        if offer_state(user, now, is_premium(user), offer_open(fresh=True)) is None:
-            raise ValueError(ERR_OFFER)
-        # Claim it atomically, so two tabs can't both take it.
-        claimed = _db()["users"].update_one(
-            {"user_id": uid, "offer_used_at": {"$exists": False}},
-            {"$set": {"offer_used_at": now}},
-        )
-        if not claimed.modified_count:
-            raise ValueError(ERR_OFFER)
     held = _payments().count_documents({"user_id": uid, "status": "revoked"}, limit=1) > 0
     doc = {
         "payment_id": uuid.uuid4().hex,
@@ -463,75 +317,11 @@ def submit_payment(user: dict, plan: str, method: str, sender_raw: str = "",
     try:
         _payments().insert_one(doc)
     except DuplicateKeyError:
-        if offer:  # nothing was bought, so the offer stays theirs
-            _db()["users"].update_one({"user_id": uid}, {"$unset": {"offer_used_at": ""}})
         raise ValueError(ERR_PENDING)
     doc.pop("_id", None)
     if not held:
         _grant(doc, now)
     return doc
-
-
-_offer_cache: dict = {"at": 0.0, "open": True}
-
-
-def offer_open(fresh: bool = False) -> bool:
-    """Whether the offer is running. No row yet = open (it launched open).
-    Cached a few seconds per worker; `fresh` reads the database (a payment)."""
-    import time
-
-    now = time.monotonic()
-    if fresh or now - _offer_cache["at"] > OFFER_CACHE_SECONDS:
-        try:
-            row = _db()["app_settings"].find_one({"_id": OFFER_SETTING_ID}, {"open": 1})
-            _offer_cache["open"] = bool(row.get("open", True)) if row else True
-            _offer_cache["at"] = now
-        except Exception:  # noqa: BLE001 — keep the last known answer
-            pass
-    return _offer_cache["open"]
-
-
-def offer_admin_state() -> dict:
-    """The admin section: on/off, who changed it last, and how far it went."""
-    row = _db()["app_settings"].find_one({"_id": OFFER_SETTING_ID}) or {}
-    changed = _as_utc(row.get("changed_at"))
-    pays = list(_payments().aggregate([
-        {"$match": {"plan": OWN_OFFER_KEY}},
-        {"$group": {"_id": "$status", "n": {"$sum": 1}}},
-    ]))
-    by = {r["_id"]: r["n"] for r in pays}
-    return {
-        "open": bool(row.get("open", True)),
-        "changed_at": changed.isoformat() if changed else None,
-        "changed_by": row.get("changed_by"),
-        **OWN_OFFER,
-        "payments": {s: by.get(s, 0) for s in STATUSES},
-        "not_interested": _db()["users"].count_documents({"offer_dismissed_at": {"$exists": True}}),
-    }
-
-
-def set_offer_open(is_open: bool, admin_email: str) -> dict:
-    """Start or end the offer for everyone, at once on this worker (others
-    within OFFER_CACHE_SECONDS). Readers who already paid keep their days."""
-    now = datetime.now(timezone.utc)
-    _db()["app_settings"].update_one(
-        {"_id": OFFER_SETTING_ID},
-        {"$set": {"open": bool(is_open), "changed_at": now, "changed_by": admin_email}},
-        upsert=True,
-    )
-    _offer_cache["open"] = bool(is_open)
-    _offer_cache["at"] = 0.0
-    return offer_admin_state()
-
-
-def dismiss_offer(user_id: str, action: str) -> None:
-    """The banner's "Not interested" (`never`) or "Remind me later" (`later`).
-    Raises ValueError on another action."""
-    now = datetime.now(timezone.utc)
-    _db()["users"].update_one(
-        {"user_id": user_id},
-        {"$set": {**offer_dismiss_update(action, now), "updated_at": now}},
-    )
 
 
 def _grant(doc: dict, now: datetime) -> None:
@@ -777,86 +567,3 @@ def _notify(user_id: str, build) -> None:
         import logging
 
         logging.getLogger(__name__).warning("payment push failed for %s", user_id, exc_info=True)
-
-
-def send_renewal_reminders(now: datetime, day: str, push_ok: bool) -> int:
-    """One push per paid period, 2–5 days before it ends."""
-    from backend.services import push_service
-
-    users_col = _db()["users"]
-    lo = now + timedelta(days=RENEW_WINDOW_DAYS[0])
-    hi = now + timedelta(days=RENEW_WINDOW_DAYS[1])
-    sent = 0
-    for u in users_col.find(
-        {"premium_source": "paid", "premium_until": {"$gte": lo, "$lte": hi}},
-        {"_id": 0, "user_id": 1, "premium_until": 1, "renew_reminder_for": 1,
-         "push_enabled": 1, "notification_prefs": 1},
-    ):
-        until = _as_utc(u["premium_until"])
-        # Once per end date: a renewal moves the date, so the next period
-        # gets its own reminder.
-        if _as_utc(u.get("renew_reminder_for")) == until:
-            continue
-        uid = u["user_id"]
-        users_col.update_one({"user_id": uid}, {"$set": {"renew_reminder_for": until}})
-        if not (push_ok and u.get("push_enabled")):
-            continue
-        prefs = {**push_service.DEFAULT_PREFS, **(u.get("notification_prefs") or {})}
-        days_left = max(1, (until - now).days)
-        try:
-            caught = _caught_this_period(uid, now)
-        except Exception:  # noqa: BLE001 — the recap line is a nice-to-have
-            caught = []
-        result = push_service.send_to_user(
-            uid, renewal_payload(days_left, prefs.get("language", "bn"), caught, year_until(until, now)))
-        campaign_id = f"premiumrenew-{uid}-{day}"
-        _db()["push_sends"].update_one(
-            {"campaign_id": campaign_id, "user_id": uid},
-            {"$set": {"campaign_id": campaign_id, "user_id": uid,
-                      "status": "sent" if result["sent"] else "failed",
-                      "result": result, "sent_at": now}},
-            upsert=True,
-        )
-        if result["sent"]:
-            sent += 1
-    return sent
-
-
-def renewal_state(user_id: str, now: Optional[datetime] = None) -> Optional[dict]:
-    """The renewal banner's data, or None when it shouldn't show: not Premium,
-    an admin, more than `RENEW_BANNER_DAYS` left, or a payment still waiting
-    (its days are already on, or will be once an admin accepts it)."""
-    from backend.services.entitlements import FREE_LIMITS, is_admin
-
-    now = now or datetime.now(timezone.utc)
-    db = _db()
-    u = db["users"].find_one(
-        {"user_id": user_id},
-        {"_id": 0, "user_id": 1, "email": 1, "email_verified": 1, "created_at": 1,
-         "premium_until": 1, "premium_source": 1, "watchlist": 1, "extra_portfolios": 1,
-         "custom_lists": 1, "dividend_reminders": 1},
-    )
-    if not u or is_admin(u):
-        return None
-    until = _as_utc(u.get("premium_until"))
-    if not until or until <= now or days_to_end(until, now) > RENEW_BANNER_DAYS:
-        return None
-    if _payments().count_documents({"user_id": user_id, "status": "pending"}, limit=1):
-        return None
-    armed = db["price_alerts"].count_documents({"user_id": user_id, "is_active": True})
-    try:
-        found = renewal_found(_caught_this_period(user_id, now))
-    except Exception:  # noqa: BLE001 — the recap line is a nice-to-have
-        found = None
-    plan = PAID_PLANS[RENEW_PLAN]
-    year_end = year_until(until, now)
-    return {
-        "premium_until": until.isoformat(),
-        "premium_source": u.get("premium_source"),
-        "plan": {"key": RENEW_PLAN, "amount": plan["amount"],
-                 "list_amount": plan.get("list_amount"), "days": plan["days"],
-                 "until": year_end.isoformat()},
-        "found": found,
-        "have": renewal_have(u, armed),
-        "free": {"watchlist": FREE_LIMITS["watchlist"], "alerts": FREE_LIMITS["alerts"]},
-    }

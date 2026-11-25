@@ -7,7 +7,6 @@ import { T } from "@/components/i18n/T";
 import { useAuth } from "@/context/AuthContext";
 import { useLang } from "@/context/LangContext";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
-import { FROM_MONTH, LOWEST_PRICE } from "@/lib/premium-plans";
 import { savePremiumContext } from "@/lib/premium-context";
 import { trackEvent } from "@/lib/track";
 import type { Bi } from "@/lib/stock-report";
@@ -83,16 +82,7 @@ export default function ReportOffer({
           </>
         )}
       </p>
-      <p className="mt-5 text-base text-text-main">
-        <T
-          en={<><b className="tabular-nums">৳{LOWEST_PRICE}</b> a month</>}
-          bn={<>মাসে <b className="tabular-nums">৳{LOWEST_PRICE}</b></>}
-        />
-        <span className="text-text-muted">
-          <T en={` · about ৳${FROM_MONTH} a month on the yearly plan`} bn={` · বছরের প্ল্যানে মাসে প্রায় ৳${FROM_MONTH}`} />
-        </span>
-      </p>
-      <div className="mt-3">
+      <div className="mt-5">
         <Button href={PREMIUM_PATH} onClick={onTap} size="lg" block>
           <T en="Get this on every share" bn="সব শেয়ারের বিশ্লেষণ পান" />
         </Button>

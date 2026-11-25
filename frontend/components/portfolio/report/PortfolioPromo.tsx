@@ -8,7 +8,6 @@ import { useAuth } from "@/context/AuthContext";
 import { useLang } from "@/context/LangContext";
 import { isoLocal, todayDhaka } from "@/lib/dividend-dates";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
-import { FROM_MONTH, LOWEST_PRICE } from "@/lib/premium-plans";
 import { savePremiumContext } from "@/lib/premium-context";
 import { trackEvent } from "@/lib/track";
 import type { PfFinding, PfOutline, PfPromo, PfTaste } from "@/lib/portfolio-report";
@@ -67,8 +66,7 @@ export default function PortfolioPromo({
   const ref = useRef<HTMLElement>(null);
   const seen = useRef(false);
 
-  const offer = user?.offer ?? null;
-  const href = offer ? "/premium?plan=offer&src=portfolio#pay" : `${PREMIUM_PATH}#pay`;
+  const href = `${PREMIUM_PATH}#pay`;
   const grades = outline.path?.grades ?? null;
   const from = grades?.[0] ?? null;
   const to = grades ? grades[grades.length - 1] : null;
@@ -134,9 +132,7 @@ export default function PortfolioPromo({
         ))}
       </ul>
       <Button href={href} onClick={() => onTap("buy")} size="lg" block>
-        {offer ? (
-          <T en={`See what to do · ৳${offer.amount} for a month`} bn={`কী করবেন দেখুন · এক মাস ৳${offer.amount}`} />
-        ) : things > 0 ? (
+        {things > 0 ? (
           <T en={`See the ${things} thing${s(things)} to do`} bn={`${things}টি বিষয় দেখুন`} />
         ) : (
           <T en="Open your full check" bn="পূর্ণ যাচাই খুলুন" />
@@ -144,8 +140,8 @@ export default function PortfolioPromo({
       </Button>
       <p className="pfk-price">
         <T
-          en={`৳${LOWEST_PRICE} a month, or about ৳${FROM_MONTH} a month on the yearly plan. bKash, Nagad or bank. Nothing renews by itself.`}
-          bn={`মাসে ৳${LOWEST_PRICE}, বা বছরের প্ল্যানে মাসে প্রায় ৳${FROM_MONTH}। bKash, Nagad বা ব্যাংক। নিজে থেকে নবায়ন হয় না।`}
+          en="bKash, Nagad or bank. Nothing renews by itself."
+          bn="bKash, Nagad বা ব্যাংক। নিজে থেকে নবায়ন হয় না।"
         />
       </p>
 

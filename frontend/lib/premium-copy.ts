@@ -15,7 +15,7 @@
  * Limits say "as many as you want", never "unlimited" (the hard caps are 200
  * shares followed and 50 alerts).
  */
-import { LOWEST_PRICE, PAID_PLANS } from "@/lib/premium-plans";
+import { LOWEST_PRICE, PAID_PLANS, YEARLY_PLAN } from "@/lib/premium-plans";
 import { FREE_COMPARE, MAX_COMPARE } from "@/lib/compare";
 import { freeN } from "@/lib/premium-line";
 
@@ -38,7 +38,11 @@ export const HERO = {
     bn: "প্রিমিয়াম TopStockBD-র সবকিছু খুলে দেয়। নিচে পুরো তালিকা।",
   },
   perMonth: { en: "a month on the 1-year plan", bn: "মাসে, 1 বছরের প্ল্যানে" },
-  orMonthly: { en: `Or ৳${LOWEST_PRICE} for one month.`, bn: `অথবা এক মাসের জন্য ৳${LOWEST_PRICE}।` },
+  // Two plans since 2026-11-26: the year at ৳999, cut from ৳1,499, or 3 months.
+  orPlans: {
+    en: `৳${YEARLY_PLAN.amount} for the year, cut from ৳${(YEARLY_PLAN.listAmount ?? YEARLY_PLAN.amount).toLocaleString("en-IN")}. Or ৳${LOWEST_PRICE} for 3 months.`,
+    bn: `বছরে ৳${YEARLY_PLAN.amount}, আগের দাম ৳${(YEARLY_PLAN.listAmount ?? YEARLY_PLAN.amount).toLocaleString("en-IN")}। অথবা 3 মাসের জন্য ৳${LOWEST_PRICE}।`,
+  },
 } as const;
 
 /** THE Premium line, step 7 (2026-11-22): the three promises the Premium page

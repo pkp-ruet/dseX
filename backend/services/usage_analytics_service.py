@@ -9,7 +9,6 @@ page streamed every page view of the window (31k–127k rows, 1.5–3 minutes).
 * ``user_events`` — one ``$facet`` over 30 days: each active reader's days, the
   areas readers opened in 7 days (free / Premium), the 10 most-opened stocks;
 * ``payments`` (accepted), ``push_subscriptions`` (who has a device);
-* ``banner_events`` — the homepage Premium banner's views and taps (one row).
 
 Admin accounts (``entitlements.is_admin``) and ``/admin`` pages are left out.
 The result is kept ``CACHE_SECONDS``; after that the last copy is served at
@@ -22,7 +21,7 @@ import threading
 import time
 from datetime import datetime, timedelta, timezone
 
-from backend.services import banner_events, entitlements
+from backend.services import entitlements
 from backend.services import usage_analytics as ua
 from backend.services.db_service import get_db
 
@@ -305,9 +304,6 @@ def _build() -> dict:
         ),
         "stocks": [{"code": r["_id"], "users": r["users"], "views": r["views"]}
                    for r in events.get("stocks", []) if r.get("_id")],
-        # The homepage Premium banner for free readers, last 30 days.
-        "banner": _safe(lambda: banner_events.summary(db, "home", start30, admins, ua.WINDOW_DAYS),
-                        banner_events.banner_figures(None, ua.WINDOW_DAYS)),
     }
     log.info("admin analytics built in %.1fs", out["build_seconds"])
     return out

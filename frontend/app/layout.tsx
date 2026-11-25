@@ -75,7 +75,6 @@ import WatchRulesHost from "@/components/watch-rules/WatchRulesHost";
 import PingTracker from "@/components/analytics/PingTracker";
 import SurveyHost from "@/components/survey/SurveyHost";
 import PushOptInPrompt from "@/components/push/PushOptInPrompt";
-import RenewBanner from "@/components/premium/RenewBanner";
 import InstallPrompt from "@/components/pwa/InstallPrompt";
 
 // The navbar's surface in each mode, so the browser chrome continues it. The
@@ -175,7 +174,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {/* Spacer occupies the fixed navbar's 56px so the banner sits just below it */}
             <div aria-hidden="true" className="h-14 shrink-0" />
             <MarketDataBanner />
-            <RenewBanner />
             {/* Bottom-bar clearance lives on the Footer (it is the last thing on the page) */}
             <main id="main" tabIndex={-1} className="flex-1 max-w-5xl mx-auto w-full min-w-0 px-4 sm:px-6 pb-8 md:pb-10">
               {children}

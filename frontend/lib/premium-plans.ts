@@ -3,11 +3,12 @@
  * days); this file adds the words. A plain module (no "use client") so the
  * server-rendered /premium page and its client PayBox share it.
  *
- * 2026-11-13: flat prices — 1 month ৳199 · 3 months ৳499 · 1 year ৳1,499. No
- * struck-through "regular" price and no limited-time offer on any plan (the
- * reader's own ৳99 month below is a separate, admin-switched offer).
+ * 2026-11-26: two plans — 3 months ৳299 · 1 year ৳999, the year shown as cut
+ * from ৳1,499 (`listAmount`, struck through on its card). The 1-month plan is
+ * no longer sold, nor the reader's own ৳99 first month (removed the same day);
+ * both are kept in `RETIRED_PLANS` so old payments still read as a name.
  */
-export type PlanKey = "monthly" | "quarterly" | "yearly" | "offer";
+export type PlanKey = "quarterly" | "yearly";
 
 export interface PaidPlan {
   key: PlanKey;
@@ -15,7 +16,7 @@ export interface PaidPlan {
   bn: string;
   amount: number;
   days: number;
-  /** Regular price, struck through — only the reader's own ৳99 month has one. */
+  /** Regular price, struck through (only the year has one). */
   listAmount?: number;
   per: string;
   perBn: string;
@@ -26,70 +27,53 @@ export interface PaidPlan {
 
 export const PAID_PLANS: PaidPlan[] = [
   {
-    key: "monthly",
+    key: "quarterly",
+    name: "3 months",
+    bn: "3 মাস",
+    amount: 299,
+    days: 90,
+    per: "for 90 days",
+    perBn: "90 দিনের জন্য",
+    note: "About ৳100 a month.",
+    noteBn: "মাসে প্রায় ৳100।",
+  },
+  {
+    key: "yearly",
+    name: "1 year",
+    bn: "1 বছর",
+    amount: 999,
+    days: 365,
+    listAmount: 1499,
+    per: "for 365 days",
+    perBn: "365 দিনের জন্য",
+    note: "About ৳83 a month.",
+    noteBn: "মাসে প্রায় ৳83।",
+    best: true,
+  },
+];
+
+/** The cheapest month on any plan (the yearly one: ৳999 / 12 ≈ ৳83). */
+export const FROM_MONTH = Math.min(
+  ...PAID_PLANS.map((p) => Math.round(p.amount / Math.max(1, Math.round(p.days / 30)))),
+);
+
+/** The yearly plan: the one the banners and "about ৳83 a month" lines name. */
+export const YEARLY_PLAN = PAID_PLANS.find((p) => p.key === "yearly")!;
+
+// Plans no longer sold, kept so old payments and `users.paid_plan` still read
+// as a name (the payment row stores its own amount + days).
+const RETIRED_PLANS: PaidPlan[] = [
+  {
+    key: "monthly" as PlanKey,
     name: "1 month",
     bn: "1 মাস",
     amount: 199,
     days: 30,
     per: "for 30 days",
     perBn: "30 দিনের জন্য",
-    note: "Try it for a month.",
-    noteBn: "এক মাস চালিয়ে দেখুন।",
+    note: "",
+    noteBn: "",
   },
-  {
-    key: "quarterly",
-    name: "3 months",
-    bn: "3 মাস",
-    amount: 499,
-    days: 90,
-    per: "for 90 days",
-    perBn: "90 দিনের জন্য",
-    note: "About ৳166 a month.",
-    noteBn: "মাসে প্রায় ৳166।",
-  },
-  {
-    key: "yearly",
-    name: "1 year",
-    bn: "1 বছর",
-    amount: 1499,
-    days: 365,
-    per: "for 365 days",
-    perBn: "365 দিনের জন্য",
-    note: "About ৳125 a month.",
-    noteBn: "মাসে প্রায় ৳125।",
-    best: true,
-  },
-];
-
-/** The cheapest month on any plan (the yearly one: ৳1,499 / 12 ≈ ৳125). */
-export const FROM_MONTH = Math.min(
-  ...PAID_PLANS.map((p) => Math.round(p.amount / Math.max(1, Math.round(p.days / 30)))),
-);
-
-/**
- * The reader's own offer (2026-10-29): one month for ৳99 instead of ৳199,
- * once per account, for a reader who isn't Premium, while an admin keeps it
- * open (`/admin/payments`). No end date is shown. Mirrors backend
- * `payments.OWN_OFFER`; the backend's `user.offer` (signed in) or the plans
- * endpoint's `own_offer` (guests) decides whether it shows. Not in `PAID_PLANS`: it is
- * its own card in the pay box and the banner on top of the homepage.
- */
-export const OWN_OFFER_PLAN: PaidPlan = {
-  key: "offer",
-  name: "1 month, your offer",
-  bn: "1 মাস, আপনার অফার",
-  amount: 99,
-  listAmount: 199,
-  days: 30,
-  per: "for 30 days",
-  perBn: "30 দিনের জন্য",
-  note: "It's your own offer, for a very limited time.",
-  noteBn: "এটি শুধু আপনার জন্য অফার, খুব অল্প সময়ের জন্য।",
-};
-
-// Plans no longer sold, kept so old payments and `users.paid_plan` still read
-// as a name (the payment row stores its own amount + days).
-const RETIRED_PLANS: PaidPlan[] = [
   {
     key: "halfyearly" as PlanKey,
     name: "6 months",
@@ -101,15 +85,24 @@ const RETIRED_PLANS: PaidPlan[] = [
     note: "",
     noteBn: "",
   },
+  {
+    key: "offer" as PlanKey,
+    name: "৳99 first month",
+    bn: "৳99-এর প্রথম মাস",
+    amount: 99,
+    days: 30,
+    per: "for 30 days",
+    perBn: "30 দিনের জন্য",
+    note: "",
+    noteBn: "",
+  },
 ];
 
 export const LOWEST_PRICE = Math.min(...PAID_PLANS.map((p) => p.amount));
 
 export function planByKey(key: string | null | undefined): PaidPlan | undefined {
   return (
-    PAID_PLANS.find((p) => p.key === key) ??
-    (key === OWN_OFFER_PLAN.key ? OWN_OFFER_PLAN : undefined) ??
-    RETIRED_PLANS.find((p) => p.key === key)
+    PAID_PLANS.find((p) => p.key === key) ?? RETIRED_PLANS.find((p) => p.key === key)
   );
 }
 

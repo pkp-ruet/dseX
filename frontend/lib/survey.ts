@@ -40,7 +40,7 @@ export const QUESTION_KEYS: Record<string, readonly (string | number)[]> = {
   worth_for: ["analysis", "portfolio", "buylist", "dividends", "news", "signals", "nothing", "other"],
   worth: ["more", "yes", "unsure", "no"],
   continue: ["yes", "probably", "unsure", "probably_not", "no"],
-  next_plan: ["monthly", "quarterly", "yearly"],
+  next_plan: ["quarterly", "yearly"],
   stay: ["price", "longer", "more_help", "unused", "money", "market", "other"],
   ended_why: ["didnt_know", "price", "unused", "no_help", "money", "market", "later", "other"],
   back: ["price", "longer", "more_help", "unused", "money", "market", "other"],
@@ -138,7 +138,6 @@ export const LABELS: Record<string, Record<string, Bi>> = {
     no: b("No", "না"),
   },
   next_plan: {
-    monthly: b("1 month", "1 মাস"),
     quarterly: b("3 months", "3 মাস"),
     yearly: b("1 year", "1 বছর"),
   },

@@ -138,7 +138,6 @@ def alerts_blocked(active_count: int, limit: Optional[int]) -> bool:
 
 def plan_fields(user: dict) -> dict:
     """What `public_user` adds for the browser."""
-    from backend.services.payments import offer_open, offer_state
     from backend.services.report_keys import keys_state
 
     now = datetime.now(timezone.utc)
@@ -156,8 +155,6 @@ def plan_fields(user: dict) -> dict:
         "shares_open": shares_open(user, now),
         # Ten full stock analyses a month for a free reader, opened by the page (report_keys.py).
         "report_keys": keys_state(user.get("report_keys"), now),
-        # The reader's own ৳99 month (payments.offer_state), or None.
-        "offer": offer_state(user, now, is_premium(user), offer_open()),
         # The portfolio builder's one free plan (portfolio_builder.builder_state).
         "builder": _builder_state(user),
         # The reader survey: should the browser ask the server about it (survey.me_state).

@@ -79,7 +79,7 @@ export default function PremiumBody() {
           <span className="pm-price-num">৳{PER_MONTH}</span>
           <span className="pm-price-per"><Tx b={HERO.perMonth} /></span>
         </p>
-        <p className="pm-price-alt"><Tx b={HERO.orMonthly} /></p>
+        <p className="pm-price-alt"><Tx b={HERO.orPlans} /></p>
         <div className="mt-6">
           <PremiumPlanCta />
         </div>

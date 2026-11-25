@@ -33,6 +33,7 @@ import HomeHeader from "@/components/home/personalized/HomeHeader";
 import YourShares from "@/components/home/personalized/YourShares";
 import HomeCard from "@/components/home/personalized/HomeCard";
 import MarketLine from "@/components/home/personalized/MarketLine";
+import PremiumPromoCard from "@/components/home/personalized/PremiumPromoCard";
 import RecentShares from "@/components/home/daily/RecentShares";
 import Shortcuts from "@/components/home/daily/Shortcuts";
 import WeekOnDse from "@/components/home/daily/WeekOnDse";
@@ -251,7 +252,6 @@ export default function PersonalizedHome() {
           brandNew={isBrandNew}
           hasShares={hasPortfolio || hasWatchlist}
           holdings={holdings}
-          priceMap={priceMap}
         />
 
         <div className="hm-mline">
@@ -262,6 +262,8 @@ export default function PersonalizedHome() {
             lang={lang}
           />
         </div>
+
+        <PremiumPromoCard lang={lang} />
 
         {todayFresh?.days && (
           <WeekOnDse key={todayFresh.as_of} lang={lang} days={todayFresh.days} todayIso={isoToday} held={held} watched={watched} />
