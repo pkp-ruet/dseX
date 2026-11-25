@@ -1234,8 +1234,9 @@ export default function PortfolioClient() {
 
   return (
     <div className="flex flex-col" data-privacy={privacy ? "on" : "off"}>
-      {/* Top row: which portfolio (main + any extra, Premium) */}
-      {(portfolios.length > 1 || holdings.length > 0) && (
+      {/* Top row: which portfolio — only when there is more than one
+          (one portfolio gets a quiet "+ Another portfolio" under the money card). */}
+      {portfolios.length > 1 && (
         <div className="pf-topbar mb-4">
           <div className="min-w-0 flex-1">
             <PortfolioSwitcher
@@ -1365,6 +1366,22 @@ export default function PortfolioClient() {
               privacy={privacy}
               onTogglePrivacy={togglePrivacy}
               lang={lang}
+              name={isMain ? undefined : portfolios.find((p) => p.id === pid)?.name}
+              foot={
+                portfolios.length <= 1 ? (
+                  <PortfolioSwitcher
+                    compact
+                    portfolios={portfolios.length ? portfolios : [{ id: MAIN_PORTFOLIO_ID, name: "My portfolio", count: holdings.length }]}
+                    active={pid}
+                    lang={lang}
+                    onSelect={selectPortfolio}
+                    onChanged={(list, select) => {
+                      setPortfolios(list);
+                      if (select) selectPortfolio(select);
+                    }}
+                  />
+                ) : undefined
+              }
             />
           </section>
 

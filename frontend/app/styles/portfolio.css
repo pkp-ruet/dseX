@@ -80,18 +80,65 @@
 /* ---- Top bar: portfolio switcher · language ---- */
 .pf-topbar { display: flex; align-items: center; gap: 12px; }
 
-/* ---- Hero: open on the canvas, the answers in one card ---- */
-.pf-hero { padding-top: 4px; }
-.pf-hero-label {
-  display: flex; align-items: center; gap: 4px;
-  margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text-muted);
+/* ---- The money card (2026-11-25): ONE card — which portfolio + the eye,
+   the value, what was put in, then today and since you bought. On phones the
+   two answers sit under a hairline; from 768px on the card's right. ---- */
+.pf-page-head { border-bottom: 0; padding-bottom: 4px; margin-bottom: var(--space-4); }
+.pf-money-card {
+  display: grid; padding: 0; overflow: hidden;
+  box-shadow: var(--shadow-soft);
 }
-.pf-hero-value {
-  margin: 6px 0 0; font-size: clamp(2.25rem, 8vw, 3.25rem); font-weight: 700; line-height: 1.05;
+@media (min-width: 768px) { .pf-money-card { grid-template-columns: minmax(0, 1fr) minmax(0, 22rem); } }
+.pf-money-main { min-width: 0; padding: 18px 18px 20px; }
+@media (min-width: 640px) { .pf-money-main { padding: 24px 28px 26px; } }
+.pf-money-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.pf-money-label { margin: 0; font-size: var(--fs-sm); color: var(--text-muted); }
+.pf-money-eye { flex-shrink: 0; margin: -6px -8px -6px 0; color: var(--text-muted); }
+.pf-money-value {
+  margin: 6px 0 0; font-size: clamp(2.25rem, 9vw, 3.25rem); font-weight: 700; line-height: 1.05;
   letter-spacing: -0.025em; color: var(--text); font-variant-numeric: tabular-nums;
 }
-.pf-hero-change { margin: 10px 0 0; font-size: var(--fs-md); font-weight: 600; line-height: 1.5; color: var(--text-muted); }
-.pf-hero-change b { font-weight: 700; font-variant-numeric: tabular-nums; }
+.pf-money-meta { margin: 10px 0 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--text-muted); }
+.pf-money-strong { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.pf-money-moves {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--cell-rule); background: var(--surface-2);
+}
+@media (min-width: 768px) {
+  .pf-money-moves { grid-template-columns: 1fr; border-top: 0; border-left: 1px solid var(--cell-rule); }
+}
+.pf-money-move { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 14px 18px 16px; }
+.pf-money-move + .pf-money-move { border-left: 1px solid var(--cell-rule); }
+@media (min-width: 768px) {
+  .pf-money-move { justify-content: center; padding: 18px 24px; }
+  .pf-money-move + .pf-money-move { border-left: 0; border-top: 1px solid var(--cell-rule); }
+}
+.pf-money-q { margin: 0; font-size: var(--fs-2xs); color: var(--text-muted); }
+.pf-money-a {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 0;
+  font-size: var(--fs-lg); font-weight: 600; line-height: 1.2; letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
+}
+.pf-money-a--up { color: var(--positive); }
+.pf-money-a--down { color: var(--negative); }
+.pf-money-a--flat { color: var(--text); }
+.pf-money-pct {
+  display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px;
+  font-size: var(--fs-2xs); font-weight: 600; letter-spacing: 0; line-height: 1.4;
+  background: var(--surface); color: var(--text-muted);
+}
+.pf-money-pct--up { background: rgb(var(--positive-rgb) / 0.12); color: var(--positive); }
+.pf-money-pct--down { background: rgb(var(--negative-rgb) / 0.12); color: var(--negative); }
+
+.pf-money-foot { margin-top: 10px; }
+.pf-addpf {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 2px;
+  border: 0; background: none; cursor: pointer; font: inherit;
+  font-size: var(--fs-sm); color: var(--primary-ink); text-align: left;
+}
+.pf-addpf:hover { text-decoration: underline; }
+.pf-addpf:active { opacity: 0.8; }
 
 .pf-answers { margin-top: var(--space-6); padding: 0; overflow: hidden; }
 .pf-answer-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--cell-rule); }

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import PortfolioClient from "@/components/portfolio/PortfolioClient";
-import ViewAnalysisButton from "@/components/portfolio/ViewAnalysisButton";
 import PageHeader from "@/components/ui/PageHeader";
 import { T } from "@/components/i18n/T";
 
@@ -13,15 +12,18 @@ export const metadata: Metadata = {
 export default function PortfolioPage() {
   return (
     <>
+      {/* A light header (no rule, one short line): the money card right under
+          it is the page's real top. "See your plan" left the header 2026-11-25
+          — "What to do" sits one card below the money. */}
       <PageHeader
+        className="pf-page-head"
         title={<T en="My portfolio" bn="আমার পোর্টফোলিও" />}
         lead={
           <T
-            en="Your money, your check and what to do on the shares you own, updated every day. The shares themselves are on My shares."
-            bn="আপনার টাকা, পোর্টফোলিও যাচাই আর কী করবেন, প্রতিদিন হালনাগাদ। শেয়ারগুলো আছে আমার শেয়ার পেজে।"
+            en="Your money, how it is doing, and what to do next. Checked after every close."
+            bn="আপনার টাকা, কেমন চলছে, আর এরপর কী করবেন। প্রতিদিন বাজার বন্ধের পর যাচাই করা।"
           />
         }
-        actions={<ViewAnalysisButton />}
       />
       <PortfolioClient />
     </>

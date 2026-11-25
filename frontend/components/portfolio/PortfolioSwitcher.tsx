@@ -29,7 +29,10 @@ export default function PortfolioSwitcher({
   lang,
   onSelect,
   onChanged,
+  compact = false,
 }: {
+  /** Only the "+ Another portfolio" link (the reader has one portfolio). */
+  compact?: boolean;
   portfolios: PortfolioListItem[];
   active: string;
   lang: AnalysisLang;
@@ -95,6 +98,14 @@ export default function PortfolioSwitcher({
 
   return (
     <>
+      {compact ? (
+        // One portfolio: no chip row (it only repeated the page title), just a
+        // quiet link under the money card to start another one.
+        <button type="button" className="pf-addpf" onClick={openNew}>
+          {!isPremium && <IconLock size={14} />}
+          {L("+ Another portfolio, for a family member's account", "+ আরেকটি পোর্টফোলিও, পরিবারের কারও অ্যাকাউন্টের জন্য")}
+        </button>
+      ) : (
       <div className="flex flex-wrap gap-2" role="group" aria-label={L("Your portfolios", "আপনার পোর্টফোলিও")}>
         {portfolios.map((p) => (
           <Chip key={p.id} active={p.id === active} onClick={() => onSelect(p.id)}>
@@ -118,6 +129,7 @@ export default function PortfolioSwitcher({
           </Chip>
         )}
       </div>
+      )}
 
       <Sheet
         open={sheet != null}
