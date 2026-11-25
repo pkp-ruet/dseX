@@ -1,16 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getApiUrl } from "@/lib/api";
+import { usePathname } from "next/navigation";
 import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
+import { useAuth } from "@/context/AuthContext";
 import { bnDate } from "@/lib/bn";
-import {
-  isMarketOpen,
-  bstDateStr,
-  formatBstDateLabel,
-  formatBstTimeLabel,
-} from "@/lib/market-hours";
+import { bstDateStr, formatBstDateLabel } from "@/lib/market-hours";
+import { usePriceTime } from "@/lib/use-price-time";
 
 // Date string ("YYYY-MM-DD") for which the banner is suppressed after a manual
 // dismiss. Date-keyed so it resets by itself the next day.
@@ -21,94 +18,58 @@ const HIDE_KEY = "dsex.market-banner-hidden";
  *  - At the open the site is still serving the previous session, so it reads
  *    "last updated <previous trading day> at 2:30 PM".
  *  - When the quick scrape lands today's data it flips to that actual run time
- *    ("last updated today at 2:05 PM"). Polled every minute, no reload needed.
+ *    ("last updated today at 2:05 PM"). Polled, no reload needed
+ *    (`lib/use-price-time.ts`).
  *  - Gone after the 2:30 close, before the open, and on non-trading days.
  *
  * It is a single 28px line (`.market-strip`, app/styles/nav.css), not a 36px
  * bar — it shares the phone with a 56px navbar, the stock page's sticky stack
  * and a 60px bottom bar. Dismiss removes it for the rest of the day.
+ *
+ * Not on the signed-in home (2026-11-25, user: the top of the home was
+ * noisy): its date line says the same time ("Open · prices at 1:42 PM").
+ * Guests on the home still get the strip.
  */
 export default function MarketDataBanner() {
-  // Start hidden so SSR and the first client render match; the effect decides.
-  const [visible, setVisible] = useState(false);
-  const [label, setLabel] = useState<{ en: string; bn: string } | null>(null);
+  const pathname = usePathname();
+  const { user, isLoading } = useAuth();
   const { bn } = useLang();
+  // Client-only checks; the strip starts hidden so SSR and hydration match.
+  const [ready, setReady] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    let cancelled = false;
-
-    const isDismissed = () => {
-      try {
-        return localStorage.getItem(HIDE_KEY) === bstDateStr();
-      } catch {
-        return false;
-      }
-    };
-
-    const refresh = async () => {
-      // Banner lives only during the open session; gone after the 2:30 close.
-      if (!isMarketOpen() || isDismissed()) {
-        if (!cancelled) setVisible(false);
-        return;
-      }
-
-      const today = bstDateStr();
-      let marketDate: string | null = null;
-      let scrapedAt: string | null = null;
-      try {
-        // "no-cache" still asks the backend every time (as fresh as "no-store"),
-        // but lets it answer an unchanged index with an empty 304 (ETag).
-        const res = await fetch(`${getApiUrl()}/api/market-index`, { cache: "no-cache" });
-        if (res.ok) {
-          const data = (await res.json()) as { date?: string | null; scraped_at?: string | null };
-          marketDate = data?.date ?? null;
-          scrapedAt = data?.scraped_at ?? null;
-        }
-      } catch {
-        /* network error — fall back to the generic prev-close label below */
-      }
-      if (cancelled) return;
-
-      let when: { en: string; bn: string };
-      if (marketDate && marketDate === today && scrapedAt) {
-        const t = formatBstTimeLabel(scrapedAt);
-        when = t ? { en: `today at ${t}`, bn: `আজ ${t}-এ` } : { en: "today", bn: "আজ" };
-      } else if (marketDate) {
-        // Still serving the previous session — present it as that day's 2:30 close.
-        when = {
-          en: `${formatBstDateLabel(marketDate)} at 2:30 PM`,
-          bn: `${bnDate(marketDate) || formatBstDateLabel(marketDate)}, বেলা 2:30-এ`,
-        };
-      } else {
-        when = { en: "at the last market close", bn: "বাজারের শেষ সময়ে" };
-      }
-      setLabel(when);
-      setVisible(true);
-    };
-
-    // Every open tab polled once a minute, visible or not. The data changes at
-    // most a few times a session, so poll every 5 minutes, skip hidden tabs and
-    // catch up when the tab comes back.
-    const tick = () => {
-      if (document.visibilityState === "visible") refresh();
-    };
-    const onVisible = () => {
-      if (document.visibilityState === "visible") refresh();
-    };
-    refresh();
-    const id = setInterval(tick, 5 * 60_000);
-    document.addEventListener("visibilitychange", onVisible);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-      document.removeEventListener("visibilitychange", onVisible);
-    };
+    try {
+      setDismissed(localStorage.getItem(HIDE_KEY) === bstDateStr());
+    } catch {
+      /* ignore */
+    }
+    setReady(true);
   }, []);
 
-  if (!visible || !label) return null;
+  // While /me is still answering, trust the mark the boot script put on <html>.
+  const signedIn =
+    !!user || (ready && isLoading && document.documentElement.getAttribute("data-signed-in") === "1");
+  const onSignedInHome = pathname === "/" && signedIn;
+  const time = usePriceTime(ready && !dismissed && !onSignedInHome);
+
+  if (!time) return null;
+
+  let label: { en: string; bn: string };
+  if (time.kind === "today") {
+    label = time.time ? { en: `today at ${time.time}`, bn: `আজ ${time.time}-এ` } : { en: "today", bn: "আজ" };
+  } else if (time.kind === "earlier") {
+    // Still serving the previous session — present it as that day's 2:30 close.
+    label = {
+      en: `${formatBstDateLabel(time.date)} at 2:30 PM`,
+      bn: `${bnDate(time.date) || formatBstDateLabel(time.date)}, বেলা 2:30-এ`,
+    };
+  } else {
+    label = { en: "at the last market close", bn: "বাজারের শেষ সময়ে" };
+  }
 
   const dismiss = () => {
-    setVisible(false);
+    setDismissed(true);
     try {
       localStorage.setItem(HIDE_KEY, bstDateStr());
     } catch {

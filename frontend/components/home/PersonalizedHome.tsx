@@ -82,7 +82,7 @@ function flatten(scores: ScoresResponse | null): Map<string, ScoreItem> {
 export default function PersonalizedHome() {
   const { user } = useAuth();
   const { lang } = useLang();
-  const { state: planState, isPremium } = usePremium();
+  const { isPremium } = usePremium();
   const bn = lang === "bn";
 
   // SWR hydrate from localStorage for an instant first paint. Background
@@ -177,9 +177,10 @@ export default function PersonalizedHome() {
   const isBrandNew = holdings !== null && !hasPortfolio && !hasWatchlist;
 
   const isoToday = bstDateStr();
+  // Short, so the date line has room for the market state and the price time.
   const dateStr = bn
-    ? bnDate(isoToday, true)
-    : new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+    ? bnDate(isoToday, true).replace(/\s\d{4}$/, "")
+    : new Date().toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
 
   // The portfolio's move today (the money button shows it).
   const todayMove = hasPortfolio ? portfolioTodayMove(holdings!, priceMap, bundle?.ex_moves) : null;
@@ -220,7 +221,6 @@ export default function PersonalizedHome() {
             name={user?.display_name}
             dateStr={dateStr}
             isNew={isNewUser}
-            premium={planState === "premium"}
             holdings={holdings}
             priceMap={priceMap}
             todayMove={todayMove}

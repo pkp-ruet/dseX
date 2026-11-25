@@ -55,63 +55,67 @@
 
 /* ---------- 1 · The band ----------
    Open on the canvas since the spacious pass (2026-11-23): no tinted box, so
-   the greeting, the money card and the search read as the page's top. */
+   the greeting, the money card and the search read as the page's top.
+   Clean pass (2026-11-25): no avatar (the navbar has the account), the date
+   line carries the price time, ONE quiet money card, a soft grey search. */
 .hm-band { padding: 0; }
 .hm-band-in {
-  display: grid; grid-template-columns: 48px minmax(0, 1fr);
-  column-gap: var(--space-4); row-gap: var(--space-3); align-items: start;
+  display: grid; grid-template-columns: minmax(0, 1fr);
+  column-gap: var(--space-8); row-gap: var(--space-4); align-items: start;
 }
-.hm-av {
-  position: relative; width: 48px; height: 48px; border-radius: 50%;
-  display: grid; place-items: center;
-  background: var(--primary); color: var(--on-fill);
-  font-size: var(--fs-lg); font-weight: 700;
-}
-.hm-av-crown {
-  position: absolute; right: -4px; bottom: -3px; width: 22px; height: 22px; border-radius: 50%;
-  display: grid; place-items: center;
-  background: var(--gold-light); color: var(--gold-ink);
-  box-shadow: 0 0 0 2px var(--bg);
-}
+/* The date, the market state and, while DSE trades, the price time; wraps on
+   a narrow phone rather than cutting a word. */
 .hm-date {
-  display: flex; align-items: center; gap: var(--space-2); min-width: 0;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 2px var(--space-2); min-width: 0;
   font-size: var(--fs-2xs); font-weight: 400; color: var(--text-muted);
 }
-.hm-date-sep { width: 4px; height: 4px; flex: none; border-radius: 50%; background: var(--text-muted); }
+/* A little more room between the date and the market state's dot. */
+.hm-date > :nth-child(2) { margin-left: var(--space-1); }
 .hm-hi {
   margin-top: var(--space-1); font-size: var(--fs-xl); font-weight: 700; line-height: 1.2;
   letter-spacing: -0.01em; color: var(--text); text-wrap: balance;
 }
-/* Round 2 (2026-11-18): the money spans the band on phones, so the value can
-   be the biggest number on the screen. 20px under the greeting. */
-.hm-pill-wrap { grid-column: 1 / -1; min-width: 0; margin-top: var(--space-2); }
+.hm-money-wrap { min-width: 0; margin-top: var(--space-1); }
 
-/* The money: one calm card, full width ("See my portfolio" / "Add your
-   shares", or the value once shown). */
-.hm-pill {
-  display: flex; align-items: center; gap: var(--space-3); width: 100%;
-  min-height: 64px; padding: var(--space-2) var(--space-4) var(--space-2) var(--space-2);
+/* The money card: "Your portfolio" with a plain eye, the value, one line of
+   moves (figures coloured, words muted), a chevron to the portfolio. The same
+   shape hidden, shown, empty or loading, so nothing jumps when the eye is
+   tapped. The guest band's example card (.hm-g-money) has the same top. */
+.hm-money {
+  display: grid; gap: var(--space-1); width: 100%; min-height: 104px;
+  padding: var(--space-3) var(--space-4) var(--space-4);
   border: 1px solid rgb(var(--border-rgb) / 0.7); border-radius: var(--radius-lg);
   background: var(--surface); box-shadow: var(--shadow-soft);
-  font-size: var(--fs-base); font-weight: 600; color: var(--text); text-align: left;
+  color: var(--text); text-align: left;
   transition: border-color 0.15s ease;
 }
-.hm-pill:hover { border-color: rgb(var(--primary-rgb) / 0.45); }
-.hm-pill:active { background: var(--surface-2); }
-.hm-pill--wait { background: var(--surface-2); box-shadow: none; }
-.hm-pill-label { flex: 1; min-width: 0; }
-.hm-pill-ic {
-  flex: none; width: 44px; height: 44px; border-radius: 50%;
-  display: grid; place-items: center;
-  background: var(--primary); color: var(--on-fill);
+.hm-money--tap { cursor: pointer; }
+.hm-money--tap:hover,
+.hm-money:has(.hm-money-open:hover) { border-color: rgb(var(--primary-rgb) / 0.45); }
+.hm-money--tap:active { background: var(--surface-2); }
+.hm-money--wait { background: var(--surface-2); border-color: transparent; box-shadow: none; }
+.hm-money-top {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-2);
+  min-height: 20px;
 }
-/* Shown: the eye (44px) hides it again; everything right of it, the arrow
-   included, opens the portfolio. */
-.hm-pill--open { flex-wrap: nowrap; }
-.hm-pill-eye { cursor: pointer; }
-.hm-pill-eye:hover { background: var(--primary-ink); }
-.hm-pill-open { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--space-2); color: var(--text); }
-.hm-pill-txt { flex: 1; min-width: 0; display: grid; gap: var(--space-1); }
+.hm-money-lbl { font-size: var(--fs-2xs); font-weight: 400; color: var(--text-muted); }
+.hm-money-eye { flex: none; display: grid; place-items: center; color: var(--text-muted); }
+/* The shown card's eye: a 40px tap target that keeps the label row 20px tall. */
+.hm-money-eye--btn {
+  width: 40px; height: 40px; margin: -10px -10px -10px 0; border-radius: 50%;
+  cursor: pointer; transition: background-color 0.15s ease, color 0.15s ease;
+}
+.hm-money-eye--btn:hover { background: var(--surface-2); color: var(--text); }
+.hm-money-row { display: flex; align-items: flex-end; gap: var(--space-2); min-width: 0; color: var(--text); }
+.hm-money-open:active .hm-money-val { color: var(--primary-ink); }
+.hm-money-txt { flex: 1; min-width: 0; display: grid; gap: var(--space-1); }
+.hm-money-val { font-size: var(--fs-xl); font-weight: 700; line-height: 1.15; letter-spacing: -0.01em; }
+.hm-money-mask { letter-spacing: 0.08em; color: var(--text-muted); }
+.hm-money-add { font-size: var(--fs-md); font-weight: 600; line-height: 1.3; color: var(--primary-ink); }
+.hm-money-l2 { font-size: var(--fs-xs); font-weight: 400; line-height: 1.4; color: var(--text-muted); }
+.hm-money-chev { flex: none; display: grid; place-items: center; padding-bottom: 2px; color: var(--text-muted); }
+
+/* The guest band's example money (.hm-g-money) still reads these. */
 .hm-pill-l1 { display: flex; flex-wrap: wrap; align-items: center; gap: 4px var(--space-2); }
 .hm-pill-val { font-size: var(--fs-xl); font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; }
 .hm-pill-day {
@@ -121,34 +125,30 @@
 .hm-pill-day--up { background: rgb(var(--positive-rgb) / 0.12); color: var(--positive); }
 .hm-pill-day--down { background: rgb(var(--negative-rgb) / 0.12); color: var(--negative); }
 .hm-pill-l2 { font-size: var(--fs-xs); font-weight: 400; color: var(--text-muted); }
-.hm-pill-chev { flex: none; display: grid; place-items: center; color: var(--primary-ink); }
 
-/* The search field (opens the site's search); its words read like a
-   field's placeholder. */
+/* The search field (opens the site's search): a soft grey field, not a
+   second white box under the money card. Its words read like a placeholder. */
 .hm-search {
   grid-column: 1 / -1;
   display: flex; align-items: center; gap: var(--space-3);
   width: 100%; min-width: 0; min-height: 52px; padding: 0 calc(var(--space-4) + 2px);
-  border: 1px solid var(--border); border-radius: var(--radius-lg);
-  background: var(--surface);
+  border: 1px solid rgb(var(--border-rgb) / 0.6); border-radius: var(--radius-lg);
+  background: var(--surface-2);
   font-size: var(--fs-sm); font-weight: 400; color: var(--text-muted); text-align: left;
-  cursor: pointer; transition: border-color 0.15s ease;
+  cursor: pointer; transition: border-color 0.15s ease, background-color 0.15s ease;
 }
-.hm-search:hover { border-color: rgb(var(--primary-rgb) / 0.45); }
-.hm-search:active { background: var(--surface-2); }
-.hm-search svg { flex: none; color: var(--primary); }
+.hm-search:hover { border-color: var(--border); }
+.hm-search:active { background: rgb(var(--border-rgb) / 0.6); }
+.hm-search svg { flex: none; color: var(--text-muted); }
 .hm-search span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (min-width: 640px) {
-  .hm-band-in { grid-template-columns: 56px minmax(0, 1fr); }
-  .hm-av { width: 56px; height: 56px; font-size: var(--fs-xl); }
   .hm-hi { font-size: var(--fs-2xl); }
 }
 /* From 900px the money card sits on the right of the greeting, and the
    search runs the full width under both. */
 @media (min-width: 900px) {
-  .hm-band-in { grid-template-columns: 56px minmax(0, 1fr) minmax(0, 340px); row-gap: var(--space-6); }
-  .hm-pill-wrap { grid-column: 3; grid-row: 1; align-self: center; margin-top: 0; }
-  .hm-pill { min-height: 72px; }
+  .hm-band-in { grid-template-columns: minmax(0, 1fr) minmax(0, 340px); row-gap: var(--space-6); align-items: center; }
+  .hm-money-wrap { grid-column: 2; grid-row: 1; margin-top: 0; }
   .hm-search { min-height: 56px; font-size: var(--fs-base); }
 }
 
