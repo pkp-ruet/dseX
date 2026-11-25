@@ -58,7 +58,7 @@ jobs:
           for p in /api/scores /api/market/state /api/dse-today \
                    /api/dividend-calendar /api/sectors /api/screener \
                    /api/buy-list /api/results /api/rankings/today \
-                   /api/research/summary; do
+                   /api/research/summary /api/home/today; do
             curl -s -o /dev/null -m 240 -w "$p %{http_code} %{time_total}s\n" "$B$p" &
           done
           wait

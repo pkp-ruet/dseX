@@ -1268,6 +1268,57 @@ export async function getBuyList(revalidate = 900): Promise<BuyList> {
   return apiFetch("/api/buy-list", revalidate);
 }
 
+/** One thing on a day of the home's week strip (`backend/services/home_today.py`). */
+export interface HomeTodayItem {
+  kind: "dividend" | "results";
+  code: string;
+  name: string;
+  /** Dividend: cash a share (taka) and / or bonus shares (%), the last day to buy. */
+  cash_ps?: number | null;
+  stock_pct?: number | null;
+  yield_pct?: number | null;
+  type?: string | null;
+  buy_by?: string | null;
+  /** Results meeting: q1 / q2 / q3 / annual. */
+  purpose?: UpcomingResult["purpose"] | null;
+  label_en?: string;
+  label_bn?: string;
+}
+
+/** `GET /api/home/today` — the home's daily public part (2026-11-25): the same
+ *  answer for every reader; the browser marks the reader's own shares. Each
+ *  part is null when its source failed. */
+export interface HomeToday {
+  as_of: string;
+  /** The next five trading days: dividend record dates inside the calendar's
+   *  free week, and results meetings. */
+  days: { date: string; items: HomeTodayItem[] }[] | null;
+  /** Reports posted in the last 7 days, by the /results levels. */
+  results: {
+    since: string;
+    total: number;
+    levels: Record<"good" | "watch" | "bad" | "neutral", number>;
+    codes: string[];
+  } | null;
+  ranking: {
+    total: number;
+    top: { rank: number; code: string; name: string }[];
+    /** Inside the top 50, climbed most this week. */
+    climbers: { rank: number; code: string; name: string; places: number }[];
+  } | null;
+  buy_list: {
+    count: number;
+    universe: number;
+    week_joined: number;
+    top: { code: string; name: string }[];
+    free_pick: { code: string; name: string } | null;
+  } | null;
+}
+
+export async function getHomeToday(revalidate = 900): Promise<HomeToday> {
+  return apiFetch("/api/home/today", revalidate);
+}
+
 export async function getRiskRegister(): Promise<RiskRegister> {
   return apiFetch("/api/research/risks", 3600);
 }

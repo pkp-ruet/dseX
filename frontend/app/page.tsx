@@ -5,12 +5,11 @@ import {
   getTrust,
   getMarketState,
   getMarketIndex,
-  getLatestResults,
-  getRiskRegister,
+  getHomeToday,
   type TrustStats,
 } from "@/lib/api";
 import { buildLandingPortfolios, type SampleView } from "@/lib/landing-portfolio";
-import { exampleRows, guestWhen, sampleMoney, sampleShares } from "@/lib/guest-home";
+import { guestWhen, sampleMoney, sampleShares } from "@/lib/guest-home";
 import { bstDateStr } from "@/lib/market-hours";
 import HomePersonalizationGate from "@/components/home/HomePersonalizationGate";
 import GuestHome, { type GuestHomeData } from "@/components/home/guest/GuestHome";
@@ -79,16 +78,14 @@ async function guestData(p: {
   scores: ReturnType<typeof getScores>;
   market: ReturnType<typeof getMarketState>;
   index: ReturnType<typeof getMarketIndex>;
-  results: ReturnType<typeof getLatestResults>;
-  risks: ReturnType<typeof getRiskRegister>;
+  today: ReturnType<typeof getHomeToday>;
 }): Promise<GuestHomeData> {
   const none = () => null;
-  const [scores, market, index, results, risks] = await Promise.all([
+  const [scores, market, index, today] = await Promise.all([
     p.scores.catch(none),
     p.market.catch(none),
     p.index.catch(none),
-    p.results.catch(none),
-    p.risks.catch(none),
+    p.today.catch(none),
   ]);
   const items = scores ? flattenTiers(scores) : [];
   const byCode = new Map(items.map((s) => [s.trading_code.toUpperCase(), s]));
@@ -108,8 +105,9 @@ async function guestData(p: {
     money: sampleMoney(byCode, sample?.grade ?? null),
     marketIndex: index,
     market,
-    examples: exampleRows(todayIso, results, market, risks),
     shares: sampleShares(byCode),
+    today,
+    todayIso,
   };
 }
 
@@ -147,8 +145,7 @@ export default function HomePage() {
     scores: getScores(),
     market: getMarketState(3600),
     index: getMarketIndex(),
-    results: getLatestResults(3600),
-    risks: getRiskRegister(),
+    today: getHomeToday(3600),
   });
   const trust = getTrust().catch(() => null);
 

@@ -7,7 +7,9 @@ import { usePremium } from "@/lib/premium";
 import {
   getScores,
   getMarketState,
+  getHomeToday,
   type HomeBundle,
+  type HomeToday,
   type ScoreItem,
   type ScoresResponse,
   type MarketStateData,
@@ -24,13 +26,18 @@ import { buildDates } from "@/lib/home-dates";
 import { marketSession, isTradingDay, bstDateStr } from "@/lib/market-hours";
 import { bnDate } from "@/lib/bn";
 import { trackHomeTap } from "@/lib/track";
+import { shortcutBadges } from "@/lib/home-today";
 
 import PullToRefresh from "@/components/home/personalized/PullToRefresh";
 import HomeHeader from "@/components/home/personalized/HomeHeader";
-import OnYourShares from "@/components/home/personalized/OnYourShares";
 import YourShares from "@/components/home/personalized/YourShares";
 import HomeCard from "@/components/home/personalized/HomeCard";
 import MarketLine from "@/components/home/personalized/MarketLine";
+import RecentShares from "@/components/home/daily/RecentShares";
+import Shortcuts from "@/components/home/daily/Shortcuts";
+import WeekOnDse from "@/components/home/daily/WeekOnDse";
+import TodaysLists from "@/components/home/daily/TodaysLists";
+import ExploreSite from "@/components/home/daily/ExploreSite";
 
 function flatten(scores: ScoresResponse | null): Map<string, ScoreItem> {
   if (!scores) return new Map();
@@ -53,11 +60,29 @@ function flatten(scores: ScoresResponse | null): Map<string, ScoreItem> {
  * is the menu), the story rings, the swipe slot, Today for you and the plan
  * chip. A brand-new account gets the band, the first-step card and the
  * market line.
+ *
+ * The fuller home (2026-11-25, later the same day — user: "the homepage looks
+ * so small and empty. user has to find everything from menus", then "Build
+ * all five" on https://claude.ai/artifact/RX71QgzkFto62nrNpZWZjm). Five
+ * blocks came back as doors, never as explanations:
+ *   A recently opened shares under the search (this device)
+ *   B eight shortcuts in fixed places, one daily number at most
+ *   — the four blocks and the card as above —
+ *   C this week on the DSE: record dates and results meetings, five days
+ *   D today's lists: Buy List, strongest companies, results this week
+ *   E explore: the four tabs with every page, and today's read
+ * C, D and the shortcut numbers read `/api/home/today` (the same for every
+ * reader); the reader's own shares are marked here.
+ *
+ * "New on your shares" left the home the same evening (user: "remove New on
+ * your shares from homepage only keep your shares"): Your shares carries one
+ * status a share (the next date, else the newest update from 3 days), and
+ * every update is on Updates (the bell) and My shares.
  */
 export default function PersonalizedHome() {
   const { user } = useAuth();
   const { lang } = useLang();
-  const { state: planState } = usePremium();
+  const { state: planState, isPremium } = usePremium();
   const bn = lang === "bn";
 
   // SWR hydrate from localStorage for an instant first paint. Background
@@ -75,6 +100,8 @@ export default function PersonalizedHome() {
   const [marketState, setMarketState] = useState<MarketStateData | null>(
     () => readCache<MarketStateData>(cacheKeys.marketState),
   );
+  // The home's daily public part (week strip, today's lists, shortcut numbers).
+  const [today, setToday] = useState<HomeToday | null>(() => readCache<HomeToday>(cacheKeys.homeToday));
   // True only on the first render right after signup (one-shot flag).
   const [isNewUser, setIsNewUser] = useState(false);
 
@@ -82,7 +109,8 @@ export default function PersonalizedHome() {
     if (consumeJustSignedUp()) setIsNewUser(true);
   }, []);
 
-  // THREE requests: the personal bundle, the scores, the market state. The
+  // FOUR requests: the personal bundle, the scores, the market state and the
+  // home's daily public part (the same answer for every reader). The
   // bundle also feeds the shared watchlist + alerts stores, so the navbar
   // badge needs no request of its own.
   const runFetches = useCallback(
@@ -118,6 +146,13 @@ export default function PersonalizedHome() {
             writeCache(cacheKeys.marketState, d);
           })
           .catch(() => {}),
+        getHomeToday()
+          .then((d) => {
+            if (!isAlive()) return;
+            setToday(d);
+            writeCache(cacheKeys.homeToday, d);
+          })
+          .catch(() => {}),
       ];
       return Promise.allSettled(jobs);
     },
@@ -140,7 +175,6 @@ export default function PersonalizedHome() {
   const hasWatchlist = codes.length > 0;
   const hasPortfolio = (holdings?.length ?? 0) > 0;
   const isBrandNew = holdings !== null && !hasPortfolio && !hasWatchlist;
-  const loading = !bundle && !bundleSettled;
 
   const isoToday = bstDateStr();
   const dateStr = bn
@@ -159,6 +193,14 @@ export default function PersonalizedHome() {
   const resultsSoon = bundle?.results_soon ?? [];
   const ownDividends = bundle?.dividend_cash ?? [];
   const dates = useMemo(() => buildDates(isoToday, resultsSoon, ownDividends), [isoToday, resultsSoon, ownDividends]);
+
+  // The reader's own codes, for H / ★ in the week strip and "2 are your shares".
+  const held = useMemo(() => [...new Set((holdings ?? []).map((h) => h.trading_code.toUpperCase()))], [holdings]);
+  const watched = useMemo(() => codes.map((c) => c.toUpperCase()).filter((c) => !held.includes(c)), [codes, held]);
+  const mine = useMemo(() => new Set([...held, ...watched]), [held, watched]);
+  const badges = useMemo(() => shortcutBadges(today), [today]);
+  // A day-old copy from the device would show yesterday's week as today's.
+  const todayFresh = today && today.as_of === isoToday ? today : null;
 
   // One delegated listener: any link tapped inside a `[data-card]` wrapper
   // records which card it came from. No per-component wiring.
@@ -185,18 +227,11 @@ export default function PersonalizedHome() {
             when={when}
             lang={lang}
           />
+          <RecentShares lang={lang} priceMap={priceMap} />
         </div>
 
-        {!isBrandNew && (
-          <OnYourShares
-            lang={lang}
-            feed={feed}
-            loading={loading}
-            todayIso={isoToday}
-            resultsSoon={resultsSoon}
-            ownDividends={ownDividends}
-          />
-        )}
+        <Shortcuts lang={lang} badges={todayFresh ? badges : {}} crowns={!isPremium} />
+
 
         {!isBrandNew && (
           <YourShares
@@ -227,6 +262,14 @@ export default function PersonalizedHome() {
             lang={lang}
           />
         </div>
+
+        {todayFresh?.days && (
+          <WeekOnDse key={todayFresh.as_of} lang={lang} days={todayFresh.days} todayIso={isoToday} held={held} watched={watched} />
+        )}
+
+        <TodaysLists lang={lang} data={todayFresh} mine={mine} premium={isPremium} />
+
+        <ExploreSite lang={lang} crowns={!isPremium} todayIso={isoToday} />
       </div>
     </PullToRefresh>
   );

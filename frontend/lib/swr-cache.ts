@@ -95,6 +95,8 @@ export const cacheKeys = {
   allCodes: `${CACHE_PREFIX}allCodes`,
   marketIndex: `${CACHE_PREFIX}marketIndex`,
   marketState: `${CACHE_PREFIX}marketState`,
+  /** `/api/home/today`: the home's week strip, today's lists, the shortcut numbers. */
+  homeToday: `${CACHE_PREFIX}homeToday`,
   watchlistCodes: (userId: string) => `${CACHE_PREFIX}watchlistCodes.${userId}`,
   watchlistMeta: (userId: string) => `${CACHE_PREFIX}watchlistMeta.${userId}`,
   watchlistUpdates: (codes: string[]) =>

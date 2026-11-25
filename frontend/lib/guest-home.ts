@@ -1,12 +1,5 @@
-import type {
-  LatestResults,
-  MarketStateData,
-  ScoreItem,
-} from "@/lib/api";
-import type { RiskRegister } from "@/lib/research-reports";
+import type { MarketStateData, ScoreItem } from "@/lib/api";
 import { SAMPLE_PORTFOLIOS } from "@/lib/sample-portfolios";
-import { whenWord } from "@/lib/home-dates";
-import { money } from "@/lib/formatters";
 
 /**
  * The guest home (2026-11-23, user: the signed-out landing "doesn't tell much
@@ -60,105 +53,6 @@ export function sampleMoney(byCode: Map<string, ScoreItem>, grade: string | null
     }
   }
   return { value, delta: known ? delta : null, shares: holdings.length, grade };
-}
-
-// ------------------------------------------------------- 4 · on your shares
-
-export type ExampleTone = "good" | "watch" | "bad";
-
-export interface ExampleRow {
-  key: string;
-  kind: Bi;
-  tone: ExampleTone;
-  code: string;
-  name: string;
-  text: Bi;
-  when: Bi;
-  href: string;
-}
-
-function nextCashRecord(market: MarketStateData | null) {
-  return (market?.next?.dividends ?? [])
-    .filter((d) => d.kind === "record" && (d.cash_per_share ?? 0) > 0 && d.buy_by && (d.buy_days_left ?? -1) >= 0)
-    .sort((a, b) => (a.buy_by ?? "").localeCompare(b.buy_by ?? ""));
-}
-
-/**
- * Three real things from today, as they would read on a reader's own shares:
- * a better result, a last day to buy before a dividend, and a serious problem
- * a company picked up this week (else a weaker result). Each is already
- * public on its own page.
- */
-export function exampleRows(
-  todayIso: string,
-  results: LatestResults | null,
-  market: MarketStateData | null,
-  risks: RiskRegister | null,
-): ExampleRow[] {
-  const out: ExampleRow[] = [];
-  const rows = results?.results ?? [];
-
-  const good = rows.find((r) => r.level === "good");
-  if (good) {
-    out.push({
-      key: `res-${good.code}`,
-      kind: { en: "Results", bn: "আর্থিক ফল" },
-      tone: "good",
-      code: good.code,
-      name: shortCompany(good.name, good.code),
-      text: { en: good.headline_en, bn: good.headline_bn || good.headline_en },
-      when: whenWord(todayIso, good.post_date.slice(0, 10)),
-      href: `/stock/${encodeURIComponent(good.code)}#results`,
-    });
-  }
-
-  const div = nextCashRecord(market)[0];
-  if (div && div.buy_by && div.cash_per_share != null) {
-    const name = shortCompany(div.company_name, div.trading_code);
-    const cash = money(div.cash_per_share);
-    out.push({
-      key: `div-${div.trading_code}`,
-      kind: { en: "Last day to buy", bn: "কেনার শেষ দিন" },
-      tone: "watch",
-      code: div.trading_code,
-      name,
-      text: {
-        en: `Buy by this day to get its ${cash} a share cash dividend.`,
-        bn: `শেয়ারপ্রতি ${cash} নগদ ডিভিডেন্ড পেতে এই দিনের মধ্যে কিনতে হবে।`,
-      },
-      when: whenWord(todayIso, div.buy_by),
-      href: `/stock/${encodeURIComponent(div.trading_code)}#dividends`,
-    });
-  }
-
-  const added = risks?.week?.added?.[0];
-  if (added) {
-    out.push({
-      key: `risk-${added.code}-${added.key}`,
-      kind: { en: "Warning", bn: "সতর্কতা" },
-      tone: "bad",
-      code: added.code,
-      name: shortCompany(added.name, added.code),
-      text: added.title,
-      when: whenWord(todayIso, added.date.slice(0, 10)),
-      href: `/stock/${encodeURIComponent(added.code)}#an-safety`,
-    });
-  } else {
-    const bad = rows.find((r) => r.level === "bad");
-    if (bad) {
-      out.push({
-        key: `res-${bad.code}`,
-        kind: { en: "Weaker results", bn: "দুর্বল ফল" },
-        tone: "bad",
-        code: bad.code,
-        name: shortCompany(bad.name, bad.code),
-        text: { en: bad.headline_en, bn: bad.headline_bn || bad.headline_en },
-        when: whenWord(todayIso, bad.post_date.slice(0, 10)),
-        href: `/stock/${encodeURIComponent(bad.code)}#results`,
-      });
-    }
-  }
-  return out;
 }
 
 // --------------------------------------------------- 6 · today on the site
