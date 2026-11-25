@@ -139,26 +139,26 @@ export function firstDay(days: { items: HomeTodayItem[] }[]): number {
   return i < 0 ? 0 : i;
 }
 
-/** One short read a day in the Learn card: the guides that exist in both
- *  languages (`lib/i18n-pairs.ts`), titled plainly here so the home doesn't
+/** One short read a day in the Learn card: the guides and lessons that exist in
+ *  both languages (`lib/i18n-pairs.ts`), titled plainly here so the home doesn't
  *  load the guide files. */
 export const DAILY_READS: { learn: string; blog: string; title: Bi }[] = [
+  { learn: "how-the-share-market-works", blog: "how-the-share-market-works", title: { en: "How the share market works", bn: "শেয়ার বাজার যেভাবে কাজ করে" } },
+  { learn: "trading-or-investing", blog: "why-long-term-investing-wins", title: { en: "Trading or investing: which is right for you?", bn: "ট্রেডিং নাকি বিনিয়োগ: আপনার জন্য কোনটি?" } },
+  { learn: "read-the-market-each-day", blog: "understand-market-momentum", title: { en: "How to read the market each day", bn: "প্রতিদিন বাজার বুঝবেন যেভাবে" } },
+  { learn: "fundamental-analysis", blog: "good-stock-key-numbers", title: { en: "How to tell a good company in 10 minutes", bn: "10 মিনিটে ভালো কোম্পানি চিনবেন যেভাবে" } },
+  { learn: "cheap-or-expensive", blog: "cheap-or-expensive", title: { en: "Cheap or expensive? How to judge a share's price", bn: "সস্তা নাকি দামি? শেয়ারের দাম যাচাই" } },
+  { learn: "how-many-shares-to-own", blog: "how-many-shares-to-own", title: { en: "How many shares should you own?", bn: "কয়টি শেয়ার রাখা উচিত?" } },
+  { learn: "investing-every-month", blog: "power-of-compounding", title: { en: "Buying in parts: how to invest every month", bn: "ভাগে ভাগে কেনা: প্রতি মাসে বিনিয়োগ" } },
+  { learn: "when-to-sell-shares", blog: "when-to-sell-shares", title: { en: "When to sell a share", bn: "কখন শেয়ার বিক্রি করবেন" } },
+  { learn: "when-the-market-falls", blog: "master-fear-and-greed", title: { en: "What to do when the market falls", bn: "বাজার পড়লে কী করবেন" } },
+  { learn: "rumour-shares", blog: "ignore-rumors-do-research", title: { en: "Rumour shares: how to stay safe", bn: "গুজবের শেয়ার: নিরাপদ থাকবেন যেভাবে" } },
+  { learn: "open-bo-account", blog: "open-bo-account", title: { en: "How to open a BO account", bn: "বিও অ্যাকাউন্ট খুলবেন যেভাবে" } },
+  { learn: "buy-sell-shares", blog: "buy-sell-shares", title: { en: "How to add money and buy your first share", bn: "টাকা জমা দিয়ে প্রথম শেয়ার কিনবেন যেভাবে" } },
   { learn: "cash-vs-bonus-dividend", blog: "cash-vs-bonus-dividend", title: { en: "Cash dividend or bonus shares: what is the difference?", bn: "ক্যাশ ডিভিডেন্ড আর বোনাস শেয়ারের পার্থক্য" } },
   { learn: "dividend-yield", blog: "dividend-yield", title: { en: "How to tell if a dividend is really good", bn: "একটি ডিভিডেন্ড আসলেই ভালো কিনা বুঝবেন যেভাবে" } },
   { learn: "share-categories-explained", blog: "share-categories", title: { en: "What the A, B, N and Z categories mean", bn: "A, B, N আর Z ক্যাটাগরির মানে" } },
-  { learn: "fundamental-analysis", blog: "good-stock-key-numbers", title: { en: "The few numbers that tell a good company", bn: "ভালো কোম্পানি চেনার কয়েকটি সংখ্যা" } },
-  { learn: "dse-indices", blog: "market-indices", title: { en: "What DSEX, DS30 and DSES tell you", bn: "DSEX, DS30 আর DSES কী বলে" } },
-  { learn: "floor-price-circuit-breaker", blog: "floor-price-circuit-breaker", title: { en: "Floor price and circuit breaker, simply", bn: "ফ্লোর প্রাইস আর সার্কিট ব্রেকার, সহজ ভাষায়" } },
   { learn: "read-financial-statements", blog: "three-financial-reports", title: { en: "The three money reports every company shares", bn: "প্রতিটি কোম্পানির তিনটি আর্থিক রিপোর্ট" } },
-  { learn: "judge-a-bank-stock", blog: "judge-a-bank-stock", title: { en: "How to judge a bank share", bn: "ব্যাংকের শেয়ার যাচাই করবেন যেভাবে" } },
-  { learn: "read-a-price-chart", blog: "read-price-chart", title: { en: "How to read a price chart", bn: "দামের চার্ট পড়বেন যেভাবে" } },
-  { learn: "understanding-sectors", blog: "understand-sectors", title: { en: "Understanding the sectors of the market", bn: "বাজারের সেক্টরগুলো বোঝা" } },
-  { learn: "read-annual-report", blog: "read-annual-report", title: { en: "How to read an annual report", bn: "বার্ষিক প্রতিবেদন পড়বেন যেভাবে" } },
-  { learn: "buy-sell-shares", blog: "buy-sell-shares", title: { en: "How to buy and sell shares", bn: "শেয়ার কেনাবেচা করবেন যেভাবে" } },
-  { learn: "apply-for-ipo", blog: "apply-for-ipo", title: { en: "How to apply for an IPO", bn: "আইপিওতে আবেদন করবেন যেভাবে" } },
-  { learn: "check-before-ipo", blog: "is-this-ipo-worth-it", title: { en: "Is an IPO worth applying for?", bn: "একটি আইপিওতে আবেদন করা ঠিক হবে কিনা" } },
-  { learn: "open-bo-account", blog: "open-bo-account", title: { en: "How to open a BO account", bn: "বিও অ্যাকাউন্ট খুলবেন যেভাবে" } },
-  { learn: "how-to-start-investing", blog: "how-to-start-investing", title: { en: "How to start investing on the DSE", bn: "ডিএসইতে বিনিয়োগ শুরু করবেন যেভাবে" } },
 ];
 
 /** Today's read: a different guide each Dhaka day, the same for every reader. */

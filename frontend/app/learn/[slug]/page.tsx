@@ -6,17 +6,22 @@ import { GUIDES, getGuide } from "@/lib/guides";
 import { LEARN_TO_BLOG, guideLanguages } from "@/lib/i18n-pairs";
 import ArticleLangNote from "@/components/i18n/ArticleLangNote";
 import ArticleContents, { sectionId } from "@/components/learn/ArticleContents";
+import LessonPage from "@/components/learn/LessonPage";
+import { LESSONS, lessonBySlug, lessonHref } from "@/lib/learn/lessons";
+import type { Lang, Lesson } from "@/lib/learn/types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateStaticParams() {
-  return GUIDES.map((g) => ({ slug: g.slug }));
+  return [...LESSONS.map((x) => ({ slug: x.slug.en })), ...GUIDES.map((g) => ({ slug: g.slug }))];
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
+  const lesson = lessonBySlug("en", slug);
+  if (lesson) return lessonMetadata(lesson, "en");
   const guide = getGuide(slug);
   if (!guide) return {};
   return {
@@ -35,6 +40,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: guide.description,
       url: `/learn/${slug}`,
       type: "article",
+    },
+  };
+}
+
+function lessonMetadata(lesson: Lesson, lang: Lang): Metadata {
+  const title = lesson.seoTitle?.[lang] ?? lesson.title[lang];
+  return {
+    title,
+    description: lesson.summary[lang],
+    keywords: lesson.keywords[lang].split(",").map((k) => k.trim()),
+    alternates: {
+      canonical: lessonHref(lesson, lang),
+      languages: { en: lessonHref(lesson, "en"), bn: lessonHref(lesson, "bn"), "x-default": lessonHref(lesson, "en") },
+    },
+    openGraph: {
+      title,
+      description: lesson.summary[lang],
+      url: lessonHref(lesson, lang),
+      type: "article",
+      ...(lang === "bn" ? { locale: "bn_BD" } : {}),
     },
   };
 }
@@ -63,7 +88,7 @@ function buildJsonLd(slug: string, title: string, description: string) {
       "@type": "BreadcrumbList",
       itemListElement: [
         { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
-        { "@type": "ListItem", position: 2, name: "Beginner's Guide", item: `${BASE_URL}/learn` },
+        { "@type": "ListItem", position: 2, name: "Learn", item: `${BASE_URL}/learn` },
         { "@type": "ListItem", position: 3, name: title, item: `${BASE_URL}/learn/${slug}` },
       ],
     },
@@ -72,6 +97,8 @@ function buildJsonLd(slug: string, title: string, description: string) {
 
 export default async function GuidePage({ params }: Props) {
   const { slug } = await params;
+  const lesson = lessonBySlug("en", slug);
+  if (lesson) return <LessonPage lesson={lesson} lang="en" />;
   const guide = getGuide(slug);
   if (!guide) notFound();
 
@@ -187,7 +214,7 @@ export default async function GuidePage({ params }: Props) {
             View Score Leaderboard
           </Link>
           <Link href="/learn" className="btn-quiet">
-            ← All Guides
+            ← Back to Learn
           </Link>
         </div>
       </section>

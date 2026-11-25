@@ -8,6 +8,7 @@ import {
 } from "@/lib/api";
 import { GUIDES } from "@/lib/guides";
 import { BLOG_POSTS } from "@/lib/blog-bn";
+import { LESSONS, lessonHref } from "@/lib/learn/lessons";
 import { SAMPLE_SLUGS } from "@/lib/sample-portfolios";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
@@ -69,6 +70,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // the report's analyst note); their URLs 301 there (next.config.ts).
   const guidePages = GUIDES.map((g) => content(`/learn/${g.slug}`, "monthly", 0.7));
   const blogPages = BLOG_POSTS.map((p) => content(`/blog/${p.slug}`, "monthly", 0.7));
+  // The Learn lessons (2026-11-25), each in English and Bengali.
+  const lessonPages = LESSONS.flatMap((x) => [
+    content(lessonHref(x, "en"), "monthly", 0.8),
+    content(lessonHref(x, "bn"), "monthly", 0.8),
+  ]);
   const samplePortfolioPages = SAMPLE_SLUGS.map((slug) => content(`/sample-portfolio/${slug}`, "weekly", 0.7));
 
   return [
@@ -95,8 +101,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     data("/stock-insights/dividends-you-can-count-on", "weekly", 0.8),
     content("/compare-stocks", "monthly", 0.7),
     content("/portfolio-builder", "monthly", 0.7),
-    content("/learn", "monthly", 0.8),
-    content("/blog", "monthly", 0.8),
+    content("/learn", "monthly", 0.85),
+    content("/blog", "monthly", 0.85),
     content("/premium", "monthly", 0.5),
     content("/about", "yearly", 0.3),
     content("/contact", "yearly", 0.3),
@@ -105,6 +111,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     content("/refund-policy", "yearly", 0.3),
     ...sectorPages,
     ...samplePortfolioPages,
+    ...lessonPages,
     ...guidePages,
     ...blogPages,
     ...stockPages,

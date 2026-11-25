@@ -40,6 +40,13 @@ const nextConfig: NextConfig = {
       { source: "/find", destination: "/lists", permanent: true },
       { source: "/screener", destination: "/lists", permanent: true },
       { source: "/stock-insights", destination: "/lists", permanent: true },
+      // Learn, rebuilt (2026-11-25): old posts folded into a new post that has
+      // no address of its own. Posts the new ones replaced one for one kept
+      // their slugs (lib/learn/slugs.ts).
+      { source: "/learn/how-to-start-investing", destination: "/learn", permanent: true },
+      { source: "/blog/how-to-start-investing", destination: "/blog", permanent: true },
+      { source: "/blog/find-good-stocks-with-topstockbd", destination: "/blog/good-stock-key-numbers", permanent: true },
+      { source: "/blog/pick-quality-avoid-weak", destination: "/blog/good-stock-key-numbers", permanent: true },
       // Your Desk became Notifications (2026-11-06); old push links keep working.
       { source: "/desk", destination: "/notifications", permanent: true },
       // One Watch button (2026-11-25): the Watch rules page folded into the

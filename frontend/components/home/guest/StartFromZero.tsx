@@ -4,32 +4,36 @@ import { T } from "@/components/i18n/T";
 import { BLOG_TO_LEARN } from "@/lib/i18n-pairs";
 
 /**
- * Block 6 — the door for someone who has never bought a share: three short
- * guides as three cards. Bengali readers go to the Bengali blog post, English
- * readers to its paired English guide (`lib/i18n-pairs.ts`).
+ * The door for someone who has never bought a share: three lessons of the
+ * Start from zero path (2026-11-25, the Learn rebuild) as three cards. Bengali
+ * readers go to the Bengali lesson, English readers to its English pair
+ * (`lib/i18n-pairs.ts`).
  */
 
 const STARTERS = [
   {
-    slug: "how-to-start-investing",
-    title: "How to start investing",
-    titleBn: "বিনিয়োগ শুরু করবেন যেভাবে",
-    line: "Where to begin in the share market, step by step.",
-    bn: "একদম শুরু থেকে, ধাপে ধাপে শেয়ার বাজারে যাত্রা।",
-  },
-  {
+    n: 1,
     slug: "open-bo-account",
-    title: "Opening a BO account",
-    titleBn: "বিও অ্যাকাউন্ট খোলা",
-    line: "What you need before you can buy your first share.",
-    bn: "প্রথম শেয়ার কেনার আগে যা দরকার।",
+    title: "How to open a BO account",
+    titleBn: "বিও অ্যাকাউন্ট খুলবেন যেভাবে",
+    line: "Choose a broker, keep your papers ready, open the account.",
+    bn: "ব্রোকার বাছুন, কাগজ তৈরি রাখুন, অ্যাকাউন্ট খুলুন।",
   },
   {
-    slug: "good-stock-key-numbers",
-    title: "How to tell a good company",
-    titleBn: "ভালো কোম্পানি চেনার উপায়",
-    line: "The few numbers that matter, in plain words.",
-    bn: "যে কয়েকটি সংখ্যা জরুরি, সহজ ভাষায়।",
+    n: 2,
+    slug: "buy-sell-shares",
+    title: "How to add money and buy your first share",
+    titleBn: "টাকা জমা দিয়ে প্রথম শেয়ার কিনবেন যেভাবে",
+    line: "Send money safely, place your order, know what you pay.",
+    bn: "নিরাপদে টাকা পাঠান, অর্ডার দিন, মোট খরচ জানুন।",
+  },
+  {
+    n: 3,
+    slug: "sell-shares-get-your-money",
+    title: "How to sell shares and get your money",
+    titleBn: "শেয়ার বিক্রি করে টাকা তুলবেন যেভাবে",
+    line: "Sell, wait two working days, take the money out.",
+    bn: "বিক্রি করুন, দুই কর্মদিবস অপেক্ষা, টাকা তুলুন।",
   },
 ];
 
@@ -43,13 +47,13 @@ export default function StartFromZero() {
           title={<T en="Start here, from zero." bn="শূন্য থেকে শুরু করুন।" />}
         />
         <T
-          en={<Link href="/learn" className="inline-flex min-h-10 items-center text-sm font-semibold text-primary-ink hover:underline">All guides →</Link>}
-          bn={<Link href="/blog" className="inline-flex min-h-10 items-center text-sm font-semibold text-primary-ink hover:underline">সব গাইড →</Link>}
+          en={<Link href="/learn#getting-started" className="inline-flex min-h-10 items-center text-sm font-semibold text-primary-ink hover:underline">All three steps →</Link>}
+          bn={<Link href="/blog#getting-started" className="inline-flex min-h-10 items-center text-sm font-semibold text-primary-ink hover:underline">তিনটি ধাপই দেখুন →</Link>}
         />
       </div>
 
       <ul className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-        {STARTERS.map((s, i) => {
+        {STARTERS.map((s) => {
           const card = (href: string, title: string, line: string, step: string) => (
             <Link href={href} className="soft-card flex h-full flex-col p-5 no-underline transition-shadow hover:shadow-lift">
               <span className="text-sm font-semibold text-text-main">{step}</span>
@@ -61,8 +65,8 @@ export default function StartFromZero() {
           return (
             <li key={s.slug}>
               <T
-                en={card(learn ? `/learn/${learn}` : `/blog/${s.slug}`, s.title, s.line, `Guide ${i + 1}`)}
-                bn={card(`/blog/${s.slug}`, s.titleBn, s.bn, `গাইড ${i + 1}`)}
+                en={card(learn ? `/learn/${learn}` : `/blog/${s.slug}`, s.title, s.line, `Step ${s.n}`)}
+                bn={card(`/blog/${s.slug}`, s.titleBn, s.bn, `ধাপ ${s.n}`)}
               />
             </li>
           );

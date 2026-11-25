@@ -6,17 +6,22 @@ import { BLOG_POSTS, getBlogPost, getBlogCategory } from "@/lib/blog-bn";
 import { BLOG_TO_LEARN, blogLanguages } from "@/lib/i18n-pairs";
 import ArticleLangNote from "@/components/i18n/ArticleLangNote";
 import ArticleContents, { sectionId } from "@/components/learn/ArticleContents";
+import LessonPage from "@/components/learn/LessonPage";
+import { LESSONS, lessonBySlug, lessonHref } from "@/lib/learn/lessons";
+import type { Lang, Lesson } from "@/lib/learn/types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateStaticParams() {
-  return BLOG_POSTS.map((p) => ({ slug: p.slug }));
+  return [...LESSONS.map((x) => ({ slug: x.slug.bn })), ...BLOG_POSTS.map((p) => ({ slug: p.slug }))];
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
+  const lesson = lessonBySlug("bn", slug);
+  if (lesson) return lessonMetadata(lesson, "bn");
   const post = getBlogPost(slug);
   if (!post) return {};
   return {
@@ -38,6 +43,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: `/blog/${slug}`,
       type: "article",
       locale: "bn_BD",
+    },
+  };
+}
+
+function lessonMetadata(lesson: Lesson, lang: Lang): Metadata {
+  const title = lesson.seoTitle?.[lang] ?? lesson.title[lang];
+  return {
+    title,
+    description: lesson.summary[lang],
+    keywords: lesson.keywords[lang].split(",").map((k) => k.trim()),
+    alternates: {
+      canonical: lessonHref(lesson, lang),
+      languages: { en: lessonHref(lesson, "en"), bn: lessonHref(lesson, "bn"), "x-default": lessonHref(lesson, "en") },
+    },
+    openGraph: {
+      title,
+      description: lesson.summary[lang],
+      url: lessonHref(lesson, lang),
+      type: "article",
+      ...(lang === "bn" ? { locale: "bn_BD" } : {}),
     },
   };
 }
@@ -66,7 +91,7 @@ function buildJsonLd(slug: string, title: string, description: string) {
       "@type": "BreadcrumbList",
       itemListElement: [
         { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
-        { "@type": "ListItem", position: 2, name: "বাংলা ব্লগ", item: `${BASE_URL}/blog` },
+        { "@type": "ListItem", position: 2, name: "শিখুন", item: `${BASE_URL}/blog` },
         { "@type": "ListItem", position: 3, name: title, item: `${BASE_URL}/blog/${slug}` },
       ],
     },
@@ -75,6 +100,8 @@ function buildJsonLd(slug: string, title: string, description: string) {
 
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params;
+  const lesson = lessonBySlug("bn", slug);
+  if (lesson) return <LessonPage lesson={lesson} lang="bn" />;
   const post = getBlogPost(slug);
   if (!post) notFound();
 
@@ -99,7 +126,7 @@ export default async function BlogPostPage({ params }: Props) {
       >
         <Link href="/" className="hover:text-primary transition-colors">হোম</Link>
         <span aria-hidden="true" className="opacity-50">/</span>
-        <Link href="/blog" className="hover:text-primary transition-colors">বাংলা ব্লগ</Link>
+        <Link href="/blog" className="hover:text-primary transition-colors">শিখুন</Link>
         <span aria-hidden="true" className="opacity-50">/</span>
         <span className="text-text-muted">{post.title}</span>
       </nav>
@@ -190,7 +217,7 @@ export default async function BlogPostPage({ params }: Props) {
             সেরা স্কোরের শেয়ার দেখুন
           </Link>
           <Link href="/blog" className="btn-quiet">
-            ← সব ব্লগ
+            ← সব পাঠ
           </Link>
         </div>
       </section>

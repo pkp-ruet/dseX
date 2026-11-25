@@ -1,23 +1,12 @@
 import type { Metadata } from "next";
-import Link from "@/components/ui/Link";
-import PageHeader from "@/components/ui/PageHeader";
-import {
-  GUIDES,
-  GUIDE_CATEGORY_ORDER,
-  GUIDE_CATEGORY_BLURB,
-  GUIDE_CATEGORY_ICON,
-  GUIDE_CATEGORY_SHORT,
-  categoryAnchor,
-} from "@/lib/guides";
-import CategoryNav from "@/components/learn/CategoryNav";
-import ArticleLangNote from "@/components/i18n/ArticleLangNote";
+import LearnHub from "@/components/learn/LearnHub";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
+const DESCRIPTION =
+  "Free lessons in plain words on investing in the Dhaka Stock Exchange: open a BO account, choose a broker, buy your first share, then learn to judge a company.";
 
 export const metadata: Metadata = {
-  title: "Beginner's Guide to Stock Market",
-  description:
-    "Everything you need to start investing in the Dhaka Stock Exchange — from opening a BO account to understanding fundamental analysis.",
+  title: "Learn the Share Market, Step by Step",
+  description: DESCRIPTION,
   keywords: [
     "how to invest in Bangladesh stock market",
     "DSE beginner guide",
@@ -25,183 +14,17 @@ export const metadata: Metadata = {
     "how to open BO account Bangladesh",
     "how to buy shares in Bangladesh",
     "stock market basics Bangladesh",
-    "fundamental analysis DSE",
+    "share market lessons Bangladesh",
   ],
   alternates: { canonical: "/learn", languages: { en: "/learn", bn: "/blog", "x-default": "/learn" } },
   openGraph: {
-    title: "Beginner's Guide to Stock Market — TopStockBD",
-    description:
-      "Everything you need to start investing in the Dhaka Stock Exchange — from opening a BO account to understanding fundamental analysis.",
+    title: "Learn the Share Market, Step by Step — TopStockBD",
+    description: DESCRIPTION,
     url: "/learn",
     type: "website",
   },
 };
 
 export default function LearnPage() {
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "CollectionPage",
-        "@id": `${BASE_URL}/learn`,
-        url: `${BASE_URL}/learn`,
-        name: "Beginner's Guide to Stock Market — TopStockBD",
-        description:
-          "Everything you need to start investing in the Dhaka Stock Exchange — from opening a BO account to understanding fundamental analysis.",
-        inLanguage: "en",
-        isPartOf: { "@id": BASE_URL },
-      },
-      {
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
-          { "@type": "ListItem", position: 2, name: "Learn", item: `${BASE_URL}/learn` },
-        ],
-      },
-    ],
-  };
-
-  const totalGuides = GUIDES.length;
-
-  const categories = GUIDE_CATEGORY_ORDER.map((category) => ({
-    key: category,
-    label: category,
-    short: GUIDE_CATEGORY_SHORT[category],
-    blurb: GUIDE_CATEGORY_BLURB[category],
-    anchor: categoryAnchor(category),
-    icon: GUIDE_CATEGORY_ICON[category],
-    count: GUIDES.filter((g) => g.category === category).length,
-  })).filter((c) => c.count > 0);
-
-  return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-
-      {/* Sticky jump bar — appears once you scroll past the index */}
-      <CategoryNav categories={categories} />
-
-    <div className="page-narrow space-y-12">
-      <PageHeader
-        eyebrow={<>Learn · {totalGuides} guides</>}
-        title={<>A beginner&apos;s guide to the stock market</>}
-        lead="New to investing in Bangladesh? Start here."
-      />
-
-      <ArticleLangNote
-        articleLang="en"
-        pairHref="/blog"
-        lead="এই গাইডগুলো ইংরেজিতে লেখা। বাংলায় লেখা গাইড আছে আমাদের বাংলা ব্লগে।"
-        pairLabel="বাংলা ব্লগ পড়ুন"
-      />
-
-      {/* Category index — tap to jump to a section */}
-      <section aria-label="Browse by topic" className="space-y-3">
-        <h2 className="text-center text-xs text-text-muted">
-          Browse by topic
-        </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {categories.map((c) => (
-            <a
-              key={c.anchor}
-              href={`#${c.anchor}`}
-              className="soft-card hover-lift group flex flex-col gap-1.5 p-4"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[color-mix(in_srgb,var(--primary)_8%,var(--surface-2))] text-lg">
-                  {c.icon}
-                </span>
-                <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-text-muted">
-                  {c.count}
-                </span>
-              </div>
-              <span className="font-semibold text-text-main text-base leading-snug group-hover:text-primary transition-colors">
-                {c.label}
-              </span>
-              <span className="text-xs leading-snug text-text-muted line-clamp-2">
-                {c.blurb}
-              </span>
-            </a>
-          ))}
-        </div>
-      </section>
-
-      {/* Guide sections, grouped by category */}
-      {GUIDE_CATEGORY_ORDER.map((category) => {
-        const guidesInCategory = GUIDES.filter((g) => g.category === category);
-        if (guidesInCategory.length === 0) return null;
-        return (
-          <section key={category} id={categoryAnchor(category)} className="scroll-mt-28 space-y-5">
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-3">
-                <span
-                  aria-hidden="true"
-                  className="h-5 w-1 rounded-full bg-gradient-to-b from-primary to-primary-soft"
-                />
-                <h2 className="text-xl font-bold tracking-tight text-text-main">
-                  {category}
-                </h2>
-                <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs text-text-muted">
-                  {guidesInCategory.length}
-                </span>
-              </div>
-              <p className="text-base leading-relaxed text-text-muted pl-4">
-                {GUIDE_CATEGORY_BLURB[category]}
-              </p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {guidesInCategory.map((guide) => (
-                <Link
-                  key={guide.slug}
-                  prefetch={false}
-                  href={`/learn/${guide.slug}`}
-                  className="soft-card hover-lift group flex flex-col gap-3 p-5"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[color-mix(in_srgb,var(--primary)_8%,var(--surface-2))] text-2xl">
-                      {guide.icon}
-                    </span>
-                    <span className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-text-muted">
-                      {guide.readTime}
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-text-main text-base leading-snug group-hover:text-primary transition-colors">
-                      {guide.title}
-                    </h3>
-                    <p className="mt-1.5 text-sm text-text-muted leading-relaxed">
-                      {guide.description}
-                    </p>
-                  </div>
-                  <span className="mt-auto inline-flex items-center gap-1 text-sm font-semibold text-primary">
-                    Read guide
-                    <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">→</span>
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </section>
-        );
-      })}
-
-      {/* Footer CTA */}
-      <section className="soft-card ambient-panel p-6 sm:p-7 text-center space-y-4">
-        <p className="text-lg font-semibold text-text-main">
-          Ready to put your knowledge to work?
-        </p>
-        <div className="flex flex-wrap justify-center gap-3">
-          <Link href="/dsestockranking" className="btn-primary">
-            See the rankings
-          </Link>
-          <Link href="/" className="btn-quiet">
-            Back to home
-          </Link>
-        </div>
-      </section>
-
-    </div>
-    </>
-  );
+  return <LearnHub lang="en" />;
 }

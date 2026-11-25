@@ -8,7 +8,7 @@
  *                                       Results, For you and the research reports open
  *                                       from it
  *   My shares  "How are my shares?"     My shares (/my) · Portfolio · Portfolio builder · Updates
- *   Learn                               Guides and blog · How we score
+ *   Learn                               Lessons · How we score
  *
  * The two tools (2026-11-25, "Compare and Builder Homes",
  * https://claude.ai/artifact/CJhx3MYvMxSpJSkiiHWzH4): they sat in the Lists
@@ -257,8 +257,8 @@ export const PLACES: Place[] = [
         key: "guides",
         href: "/learn",
         hrefBn: "/blog",
-        name: { en: "Guides and blog", bn: "গাইড ও ব্লগ" },
-        line: { en: "Short guides for beginners", bn: "নতুনদের জন্য ছোট গাইড" },
+        name: { en: "Lessons", bn: "পাঠ" },
+        line: { en: "The share market step by step, from zero", bn: "শূন্য থেকে ধাপে ধাপে শেয়ার বাজার" },
         ask: { en: "Where do I start?", bn: "কোথা থেকে শুরু করব?" },
         icon: "blog",
         paths: ["/blog"],

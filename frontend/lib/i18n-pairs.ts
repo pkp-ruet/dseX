@@ -1,15 +1,16 @@
+import { LESSON_EN_TO_BN } from "@/lib/learn/slugs";
+
 /**
  * English guide (`/learn/[slug]`) ↔ Bengali blog post (`/blog/[slug]`) pairs
  * that cover the same topic. Both pages emit `hreflang` alternates from this
  * one map so Google treats them as translations rather than two competing
  * pages. Guides with no Bengali counterpart (the tax/TIN trio) are simply
  * absent. Keep it in step when a slug is renamed on either side.
+ *
+ * Since 2026-11-25 the lessons (`lib/learn/slugs.ts`) are added from their own
+ * slug list, so every lesson is paired without an entry here.
  */
-export const LEARN_TO_BLOG: Record<string, string> = {
-  "how-to-start-investing": "how-to-start-investing",
-  "open-bo-account": "open-bo-account",
-  "buy-sell-shares": "buy-sell-shares",
-  "fundamental-analysis": "good-stock-key-numbers",
+const OLD_POSTS: Record<string, string> = {
   "apply-for-ipo": "apply-for-ipo",
   "cash-vs-bonus-dividend": "cash-vs-bonus-dividend",
   "share-categories-explained": "share-categories",
@@ -18,11 +19,10 @@ export const LEARN_TO_BLOG: Record<string, string> = {
   "dividend-yield": "dividend-yield",
   "check-before-ipo": "is-this-ipo-worth-it",
   "read-financial-statements": "three-financial-reports",
-  "read-annual-report": "read-annual-report",
-  "understanding-sectors": "understand-sectors",
-  "judge-a-bank-stock": "judge-a-bank-stock",
   "read-a-price-chart": "read-price-chart",
 };
+
+export const LEARN_TO_BLOG: Record<string, string> = { ...OLD_POSTS, ...LESSON_EN_TO_BN };
 
 export const BLOG_TO_LEARN: Record<string, string> = Object.fromEntries(
   Object.entries(LEARN_TO_BLOG).map(([learn, blog]) => [blog, learn]),
