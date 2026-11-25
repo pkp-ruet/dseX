@@ -468,6 +468,18 @@
 .mobile-menu-install:hover { background: rgb(var(--surface-2-rgb) / 0.7); }
 .mobile-menu-install:hover .mobile-menu-shortcut-icon { background: var(--surface); }
 
+/* Compare, right under the search field (2026-11-25): one row, close to
+   search, the chevron at its end. */
+.mobile-menu-tool {
+  margin-top: calc(-1 * var(--space-4));
+  box-shadow: inset 0 0 0 1px var(--border);
+  background: var(--surface);
+}
+.mobile-menu-tool .mobile-menu-shortcut-text { flex: 1; }
+.mobile-menu-tool > svg:last-child { flex-shrink: 0; color: var(--text-muted); }
+.mobile-menu-tool:hover { background: rgb(var(--surface-2-rgb) / 0.5); }
+.mobile-menu-tool[aria-current="page"] { background: var(--surface-2); }
+
 /* Group rows */
 .mobile-menu-list {
   display: grid;
@@ -580,8 +592,8 @@
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     grid-template-areas:
-      "search  search  search account"
-      "market  find    mine   learn"
+      "search  search  tool   account"
+      "market  lists   mine   learn"
       "quick   quick   quick  quick"
       "theme   theme   theme  theme";
     gap: var(--space-6) var(--space-8);
@@ -596,7 +608,7 @@
   .mobile-menu-account-avatar { width: 36px; height: 36px; font-size: var(--fs-sm); }
   .mobile-menu-account-name { font-size: var(--fs-sm); }
   .mobile-menu-section[data-group="market"] { grid-area: market; }
-  .mobile-menu-section[data-group="find"] { grid-area: find; }
+  .mobile-menu-section[data-group="lists"] { grid-area: lists; }
   .mobile-menu-section[data-group="mine"] { grid-area: mine; }
   .mobile-menu-section[data-group="learn"] { grid-area: learn; }
   .theme-switch {
@@ -657,6 +669,15 @@
 
   /* One column of rows inside each group column. */
   .mobile-menu-list { grid-template-columns: minmax(0, 1fr); }
+
+  /* Compare beside the search field, as tall as it. */
+  .mobile-menu-tool {
+    grid-area: tool;
+    margin-top: 0;
+    min-height: 48px;
+    padding: 0 var(--space-3) 0 6px;
+    border-radius: var(--radius-md);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -18,6 +18,8 @@ import { PersonalCodesProvider, usePersonalCodesCtx } from "@/components/market-
 import { T } from "@/components/i18n/T";
 import ScreenerList, { PAGE } from "./ScreenerList";
 import ListBar from "@/components/lists/ListBar";
+import CompareTray from "@/components/lists/CompareTray";
+import { MAX_COMPARE } from "@/lib/compare";
 import ScreenerPremium, { SCREENER_ANCHOR } from "./ScreenerPremium";
 import AlmostThere from "./AlmostThere";
 import ListLeft from "./ListLeft";
@@ -170,6 +172,9 @@ function ScreenerInner({ data }: { data: ScreenerUniverse }) {
   const [watchBusy, setWatchBusy] = useState(false);
   /** "Check my shares": the reader's shares against every list. */
   const [mineOpen, setMineOpen] = useState(false);
+  /** The bar's Compare box (2026-11-25): rows become ticks, the footer opens the comparison. */
+  const [picking, setPicking] = useState(false);
+  const [picked, setPicked] = useState<string[]>([]);
   const personal = usePersonalCodesCtx();
   const open = listId != null || every;
   const list = listId ? goalById.get(listId) : undefined;
@@ -184,6 +189,8 @@ function ScreenerInner({ data }: { data: ScreenerUniverse }) {
     setOwn([]);
     setOrder(null);
     setLimit(PAGE);
+    setPicking(false);
+    setPicked([]);
   }, []);
   /** A history entry for the open pop-up, so the phone's back button closes it. */
   const pushSheet = () => {
@@ -608,6 +615,25 @@ function ScreenerInner({ data }: { data: ScreenerUniverse }) {
   };
 
   const n = result.length;
+  // Compare from the pop-up: only where the shares are shown (a list is Premium).
+  const canCompare = (!judged || isPremium) && n >= 2;
+  const togglePicking = () => {
+    if (picking) {
+      setPicking(false);
+      setPicked([]);
+    } else {
+      setPicking(true);
+      trackEvent("list_compare_on", { list: listId ?? "every" });
+    }
+  };
+  const pick = canCompare && picking
+    ? {
+        picked,
+        full: picked.length >= MAX_COMPARE,
+        onPick: (code: string) =>
+          setPicked((p) => (p.includes(code) ? p.filter((c) => c !== code) : p.length >= MAX_COMPARE ? p : [...p, code])),
+      }
+    : null;
   // Opened through a want, the pop-up is named for the want; the list is its chip.
   const sheetTitle = want
     ? tt(want.name.en, want.name.bn)
@@ -643,6 +669,7 @@ function ScreenerInner({ data }: { data: ScreenerUniverse }) {
       newCodes={newCodes}
       onOpen={rememberRow}
       peek={isPremium}
+      pick={pick}
     />
   );
   /** A reader without Premium: the first rows as they are, the companies hidden, then the card. */
@@ -783,7 +810,22 @@ function ScreenerInner({ data }: { data: ScreenerUniverse }) {
         </Sheet>
 
         {/* The list, in its pop-up */}
-        <Sheet open={open} onClose={closeSheet} size="xl" title={sheetTitle} subtitle={sheetSub}>
+        <Sheet
+          open={open}
+          onClose={closeSheet}
+          size="xl"
+          title={sheetTitle}
+          subtitle={sheetSub}
+          footer={canCompare && picking ? (
+            <CompareTray
+              inSheet
+              codes={picked}
+              onRemove={(c) => setPicked((p) => p.filter((x) => x !== c))}
+              onDone={togglePicking}
+              list={listId ?? "every"}
+            />
+          ) : undefined}
+        >
           <div className="scl-wrap">
             {/* The list's line, and Watch for what the pop-up shows */}
             <div className="scl-top">
@@ -851,6 +893,7 @@ function ScreenerInner({ data }: { data: ScreenerUniverse }) {
                 ],
                 onChange: sortBy,
               } : null}
+              compare={canCompare ? { on: picking, picked: picked.length, onToggle: togglePicking } : null}
             />
 
             {/* Filters a saved screen or a link brought that the dropdowns can't show */}

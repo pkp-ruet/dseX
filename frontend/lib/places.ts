@@ -6,9 +6,20 @@
  *   Market     "What happened?"         Market today · Calendar · Sectors
  *   Lists      "Which shares to look at?" Lists (/lists): the Buy List, All companies,
  *                                       Results, For you and the research reports open
- *                                       from it; plus two tools, Compare · Portfolio builder
- *   My shares  "How are my shares?"     My shares (/my) · Portfolio · Updates
+ *                                       from it
+ *   My shares  "How are my shares?"     My shares (/my) · Portfolio · Portfolio builder · Updates
  *   Learn                               Guides and blog · How we score
+ *
+ * The two tools (2026-11-25, "Compare and Builder Homes",
+ * https://claude.ai/artifact/CJhx3MYvMxSpJSkiiHWzH4): they sat in the Lists
+ * menu as if they were lists. The Portfolio builder makes a portfolio, so it
+ * lives in My shares beside Portfolio. Compare works on shares wherever they
+ * are, so like a share's page it belongs to no place (`everyPlace`): no tab
+ * lights on it, its back link goes to the place the reader came from, the
+ * menu shows it once under the search field, and it opens from a share's
+ * page, every list, My shares and search ("GP vs ROBI"). It stays listed
+ * under Lists here so the footer, the home's explore card, search and the
+ * admin areas still find it.
  *
  * Lists (2026-11-25, step 4 of the simplify review): Find became Lists. Every
  * list of shares opens from one page (/lists) and in one view
@@ -48,6 +59,10 @@ export interface PlacePage {
   menu?: boolean;
   /** A tool reached where it is needed (Compare, the portfolio builder). */
   tool?: boolean;
+  /** Belongs to every place, like a share's page (Compare): `placeOf` skips
+   *  it, so no tab lights and the back link points to the place the reader
+   *  came from. It stays in a place's `pages` for the footer and search. */
+  everyPlace?: boolean;
 }
 
 export interface Place {
@@ -173,15 +188,11 @@ export const PLACES: Place[] = [
         ask: { en: "Which of these is stronger?", bn: "এগুলোর মধ্যে কোনটা শক্তিশালী?" },
         icon: "compare",
         tool: true,
-      },
-      {
-        key: "builder",
-        href: "/portfolio-builder",
-        name: { en: "Portfolio builder", bn: "পোর্টফোলিও বানান" },
-        line: { en: "A whole portfolio for your money, first plan free", bn: "আপনার টাকায় পুরো পোর্টফোলিও, প্রথমটি ফ্রি" },
-        ask: { en: "How should I invest my money?", bn: "আমার টাকা কীভাবে বিনিয়োগ করব?" },
-        icon: "builder",
-        tool: true,
+        // Every place leads to it, like a share's page: out of the Lists menu
+        // group (the menu shows it under search), no lit tab, a back link to
+        // where the reader came from.
+        menu: false,
+        everyPlace: true,
       },
     ],
   },
@@ -213,6 +224,17 @@ export const PLACES: Place[] = [
         ask: { en: "How is my money doing?", bn: "আমার টাকা কেমন আছে?" },
         icon: "portfolio",
         paths: ["/sample-portfolio"],
+      },
+      {
+        // The builder makes a portfolio, so it sits beside Portfolio
+        // (2026-11-25; it was a "tool" in the Lists menu).
+        key: "builder",
+        href: "/portfolio-builder",
+        name: { en: "Portfolio builder", bn: "পোর্টফোলিও বানান" },
+        line: { en: "A whole portfolio for your money, first plan free", bn: "আপনার টাকায় পুরো পোর্টফোলিও, প্রথমটি ফ্রি" },
+        ask: { en: "How should I invest my money?", bn: "আমার টাকা কীভাবে বিনিয়োগ করব?" },
+        icon: "builder",
+        tool: true,
       },
       {
         key: "updates",
@@ -264,18 +286,27 @@ const under = (pathname: string, path: string) =>
   pathname === path || pathname.startsWith(path + "/");
 
 /**
- * Which place (and page) a path belongs to. The stock page belongs to no
- * place: every place leads to it. Place pages themselves return `page: null`.
+ * Which place (and page) a path belongs to. The stock page and Compare belong
+ * to no place: every place leads to them. Place pages themselves return
+ * `page: null`.
  */
 export function placeOf(pathname: string): { place: Place; page: PlacePage | null } | null {
   for (const place of PLACES) {
     if (place.href === pathname && place.key !== "learn") return { place, page: null };
     for (const page of place.pages) {
+      if (page.everyPlace) continue;
       const paths = [page.href, ...(page.hrefBn ? [page.hrefBn] : []), ...(page.paths ?? [])];
       if (paths.some((p) => under(pathname, p))) return { place, page };
     }
   }
   return null;
+}
+
+/** A share's page and Compare: every place leads to them, so the back link
+ *  points to the place the reader last came from. */
+export function inEveryPlace(pathname: string): boolean {
+  if (pathname.startsWith("/stock/")) return true;
+  return PLACES.some((pl) => pl.pages.some((p) => p.everyPlace && under(pathname, p.href)));
 }
 
 /** The pages a menu, the footer or a place page lists (not the lists that open from /lists). */

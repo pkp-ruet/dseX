@@ -6,6 +6,8 @@ import { getInsightScores } from "@/lib/api";
 import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
 import { ALL_PAGES } from "@/lib/places";
+import { COMPARE_PATH, MAX_COMPARE, compareHref, joinBn, joinEn, shortName } from "@/lib/compare";
+import { trackEvent } from "@/lib/track";
 
 interface Company {
   trading_code: string;
@@ -111,7 +113,28 @@ function pageMatches(q: string): PageShortcut[] {
 
 type Item =
   | { kind: "page"; href: string; label: string; labelBn: string; sub: string; subBn: string }
-  | { kind: "stock"; code: string; name: string | null };
+  | { kind: "stock"; code: string; name: string | null }
+  | { kind: "compare"; codes: string[]; names: (string | null)[] };
+
+/**
+ * "GP vs ROBI" (2026-11-25, Compare moved onto the shares): a query with
+ * "vs", "versus", "বনাম" or a comma between shares, or two or more exact
+ * trading codes ("gp robi"), is a comparison. The parts are split here; the
+ * component resolves each to a company.
+ */
+const VS_TEST = /\s(?:vs\.?|versus|বনাম)(?=\s|$)|,/i;
+const VS_SPLIT = /\s+(?:vs\.?|versus|বনাম)(?=\s|$)\s*|\s*,\s*/i;
+
+function compareParts(raw: string, isCode: (s: string) => boolean): string[] | null {
+  const q = raw.trim();
+  if (!q) return null;
+  if (VS_TEST.test(` ${q}`)) {
+    const parts = q.split(VS_SPLIT).map((s) => s.trim());
+    return parts.length >= 2 ? parts.slice(0, MAX_COMPARE) : null;
+  }
+  const toks = q.split(/\s+/);
+  return toks.length >= 2 && toks.every(isCode) ? toks.slice(0, MAX_COMPARE) : null;
+}
 
 const OPEN_EVENT = "dsex:open-search";
 
@@ -221,8 +244,62 @@ export default function GlobalSearch() {
     [companies]
   );
 
-  // Pages first, then stocks — one flat list so arrow keys walk both.
+  const byCode = useMemo(() => new Map(companies.map((c) => [c.trading_code.toUpperCase(), c])), [companies]);
+
+  /** One part of "GP vs ROBI" → the company it most likely means. */
+  const bestMatch = useCallback(
+    (part: string): Company | null => {
+      const p = part.trim().toLowerCase();
+      if (p.length < 1) return null;
+      const exact = byCode.get(p.toUpperCase());
+      if (exact) return exact;
+      if (p.length < 2) return null;
+      return (
+        companies.find((c) => c.trading_code.toLowerCase().startsWith(p)) ??
+        companies.find((c) => (c.company_name ?? "").toLowerCase().startsWith(p)) ??
+        getSuggestions(p)[0] ??
+        null
+      );
+    },
+    [byCode, companies, getSuggestions],
+  );
+
+  /** "GP vs ROBI": the whole comparison first, then the last part's other
+   *  matches, each completing the comparison ("GP vs ro" → GP and ROBI). */
+  const compareItems = useMemo<Item[] | null>(() => {
+    const parts = compareParts(query, (s) => byCode.has(s.toUpperCase()));
+    if (!parts) return null;
+    const done: Company[] = [];
+    for (const part of parts.slice(0, -1)) {
+      const c = bestMatch(part);
+      if (c && !done.some((d) => d.trading_code === c.trading_code)) done.push(c);
+    }
+    const last = parts[parts.length - 1];
+    const lastPick = bestMatch(last);
+    const lastMatches = last.trim().length >= 1 ? getSuggestions(last.trim()) : [];
+    const ends = [lastPick, ...lastMatches].filter(
+      (c, i, all): c is Company =>
+        !!c && !done.some((d) => d.trading_code === c.trading_code) && all.findIndex((x) => x?.trading_code === c.trading_code) === i,
+    );
+    const out: Item[] = [];
+    const seen = new Set<string>();
+    const add = (list: Company[]) => {
+      if (list.length < 2) return;
+      const codes = list.map((c) => c.trading_code.toUpperCase());
+      const key = codes.join(",");
+      if (seen.has(key)) return;
+      seen.add(key);
+      out.push({ kind: "compare", codes, names: list.map((c) => c.company_name) });
+    };
+    if (ends.length === 0) add(done);
+    for (const c of ends.slice(0, 5)) add([...done, c]);
+    return out;
+  }, [query, byCode, bestMatch, getSuggestions]);
+
+  // Pages first, then stocks — one flat list so arrow keys walk both. A
+  // comparison ("GP vs ROBI") lists only the comparisons it could mean.
   const items = useMemo<Item[]>(() => {
+    if (compareItems) return compareItems;
     const pages = pageMatches(query).map<Item>((p) => ({
       kind: "page",
       href: p.href,
@@ -233,12 +310,20 @@ export default function GlobalSearch() {
     }));
     const stocks = getSuggestions(query).map<Item>((c) => ({ kind: "stock", code: c.trading_code, name: c.company_name }));
     return [...pages, ...stocks];
-  }, [query, getSuggestions]);
+  }, [query, getSuggestions, compareItems]);
 
   const go = useCallback(
     (item: Item) => {
-      const href = item.kind === "page" ? item.href : `/stock/${item.code.toUpperCase()}`;
-      setNavLabel(item.kind === "page" ? (bn ? item.labelBn : item.label) : item.code.toUpperCase());
+      const href =
+        item.kind === "page" ? item.href : item.kind === "compare" ? compareHref(item.codes) : `/stock/${item.code.toUpperCase()}`;
+      if (item.kind === "compare") trackEvent("search_compare", { n: item.codes.length });
+      setNavLabel(
+        item.kind === "page"
+          ? bn ? item.labelBn : item.label
+          : item.kind === "compare"
+            ? item.codes.join(" · ")
+            : item.code.toUpperCase(),
+      );
       // Keep the overlay up and show a loading state instead of freezing on
       // the current view; isPending stays true until the destination is ready.
       startTransition(() => {
@@ -369,7 +454,7 @@ export default function GlobalSearch() {
           >
             {items.map((it, i) => (
               <li
-                key={it.kind === "page" ? it.href : it.code}
+                key={it.kind === "page" ? it.href : it.kind === "compare" ? `cmp-${it.codes.join(",")}` : it.code}
                 id={`global-search-option-${i}`}
                 role="option"
                 aria-selected={i === activeIndex}
@@ -394,6 +479,18 @@ export default function GlobalSearch() {
                       <T en="Page" bn="পেজ" />
                     </span>
                   </>
+                ) : it.kind === "compare" ? (
+                  <>
+                    <span className="search-suggestion-code">
+                      <T en={`Compare ${joinEn(it.codes)}`} bn={`${joinBn(it.codes)} তুলনা`} />
+                    </span>
+                    <span className="search-suggestion-name">
+                      {it.names.map((n, j) => shortName(n, it.codes[j])).join(" · ")}
+                    </span>
+                    <span className="search-suggestion-tag">
+                      <T en="Compare" bn="তুলনা" />
+                    </span>
+                  </>
                 ) : (
                   <>
                     <span className="search-suggestion-code">{it.code}</span>
@@ -407,6 +504,11 @@ export default function GlobalSearch() {
           <div className="global-search-empty">
             {loading ? (
               <T en="Loading companies…" bn="কোম্পানির তালিকা আনা হচ্ছে…" />
+            ) : compareItems ? (
+              <T
+                en="Type the other share's code or name to compare, for example GP vs ROBI."
+                bn="তুলনা করতে অন্য শেয়ারের কোড বা নাম লিখুন, যেমন GP vs ROBI।"
+              />
             ) : (
               <T
                 en="No share or page matches that. Try the trading code (for example GP) or the company's name in English."
@@ -430,6 +532,36 @@ export default function GlobalSearch() {
                 </>
               }
             />
+            {/* Compare starts from search too (2026-11-25): "GP vs ROBI". */}
+            <button
+              type="button"
+              className="global-search-tool"
+              onClick={() =>
+                go({
+                  kind: "page",
+                  href: COMPARE_PATH,
+                  label: "Compare",
+                  labelBn: "তুলনা",
+                  sub: "",
+                  subBn: "",
+                })
+              }
+            >
+              <span className="global-search-tool-ic" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M7 7h12l-3.5-3.5" />
+                  <path d="M17 17H5l3.5 3.5" />
+                </svg>
+              </span>
+              <span className="global-search-tool-text">
+                <span className="global-search-tool-t">
+                  <T en="Compare shares" bn="শেয়ার তুলনা করুন" />
+                </span>
+                <span className="global-search-tool-d">
+                  <T en="Or type two codes, like GP vs ROBI" bn="অথবা দুটি কোড লিখুন, যেমন GP vs ROBI" />
+                </span>
+              </span>
+            </button>
           </div>
         )}
       </div>

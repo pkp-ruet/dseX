@@ -301,3 +301,97 @@
 .rr-open-k { margin: 0; font-size: var(--fs-xs); color: var(--text-muted); }
 .rr-open-acts { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .fu-panel { display: grid; gap: var(--space-3); }
+
+/* ---- Compare from any list (2026-11-25, "Compare and Builder Homes") ----
+   The list bar's fourth box switches the rows to ticks (`ListRows pick`);
+   `CompareTray` floats above the bottom bar (on a page) or sits in the
+   pop-up's footer, and opens the comparison once two are ticked. */
+.scl-controls--cmp .scl-ctl--sort { grid-column: auto; }
+.scl-controls--cmp > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+@media (min-width: 560px) {
+  .scl-controls--cmp { grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); }
+  .scl-controls--cmp > :last-child:nth-child(odd) { grid-column: auto; }
+}
+button.scl-ctl--cmp {
+  width: 100%;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  color: var(--text);
+}
+.scl-ctl-v {
+  display: block;
+  height: 52px;
+  padding: 22px 34px 6px 12px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.scl-ctl--cmp.is-on { border-color: var(--primary); background: rgb(var(--primary-rgb) / 0.08); }
+.scl-ctl--cmp.is-on .scl-ctl-v,
+.scl-ctl--cmp.is-on .scl-ctl-chev { color: var(--primary-ink); }
+
+/* A row in compare mode: a tick circle where the rank was. */
+.scl-tick {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  padding: 0;
+  border: 2px solid var(--border);
+  border-radius: 999px;
+  color: var(--on-fill);
+}
+.scl-tick.is-on { border-color: var(--primary); background: var(--primary); }
+.scl-row.is-picked > .scl-link { background: rgb(var(--primary-rgb) / 0.06); }
+button.scl-link:disabled { cursor: not-allowed; opacity: 0.55; }
+
+.lv-tray {
+  z-index: 45;
+}
+.lv-tray.above-bottom-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  padding: 0 max(12px, env(safe-area-inset-right, 0px)) 0 max(12px, env(safe-area-inset-left, 0px));
+  pointer-events: none;
+}
+.lv-tray-in {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+  max-width: 640px;
+  margin: 0 auto;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-lift);
+  pointer-events: auto;
+}
+.lv-tray--sheet .lv-tray-in { max-width: none; margin: 0; padding: 0; border: 0; box-shadow: none; background: none; }
+.lv-tray-main { flex: 1 1 14rem; min-width: 0; display: grid; gap: var(--space-1); }
+.lv-tray-codes { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.lv-tray-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--primary);
+  border-radius: 999px;
+  background: rgb(var(--primary-rgb) / 0.08);
+  color: var(--primary-ink);
+  font: inherit;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+.lv-tray-hint { margin: 0; font-size: var(--fs-xs); color: var(--text-muted); }
+.lv-tray-acts { display: flex; gap: var(--space-2); margin-left: auto; }

@@ -271,6 +271,48 @@ a.pf-hold-name:hover { color: var(--primary-ink); }
 .pf-step-d { margin: 2px 0 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--text-muted); }
 .pf-empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 28px; }
 
+/* Two equal ways to start a portfolio (2026-11-25, `StartChoices`): add the
+   shares you own, or let the builder plan your money. Side by side from 640px. */
+.pf-start {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3);
+  max-width: 640px; margin: var(--space-6) auto 0; text-align: left;
+}
+@media (min-width: 640px) { .pf-start { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.pf-start-card {
+  display: flex; flex-direction: column; gap: var(--space-2);
+  padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface);
+}
+.pf-start-card > :last-child { margin-top: auto; }
+.pf-start-card .btn-block { margin-top: auto; }
+.pf-start-ic {
+  display: inline-grid; place-items: center; flex: none; width: 36px; height: 36px;
+  border-radius: var(--radius); background: rgb(var(--primary-rgb) / 0.1); color: var(--primary);
+}
+.pf-start-t { margin: var(--space-1) 0 0; font-size: var(--fs-base); font-weight: 600; color: var(--text); }
+.pf-start-d { margin: 0 0 var(--space-2); font-size: var(--fs-sm); line-height: 1.5; color: var(--text-muted); }
+.pf-start-free { margin: 0; text-align: center; font-size: var(--fs-xs); color: var(--text-muted); }
+
+/* The builder under the reader's shares (2026-11-25, `PlanCard`): new money,
+   or the plan they built and what changed since. */
+.pf-plan {
+  display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--space-3);
+  margin-top: var(--space-4); padding: var(--space-4);
+  border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface);
+}
+.pf-plan-main { flex: 1 1 16rem; min-width: 0; }
+.pf-plan > .btn-quiet { align-self: center; }
+.pf-plan-t { margin: 0; font-size: var(--fs-base); font-weight: 600; color: var(--text); }
+.pf-plan-d { margin: 2px 0 0; font-size: var(--fs-sm); line-height: 1.55; color: var(--text-muted); }
+.pf-plan-changes { margin: var(--space-3) 0 0; padding: 0; list-style: none; display: grid; gap: var(--space-2); }
+.pf-plan-change {
+  padding: var(--space-2) var(--space-3); border-radius: var(--radius);
+  font-size: var(--fs-sm); font-weight: 600; line-height: 1.45;
+}
+.pf-plan-change--good { background: rgb(var(--positive-rgb) / 0.1); color: var(--positive); }
+.pf-plan-change--watch { background: rgb(var(--watch-rgb) / 0.1); color: var(--watch); }
+.pf-plan-change--bad { background: rgb(var(--negative-rgb) / 0.1); color: var(--negative); }
+.pf-plan-acts { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
+
 /* ---- The one Premium card ---- */
 /* The one Premium card (`PortfolioPremium`, the `.ans` look from premium.css),
    under the grade at the top of the Analysis chapter. */

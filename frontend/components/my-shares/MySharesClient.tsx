@@ -39,6 +39,8 @@ import { IconCalendar, IconChevronRight, IconClose, IconLock, IconSearch, IconWa
 import WatchSearch from "@/components/portfolio/WatchSearch";
 import ShareWatchlistButton from "@/components/watchlist/ShareWatchlistButton";
 import EmptyStateActions from "@/components/watchlist/EmptyStateActions";
+import StartChoices from "@/components/portfolio-builder/StartChoices";
+import { FREE_COMPARE, compareHref } from "@/lib/compare";
 import MyShareSheet from "./MyShareSheet";
 
 /** A "find one of your shares" field from this many shares. */
@@ -158,6 +160,15 @@ export default function MySharesClient() {
     [held, watched],
   );
   const codesKey = allCodes.join(",");
+  // "Compare your shares side by side" (2026-11-25): the ones you have most
+  // money in first, then the shares you watch; five keep the bars readable,
+  // and the compare page adds more.
+  const compareCodes = useMemo(() => {
+    const owned = [...held.entries()]
+      .sort((a, b) => b[1] * (prices.get(b[0])?.ltp ?? 0) - a[1] * (prices.get(a[0])?.ltp ?? 0))
+      .map(([c]) => c);
+    return Array.from(new Set([...owned, ...watched])).slice(0, Math.min(5, FREE_COMPARE));
+  }, [held, watched, prices]);
 
   // The dates ahead (results meetings, record dates, AGMs) on every share.
   useEffect(() => {
@@ -332,6 +343,8 @@ export default function MySharesClient() {
               bn="প্রতিদিন বাজার বন্ধের পর আমরা সেগুলো দেখি। আর্থিক ফল, ডিভিডেন্ড বা সতর্কতা এলে, আর সামনের তারিখগুলো, এখানে দেখাই।"
             />
           </p>
+          {/* The two ways to start a portfolio (2026-11-25), the same as an empty Portfolio. */}
+          <StartChoices addHref="/portfolio?add=new" from="my" />
           <EmptyStateActions />
         </section>
       ) : (
@@ -414,6 +427,12 @@ export default function MySharesClient() {
         <WatchSearch priceMap={prices} watched={watchedSet} owned={new Set(held.keys())} />
         {shares.length > 0 && (
           <div className="my-links">
+            {compareCodes.length >= 2 && (
+              <Link href={compareHref(compareCodes)} className="ms-go" data-card="my-compare">
+                <T en="Compare your shares side by side" bn="আপনার শেয়ার পাশাপাশি তুলনা করুন" />
+                <IconChevronRight size={14} />
+              </Link>
+            )}
             <ShareWatchlistButton codes={allCodes} />
             <Link href="/lists?mine=1" className="ms-go" data-card="my-on-lists">
               <T en="Which of your shares are on our lists" bn="আপনার কোন শেয়ার আমাদের তালিকায়" />

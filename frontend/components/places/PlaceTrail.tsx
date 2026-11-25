@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "@/components/ui/Link";
 import { T } from "@/components/i18n/T";
-import { placeByKey, placeOf, type PlaceKey } from "@/lib/places";
+import { inEveryPlace, placeByKey, placeOf, type PlaceKey } from "@/lib/places";
 
 const LAST_PLACE = "dsex.lastPlace";
 
@@ -14,13 +14,15 @@ const LAST_PLACE = "dsex.lastPlace";
  * a tab row (a 2026-10-26 tab row above the find pages was removed the same
  * day): you move between places with the bottom bar, and back to a place
  * from here. The stock page belongs to every place, so it points back to the
- * place the reader last came from in this tab, Lists by default. Rendered once
- * in the root layout, above each page.
+ * place the reader last came from in this tab, Lists by default; so does
+ * Compare since 2026-11-25 (it opens from a share, a list, My shares and
+ * search). Rendered once in the root layout, above each page.
  */
 export default function PlaceTrail() {
   const pathname = usePathname();
   const here = placeOf(pathname);
-  const isStock = pathname.startsWith("/stock/");
+  // A share's page or Compare: every place leads to it.
+  const isStock = inEveryPlace(pathname);
   const [from, setFrom] = useState<PlaceKey>("lists");
 
   useEffect(() => {

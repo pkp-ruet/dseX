@@ -45,6 +45,7 @@ export default function ScreenerList({
   onOpen,
   masked = false,
   peek = false,
+  pick = null,
 }: {
   rows: ScreenerRow[];
   keyFig: string;
@@ -56,6 +57,8 @@ export default function ScreenerList({
   onOpen?: (code: string) => void;
   masked?: boolean;
   peek?: boolean;
+  /** The bar's Compare box is on: rows tick instead of opening (2026-11-25). */
+  pick?: { picked: string[]; onPick: (code: string) => void; full: boolean } | null;
 }) {
   const def = defs.get(keyFig);
   const head = keyHead(keyFig, def);
@@ -86,6 +89,7 @@ export default function ScreenerList({
       masked={masked}
       renderOpen={peek ? (row) => <QuickLook row={row.data!} onOpen={onOpen} /> : undefined}
       onLeave={onOpen}
+      pick={pick}
     />
   );
 }

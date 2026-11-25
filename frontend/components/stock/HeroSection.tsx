@@ -277,7 +277,13 @@ export default function HeroSection({ detail }: Props) {
 
       {/* The buttons sit under the card, so a screenshot of the card stops at
           its edge. */}
-      <CoverActions code={code} name={name} ltp={ltp} score={score} />
+      <CoverActions
+        code={code}
+        name={name}
+        ltp={ltp}
+        score={score}
+        peers={(detail.related_stocks ?? []).slice(0, 6).map((r) => ({ code: r.trading_code, name: r.company_name }))}
+      />
 
       {/* The reader's own stake (signed-in holder / watcher) — their own
           facts, free for every reader. */}

@@ -61,6 +61,8 @@ import { getStoredUser } from "@/lib/auth";
 import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
 import Sheet from "@/components/ui/Sheet";
+import PlanCard from "@/components/portfolio-builder/PlanCard";
+import StartChoices from "@/components/portfolio-builder/StartChoices";
 import AllocationChart from "./AllocationChart";
 import SectorBreakdownChart from "./SectorBreakdownChart";
 import { OpenScope, PageLockScope } from "@/components/premium/LockScope";
@@ -956,7 +958,8 @@ export default function PortfolioClient() {
   }
 
   // ?share=CODE opens that share's sheet; ?add=CODE the add dialog on it
-  // (My shares' "I own it"). Once the portfolio is in, on the main portfolio.
+  // (My shares' "I own it"), ?add=new an empty one. Once the portfolio is in,
+  // on the main portfolio.
   useEffect(() => {
     const p = pending.current;
     if ((!p.share && !p.add) || dataLoading || !isMain) return;
@@ -965,7 +968,8 @@ export default function PortfolioClient() {
       if (r) setSheetId(r.holding.id);
     }
     if (p.add) {
-      setAddInitial(p.add);
+      // `?add=new` (My shares' "Add my shares") opens the dialog empty.
+      setAddInitial(p.add === "NEW" ? undefined : p.add);
       openAdd();
     }
     pending.current = { share: null, add: null };
@@ -1264,6 +1268,26 @@ export default function PortfolioClient() {
 
       {holdings.length === 0 ? (
         <div className="flex flex-col gap-4">
+          {isMain && !readOnly ? (
+            // Two equal ways to start (2026-11-25, "Compare and Builder Homes"):
+            // add the shares you own, or let the builder plan your money.
+            <section className={`soft-card pf-empty pf-rise ${bnCls}`} lang={bn ? "bn" : undefined}>
+              <h2 className="pf-empty-title">{L("Start your portfolio", "আপনার পোর্টফোলিও শুরু করুন")}</h2>
+              <p className="pf-empty-text">
+                {L(
+                  "After that, this page shows your profit and loss, dividends, news and what to do with each share, every day.",
+                  "এরপর প্রতিদিন এই পেজে আপনার লাভ-লোকসান, ডিভিডেন্ড, খবর আর প্রতিটি শেয়ার নিয়ে কী করবেন, তা দেখবেন।",
+                )}
+              </p>
+              <StartChoices onAdd={openAdd} from="portfolio" />
+              <p className="pf-empty-text">
+                {L("Not sure yet? ", "এখনো নিশ্চিত নন? ")}
+                <Link href="/sample-portfolio/diversified" className="font-semibold text-primary">
+                  {L("See a sample portfolio", "নমুনা পোর্টফোলিও দেখুন")}
+                </Link>
+              </p>
+            </section>
+          ) : (
           <section className={`soft-card pf-empty pf-rise ${bnCls}`} lang={bn ? "bn" : undefined}>
             <h2 className="pf-empty-title">{L("Start tracking your portfolio", "আপনার পোর্টফোলিও শুরু করুন")}</h2>
             <p className="pf-empty-text">
@@ -1295,17 +1319,8 @@ export default function PortfolioClient() {
                 {L("See a sample portfolio", "নমুনা পোর্টফোলিও দেখুন")}
               </Button>
             </div>
-            {/* 2026-11-23: the biggest moment for the portfolio builder. */}
-            <p className="pf-empty-text">
-              {L("No shares yet? ", "এখনো কোনো শেয়ার নেই? ")}
-              <Link href="/portfolio-builder" className="font-semibold text-primary">
-                {L(
-                  "Tell us how much you want to invest, and we'll build a portfolio.",
-                  "কত টাকা বিনিয়োগ করতে চান বলুন, আমরা পোর্টফোলিও বানিয়ে দেব।",
-                )}
-              </Link>
-            </p>
           </section>
+          )}
 
           {/* A reader who sold everything still has their records */}
           <CorrectionsCard
@@ -1486,17 +1501,10 @@ export default function PortfolioClient() {
                 </Button>
               </div>
             )}
-            {/* 2026-11-23, the portfolio builder phase 2: new money added to these shares. */}
+            {/* The portfolio builder under your shares (2026-11-25; a line of
+                text until then): new money, or the plan you built and what changed. */}
             {isMain && !readOnly && (
-              <p className="pf-empty-text">
-                {L("Have new money to add? ", "নতুন টাকা যোগ করবেন? ")}
-                <Link href="/portfolio-builder?start=mine&src=portfolio" className="font-semibold text-primary">
-                  {L(
-                    "We'll split it across strong companies without making any share or business too big.",
-                    "কোনো শেয়ার বা ব্যবসা বেশি বড় না করে আমরা তা শক্তিশালী কোম্পানিতে ভাগ করে দেব।",
-                  )}
-                </Link>
-              </p>
+              <PlanCard heldCodes={new Set(holdings.map((h) => h.trading_code.toUpperCase()))} />
             )}
           </section>
 

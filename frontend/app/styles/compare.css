@@ -304,3 +304,81 @@
 .cmp-bars--mini .cmp-br { grid-template-columns: minmax(0, 8rem) minmax(0, 1fr) 3.6rem; gap: var(--space-2); }
 .cmp-bars--mini .cmp-br-co { -webkit-line-clamp: 1; }
 .fcc-more { padding-top: var(--space-2); border-top: 1px dashed var(--border); font-size: var(--fs-xs); font-weight: 600; color: var(--primary-ink); }
+
+/* "Compare GP with…" — the stock page's Compare button opens this sheet
+   (2026-11-25, Compare moved onto the shares): the reader's own shares,
+   similar companies and a search, each a chip to tick; the button at the
+   foot opens the comparison already filled. */
+.cmp-pick { display: grid; gap: var(--space-4); }
+.cmp-pick-group { display: grid; gap: var(--space-2); }
+.cmp-pick-h { margin: 0; font-size: var(--fs-xs); color: var(--text-muted); }
+.cmp-pick-chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.cmp-pick-chip {
+  min-height: 40px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.cmp-pick-chip:hover { border-color: var(--text-muted); }
+.cmp-pick-chip.is-on {
+  border-color: var(--primary);
+  background: rgb(var(--primary-rgb) / 0.1);
+  color: var(--primary-ink);
+}
+.cmp-pick-chip:disabled { opacity: 0.5; cursor: not-allowed; }
+.cmp-pick-search { position: relative; }
+.cmp-pick-search .input-field { padding-left: 38px; }
+.cmp-pick-search-ic {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  display: inline-flex;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.cmp-pick-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.cmp-pick-list > li + li { border-top: 1px solid var(--border); }
+.cmp-pick-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 48px;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.cmp-pick-row:hover { background: var(--surface-2); }
+.cmp-pick-row:disabled { opacity: 0.5; cursor: not-allowed; }
+.cmp-pick-row-c { flex: none; font-size: var(--fs-sm); font-weight: 600; }
+.cmp-pick-row-n {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+.cmp-pick-row-a { flex: none; font-size: var(--fs-xs); font-weight: 600; color: var(--primary-ink); }
+.cmp-pick-row.is-on .cmp-pick-row-a { color: var(--positive); }
+.cmp-pick-note { margin: 0; padding: var(--space-2) var(--space-3); font-size: var(--fs-xs); color: var(--text-muted); }
+.cmp-pick > .cmp-pick-note { padding: 0; }

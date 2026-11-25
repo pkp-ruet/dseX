@@ -25,6 +25,7 @@ const FREE_PART: Record<string, Bi> = {
 };
 const FREE_WORD: Record<string, Bi> = {
   rules: { en: `${RULES} free`, bn: `${RULES}টি ফ্রি` },
+  builder: { en: "First plan free", bn: "প্রথম প্ল্যান ফ্রি" },
 };
 
 const FREE_LIST: Bi[] = [

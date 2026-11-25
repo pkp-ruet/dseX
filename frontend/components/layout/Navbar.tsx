@@ -24,7 +24,10 @@ import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
 import LangSwitch from "@/components/layout/LangSwitch";
 import ThemeSwitch, { ThemeToggleButton } from "@/components/layout/ThemeSwitch";
-import { PLACES, TAB_PLACES, menuPages, placeOf, type PlacePage } from "@/lib/places";
+import { PLACES, TAB_PLACES, menuPages, pageByKey, placeOf, type PlacePage } from "@/lib/places";
+
+/** Compare sits with search in the menu (2026-11-25): every place leads to it. */
+const COMPARE_PAGE = pageByKey("compare");
 
 const OPEN_DRAWER_EVENT = "dsex:open-drawer";
 
@@ -384,6 +387,29 @@ export default function Navbar() {
               </span>
               <kbd className="kbd-hint" aria-hidden="true">/</kbd>
             </button>
+
+            {/* Compare, right under search (2026-11-25): it works on shares
+                wherever they are, so it belongs to no place's group. */}
+            <Link
+              href={COMPARE_PAGE.href}
+              className="mobile-menu-shortcut mobile-menu-tool"
+              aria-current={pathname === COMPARE_PAGE.href ? "page" : undefined}
+              data-card="menu-compare"
+              onClick={closeMenu}
+            >
+              <span className="mobile-menu-shortcut-icon">
+                <MenuIcon name={COMPARE_PAGE.icon} />
+              </span>
+              <span className="mobile-menu-shortcut-text">
+                <span className="mobile-menu-shortcut-label">
+                  <T en={COMPARE_PAGE.name.en} bn={COMPARE_PAGE.name.bn} />
+                </span>
+                <span className="mobile-menu-shortcut-sub">
+                  <T en={COMPARE_PAGE.line.en} bn={COMPARE_PAGE.line.bn} />
+                </span>
+              </span>
+              <IconChevron size={16} />
+            </Link>
 
             {/* Account */}
             {isLoggedIn ? (

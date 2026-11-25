@@ -6,6 +6,8 @@ import { T } from "@/components/i18n/T";
 import ListBar, { type BarOption } from "./ListBar";
 import { usePersonalCodesCtx } from "@/components/market-analysis/PersonalCodes";
 import ListRows, { LIST_PAGE, type ListGroup } from "./ListRows";
+import CompareTray from "./CompareTray";
+import { MAX_COMPARE } from "@/lib/compare";
 import { useUrlParams, useUrlSync } from "@/lib/use-url-state";
 import { trackEvent } from "@/lib/track";
 import { sectorBn } from "@/lib/bn";
@@ -29,6 +31,11 @@ const EMPTY: { title: Bi; message?: Bi } = {
  * `sync` mirrors the choices into the URL (`sector`, `price`, `sort`, the
  * chip under `chipParam`, `q`), so a shared link or the back button reopens
  * the same view; give it to at most one list on a page.
+ *
+ * Compare (2026-11-25, "Compare and Builder Homes"): the bar's fourth box
+ * turns the rows into ticks and shows `CompareTray`, which opens the
+ * comparison once two are ticked. Off on a masked list (`compare={false}`
+ * or `masked`): there is no company to tick.
  */
 export default function ListView<T>({
   id,
@@ -61,6 +68,7 @@ export default function ListView<T>({
   card = true,
   above,
   track,
+  compare = true,
 }: {
   /** Unique on the page: the bar's control ids. */
   id: string;
@@ -100,7 +108,23 @@ export default function ListView<T>({
   above?: (shown: number) => ReactNode;
   /** GA area name for `list_narrow`. */
   track?: string;
+  /** The Compare box (default on; never on a masked list). */
+  compare?: boolean;
 }) {
+  const canCompare = compare && !masked && rows.length >= 2;
+  const [picking, setPicking] = useState(false);
+  const [picked, setPicked] = useState<string[]>([]);
+  const togglePicking = () => {
+    if (picking) {
+      setPicking(false);
+      setPicked([]);
+    } else {
+      setPicking(true);
+      trackEvent("list_compare_on", { list: track ?? id });
+    }
+  };
+  const onPick = (code: string) =>
+    setPicked((p) => (p.includes(code) ? p.filter((c) => c !== code) : p.length >= MAX_COMPARE ? p : [...p, code]));
   const [sector, setSector] = useState("");
   const [price, setPrice] = useState(-1);
   const [ownChip, setOwnChip] = useState("");
@@ -203,6 +227,7 @@ export default function ListView<T>({
       sector={sectors.length > 1 ? { value: sector, all: count({ sector: "" }), options: sectorOpts, onChange: (v) => { setSector(v); narrow("sector", v); } } : null}
       price={priceFilter ? { value: price >= 0 ? String(price) : "", all: count({ price: -1 }), options: priceOpts, onChange: (v) => { setPrice(v === "" ? -1 : Number(v)); narrow("price", v); } } : null}
       sort={sorts.length > 1 ? { value: sortId, options: sorts.map((s) => ({ value: s.id, label: s.label })), onChange: (v) => { setSortId(v); narrow("sort", v); } } : null}
+      compare={canCompare ? { on: picking, picked: picked.length, onToggle: togglePicking } : null}
     />
   );
 
@@ -232,6 +257,15 @@ export default function ListView<T>({
           onToggle={onToggle}
           groupOf={inOwnOrder && !searching ? groupOf : undefined}
           rowId={rowId}
+          pick={canCompare && picking ? { picked, onPick, full: picked.length >= MAX_COMPARE } : null}
+        />
+      )}
+      {canCompare && picking && (
+        <CompareTray
+          codes={picked}
+          onRemove={(c) => setPicked((p) => p.filter((x) => x !== c))}
+          onDone={togglePicking}
+          list={track ?? id}
         />
       )}
     </div>

@@ -69,8 +69,9 @@ export default function PortfolioBuilderPage() {
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
-          { "@type": "ListItem", position: 2, name: "Lists", item: `${BASE_URL}/lists` },
-          { "@type": "ListItem", position: 3, name: "Portfolio builder", item: URL },
+          // In My shares since 2026-11-25; /my is personal (noindex), so the
+          // trail goes straight from Home, like Compare's.
+          { "@type": "ListItem", position: 2, name: "Portfolio builder", item: URL },
         ],
       },
     ],

@@ -4,7 +4,7 @@ import { Fragment, useEffect, useState, type ReactNode } from "react";
 import Link from "@/components/ui/Link";
 import Button from "@/components/ui/Button";
 import TierPill from "@/components/ui/TierPill";
-import { IconChevronDown } from "@/components/ui/icons";
+import { IconCheck, IconChevronDown } from "@/components/ui/icons";
 import MaskedName from "@/components/premium/MaskedName";
 import { PersonalMark } from "@/components/market-analysis/PersonalCodes";
 import { T } from "@/components/i18n/T";
@@ -50,6 +50,8 @@ export interface ListGroup {
  *   `hidden` until "Show all" (the ranking).
  * `groupOf` puts a heading over each run of rows that share one (Results by
  * day, For you by share); the list passes it only in its own order.
+ * - `pick` — the list bar's Compare switch is on (2026-11-25): a tap ticks
+ *   the row instead of opening it, a tick circle stands where the rank was.
  */
 export default function ListRows<T>({
   rows,
@@ -68,6 +70,7 @@ export default function ListRows<T>({
   onLeave,
   groupOf,
   rowId,
+  pick,
 }: {
   rows: ListRow<T>[];
   figHead: Bi;
@@ -86,7 +89,10 @@ export default function ListRows<T>({
   onLeave?: (code: string) => void;
   groupOf?: (row: ListRow<T>) => ListGroup | null;
   rowId?: (row: ListRow<T>) => string;
+  /** Compare mode: the ticked codes, and what a tap does. */
+  pick?: { picked: string[]; onPick: (code: string) => void; full: boolean } | null;
 }) {
+  const picking = !!pick && !masked;
   const [openCode, setOpenCode] = useState<string | null>(defaultOpen);
   useEffect(() => {
     if (defaultOpen) setOpenCode(defaultOpen);
@@ -104,7 +110,7 @@ export default function ListRows<T>({
   return (
     <div className={`scl${masked ? " scl--masked" : ""}`}>
       <div className="scl-head" aria-hidden="true">
-        <span className="scl-h-rank">#</span>
+        <span className="scl-h-rank">{picking ? "" : "#"}</span>
         <span className="scl-h-main"><T en="Company" bn="কোম্পানি" /></span>
         <span className="scl-h-px">{masked || !showPrice ? null : <T en="Price today" bn="আজকের দাম" />}</span>
         <span className="scl-h-fig"><T en={figHead.en} bn={figHead.bn} /></span>
@@ -115,13 +121,20 @@ export default function ListRows<T>({
           const g = groupOf?.(r) ?? null;
           const head = g && g.id !== lastGroup ? g : null;
           if (g) lastGroup = g.id;
-          const isOpen = !!renderOpen && openCode === r.code && !masked;
+          const isOpen = !!renderOpen && openCode === r.code && !masked && !picking;
+          const ticked = picking && pick!.picked.includes(r.code.toUpperCase());
           const fig = r.fig;
           const sector = r.sector ? <span className="scl-sector"><T en={r.sector} bn={sectorBn(r.sector)} /></span> : null;
 
           const inner = (
             <>
-              <span className="scl-rank nums">{r.rank ?? i + 1}</span>
+              {picking ? (
+                <span className={`scl-rank scl-tick${ticked ? " is-on" : ""}`} aria-hidden="true">
+                  {ticked && <IconCheck size={14} />}
+                </span>
+              ) : (
+                <span className="scl-rank nums">{r.rank ?? i + 1}</span>
+              )}
               <span className="scl-main">
                 <span className="scl-name">
                   {masked ? <MaskedName name={r.name} /> : <span className="scl-name-t">{r.name}</span>}
@@ -146,7 +159,7 @@ export default function ListRows<T>({
                 <span className={`scl-fig-v nums ${TONE_CLASS[fig?.tone ?? ""]}${fig?.words ? " is-words" : ""}`}>
                   {fig ? (fig.en === fig.bn ? fig.en : <T en={fig.en} bn={fig.bn} />) : "—"}
                 </span>
-                {renderOpen && !masked && (
+                {renderOpen && !masked && !picking && (
                   <span className={`scl-chev${isOpen ? " is-open" : ""}`} aria-hidden="true">
                     <IconChevronDown size={16} />
                   </span>
@@ -163,9 +176,19 @@ export default function ListRows<T>({
                   {head.line && <span className="lv-group-l"><T en={head.line.en} bn={head.line.bn} /></span>}
                 </li>
               )}
-              <li id={idOf(r)} className={`scl-row${isOpen ? " is-open" : ""}`} hidden={hide || undefined}>
+              <li id={idOf(r)} className={`scl-row${isOpen ? " is-open" : ""}${ticked ? " is-picked" : ""}`} hidden={hide || undefined}>
                 {masked ? (
                   <div className="scl-link">{inner}</div>
+                ) : picking ? (
+                  <button
+                    type="button"
+                    className="scl-link"
+                    aria-pressed={ticked}
+                    disabled={!ticked && pick!.full}
+                    onClick={() => pick!.onPick(r.code.toUpperCase())}
+                  >
+                    {inner}
+                  </button>
                 ) : renderOpen ? (
                   <button
                     type="button"

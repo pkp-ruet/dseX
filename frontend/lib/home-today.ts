@@ -18,8 +18,13 @@ export type Bi = { en: string; bn: string };
  *  readers opened most from the home that have no other door on it
  *  (page-view data 4–25 Nov: Buy List 11 trips in 100, All companies 4,
  *  Lists 4, For you 3, Market today 3, Calendar 2, Compare 1, Results). Keys
- *  of `lib/places.ts`, so each name is the page's one name. */
-export const SHORTCUTS = ["buylist", "companies", "today", "calendar", "results", "foryou", "compare", "lists"] as const;
+ *  of `lib/places.ts`, so each name is the page's one name.
+ *  2026-11-25 ("Compare and Builder Homes"): the Portfolio builder took the
+ *  Lists icon's place. Lists is a bottom tab on phones and a navbar link on
+ *  desktop, so it was the one icon that repeated another door; the builder's
+ *  home icon and slide had brought 29 of its first 57 opens and both left the
+ *  home that morning. */
+export const SHORTCUTS = ["buylist", "companies", "today", "calendar", "results", "foryou", "compare", "builder"] as const;
 export type ShortcutKey = (typeof SHORTCUTS)[number];
 
 export interface Badge {
